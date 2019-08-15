@@ -1,12 +1,12 @@
- #WeCMDB User Guide
+ # WeCMDB User Guide
 
 ## 主菜单介绍
 ![主页面](images/cmdb_main.png)
 CMDB的功能分为三大菜单：系统管理、配置管理、信息查询。下面详细介绍每个菜单下的每个功能。
 
-##系统管理
+## 系统管理
 系统管理包括权限管理、日志查询。
-###权限管理
+### 权限管理
 权限管理包含角色管理、角色用户管理、数据权限、菜单管理四大功能模块。
 ![权限管理主页面](images/permission_main.png)
 
@@ -46,10 +46,10 @@ CMDB的功能分为三大菜单：系统管理、配置管理、信息查询。�
 ![日志查询](images/log_search.png)
 
 
-##配置管理
+## 配置管理
 配置管理包括基础配置管理、配置信息管理、综合查询管理。
 
-###基础配置管理
+### 基础配置管理
 点击下拉菜单进入功能页面：
 ![基础配置管理主页面](images/basic_config_main.png)
 
@@ -106,7 +106,7 @@ CMDB的功能分为三大菜单：系统管理、配置管理、信息查询。�
 在枚举值列表中，可以点击不同的操作按钮“上移”、“下移”、“编辑”、“删除”，进行对应的功能操作
 ![私有枚举值编辑页面](images/basic_config_private_code_edit.png)
 
-###配置信息管理
+### 配置信息管理
 点击下拉菜单进入功能页面：
 ![配置信息管理主页面](images/config_mgmt_main.png)
 1. 根据左侧的CMDB模型层级选择对应层级下的CI Type。
@@ -132,7 +132,7 @@ CI Type属性操作：编辑、删除、应用、回滚、作废。
 ![配置信息管理CI Type属性编辑页面](images/config_mgmt_citype_attr_edit.png)
 
 
-###综合查询管理
+### 综合查询管理
 点击下拉菜单进入功能主页面
 ![综合查询管理主页面](images/common_interface_main.png)
 1. 根据左侧的CMDB模型层级选择对应层级下的CI Type。
@@ -159,9 +159,9 @@ CI Type属性操作：编辑、删除、应用、回滚、作废。
 ![综合查询管理查询结果页面](images/common_interface_mgmt.png)
 
 
-##信息查询
+## 信息查询
 信息查询包括配置查询、综合查询。
-###配置查询
+### 配置查询
 1. 根据左侧的CMDB模型层级选择对应层级下的CI Type。
 ![配置查询CI Type选择页面](images/query_config_search.png)
 2. 选择选择CI Type后，右侧显示CI Type的查询条件以及数据。
@@ -173,7 +173,7 @@ CI Type属性操作：编辑、删除、应用、回滚、作废。
 新增CIType属性
 ![配置查询属性新增页面](images/query_config_attr_add.png)
 
-###综合查询
+### 综合查询
 1. 根据左侧的CMDB模型层级选择对应层级下的CI Type。
 ![综合查询CIType选择页面](images/common_interface_runner_search.png)
 在右侧输入框中输入综合查询名称或者从下拉列表中选择。
