@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Wecube Core</title>
+    <meta charset="utf-8"/>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+<h1>Hi <span th:text="${login_user}"></span>, welcome to <span th:text="${system_name}">Here</span>!!!</h1>
+<ul>
+    <li><a href="/swagger-ui.html">API Document</a></li>
+</ul>
+</body>
+</html>
