@@ -1,0 +1,46 @@
+server:
+  port: 9080
+  address: localhost
+  servlet:
+    context-path: /cmdb
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    #url: jdbc:mysql://localhost:13306/cmdb_os?characterEncoding=utf8&serverTimezone=UTC
+    #url: jdbc:mysql://localhost:13306/cmdb_nm?characterEncoding=utf8&serverTimezone=UTC
+    #username: root
+    #password: 123456
+#smoke
+    #url: jdbc:mysql://10.107.108.227:3306/fprs?characterEncoding=utf8&serverTimezone=UTC
+    #username: fprs
+    #password: Abcd1234
+#uat
+    url: jdbc:mysql://10.107.108.227:3306/wecube_core_03?characterEncoding=utf8&serverTimezone=UTC
+    username: wecube_core_03
+    password: Abcd1234
+
+
+  jpa:
+    database: MySQL
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+cmdb:
+  datasource:
+    schema: fprs
+
+logging:
+  level:
+    root: INFO
+    com:
+      webank:
+        cmdb: DEBUG
+
+cas-server:
+  url: http://10.107.118.27:8080/cas
+  enabled: false
+  whitelist-ip-address: 127.0.0.1,10.107.117.154,10.36.0.186,10.35.0.226,10.36.16.186,10.36.2.71,10.35.0.211,10.35.0.210,10.36.1.207,10.35.1.23,10.35.1.141,10.36.2.126,10.56.161.132,10.35.1.24
+
+

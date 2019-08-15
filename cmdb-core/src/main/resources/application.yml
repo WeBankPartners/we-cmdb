@@ -1,0 +1,28 @@
+server:
+  port: 9080
+  #port: 9090
+  address: 0.0.0.0
+  servlet:
+    context-path: /cmdb
+
+spring:
+  banner:
+    location: classpath:/cmdb.txt
+  profiles:
+    active: dev
+
+  cache:
+    type: caffeine
+    caffeine:
+      spec: expireAfterWrite=30s
+
+  jpa:
+    database: mysql
+    show-sql: false
+    hibernate:
+      ddl-auto: none
+
+cas-server:
+  url: http://10.107.118.27:8080/cas
+  enabled: false
+  whitelist-ip-address:

@@ -1,0 +1,15 @@
+target/
+# Ignore the generated front-end resource
+**/resources/static/
+# Ignore the generated index.html
+**/resources/templates/index.html
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+*.project
+*.settings
+*.classpath
+*.orig
