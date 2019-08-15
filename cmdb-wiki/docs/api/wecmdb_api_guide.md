@@ -1,5 +1,5 @@
 # CMDB API V2  
-提供统一接口定义，为使用者提供清晰明了的使用方法，  
+提供统一接口定义，为使用者提供清晰明了的使用方法
 
 ## API 操作资源 （Resources）:  
 **枚举**
@@ -7,7 +7,7 @@
 - 枚举目录 - [EnumCat](#EnumCat)  
 - 枚举名/值 - [EnumCode](#EnumCode) 
 
-**配置：**  
+**配置**  
 - 配置项类型 - [CiType](#CiType) 
 - 配置项类型属性 - [CiTypeAttr](#CiTypeAttr) 
 - 配置项 - [Ci](#Ci) 
@@ -20,7 +20,7 @@
 - 配置项属性授权 - [Role_CiTypeAttr](#Role_CiTypeAttr)
 - 配置项属性权限生效条件 - [Role_CiTypeAttr_Conditon](#Role_CiTypeAttr_Conditon)
 
-**其他：**  
+**其他**  
 - 综合查询 - [IntQuery](#IntQuery)  
 - 图标 - [Image](#Image)  
 - 常量 - [Constants](#Constants)  
