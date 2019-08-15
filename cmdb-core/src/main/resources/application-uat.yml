@@ -1,0 +1,34 @@
+server:
+  port: 37000
+  address: 127.0.0.1
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/wecube_core_03?characterEncoding=utf8&serverTimezone=UTC
+    username: wecube_core_03
+    password: password
+  jpa:
+    database: MySQL
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+
+cmdb:
+  datasource:
+    schema: wecube_core_03
+
+logging:
+  level:
+    root: INFO
+    com:
+      webank:
+        cmdb: DEBUG
+
+cas-server:
+  url: http://127.0.0.1:8080/cas
+  enabled: true
+  whitelist-ip-address: 127.0.0.1
+
+
