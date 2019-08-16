@@ -1,7 +1,6 @@
 server:
   port: 9080
-  #port: 9090
-  address: 0.0.0.0
+  address: localhost
   servlet:
     context-path: /cmdb
 
@@ -10,19 +9,35 @@ spring:
     location: classpath:/cmdb.txt
   profiles:
     active: dev
-
   cache:
     type: caffeine
     caffeine:
       spec: expireAfterWrite=30s
-
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://db-server:3306/db_schema?characterEncoding=utf8&serverTimezone=UTC
+    username: db_user
+    password: db_password
   jpa:
-    database: mysql
-    show-sql: false
+    database: MySQL
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    show-sql: true
     hibernate:
       ddl-auto: none
 
+cmdb:
+  datasource:
+    schema: db_user
+
+logging:
+  level:
+    root: INFO
+    com:
+      webank:
+        cmdb: DEBUG
+
 cas-server:
-  url: http://10.107.118.27:8080/cas
-  enabled: false
+  url: http://localhost:8080/cas
+  enabled: true
   whitelist-ip-address:
+  redirect-app-addr:
