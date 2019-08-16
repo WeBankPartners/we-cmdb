@@ -1,34 +1,18 @@
 server:
   port: 37000
-  address: 127.0.0.1
+  address: localhost
 
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/wecube_core_03?characterEncoding=utf8&serverTimezone=UTC
-    username: wecube_core_03
-    password: password
-  jpa:
-    database: MySQL
-    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
-    show-sql: true
-    hibernate:
-      ddl-auto: none
+    url: jdbc:mysql://uat_db-server:3306/uat_db_schema?characterEncoding=utf8&serverTimezone=UTC
+    username: uat_db_user
+    password: uat_db_password
 
 cmdb:
   datasource:
-    schema: wecube_core_03
-
-logging:
-  level:
-    root: INFO
-    com:
-      webank:
-        cmdb: DEBUG
+    schema: uat_db_user
 
 cas-server:
-  url: http://127.0.0.1:8080/cas
+  url: http://uat-cas-server:8080/cas
   enabled: true
-  whitelist-ip-address: 127.0.0.1
-
-
