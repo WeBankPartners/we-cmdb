@@ -1,0 +1,18 @@
+server:
+  port: 37000
+  address: localhost
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://prod_db-server:3306/prod_db_schema?characterEncoding=utf8&serverTimezone=UTC
+    username: prod_db_user
+    password: prod_db_password
+
+cmdb:
+  datasource:
+    schema: prod_db_user
+
+cas-server:
+  url: http://prod-cas-server:8080/cas
+  enabled: true
