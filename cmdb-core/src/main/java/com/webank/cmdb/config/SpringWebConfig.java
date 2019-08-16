@@ -51,6 +51,9 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     @Value("${cas-server.enabled}")
     private boolean enabled;
 
+    @Value("${cas-server.redirect-app-addr}")
+    private String casRedirectAppAddr;
+
     @Value("#{'${cas-server.whitelist-ipaddress}'.split(',')}")
     private List<String> whitelistIpaddress;
 
@@ -154,13 +157,14 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
         return properties;
     }
 
-    private String getServerUrl() {
-        String serverUrl = null;
-        if (serverProperties.getServlet().getContextPath() != null) {
-            serverUrl = String.format("http://%s:%d%s", serverProperties.getAddress().getHostAddress(), serverProperties.getPort(), serverProperties.getServlet().getContextPath());
-        } else {
-            serverUrl = String.format("http://%s:%d", serverProperties.getAddress().getHostAddress(), serverProperties.getPort());
-        }
-        return serverUrl;
-    }
+	private String getServerUrl() {
+		String serverUrl = null;
+		if (serverProperties.getServlet().getContextPath() != null) {
+			serverUrl = String.format("http://%s%s", casRedirectAppAddr, serverProperties.getServlet().getContextPath());
+		} else {
+			serverUrl = String.format("http://%s", casRedirectAppAddr);
+		}
+		return serverUrl;
+	}
+
 }
