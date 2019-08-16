@@ -3,6 +3,7 @@ target/
 **/resources/static/
 # Ignore the generated index.html
 **/resources/templates/index.html
+**/resources/application-dev.yml
 
 ### IntelliJ IDEA ###
 .idea

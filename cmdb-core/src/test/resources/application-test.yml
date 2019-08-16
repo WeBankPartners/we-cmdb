@@ -26,7 +26,4 @@ logging:
         SQL: INFO
 
 cas-server:
-  url: http://127.0.0.1:8080/cas
   enabled: false
-  whitelist-ip-address: 127.0.0.1
-
