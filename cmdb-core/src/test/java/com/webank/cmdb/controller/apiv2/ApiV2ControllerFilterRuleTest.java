@@ -123,7 +123,7 @@ public class ApiV2ControllerFilterRuleTest extends AbstractBaseControllerTest {
         mvc.perform(post("/api/v2/ci/referenceDatas/{reference-attr-id}/query", referenceAttrId).contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(jsonPath("$.statusCode", is("OK")))
-                .andExpect(jsonPath("$.data.contents[0].key_name", is("MGMT_APP_01-localhost")));
+                .andExpect(jsonPath("$.data.contents[0].key_name", is("MGMT_APP_01-10.0.16.200")));
     }
 
     @Test
@@ -156,7 +156,7 @@ public class ApiV2ControllerFilterRuleTest extends AbstractBaseControllerTest {
         Dialect dialect = new Dialect();
         dialect.setData(ciData);
         request.setDialect(dialect);
-        request.setFilters(Lists.newArrayList(new Filter("key_name", "eq", "MGMT_APP_01-localhost")));
+        request.setFilters(Lists.newArrayList(new Filter("key_name", "eq", "MGMT_APP_01-10.0.16.200")));
 
         String jsonReq = JsonUtil.toJsonString(request);
 
@@ -164,7 +164,7 @@ public class ApiV2ControllerFilterRuleTest extends AbstractBaseControllerTest {
                 .content(jsonReq))
                 .andExpect(jsonPath("$.statusCode", is("OK")))
                 .andExpect(jsonPath("$.data.contents", hasSize(equalTo(1))))
-                .andExpect(jsonPath("$.data.contents[0].key_name", is("MGMT_APP_01-localhost")));
+                .andExpect(jsonPath("$.data.contents[0].key_name", is("MGMT_APP_01-10.0.16.200")));
     }
 
     @Test
@@ -185,7 +185,7 @@ public class ApiV2ControllerFilterRuleTest extends AbstractBaseControllerTest {
         mvc.perform(post("/api/v2/ci/referenceDatas/{reference-attr-id}/query", referenceAttrId).contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(jsonPath("$.statusCode", is("OK")))
-                .andExpect(jsonPath("$.data.contents[0].key_name", is("MGMT_APP_01-localhost")));
+                .andExpect(jsonPath("$.data.contents[0].key_name", is("MGMT_APP_01-10.0.16.200")));
     }
 
     @Test
@@ -197,8 +197,8 @@ public class ApiV2ControllerFilterRuleTest extends AbstractBaseControllerTest {
                 .content("{}"))
                 .andExpect(jsonPath("$.statusCode", is("OK")))
                 .andExpect(jsonPath("$.data.contents", hasSize(equalTo(2))))
-                .andExpect(jsonPath("$.data.contents[0].key_name", is("MGMT_APP_01-localhost")))
-                .andExpect(jsonPath("$.data.contents[1].key_name", is("MGMT_APP_02-localhost")));
+                .andExpect(jsonPath("$.data.contents[0].key_name", is("MGMT_APP_01-10.0.16.200")))
+                .andExpect(jsonPath("$.data.contents[1].key_name", is("MGMT_APP_02-10.0.16.239")));
     }
 
     @Test
@@ -210,8 +210,8 @@ public class ApiV2ControllerFilterRuleTest extends AbstractBaseControllerTest {
                 .content("{}"))
                 .andExpect(jsonPath("$.statusCode", is("OK")))
                 .andExpect(jsonPath("$.data.contents", hasSize(equalTo(4))))
-                .andExpect(jsonPath("$.data.contents[0].key_name", is("MGMT_APP_01-localhost")))
-                .andExpect(jsonPath("$.data.contents[1].key_name", is("MGMT_APP_02-localhost")));
+                .andExpect(jsonPath("$.data.contents[0].key_name", is("MGMT_APP_01-10.0.16.200")))
+                .andExpect(jsonPath("$.data.contents[1].key_name", is("MGMT_APP_02-10.0.16.239")));
     }
 
     private void setUpFilterRule(int referenceAttrId, String referenceFilterRule) throws Exception {
