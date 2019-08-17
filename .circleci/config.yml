@@ -28,9 +28,9 @@ jobs: # a collection of steps
       
       - store_test_results: # uploads the test metadata from the `target/surefire-reports` directory so that it can show up in the CircleCI dashboard. 
       # Upload test results for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
-          path: target/surefire-reports
+          path: cmdb-core/target/surefire-reports
       
       - store_artifacts: # store the jar as an artifact
       # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
-          path: target/cmdb-core-0.0.1-SNAPSHOT.jar
+          path: cmdb-core/target/cmdb-core-0.0.1-SNAPSHOT.jar
       # See https://circleci.com/docs/2.0/deployment-integrations/ for deploy examples    
