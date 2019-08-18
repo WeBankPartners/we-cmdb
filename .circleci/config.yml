@@ -13,14 +13,14 @@ jobs: # a collection of steps
 
       - restore_cache: # restore the saved cache after the first run or if `pom.xml` has changed
           # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
-          key: circleci-wecmdb-core-{{ checksum "pom.xml" }}
+          key: circleci-wecmdb-core-{{ checksum "cmdb-core/pom.xml" }}
       
       - run: mvn -f cmdb-core/pom.xml dependency:go-offline # gets the project dependencies
       
       - save_cache: # saves the project dependencies
           paths:
             - ~/.m2
-          key: circleci-wecmdb-core-{{ checksum "pom.xml" }}
+          key: circleci-wecmdb-core-{{ checksum "cmdb-core/pom.xml" }}
       
       - run: 
           command: mvn package -f cmdb-core/pom.xml # run the actual tests
