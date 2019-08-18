@@ -32,5 +32,5 @@ jobs: # a collection of steps
       
       - store_artifacts: # store the jar as an artifact
       # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
-          path: target/cmdb-core-0.0.1-SNAPSHOT.jar
+          path: cmdb-core/target/cmdb-core-0.0.1-SNAPSHOT.jar
       # See https://circleci.com/docs/2.0/deployment-integrations/ for deploy examples    
