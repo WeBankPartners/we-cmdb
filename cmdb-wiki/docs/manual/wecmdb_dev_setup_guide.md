@@ -11,10 +11,12 @@ WeCMDB主要使用Java进行研发，前端为React JS，数据库是MySQL，并
     2, 下载IDE，本工程不绑定IDE工具，推荐[IntelliJ社区版本](https://www.jetbrains.com/idea/)。
     <br>
     3，[下载Git](https://git-scm.com/downloads)，如果国内下载太慢，推荐[腾讯电脑管家下载](https://pc.qq.com/detail/13/detail_22693.html)。<br>
+    <br>
     Step 2：配置IDE: <br>
     打开IntelliJ：<br>
     1，配置Java Compiler：Ctrl+Shift+ALT+S打开Project Structure，然后在“Platform Setting - SDKs”中设置已经按照的Java SDK。最后在“Project Setting - Project”中设定配置的SDK。<br>
     2，配置Git：Settings-> Verstion Control中配置Github账号等信息，然后从Git创建项目：File -> New -> Project from Version Control -> Git。<br>
+    <br>
     Step 3：启动编译和运行自动化测试: <br>
     1, 确认Maven插件已经安装，点击 - Reimport ALL Maven Projects <br>
     2, IDE会自行下载和编译整个工程，第一次需要下载比较多的依赖包，会需要大概30分钟。<br>
