@@ -26,7 +26,4 @@ logging:
         SQL: INFO
 
 cas-server:
-  url: http://10.107.118.27:8080/cas
   enabled: false
-  whitelist-ip-address: 10.107.117.154
-
