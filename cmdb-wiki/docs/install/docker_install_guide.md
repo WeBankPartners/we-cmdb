@@ -1,4 +1,6 @@
-## 修改内核参数
+# Docker安装指引
+
+##安装前准备
 建议操作系统为centos7.2.建议内核版本为3.10.517以上
 1. 编辑内核参数文件/etc/sysctl.conf,确认这几个选项如下：
 ```
@@ -13,7 +15,7 @@ sysctl -p
 p link del dev  brtest
 ```
 
-## 安装docker
+## 安装步骤
 1. 下载二进制包到docker目录
 ```
 mkdir  /data/
