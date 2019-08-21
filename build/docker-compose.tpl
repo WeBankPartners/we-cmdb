@@ -36,6 +36,7 @@ services:
     ports:
       - {{CMDB_SERVER_PORT}}:8080
     environment:
+      - TZ=Asia/Shanghai
       - MYSQL_SERVER_ADDR=mysql
       - MYSQL_SERVER_PORT=3306
       - MYSQL_SERVER_DATABASE_NAME=cmdb
