@@ -1,19 +1,6 @@
 # Docker安装指引
+推荐操作系统为centos7.2以上(包含centos7.2)，内核版本为3.10.327以上
 
-## 安装前准备
-建议操作系统为centos7.2.建议内核版本为3.10.517以上
-1. 编辑内核参数文件/etc/sysctl.conf,确认这几个选项如下：
-```
-net.ipv4.ip_forward=1
-net.bridge.bridge-nf-call-ip6tables = 1
-net.bridge.bridge-nf-call-iptables = 1
-```
-2. 执行命令
-```
-ip link add name brtest type bridge
-sysctl -p
-p link del dev  brtest
-```
 
 ## 安装步骤
 1. 下载二进制包到docker目录
@@ -95,3 +82,16 @@ systemctl start  dockerd
 ```
 
 6. 运行docker version确认docker安装成功
+
+## 设置内核参数
+
+1. 编辑内核参数文件/etc/sysctl.conf,确认这几个选项如下：
+```
+net.ipv4.ip_forward=1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+```
+2. 执行命令
+```
+sysctl -p
+```
