@@ -10,7 +10,7 @@ import QueryConfig from "./pages/query/query-config";
 import QueryLog from "./pages/query/query-log";
 import SystemManageMent from "./pages/permission-management";
 import CommingSoon from "./pages/coming-soon";
-import { retrieveMenus, myMenus } from "./apis/endpoints";
+import { retrieveMenus, retrieveRoleMenus } from "./apis/endpoints";
 
 function AppRouter() {
   const [roleMenus, setRoleMenus] = useState({});
@@ -18,7 +18,16 @@ function AppRouter() {
     const fetchRoleMenus = async () => {
       const menusList = await retrieveMenus();
       if (!menusList || !(menusList.contents instanceof Array)) return;
-      const rolesData = await myMenus();
+      const rolesData = await retrieveRoleMenus({
+        filters: [
+          {
+            name: "role.roleUsers.user.username",
+            operator: "eq",
+            value: "umadmin"
+          }
+        ],
+        refResources: ["role", "role.roleUsers", "role.roleUsers.user"]
+      });
       if (rolesData && rolesData.contents instanceof Array) {
         let allMenusObj = {};
         let roleMenusObj = {};
