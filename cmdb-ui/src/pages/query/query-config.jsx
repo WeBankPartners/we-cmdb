@@ -188,8 +188,9 @@ class QueryConfig extends React.Component {
 
   handleTypeClick = async type => {
     if (!type) return;
+    const { pageable } = this.state;
     const headersSource = await fetchCiFilters(type.ciTypeId);
-    const { contents: cis } = await fetchCis(type.ciTypeId);
+    const { contents: cis, pageInfo } = await fetchCis(type.ciTypeId);
     this.setState({ currentCi: type });
     if (!(headersSource instanceof Error)) {
       const { headers, columns } = this.genHeadersAndColumns(headersSource);
@@ -197,7 +198,7 @@ class QueryConfig extends React.Component {
     }
     if (cis && !(cis instanceof Error)) {
       const tableData = cis.map(_ => _.data);
-      this.setState({ tableData });
+      this.setState({ tableData, pageable: { ...pageable, ...pageInfo } });
     }
   };
 
