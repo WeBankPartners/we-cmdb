@@ -1255,6 +1255,9 @@ public class CiServiceImpl implements CiService {
                     if (kv.getKey().startsWith(ACCESS_CONTROL_ATTRIBUTE_PREFIX)) {
                         continue;
                     }
+                    if (kv.getKey().endsWith(".guid") || kv.getKey().endsWith(".r_guid")) {
+                        continue;
+                    }
                     selectedFields.add(kv.getValue());
                     selections.add(kv.getValue().getExpression());
                 }
@@ -1277,9 +1280,11 @@ public class CiServiceImpl implements CiService {
                 processBizFilters(intQueryReq, selectionMap);
             }
 
+            List<Predicate> predicates = extracted(intQueryReq, cb, selectionMap);
+
             Predicate accessControlPredicate = buildAccessControlPredicate(cb, selFieldMap, selectionMap);
 
-            JpaQueryUtils.applyFilter(cb, query, intQueryReq.getFilters(), selectionMap, fieldTypeMap, FilterRelationship.fromCode(intQueryReq.getFilterRs()), null, accessControlPredicate);
+            JpaQueryUtils.applyFilter(cb, query, intQueryReq.getFilters(), selectionMap, fieldTypeMap, FilterRelationship.fromCode(intQueryReq.getFilterRs()), predicates, accessControlPredicate);
 
             TypedQuery typedQuery = entityManager.createQuery(query);
             if (!isSelRowCount && intQueryReq.isPaging()) {
@@ -1290,6 +1295,35 @@ public class CiServiceImpl implements CiService {
             return resultList;
         } finally {
             priEntityManager.close();
+        }
+    }
+
+    private List<Predicate> extracted(QueryRequest intQueryReq, CriteriaBuilder cb, Map<String, Expression> selectionMap) {
+        List<Predicate> predicates = Lists.newLinkedList();
+        if (!intQueryReq.getDialect().getShowCiHistory()) {
+            Map<String, Map<String, Expression>> guidRguidPair = new HashMap<>();
+            for (Map.Entry<String, Expression> kv : selectionMap.entrySet()) {
+                extractGuidKvPair(guidRguidPair, kv, ".guid");
+                extractGuidKvPair(guidRguidPair, kv, ".r_guid");
+            }
+            for (Map.Entry<String, Map<String, Expression>> kv : guidRguidPair.entrySet()) {
+                Predicate equalPredicate = cb.equal(kv.getValue().get(".guid"), kv.getValue().get(".r_guid"));
+                Predicate guidIsNullPredicate = cb.isNull(kv.getValue().get(".guid"));
+                Predicate rGuidIsNullPredicate = cb.isNull(kv.getValue().get(".r_guid"));
+                predicates.add(cb.or(equalPredicate, guidIsNullPredicate, rGuidIsNullPredicate));
+            }
+        }
+        return predicates;
+    }
+
+    private void extractGuidKvPair(Map<String, Map<String, Expression>> guidRguidPair, Map.Entry<String, Expression> kv, String postFix) {
+        if (kv.getKey().endsWith(postFix)) {
+            String keyPrefix = kv.getKey().substring(0, kv.getKey().indexOf(postFix));
+            if (guidRguidPair.get(keyPrefix) == null) {
+                Map<String, Expression> keyMap = new HashMap<>();
+                guidRguidPair.put(keyPrefix, keyMap);
+            }
+            guidRguidPair.get(keyPrefix).put(postFix, kv.getValue());
         }
     }
 
@@ -1532,27 +1566,12 @@ public class CiServiceImpl implements CiService {
             }
         }
 
+        attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "guid");
+        attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "r_guid");
+
         if (enableBiz) {
-            AdmCiTypeAttr bizKeyAttr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId, "biz_key");
-            if (bizKeyAttr == null) {
-                throw new ServiceException(String.format("Can not find out bizKey for CI Type [%d].", curCiTypeId));
-            }
-
-            AdmCiTypeAttr statusAttr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId, "state");
-            if (statusAttr == null) {
-                throw new ServiceException(String.format("Can not find out status for CI Type [%d].", curCiTypeId));
-            }
-
-            String bizKeyAlias = getTemplAlias(path) + ".bizKey";
-            Expression bizKeyExpression = curFrom.get(bizKeyAttr.getPropertyName());
-            bizKeyExpression.alias(bizKeyAlias);
-            attrExprMap.put(bizKeyAlias, new FieldInfo(bizKeyExpression, FieldType.getTypeFromCode(bizKeyAttr.getPropertyType()), bizKeyAttr.getCiTypeId(), bizKeyAttr.getInputType(), bizKeyAttr.getName(), null));
-
-            String statusAlias = getTemplAlias(path) + ".state";
-            Expression statusExpression = curFrom.get(statusAttr.getPropertyName());
-            statusExpression.alias(statusAlias);
-            attrExprMap.put(statusAlias, new FieldInfo(statusExpression, FieldType.getTypeFromCode(statusAttr.getPropertyType()), statusAttr.getCiTypeId(), statusAttr.getInputType(), statusAttr.getName(), null));
-
+            attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "biz_key");
+            attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "state");
         }
 
         List<AdmCiTypeAttr> accessControlledAttributes = ciTypeAttrRepository.findAllByCiTypeIdAndIsAccessControlled(curCiTypeId, 1);
@@ -1578,6 +1597,20 @@ public class CiServiceImpl implements CiService {
         return attrExprMap;
     }
 
+    private void attachAdditionalAttr(Map<String, FieldInfo> attrExprMap, Stack<String> path, int curCiTypeId, From curFrom, String propertyName) {
+        AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId, propertyName);
+        if (attr == null) {
+            throw new ServiceException(String.format("Can not find out [%s] for CI Type [%d].", propertyName, curCiTypeId));
+        }
+
+        String alias = getTemplAlias(path) + "." + propertyName;
+        Expression expression = curFrom.get(attr.getPropertyName());
+        if (expression.getAlias() == null) {
+            expression.alias(alias);
+        }
+        attrExprMap.put(alias, new FieldInfo(expression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), null));
+    }
+
     @Override
     public List<IntQueryResponseHeader> integrateQueryHeader(int intQueryId) {
         IntegrationQueryDto intQueryDto = intQueryService.getIntegrationQuery(intQueryId);
@@ -1587,9 +1620,6 @@ public class CiServiceImpl implements CiService {
     }
 
     private List<IntQueryResponseHeader> buildIntQuerHeader(IntegrationQueryDto curQuery, List<IntQueryResponseHeader> headers) {
-        int curCiTypeId = curQuery.getCiTypeId();
-//		AdmCiType curCiType = ciTypeRepository.getOne(curCiTypeId);
-
         List<Integer> attrIds = curQuery.getAttrs();
         IntQueryResponseHeader header = new IntQueryResponseHeader(curQuery.getName());
         for (int i = 0; i < attrIds.size(); i++) {
