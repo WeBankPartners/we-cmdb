@@ -103,13 +103,13 @@ CREATE TABLE `wb_unit` (
   `p_guid` varchar(15) NULL COMMENT '前一版本数据的guid',
   `r_guid` varchar(15) NOT NULL COMMENT '原始数据guid',
   PRIMARY KEY (`guid`),
-  UNIQUE KEY `wb_unit_name_en` (`name_en`),
   KEY `wb_unit_subsystem_id` (`subsystem_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `wb_unit` (`name_en`, `name_cn`, `subsystem_id`, `state`, `unit_type`, `software`, `version`, `cluster`, `description`, `guid`, `updated_by`, `updated_date`, `created_by`, `created_date`, `r_guid`) VALUES
 	('Test Unit 1', 'Test Unit 1', '0003_0000000001', 560, null, null, '1', null, 'test', '0005_00000001', 'umadmin', CURRENT_TIMESTAMP(), 'umadmin', CURRENT_TIMESTAMP(), '0005_00000001'),
-	('Test Unit 2', 'Test Unit 2', '0003_0000000001', 561, null, null, '1', null, 'test', '0005_00000002', 'umadmin', CURRENT_TIMESTAMP(), 'umadmin', CURRENT_TIMESTAMP(), '0005_00000002');
+	('Test Unit 2', 'Test Unit 2', '0003_0000000001', 561, null, null, '1', null, 'test', '0005_00000002', 'umadmin', CURRENT_TIMESTAMP(), 'umadmin', CURRENT_TIMESTAMP(), '0005_00000002'),
+	('Test Unit 2', 'Test Unit 2', '0003_0000000001', 561, null, null, '1', null, 'test', '0005_00000003', 'umadmin', CURRENT_TIMESTAMP(), 'umadmin', CURRENT_TIMESTAMP(), '0005_00000002');
 
 
 DROP TABLE IF EXISTS `wb_service`;
