@@ -9,7 +9,7 @@ pipeline {
   stages {
     stage('Build cmdb-core') {
       steps {
-        sh 'mvn -f cmdb-core/pom.xml -Dmaven.skip.test=true package'
+        sh 'mvn -f cmdb-core/pom.xml -Dmaven.test.skip=true package'
       }
     }
     stage('Clean image build') {
