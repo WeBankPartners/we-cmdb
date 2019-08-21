@@ -98,7 +98,7 @@
     "lint-staged": "^8.1.5",
     "prettier": "^1.16.4"
   },
-  "proxy": "http://localhost:37000",
+  "proxy": "http://127.0.0.1:37000",
   "jest": {
     "collectCoverageFrom": [
       "src/**/*.{js,jsx,ts,tsx}",
