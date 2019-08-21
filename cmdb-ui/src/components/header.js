@@ -67,7 +67,7 @@ class MenuAppBar extends React.Component {
         {
           name: "role.roleUsers.user.username",
           operator: "eq",
-          value: "umadmin"
+          value: username
         }
       ],
       refResources: ["role", "role.roleUsers", "role.roleUsers.user"]
