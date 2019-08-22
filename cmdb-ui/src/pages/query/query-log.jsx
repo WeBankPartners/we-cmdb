@@ -97,9 +97,14 @@ class QueryLog extends React.Component {
   };
 
   handleQueryHeaderChange = (key, value, operator) => {
-    const { filters } = this.state;
+    let { filters } = this.state;
+    if (Array.isArray(value) && !value.length && filters[key]) {
+      delete filters[key];
+    } else {
+      filters = { ...filters, [key]: { name: key, value, operator } };
+    }
     this.setState({
-      filters: { ...filters, [key]: { name: key, value, operator } }
+      filters
     });
   };
 
