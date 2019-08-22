@@ -77,6 +77,7 @@ import com.webank.cmdb.dto.CiData;
 import com.webank.cmdb.dto.CiDataTreeDto;
 import com.webank.cmdb.dto.CiIndentity;
 import com.webank.cmdb.dto.CiTypeAttrDto;
+import com.webank.cmdb.dto.CiTypeHeaderDto.CiKeyPair;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dto.IntQueryResponseHeader;
 import com.webank.cmdb.dto.IntQueryResponseHeader.AttrUnit;
@@ -2015,19 +2016,26 @@ public class CiServiceImpl implements CiService {
     }
 
     @Override
-    public List<String> retrieveGuids(int ciTypeId) {
+    public List<CiKeyPair> retrieveKeyPairs(int ciTypeId) {
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
         PriorityEntityManager priEntityManager = getEntityManager();
         EntityManager entityManager = priEntityManager.getEntityManager();
+        List<CiKeyPair> ciKeyPairs = new LinkedList<>();
         try {
             CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             CriteriaQuery query = cb.createQuery();
             Root root = query.from(entityMeta.getEntityClazz());
-            Path guid = root.get("guid");
-            query.select(guid).distinct(true);
-            TypedQuery<String> guidQuery =  entityManager.createQuery(query);
-            List<String> guids = guidQuery.getResultList();
-            return guids;
+            Path guid = root.get(CmdbConstants.DEFAULT_FIELD_GUID);
+            Path keyName = root.get(CmdbConstants.DEFAULT_FIELD_KEY_NAME);
+            query.multiselect(guid,keyName).distinct(true);
+            TypedQuery guidQuery =  entityManager.createQuery(query);
+            List results = guidQuery.getResultList();
+            ciKeyPairs = Lists.transform(results, (item) -> {
+            	Object[] row = (Object[]) item;
+            	CiKeyPair ciKeyPair = new CiKeyPair(String.valueOf(row[0]),String.valueOf(row[1]));
+            	return ciKeyPair;
+            });
+            return ciKeyPairs;
         }
         catch(Exception ex) {
             throw new ServiceException(String.format("Failed to query guids for CI type [%d]", ciTypeId),ex);
