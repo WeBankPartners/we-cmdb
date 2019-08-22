@@ -87,6 +87,7 @@ git --version
 ```
 
 能显示git的版本， 则安装配置已成功。
+
 ![git_version](images/git_version.png)
 
 7. 初始化本地代码库
