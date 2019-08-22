@@ -134,7 +134,7 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	```
 
 ## 执行安装
-1.拉取镜像文件
+1. 拉取镜像文件
 	
 	通过文件方式加载镜像
 	```
