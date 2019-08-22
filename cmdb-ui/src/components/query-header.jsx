@@ -24,6 +24,14 @@ function QueryHeader(props) {
 
   const renderInputComponent = _ => {
     const value = data[_[keys[1]]] ? data[_[keys[1]]].value : null;
+    const refOptions = _.vals
+      ? _.vals.map(_ => {
+          return {
+            id: _.guid,
+            code: _.keyName
+          };
+        })
+      : [];
     switch (_.inputType) {
       case "select":
         return (
@@ -51,8 +59,8 @@ function QueryHeader(props) {
             <CMDBSelect
               id="select"
               data={value}
-              options={_.vals || []}
-              optLabels={["guid", "key_name"]}
+              options={refOptions}
+              optLabels={["id", "code"]}
               onChange={handleInputChange(_[keys[1]])}
             />
           </FormControl>
