@@ -133,7 +133,7 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	      - CMDB_IP_WHITELISTS={{CMDB_IP_WHITELISTS}}
 	```
 
-##执行安装
+## 执行安装
 1. 执行如下命令，通过docker-compose拉起WeCmdb服务。
 	
 	```
