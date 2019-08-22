@@ -10,6 +10,7 @@ import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.CiData;
 import com.webank.cmdb.dto.CiDataTreeDto;
 import com.webank.cmdb.dto.CiIndentity;
+import com.webank.cmdb.dto.CiTypeHeaderDto.CiKeyPair;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dto.IntQueryResponseHeader;
 import com.webank.cmdb.dto.QueryRequest;
@@ -81,5 +82,5 @@ public interface CiService extends CmdbService {
 
     Object getCiBeanObject(EntityManager entityManager, int ciTypeId, String guid);
     
-    List<String> retrieveGuids(int ciTypeId);
+    List<CiKeyPair> retrieveKeyPairs(int ciTypeId);
 }
