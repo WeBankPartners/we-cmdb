@@ -135,9 +135,13 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 
 ## 执行安装
 1.拉取镜像文件
+	
 	通过文件方式加载镜像
+	```
 	docker load --input wecmdb-app.tar
 	docker load --input wecmdb-db.tar 
+	```
+	
 	执行docker images 命令，能看到镜像已经导入。
 	
 2. 执行如下命令，通过docker-compose拉起WeCmdb服务。
