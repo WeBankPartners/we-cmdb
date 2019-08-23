@@ -1,48 +1,37 @@
 version: '2'
+networks:
+  cmdb-core:
+    external: false
 services:
   cas:
     image: kawhii/sso
     container_name: cas_sso
     restart: always
-    volumes:
-      - /etc/localtime:/etc/localtime
+    networks:
+      - cmdb-core
     ports:
       - 8443:8443
-  mysql:
-    image: {{CMDB_DATABASE_IMAGE_NAME}}
-    restart: always
-    command: [
-            '--character-set-server=utf8mb4',
-            '--collation-server=utf8mb4_unicode_ci',
-            '--default-time-zone=+8:00'
-    ]
-    volumes:
-      - /etc/localtime:/etc/localtime
-    environment:
-      - MYSQL_ROOT_PASSWORD={{MYSQL_ROOT_PASSWORD}}
-    ports:
-      - 3306:3306
+    networks:
+      - cmdb-core
     volumes:
       - /data/cmdb/db:/var/lib/mysql
   cmdb:
     image: {{CMDB_CORE_IMAGE_NAME}}
     restart: always
     volumes:
-      - /data/cmdb/log:/log/
-      - /etc/localtime:/etc/localtime
+      - /data/cmdb/log:/data/
     depends_on:
-      - mysql
       - cas
+    network_mode: host
     ports:
-      - {{CMDB_SERVER_PORT}}:8080
+      - {{CMDB_CORE_EXTERNAL_PORT}}:8080
     environment:
-      - TZ=Asia/Shanghai
-      - MYSQL_SERVER_ADDR=mysql
+      - MYSQL_SERVER_ADDR=10.0.7.14
       - MYSQL_SERVER_PORT=3306
-      - MYSQL_SERVER_DATABASE_NAME=cmdb
-      - MYSQL_USER_NAME=root
-      - MYSQL_USER_PASSWORD={{MYSQL_ROOT_PASSWORD}}
-      - CMDB_SERVER_PORT={{CMDB_SERVER_PORT}}
+      - MYSQL_SERVER_DATABASE_NAME={{CMDB_CORE_DATABASE_NAME}}
+      - MYSQL_USER_NAME={{CMDB_CORE_USER_NAME}}
+      - MYSQL_USER_PASSWORD={{CMDB_CORE_DATABASE_PASSWORD}}
+      - CMDB_SERVER_PORT={{CMDB_CORE_EXTERNAL_PORT}}
       - CAS_SERVER_URL={{CAS_SERVER_URL}}
-      - CAS_REDIRECT_APP_ADDR={{CMDB_SERVER_IP}}:{{CMDB_SERVER_PORT}}
+      - CAS_REDIRECT_APP_ADDR={{CMDB_CORE_EXTERNAL_IP}}:{{CMDB_CORE_EXTERNAL_PORT}}
       - CMDB_IP_WHITELISTS={{CMDB_IP_WHITELISTS}}
