@@ -21,5 +21,6 @@ image:
 TAG=latest
 push:
 	docker tag  $(project_name):$(version) $(remote_docker_image_registry):$(date)-$(version)
-	docker tag  $(project_name):$(version) $(remote_docker_image_registry):$(TAG)
 	docker push $(remote_docker_image_registry):$(date)-$(version)
+	docker tag  $(project_name):$(version) $(remote_docker_image_registry):$(TAG)
+    docker tag  $(remote_docker_image_registry):$(TAG)
