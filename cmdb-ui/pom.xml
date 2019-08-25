@@ -11,27 +11,26 @@
   <name>cmdb-ui</name>  
   <description>cmdb-ui</description>  
   <properties> 
-    <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version> 
+    <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>  
+    <nodejs.version>v8.11.1</nodejs.version>  
+    <npm.version>5.6.0</npm.version> 
   </properties>  
   <build> 
     <plugins> 
       <plugin> 
         <groupId>com.github.eirslett</groupId>  
         <artifactId>frontend-maven-plugin</artifactId>  
-        <version>1.6</version>  
-        <configuration> 
-          <workingDirectory>${project.build.directory}</workingDirectory> 
-        </configuration>  
+        <!-- NB! Set <version> to the latest released version of frontend-maven-plugin, like in README.md -->  
+        <version>${frontend-maven-plugin.version}</version>  
         <executions> 
           <execution> 
-            <phase>prepare-package</phase>  
             <id>install node and npm</id>  
             <goals> 
               <goal>install-node-and-npm</goal> 
             </goals>  
             <configuration> 
-              <nodeVersion>v8.12.0</nodeVersion>  
-              <npmVersion>6.4.1</npmVersion>  
+              <nodeVersion>${nodejs.version}</nodeVersion>  
+              <npmVersion>${npm.version}</npmVersion>  
               <nodeDownloadRoot>http://npm.taobao.org/mirrors/node/</nodeDownloadRoot> 
             </configuration> 
           </execution>  
@@ -43,6 +42,15 @@
             </goals>  
             <configuration> 
               <arguments>--registry https://registry.npm.taobao.org install</arguments> 
+            </configuration> 
+          </execution>  
+          <execution> 
+            <id>npm run build</id>  
+            <goals> 
+              <goal>npm</goal> 
+            </goals>  
+            <configuration> 
+              <arguments>run build</arguments> 
             </configuration> 
           </execution> 
         </executions> 
