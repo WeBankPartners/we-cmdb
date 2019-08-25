@@ -1279,9 +1279,35 @@ INSERT INTO `adm_role` (`id_adm_role`, `role_name`, `description`, `id_adm_tenem
 	(11, 'READONLY', '只读用户', NULL, NULL, 'READONLY');
 
 INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `description`, `id_adm_tenement`, `action_flag`) VALUES
-	('1', 'umadmin', 'umadmin', 'umadmin', NULL, 0);
+	('1', 'admin', 'admin', 'admin', NULL, 0);
 
 INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`) VALUES
     ('1', '1', '1');
+
+INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `seq_no`, `parent_id_adm_menu`) VALUES
+(1, 'QUERY', 1, NULL),
+(2, 'QUERY_CONFIG', 2, 1),
+(3, 'COMMON_INTERFACE_RUNNER', 3, 1),
+(4, 'CONFIG_MANAGEMENT', 4, NULL),
+(5, 'BASIC_CONFIG_QUERY', 5, 4),
+(6, 'OVERVIEW', 6, 4),
+(7, 'COMMON_INTERFACE_CONFIG', 7, 4),
+(8, 'SYSTEM_MANAGEMENT', 8, NULL),
+(9, 'PERMISSION', 9, 8),
+(10, 'QUERY_LOG', 10, 8),
+(11, 'RULE', 11, 8);
+
+INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`) VALUES
+(1, 1, 1),
+(2, 1, 2),
+(3, 1, 3),
+(4, 1, 4),
+(5, 1, 5),
+(6, 1, 6),
+(7, 1, 7),
+(8, 1, 8),
+(9, 1, 9),
+(10, 1, 10),
+(11, 1, 11);
 
 SET FOREIGN_KEY_CHECKS=1;

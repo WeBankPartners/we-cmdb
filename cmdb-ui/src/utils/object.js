@@ -38,7 +38,9 @@ export const genFilters = filters => {
 
 const indexCode = {
   select: "codeId",
-  ref: "key_name"
+  multiSelect: "codeId",
+  ref: "key_name",
+  multiRef: "key_name"
 };
 export const genIndexCode = (defaultValue, inputType) => {
   return indexCode[inputType]
@@ -48,7 +50,9 @@ export const genIndexCode = (defaultValue, inputType) => {
 
 const indexValue = {
   select: "code",
-  ref: "key_name"
+  multiSelect: "value",
+  ref: "key_name",
+  multiRef: "key_name"
 };
 export const genIndexValue = (defaultValue, inputType) => {
   return indexValue[inputType]
