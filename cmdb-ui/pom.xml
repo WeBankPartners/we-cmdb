@@ -35,7 +35,6 @@
             </configuration> 
           </execution>  
           <execution> 
-            <phase>prepare-package</phase>  
             <id>npm install</id>  
             <goals> 
               <goal>npm</goal> 
