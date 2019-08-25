@@ -1,2 +1,2 @@
-# wecube-cmdb
+# cmdb-core
 

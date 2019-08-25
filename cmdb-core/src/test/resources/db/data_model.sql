@@ -1643,8 +1643,8 @@ CREATE TABLE IF NOT EXISTS `host` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `host` (`guid`, `p_guid`, `r_guid`, `description`, `fixed_date`, `key_name`, `updated_by`, `updated_date`, `created_by`, `created_date`, `asset_code`, `charge_type`, `code`, `cpu`, `disk`, `internet_nat_ip`, `intranet_ip`, `mem`, `name`, `orchestration`, `os`, `resource_set`, `state`, `type`, `charge_period`, `biz_key`) VALUES
-	('0012_0000000001', NULL, '0012_0000000001', 'MGMT_APP_01', NULL, 'MGMT_APP_01-localhost', 'umadmin', '2019-07-03 12:49:51', 'umadmin', '2019-07-03 08:10:26', 'MGMT_APP_01', 54, 'MGMT_APP_01', 97, 104, '0014_0000000008', '0014_0000000008', 100, 'MGMT_APP_01', '', 94, '0020_0000000006', 34, 93, 209, ''),
-	('0012_0000000002', NULL, '0012_0000000002', 'MGMT_APP_02', NULL, 'MGMT_APP_02-localhost', 'umadmin', '2019-07-03 12:50:24', 'umadmin', '2019-07-03 08:11:11', 'MGMT_APP_02', 54, 'MGMT_APP_02', 97, 104, '0014_0000000009', '0014_0000000009', 100, 'MGMT_APP_02', '', 94, '0020_0000000006', 34, 93, 209, ''),
+	('0012_0000000001', NULL, '0012_0000000001', 'MGMT_APP_01', NULL, 'MGMT_APP_01-10.0.16.200', 'umadmin', '2019-07-03 12:49:51', 'umadmin', '2019-07-03 08:10:26', 'MGMT_APP_01', 54, 'MGMT_APP_01', 97, 104, '0014_0000000008', '0014_0000000008', 100, 'MGMT_APP_01', '', 94, '0020_0000000006', 34, 93, 209, ''),
+	('0012_0000000002', NULL, '0012_0000000002', 'MGMT_APP_02', NULL, 'MGMT_APP_02-10.0.16.239', 'umadmin', '2019-07-03 12:50:24', 'umadmin', '2019-07-03 08:11:11', 'MGMT_APP_02', 54, 'MGMT_APP_02', 97, 104, '0014_0000000009', '0014_0000000009', 100, 'MGMT_APP_02', '', 94, '0020_0000000006', 34, 93, 209, ''),
 	('0012_0000000003', NULL, '0012_0000000003', '', NULL, 'APP01-10.0.16.10', 'umadmin', '2019-07-05 03:09:47', 'umadmin', '2019-07-03 11:33:58', 'ins-3bhngias', 54, 'APP-01', 97, 104, '0014_0000000013', '0014_0000000013', 100, 'APP01', '', 94, '0020_0000000003', 34, 93, 209, 'rvjBA4092Bl'),
 	('0012_0000000004', NULL, '0012_0000000004', '', NULL, 'APP01-10.0.16.11', 'umadmin', '2019-07-05 03:09:47', 'umadmin', '2019-07-03 11:35:00', 'ins-6mkh6ito', 54, 'APP-02', 97, 104, '', '0014_0000000014', 100, 'APP01', '', 94, '0020_0000000003', 34, 93, 209, 'rvjBA4092Bl');
 
@@ -1672,9 +1672,9 @@ CREATE TABLE IF NOT EXISTS `IDC` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `IDC` (`guid`, `p_guid`, `r_guid`, `description`, `fixed_date`, `key_name`, `updated_by`, `updated_date`, `created_by`, `created_date`, `address`, `city`, `code`, `env_type`, `idc_design`, `name`, `parameter`, `state`, `biz_key`) VALUES
-	('0016_0000000001', NULL, '0016_0000000001', '沙箱POC广州云机房', NULL, 'STGs_GZ', 'umadmin', '2019-07-03 01:16:29', 'umadmin', '2019-07-02 04:14:47', '', '广州', 'GZ', '48', '0022_0000000001', '沙箱POC广州云机房', 'Region=ap-guangzhou;AvailableZone=ap-guangzhou-3;SecretID=AKIDc6WqlvsKWrHE8xu4PNQPXSWEoso2PgLp;SecretKey=rnLt6JHI7uX5PbcUBi4A2FRQewbhT1OW', 39, NULL),
-	('0016_0000000002', NULL, '0016_0000000002', '沙箱生产广州云机房1', NULL, 'PRDs_GZ1', 'umadmin', '2019-07-03 12:26:41', 'umadmin', '2019-07-02 04:15:34', '', '广州', 'GZ1', '47', '0022_0000000002', '沙箱生产广州云机房1', 'Region=ap-guangzhou;AvailableZone=ap-guangzhou-3;SecretID=AKIDy6BPXXFAmRxarf69i7iroYqOga3GawOa;SecretKey=DE3iKNFuJYXHm12HFxOaWFiFZdR5fNxN', 39, NULL),
-	('0016_0000000003', NULL, '0016_0000000003', '沙箱生产广州云机房2', NULL, 'PRDs_GZ2', 'umadmin', '2019-07-03 01:16:44', 'umadmin', '2019-07-02 06:03:33', '', '广州', 'GZ2', '47', '0022_0000000002', '沙箱生产广州云机房2', 'Region=ap-guangzhou;AvailableZone=ap-guangzhou-3;SecretID=AKIDc6WqlvsKWrHE8xu4PNQPXSWEoso2PgLp;SecretKey=rnLt6JHI7uX5PbcUBi4A2FRQewbhT1OW', 39, NULL);
+	('0016_0000000001', NULL, '0016_0000000001', '沙箱POC广州云机房', NULL, 'STGs_GZ', 'umadmin', '2019-07-03 01:16:29', 'umadmin', '2019-07-02 04:14:47', '', '广州', 'GZ', '48', '0022_0000000001', '沙箱POC广州云机房', 'Region=ap-guangzhou;AvailableZone=ap-guangzhou-3;SecretID=SecretID;SecretKey=SecretKey', 39, NULL),
+	('0016_0000000002', NULL, '0016_0000000002', '沙箱生产广州云机房1', NULL, 'PRDs_GZ1', 'umadmin', '2019-07-03 12:26:41', 'umadmin', '2019-07-02 04:15:34', '', '广州', 'GZ1', '47', '0022_0000000002', '沙箱生产广州云机房1', 'Region=ap-guangzhou;AvailableZone=ap-guangzhou-3;SecretID=SecretID;SecretKey=SecretKey', 39, NULL),
+	('0016_0000000003', NULL, '0016_0000000003', '沙箱生产广州云机房2', NULL, 'PRDs_GZ2', 'umadmin', '2019-07-03 01:16:44', 'umadmin', '2019-07-02 06:03:33', '', '广州', 'GZ2', '47', '0022_0000000002', '沙箱生产广州云机房2', 'Region=ap-guangzhou;AvailableZone=ap-guangzhou-3;SecretID=SecretID;SecretKey=SecretKey', 39, NULL);
 
 CREATE TABLE IF NOT EXISTS `IDC_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1812,8 +1812,8 @@ INSERT INTO `ip_addr` (`guid`, `p_guid`, `r_guid`, `description`, `fixed_date`, 
 	('0014_0000000005', NULL, '0014_0000000005', '互联网地址', NULL, '0.0.0.1_', 'umadmin', '2019-07-02 07:49:55', 'umadmin', '2019-07-02 07:34:56', '0.0.0.1', 0, '0.0.0.1', '0021_0000000014', '', 34, 110, NULL, NULL),
 	('0014_0000000006', NULL, '0014_0000000006', '网关', NULL, '10.128.0.1_', 'umadmin', '2019-07-02 07:49:56', 'umadmin', '2019-07-02 07:37:14', '10.128.0.1', 16, '10.128.0.1', '0021_0000000015', '', 34, 109, NULL, NULL),
 	('0014_0000000007', NULL, '0014_0000000007', '网关', NULL, '10.0.4.1_', 'umadmin', '2019-07-02 07:50:41', 'umadmin', '2019-07-02 07:50:41', '10.0.4.1', 22, '10.0.4.1', '0021_0000000016', '', 34, 109, NULL, NULL),
-	('0014_0000000008', NULL, '0014_0000000008', '主机地址', NULL, 'localhost_', 'umadmin', '2019-07-03 10:07:05', 'umadmin', '2019-07-03 08:12:10', 'localhost', 24, 'localhost', '0021_0000000019', '', 34, 109, NULL, NULL),
-	('0014_0000000009', NULL, '0014_0000000009', '主机地址', NULL, 'localhost_', 'umadmin', '2019-07-03 10:07:06', 'umadmin', '2019-07-03 08:12:36', 'localhost', 24, 'localhost', '0021_0000000019', '', 34, 109, NULL, NULL),
+	('0014_0000000008', NULL, '0014_0000000008', '主机地址', NULL, '10.0.16.200_', 'umadmin', '2019-07-03 10:07:05', 'umadmin', '2019-07-03 08:12:10', '10.0.16.200', 24, '10.0.16.200', '0021_0000000019', '', 34, 109, NULL, NULL),
+	('0014_0000000009', NULL, '0014_0000000009', '主机地址', NULL, '10.0.16.239_', 'umadmin', '2019-07-03 10:07:06', 'umadmin', '2019-07-03 08:12:36', '10.0.16.239', 24, '10.0.16.239', '0021_0000000019', '', 34, 109, NULL, NULL),
 	('0014_0000000010', NULL, '0014_0000000010', '主机地址', NULL, '10.0.4.2_', 'umadmin', '2019-07-03 11:11:36', 'umadmin', '2019-07-03 11:11:36', '10.0.4.2', 24, '10.0.4.2', '0021_0000000016', '', 34, 109, NULL, NULL),
 	('0014_0000000011', NULL, '0014_0000000011', '主机IP', NULL, '10.0.4.3_', 'umadmin', '2019-07-03 11:12:14', 'umadmin', '2019-07-03 11:12:14', '10.0.4.3', 24, '10.0.4.3', '0021_0000000016', '', 34, 109, NULL, NULL),
 	('0014_0000000012', NULL, '0014_0000000012', '', NULL, '10.0.16.1_', 'umadmin', '2019-07-03 11:28:10', 'umadmin', '2019-07-03 11:28:10', '10.0.16.1', 24, '网关', '0021_0000000021', '', 34, 109, NULL, NULL),
@@ -1854,7 +1854,7 @@ INSERT INTO `network_segment` (`guid`, `p_guid`, `r_guid`, `description`, `fixed
 	('0021_0000000016', NULL, '0021_0000000016', 'sf', NULL, '10.0.4.0/22', 'umadmin', '2019-07-02 07:51:09', 'umadmin', '2019-07-02 07:47:23', '', '10.0.4.0/22', '0021_0000000016', '0014_0000000007', 22, '10.0.4.0/22', '', 39, NULL, NULL),
 	('0021_0000000017', NULL, '0021_0000000017', '', NULL, '10.0.0.0/25', 'umadmin', '2019-07-03 02:29:53', 'umadmin', '2019-07-03 02:29:53', '', '10.0.0.0/25', '0021_0000000011', '0014_0000000001', 25, '10.0.0.0/25', '', 39, NULL, NULL),
 	('0021_0000000018', NULL, '0021_0000000018', '机房', NULL, '10.1.0.0/16', 'umadmin', '2019-07-03 03:05:29', 'umadmin', '2019-07-03 03:05:29', '', '10.1.0.0/16', '0021_0000000001', '0014_0000000001', 16, '10.1.0.0/16', '', 39, 208, NULL),
-	('0021_0000000019', NULL, '0021_0000000019', 'sf', NULL, '10.107.117.0/24', 'umadmin', '2019-07-03 08:01:55', 'umadmin', '2019-07-03 08:01:55', '', '10.107.117.0/24', '0021_0000000014', '0014_0000000005', 24, '10.107.117.0/24', '', 39, 208, NULL),
+	('0021_0000000019', NULL, '0021_0000000019', 'sf', NULL, '10.0.16.0/24', 'umadmin', '2019-07-03 08:01:55', 'umadmin', '2019-07-03 08:01:55', '', '10.0.16.0/24', '0021_0000000014', '0014_0000000005', 24, '10.0.16.0/24', '', 39, 208, NULL),
 	('0021_0000000020', NULL, '0021_0000000020', '', NULL, '10.0.16.0/20', 'umadmin', '2019-07-03 11:30:52', 'umadmin', '2019-07-03 11:23:40', '', '10.0.16.0/20', '0021_0000000001', '0014_0000000012', 16, '10.0.16.0/16', '', 39, 205, NULL),
 	('0021_0000000021', NULL, '0021_0000000021', '', NULL, '10.0.16.0/24', 'umadmin', '2019-07-03 11:30:13', 'umadmin', '2019-07-03 11:25:06', '', '10.0.16.0/24', '0021_0000000020', '0014_0000000012', 24, '10.0.16.0/24', '', 39, 207, NULL);
 
@@ -1993,8 +1993,8 @@ CREATE TABLE IF NOT EXISTS `running_instance` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `running_instance` (`guid`, `p_guid`, `r_guid`, `description`, `fixed_date`, `key_name`, `updated_by`, `updated_date`, `created_by`, `created_date`, `app_disk`, `asset_code`, `charge_type`, `code`, `cpu`, `host`, `mem`, `name`, `orchestration`, `port`, `state`, `type`, `unit`, `charge_period`, `biz_key`) VALUES
-	('0015_0000000001', NULL, '0015_0000000001', 'WECUBE-DEMO-UNIT_1_INS_1', NULL, 'WECUBE-DEMO_生产环境_APP_INS_1_localhost', 'umadmin', '2019-07-04 09:03:16', 'umadmin', '2019-07-03 08:51:46', 126, 'WECUBE-DEMO-UNIT_1_INS_1', 54, 'INS_1', 121, '0012_0000000001', 124, 'WECUBE-DEMO-UNIT_1_INS_1', '', '', 39, 116, '0008_0000000001', 213, 'rvfc2zK12Bl'),
-	('0015_0000000002', NULL, '0015_0000000002', 'WECUBE-DEMO-UNIT_1_INS_2', NULL, 'WECUBE-DEMO_生产环境_APP_INS_2_localhost', 'umadmin', '2019-07-04 09:03:16', 'umadmin', '2019-07-03 08:52:30', 126, 'WECUBE-DEMO-UNIT_1_INS_2', 54, 'INS_2', 121, '0012_0000000002', 124, 'WECUBE-DEMO-UNIT_1_INS_2', '', '', 39, 116, '0008_0000000001', 213, 'rvfc2zK12Bl');
+	('0015_0000000001', NULL, '0015_0000000001', 'WECUBE-DEMO-UNIT_1_INS_1', NULL, 'WECUBE-DEMO_生产环境_APP_INS_1_10.0.16.200', 'umadmin', '2019-07-04 09:03:16', 'umadmin', '2019-07-03 08:51:46', 126, 'WECUBE-DEMO-UNIT_1_INS_1', 54, 'INS_1', 121, '0012_0000000001', 124, 'WECUBE-DEMO-UNIT_1_INS_1', '', '', 39, 116, '0008_0000000001', 213, 'rvfc2zK12Bl'),
+	('0015_0000000002', NULL, '0015_0000000002', 'WECUBE-DEMO-UNIT_1_INS_2', NULL, 'WECUBE-DEMO_生产环境_APP_INS_2_10.0.16.239', 'umadmin', '2019-07-04 09:03:16', 'umadmin', '2019-07-03 08:52:30', 126, 'WECUBE-DEMO-UNIT_1_INS_2', 54, 'INS_2', 121, '0012_0000000002', 124, 'WECUBE-DEMO-UNIT_1_INS_2', '', '', 39, 116, '0008_0000000001', 213, 'rvfc2zK12Bl');
 
 CREATE TABLE IF NOT EXISTS `service` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',

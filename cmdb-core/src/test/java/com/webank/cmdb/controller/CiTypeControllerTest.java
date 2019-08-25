@@ -414,4 +414,14 @@ public class CiTypeControllerTest extends LegacyAbstractBaseControllerTest {
                 .andExpect(jsonPath("$.data.length()", is(0)));
 
     }
+    
+    @Test
+    public void getCiTypeHeaderThenReturnHeaderValueProperly() throws Exception {
+        mvc.perform(get("/ciType/3/header"))
+        .andExpect(jsonPath("$.statusCode", is("OK")))
+        .andExpect(jsonPath("$.data", hasSize(14)))
+        .andExpect(jsonPath("$.data[10].vals", hasSize(2)))//system id
+        .andExpect(jsonPath("$.data[10].vals[0].guid", is("0002_0000000002")))
+        .andExpect(jsonPath("$.data[10].vals[0].keyName", is("public system")));
+    }
 }
