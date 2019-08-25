@@ -55,7 +55,7 @@ export default class CMDBSelect extends React.Component {
   };
 
   render() {
-    const { options, optLabels } = this.props;
+    const { options, optLabels, multiple } = this.props;
     const { anchorEl, inputVal } = this.state;
     const open = Boolean(anchorEl);
 
@@ -83,6 +83,7 @@ export default class CMDBSelect extends React.Component {
           }}
         >
           <CheckboxList
+            multiple={multiple}
             options={options}
             optLabels={optLabels}
             onChange={this.handleCheckboxListChange}
