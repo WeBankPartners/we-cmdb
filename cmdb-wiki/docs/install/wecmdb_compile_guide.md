@@ -43,8 +43,8 @@
 	在代码目录下执行make image，将制作WeCMDB的运行镜像。
 	如果还需要制作WeCMDB的数据库镜像，进入build/db目录，执行以下命令：
 	```
-	chmod +x buildImage.sh
-	./buildImage.sh
+	chmod +x build-image.sh
+	./build-image.sh
 	```
 	镜像制作完成后， 执行命令：
 	```
