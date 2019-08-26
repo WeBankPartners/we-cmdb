@@ -37,7 +37,6 @@ public class UserRoleController {
         return staticDtoService.query(UserDto.class, request);
     }
 
-    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/roles/retrieve")
     public QueryResponse<RoleDto> retrieveRoles(@RequestBody QueryRequest request) {
         return staticDtoService.query(RoleDto.class, request);
@@ -142,7 +141,6 @@ public class UserRoleController {
         staticDtoService.delete(RoleCiTypeCtrlAttrConditionDto.class, requestIds);
     }
 
-    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/menus/retrieve")
     public QueryResponse<MenuDto> retrieveMenus(@RequestBody QueryRequest request) {
         return staticDtoService.query(MenuDto.class, request);
