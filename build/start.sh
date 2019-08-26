@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 mkdir -p /log
 java -jar /application/cmdb-core.jar  --server.address=0.0.0.0 --server.port=${CMDB_SERVER_PORT} --server.servlet.context-path=/cmdb  \
 --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver \

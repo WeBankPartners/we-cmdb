@@ -1,73 +1,59 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-       <modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>com.webank.cmdb</groupId>
-		<artifactId>cmdb</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
-	</parent>
-	<artifactId>cmdb-ui</artifactId>
-	<name>cmdb-ui</name>
-	<description>cmdb-ui</description>
+<?xml version="1.0" encoding="utf-8"?>
 
-	<properties>
-    	<frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
-      <nodejs.version>v8.11.1</nodejs.version>
-      <npm.version>5.6.0</npm.version>
-	</properties>
-
-          <build>
-    <plugins>
-      <plugin>
-        <groupId>com.github.eirslett</groupId>
-        <artifactId>frontend-maven-plugin</artifactId>
-        <!-- NB! Set <version> to the latest released version of frontend-maven-plugin, like in README.md -->
-        <version>${frontend-maven-plugin.version}</version>
-
-        <executions>
-
-          <execution>
-            <id>install node and npm</id>
-            <goals>
-              <goal>install-node-and-npm</goal>
-            </goals>
-            <configuration>
-              <!-- See https://nodejs.org/en/download/ for latest node and npm (lts) versions -->
-              <nodeVersion>${nodejs.version}</nodeVersion>
-              <npmVersion>${npm.version}</npmVersion>
-            </configuration>
-          </execution>
-
-          <execution>
-            <id>npm install</id>
-            <goals>
-              <goal>npm</goal>
-            </goals>
-            <!-- Optional configuration which provides for running any npm command -->
-            <configuration>
-              <arguments>--registry https://registry.npm.taobao.org install</arguments>
-            </configuration>
-          </execution>
-
-          <execution>
-            <id>npm run build</id>
-            <goals>
-              <goal>npm</goal>
-            </goals>
-            <configuration>
-              <arguments>run build</arguments>
-            </configuration>
-          </execution>
-
-
-
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-
-
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">  
+  <modelVersion>4.0.0</modelVersion>  
+  <parent> 
+    <groupId>com.webank.cmdb</groupId>  
+    <artifactId>cmdb</artifactId>  
+    <version>0.0.1-SNAPSHOT</version> 
+  </parent>  
+  <artifactId>cmdb-ui</artifactId>  
+  <name>cmdb-ui</name>  
+  <description>cmdb-ui</description>  
+  <properties> 
+    <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>  
+    <nodejs.version>v8.11.1</nodejs.version>  
+    <npm.version>5.6.0</npm.version> 
+  </properties>  
+  <build> 
+    <plugins> 
+      <plugin> 
+        <groupId>com.github.eirslett</groupId>  
+        <artifactId>frontend-maven-plugin</artifactId>  
+        <!-- NB! Set <version> to the latest released version of frontend-maven-plugin, like in README.md -->  
+        <version>${frontend-maven-plugin.version}</version>  
+        <executions> 
+          <execution> 
+            <id>install node and npm</id>  
+            <goals> 
+              <goal>install-node-and-npm</goal> 
+            </goals>  
+            <configuration> 
+              <nodeVersion>${nodejs.version}</nodeVersion>  
+              <npmVersion>${npm.version}</npmVersion>  
+              <nodeDownloadRoot>http://npm.taobao.org/mirrors/node/</nodeDownloadRoot> 
+            </configuration> 
+          </execution>  
+          <execution> 
+            <id>npm install</id>  
+            <goals> 
+              <goal>npm</goal> 
+            </goals>  
+            <configuration> 
+              <arguments>--registry https://registry.npm.taobao.org install</arguments> 
+            </configuration> 
+          </execution>  
+          <execution> 
+            <id>npm run build</id>  
+            <goals> 
+              <goal>npm</goal> 
+            </goals>  
+            <configuration> 
+              <arguments>run build</arguments> 
+            </configuration> 
+          </execution> 
+        </executions> 
+      </plugin> 
+    </plugins> 
+  </build> 
 </project>
