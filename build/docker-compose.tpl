@@ -8,7 +8,7 @@ services:
       - /etc/localtime:/etc/localtime
     ports:
       - 8443:8443
-	  
+
   wecmdb-app:
     image: {{CMDB_CORE_IMAGE_NAME}}
     restart: always
