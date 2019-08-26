@@ -10,9 +10,9 @@ source $1
 
 build_path=`dirname $0`
 
-sed "s~{{CMDB_CORE_IMAGE_NAME}}~$cmdb_image_name~" ${build_path}/docker-compose.tpl > docker-compose.yml
+sed "s~{{CMDB_CORE_IMAGE_NAME}}~$cmdb_core_image_name~" ${build_path}/docker-compose.tpl > docker-compose.yml
 sed -i "s~{{CMDB_SERVER_PORT}}~$cmdb_server_port~" docker-compose.yml  
-sed -i "s~{{CAS_SERVER_URL}}~$cas_url~" docker-compose.yml
+sed -i "s~{{CAS_SERVER_URL}}~$cas_server_url~" docker-compose.yml
 sed -i "s~{{CMDB_IP_WHITELISTS}}~$cmdb_ip_whitelists~" docker-compose.yml
 sed -i "s~{{CMDB_CORE_EXTERNAL_PORT}}~$cmdb_core_external_port~" docker-compose.yml
 sed -i "s~{{CMDB_CORE_EXTERNAL_IP}}~$cmdb_core_exteranl_ip~" docker-compose.yml
