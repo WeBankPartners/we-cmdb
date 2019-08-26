@@ -36,17 +36,25 @@
 
 	编译过程中会从外网拉取maven包和npm包，如果有更快的maven源，可修改该文件中的配置。
 
-	在代码目录下执行make build 等待编译完成。
+	在代码根目录下执行make build 等待编译完成，如下图：
+	![wecmdb_make_build](images/wecmdb_make_build.png)
 
 3. 制作镜像
 	
-	在代码目录下执行make image，将制作WeCMDB的运行镜像。
+	在代码根目录下执行make image，如下图：
+	![wecmdb_make_image](images/wecmdb_make_image.png)
+
+	将制作WeCMDB的运行镜像。
+
 	如果还需要制作WeCMDB的数据库镜像，进入build/db目录，执行以下命令：
+
 	```
 	chmod +x build-image.sh
 	./build-image.sh
 	```
+
 	镜像制作完成后， 执行命令：
+
 	```
 	docker images
 	```
@@ -62,5 +70,6 @@
 	docker save -o wecmdb-app.tar we-cmdb
 	docker save -o wecmdb-db.tar cmdb-db
 	```
+
 	可在当前目录下看到保存成功的文件，将镜像文件发送到部署机器， 即可开始部署。
 	也可以将镜像上传到远程镜像仓库， 部署时从远程镜像仓库拉取。
