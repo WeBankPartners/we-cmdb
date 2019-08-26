@@ -41,7 +41,7 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	 cmdb_server_ip           |cmdb的服务ip，cas单点登录成功后的回跳地址；如果浏览器是通过局域网访问，该值填部署主机的局域网ip;如果是公网访问需填公网可访问的ip地址，如LB的ip
 	 cmdb_server_port         |cmdb的服务端口
 	 cmdb_image_name          |cmdb的docker镜像名称
-	 cmdb_ip_whitelists       |第三方服务如果要调用cmdb的api，需将第三方服务的访问ip加到此处，如果有多个服务，中间用逗号隔开
+	 cmdb_ip_whitelists       |第三方服务如果要调用cmdb的api，需将第三方服务的访问ip加到此处，如果有多个服务，中间用逗号隔开；若无，默认填127.0.0.1
 	 database_image_name      |cmdb依赖的数据库docker镜像名称
 	 database_init_password   |cmdb依赖的数据库root用户对应的初始化密码
 
@@ -152,3 +152,5 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
  
 3. 安装完成后，访问WeCMDB的url，确认页面访问正常。
 	http://cmdb_server_ip:cmdb_server_port/cmdb
+
+## 配置修改
