@@ -10,6 +10,20 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	- docker安装请参考[docker安装文档](docker_install_guide.md)
 	- docker-compose安装请参考[docker-compose安装文档](docker-compose_install_guide.md)
 
+
+## 加载镜像
+
+	通过文件方式加载镜像，执行以下命令：
+
+	```
+	docker load --input wecube-platform.tar
+	docker load --input wecube-db.tar 
+	```
+
+	执行docker images 命令，能看到镜像已经导入：
+	![wecmd_make_image](images/wecmd_make_image.png)
+	记下镜像列表中的镜像名称以及TAG， 在下面的配置中需要用到。
+
 ## 配置
 1. 建立执行目录和相关文件
 	
@@ -40,9 +54,9 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	 cas_url                  |单点登陆cas服务器url,docker-compose.tpl中已经自带cas服务器，默认用户名为admin，密码为123，如果要使用该服务器，此处的ip地址填部署主机的ip;
 	 cmdb_server_ip           |cmdb的服务ip，cas单点登录成功后的回跳地址；如果浏览器是通过局域网访问，该值填部署主机的局域网ip;如果是公网访问需填公网可访问的ip地址，如LB的ip
 	 cmdb_server_port         |cmdb的服务端口
-	 cmdb_image_name          |cmdb的docker镜像名称
+	 cmdb_image_name          |cmdb的docker镜像名称及TAG，请填入在“加载镜像”章节中看到的镜像名称以及TAG，需要保持一致， 例如：we-cmdb:a092a47
 	 cmdb_ip_whitelists       |第三方服务如果要调用cmdb的api，需将第三方服务的访问ip加到此处，如果有多个服务，中间用逗号隔开；若无，默认填127.0.0.1
-	 database_image_name      |cmdb依赖的数据库docker镜像名称
+	 database_image_name      |cmdb依赖的数据库docker镜像名称及TAG，请填入在“加载镜像”章节中看到的镜像名称以及TAG，需要保持一致， 例如：cmdb-db:dev
 	 database_init_password   |cmdb依赖的数据库root用户对应的初始化密码
 
 
@@ -134,23 +148,13 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	```
 
 ## 执行安装
-1. 拉取镜像文件
-	
-	通过文件方式加载镜像
-	```
-	docker load --input wecmdb-app.tar
-	docker load --input wecmdb-db.tar 
-	```
-	
-	执行docker images 命令，能看到镜像已经导入。
-	
-2. 执行如下命令，通过docker-compose拉起WeCmdb服务。
+1. 执行如下命令，通过docker-compose拉起WeCmdb服务。
 	
 	```
 	/bin/bash ./install.sh
 	```
  
-3. 安装完成后，访问WeCMDB的url，确认页面访问正常。
+2. 安装完成后，访问WeCMDB的url，确认页面访问正常。
 	http://cmdb_server_ip:cmdb_server_port/cmdb
 
 ## 配置修改
