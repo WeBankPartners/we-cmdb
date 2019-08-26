@@ -1,6 +1,10 @@
 package com.webank.cmdb.controller;
 
+import static com.webank.cmdb.domain.AdmMenu.*;
+
 import java.util.List;
+
+import javax.annotation.security.RolesAllowed;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,11 +23,13 @@ public class LogController {
     @Autowired
     private LogService logService;
 
+    @RolesAllowed({MENU_QUERY_LOG})
     @PostMapping("/log/query")
     public QueryResponse<LogDto> queryLog(@RequestBody QueryRequest queryRequest) {
         return logService.query(queryRequest);
     }
 
+    @RolesAllowed({MENU_QUERY_LOG})
     @GetMapping("/log/queryHeader")
     public List<QueryHeader> queryHeader() {
         return logService.queryHeader();
