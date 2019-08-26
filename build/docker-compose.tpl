@@ -17,6 +17,7 @@ services:
       - /etc/localtime:/etc/localtime
     depends_on:
       - wecube-cas
+    network_mode: host
     ports:
       - {{CMDB_CORE_EXTERNAL_PORT}}:8080
     environment:
