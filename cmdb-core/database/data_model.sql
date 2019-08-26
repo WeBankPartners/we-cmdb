@@ -1,7 +1,3 @@
-SET NAMES utf8;
-create database cmdb charset = utf8;
-use cmdb;
-
 SET FOREIGN_KEY_CHECKS=0;
 CREATE TABLE IF NOT EXISTS `adm_attr_group` (
   `id_adm_attr_group` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_attr_group',
