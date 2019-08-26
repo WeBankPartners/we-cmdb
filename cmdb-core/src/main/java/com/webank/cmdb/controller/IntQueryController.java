@@ -1,6 +1,10 @@
 package com.webank.cmdb.controller;
 
+import static com.webank.cmdb.domain.AdmMenu.*;
+
 import java.util.List;
+
+import javax.annotation.security.RolesAllowed;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,11 +29,13 @@ public class IntQueryController {
     @Autowired
     private CiService ciService;
 
+    @RolesAllowed({MENU_COMMON_INTERFACE_CONFIG})
     @GetMapping("/intQuery/ciType/{ciTypeId}/{queryId}")
     public IntegrationQueryDto getIntQueryByName(@PathVariable("ciTypeId") Integer ciTypeId, @PathVariable("queryId") int queryId) {
         return intQueryService.getIntegrationQuery(queryId);
     }
 
+    @RolesAllowed({MENU_COMMON_INTERFACE_CONFIG})
     @PostMapping("/intQuery/ciType/{ciTypeId}/{queryName}/save")
     public int saveIntQuery(@PathVariable("ciTypeId") Integer ciTypeId, @PathVariable("queryName") String queryName, @RequestBody IntegrationQueryDto intQueryDto) {
         return intQueryService.createIntegrationQuery(ciTypeId, queryName, intQueryDto);
@@ -45,16 +51,19 @@ public class IntQueryController {
         intQueryService.deleteIntegrationQuery(queryId);
     }
 
+    @RolesAllowed({MENU_COMMON_INTERFACE_RUNNER, MENU_COMMON_INTERFACE_CONFIG})
     @GetMapping("/intQuery/ciType/{ciTypeId}/search")
     public List<IdNamePairDto> searchIntQuery(@PathVariable("ciTypeId") Integer ciTypeId, @RequestParam(value = "name", required = false) String name, @RequestParam(value = "tailAttrId", required = false) Integer tailAttrId) {
         return intQueryService.findAll(ciTypeId, name, tailAttrId);
     }
 
+    @RolesAllowed({MENU_COMMON_INTERFACE_RUNNER})
     @PostMapping("/intQuery/{queryId}/execute")
     public QueryResponse queryInt(@PathVariable("queryId") int queryId, @RequestBody QueryRequest queryRequest) {
         return ciService.integrateQuery(queryId, queryRequest);
     }
 
+    @RolesAllowed({MENU_COMMON_INTERFACE_RUNNER})
     @GetMapping("/intQuery/{queryId}/header")
     public List<IntQueryResponseHeader> queryIntHeader(@PathVariable("queryId") int queryId) {
         return ciService.integrateQueryHeader(queryId);
