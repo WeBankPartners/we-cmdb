@@ -26,6 +26,10 @@ public class CiTypeHeaderDto extends CiTypeAttrDto {
     public void addStringValues(List<String> valList) {
         vals.addAll(valList);
     }
+    
+    public void addValues(List<?> valList) {
+    	vals.addAll(valList);
+    }
 
     class EnumValue {
         private int id;
@@ -55,6 +59,30 @@ public class CiTypeHeaderDto extends CiTypeAttrDto {
             this.code = code;
         }
 
+    }
+    
+    static public class CiKeyPair{
+    	private String guid;
+    	private String keyName;
+    	
+    	public CiKeyPair(String guid,String keyName) {
+    		this.guid = guid;
+    		this.keyName = keyName;
+    	}
+    	
+		public String getGuid() {
+			return guid;
+		}
+		public void setGuid(String guid) {
+			this.guid = guid;
+		}
+		public String getKeyName() {
+			return keyName;
+		}
+		public void setKeyName(String keyName) {
+			this.keyName = keyName;
+		}
+    	
     }
 
     public List<Object> getVals() {
