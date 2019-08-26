@@ -13,16 +13,18 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 
 ## 加载镜像
 
-	通过文件方式加载镜像，执行以下命令：
+   通过文件方式加载镜像，执行以下命令：
 
-	```
-	docker load --input wecube-platform.tar
-	docker load --input wecube-db.tar 
-	```
+   ```
+   docker load --input wecube-platform.tar
+   docker load --input wecube-db.tar 
+   ```
 
-	执行docker images 命令，能看到镜像已经导入：
-	![wecmd_make_image](images/wecmd_make_image.png)
-	记下镜像列表中的镜像名称以及TAG， 在下面的配置中需要用到。
+   执行docker images 命令，能看到镜像已经导入：
+
+   ![wecmdb_make_image](images/wecmdb_make_image.png)
+
+   记下镜像列表中的镜像名称以及TAG， 在下面的配置中需要用到。
 
 ## 配置
 1. 建立执行目录和相关文件
