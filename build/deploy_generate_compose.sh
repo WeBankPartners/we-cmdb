@@ -1,3 +1,11 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]
+  then
+    echo "Missing configure file"
+    exit 1
+fi
+
 source $1
 
 build_path=`dirname $0`
