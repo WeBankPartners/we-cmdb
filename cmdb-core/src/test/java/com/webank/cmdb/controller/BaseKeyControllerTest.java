@@ -1,5 +1,6 @@
 package com.webank.cmdb.controller;
 
+import static com.webank.cmdb.domain.AdmMenu.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -17,6 +18,7 @@ import org.assertj.core.util.Lists;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.google.common.collect.ImmutableMap;
@@ -26,6 +28,7 @@ import com.webank.cmdb.repository.AdmBasekeyCatRepository;
 import com.webank.cmdb.repository.AdmBasekeyCodeRepository;
 import com.webank.cmdb.util.JsonUtil;
 
+@WithMockUser(username = "test", authorities = {ROLE_PREFIX + MENU_QUERY_CONFIG, ROLE_PREFIX + MENU_OVERVIEW ,ROLE_PREFIX + MENU_BASIC_CONFIG_QUERY})
 public class BaseKeyControllerTest extends LegacyAbstractBaseControllerTest {
     @Autowired
     private AdmBasekeyCatRepository basekeyCatRepository;

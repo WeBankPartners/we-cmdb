@@ -1,5 +1,7 @@
 package com.webank.cmdb.controller;
 
+import static com.webank.cmdb.domain.AdmMenu.MENU_QUERY_CONFIG;
+import static com.webank.cmdb.domain.AdmMenu.ROLE_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.contains;
@@ -33,7 +35,7 @@ import com.webank.cmdb.service.impl.AuthorizationServiceImpl;
 import com.webank.cmdb.util.JsonUtil;
 
 @TestPropertySource(properties = "spring.cache.type=none")
-@WithMockUser(username = "mock_user1")
+@WithMockUser(username = "mock_user1", authorities = { ROLE_PREFIX + MENU_QUERY_CONFIG })
 public class AccessControlTest extends AbstractBaseControllerTest {
 
     @Autowired
