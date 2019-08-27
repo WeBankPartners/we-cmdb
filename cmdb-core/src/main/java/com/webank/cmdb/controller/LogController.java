@@ -19,17 +19,16 @@ import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.service.LogService;
 
 @RestController
+@RolesAllowed({MENU_QUERY_LOG})
 public class LogController {
     @Autowired
     private LogService logService;
 
-    @RolesAllowed({MENU_QUERY_LOG})
     @PostMapping("/log/query")
     public QueryResponse<LogDto> queryLog(@RequestBody QueryRequest queryRequest) {
         return logService.query(queryRequest);
     }
 
-    @RolesAllowed({MENU_QUERY_LOG})
     @GetMapping("/log/queryHeader")
     public List<QueryHeader> queryHeader() {
         return logService.queryHeader();
