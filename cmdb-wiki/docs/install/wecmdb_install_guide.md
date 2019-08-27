@@ -16,13 +16,19 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
    通过文件方式加载镜像，执行以下命令：
 
    ```
-   docker load --input wecube-platform.tar
-   docker load --input wecube-db.tar 
+   docker load --input wecmdb-app.tar
+   docker load --input wecmdb-db.tar 
    ```
 
-   执行docker images 命令，能看到镜像已经导入：
+   导入镜像， 再执行命令
 
-   ![wecmdb_make_image](images/wecmdb_make_image.png)
+   ```
+	docker images
+   ```
+
+   能看到镜像已经导入：
+
+   ![wecmdb_images](images/wecmdb_images.png)
 
    记下镜像列表中的镜像名称以及TAG， 在下面的配置中需要用到。
 
@@ -35,18 +41,21 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 
 	[install.sh](../../../build/install.sh)
 
-	[docker-compose.tpl](../../../build/docker-compose.tpl)
+	[docker-compose.tpl](../../../build/docker-compose-all.tpl)
 
 2. cmdb.cfg配置文件，该文件包含如下配置项，用户根据各自的部署环境替换掉相关值。
 
 	```	
+	#cas
 	cas_url=http://{$cas_ip}:8443/cas
-
+	
+	#cmdb
 	cmdb_server_ip={$cmdb_server_ip}
 	cmdb_server_port=8080
 	cmdb_image_name=cmdb:dev
 	cmdb_ip_whitelists={$cmdb_ip_whitelists}
 
+	#database
 	database_image_name=cmdb-db:dev
 	database_init_password=mysql
 	```
@@ -81,7 +90,7 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	
 	source cmdb.cfg
 	
-	sed "s~{{CMDB_CORE_IMAGE_NAME}}~$cmdb_image_name~" docker-compose.tpl > docker-compose.yml
+	sed "s~{{CMDB_CORE_IMAGE_NAME}}~$cmdb_image_name~" docker-compose-all.tpl > docker-compose.yml
 	sed -i "s~{{CMDB_SERVER_PORT}}~$cmdb_server_port~" docker-compose.yml  
 	sed -i "s~{{CMDB_DATABASE_IMAGE_NAME}}~$database_image_name~" docker-compose.yml  
 	sed -i "s~{{MYSQL_ROOT_PASSWORD}}~$database_init_password~" docker-compose.yml 
@@ -98,10 +107,11 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	此文件中配置了要安装的服务：cas、mysql、cmdb。
 	如果已有cas和mysql，在文件中将这两段内容注释掉，在cmdb的environment配置中，手动修改cas和数据库配置即可。
 	详细代码如下：
+
 	```
 	version: '2'
 	services:
-	  cas:
+	  wecmdb-cas:
 	    image: kawhii/sso
 	    container_name: cas_sso
 	    restart: always
@@ -109,7 +119,7 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	      - /etc/localtime:/etc/localtime
 	    ports:
 	      - 8443:8443
-	  mysql:
+	  wecmdb-mysql:
 	    image: {{CMDB_DATABASE_IMAGE_NAME}}
 	    restart: always
 	    command: [
@@ -125,20 +135,20 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	      - 3306:3306
 	    volumes:
 	      - /data/cmdb/db:/var/lib/mysql
-	  cmdb:
+	  wecmdb-app:
 	    image: {{CMDB_CORE_IMAGE_NAME}}
 	    restart: always
 	    volumes:
 	      - /data/cmdb/log:/log/
 	      - /etc/localtime:/etc/localtime
 	    depends_on:
-	      - mysql
-	      - cas
+	      - wecmdb-mysql
+	      - wecmdb-cas
 	    ports:
 	      - {{CMDB_SERVER_PORT}}:8080
 	    environment:
 	      - TZ=Asia/Shanghai
-	      - MYSQL_SERVER_ADDR=mysql
+	      - MYSQL_SERVER_ADDR=wecmdb-mysql
 	      - MYSQL_SERVER_PORT=3306
 	      - MYSQL_SERVER_DATABASE_NAME=cmdb
 	      - MYSQL_USER_NAME=root
