@@ -451,7 +451,7 @@ public class AdmCiType implements Serializable {
         createdDate.setEditIsNull(0);
         createdDate.setEditIsEditable(0);
         createdDate.setSearchSeqNo(0);
-        createdDate.setDisplaySeqNo(0);
+        createdDate.setDisplayType(0);
         createdDate.setDisplaySeqNo(0);
         createdDate.setIsRefreshable(0);
         createdDate.setIsSystem(CmdbConstants.IS_SYSTEM_YES);
@@ -464,8 +464,8 @@ public class AdmCiType implements Serializable {
         keyName.setPropertyName(CmdbConstants.DEFAULT_FIELD_KEY_NAME);
         keyName.setPropertyType("varchar");
         keyName.setLength(200);
-        keyName.setName("唯一值");
-        keyName.setDescription("唯一值");
+        keyName.setName("唯一名称");
+        keyName.setDescription("唯一名称");
         keyName.setIsAccessControlled(0);
         keyName.setEditIsOnly(1);
         keyName.setEditIsHiden(0);
