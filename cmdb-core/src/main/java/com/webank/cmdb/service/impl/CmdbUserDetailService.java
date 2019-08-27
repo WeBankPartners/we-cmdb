@@ -34,10 +34,10 @@ public class CmdbUserDetailService implements UserDetailsService {
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         List<AdmMenu> admMenus = admMenusRepository.findMenusByUserName(username);
-        
+
         if (CollectionUtils.isNotEmpty(admMenus)) {
             List<GrantedAuthority> authorities = admMenus.stream()
-            		.map(AdmMenu::getName)
+                    .map(AdmMenu::getName)
                     .map(menuName -> new SimpleGrantedAuthority(ROLE_PREFIX + menuName))
                     .collect(toList());
             logger.info("Menu permissions {} found for user {}", authorities, username);
