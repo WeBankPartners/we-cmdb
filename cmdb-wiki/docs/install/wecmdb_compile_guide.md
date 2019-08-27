@@ -36,19 +36,33 @@
 
 	编译过程中会从外网拉取maven包和npm包，如果有更快的maven源，可修改该文件中的配置。
 
-	在代码根目录下执行make build 等待编译完成，如下图：
+	在代码根目录下执行
+
+    ```
+	make build
+	```
+	
+	等待编译完成，如下图：
 	![wecmdb_make_build](images/wecmdb_make_build.png)
 
 3. 制作镜像
 	
-	在代码根目录下执行make image，如下图：
+	在代码根目录下执行
+
+    ```
+	make build
+	```
+	
+	如下图：
+
 	![wecmdb_make_image](images/wecmdb_make_image.png)
 
 	将制作WeCMDB的运行镜像。
 
-	如果还需要制作WeCMDB的数据库镜像，进入build/db目录，执行以下命令：
+	如果还需要制作WeCMDB的数据库镜像，执行以下命令：
 
 	```
+	cd build/db
 	chmod +x build-image.sh
 	./build-image.sh
 	```
