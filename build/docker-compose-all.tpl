@@ -34,7 +34,7 @@ services:
       - wecmdb-mysql
       - wecube-cas
     ports:
-      - {{CMDB_SERVER_PORT}}:8080
+      - {{CMDB_SERVER_PORT}}:{{CMDB_SERVER_PORT}}
     environment:
       - TZ=Asia/Shanghai
       - MYSQL_SERVER_ADDR=wecmdb-mysql
