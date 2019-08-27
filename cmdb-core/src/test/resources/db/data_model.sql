@@ -1199,6 +1199,13 @@ CREATE TABLE IF NOT EXISTS `adm_menu` (
   KEY `fk_adm_menu_adm_menu_1` (`parent_id_adm_menu`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+INSERT INTO adm_menu (id_adm_menu, name,other_name,url,seq_no,remark,parent_id_adm_menu,class_path,is_active) VALUES
+(1, 'menuA','','menuA/index.html',1,NULL,NULL,NULL,0)
+,(2, 'menuB','','menuB/index.html',2,NULL,NULL,NULL,0)
+,(3, 'menuC','','menuC/index.html',3,NULL,NULL,NULL,0)
+,(4, 'menuD','','menuD/index.html',4,NULL,NULL,NULL,0)
+;
+
 CREATE TABLE IF NOT EXISTS `adm_tenement` (
   `id_adm_tenement` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(32) DEFAULT NULL COMMENT '名称',
@@ -1415,6 +1422,24 @@ INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`) V
 	(5, 2, '1'),
 	(348, 1, '1');
 
+CREATE TABLE `adm_role_menu` (
+  `id_adm_role_menu` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_menu',
+  `id_adm_role` int(11) DEFAULT NULL COMMENT 'id_adm_role',
+  `id_adm_menu` int(11) DEFAULT NULL COMMENT 'id_adm_menu',
+  PRIMARY KEY (`id_adm_role_menu`),
+  UNIQUE KEY `role_menu_unique` (`id_adm_role`,`id_adm_menu`),
+  KEY `fk_adm_role_menu_adm_role_1` (`id_adm_role`),
+  KEY `fk_adm_role_menu_adm_menu_1` (`id_adm_menu`),
+  CONSTRAINT `fk_adm_role_menu_adm_role_1` FOREIGN KEY (`id_adm_role`) REFERENCES `adm_role` (`id_adm_role`) ON DELETE CASCADE,
+  CONSTRAINT `fk_adm_role_menu_adm_menu_1` FOREIGN KEY (`id_adm_menu`) REFERENCES `adm_menu` (`id_adm_menu`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO adm_role_menu (id_adm_role_menu, id_adm_role, id_adm_menu) VALUES
+(1,1,1)
+,(2,1,2)
+,(3,1,3)
+,(4,2,1)
+;
 
 CREATE TABLE IF NOT EXISTS `adm_sequence` (
   `id_adm_sequence` int(10) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_sequence',
