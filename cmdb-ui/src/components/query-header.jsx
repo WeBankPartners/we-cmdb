@@ -23,9 +23,17 @@ function QueryHeader(props) {
   };
 
   const renderInputComponent = _ => {
+    const value = data[_[keys[1]]] ? data[_[keys[1]]].value : null;
+    const refOptions = _.vals
+      ? _.vals.map(_ => {
+          return {
+            id: _.guid,
+            code: _.keyName
+          };
+        })
+      : [];
     switch (_.inputType) {
       case "select":
-        const value = data[_[keys[1]]] ? data[_[keys[1]]].value : null;
         return (
           <FormControl
             margin="normal"
@@ -36,6 +44,22 @@ function QueryHeader(props) {
               id="select"
               data={value}
               options={_.vals || []}
+              optLabels={["id", "code"]}
+              onChange={handleInputChange(_[keys[1]])}
+            />
+          </FormControl>
+        );
+      case "ref":
+        return (
+          <FormControl
+            margin="normal"
+            disabled={_.isEditable === false && !isQuery}
+          >
+            <InputLabel htmlFor="select">{_[keys[0]]}</InputLabel>
+            <CMDBSelect
+              id="select"
+              data={value}
+              options={refOptions}
               optLabels={["id", "code"]}
               onChange={handleInputChange(_[keys[1]])}
             />

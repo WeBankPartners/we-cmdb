@@ -43,6 +43,7 @@ import com.webank.cmdb.dto.CiTypeAttrGroupDto;
 import com.webank.cmdb.dto.CiTypeCategoryDto;
 import com.webank.cmdb.dto.CiTypeDto;
 import com.webank.cmdb.dto.CiTypeHeaderDto;
+import com.webank.cmdb.dto.CiTypeHeaderDto.CiKeyPair;
 import com.webank.cmdb.dto.CiTypeReferenceDto;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
@@ -426,9 +427,9 @@ public class CiTypeServiceImpl implements CiTypeService {
                     });
                 }
             }else if ((InputType.Reference.equals(inputType) || InputType.MultRef.equals(inputType)) && attr.getReferenceId() != null) {
-                List<String> guids = ciService.retrieveGuids(attr.getReferenceId());
-                if (guids != null && guids.size() > 0) {
-                    headerDto.addStringValues(guids);
+                List<CiKeyPair> ciKeyPairs = ciService.retrieveKeyPairs(attr.getReferenceId());
+                if (ciKeyPairs != null && ciKeyPairs.size() > 0) {
+                    headerDto.addValues(ciKeyPairs);
                 }                
             }
             headerDtos.add(headerDto);
