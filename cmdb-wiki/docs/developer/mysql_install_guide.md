@@ -12,7 +12,7 @@
 本文以安装mysql-installer-community-8.0.17.0.msi为例。
 
 
-##安装
+## 安装
 1. 下载后双击即可安装，如下图：
 	![mysql_install_1](images/mysql_install_1.png)
 
