@@ -33,11 +33,12 @@ services:
     depends_on:
       - wecmdb-mysql
       - wecube-cas
+    network_mode: host
     ports:
       - {{CMDB_SERVER_PORT}}:{{CMDB_SERVER_PORT}}
     environment:
       - TZ=Asia/Shanghai
-      - MYSQL_SERVER_ADDR=wecmdb-mysql
+      - MYSQL_SERVER_ADDR=127.0.0.1
       - MYSQL_SERVER_PORT=3306
       - MYSQL_SERVER_DATABASE_NAME=cmdb
       - MYSQL_USER_NAME=root
