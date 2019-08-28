@@ -1,7 +1,10 @@
 package com.webank.cmdb.controller;
 
+import static com.webank.cmdb.domain.AdmMenu.*;
+
 import java.util.List;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +60,7 @@ public class CiTypeController {
         binder.addValidators(new CiTypeAttrValidator());
     }
 
+    @RolesAllowed({MENU_QUERY_CONFIG, MENU_OVERVIEW, MENU_PERMISSION})
     @GetMapping("/ciTypes")
     public List<CiTypeDto> listCiTypes() {
         final List<CiTypeDto> ciTypes = Lists.newLinkedList();
@@ -68,6 +72,7 @@ public class CiTypeController {
         return ciTypes;
     }
 
+    @RolesAllowed({MENU_QUERY_CONFIG, MENU_COMMON_INTERFACE_RUNNER, MENU_OVERVIEW, MENU_COMMON_INTERFACE_CONFIG})
     @GetMapping("/catalog/ciTypes")
     public List<CiTypeCategoryDto> listCiTypeCatalogInfo() {
         AdmBasekeyCat admBasekeyCat = basekeyCatRepository.findAllByCatName(CmdbConstants.CI_TYPE_CATALOG);
@@ -75,6 +80,7 @@ public class CiTypeController {
         return CiTypeCategoryDto.Builder.build(basekeyInfos);
     }
 
+    @RolesAllowed({MENU_OVERVIEW})
     @GetMapping("/ciType/ciTypeAndAttr/{ciTypeId}")
     public CiTypeDto getCiTypeAndAttributes(@PathVariable("ciTypeId") int admCiTypeId) {
         AdmCiType admCiType = admCiTypeRepository.findByIdAdmCiType(admCiTypeId);
@@ -82,6 +88,7 @@ public class CiTypeController {
         return ciTypeAttr;
     }
 
+    @RolesAllowed({MENU_OVERVIEW})
     @PostMapping("/ciType/add")
     public CiTypeDto addCiType(@Valid @RequestBody CiTypeDto ciType) {
         return ciTypeService.addCiType(ciType);
@@ -92,11 +99,13 @@ public class CiTypeController {
         ciTypeService.createCiTypeTable(ciTypeId);
     }
 
+    @RolesAllowed({MENU_QUERY_CONFIG, MENU_OVERVIEW})
     @PostMapping("/ciType/{ciTypeId}/update")
     public void updateCiType(@PathVariable("ciTypeId") int ciTypeId, @RequestBody CiTypeDto ciType) {
         ciTypeService.updateCiType(ciTypeId, ciType);
     }
 
+    @RolesAllowed({MENU_OVERVIEW})
     @PostMapping("/ciType/{ciTypeId}/delete")
     public void deleteCiType(@PathVariable("ciTypeId") int ciTypeId) {
         staticDtoService.delete(CiTypeDto.class, ciTypeId);
@@ -117,6 +126,7 @@ public class CiTypeController {
         ciTypeService.updateCiTypePriority(ciTypeId, PriorityUpdateOper.Down);
     }
 
+    @RolesAllowed({MENU_OVERVIEW})
     @PostMapping("/ciType/{ciTypeId}/implement")
     public void implementCiType(@PathVariable("ciTypeId") int ciTypeId, @RequestParam("operation") String operaCode) {
         ImplementOperation operation = ImplementOperation.fromCode(operaCode);
@@ -127,6 +137,7 @@ public class CiTypeController {
         ciTypeService.implementCiType(ciTypeId, operation);
     }
 
+    @RolesAllowed({MENU_OVERVIEW})
     @PostMapping("/ciType/attr/{ciTypeAttrId}/implement")
     public void implementCiTypeAttr(@PathVariable("ciTypeAttrId") int ciTypeAttrId, @RequestParam("operation") String operaCode) {
         ImplementOperation operation = ImplementOperation.fromCode(operaCode);
@@ -137,17 +148,20 @@ public class CiTypeController {
         ciTypeService.implementCiTypeAttr(ciTypeAttrId, operation);
     }
 
+    @RolesAllowed({MENU_OVERVIEW})
     @PostMapping("/ciType/{ciTypeId}/attr/add")
     public CiTypeAttrDto addCiTypeAttribute(@PathVariable("ciTypeId") int ciTypeId, @Valid @RequestBody CiTypeAttrDto ciTypeAttr) {
         ciTypeAttr.setCiTypeId(ciTypeId);
         return ciTypeService.addCiTypeAttribute(ciTypeId, ciTypeAttr);
     }
 
+    @RolesAllowed({MENU_OVERVIEW})
     @PostMapping("/ciType/{ciTypeId}/attr/{ciTypeAttrId}/delete")
     public void deleteCiTypeAttribute(@PathVariable("ciTypeId") int ciTypeId, @PathVariable("ciTypeAttrId") int ciTypeAttrId) {
         staticDtoService.delete(CiTypeAttrDto.class, ciTypeAttrId);
     }
 
+    @RolesAllowed({MENU_COMMON_INTERFACE_CONFIG})
     @GetMapping("/ciType/{ciTypeId}/attrs")
     public List<CiTypeAttrDto> getCiTypeAttributes(@PathVariable("ciTypeId") int ciTypeId) {
         return ciTypeService.listAllAttributes(ciTypeId);
@@ -158,26 +172,31 @@ public class CiTypeController {
         return ciTypeService.getCiTypeAttribute(ciTypeAttrId);
     }
 
+    @RolesAllowed({MENU_OVERVIEW})
     @PostMapping("/ciType/{ciTypeId}/attr/{ciTypeAttrId}/update")
     public void updateCiTypeAttribute(@PathVariable("ciTypeId") int ciTypeId, @PathVariable("ciTypeAttrId") int ciTypeAttrId, @RequestBody CiTypeAttrDto ciTypeAttr) {
         ciTypeService.updateCiTypeAttribute(ciTypeId, ciTypeAttrId, ciTypeAttr);
     }
 
+    @RolesAllowed({MENU_OVERVIEW})
     @GetMapping("/ciType/{ciTypeId}/attrUniqueGroups")
     public List<CiTypeAttrGroupDto> listCiTypeAttrGroup(@PathVariable("ciTypeId") int ciTypeId) {
         return ciTypeService.getAttrGroup(ciTypeId);
     }
 
+    @RolesAllowed({MENU_OVERVIEW})
     @PostMapping("/ciType/{ciTypeId}/attrUniqueGroup/add")
     public void addCiTypeAttrGroup(@PathVariable("ciTypeId") int ciTypeId, @Valid @RequestBody CiTypeAttrGroupDto attrGroup) {
         ciTypeService.addAttrGroup(attrGroup);
     }
 
+    @RolesAllowed({MENU_OVERVIEW})
     @PostMapping("/ciType/attrUniqueGroup/{attrGroupId}/delete")
     public void deleteCiTypeAttrGroup(@PathVariable("attrGroupId") int attrGroupId) {
         ciTypeService.deleteAttrGroup(attrGroupId);
     }
 
+    @RolesAllowed({MENU_QUERY_CONFIG})
     @GetMapping("/ciType/{ciTypeId}/header")
     public List<CiTypeHeaderDto> getCiTypeHeader(@PathVariable("ciTypeId") int ciTypeId) {
         return ciTypeService.getCiTypeHeader(ciTypeId);
@@ -190,6 +209,7 @@ public class CiTypeController {
      * @param ciTypeId
      * @return
      */
+    @RolesAllowed({MENU_COMMON_INTERFACE_CONFIG})
     @GetMapping("/ciType/{ciTypeId}/referBy")
     public List<CiTypeReferenceDto> queryReferencedBy(@PathVariable("ciTypeId") int ciTypeId) {
         return ciTypeService.queryReferencedBy(ciTypeId);
@@ -201,6 +221,7 @@ public class CiTypeController {
      * @param ciTypeId
      * @return
      */
+    @RolesAllowed({MENU_COMMON_INTERFACE_CONFIG})
     @GetMapping("/ciType/{ciTypeId}/referTo")
     public List<CiTypeReferenceDto> queryReferenceTo(@PathVariable("ciTypeId") int ciTypeId) {
         return ciTypeService.queryReferenceTo(ciTypeId);

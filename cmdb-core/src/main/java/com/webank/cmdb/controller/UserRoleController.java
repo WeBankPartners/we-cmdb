@@ -1,8 +1,11 @@
 package com.webank.cmdb.controller;
 
+import static com.webank.cmdb.domain.AdmMenu.*;
+
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +31,7 @@ public class UserRoleController {
     @Autowired
     private StaticDtoService staticDtoService;
 
+    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/users/retrieve")
     public QueryResponse<UserDto> retrieveUsers(@RequestBody QueryRequest request) {
         return staticDtoService.query(UserDto.class, request);
@@ -38,46 +42,55 @@ public class UserRoleController {
         return staticDtoService.query(RoleDto.class, request);
     }
 
+    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/roles/update")
     public List<RoleDto> updateRoles(@Valid @RequestBody List<Map<String, Object>> request) {
         return staticDtoService.update(RoleDto.class, request);
     }
 
+    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/roles/delete")
     public void deleteRoles(@Valid @RequestBody List<Integer> requestIds) {
         staticDtoService.delete(RoleDto.class, requestIds);
     }
 
+    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/roles/create")
     public List<RoleDto> createRoles(@Valid @RequestBody List<RoleDto> roleDtos) {
         return staticDtoService.create(RoleDto.class, roleDtos);
     }
 
+    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/role-users/retrieve")
     public QueryResponse<RoleUserDto> retrieveRoleUsers(@RequestBody QueryRequest request) {
         return staticDtoService.query(RoleUserDto.class, request);
     }
 
+    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/role-users/create")
     public List<RoleUserDto> createRoleUsers(@Valid @RequestBody List<RoleUserDto> roleUsers) {
         return staticDtoService.create(RoleUserDto.class, roleUsers);
     }
 
+    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/role-users/delete")
     public void deleteRoleUsers(@Valid @RequestBody List<Integer> requestIds) {
         staticDtoService.delete(RoleUserDto.class, requestIds);
     }
 
+    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/role-citypes/retrieve")
     public QueryResponse<RoleCiTypeDto> retrieveRoleCiTypes(@RequestBody QueryRequest request) {
         return staticDtoService.query(RoleCiTypeDto.class, request);
     }
 
+    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/role-citypes/create")
     public List<RoleCiTypeDto> createRoleCiTypes(@Valid @RequestBody List<RoleCiTypeDto> roleCiTypes) {
         return staticDtoService.create(RoleCiTypeDto.class, roleCiTypes);
     }
 
+    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/role-citypes/update")
     public List<RoleCiTypeDto> updateRoleCiTypes(@Valid @RequestBody List<Map<String, Object>> request) {
         return staticDtoService.update(RoleCiTypeDto.class, request);
@@ -133,11 +146,13 @@ public class UserRoleController {
         return staticDtoService.query(MenuDto.class, request);
     }
 
+    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/role-menus/retrieve")
     public QueryResponse<RoleMenuDto> retrieveRoleMenus(@RequestBody QueryRequest request) {
         return staticDtoService.query(RoleMenuDto.class, request);
     }
 
+    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/role-menus/create")
     public List<RoleMenuDto> createRoleMenus(@Valid @RequestBody List<RoleMenuDto> roleCiTypes) {
         return staticDtoService.create(RoleMenuDto.class, roleCiTypes);
@@ -148,6 +163,7 @@ public class UserRoleController {
         return staticDtoService.update(RoleMenuDto.class, request);
     }
 
+    @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/role-menus/delete")
     public void deleteRoleMenus(@Valid @RequestBody List<Integer> requestIds) {
         staticDtoService.delete(RoleMenuDto.class, requestIds);
