@@ -29,6 +29,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.webank.cmdb.controller.interceptor.HttpAccessUsernameInterceptor;
+import com.webank.cmdb.mvc.CustomRolesPrefixPostProcessor;
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
@@ -144,11 +145,10 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
         return provider;
     }
 
-//    //TO DO: need it when the menu is implemented.
-//    @Bean
-//    public static CustomRolesPrefixPostProcessor customRolesPrefixPostProcessor() {
-//        return new CustomRolesPrefixPostProcessor();
-//    }
+    @Bean
+    public static CustomRolesPrefixPostProcessor customRolesPrefixPostProcessor() {
+        return new CustomRolesPrefixPostProcessor();
+    }
 
     private ServiceProperties serviceProperties() {
         ServiceProperties properties = new ServiceProperties();

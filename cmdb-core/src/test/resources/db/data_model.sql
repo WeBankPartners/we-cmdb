@@ -1199,6 +1199,13 @@ CREATE TABLE IF NOT EXISTS `adm_menu` (
   KEY `fk_adm_menu_adm_menu_1` (`parent_id_adm_menu`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+INSERT INTO adm_menu (id_adm_menu, name,other_name,url,seq_no,remark,parent_id_adm_menu,class_path,is_active) VALUES
+(1, 'menuA','','menuA/index.html',1,NULL,NULL,NULL,0)
+,(2, 'menuB','','menuB/index.html',2,NULL,NULL,NULL,0)
+,(3, 'menuC','','menuC/index.html',3,NULL,NULL,NULL,0)
+,(4, 'menuD','','menuD/index.html',4,NULL,NULL,NULL,0)
+;
+
 CREATE TABLE IF NOT EXISTS `adm_tenement` (
   `id_adm_tenement` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(32) DEFAULT NULL COMMENT '名称',
@@ -1415,6 +1422,24 @@ INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`) V
 	(5, 2, '1'),
 	(348, 1, '1');
 
+CREATE TABLE `adm_role_menu` (
+  `id_adm_role_menu` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_menu',
+  `id_adm_role` int(11) DEFAULT NULL COMMENT 'id_adm_role',
+  `id_adm_menu` int(11) DEFAULT NULL COMMENT 'id_adm_menu',
+  PRIMARY KEY (`id_adm_role_menu`),
+  UNIQUE KEY `role_menu_unique` (`id_adm_role`,`id_adm_menu`),
+  KEY `fk_adm_role_menu_adm_role_1` (`id_adm_role`),
+  KEY `fk_adm_role_menu_adm_menu_1` (`id_adm_menu`),
+  CONSTRAINT `fk_adm_role_menu_adm_role_1` FOREIGN KEY (`id_adm_role`) REFERENCES `adm_role` (`id_adm_role`) ON DELETE CASCADE,
+  CONSTRAINT `fk_adm_role_menu_adm_menu_1` FOREIGN KEY (`id_adm_menu`) REFERENCES `adm_menu` (`id_adm_menu`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO adm_role_menu (id_adm_role_menu, id_adm_role, id_adm_menu) VALUES
+(1,1,1)
+,(2,1,2)
+,(3,1,3)
+,(4,2,1)
+;
 
 CREATE TABLE IF NOT EXISTS `adm_sequence` (
   `id_adm_sequence` int(10) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_sequence',
@@ -1889,9 +1914,9 @@ CREATE TABLE IF NOT EXISTS `package` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `package` (`guid`, `p_guid`, `r_guid`, `description`, `fixed_date`, `key_name`, `updated_by`, `updated_date`, `created_by`, `created_date`, `code`, `deploy_file`, `deploy_user`, `diff_conf_file`, `diff_conf_variable`, `md5_value`, `name`, `url`, `start_file`, `state`, `stop_file`, `unit_design`, `upload_time`, `upload_user`, `deploy_path`, `biz_key`) VALUES
-	('0011_0000000003', NULL, '0011_0000000003', 'wecube-demo.zip', NULL, 'wecube-demo.zip_2019-07-03 21:41:38', 'umadmin', '2019-07-03 14:23:43', 'umadmin', '2019-07-03 13:41:38', 'wecube-demo', 'http://10.107.119.52:9000/scripts/wecube-demo.sh', 214, NULL, NULL, 'b043bd34649dee665224191bec9ab2a6', 'wecube-demo.zip', 'http://10.107.119.52:9000/wecube-artifact/b043bd34649dee665224191bec9ab2a6_wecube-demo.zip', NULL, 39, NULL, '0003_0000000013', '2019-07-03 21:41:38', 'umadmin', '/home/app/wecube-demo.zip', NULL),
-	('0011_0000000004', NULL, '0011_0000000004', 'wecube-demo_v1.0.zip', NULL, 'wecube-demo_v1.0.zip_2019-07-03 22:45:34', 'umadmin', '2019-07-03 14:47:43', 'umadmin', '2019-07-03 14:45:34', 'wecube-demo', 'http://10.107.119.52:9000/scripts/wecube-demo.sh', 214, NULL, NULL, '425f18c91e10015f270fb6f54bdd17ad', 'wecube-demo_v1.0.zip', 'http://10.107.119.52:9000/wecube-artifact/425f18c91e10015f270fb6f54bdd17ad_wecube-demo_v1.0.zip', NULL, 39, NULL, '0003_0000000013', '2019-07-03 22:45:34', 'umadmin', '/home/app/wecube-demo.zip', NULL),
-	('0011_0000000005', NULL, '0011_0000000005', 'wecube-demo_v2.0.zip', NULL, 'wecube-demo_v2.0.zip_2019-07-04 12:41:35', 'umadmin', '2019-07-04 04:41:35', 'umadmin', '2019-07-04 04:41:35', NULL, NULL, NULL, NULL, NULL, '9c1572e6241c689fa75cee12fa9ba3f2', 'wecube-demo_v2.0.zip', 'http://10.107.119.52:9000/wecube-artifact/9c1572e6241c689fa75cee12fa9ba3f2_wecube-demo_v2.0.zip', NULL, 39, NULL, '0003_0000000013', '2019-07-04 12:41:35', 'umadmin', NULL, NULL);
+	('0011_0000000003', NULL, '0011_0000000003', 'wecube-demo.zip', NULL, 'wecube-demo.zip_2019-07-03 21:41:38', 'umadmin', '2019-07-03 14:23:43', 'umadmin', '2019-07-03 13:41:38', 'wecube-demo', 'http://10.10.119.52:9000/scripts/wecube-demo.sh', 214, NULL, NULL, 'b043bd34649dee665224191bec9ab2a6', 'wecube-demo.zip', 'http://10.10.119.52:9000/wecube-artifact/b043bd34649dee665224191bec9ab2a6_wecube-demo.zip', NULL, 39, NULL, '0003_0000000013', '2019-07-03 21:41:38', 'umadmin', '/home/app/wecube-demo.zip', NULL),
+	('0011_0000000004', NULL, '0011_0000000004', 'wecube-demo_v1.0.zip', NULL, 'wecube-demo_v1.0.zip_2019-07-03 22:45:34', 'umadmin', '2019-07-03 14:47:43', 'umadmin', '2019-07-03 14:45:34', 'wecube-demo', 'http://10.10.119.52:9000/scripts/wecube-demo.sh', 214, NULL, NULL, '425f18c91e10015f270fb6f54bdd17ad', 'wecube-demo_v1.0.zip', 'http://10.10.119.52:9000/wecube-artifact/425f18c91e10015f270fb6f54bdd17ad_wecube-demo_v1.0.zip', NULL, 39, NULL, '0003_0000000013', '2019-07-03 22:45:34', 'umadmin', '/home/app/wecube-demo.zip', NULL),
+	('0011_0000000005', NULL, '0011_0000000005', 'wecube-demo_v2.0.zip', NULL, 'wecube-demo_v2.0.zip_2019-07-04 12:41:35', 'umadmin', '2019-07-04 04:41:35', 'umadmin', '2019-07-04 04:41:35', NULL, NULL, NULL, NULL, NULL, '9c1572e6241c689fa75cee12fa9ba3f2', 'wecube-demo_v2.0.zip', 'http://10.10.119.52:9000/wecube-artifact/9c1572e6241c689fa75cee12fa9ba3f2_wecube-demo_v2.0.zip', NULL, 39, NULL, '0003_0000000013', '2019-07-04 12:41:35', 'umadmin', NULL, NULL);
 
 CREATE TABLE IF NOT EXISTS `resource_set` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
