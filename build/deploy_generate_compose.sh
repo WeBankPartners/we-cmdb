@@ -8,7 +8,7 @@ fi
 
 source $1
 
-version=$2
+image_version=$2
 
 build_path=`dirname $0`
 
@@ -22,5 +22,5 @@ sed -i "s~{{CMDB_DATABASE_USER_NAME}}~$cmdb_database_user_name~g" docker-compose
 sed -i "s~{{MYSQL_INIT_PASSWORD}}~$mysql_init_password~g" docker-compose.yml
 sed -i "s~{{CMDB_DATABASE_SERVER}}~$cmdb_database_server~g" docker-compose.yml
 sed -i "s~{{CMDB_DATABASE_PORT}}~$cmdb_database_port~g" docker-compose.yml
-sed -i "s~{{VERSION}}~$version~g" docker-compose.yml
+sed -i "s~{{IMAGE_VERSION}}~$image_version~g" docker-compose.yml
  
