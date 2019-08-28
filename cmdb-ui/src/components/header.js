@@ -12,7 +12,7 @@ import AccountCircle from "@material-ui/icons/AccountCircle";
 import { menus } from "../constants/menus";
 import Menu from "./menu";
 import { username } from "../apis/base";
-import { retrieveMenus, retrieveRoleMenus } from "../apis/endpoints";
+import { retrieveMenus, myMenus } from "../apis/endpoints";
 
 const styles = createStyles({
   root: {
@@ -62,16 +62,7 @@ class MenuAppBar extends React.Component {
   componentDidMount = async () => {
     const menusList = await retrieveMenus();
     if (!menusList || !(menusList.contents instanceof Array)) return;
-    const rolesData = await retrieveRoleMenus({
-      filters: [
-        {
-          name: "role.roleUsers.user.username",
-          operator: "eq",
-          value: username
-        }
-      ],
-      refResources: ["role", "role.roleUsers", "role.roleUsers.user"]
-    });
+    const rolesData = await myMenus({});
     if (rolesData && rolesData.contents instanceof Array) {
       let tree = [];
       let menusObj = {};
