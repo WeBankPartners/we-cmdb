@@ -25,5 +25,5 @@ push:
 env_config=smoke_branch.cfg
 target_host="tcp://10.0.0.1:2375"
 deploy:push
-	sh build/deploy_generate_compose.sh $(env_config)
+	sh build/deploy_generate_compose.sh $(env_config) $(version)
 	docker-compose -f docker-compose.yml -H $(target_host) up -d
