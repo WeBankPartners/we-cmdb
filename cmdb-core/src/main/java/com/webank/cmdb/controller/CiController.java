@@ -2,6 +2,8 @@ package com.webank.cmdb.controller;
 
 import java.util.Map;
 
+import javax.annotation.security.RolesAllowed;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,12 +15,14 @@ import com.webank.cmdb.dto.CreationRtnDto;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.service.CiService;
+import static com.webank.cmdb.domain.AdmMenu.*;
 
 @RestController
 public class CiController {
     @Autowired
     private CiService ciService;
 
+    @RolesAllowed({MENU_QUERY_CONFIG})
     @PostMapping("/ciType/{ciTypeId}/cis")
     public QueryResponse listAllCis(@PathVariable("ciTypeId") int ciTypeId, @RequestBody(required = false) QueryRequest ciRequest) {
         if (ciRequest == null) {
@@ -33,16 +37,19 @@ public class CiController {
         return ciService.getCi(ciTypeId, guid);
     }
 
+    @RolesAllowed({MENU_QUERY_CONFIG})
     @PostMapping("/ciType/{ciTypeId}/ci/add")
     public CreationRtnDto addCi(@PathVariable("ciTypeId") int ciTypeId, @RequestBody Map<String, Object> ciData) {
         return new CreationRtnDto(ciService.create(ciTypeId, ciData));
     }
 
+    @RolesAllowed({MENU_QUERY_CONFIG})
     @PostMapping("/ciType/{ciTypeId}/ci/{guid}/update")
     public void updateCi(@PathVariable("ciTypeId") int ciTypeId, @PathVariable("guid") String guid, @RequestBody Map<String, Object> ciData) {
         ciService.update(ciTypeId, guid, ciData);
     }
 
+    @RolesAllowed({MENU_QUERY_CONFIG})
     @PostMapping("/ciType/{ciTypeId}/ci/{guid}/delete")
     public void deleteCi(@PathVariable("ciTypeId") int ciTypeId, @PathVariable("guid") String guid) {
         ciService.deleteCi(ciTypeId, guid);
