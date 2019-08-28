@@ -42,8 +42,7 @@ WeCMDB采用容器化部署。
 ## 开发者文档
 WeCMDB使用Java和React JS进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
 
-请参考以下文档进行开发环境配置
-[WeCMDB开发环境配置](cmdb-wiki/docs/developer/wecmdb_developer_guide.md)
+请参考以下文档进行开发环境配置[WeCMDB开发环境配置](cmdb-wiki/docs/developer/wecmdb_developer_guide.md)
 
 ## API说明
 更多关于WeCMDB的API说明， 请查看以下文档
