@@ -33,5 +33,19 @@
 	启动成功
 	![eclipse_install_3](images/eclipse_install_3.png)
 
+3. 添加lombok.jar插件
+	下载lombok.jar，可以访问https://www.eclipse.org/home/index.php进行下载。
+	
+	下载后， 将lombok.jar保存到eclipse的安装目录下
+	![eclipse_lombok_1](images/eclipse_lombok_1.png)
 
+	编辑eclipse.ini文件，添加一行：
+	
+	```
+	-javaagent:D:\tools\eclipse\lombok.jar
+	```
 
+	其中，"D:\tools\eclipse\lombok.jar"是lombok.jar文件的绝对路径。
+	![eclipse_lombok_2](images/eclipse_lombok_2.png)
+
+	重启eclipse。
