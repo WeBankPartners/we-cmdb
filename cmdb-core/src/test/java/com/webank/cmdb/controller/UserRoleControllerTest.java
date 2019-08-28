@@ -1,5 +1,6 @@
 package com.webank.cmdb.controller;
 
+import static com.webank.cmdb.domain.AdmMenu.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -13,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -23,6 +25,7 @@ import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.util.CmdbThreadLocal;
 import com.webank.cmdb.util.JsonUtil;
 
+@WithMockUser(username = "test", authorities = {ROLE_PREFIX + MENU_PERMISSION})
 public class UserRoleControllerTest extends AbstractBaseControllerTest {
 
     @Before

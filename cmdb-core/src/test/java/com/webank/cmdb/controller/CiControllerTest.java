@@ -1,5 +1,6 @@
 package com.webank.cmdb.controller;
 
+import static com.webank.cmdb.domain.AdmMenu.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
@@ -12,11 +13,13 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import com.google.common.collect.ImmutableMap;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.util.JsonUtil;
 
+@WithMockUser(username = "test", authorities = { ROLE_PREFIX + MENU_QUERY_CONFIG })
 public class CiControllerTest extends LegacyAbstractBaseControllerTest {
 
     @Test
