@@ -32,6 +32,10 @@ function QueryHeader(props) {
           };
         })
       : [];
+    let multiple = false;
+    if (_.inputType === "multiSelect" || _.inputType === "multiRef") {
+      multiple = true;
+    }
     switch (_.inputType) {
       case "select":
         return (
@@ -41,6 +45,7 @@ function QueryHeader(props) {
           >
             <InputLabel htmlFor="select">{_[keys[0]]}</InputLabel>
             <CMDBSelect
+              multiple={multiple}
               id="select"
               data={value}
               options={_.vals || []}
@@ -57,6 +62,7 @@ function QueryHeader(props) {
           >
             <InputLabel htmlFor="select">{_[keys[0]]}</InputLabel>
             <CMDBSelect
+              multiple={multiple}
               id="select"
               data={value}
               options={refOptions}
