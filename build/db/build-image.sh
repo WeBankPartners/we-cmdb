@@ -1,19 +1,16 @@
 #!/bin/bash
+rm -rf database
+
 cp -r ../../cmdb-core/database  database
 
-TEXT='use cmdb;'
-
 cd database
-for i in `ls -1 ./*`; do
-     CONTENTS=`cat $i`
-     echo $TEXT > $i  # use echo -n if you want the append to be on the same line
-     echo $CONTENTS >> $i
+for i in `ls -1 ./*.sql`; do
+	sed -i '1 i\use cmdb;SET NAMES utf8;' $i
 done
 cd ../
 
-echo "SET NAMES utf8;" > ./database/000000_create_database.sql
-echo "create database cmdb charset = utf8;;" >> ./database/000000_create_database.sql
+echo -e "SET NAMES utf8;\n" > ./database/000000_create_database.sql
+echo -e "create database cmdb charset = utf8;\n" >> ./database/000000_create_database.sql
 
 
 docker build -t cmdb-db:dev .
-rm -rf database
