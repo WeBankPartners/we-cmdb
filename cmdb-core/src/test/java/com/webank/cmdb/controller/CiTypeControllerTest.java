@@ -1,5 +1,6 @@
 package com.webank.cmdb.controller;
 
+import static com.webank.cmdb.domain.AdmMenu.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -16,6 +17,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.google.common.collect.ImmutableMap;
@@ -26,6 +28,12 @@ import com.webank.cmdb.dto.ResponseDto;
 import com.webank.cmdb.util.CollectionUtils;
 import com.webank.cmdb.util.JsonUtil;
 
+@WithMockUser(username = "test", authorities = {
+        ROLE_PREFIX + MENU_QUERY_CONFIG,
+        ROLE_PREFIX + MENU_OVERVIEW ,
+        ROLE_PREFIX + MENU_COMMON_INTERFACE_CONFIG ,
+        ROLE_PREFIX + MENU_COMMON_INTERFACE_RUNNER ,
+        ROLE_PREFIX + MENU_BASIC_CONFIG_QUERY})
 public class CiTypeControllerTest extends LegacyAbstractBaseControllerTest {
     @Test
     public void listAllCiTypesThenReturnListSizeLargeThen0() throws Exception {
