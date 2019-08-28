@@ -35,11 +35,13 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 ## 配置
 1. 建立执行目录和相关文件
 	
-	在部署机器上建立安装目录，新建以下三个文件：
+	在部署机器上建立安装目录，新建以下4个文件：
 
 	[cmdb.cfg](../../../build/cmdb.cfg)
 
 	[install.sh](../../../build/install.sh)
+
+	[uninstall.sh](../../../build/uninstall.sh)
 
 	[docker-compose.tpl](../../../build/docker-compose-all.tpl)
 
@@ -99,13 +101,21 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	sed -i "s~{{CMDB_IP_WHITELISTS}}~$cmdb_ip_whitelists~" docker-compose.yml
 	
 	
-	docker-compose  -f docker-compose.yml  up -d
+	docker-compose -f docker-compose.yml up -d
 	```
 
-4. docker-compose.tpl文件
+4. uninstall.sh文件。
+
+	```
+	#!/bin/bash
+	docker-compose -f docker-compose.yml down -v
+	```
+
+5. docker-compose-all.tpl文件
 	
-	此文件中配置了要安装的服务：cas、mysql、cmdb。
-	如果已有cas和mysql，在文件中将这两段内容注释掉，在cmdb的environment配置中，手动修改cas和数据库配置即可。
+	此文件中配置了要安装的服务：wecmdb-cas、wecmdb-mysql、wecmdb-app。
+	如果已有cas和mysql，在文件中将wecmdb-cas、wecmdb-mysql这两段内容注释掉，在wecmdb-app的environment配置中，手动修改cas和数据库配置即可。
+	
 	详细代码如下：
 
 	```
@@ -169,4 +179,22 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 2. 安装完成后，访问WeCMDB的url，确认页面访问正常。
 	http://cmdb_server_ip:cmdb_server_port/cmdb
 
-## 配置修改
+## 卸载
+执行如下命令，通过docker-compose停止WeCmdb服务。
+
+```
+/bin/bash ./uninstall.sh
+```
+
+## 重启
+执行如下命令，通过docker-compose停止WeCmdb服务。
+
+```
+/bin/bash ./uninstall.sh
+```
+
+根据需要修改cmdb.cfg配置文件，重启服务
+
+```
+/bin/bash ./install.sh
+```
