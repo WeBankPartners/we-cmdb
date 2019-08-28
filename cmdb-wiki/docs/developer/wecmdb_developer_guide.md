@@ -1,4 +1,4 @@
-#WeCMDB Developer Guide
+# WeCMDB Developer Guide
 
 ## 准备工作
 1. 安装JDK
@@ -27,6 +27,7 @@
 	CAS默认用户密码：admin/123
 
 5. 安装node.js
+	
 	访问node.js官方网站：http://nodejs.cn/download， 下载v10.16.3版本。双击下载后的安装文件， 按默认配置进行安装。
 
 
@@ -77,7 +78,7 @@
 	在 *Project Explorer* 视图中，将 *application-uat.yml* 复制一份，更名为 *application-dev.yml*
 	![wecmdb_import_7](images/wecmdb_import_7.png)
 	
-	打开 *application-dev.yml* ，配置里面的数据库相关配置，
+	打开 *application-dev.yml* ，修改相关配置，
 	
 	application-dev.yml配置示例：
 
@@ -106,21 +107,26 @@
 5. 启动WeCMDB后端
 	
 	打开Window->Preferences窗口， 选择Java->Installed JREs，新增jdk配置，如下图
+
 	![wecmdb_jdk_install](images/wecmdb_jdk_install.png)
 
 	下载依赖， 如下图：
+
 	![wecmdb_maven_install](images/wecmdb_maven_install.png)
 	
 	启动
+
 	![wecmdb_start](images/wecmdb_start.png)
 	
 	打开 *http://localhost:37000/cmdb/swagger-ui.html* 打开 *swagger* 页面， 输入cas登录用户及密码，即可查看并测试API
+
 	![wecmdb_swagger_ui](images/wecmdb_swagger_ui.png)
 
 
 6. 启动WeCMDB前端
 	
 	运行CMD（Win+R或右下角点开始菜单的输入处），在展开的命令行窗口中,进入we-cmdb的代码子目录wecmbd-ui目录
+
 	![wecmdb_ui_npm_install](images/wecmdb_ui_npm_install.png)
 	
 	执行npm安装命令
@@ -137,7 +143,9 @@
 	```
 
 	如下图：
+
 	![wecmdb_ui_npm_start](images/wecmdb_ui_npm_start.png)
 
 	服务已启动， 打开 *http://localhost:3000*, 可看到WeCMDB的页面
+
 	![wecmdb_ui_web](images/wecmdb_ui_web.png)
