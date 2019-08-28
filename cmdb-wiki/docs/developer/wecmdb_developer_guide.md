@@ -13,12 +13,22 @@
 	
 	需要有一个Mysql数据库， 也可以在开发电脑上安装Mysql，请参考[Mysql安装文档](mysql_install_guide.md)
 
-4.安装cas
+4. 安装CAS
 	
-	需要有一个cas， 也可以在开发电脑上安装cas，请参考[CAS安装文档](cas_install_guide.md)
+	需要有一个CAS服务， 也可以在开发电脑上安装cas。dockerhub上有容器镜像，可以直接下载安装。
+	
+	命令如下：
+	
+	```
+	docker pull kawhii/sso
+	docker run -d --name cas -p 8443:8443 -p 8878:8080 kawhii/sso
+	```
+	
+	CAS默认用户密码：admin/123
 
-5.安装node.js
+5. 安装node.js
 	访问node.js官方网站：http://nodejs.cn/download， 下载v10.16.3版本。双击下载后的安装文件， 按默认配置进行安装。
+
 
 ## 导入工程
    可以直接从git上拉取代码， 也可以先将代码工程拉取到本地后， 再导入到Eclipse中， 本文以从本地导入为例。
@@ -111,10 +121,23 @@
 6. 启动WeCMDB前端
 	
 	运行CMD（Win+R或右下角点开始菜单的输入处），在展开的命令行窗口中,进入we-cmdb的代码子目录wecmbd-ui目录
-	![wecmdb_ui_npm](images/wecmdb_ui_npm.png)
+	![wecmdb_ui_npm_install](images/wecmdb_ui_npm_install.png)
 	
-	执行命令
+	执行npm安装命令
 	
 	```
 	npm i
 	```
+	
+	安装完成后， 执行命令
+
+	
+	```
+	npm start
+	```
+
+	如下图：
+	![wecmdb_ui_npm_start](images/wecmdb_ui_npm_start.png)
+
+	服务已启动， 打开 *http://localhost:3000*, 可看到WeCMDB的页面
+	![wecmdb_ui_web](images/wecmdb_ui_web.png)
