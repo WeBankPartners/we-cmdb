@@ -10,7 +10,7 @@ services:
       - 8443:8443
 
   wecmdb-app:
-    image: {{CMDB_CORE_IMAGE_NAME}}
+    image: {{CMDB_CORE_IMAGE_NAME}}:{{IMAGE_VERSION}}
     restart: always
     volumes:
       - /data/cmdb/log:/log/
