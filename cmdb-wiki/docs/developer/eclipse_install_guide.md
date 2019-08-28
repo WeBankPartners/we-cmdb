@@ -40,7 +40,7 @@
 
 3. 添加lombok.jar插件
 	
-	下载lombok.jar，可以访问https://www.eclipse.org/home/index.php进行下载。
+	下载lombok.jar，可以访问https://projectlombok.org/download进行下载。
 	
 	下载后， 将lombok.jar保存到eclipse的安装目录下
 
