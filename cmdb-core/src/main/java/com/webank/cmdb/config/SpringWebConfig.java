@@ -36,8 +36,8 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @Configuration
 @EnableWebMvc
 @EnableSwagger2
-/*@EnableWebSecurity
-@EnableGlobalMethodSecurity(jsr250Enabled = true)*/
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(jsr250Enabled = true)
 @ComponentScan({ "com.webank.cmdb.controller", "com.webank.cmdb.mvc", "com.webank.cmdb.stateTransition" })
 public class SpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 

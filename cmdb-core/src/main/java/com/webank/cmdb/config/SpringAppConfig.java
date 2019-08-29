@@ -6,12 +6,12 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import com.webank.cmdb.config.ApplicationProperties.CmdbDataProperties;
+import com.webank.cmdb.config.ApplicationProperties.BrowserAccessProperties;
 
 @Configuration
 @EnableCaching
 @ComponentScan({ "com.webank.cmdb.service", "com.webank.cmdb.mvc", "com.webank.cmdb.util" })
 @Import({ DatabaseConfig.class })
-@EnableConfigurationProperties({ ApplicationProperties.class ,CmdbDataProperties.class})
+@EnableConfigurationProperties({ ApplicationProperties.class ,BrowserAccessProperties.class})
 public class SpringAppConfig {
 }
