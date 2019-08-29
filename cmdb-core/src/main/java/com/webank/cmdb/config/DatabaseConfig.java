@@ -24,7 +24,7 @@ import com.webank.cmdb.util.DatabaseUtils;
 public class DatabaseConfig {
 
     @Autowired
-    AppProperties appProperties;
+    ApplicationProperties applicationProperties;
 
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource, JpaVendorAdapter jpaVendorAdapter) {
@@ -38,7 +38,7 @@ public class DatabaseConfig {
 
     private Map getCustomizedProperties() {
         Map prop = new HashMap();
-        prop.put("hibernate.default_schema", appProperties.getSchema());
+        prop.put("hibernate.default_schema", applicationProperties.getSchema());
         return prop;
     }
 
