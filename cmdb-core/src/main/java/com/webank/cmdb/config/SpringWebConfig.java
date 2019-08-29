@@ -52,7 +52,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     @Autowired
     private ServerProperties serverProperties;
     
-    @Value("${cmdb.authentication-provider:CAS}")
+    @Value("${cmdb.authentication-provider}")
     private String authenticationProvider;
 
     @Value("${cas-server.url}")
