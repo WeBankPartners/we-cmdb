@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
-import com.webank.cmdb.config.ApplicationProperties.CmdbDataProperties;
+import com.webank.cmdb.config.ApplicationProperties.BrowserAccessProperties;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
@@ -57,7 +57,7 @@ public class BrowserWrapperService {
     private static final String CONSTANT_CI_TYPE_ID = "ciTypeId";
 
     @Autowired
-    CmdbDataProperties cmdbDataProperties;
+    BrowserAccessProperties cmdbDataProperties;
     @Autowired
     private CiService ciService;
     @Autowired
