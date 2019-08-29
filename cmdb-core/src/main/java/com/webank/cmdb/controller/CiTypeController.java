@@ -55,11 +55,6 @@ public class CiTypeController {
     @Autowired
     private StaticDtoService staticDtoService;
 
-    @InitBinder("ciTypeAttr")
-    protected void initBinder(WebDataBinder binder) {
-        binder.addValidators(new CiTypeAttrValidator());
-    }
-
     @RolesAllowed({MENU_QUERY_CONFIG, MENU_OVERVIEW, MENU_PERMISSION})
     @GetMapping("/ciTypes")
     public List<CiTypeDto> listCiTypes() {
@@ -94,11 +89,6 @@ public class CiTypeController {
         return ciTypeService.addCiType(ciType);
     }
 
-    @PostMapping("/ciType/{ciTypeId}/createTable")
-    public void createTable(@PathVariable("ciTypeId") int ciTypeId) {
-        ciTypeService.createCiTypeTable(ciTypeId);
-    }
-
     @RolesAllowed({MENU_QUERY_CONFIG, MENU_OVERVIEW})
     @PostMapping("/ciType/{ciTypeId}/update")
     public void updateCiType(@PathVariable("ciTypeId") int ciTypeId, @RequestBody CiTypeDto ciType) {
@@ -109,21 +99,6 @@ public class CiTypeController {
     @PostMapping("/ciType/{ciTypeId}/delete")
     public void deleteCiType(@PathVariable("ciTypeId") int ciTypeId) {
         staticDtoService.delete(CiTypeDto.class, ciTypeId);
-    }
-
-    @GetMapping("/ciType/{ciTypeId}")
-    public CiTypeDto getCiType(@PathVariable("ciTypeId") int ciTypeId) {
-        return ciTypeService.getCiType(ciTypeId);
-    }
-
-    @PostMapping("/ciType/{ciTypeId}/up")
-    public void makeCiTypeUp(@PathVariable("ciTypeId") int ciTypeId) {
-        ciTypeService.updateCiTypePriority(ciTypeId, PriorityUpdateOper.Up);
-    }
-
-    @PostMapping("/ciType/{ciTypeId}/down")
-    public void makeCiTypeDown(@PathVariable("ciTypeId") int ciTypeId) {
-        ciTypeService.updateCiTypePriority(ciTypeId, PriorityUpdateOper.Down);
     }
 
     @RolesAllowed({MENU_OVERVIEW})
@@ -165,11 +140,6 @@ public class CiTypeController {
     @GetMapping("/ciType/{ciTypeId}/attrs")
     public List<CiTypeAttrDto> getCiTypeAttributes(@PathVariable("ciTypeId") int ciTypeId) {
         return ciTypeService.listAllAttributes(ciTypeId);
-    }
-
-    @GetMapping("/ciType/attr/{ciTypeAttrId}")
-    public CiTypeAttrDto getCiTypeAttribute(@PathVariable("ciTypeAttrId") int ciTypeAttrId) {
-        return ciTypeService.getCiTypeAttribute(ciTypeAttrId);
     }
 
     @RolesAllowed({MENU_OVERVIEW})

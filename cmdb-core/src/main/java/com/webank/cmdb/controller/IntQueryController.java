@@ -41,16 +41,6 @@ public class IntQueryController {
         return intQueryService.createIntegrationQuery(ciTypeId, queryName, intQueryDto);
     }
 
-    @PostMapping("/intQuery/{queryId}/update")
-    public void updateIntQuery(@PathVariable("queryId") int queryId, @RequestBody IntegrationQueryDto intQueryDto) {
-        intQueryService.updateIntegrationQuery(queryId, intQueryDto);
-    }
-
-    @PostMapping("/intQuery/ciType/{ciTypeId}/{queryId}/delete")
-    public void deleteQuery(@PathVariable("ciTypeId") Integer ciTypeId, @PathVariable("queryId") int queryId) {
-        intQueryService.deleteIntegrationQuery(queryId);
-    }
-
     @RolesAllowed({MENU_COMMON_INTERFACE_RUNNER, MENU_COMMON_INTERFACE_CONFIG})
     @GetMapping("/intQuery/ciType/{ciTypeId}/search")
     public List<IdNamePairDto> searchIntQuery(@PathVariable("ciTypeId") Integer ciTypeId, @RequestParam(value = "name", required = false) String name, @RequestParam(value = "tailAttrId", required = false) Integer tailAttrId) {
