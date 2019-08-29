@@ -1,0 +1,19 @@
+server:
+  port: 37000
+  address: localhost
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://uat_db-server:3306/uat_db_schema?characterEncoding=utf8&serverTimezone=UTC
+    username: uat_db_user
+    password: uat_db_password
+
+cmdb:
+  datasource:
+    schema: uat_db_user
+
+cas-server:
+  url: http://129.204.99.160:8080/cas
+  redirect-app-addr: localhost:37000
+  enabled: true

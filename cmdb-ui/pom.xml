@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">  
-  <modelVersion>4.0.0</modelVersion>  
   <parent> 
-    <groupId>com.webank.cmdb</groupId>  
-    <artifactId>cmdb</artifactId>  
-    <version>0.0.1-SNAPSHOT</version> 
+    <artifactId>wecube-platform</artifactId>  
+    <groupId>com.webank.wecube</groupId>  
+    <version>1.0-SNAPSHOT</version> 
   </parent>  
-  <artifactId>cmdb-ui</artifactId>  
-  <name>cmdb-ui</name>  
-  <description>cmdb-ui</description>  
+  <modelVersion>4.0.0</modelVersion>  
+  <artifactId>wecube-portal</artifactId>  
   <properties> 
     <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>  
-    <nodejs.version>v8.11.1</nodejs.version>  
-    <npm.version>5.6.0</npm.version> 
+    <nodejs.version>v10.16.0</nodejs.version>  
+    <npm.version>6.9.0</npm.version> 
   </properties>  
   <build> 
     <plugins> 
@@ -40,9 +38,18 @@
               <goal>npm</goal> 
             </goals>  
             <configuration> 
-              <arguments>--registry https://registry.npm.taobao.org install</arguments> 
+              <arguments>--registry https://registry.npm.taobao.org install --unsafe-perm</arguments> 
             </configuration> 
           </execution>  
+          <execution>
+            <id>npm rebuild node-sass</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <configuration>
+              <arguments>rebuild node-sass</arguments>
+            </configuration>
+          </execution>
           <execution> 
             <id>npm run build</id>  
             <goals> 
