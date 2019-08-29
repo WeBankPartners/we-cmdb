@@ -32,11 +32,6 @@ public class CiController {
         return ciService.query(ciTypeId, ciRequest);
     }
 
-    @GetMapping("/ciType/{ciTypeId}/ci/{guid}")
-    public Object getCi(@PathVariable("ciTypeId") int ciTypeId, @PathVariable("guid") String guid) {
-        return ciService.getCi(ciTypeId, guid);
-    }
-
     @RolesAllowed({MENU_QUERY_CONFIG})
     @PostMapping("/ciType/{ciTypeId}/ci/add")
     public CreationRtnDto addCi(@PathVariable("ciTypeId") int ciTypeId, @RequestBody Map<String, Object> ciData) {
