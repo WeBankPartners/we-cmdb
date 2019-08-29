@@ -99,7 +99,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
         } else if (AUTH_PROVIDER_CAS.equalsIgnoreCase(authenticationProvider)) {
             configureCasAuthentication(http);
         } else {
-            throw new CmdbException("Unsupported authentication-method: " + authenticationProvider);
+            throw new CmdbException("Unsupported authentication-provider: " + authenticationProvider);
         }
     }
     
