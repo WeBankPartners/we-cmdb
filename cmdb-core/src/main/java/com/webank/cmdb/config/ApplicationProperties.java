@@ -21,8 +21,8 @@ public class ApplicationProperties {
     }
 
     @Data
-    @ConfigurationProperties(prefix = "cmdb.static.data")
-    public class CmdbDataProperties {
+    @ConfigurationProperties(prefix = "browser.access")
+    public class BrowserAccessProperties {
         private Integer enumCategoryTypeSystem = 1;
         private Integer enumCategoryTypeCommon = 2;
         private Integer ciTypeIdOfIdcDesign = 22;
