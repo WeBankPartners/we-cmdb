@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ $# -eq 0 ]
+if [ $# -ne 2 ]
   then
-    echo "Missing configure file"
+    echo "Usage: deploy_generate_compose.sh CONFIG IMAGE_VERSION"
     exit 1
 fi
 
