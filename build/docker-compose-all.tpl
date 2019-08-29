@@ -14,7 +14,8 @@ services:
     command: [
             '--character-set-server=utf8mb4',
             '--collation-server=utf8mb4_unicode_ci',
-            '--default-time-zone=+8:00'
+            '--default-time-zone=+8:00',
+            '--max_allowed_packet=4M'
     ]
     volumes:
       - /etc/localtime:/etc/localtime
