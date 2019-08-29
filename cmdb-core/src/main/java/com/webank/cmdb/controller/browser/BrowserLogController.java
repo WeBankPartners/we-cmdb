@@ -1,6 +1,6 @@
-package com.webank.cmdb.controller;
+package com.webank.cmdb.controller.browser;
 
-import static com.webank.cmdb.domain.AdmMenu.*;
+import static com.webank.cmdb.domain.AdmMenu.MENU_QUERY_LOG;
 
 import java.util.List;
 
@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.cmdb.dto.LogDto;
@@ -20,7 +21,8 @@ import com.webank.cmdb.service.LogService;
 
 @RestController
 @RolesAllowed({MENU_QUERY_LOG})
-public class LogController {
+@RequestMapping("/browser/v2")
+public class BrowserLogController {
     @Autowired
     private LogService logService;
 
