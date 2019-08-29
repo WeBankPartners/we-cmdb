@@ -95,52 +95,6 @@ public class UserRoleController {
     public List<RoleCiTypeDto> updateRoleCiTypes(@Valid @RequestBody List<Map<String, Object>> request) {
         return staticDtoService.update(RoleCiTypeDto.class, request);
     }
-
-    @PostMapping("/role-citypes/delete")
-    public void deleteRoleCiTypes(@Valid @RequestBody List<Integer> requestIds) {
-        staticDtoService.delete(RoleCiTypeDto.class, requestIds);
-    }
-
-    @PostMapping("/role-citype-ctrl-attrs/retrieve")
-    public QueryResponse<RoleCiTypeCtrlAttrDto> retrieveRoleCiTypeCtrlAttrs(@RequestBody QueryRequest request) {
-        return staticDtoService.query(RoleCiTypeCtrlAttrDto.class, request);
-    }
-
-    @PostMapping("/role-citype-ctrl-attrs/create")
-    public List<RoleCiTypeCtrlAttrDto> createRoleCiTypeCtrlAttrs(@Valid @RequestBody List<RoleCiTypeCtrlAttrDto> roleCiTypeCtrlAttrs) {
-        return staticDtoService.create(RoleCiTypeCtrlAttrDto.class, roleCiTypeCtrlAttrs);
-    }
-
-    @PostMapping("/role-citype-ctrl-attrs/update")
-    public List<RoleCiTypeCtrlAttrDto> updateRoleCiTypeAttrs(@Valid @RequestBody List<Map<String, Object>> request) {
-        return staticDtoService.update(RoleCiTypeCtrlAttrDto.class, request);
-    }
-
-    @PostMapping("/role-citype-ctrl-attrs/delete")
-    public void deleteRoleCiTypeCtrlAttrs(@Valid @RequestBody List<Integer> requestIds) {
-        staticDtoService.delete(RoleCiTypeCtrlAttrDto.class, requestIds);
-    }
-
-    @PostMapping("/role-citype-ctrl-attr-conditions/retrieve")
-    public QueryResponse<RoleCiTypeCtrlAttrConditionDto> retrieveRoleCiTypeCtrlAttrConditions(@RequestBody QueryRequest request) {
-        return staticDtoService.query(RoleCiTypeCtrlAttrConditionDto.class, request);
-    }
-
-    @PostMapping("/role-citype-ctrl-attr-conditions/create")
-    public List<RoleCiTypeCtrlAttrConditionDto> createRoleCiTypeCtrlAttrConditions(@Valid @RequestBody List<RoleCiTypeCtrlAttrConditionDto> roleCiTypeCtrlAttrConditions) {
-        return staticDtoService.create(RoleCiTypeCtrlAttrConditionDto.class, roleCiTypeCtrlAttrConditions);
-    }
-
-    @PostMapping("/role-citype-ctrl-attr-conditions/update")
-    public List<RoleCiTypeCtrlAttrConditionDto> updateRoleCiTypeCtrlAttrConditions(@Valid @RequestBody List<Map<String, Object>> request) {
-        return staticDtoService.update(RoleCiTypeCtrlAttrConditionDto.class, request);
-    }
-
-    @PostMapping("/role-citype-ctrl-attr-conditions/delete")
-    public void deleteRoleCiTypeCtrlAttrConditions(@Valid @RequestBody List<Integer> requestIds) {
-        staticDtoService.delete(RoleCiTypeCtrlAttrConditionDto.class, requestIds);
-    }
-
     @PostMapping("/menus/retrieve")
     public QueryResponse<MenuDto> retrieveMenus(@RequestBody QueryRequest request) {
         return staticDtoService.query(MenuDto.class, request);
@@ -156,11 +110,6 @@ public class UserRoleController {
     @PostMapping("/role-menus/create")
     public List<RoleMenuDto> createRoleMenus(@Valid @RequestBody List<RoleMenuDto> roleCiTypes) {
         return staticDtoService.create(RoleMenuDto.class, roleCiTypes);
-    }
-
-    @PostMapping("/role-menus/update")
-    public List<RoleMenuDto> updateRoleMenus(@Valid @RequestBody List<Map<String, Object>> request) {
-        return staticDtoService.update(RoleMenuDto.class, request);
     }
 
     @RolesAllowed({MENU_PERMISSION})

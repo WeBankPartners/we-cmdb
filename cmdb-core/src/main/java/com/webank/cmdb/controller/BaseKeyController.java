@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.cmdb.constant.CmdbConstants;
@@ -27,11 +26,6 @@ import com.webank.cmdb.service.BaseKeyInfoService;
 public class BaseKeyController {
     @Autowired
     private BaseKeyInfoService baseKeyInfoService;
-
-    @GetMapping("/baseKey/category/overview")
-    public List<CategoryDto> listBaseKeyInfo() {
-        return baseKeyInfoService.listAllBasekeyCat(true);
-    }
 
     @RolesAllowed({MENU_QUERY_CONFIG, MENU_OVERVIEW})
     @GetMapping("/baseKey/ciLayers")
@@ -57,31 +51,11 @@ public class BaseKeyController {
         return baseKeyInfoService.listAllBasekeyCatTypeOverview();
     }
 
-    @GetMapping("/baseKey/catTypes")
-    public List<CatTypeDto> listBaseKeyTypes() {
-        return baseKeyInfoService.listAllBasekeyCatTypes();
-    }
-
-    @PostMapping("/baseKey/catType/add")
-    public void addBaseKeyType(@Valid @RequestBody CatTypeDto catTypeDto) {
-        baseKeyInfoService.addBasekeyCatType(catTypeDto);
-    }
-
-    @GetMapping("/baseKey/catType/checkName")
-    public boolean checkBaseKeyCateType(@RequestParam("catTypeName") String catTypeName) {
-        return baseKeyInfoService.checkCatTypeName(catTypeName);
-    }
-
     @RolesAllowed({MENU_BASIC_CONFIG_QUERY})
     @PostMapping("/baseKey/catType/{catTypeId}/category/add")
     public CategoryDto addBaseKeyCat(@Valid @RequestBody CategoryDto catDto, @PathVariable("catTypeId") int catTypeId) {
         int catId = baseKeyInfoService.addCategory(catDto, catTypeId);
         return new CategoryDto(catId);
-    }
-
-    @PostMapping("/baseKey/catType/category/{catId}/delete")
-    public void deleteBaseKeyCat(@PathVariable("catId") int catId) {
-        baseKeyInfoService.deleteCategory(catId);
     }
 
     @RolesAllowed({MENU_BASIC_CONFIG_QUERY, MENU_OVERVIEW, MENU_QUERY_CONFIG})
