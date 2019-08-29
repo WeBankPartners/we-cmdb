@@ -2,6 +2,12 @@ package com.webank.cmdb.controller;
 
 import java.security.Principal;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 import com.google.common.collect.Lists;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dto.QueryRequest;
@@ -9,11 +15,6 @@ import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.dto.RoleMenuDto;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.service.StaticDtoService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class HomeController {
@@ -31,6 +32,11 @@ public class HomeController {
         model.addAttribute("system_name", "CMDB Core");
         model.addAttribute("login_user", principal.getName());
         return "home.html";
+    }
+    
+    @GetMapping(value = { "login.html" })
+    public String loginPage() {
+        return "login.html";
     }
 
     @GetMapping("/my-menus")
