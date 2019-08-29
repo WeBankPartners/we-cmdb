@@ -30,7 +30,7 @@ cmdb:
     schema: db_user
     
   #Authentication provider options: local or CAS
-  authentication-provider: CAS
+  authentication-provider: local
 
 logging:
   level:
