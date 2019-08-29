@@ -8,14 +8,8 @@
       <!-- Login Form -->
       <form name='f' action="login" method='POST'>
          <input type="text" id="username" class="fadeIn second" name="username" placeholder="username">
-         <input type="password" id="password" class="fadeIn third" name="password" placeholder="password">
          <input type="submit" class="fadeIn fourth" value="submit">
       </form>
-
-      <div id="formFooter">
-         <a class="underlineHover" href="#">password is not required for dev mode</a>
-      </div>
-
    </div>
 </div>
 
@@ -75,17 +69,6 @@
       text-align: center;
    }
 
-   #formFooter {
-      background-color: #f6f6f6;
-      border-top: 1px solid #dce8f1;
-      padding: 25px;
-      text-align: center;
-      -webkit-border-radius: 0 0 10px 10px;
-      border-radius: 0 0 10px 10px;
-   }
-
-
-
    h2.active {
       color: #0d0d0d;
       border-bottom: 2px solid #5fbae9;
@@ -127,7 +110,7 @@
       transform: scale(0.95);
    }
 
-   input[type=text],input[type=password]  {
+   input[type=text] {
       background-color: #f6f6f6;
       border: none;
       color: #0d0d0d;
