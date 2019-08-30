@@ -32,10 +32,6 @@ WeCMDB采用容器化部署。
 如何安装WeCMDB， 请查看以下文档
 [WeCMDB部署文档](cmdb-wiki/docs/install/wecmdb_install_guide.md)
 
-## API说明
-更多关于WeCMDB的使用和操作说明， 请查看以下文档
-[WeCMDB API手册](cmdb-wiki/docs/api/wecmdb_api_guide.md)
-
 ## 用户手册
 关于WeCMDB模型说明， 请查看以下文档
 [WeCMDB 模型说明手册](cmdb-wiki/docs/manual/wecmdb_model_guide.md)
@@ -44,13 +40,18 @@ WeCMDB采用容器化部署。
 [WeCMDB用户手册](cmdb-wiki/docs/manual/wecmdb_user_guide.md)
 
 ## 开发者文档
-WeCMDB使用Java和React JS进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。<br>请参考以下文档进行开发环境配置<br>
-[WeCMDB开发环境配置](cmdb-wiki/docs/manual/wecmdb_dev_setup_guide.md)
+WeCMDB使用Java和React JS进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
+
+请参考以下文档进行开发环境配置[WeCMDB开发环境配置](cmdb-wiki/docs/developer/wecmdb_developer_guide.md)
+
+## API说明
+更多关于WeCMDB的API说明， 请查看以下文档
+[WeCMDB API手册](cmdb-wiki/docs/api/wecmdb_api_guide.md)
 
 ## License
 WeCMDB是基于 Apache License 2.0 协议， 详情请参考
 [LICENSE](LICENSE)
 
 ## 社区
-- 如果您想得到最快的响应，请给我们提issue，或者关注微信公众号： ,或者您也可以扫码进群：
+- 如果您想得到最快的响应，请给我们提issue。
 - 联系我们：fintech@webank.com
