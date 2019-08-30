@@ -6,7 +6,5 @@ java -jar /application/cmdb-core.jar  --server.address=0.0.0.0 --server.port=${C
 --spring.datasource.username=${MYSQL_USER_NAME} \
 --spring.datasource.password=${MYSQL_USER_PASSWORD}  \
 --cmdb.datasource.schema=${MYSQL_SERVER_DATABASE_NAME} \
---cas-server.url=${CAS_SERVER_URL}  \
---cas-server.redirect-app-addr=${CAS_REDIRECT_APP_ADDR} \
 --cas-server.enabled=true \
 --cas-server.whitelist-ipaddress=${CMDB_IP_WHITELISTS}>>/log/cmdb-core.log 
