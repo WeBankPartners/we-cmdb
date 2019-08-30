@@ -32,7 +32,7 @@ public class JsonResponse {
         this.data = data;
     }
 
-    public JsonResponse withData(Object data){
+    public JsonResponse withData(Object data) {
         this.data = data;
         return this;
     }

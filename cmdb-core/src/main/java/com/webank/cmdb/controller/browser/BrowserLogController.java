@@ -20,7 +20,7 @@ import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.service.LogService;
 
 @RestController
-@RolesAllowed({MENU_QUERY_LOG})
+@RolesAllowed({ MENU_QUERY_LOG })
 @RequestMapping("/browser/v2")
 public class BrowserLogController {
     @Autowired
