@@ -39,7 +39,7 @@ public class CiTypeControllerTest extends LegacyAbstractBaseControllerTest {
     public void listAllCiTypesThenReturnListSizeLargeThen0() throws Exception {
         mvc.perform(get("/ciTypes"))
                 .andExpect(jsonPath("$.statusCode", is("OK")))
-                .andExpect(jsonPath("$.data", hasSize(26)));
+                .andExpect(jsonPath("$.data", hasSize(27)));
     }
 
     @Test
