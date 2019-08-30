@@ -161,7 +161,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     @Override
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
         if (AUTH_PROVIDER_LOCAL.equalsIgnoreCase(authenticationProvider)) {
-            auth.userDetailsService(userDetailsService).passwordEncoder(new ByPassPasswordEncoder());
+            auth.userDetailsService(userDetailsService).passwordEncoder(new BypassPasswordEncoder());
         } else {
             super.configure(auth);
         }
@@ -216,7 +216,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
 		return serverUrl;
 	}
 	
-	private class ByPassPasswordEncoder implements PasswordEncoder{
+	private class BypassPasswordEncoder implements PasswordEncoder{
 	    @Override
         public boolean matches(CharSequence rawPassword, String encodedPassword) {
             return true;
