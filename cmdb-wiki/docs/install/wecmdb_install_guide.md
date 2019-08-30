@@ -48,13 +48,9 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 2. cmdb.cfg配置文件，该文件包含如下配置项，用户根据各自的部署环境替换掉相关值。
 
 	```	
-	#cas
-	cas_url=http://{$cas_ip}:8443/cas
-	
 	#cmdb
-	cmdb_server_ip={$cmdb_server_ip}
 	cmdb_server_port=8080
-	cmdb_image_name=cmdb:dev
+	cmdb_image_name=we-cmdb:dev
 	cmdb_ip_whitelists={$cmdb_ip_whitelists}
 
 	#database
@@ -64,8 +60,6 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 
 	 配置项                    |说明
 	 -------------------------|--------------------
-	 cas_url                  |单点登陆cas服务器url,docker-compose.tpl中已经自带cas服务器，默认用户名为admin，密码为123，如果要使用该服务器，此处的ip地址填部署主机的ip;
-	 cmdb_server_ip           |cmdb的服务ip，cas单点登录成功后的回跳地址；如果浏览器是通过局域网访问，该值填部署主机的局域网ip;如果是公网访问需填公网可访问的ip地址，如LB的ip
 	 cmdb_server_port         |cmdb的服务端口
 	 cmdb_image_name          |cmdb的docker镜像名称及TAG，请填入在“加载镜像”章节中看到的镜像名称以及TAG，需要保持一致， 例如：we-cmdb:a092a47
 	 cmdb_ip_whitelists       |第三方服务如果要调用cmdb的api，需将第三方服务的访问ip加到此处，如果有多个服务，中间用逗号隔开；若无，默认填127.0.0.1
@@ -96,8 +90,6 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	sed -i "s~{{CMDB_SERVER_PORT}}~$cmdb_server_port~" docker-compose.yml  
 	sed -i "s~{{CMDB_DATABASE_IMAGE_NAME}}~$database_image_name~" docker-compose.yml  
 	sed -i "s~{{MYSQL_ROOT_PASSWORD}}~$database_init_password~" docker-compose.yml 
-	sed -i "s~{{CAS_SERVER_URL}}~$cas_url~" docker-compose.yml
-	sed -i "s~{{CMDB_SERVER_IP}}~$cmdb_server_ip~" docker-compose.yml
 	sed -i "s~{{CMDB_IP_WHITELISTS}}~$cmdb_ip_whitelists~" docker-compose.yml
 	
 	
@@ -121,14 +113,6 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	```
 	version: '2'
 	services:
-	  wecmdb-cas:
-	    image: kawhii/sso
-	    container_name: cas_sso
-	    restart: always
-	    volumes:
-	      - /etc/localtime:/etc/localtime
-	    ports:
-	      - 8443:8443
 	  wecmdb-mysql:
 	    image: {{CMDB_DATABASE_IMAGE_NAME}}
 	    restart: always
@@ -136,6 +120,7 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	            '--character-set-server=utf8mb4',
 	            '--collation-server=utf8mb4_unicode_ci',
 	            '--default-time-zone=+8:00'
+							'--max_allowed_packet=4M'
 	    ]
 	    volumes:
 	      - /etc/localtime:/etc/localtime
@@ -153,7 +138,6 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	      - /etc/localtime:/etc/localtime
 	    depends_on:
 	      - wecmdb-mysql
-	      - wecmdb-cas
 	    ports:
 	      - {{CMDB_SERVER_PORT}}:8080
 	    environment:
@@ -164,8 +148,6 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	      - MYSQL_USER_NAME=root
 	      - MYSQL_USER_PASSWORD={{MYSQL_ROOT_PASSWORD}}
 	      - CMDB_SERVER_PORT={{CMDB_SERVER_PORT}}
-	      - CAS_SERVER_URL={{CAS_SERVER_URL}}
-	      - CAS_REDIRECT_APP_ADDR={{CMDB_SERVER_IP}}:{{CMDB_SERVER_PORT}}
 	      - CMDB_IP_WHITELISTS={{CMDB_IP_WHITELISTS}}
 	```
 
@@ -176,7 +158,7 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	/bin/bash ./install.sh
 	```
  
-2. 安装完成后，访问WeCMDB的url，确认页面访问正常。
+2. 安装完成后，访问WeCMDB的url，确认页面访问正常,如果正常请输入初始用户名admin进行登陆。
 	http://cmdb_server_ip:cmdb_server_port/cmdb
 
 ## 卸载
