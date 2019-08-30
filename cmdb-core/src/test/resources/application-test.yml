@@ -17,13 +17,13 @@ cmdb:
 
 logging:
   level:
-    root: ERROR
+    root: WARN
     com:
       webank:
-        cmdb: ERROR
+        cmdb: INFO
     org:
       hibernate:
-        SQL: ERROR
+        SQL: INFO
 
 cas-server:
   enabled: false
