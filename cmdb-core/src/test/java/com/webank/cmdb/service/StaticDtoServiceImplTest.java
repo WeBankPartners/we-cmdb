@@ -54,7 +54,7 @@ public class StaticDtoServiceImplTest {
         QueryRequest request = new QueryRequest();
         QueryResponse<CiTypeDto> response = staticDtoService.query(CiTypeDto.class, request);
         assertThat(response.getContents()
-                .size(), equalTo(26));
+                .size(), equalTo(27));
     }
 
     @Test
