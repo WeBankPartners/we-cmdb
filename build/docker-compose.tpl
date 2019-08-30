@@ -7,8 +7,6 @@ services:
       - /data/cmdb/log:/log/
       - /etc/localtime:/etc/localtime
     network_mode: host
-    depends_on:
-      - wecube-cas
     ports:
       - {{CMDB_SERVER_PORT}}:{{CMDB_SERVER_PORT}}
     environment:
