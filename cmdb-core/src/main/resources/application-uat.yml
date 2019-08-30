@@ -15,4 +15,5 @@ cmdb:
 
 cas-server:
   url: http://uat-cas-server:8080/cas
+  redirect-app-addr: localhost:37000
   enabled: true
