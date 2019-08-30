@@ -19,10 +19,9 @@ import javax.persistence.Table;
 @NamedQuery(name = "AdmMenu.findAll", query = "SELECT a FROM AdmMenu a")
 public class AdmMenu implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     public final static String ROLE_PREFIX = "MENU_";
-    
-    public final static String MENU_QUERY_LOG = "QUERY_LOG";
-    
+
     public final static String MENU_DESIGNING_CI_DATA_MANAGEMENT = "DESIGNING_CI_DATA_MANAGEMENT";
     public final static String MENU_DESIGNING_CI_DATA_ENQUIRY = "DESIGNING_CI_DATA_ENQUIRY";
     public final static String MENU_DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT = "DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT";
@@ -32,8 +31,8 @@ public class AdmMenu implements Serializable {
     public final static String MENU_ADMIN_CMDB_MODEL_MANAGEMENT = "ADMIN_CMDB_MODEL_MANAGEMENT";
     public final static String MENU_ADMIN_PERMISSION_MANAGEMENT = "ADMIN_PERMISSION_MANAGEMENT";
     public final static String MENU_ADMIN_BASE_DATA_MANAGEMENT = "ADMIN_BASE_DATA_MANAGEMENT";
-    
-    private static final long serialVersionUID = 1L;
+    public final static String MENU_ADMIN_QUERY_LOG = "ADMIN_QUERY_LOG";
+
     private Integer idAdmMenu;
     private String classPath;
     private Integer isActive;

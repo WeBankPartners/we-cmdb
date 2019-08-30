@@ -1,6 +1,6 @@
 package com.webank.cmdb.controller.browser;
 
-import static com.webank.cmdb.domain.AdmMenu.MENU_QUERY_LOG;
+import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_QUERY_LOG;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.service.LogService;
 
 @RestController
-@RolesAllowed({ MENU_QUERY_LOG })
+@RolesAllowed({ MENU_ADMIN_QUERY_LOG })
 @RequestMapping("/browser/v2")
 public class BrowserLogController {
     @Autowired
