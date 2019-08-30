@@ -24,7 +24,9 @@ INSERT INTO `adm_ci_type` (`id_adm_ci_type`, `name`, `description`, `id_adm_tene
 	(23, 'Mock_Ci_Type_C', 'Mock Ci Type C', 1, 'wb_mock_ci_type_c', 'created', 3, NULL, 9, 5, 9, 5, 162),
 	(81, '可创建类CI', '可创建类CI', 1, 'wb_state_create', 'created', 130, NULL, 1, 5, 9, 3, 162),
 	(82, '可启停类CI', '可启停类CI', 1, 'wb_state_startup', 'created', 130, NULL, 1, 5, 9, 3, 162),
-	(83, '设计类CI', '设计类CI', 1, 'wb_state_design', 'created', 130, NULL, 1, 5, 9, 3, 162);
+	(83, '设计类CI', '设计类CI', 1, 'wb_state_design', 'created', 130, NULL, 1, 5, 9, 3, 162),
+	(84, 'Self_Ref_Ci_Type', 'Mock Self Ref Ci Type', 1, 'sef_ref_ci_type', 'notCreated', 3, NULL, 9, 5, 9, 5, 162);
+
 
 INSERT INTO adm_basekey_cat_type (id_adm_basekey_cat_type,name,description,ci_type_id,type) VALUES (1, 'CMDB System','CMDB System',null,1);
 INSERT INTO adm_basekey_cat_type (id_adm_basekey_cat_type,name,description,ci_type_id,type) VALUES (2, 'CMDB Commons','CMDB System',null,2);
@@ -606,6 +608,17 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 ('更新日期', 'date', '更新日期', 83, 'updated_date', 'date', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'created', 1,1),
 ('创建用户', 'text', '创建用户', 83, 'created_by', 'varchar', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1,1),
 ('创建日期', 'date', '创建日期', 83, 'created_date', 'date', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'created', 1,1);
+
+-- Mock Attr for Self_Ref_Ci_Type
+INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
+('Self_Ref_Attr','ref','Self ref attr',84,'self_ref','varchar',1,'1',1,'0','0','0','0','0',NULL,10,84,'notCreated','0')
+,('全局唯一ID', 'text', '全局唯一ID', 84, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
+,('唯一值', 'text', '唯一值', 84, 'key_name', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 500, NULL, 'notCreated', 1)
+,('更新用户', 'text', '更新用户', 84, 'updated_by', 'varchar', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, 64, NULL, 'notCreated', 1)
+,('更新日期', 'date', '更新日期', 84, 'updated_date', 'date', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'notCreated', 1)
+,('创建用户', 'text', '创建用户', 84, 'created_by', 'varchar', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, 64, NULL, 'notCreated', 1)
+,('创建日期', 'date', '创建日期', 84, 'created_date', 'date', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'notCreated', 1);
+
 
 INSERT INTO `adm_state_transition` (`id_adm_state_transition`, `current_state`, `current_state_is_confirmed`, `target_state`, `target_state_is_confirmed`, `operation`, `action`, `status`) VALUES
 	(1, 39, 0, NULL, NULL, 147, 151, 'active'),
