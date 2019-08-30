@@ -48,7 +48,7 @@ public class StaticEntityRepositoryImplTest {
         request.setPaging(false);
         QueryResponse response = staticEntityRepositoryImpl.query(AdmCiType.class, request);
         assertThat(response.getContents()
-                .size(), equalTo(26));
+                .size(), equalTo(27));
     }
 
     @Test
