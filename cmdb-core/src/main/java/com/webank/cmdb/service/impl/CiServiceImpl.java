@@ -1249,7 +1249,7 @@ public class CiServiceImpl implements CiService {
                 selFieldMap.remove("root");
                 for (Map.Entry<String, FieldInfo> kv : selFieldMap.entrySet()) {
                     if (enableBiz) {
-                        if (kv.getKey().endsWith(".bizKey") || kv.getKey().endsWith(".state")) {
+                        if (kv.getKey().endsWith(".biz_key") || kv.getKey().endsWith(".state")) {
                             continue;
                         }
                     }
@@ -1281,7 +1281,7 @@ public class CiServiceImpl implements CiService {
                 processBizFilters(intQueryReq, selectionMap);
             }
 
-            List<Predicate> predicates = extracted(intQueryReq, cb, selectionMap);
+            List<Predicate> predicates = buildHistoryDataControlPredicate(intQueryReq, cb, selectionMap);
 
             Predicate accessControlPredicate = buildAccessControlPredicate(cb, selFieldMap, selectionMap);
 
@@ -1299,7 +1299,7 @@ public class CiServiceImpl implements CiService {
         }
     }
 
-    private List<Predicate> extracted(QueryRequest intQueryReq, CriteriaBuilder cb, Map<String, Expression> selectionMap) {
+    private List<Predicate> buildHistoryDataControlPredicate(QueryRequest intQueryReq, CriteriaBuilder cb, Map<String, Expression> selectionMap) {
         List<Predicate> predicates = Lists.newLinkedList();
         if (!intQueryReq.getDialect().getShowCiHistory()) {
             Map<String, Map<String, Expression>> guidRguidPair = new HashMap<>();
@@ -1362,10 +1362,10 @@ public class CiServiceImpl implements CiService {
         intQueryReq.getFilters().remove(statusFilter);
 
         if (statusFilter == null || bizKeyFilter == null)
-            throw new InvalidArgumentException("bizKey and status filters should be existed together.");
+            throw new InvalidArgumentException("biz_key and state filters should be existed together.");
 
         for (Map.Entry<String, Expression> kv : selectionMap.entrySet()) {
-            if (kv.getKey().endsWith(".bizKey")) {
+            if (kv.getKey().endsWith(".biz_key")) {
                 intQueryReq.getFilters().add(new Filter(kv.getKey(), bizKeyFilter.getOperator(), bizKeyFilter.getValue()));
             } else if (kv.getKey().endsWith(".state")) {
                 intQueryReq.getFilters().add(new Filter(kv.getKey(), statusFilter.getOperator(), statusFilter.getValue()));

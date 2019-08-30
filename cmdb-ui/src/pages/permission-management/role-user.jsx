@@ -92,7 +92,7 @@ function RoleUser(props) {
     const val = currentRoleUsers.map(_ => {
       return {
         ..._,
-        isShow: _.description.indexOf(searchValue.trim()) >= 0
+        isShow: _.username.indexOf(searchValue.trim()) >= 0
       };
     });
     setCurrentRoleUsers(val);
@@ -200,7 +200,7 @@ function RoleUser(props) {
                     color="primary"
                   />
                 }
-                label={_.description}
+                label={_.username}
                 onChange={handleChange(_, i)}
                 key={i}
               />
