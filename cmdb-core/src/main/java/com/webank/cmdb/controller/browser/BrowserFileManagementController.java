@@ -52,7 +52,7 @@ public class BrowserFileManagementController {
             log.warn(errorMessage);
             throw new CmdbException(errorMessage);
         }
-        
+
         try {
             String contentType = file.getContentType();
             return okayWithData(imageService.upload(file.getName(), contentType, file.getBytes()));
