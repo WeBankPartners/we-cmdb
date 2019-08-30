@@ -66,7 +66,7 @@ public class MenuDto extends BasicResourceDto<MenuDto, AdmMenu> {
         return domain;
     }
 
-    public Integer getMenuId() {
+    public Integer getId() {
         return id;
     }
 
@@ -114,7 +114,7 @@ public class MenuDto extends BasicResourceDto<MenuDto, AdmMenu> {
         this.parentId = parentId;
     }
 
-    public String getRemark() {
+    public String getDescription() {
         return decription;
     }
 
