@@ -43,7 +43,7 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 
 	[uninstall.sh](../../../build/uninstall.sh)
 
-	[docker-compose.tpl](../../../build/docker-compose-all.tpl)
+	[docker-compose-all.tpl](../../../build/docker-compose-all.tpl)
 
 2. cmdb.cfg配置文件，该文件包含如下配置项，用户根据各自的部署环境替换掉相关值。
 
