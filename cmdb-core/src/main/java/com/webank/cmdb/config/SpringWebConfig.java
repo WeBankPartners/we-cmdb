@@ -1,8 +1,5 @@
 package com.webank.cmdb.config;
 
-import static java.lang.String.format;
-import static java.util.stream.Collectors.joining;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,7 +108,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
             .authorizeRequests()
                 .antMatchers("/login*").permitAll()
                 .antMatchers("/logout*").permitAll()
-                .antMatchers("/api/**").access(whitelistIpaddress.stream().map(ip->format("hasIpAddress('%s')", ip)).collect(joining(" or ")))
+                .antMatchers("/api/**").permitAll()
                 .anyRequest().authenticated()
             .and()
                 .formLogin()
