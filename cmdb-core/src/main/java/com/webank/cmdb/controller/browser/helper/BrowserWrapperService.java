@@ -55,6 +55,9 @@ public class BrowserWrapperService {
     private static final String CONSTANT_CAT_CAT_TYPE = "cat.catType";
     private static final String CONSTANT_INPUT_TYPE = "inputType";
     private static final String CONSTANT_CI_TYPE_ID = "ciTypeId";
+    private static final String CONSTANT_ATTRIBUTES = "attributes";
+    private static final String CONSTANT_CAT_ID = "catId";
+    private static final String CONSTANT_SEQ_NO = "seqNo";
 
     @Autowired
     BrowserAccessProperties cmdbDataProperties;
@@ -68,10 +71,6 @@ public class BrowserWrapperService {
     private IntegrationQueryService intQueryService;
     @Autowired
     private FilterRuleService filterRuleService;
-    
-    private static final String CONSTANT_ATTRIBUTES = "attributes";
-    private static final String CONSTANT_CAT_ID = "catId";
-    private static final String CONSTANT_SEQ_NO = "seqNo";
 
     public void swapCiTypeLayerPosition(int layerId, int targetLayerId) {
         CatCodeDto enumCode = getEnumCodeById(layerId);
@@ -260,7 +259,7 @@ public class BrowserWrapperService {
     public QueryResponse<?> getCiDataByCiTypeId(Integer ciTypeId) {
         return queryCiData(ciTypeId, defaultQueryObject());
     }
-    
+
     public List<CatTypeDto> createEnumCategoryTypes(CatTypeDto... catTypeDtos) {
         return staticDtoService.create(CatTypeDto.class, Arrays.asList(catTypeDtos));
     }
@@ -493,7 +492,7 @@ public class BrowserWrapperService {
     public QueryResponse<?> queryReferenceEnumCodes(int referenceAttrId, QueryRequest queryObject) {
         return filterRuleService.queryReferenceEnumCodes(referenceAttrId, queryObject);
     }
-    
+
     public List<UserDto> getAllUsers() {
         QueryResponse<UserDto> response = staticDtoService.query(UserDto.class, defaultQueryObject());
         return response != null ? response.getContents() : null;

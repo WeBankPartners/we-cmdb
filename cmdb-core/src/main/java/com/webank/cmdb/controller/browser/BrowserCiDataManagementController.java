@@ -165,7 +165,7 @@ public class BrowserCiDataManagementController {
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
     @PutMapping("/ci-types/{ci-type-id}/attributes/{attribute-id}")
     @ResponseBody
-    public JsonResponse updateCiTypeAttribute(@PathVariable(value = "ci-type-id") int ciTypeId, @PathVariable(value = "attribute-id") int attributeId, @RequestBody List<Map<String,Object>> ciTypeAttrDto) {
+    public JsonResponse updateCiTypeAttribute(@PathVariable(value = "ci-type-id") int ciTypeId, @PathVariable(value = "attribute-id") int attributeId, @RequestBody List<Map<String, Object>> ciTypeAttrDto) {
         return okayWithData(wrapperService.updateCiTypeAttributes(ciTypeAttrDto));
     }
 
