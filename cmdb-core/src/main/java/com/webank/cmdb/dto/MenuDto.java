@@ -15,7 +15,7 @@ public class MenuDto extends BasicResourceDto<MenuDto, AdmMenu> {
     private Integer id;
     private String classPath;
     private Integer isActive;
-    private String name;
+    private String code;
     private String otherName;
     private Integer parentId;
     private String decription;
@@ -41,7 +41,7 @@ public class MenuDto extends BasicResourceDto<MenuDto, AdmMenu> {
         dto.setId(domain.getIdAdmMenu());
         dto.setClassPath(domain.getClassPath());
         dto.setIsActive(domain.getIsActive());
-        dto.setName(domain.getName());
+        dto.setCode(domain.getName());
         dto.setOtherName(domain.getOtherName());
         dto.setParentId(domain.getParentIdAdmMenu());
         dto.setDecription(domain.getRemark());
@@ -57,7 +57,7 @@ public class MenuDto extends BasicResourceDto<MenuDto, AdmMenu> {
         domain.setIdAdmMenu(this.id);
         domain.setClassPath(this.classPath);
         domain.setIsActive(this.isActive);
-        domain.setName(this.name);
+        domain.setName(this.code);
         domain.setOtherName(this.otherName);
         domain.setParentIdAdmMenu(this.parentId);
         domain.setRemark(this.decription);
@@ -90,12 +90,12 @@ public class MenuDto extends BasicResourceDto<MenuDto, AdmMenu> {
         this.isActive = isActive;
     }
 
-    public String getName() {
-        return name;
+    public String getCode() {
+        return code;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setCode(String name) {
+        this.code = name;
     }
 
     public String getOtherName() {
