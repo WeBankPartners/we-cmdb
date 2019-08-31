@@ -1,14 +1,21 @@
 package com.webank.cmdb.domain;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * The persistent class for the adm_menu database table.
@@ -125,5 +132,17 @@ public class AdmMenu implements Serializable {
     public void setUrl(String url) {
         this.url = url;
     }
+
+    @OneToMany(mappedBy = "admMenu", cascade = CascadeType.ALL, orphanRemoval = true)
+    public List<AdmRoleMenu> getAssignedRoles() {
+        return assignedRoles;
+    }
+
+    public void setAssignedRoles(List<AdmRoleMenu> assignedRoles) {
+        this.assignedRoles = assignedRoles;
+    }
+
+    @EqualsAndHashCode.Exclude @ToString.Exclude
+    private List<AdmRoleMenu> assignedRoles = new ArrayList<>();
 
 }

@@ -22,6 +22,7 @@ import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
 import com.webank.cmdb.dto.CategoryDto;
+import com.webank.cmdb.dto.CiData;
 import com.webank.cmdb.dto.CiIndentity;
 import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
@@ -653,5 +654,36 @@ public class BrowserWrapperService {
 
     public List<RoleCiTypeCtrlAttrConditionDto> updateRoleCiTypeCtrlAttrConditions(List<Map<String, Object>> roleCiTypeCtrlAttrConditions) {
         return staticDtoService.update(RoleCiTypeCtrlAttrConditionDto.class, roleCiTypeCtrlAttrConditions);
+    }
+
+    public List<CiTypeAttrDto> getCiTypeAccessControlAttributesByCiTypeId(Integer ciTypeId) {
+        QueryRequest request = defaultQueryObject(CONSTANT_CI_TYPE_ID, ciTypeId).addEqualsFilter("isAccessControlled", 1).ascendingSortBy("displaySeqNo");
+        QueryResponse<CiTypeAttrDto> queryResult = staticDtoService.query(CiTypeAttrDto.class, request);
+        return queryResult != null ? queryResult.getContents() : null;
+    }
+
+    public List<CatCodeDto> getEnumCodesByIds(List<Integer> ids) {
+        QueryResponse<CatCodeDto> queryResult = staticDtoService.query(CatCodeDto.class, defaultQueryObject().addInFilter("codeId", ids));
+        return queryResult != null ? queryResult.getContents() : null;
+    }
+
+    public List<CiData> getCiDataByGuid(Integer ciTypeId, List<String> guidList) {
+        QueryResponse<CiData> response = ciService.query(ciTypeId, defaultQueryObject().addInFilter("guid", guidList));
+        return response != null ? response.getContents() : null;
+    }
+
+    public RoleCiTypeCtrlAttrDto updateRoleCiTypeCtrlAttribute(RoleCiTypeCtrlAttrDto roleCiTypeCtrlAttr) {
+        List<RoleCiTypeCtrlAttrDto> roleCiTypeCtrlAttrs = updateRoleCiTypeCtrlAttributes(Lists.newArrayList(BeanMapUtils.convertBeanToMap(roleCiTypeCtrlAttr)));
+        if (isEmpty(roleCiTypeCtrlAttrs))
+            throw new CmdbException("Update role CiType ctrl attr failure.");
+        return roleCiTypeCtrlAttrs.get(0);
+    }
+
+    public List<RoleCiTypeCtrlAttrConditionDto> updateRoleCiTypeCtrlAttrConditions(RoleCiTypeCtrlAttrConditionDto... roleCiTypeCtrlAttrConditions) {
+        return staticDtoService.update(RoleCiTypeCtrlAttrConditionDto.class, Lists.newArrayList(BeanMapUtils.convertBeanToMap(roleCiTypeCtrlAttrConditions)));
+    }
+
+    public List<RoleCiTypeDto> updateRoleCiTypes(RoleCiTypeDto... roleCiTypes) {
+        return staticDtoService.update(RoleCiTypeDto.class, Lists.newArrayList(BeanMapUtils.convertBeanToMap(roleCiTypes)));
     }
 }

@@ -12,7 +12,7 @@ import com.webank.cmdb.util.DtoField;
 import com.webank.cmdb.util.DtoId;
 
 @JsonInclude(Include.NON_EMPTY)
-public class RoleCiTypeDto extends BasicResourceDto<RoleCiTypeDto, AdmRoleCiType> {
+public class RoleCiTypeDto extends CiTypePermissions<RoleCiTypeDto, AdmRoleCiType> {
     @DtoId
     @DtoField(domainField = "idAdmRoleCiType")
     private Integer roleCiTypeId;
@@ -38,6 +38,12 @@ public class RoleCiTypeDto extends BasicResourceDto<RoleCiTypeDto, AdmRoleCiType
     private List<RoleCiTypeCtrlAttrDto> roleCiTypeCtrlAttrs = new LinkedList<>();
 
     public RoleCiTypeDto() {
+    }
+
+    public RoleCiTypeDto(Integer roleId, Integer ciTypeId, String ciTypeName) {
+        this.ciTypeId = ciTypeId;
+        this.roleId = roleId;
+        this.ciTypeName = ciTypeName;
     }
 
     @Override
