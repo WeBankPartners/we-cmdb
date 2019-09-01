@@ -53,7 +53,7 @@
 	在代码根目录下执行
 
     ```
-	make build
+	make image
 	```
 	
 	如下图：
