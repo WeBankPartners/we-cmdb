@@ -30,7 +30,7 @@ module.exports = {
     }
   },
   runtimeCompiler: true,
-  publicPath: "/",
+  publicPath: "/cmdb/",
   chainWebpack: config => {
     // remove the old loader
     const img = config.module.rule("images");
