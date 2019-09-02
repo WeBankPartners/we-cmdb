@@ -101,10 +101,7 @@ export const createNewCIAttr = (id, data) =>
 export const updateCIAttr = (attrId, ciTypeId, data) =>
   req.put(`/ci-types/${ciTypeId}/attributes/${attrId}`, data);
 export const applyCIAttr = (ciTypeId, attrIds) =>
-  req.post(
-    `/ci-types/${ciTypeId}/browser/v2/ci-type-attributes/apply`,
-    attrIds
-  );
+  req.post(`/ci-types/${ciTypeId}/ci-type-attributes/apply`, attrIds);
 
 export const swapCiTypeAttributePosition = (ciTypeId, attrId, targetAttrId) => {
   return req.post(
@@ -112,14 +109,14 @@ export const swapCiTypeAttributePosition = (ciTypeId, attrId, targetAttrId) => {
   );
 };
 export const getAllInputTypes = () =>
-  req.get("/static-data/available-browser/v2/ci-type-attribute-input-types");
+  req.get("/static-data/available-ci-type-attribute-input-types");
 export const getEnumByCIType = id =>
   req.get(
-    `/enum/category-types/categories/query-by-multiple-types?browser/v2/ci-type-id=${id}&types=common-private`
+    `/enum/category-types/categories/query-by-multiple-types?ci-type-id=${id}&types=common-private`
   );
 
 export const getTableStatus = () =>
-  req.get("/static-data/available-browser/v2/ci-type-table-status");
+  req.get("/static-data/available-ci-type-table-status");
 
 // basic data page
 export const getAllSystemEnumCodes = data => {
