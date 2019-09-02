@@ -89,10 +89,11 @@ public class BrowserUserManagerService {
     }
 
     public List<String> getMenuDtoCodesByUsername(String username) {
-        return getMenuDtosByUsername(username, false).stream().map(AdmMenu::getName).collect(toList());
+        return getMenuDtosByUsername(username, false).stream().map(MenuDto::getCode).collect(toList());
     }
 
-    public List<AdmMenu> getMenuDtosByUsername(String username, boolean withParentMenu) {
+    public List<MenuDto> getMenuDtosByUsername(String username, boolean withParentMenu) {
+        List<MenuDto> menuDtos = new ArrayList<>();
         List<RoleDto> roles = browserWrapperService.getRolesByUsername(username);
         log.info("Roles {} found for user {}", roles, username);
         if (isNotEmpty(roles)) {
@@ -108,12 +109,13 @@ public class BrowserUserManagerService {
                     } else {
                         toFetchedParentIds.add(parentId);
                     }
+                    menuDtos.add(MenuDto.from(menu, withParentMenu));
                 }
                 toFetchedParentIds.removeAll(fetchedParentIds);
                 Iterable<AdmMenu> parentMenus = admMenusRepository.findAllById(toFetchedParentIds);
                 parentMenus.forEach(admMenus::add);
             }
-            return admMenus;
+            return menuDtos;
         }
         return Collections.emptyList();
     }
