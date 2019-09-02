@@ -13,8 +13,6 @@ image_version=$2
 build_path=`dirname $0`
 
 sed "s~{{CMDB_CORE_IMAGE_NAME}}~$cmdb_core_image_name~g" ${build_path}/docker-compose.tpl > docker-compose.yml
-sed -i "s~{{CMDB_SERVER_IP}}~$cmdb_server_ip~g" docker-compose.yml  
-sed -i "s~{{CAS_SERVER_URL}}~$cas_server_url~g" docker-compose.yml
 sed -i "s~{{CMDB_IP_WHITELISTS}}~$cmdb_ip_whitelists~g" docker-compose.yml
 sed -i "s~{{CMDB_SERVER_PORT}}~$cmdb_server_port~g" docker-compose.yml
 sed -i "s~{{CMDB_DATABASE_NAME}}~$cmdb_database_name~g" docker-compose.yml

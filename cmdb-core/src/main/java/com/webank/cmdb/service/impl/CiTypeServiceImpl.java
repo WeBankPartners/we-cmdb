@@ -541,7 +541,7 @@ public class CiTypeServiceImpl implements CiTypeService {
 
                 if (isRefAttr(attr.getInputType()) && validateReqired) {
                     AdmCiType refCiType = staticEntityRepository.findEntityById(AdmCiType.class, attr.getReferenceId());
-                    if (CiStatus.fromCode(refCiType.getStatus()) == CiStatus.NotCreated) {
+                    if (admCiType.getIdAdmCiType() != attr.getReferenceId() && CiStatus.fromCode(refCiType.getStatus()) == CiStatus.NotCreated) {
                         throw new InvalidArgumentException(String.format("Can not create ciType [name = %s] as ref ciType [%s] have not created yet. ", admCiType.getName(), refCiType.getName()));
                     }
                 }
