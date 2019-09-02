@@ -1293,10 +1293,10 @@ INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `seq_no`, `parent_id_adm_menu`) V
 (6, 'DESIGNING_ENUM_MANAGEMENT', 5, 1),
 (7, 'DESIGNING_ENUM_ENQUIRY', 6, 1),
 (8, 'ADMIN', 2, NULL),
-(9, 'ADMIN_CMDB_MODEL_MANAGEMENT', 1, 2),
-(10, 'ADMIN_PERMISSION_MANAGEMENT', 2, 2),
-(11, 'ADMIN_BASE_DATA_MANAGEMENT', 3, 2),
-(12, 'ADMIN_QUERY_LOG', 4, 2);
+(9, 'ADMIN_CMDB_MODEL_MANAGEMENT', 1, 8),
+(10, 'ADMIN_PERMISSION_MANAGEMENT', 2, 8),
+(11, 'ADMIN_BASE_DATA_MANAGEMENT', 3, 8),
+(12, 'ADMIN_QUERY_LOG', 4, 8);
 
 INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`) VALUES
 (1, 1, 1),

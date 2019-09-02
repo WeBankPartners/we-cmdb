@@ -1,7 +1,5 @@
 package com.webank.cmdb.controller.browser;
 
-import static com.webank.cmdb.controller.browser.helper.JsonResponse.okay;
-import static com.webank.cmdb.controller.browser.helper.JsonResponse.okayWithData;
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_PERMISSION_MANAGEMENT;
 
 import java.util.List;
@@ -19,9 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.webank.cmdb.controller.browser.helper.BrowserWrapperService;
-import com.webank.cmdb.controller.browser.helper.JsonResponse;
 import com.webank.cmdb.controller.browser.helper.BrowserUserManagerService;
+import com.webank.cmdb.controller.browser.helper.BrowserWrapperService;
 import com.webank.cmdb.dto.MenuDto;
 import com.webank.cmdb.dto.RoleCiTypeDto;
 import com.webank.cmdb.dto.RoleDto;
@@ -49,153 +46,145 @@ public class BrowserUserManagementController {
 
     @GetMapping("/users")
     @ResponseBody
-    public JsonResponse getAllUsers() {
-        return okayWithData(wrapperService.getAllUsers());
+    public Object getAllUsers() {
+        return wrapperService.getAllUsers();
     }
 
     @GetMapping("/roles")
     @ResponseBody
-    public JsonResponse getAllRoles() {
-        return okayWithData(wrapperService.getAllRoles());
+    public Object getAllRoles() {
+        return wrapperService.getAllRoles();
     }
 
     @GetMapping("/menus")
     @ResponseBody
-    public JsonResponse getAllMenuDtos() {
+    public Object getAllMenuDtos() {
         List<MenuDto> allMenuDtos = userManagerService.getAllMenus();
-        return okayWithData(allMenuDtos);
+        return allMenuDtos;
     }
 
     @GetMapping("/users/{username}/roles")
     @ResponseBody
-    public JsonResponse getRolesByUsername(@PathVariable(value = "username") String username) {
-        return okayWithData(wrapperService.getRolesByUsername(username));
+    public Object getRolesByUsername(@PathVariable(value = "username") String username) {
+        return wrapperService.getRolesByUsername(username);
     }
 
     @GetMapping("/roles/{role-id}/users")
     @ResponseBody
-    public JsonResponse getUsersByRoleId(@PathVariable(value = "role-id") int roleId) {
-        return okayWithData(wrapperService.getUsersByRoleId(roleId));
+    public Object getUsersByRoleId(@PathVariable(value = "role-id") int roleId) {
+        return wrapperService.getUsersByRoleId(roleId);
     }
 
     @GetMapping("/roles/{role-id}/permissions")
     @ResponseBody
-    public JsonResponse getPermissionsByRoleId(@PathVariable(value = "role-id") int roleId) {
+    public Object getPermissionsByRoleId(@PathVariable(value = "role-id") int roleId) {
         List<String> menuPermissions = userManagerService.getMenuDtosByRoleId(roleId);
         List<RoleCiTypeDto> ciTypePermissions = userManagerService.getRoleCiTypesByRoleId(roleId);
-        return okayWithData(new Permissions(menuPermissions, ciTypePermissions));
+        return new Permissions(menuPermissions, ciTypePermissions);
     }
 
     @GetMapping("/roles/{role-id}/menu-permissions")
     @ResponseBody
-    public JsonResponse getMenuPermissionsByRoleId(@PathVariable(value = "role-id") int roleId) {
-        return okayWithData(userManagerService.getMenuDtosByRoleId(roleId));
+    public Object getMenuPermissionsByRoleId(@PathVariable(value = "role-id") int roleId) {
+        return userManagerService.getMenuDtosByRoleId(roleId);
     }
 
     @GetMapping("/roles/{role-id}/citype-permissions")
     @ResponseBody
-    public JsonResponse getCiTypePermissionsByRoleId(@PathVariable(value = "role-id") int roleId) {
-        return okayWithData(userManagerService.getRoleCiTypesByRoleId(roleId));
+    public Object getCiTypePermissionsByRoleId(@PathVariable(value = "role-id") int roleId) {
+        return userManagerService.getRoleCiTypesByRoleId(roleId);
     }
 
     @GetMapping("/users/{username}/permissions")
     @ResponseBody
-    public JsonResponse getPermissionsByUsername(@PathVariable(value = "username") String username) {
+    public Object getPermissionsByUsername(@PathVariable(value = "username") String username) {
         List<String> menuPermissions = userManagerService.getMenuDtoCodesByUsername(username);
         List<RoleCiTypeDto> ciTypePermissions = userManagerService.getRoleCiTypesByUsername(username);
-        return okayWithData(new Permissions(menuPermissions, ciTypePermissions));
+        return new Permissions(menuPermissions, ciTypePermissions);
     }
 
     @GetMapping("/users/{username}/menu-permissions")
     @ResponseBody
-    public JsonResponse getMenuPermissionsByUsername(@PathVariable(value = "username") String username) {
-        return okayWithData(userManagerService.getMenuDtoCodesByUsername(username));
+    public Object getMenuPermissionsByUsername(@PathVariable(value = "username") String username) {
+        return userManagerService.getMenuDtoCodesByUsername(username);
     }
 
     @GetMapping("/users/{username}/citype-permissions")
     @ResponseBody
-    public JsonResponse getCiTypePermissionsByUsername(@PathVariable(value = "username") String username) {
-        return okayWithData(userManagerService.getRoleCiTypesByUsername(username));
+    public Object getCiTypePermissionsByUsername(@PathVariable(value = "username") String username) {
+        return userManagerService.getRoleCiTypesByUsername(username);
     }
 
     @PostMapping("/roles/create")
     @ResponseBody
-    public JsonResponse createNewRole(@RequestBody RoleDto role) {
-        return okayWithData(wrapperService.createRoles(role));
+    public Object createNewRole(@RequestBody RoleDto role) {
+        return wrapperService.createRoles(role);
     }
 
     @DeleteMapping("/roles/{role-id}")
     @ResponseBody
-    public JsonResponse deleteRole(@PathVariable(value = "role-id") int roleId) {
+    public void deleteRole(@PathVariable(value = "role-id") int roleId) {
         userManagerService.deleteRole(roleId);
-        return okay();
     }
 
     @PostMapping("/roles/{role-id}/users")
     @ResponseBody
-    public JsonResponse grantRoleForUser(@PathVariable(value = "role-id") int roleId, @RequestBody List<String> userIds) {
+    public void grantRoleForUser(@PathVariable(value = "role-id") int roleId, @RequestBody List<String> userIds) {
         userManagerService.grantRoleForUsers(roleId, userIds);
-        return okay();
     }
 
     @DeleteMapping("/roles/{role-id}/users")
     @ResponseBody
-    public JsonResponse revokeRoleForUser(@PathVariable(value = "role-id") int roleId, @RequestBody List<String> usernames) {
+    public void revokeRoleForUser(@PathVariable(value = "role-id") int roleId, @RequestBody List<String> usernames) {
         userManagerService.revokeRoleForUsers(roleId, usernames);
-        return okay();
     }
 
     @PostMapping("/roles/{role-id}/menu-permissions")
     @ResponseBody
-    public JsonResponse assignMenuPermissionForRole(@PathVariable(value = "role-id") int roleId, @RequestBody List<String> menuCodes) {
+    public void assignMenuPermissionForRole(@PathVariable(value = "role-id") int roleId, @RequestBody List<String> menuCodes) {
         userManagerService.assignMenuPermissionForRoles(roleId, menuCodes);
-        return okay();
     }
 
     @DeleteMapping("/roles/{role-id}/menu-permissions")
     @ResponseBody
-    public JsonResponse removeMenuPermissionForRole(@PathVariable(value = "role-id") int roleId, @RequestBody List<String> menuCodes) {
+    public void removeMenuPermissionForRole(@PathVariable(value = "role-id") int roleId, @RequestBody List<String> menuCodes) {
         userManagerService.removeMenuPermissionForRoles(roleId, menuCodes);
-        return okay();
     }
 
     @PostMapping("/roles/{role-id}/citypes/{citype-id}/actions/{action-code}")
     @ResponseBody
-    public JsonResponse assignCiTypePermissionForRole(@PathVariable(value = "role-id") int roleId, @PathVariable(value = "citype-id") int ciTypeId, @PathVariable(value = "action-code") String actionCode) {
+    public void assignCiTypePermissionForRole(@PathVariable(value = "role-id") int roleId, @PathVariable(value = "citype-id") int ciTypeId, @PathVariable(value = "action-code") String actionCode) {
         userManagerService.assignCiTypePermissionForRole(roleId, ciTypeId, actionCode);
-        return okay();
     }
 
     @DeleteMapping("/roles/{role-id}/citypes/{citype-id}/actions/{action-code}")
     @ResponseBody
-    public JsonResponse removeCiTypePermissionForRole(@PathVariable(value = "role-id") int roleId, @PathVariable(value = "citype-id") int ciTypeId, @PathVariable(value = "action-code") String actionCode) {
+    public void removeCiTypePermissionForRole(@PathVariable(value = "role-id") int roleId, @PathVariable(value = "citype-id") int ciTypeId, @PathVariable(value = "action-code") String actionCode) {
         userManagerService.removeCiTypePermissionForRole(roleId, ciTypeId, actionCode);
-        return okay();
     }
 
     @GetMapping("/role-citypes/{role-citype-id}/ctrl-attributes")
     @ResponseBody
-    public JsonResponse getRoleCiTypeCtrlAttributesByRoleCiTypeId(@PathVariable(value = "role-citype-id") int roleCiTypeId) {
-        return okayWithData(userManagerService.getRoleCiTypeCtrlAttributesByRoleCiTypeId(roleCiTypeId));
+    public Object getRoleCiTypeCtrlAttributesByRoleCiTypeId(@PathVariable(value = "role-citype-id") int roleCiTypeId) {
+        return userManagerService.getRoleCiTypeCtrlAttributesByRoleCiTypeId(roleCiTypeId);
     }
 
     @PostMapping("/role-citypes/{role-citype-id}/ctrl-attributes/create")
     @ResponseBody
-    public JsonResponse createRoleCiTypeCtrlAttributes(@PathVariable(value = "role-citype-id") int roleCiTypeId, @RequestBody List<Map<String, Object>> roleCiTypeCtrlAttributes) {
-        return okayWithData(userManagerService.createRoleCiTypeCtrlAttributes(roleCiTypeId, roleCiTypeCtrlAttributes));
+    public Object createRoleCiTypeCtrlAttributes(@PathVariable(value = "role-citype-id") int roleCiTypeId, @RequestBody List<Map<String, Object>> roleCiTypeCtrlAttributes) {
+        return userManagerService.createRoleCiTypeCtrlAttributes(roleCiTypeId, roleCiTypeCtrlAttributes);
     }
 
     @PostMapping("/role-citypes/{role-citype-id}/ctrl-attributes/update")
     @ResponseBody
-    public JsonResponse updateRoleCiTypeCtrlAttributes(@PathVariable(value = "role-citype-id") int roleCiTypeId, @RequestBody List<Map<String, Object>> roleCiTypeCtrlAttributes) {
-        return okayWithData(userManagerService.updateRoleCiTypeCtrlAttributes(roleCiTypeId, roleCiTypeCtrlAttributes));
+    public Object updateRoleCiTypeCtrlAttributes(@PathVariable(value = "role-citype-id") int roleCiTypeId, @RequestBody List<Map<String, Object>> roleCiTypeCtrlAttributes) {
+        return userManagerService.updateRoleCiTypeCtrlAttributes(roleCiTypeId, roleCiTypeCtrlAttributes);
     }
 
     @PostMapping("/role-citypes/{role-citype-id}/ctrl-attributes/delete")
     @ResponseBody
-    public JsonResponse deleteRoleCiTypeCtrlAttributes(@PathVariable(value = "role-citype-id") int roleCiTypeId, @RequestBody Integer[] roleCiTypeCtrlAttrIds) {
+    public void deleteRoleCiTypeCtrlAttributes(@PathVariable(value = "role-citype-id") int roleCiTypeId, @RequestBody Integer[] roleCiTypeCtrlAttrIds) {
         wrapperService.deleteRoleCiTypeCtrlAttributes(roleCiTypeCtrlAttrIds);
-        return okay();
     }
 
 }

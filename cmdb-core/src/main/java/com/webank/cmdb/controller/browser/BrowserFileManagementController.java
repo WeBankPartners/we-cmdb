@@ -1,7 +1,5 @@
 package com.webank.cmdb.controller.browser;
 
-import static com.webank.cmdb.controller.browser.helper.JsonResponse.error;
-import static com.webank.cmdb.controller.browser.helper.JsonResponse.okayWithData;
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_CMDB_MODEL_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_ENQUIRY;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_MANAGEMENT;
@@ -24,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.webank.cmdb.config.ApplicationProperties;
-import com.webank.cmdb.controller.browser.helper.JsonResponse;
 import com.webank.cmdb.dto.ImageInfoDto;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.exception.ServiceException;
@@ -46,7 +43,7 @@ public class BrowserFileManagementController {
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
     @PostMapping("/files/upload")
     @ResponseBody
-    public JsonResponse uploadFile(@RequestParam(value = "file", required = false) MultipartFile file) throws SizeLimitExceededException {
+    public Object uploadFile(@RequestParam(value = "file", required = false) MultipartFile file) throws SizeLimitExceededException {
         if (file.getSize() > applicationProperties.getMaxFileSize().toBytes()) {
             String errorMessage = String.format("Upload file failed due to file size (%s bytes) exceeded limitation (%s KB).", file.getSize(), applicationProperties.getMaxFileSize().toKilobytes());
             log.warn(errorMessage);
@@ -55,11 +52,11 @@ public class BrowserFileManagementController {
 
         try {
             String contentType = file.getContentType();
-            return okayWithData(imageService.upload(file.getName(), contentType, file.getBytes()));
+            return imageService.upload(file.getName(), contentType, file.getBytes());
         } catch (IOException e) {
             String msg = String.format("Failed to upload image file. (fileName:%s)", file.getName());
             log.warn(msg, e);
-            return error(msg);
+            throw new CmdbException(msg);
         }
     }
 
