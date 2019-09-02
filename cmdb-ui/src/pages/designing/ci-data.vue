@@ -162,7 +162,7 @@ export default {
                 this.$set(i, "form", {
                   ...i,
                   imgSource: imgFileSource,
-                  imgUploadURL: `/cmdb/ci-types/${i.ciTypeId}/icon`
+                  imgUploadURL: `/cmdb/browser/v2/ci-types/${i.ciTypeId}/icon`
                 });
                 i.attributes &&
                   i.attributes.forEach(j => {
