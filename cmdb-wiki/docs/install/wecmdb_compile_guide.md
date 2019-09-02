@@ -27,11 +27,13 @@
 
 	根据提示输入github账号密码， 即可拉取代码到本地。
 	拉取完成后， 可以在本地目录上看到we-cmdb目录， 进入目录，结构如下：
+
 	![wecmdb_dir](images/wecmdb_dir.png)
 
 2. 编译
 
 	maven配置文件在build目录下的maven_setting.xml文件,默认配置如下:
+
 	![wecmdb_maven_settings](images/wecmdb_maven_settings.png)
 
 	编译过程中会从外网拉取maven包和npm包，如果有更快的maven源，可修改该文件中的配置。
@@ -43,6 +45,7 @@
 	```
 	
 	等待编译完成，如下图：
+
 	![wecmdb_make_build](images/wecmdb_make_build.png)
 
 3. 制作镜像
@@ -50,7 +53,7 @@
 	在代码根目录下执行
 
     ```
-	make build
+	make image
 	```
 	
 	如下图：
@@ -74,6 +77,7 @@
 	```
 	
 	可查看镜像列表
+	
 	![wecmdb_images](images/wecmdb_images.png)
 	
 4. 镜像保存
