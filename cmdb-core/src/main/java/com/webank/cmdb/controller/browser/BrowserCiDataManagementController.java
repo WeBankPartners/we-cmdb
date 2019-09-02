@@ -2,9 +2,6 @@ package com.webank.cmdb.controller.browser;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.webank.cmdb.controller.browser.helper.BooleanUtils.isTrue;
-import static com.webank.cmdb.controller.browser.helper.JsonResponse.error;
-import static com.webank.cmdb.controller.browser.helper.JsonResponse.okay;
-import static com.webank.cmdb.controller.browser.helper.JsonResponse.okayWithData;
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_CMDB_MODEL_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_ENQUIRY;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_MANAGEMENT;
@@ -34,7 +31,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.google.common.collect.Lists;
 import com.webank.cmdb.config.ApplicationProperties;
 import com.webank.cmdb.controller.browser.helper.BrowserWrapperService;
-import com.webank.cmdb.controller.browser.helper.JsonResponse;
 import com.webank.cmdb.dto.CiIndentity;
 import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
@@ -59,44 +55,42 @@ public class BrowserCiDataManagementController {
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_DESIGNING_CI_DATA_MANAGEMENT, MENU_DESIGNING_CI_DATA_ENQUIRY })
     @GetMapping("/ci-types")
     @ResponseBody
-    public JsonResponse getCiTypes(@RequestParam(name = "group-by", required = false) String groupBy, @RequestParam(name = "with-attributes", required = false) String withAttributes,
+    public Object getCiTypes(@RequestParam(name = "group-by", required = false) String groupBy, @RequestParam(name = "with-attributes", required = false) String withAttributes,
             @RequestParam(name = "status", required = false) String status) {
         if ("catalog".equalsIgnoreCase(groupBy)) {
-            return okayWithData(wrapperService.getCiTypesGroupByCatalogs(isTrue(withAttributes), status));
+            return wrapperService.getCiTypesGroupByCatalogs(isTrue(withAttributes), status);
         } else if ("layer".equalsIgnoreCase(groupBy)) {
-            return okayWithData(wrapperService.getCiTypesGroupByLayers(isTrue(withAttributes), status));
+            return wrapperService.getCiTypesGroupByLayers(isTrue(withAttributes), status);
         } else {
-            return okayWithData(wrapperService.getAllCiTypes(isTrue(withAttributes), status));
+            return wrapperService.getAllCiTypes(isTrue(withAttributes), status);
         }
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
     @PostMapping("/ci-types/create")
     @ResponseBody
-    public JsonResponse createCiType(@RequestBody CiTypeDto ciTypeDto) {
-        return okayWithData(wrapperService.createCiTypes(ciTypeDto));
+    public Object createCiType(@RequestBody CiTypeDto ciTypeDto) {
+        return wrapperService.createCiTypes(ciTypeDto);
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
     @PutMapping("/ci-types/{ci-type-id}")
     @ResponseBody
-    public JsonResponse updateCiType(@PathVariable(value = "ci-type-id") int ciTypeId, @RequestBody Map<String, Object> ciTypeDto) {
+    public void updateCiType(@PathVariable(value = "ci-type-id") int ciTypeId, @RequestBody Map<String, Object> ciTypeDto) {
         wrapperService.updateCiTypes(Lists.newArrayList(ciTypeDto));
-        return okay();
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
     @DeleteMapping("/ci-types/{ci-type-id}")
     @ResponseBody
-    public JsonResponse deleteCiType(@PathVariable(value = "ci-type-id") int ciTypeId) {
+    public void deleteCiType(@PathVariable(value = "ci-type-id") int ciTypeId) {
         wrapperService.deleteCiTypes(ciTypeId);
-        return okay();
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_DESIGNING_CI_DATA_MANAGEMENT })
     @PostMapping("/ci-types/{ci-type-id}/icon")
     @ResponseBody
-    public JsonResponse uploadCiTypeIcon(@PathVariable(value = "ci-type-id") int ciTypeId, @RequestParam(value = "file", required = false) MultipartFile file) throws CmdbException {
+    public Object uploadCiTypeIcon(@PathVariable(value = "ci-type-id") int ciTypeId, @RequestParam(value = "file", required = false) MultipartFile file) throws CmdbException {
         if (file.getSize() > applicationProperties.getMaxFileSize().toBytes()) {
             String errorMessage = String.format("Upload image icon for CiType (%s) failed due to file size (%s bytes) exceeded limitation (%s KB).", ciTypeId, file.getSize(), applicationProperties.getMaxFileSize().toKilobytes());
             log.warn(errorMessage);
@@ -105,144 +99,138 @@ public class BrowserCiDataManagementController {
 
         try {
             String contentType = file.getContentType();
-            return okayWithData(imageService.upload(file.getName(), contentType, file.getBytes()));
+            return imageService.upload(file.getName(), contentType, file.getBytes());
         } catch (IOException e) {
             String msg = String.format("Failed to upload image file. (fileName:%s)", file.getName());
             log.warn(msg, e);
-            return error(msg);
+            throw new CmdbException(msg);
         }
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
     @PostMapping("/ci-types/{ci-type-id}/apply")
     @ResponseBody
-    public JsonResponse applyCiType(@PathVariable(value = "ci-type-id") Integer ciTypeId) {
+    public void applyCiType(@PathVariable(value = "ci-type-id") Integer ciTypeId) {
         Integer[] ciTypeIdArray = { ciTypeId };
         wrapperService.applyCiType(ciTypeIdArray);
-        return okay();
     }
 
     @PostMapping("/ci-types/apply")
     @ResponseBody
-    public JsonResponse applyCiTypes() {
+    public void applyCiTypes() {
         wrapperService.applyCiTypes();
-        return okay();
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT })
     @GetMapping("/ci-types/{ci-type-id}/references/by")
     @ResponseBody
-    public JsonResponse getCiTypeReferenceBy(@PathVariable(value = "ci-type-id") int ciTypeId) {
-        return okayWithData(wrapperService.getCiTypeReferenceBy(ciTypeId));
+    public Object getCiTypeReferenceBy(@PathVariable(value = "ci-type-id") int ciTypeId) {
+        return wrapperService.getCiTypeReferenceBy(ciTypeId);
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT })
     @GetMapping("/ci-types/{ci-type-id}/references/to")
     @ResponseBody
-    public JsonResponse getCiTypeReferenceTo(@PathVariable(value = "ci-type-id") int ciTypeId) {
-        return okayWithData(wrapperService.getCiTypeReferenceTo(ciTypeId));
+    public Object getCiTypeReferenceTo(@PathVariable(value = "ci-type-id") int ciTypeId) {
+        return wrapperService.getCiTypeReferenceTo(ciTypeId);
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
     @PostMapping("/ci-types/{ci-type-id}/attributes/create")
     @ResponseBody
-    public JsonResponse createCiTypeAttribute(@PathVariable(value = "ci-type-id") int ciTypeId, @RequestBody CiTypeAttrDto ciTypeAttrDto) {
+    public Object createCiTypeAttribute(@PathVariable(value = "ci-type-id") int ciTypeId, @RequestBody CiTypeAttrDto ciTypeAttrDto) {
         ciTypeAttrDto.setCiTypeId(ciTypeId);
-        return okayWithData(wrapperService.createCiTypeAttribute(ciTypeAttrDto));
+        return wrapperService.createCiTypeAttribute(ciTypeAttrDto);
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT, MENU_DESIGNING_CI_DATA_MANAGEMENT, MENU_DESIGNING_CI_DATA_ENQUIRY })
     @GetMapping("/ci-types/{ci-type-id}/attributes")
     @ResponseBody
-    public JsonResponse getCiTypeAttributes(@PathVariable(value = "ci-type-id") int ciTypeId, @RequestParam(name = "accept-input-types", required = false) String acceptInputTypes) {
+    public Object getCiTypeAttributes(@PathVariable(value = "ci-type-id") int ciTypeId, @RequestParam(name = "accept-input-types", required = false) String acceptInputTypes) {
         if (isNotEmpty(acceptInputTypes)) {
-            return okayWithData(wrapperService.queryCiTypeAttributes(defaultQueryObject("ciTypeId", ciTypeId).addInFilter("inputType", newArrayList(acceptInputTypes.split(",")))));
+            return wrapperService.queryCiTypeAttributes(defaultQueryObject("ciTypeId", ciTypeId).addInFilter("inputType", newArrayList(acceptInputTypes.split(","))));
         } else {
-            return okayWithData(wrapperService.getCiTypeAttributesByCiTypeId(ciTypeId));
+            return wrapperService.getCiTypeAttributesByCiTypeId(ciTypeId);
         }
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
     @PutMapping("/ci-types/{ci-type-id}/attributes/{attribute-id}")
     @ResponseBody
-    public JsonResponse updateCiTypeAttribute(@PathVariable(value = "ci-type-id") int ciTypeId, @PathVariable(value = "attribute-id") int attributeId, @RequestBody List<Map<String, Object>> ciTypeAttrDto) {
-        return okayWithData(wrapperService.updateCiTypeAttributes(ciTypeAttrDto));
+    public Object updateCiTypeAttribute(@PathVariable(value = "ci-type-id") int ciTypeId, @PathVariable(value = "attribute-id") int attributeId, @RequestBody List<Map<String, Object>> ciTypeAttrDto) {
+        return wrapperService.updateCiTypeAttributes(ciTypeAttrDto);
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
     @DeleteMapping("/ci-types/{ci-type-id}/attributes/{attribute-id}")
     @ResponseBody
-    public JsonResponse deleteCiTypeAttribute(@PathVariable(value = "ci-type-id") int ciTypeId, @PathVariable(value = "attribute-id") int attributeId) {
+    public void deleteCiTypeAttribute(@PathVariable(value = "ci-type-id") int ciTypeId, @PathVariable(value = "attribute-id") int attributeId) {
         wrapperService.deleteCiTypeAttributes(attributeId);
-        return okay();
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
     @PostMapping("/ci-types/{ci-type-id}/ci-type-attributes/apply")
     @ResponseBody
-    public JsonResponse applyCiTypeAttributes(@PathVariable(value = "ci-type-id") Integer ciTypeId, @RequestBody Integer[] ciTypeAttrIds) {
+    public void applyCiTypeAttributes(@PathVariable(value = "ci-type-id") Integer ciTypeId, @RequestBody Integer[] ciTypeAttrIds) {
         wrapperService.applyCiTypeAttributes(ciTypeAttrIds);
-        return okay();
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
     @PostMapping("/ci-types/{ci-type-id}/attributes/{attribute-id}/swap-position")
     @ResponseBody
-    public JsonResponse swapCiTypeAttributePosition(@PathVariable(value = "ci-type-id") int ciTypeId, @PathVariable(value = "attribute-id") int attributeId, @RequestParam(value = "target-attribute-id") int targetAttributeId) {
+    public void swapCiTypeAttributePosition(@PathVariable(value = "ci-type-id") int ciTypeId, @PathVariable(value = "attribute-id") int attributeId, @RequestParam(value = "target-attribute-id") int targetAttributeId) {
         wrapperService.swapCiTypeAttributePosition(attributeId, targetAttributeId);
-        return okay();
     }
 
     @RolesAllowed({ MENU_DESIGNING_CI_DATA_MANAGEMENT })
     @PostMapping("/ci-types/{ci-type-id}/ci-data/batch-create")
     @ResponseBody
-    public JsonResponse createCiData(@PathVariable(value = "ci-type-id") int ciTypeId,
+    public Object createCiData(@PathVariable(value = "ci-type-id") int ciTypeId,
             @RequestBody List<Map<String, Object>> ciDataDtos) {
-        return okayWithData(wrapperService.createCiData(ciTypeId, ciDataDtos));
+        return wrapperService.createCiData(ciTypeId, ciDataDtos);
     }
 
     @RolesAllowed({ MENU_DESIGNING_CI_DATA_MANAGEMENT, MENU_DESIGNING_CI_DATA_ENQUIRY })
     @PostMapping("/ci-types/{ci-type-id}/ci-data/query")
     @ResponseBody
-    public JsonResponse queryCiData(@PathVariable(value = "ci-type-id") int ciTypeId,
+    public Object queryCiData(@PathVariable(value = "ci-type-id") int ciTypeId,
             @RequestBody QueryRequest queryObject) {
-        return okayWithData(wrapperService.queryCiData(ciTypeId, queryObject));
+        return wrapperService.queryCiData(ciTypeId, queryObject);
     }
 
     @PostMapping("/referenceCiData/{reference-attr-id}/query")
     @ResponseBody
-    public JsonResponse queryReferenceCiData(@PathVariable(value = "reference-attr-id") int referenceAttrId,
+    public Object queryReferenceCiData(@PathVariable(value = "reference-attr-id") int referenceAttrId,
             @RequestBody QueryRequest queryObject) {
-        return okayWithData(wrapperService.queryReferenceCiData(referenceAttrId, queryObject));
+        return wrapperService.queryReferenceCiData(referenceAttrId, queryObject);
     }
 
     @PostMapping("/referenceEnumCodes/{reference-attr-id}/query")
     @ResponseBody
-    public JsonResponse queryReferenceEnumCodes(@PathVariable(value = "reference-attr-id") int referenceAttrId,
+    public Object queryReferenceEnumCodes(@PathVariable(value = "reference-attr-id") int referenceAttrId,
             @RequestBody QueryRequest queryObject) {
-        return okayWithData(wrapperService.queryReferenceEnumCodes(referenceAttrId, queryObject));
+        return wrapperService.queryReferenceEnumCodes(referenceAttrId, queryObject);
     }
 
     @RolesAllowed({ MENU_DESIGNING_CI_DATA_MANAGEMENT })
     @PostMapping("/ci-types/{ci-type-id}/ci-data/batch-update")
     @ResponseBody
-    public JsonResponse updateCiData(@PathVariable(value = "ci-type-id") int ciTypeId, @RequestBody List<Map<String, Object>> ciDatas) {
-        return okayWithData(wrapperService.updateCiData(ciTypeId, ciDatas));
+    public Object updateCiData(@PathVariable(value = "ci-type-id") int ciTypeId, @RequestBody List<Map<String, Object>> ciDatas) {
+        return wrapperService.updateCiData(ciTypeId, ciDatas);
     }
 
     @RolesAllowed({ MENU_DESIGNING_CI_DATA_MANAGEMENT })
     @PostMapping("/ci-types/{ci-type-id}/ci-data/batch-delete")
     @ResponseBody
-    public JsonResponse deleteCiData(@PathVariable(value = "ci-type-id") int ciTypeId, @RequestBody List<String> ciDataIds) {
+    public void deleteCiData(@PathVariable(value = "ci-type-id") int ciTypeId, @RequestBody List<String> ciDataIds) {
         wrapperService.deleteCiData(ciTypeId, ciDataIds);
-        return okay();
     }
 
     @RolesAllowed({ MENU_DESIGNING_CI_DATA_MANAGEMENT })
     @PostMapping("/ci/state/operate")
     @ResponseBody
-    public JsonResponse operateCiForState(@RequestParam("operation") String operation,
+    public Object operateCiForState(@RequestParam("operation") String operation,
             @RequestBody List<CiIndentity> operateCiObject) {
-        return okayWithData(wrapperService.operateCiForState(operateCiObject, operation));
+        return wrapperService.operateCiForState(operateCiObject, operation);
     }
 }
