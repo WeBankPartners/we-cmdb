@@ -62,5 +62,10 @@ export const MENUS = [
     cnName: "基础数据管理",
     enName: "Base Data Management",
     link: "/admin/base-data-management"
+  },
+  {
+    code: "ADMIN_QUERY_LOG",
+    cnName: "日志查询",
+    enName: "QUERY_LOG"
   }
 ];

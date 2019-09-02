@@ -30,7 +30,7 @@ req.interceptors.response.use(
         });
       }
       return {
-        ...res.data,
+        ...res.data.data,
         user: res.headers["current_user"] || " - "
       };
     } else {
