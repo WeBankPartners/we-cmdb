@@ -1,13 +1,5 @@
 version: '2'
 services:
-  wecube-cas:
-    image: kawhii/sso
-    container_name: cas_sso
-    restart: always
-    volumes:
-      - /etc/localtime:/etc/localtime
-    ports:
-      - 8443:8443
   wecmdb-mysql:
     image: {{CMDB_DATABASE_IMAGE_NAME}}
     restart: always
@@ -33,7 +25,6 @@ services:
       - /etc/localtime:/etc/localtime
     depends_on:
       - wecmdb-mysql
-      - wecube-cas
     network_mode: host
     ports:
       - {{CMDB_SERVER_PORT}}:{{CMDB_SERVER_PORT}}
@@ -45,6 +36,4 @@ services:
       - MYSQL_USER_NAME=root
       - MYSQL_USER_PASSWORD={{MYSQL_ROOT_PASSWORD}}
       - CMDB_SERVER_PORT={{CMDB_SERVER_PORT}}
-      - CAS_SERVER_URL={{CAS_SERVER_URL}}
-      - CAS_REDIRECT_APP_ADDR={{CMDB_SERVER_IP}}:{{CMDB_SERVER_PORT}}
       - CMDB_IP_WHITELISTS={{CMDB_IP_WHITELISTS}}
