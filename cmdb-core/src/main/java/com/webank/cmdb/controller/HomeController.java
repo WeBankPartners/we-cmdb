@@ -1,7 +1,5 @@
 package com.webank.cmdb.controller;
 
-import static com.webank.cmdb.controller.browser.helper.JsonResponse.okayWithData;
-
 import java.security.Principal;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.webank.cmdb.controller.browser.helper.BrowserUserManagerService;
-import com.webank.cmdb.controller.browser.helper.JsonResponse;
 import com.webank.cmdb.exception.CmdbException;
 
 @Controller
@@ -39,9 +36,9 @@ public class HomeController {
 
     @GetMapping("/browser/v2/my-menus")
     @ResponseBody
-    public JsonResponse retrieveRoleMenus(Principal principal) {
+    public Object retrieveRoleMenus(Principal principal) {
         if (principal == null)
             throw new CmdbException("Logon user not found.");
-        return okayWithData(userManagerService.getMenuDtosByUsername(principal.getName(), true));
+        return userManagerService.getMenuDtosByUsername(principal.getName(), true);
     }
 }
