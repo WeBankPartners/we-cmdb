@@ -62,45 +62,6 @@
         ></Tree>
       </Card>
     </Col>
-    <Col span="9" offset="0" style="margin-left: 20px">
-      <Card>
-        <p slot="title">数据权限</p>
-        <!-- <Tree :data="permissionEntryPoints"></Tree> -->
-        <div
-          class="data-permissions"
-          v-for="ci in ciTypePermissions"
-          :key="ci.ciTypeId"
-        >
-          <span
-            class="ciTypes"
-            :title="ci.ciTypeName"
-            style="max-width: 100px;white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
-            >{{ ci.ciTypeName }}</span
-          >
-          <div class="ciTypes-options">
-            <Checkbox
-              v-for="act in actionsType"
-              :disabled="dataPermissionDisabled"
-              :indeterminate="ci[act.actionCode] === 'P'"
-              :value="ci[act.actionCode] === 'Y'"
-              :key="act.actionCode"
-              @click.prevent.native="
-                ciTypesPermissionsHandler(ci, act.actionCode, act.type)
-              "
-              >{{ act.actionName }}</Checkbox
-            >
-            <Button
-              icon="ios-build"
-              type="dashed"
-              size="small"
-              :disabled="dataPermissionDisabled"
-              @click="openPermissionManageModal(ci.roleCiTypeId)"
-              >详情</Button
-            >
-          </div>
-        </div>
-      </Card>
-    </Col>
 
     <Modal
       v-model="addRoleModalVisible"
