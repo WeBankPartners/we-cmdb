@@ -871,4 +871,12 @@ public class ApiV2ControllerCiTypeAttrTest extends LegacyAbstractBaseControllerT
                 .content("[236]"))
                 .andExpect(jsonPath("$.statusCode", is("ERR_INVALID_ARGUMENT")));
     }
+    
+    @Test
+    public void applyNoCreatedSelfRefCiTypeThenCreateSuccessfully() throws Exception{
+        mvc.perform(post("/api/v2/ciTypes/apply").contentType(MediaType.APPLICATION_JSON)
+                .content("[84]"))
+                .andExpect(jsonPath("$.statusCode", is("OK")));
+    	
+    }
 }
