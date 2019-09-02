@@ -30,7 +30,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/browser/v2/admin")
 @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
 public class BrowserUserManagementController {
 
