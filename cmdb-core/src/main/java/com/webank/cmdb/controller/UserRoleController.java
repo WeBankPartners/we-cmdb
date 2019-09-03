@@ -1,6 +1,6 @@
 package com.webank.cmdb.controller;
 
-import static com.webank.cmdb.domain.AdmMenu.*;
+import static com.webank.cmdb.domain.AdmMenu.MENU_PERMISSION;
 
 import java.util.List;
 import java.util.Map;
@@ -30,6 +30,12 @@ public class UserRoleController {
 
     @Autowired
     private StaticDtoService staticDtoService;
+    
+    @RolesAllowed({MENU_PERMISSION})
+    @PostMapping("/users/create")
+    public List<UserDto> createUsers(@Valid @RequestBody List<UserDto> userDtos) {
+        return staticDtoService.create(UserDto.class, userDtos);
+    }
 
     @RolesAllowed({MENU_PERMISSION})
     @PostMapping("/users/retrieve")
