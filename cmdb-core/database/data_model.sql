@@ -1261,6 +1261,7 @@ CREATE TABLE IF NOT EXISTS `adm_user` (
   `id_adm_tenement` int(11) DEFAULT NULL COMMENT 'id_adm_tenement',
   `action_flag` tinyint(1) DEFAULT '0' COMMENT '用户操作Flag',
   PRIMARY KEY (`id_adm_user`),
+  UNIQUE KEY `adm_user_code` (`code`),
   KEY `fk_adm_user_adm_tenement_1` (`id_adm_tenement`),
   CONSTRAINT `fk_adm_user_adm_tenement_1` FOREIGN KEY (`id_adm_tenement`) REFERENCES `adm_tenement` (`id_adm_tenement`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
