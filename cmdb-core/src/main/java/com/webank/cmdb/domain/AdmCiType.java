@@ -23,7 +23,6 @@ import com.webank.cmdb.constant.InputType;
 
 /**
  * The persistent class for the adm_ci_type database table.
- * 
  */
 @Entity
 @Table(name = "adm_ci_type")
@@ -283,8 +282,11 @@ public class AdmCiType implements Serializable {
             if (!("datetime".equals(attr.getPropertyType()) || "date".equals(attr.getPropertyType()) || "text".equals(attr.getPropertyType()) || "longtext".equals(attr.getPropertyType()))) {
                 sb.append("(").append(attr.getLength()).append(")").append(" ");
             }
-
-            sb.append(" DEFAULT NULL ");
+            if ("guid".equals(attr.getPropertyName())) {
+                sb.append(" NOT NULL ");
+            } else {
+                sb.append(" DEFAULT NULL ");
+            }
             if (this.getDescription() != null) {
                 sb.append("COMMENT '").append(attr.getDescription()).append("'");
             }
