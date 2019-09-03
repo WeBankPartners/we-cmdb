@@ -1,4 +1,4 @@
-package com.webank.cmdb.controller.browser;
+package com.webank.cmdb.controller.ui;
 
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_PERMISSION_MANAGEMENT;
 
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.webank.cmdb.controller.browser.helper.BrowserUserManagerService;
-import com.webank.cmdb.controller.browser.helper.BrowserWrapperService;
+import com.webank.cmdb.controller.ui.helper.UIUserManagerService;
+import com.webank.cmdb.controller.ui.helper.UIWrapperService;
 import com.webank.cmdb.dto.MenuDto;
 import com.webank.cmdb.dto.RoleCiTypeDto;
 import com.webank.cmdb.dto.RoleDto;
@@ -27,9 +27,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @RestController
-@RequestMapping("/browser/v2/admin")
+@RequestMapping("/ui/v2/admin")
 @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
-public class BrowserUserManagementController {
+public class UIUserManagementController {
 
     @Data
     @AllArgsConstructor
@@ -39,10 +39,10 @@ public class BrowserUserManagementController {
     }
 
     @Autowired
-    private BrowserUserManagerService userManagerService;
+    private UIUserManagerService userManagerService;
 
     @Autowired
-    private BrowserWrapperService wrapperService;
+    private UIWrapperService wrapperService;
 
     @GetMapping("/users")
     @ResponseBody

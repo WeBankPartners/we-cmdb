@@ -1,6 +1,6 @@
-package com.webank.cmdb.controller.browser.helper;
+package com.webank.cmdb.controller.ui.helper;
 
-import static com.webank.cmdb.controller.browser.helper.CollectionUtils.asMap;
+import static com.webank.cmdb.controller.ui.helper.CollectionUtils.asMap;
 import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @Transactional
-public class BrowserUserManagerService {
+public class UIUserManagerService {
 
     private static final String CONSTANT_CREATION_PERMISSION = "creationPermission";
     private static final String CONSTANT_REMOVAL_PERMISSION = "removalPermission";
@@ -60,10 +60,10 @@ public class BrowserUserManagerService {
     AdmMenusRepository admMenusRepository;
 
     @Autowired
-    BrowserWrapperService browserWrapperService;
+    UIWrapperService uiWrapperService;
 
     public void deleteRole(int roleId) {
-        List<UserDto> users = browserWrapperService.getUsersByRoleId(roleId);
+        List<UserDto> users = uiWrapperService.getUsersByRoleId(roleId);
         if (isNotEmpty(users))
             throw new CmdbException(String.format("Failed to delete role[%d] because it is used for User: %s", roleId, users.stream().map(UserDto::getUsername).collect(Collectors.joining(","))));
         List<String> menus = getMenuDtosByRoleId(roleId);
@@ -72,7 +72,7 @@ public class BrowserUserManagerService {
         List<RoleCiTypeDto> roleCiTypes = getRoleCiTypesByRoleId(roleId);
         if (isNotEmpty(roleCiTypes))
             throw new CmdbException(String.format("Failed to delete role[%d] because it is used for CiType: %s", roleId, roleCiTypes.stream().map(p -> String.valueOf(p.getCiTypeId())).collect(Collectors.joining(","))));
-        browserWrapperService.deleteRoles(roleId);
+        uiWrapperService.deleteRoles(roleId);
     }
 
     public List<MenuDto> getAllMenus() {
@@ -94,7 +94,7 @@ public class BrowserUserManagerService {
 
     public List<MenuDto> getMenuDtosByUsername(String username, boolean withParentMenu) {
         List<MenuDto> menuDtos = new ArrayList<>();
-        List<RoleDto> roles = browserWrapperService.getRolesByUsername(username);
+        List<RoleDto> roles = uiWrapperService.getRolesByUsername(username);
         log.info("Roles {} found for user {}", roles, username);
         if (isNotEmpty(roles)) {
             Integer[] roleIds = roles.stream().map(RoleDto::getRoleId).toArray(Integer[]::new);
@@ -121,18 +121,18 @@ public class BrowserUserManagerService {
     }
 
     public List<RoleCiTypeDto> getRoleCiTypesByRoleId(int roleId) {
-        List<RoleCiTypeDto> roleCiTypes = browserWrapperService.getRoleCiTypeByRoleId(roleId);
+        List<RoleCiTypeDto> roleCiTypes = uiWrapperService.getRoleCiTypeByRoleId(roleId);
         if (roleCiTypes == null)
             roleCiTypes = Lists.newArrayList();
 
-        List<CiTypeDto> allCiTypes = browserWrapperService.getAllCiTypes(false, null);
+        List<CiTypeDto> allCiTypes = uiWrapperService.getAllCiTypes(false, null);
         if (isNotEmpty(allCiTypes) && roleCiTypes.size() < allCiTypes.size()) {
             Set<Integer> ciTypeIds = roleCiTypes.stream().map(RoleCiTypeDto::getCiTypeId).collect(Collectors.toSet());
             RoleCiTypeDto[] toAddRoleCiTypes = allCiTypes.stream()
                     .filter(ciType -> !ciTypeIds.contains(ciType.getCiTypeId()))
                     .map(ciType -> new RoleCiTypeDto(roleId, ciType.getCiTypeId(), ciType.getName()))
                     .toArray(RoleCiTypeDto[]::new);
-            List<RoleCiTypeDto> addedRoleCiTypes = browserWrapperService.createRoleCiTypes(toAddRoleCiTypes);
+            List<RoleCiTypeDto> addedRoleCiTypes = uiWrapperService.createRoleCiTypes(toAddRoleCiTypes);
             roleCiTypes.addAll(addedRoleCiTypes);
         }
         roleCiTypes.sort(new CiTypeIdComparator());
@@ -141,7 +141,7 @@ public class BrowserUserManagerService {
     }
 
     public List<RoleCiTypeDto> getRoleCiTypesByUsername(String username) {
-        List<RoleCiTypeDto> roleCiTypes = browserWrapperService.getRoleCiTypeByUsername(username);
+        List<RoleCiTypeDto> roleCiTypes = uiWrapperService.getRoleCiTypeByUsername(username);
         if (isNotEmpty(roleCiTypes)) {
             roleCiTypes = mergePermissionsByCiTypeId(roleCiTypes);
         }
@@ -167,12 +167,12 @@ public class BrowserUserManagerService {
     }
 
     public Map<String, Object> getRoleCiTypeCtrlAttributesByRoleCiTypeId(int roleCiTypeId) {
-        RoleCiTypeDto roleCiType = browserWrapperService.getRoleCiTypeById(roleCiTypeId);
+        RoleCiTypeDto roleCiType = uiWrapperService.getRoleCiTypeById(roleCiTypeId);
         if (roleCiType == null)
             throw new CmdbException("CiType permission not found for roleCiTypeId:" + roleCiTypeId);
-        List<CiTypeAttrDto> accessControlAttributes = browserWrapperService.getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
+        List<CiTypeAttrDto> accessControlAttributes = uiWrapperService.getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
 
-        List<RoleCiTypeCtrlAttrDto> roleCiTypeCtrlAttrs = browserWrapperService.getRoleCiTypeCtrlAttributesByRoleCiTypeId(roleCiTypeId);
+        List<RoleCiTypeCtrlAttrDto> roleCiTypeCtrlAttrs = uiWrapperService.getRoleCiTypeCtrlAttributesByRoleCiTypeId(roleCiTypeId);
         List<Map<String, Object>> roleCiTypeCtrlAttrsModels;
         if (isNotEmpty(roleCiTypeCtrlAttrs)) {
             roleCiTypeCtrlAttrsModels = roleCiTypeCtrlAttrs.stream().map(roleCiTypeCtrlAttr -> convertRoleCiTypeCtrlAttrDtoToMap(roleCiTypeCtrlAttr, accessControlAttributes)).collect(toList());
@@ -197,7 +197,7 @@ public class BrowserUserManagerService {
                     condition.setRoleCiTypeCtrlAttrId(roleCiTypeCtrlAttr.getRoleCiTypeCtrlAttrId());
                     condition.setCiTypeAttrId(attr.getCiTypeAttrId());
                     condition.setCiTypeAttrName(attr.getName());
-                    condition = browserWrapperService.createRoleCiTypeCtrlAttrCondition(condition);
+                    condition = uiWrapperService.createRoleCiTypeCtrlAttrCondition(condition);
                 }
                 enrichConditionValueObject(condition, attr);
                 model.put(attr.getPropertyName(), condition);
@@ -229,7 +229,7 @@ public class BrowserUserManagerService {
                 } else {
                     codeIds = Lists.newArrayList(Integer.parseInt(conditionValue));
                 }
-                condition.setConditionValueObject(Lists.newArrayList(browserWrapperService.getEnumCodesByIds(codeIds)));
+                condition.setConditionValueObject(Lists.newArrayList(uiWrapperService.getEnumCodesByIds(codeIds)));
             } else if (InputType.Reference.getCode().equals(inputType) || InputType.MultRef.getCode().equals(inputType)) {
                 Integer targetCiTypeId = attribute.getReferenceId();
                 List<String> guidList;
@@ -240,7 +240,7 @@ public class BrowserUserManagerService {
                 } else {
                     guidList = Lists.newArrayList(conditionValue);
                 }
-                condition.setConditionValueObject(browserWrapperService.getCiDataByGuid(targetCiTypeId, guidList));
+                condition.setConditionValueObject(uiWrapperService.getCiDataByGuid(targetCiTypeId, guidList));
             } else {
                 condition.setConditionValueObject(conditionValue);
             }
@@ -298,17 +298,17 @@ public class BrowserUserManagerService {
     }
 
     public List<Map<String, Object>> createRoleCiTypeCtrlAttributes(int roleCiTypeId, List<Map<String, Object>> roleCiTypeCtrlAttributes) {
-        RoleCiTypeDto roleCiType = browserWrapperService.getRoleCiTypeById(roleCiTypeId);
-        List<CiTypeAttrDto> accessControlAttributes = browserWrapperService.getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
+        RoleCiTypeDto roleCiType = uiWrapperService.getRoleCiTypeById(roleCiTypeId);
+        List<CiTypeAttrDto> accessControlAttributes = uiWrapperService.getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
 
         List<Map<String, Object>> addedCtrlAttrDtos = Lists.newArrayList();
         if (isNotEmpty(roleCiTypeCtrlAttributes)) {
             roleCiTypeCtrlAttributes.forEach(roleCiTypeCtrlAttribute -> {
                 RoleCiTypeCtrlAttrDto ctrlAttrDto = convertMapToRoleCiTypeCtrlAttrDto(roleCiTypeId, roleCiTypeCtrlAttribute, accessControlAttributes);
-                RoleCiTypeCtrlAttrDto addedCtrlAttr = browserWrapperService.createRoleCiTypeCtrlAttribute(ctrlAttrDto);
+                RoleCiTypeCtrlAttrDto addedCtrlAttr = uiWrapperService.createRoleCiTypeCtrlAttribute(ctrlAttrDto);
                 if (isNotEmpty(ctrlAttrDto.getConditions())) {
                     ctrlAttrDto.getConditions().forEach(condition -> condition.setRoleCiTypeCtrlAttrId(addedCtrlAttr.getRoleCiTypeCtrlAttrId()));
-                    List<RoleCiTypeCtrlAttrConditionDto> addedConditions = browserWrapperService
+                    List<RoleCiTypeCtrlAttrConditionDto> addedConditions = uiWrapperService
                             .createRoleCiTypeCtrlAttrConditions(ctrlAttrDto.getConditions().toArray(new RoleCiTypeCtrlAttrConditionDto[ctrlAttrDto.getConditions().size()]));
                     addedCtrlAttr.setConditions(addedConditions);
                 }
@@ -319,17 +319,17 @@ public class BrowserUserManagerService {
     }
 
     public List<Map<String, Object>> updateRoleCiTypeCtrlAttributes(int roleCiTypeId, List<Map<String, Object>> roleCiTypeCtrlAttributes) {
-        RoleCiTypeDto roleCiType = browserWrapperService.getRoleCiTypeById(roleCiTypeId);
-        List<CiTypeAttrDto> accessControlAttributes = browserWrapperService.getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
+        RoleCiTypeDto roleCiType = uiWrapperService.getRoleCiTypeById(roleCiTypeId);
+        List<CiTypeAttrDto> accessControlAttributes = uiWrapperService.getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
 
         List<Map<String, Object>> updateCtrlAttrDtos = Lists.newArrayList();
         if (isNotEmpty(roleCiTypeCtrlAttributes)) {
             roleCiTypeCtrlAttributes.forEach(roleCiTypeCtrlAttribute -> {
                 RoleCiTypeCtrlAttrDto ctrlAttrDto = convertMapToRoleCiTypeCtrlAttrDto(roleCiTypeId, roleCiTypeCtrlAttribute, accessControlAttributes);
-                RoleCiTypeCtrlAttrDto updatedCtrlAttr = browserWrapperService.updateRoleCiTypeCtrlAttribute(ctrlAttrDto);
+                RoleCiTypeCtrlAttrDto updatedCtrlAttr = uiWrapperService.updateRoleCiTypeCtrlAttribute(ctrlAttrDto);
                 if (isNotEmpty(ctrlAttrDto.getConditions())) {
                     ctrlAttrDto.getConditions().forEach(condition -> condition.setRoleCiTypeCtrlAttrId(updatedCtrlAttr.getRoleCiTypeCtrlAttrId()));
-                    List<RoleCiTypeCtrlAttrConditionDto> updatedConditions = browserWrapperService
+                    List<RoleCiTypeCtrlAttrConditionDto> updatedConditions = uiWrapperService
                             .updateRoleCiTypeCtrlAttrConditions(ctrlAttrDto.getConditions().toArray(new RoleCiTypeCtrlAttrConditionDto[ctrlAttrDto.getConditions().size()]));
                     updatedCtrlAttr.setConditions(updatedConditions);
                 }
@@ -341,7 +341,7 @@ public class BrowserUserManagerService {
 
     public void grantRoleForUsers(int roleId, List<String> userIds) {
         if (isNotEmpty(userIds)) {
-            browserWrapperService.createRoleUsers(userIds.stream().map(u -> new RoleUserDto(roleId, u)).toArray(RoleUserDto[]::new));
+            uiWrapperService.createRoleUsers(userIds.stream().map(u -> new RoleUserDto(roleId, u)).toArray(RoleUserDto[]::new));
         } else {
             log.info("Do nothing due to userIds is empty.");
         }
@@ -349,13 +349,13 @@ public class BrowserUserManagerService {
 
     public void revokeRoleForUsers(int roleId, List<String> userIds) {
         if (isNotEmpty(userIds)) {
-            List<RoleUserDto> roleUsers = browserWrapperService.getRoleUsers(defaultQueryObject()
+            List<RoleUserDto> roleUsers = uiWrapperService.getRoleUsers(defaultQueryObject()
                     .addEqualsFilter("roleId", roleId)
                     .addInFilter("userId", userIds));
             if (isEmpty(roleUsers)) {
                 log.warn("Nothing to delete because no permission found for role {} and userIds {}", roleId, userIds);
             } else {
-                browserWrapperService.deleteRoleUsers(roleUsers.stream().map(RoleUserDto::getRoleUserId).toArray(Integer[]::new));
+                uiWrapperService.deleteRoleUsers(roleUsers.stream().map(RoleUserDto::getRoleUserId).toArray(Integer[]::new));
             }
         } else {
             log.info("Nothing to delete because userIds is empty.");
@@ -400,22 +400,22 @@ public class BrowserUserManagerService {
     }
 
     public void assignCiTypePermissionForRole(int roleId, int ciTypeId, String actionCode) {
-        RoleCiTypeDto roleCiType = browserWrapperService.getRoleCiTypeByRoleIdAndCiTypeId(roleId, ciTypeId);
+        RoleCiTypeDto roleCiType = uiWrapperService.getRoleCiTypeByRoleIdAndCiTypeId(roleId, ciTypeId);
         if (roleCiType == null) {
             throw new CmdbException(String.format("Permission for role[%d] ciType[%d] not found.", roleId, ciTypeId));
         } else {
             roleCiType.enableActionPermission(actionCode);
-            browserWrapperService.updateRoleCiTypes(roleCiType);
+            uiWrapperService.updateRoleCiTypes(roleCiType);
         }
     }
 
     public void removeCiTypePermissionForRole(int roleId, int ciTypeId, String actionCode) {
-        RoleCiTypeDto roleCiType = browserWrapperService.getRoleCiTypeByRoleIdAndCiTypeId(roleId, ciTypeId);
+        RoleCiTypeDto roleCiType = uiWrapperService.getRoleCiTypeByRoleIdAndCiTypeId(roleId, ciTypeId);
         if (roleCiType == null) {
             throw new CmdbException(String.format("Permission for role[%d] ciType[%d] not found.", roleId, ciTypeId));
         } else {
             roleCiType.disableActionPermission(actionCode);
-            browserWrapperService.updateRoleCiTypes(roleCiType);
+            uiWrapperService.updateRoleCiTypes(roleCiType);
         }
     }
 
