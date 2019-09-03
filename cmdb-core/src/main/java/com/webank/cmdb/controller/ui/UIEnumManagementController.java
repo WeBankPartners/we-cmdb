@@ -1,4 +1,4 @@
-package com.webank.cmdb.controller.browser;
+package com.webank.cmdb.controller.ui;
 
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_BASE_DATA_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_CMDB_MODEL_MANAGEMENT;
@@ -25,17 +25,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.collect.Lists;
-import com.webank.cmdb.controller.browser.helper.BrowserWrapperService;
+import com.webank.cmdb.controller.ui.helper.UIWrapperService;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CategoryDto;
 import com.webank.cmdb.dto.QueryRequest;
 
 @RestController
-@RequestMapping("/browser/v2")
-public class BrowserEnumManagementController {
+@RequestMapping("/ui/v2")
+public class UIEnumManagementController {
 
     @Autowired
-    private BrowserWrapperService wrapperService;
+    private UIWrapperService wrapperService;
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
     @GetMapping("/enum/category-types")

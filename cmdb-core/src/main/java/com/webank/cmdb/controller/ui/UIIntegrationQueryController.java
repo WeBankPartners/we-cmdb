@@ -1,4 +1,4 @@
-package com.webank.cmdb.controller.browser;
+package com.webank.cmdb.controller.ui;
 
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_INTEGRATED_QUERY_EXECUTION;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT;
@@ -15,16 +15,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.webank.cmdb.controller.browser.helper.BrowserWrapperService;
+import com.webank.cmdb.controller.ui.helper.UIWrapperService;
 import com.webank.cmdb.dto.IntegrationQueryDto;
 import com.webank.cmdb.dto.QueryRequest;
 
 @RestController
-@RequestMapping("/browser/v2")
-public class BrowserIntegrationQueryController {
+@RequestMapping("/ui/v2")
+public class UIIntegrationQueryController {
 
     @Autowired
-    private BrowserWrapperService wrapperService;
+    private UIWrapperService wrapperService;
 
     @RolesAllowed({ MENU_DESIGNING_CI_INTEGRATED_QUERY_EXECUTION, })
     @GetMapping("/intQuery/{queryId}/header")

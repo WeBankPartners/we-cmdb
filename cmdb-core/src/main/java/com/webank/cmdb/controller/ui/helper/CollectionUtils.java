@@ -1,4 +1,4 @@
-package com.webank.cmdb.controller.browser.helper;
+package com.webank.cmdb.controller.ui.helper;
 
 import static java.util.function.Function.identity;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
