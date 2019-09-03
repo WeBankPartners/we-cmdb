@@ -1784,13 +1784,13 @@ export default {
     },
 
     handleNewCITypeUploadImgSuccess(res, file) {
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.$Notice.success({
           title: "Icon upload successful",
           desc: res.message
         });
 
-        this.addNewCITypeForm.imageFileId = res.data;
+        this.addNewCITypeForm.imageFileId = res.data.id;
       } else {
         this.$Notice.warning({
           title: "Icon upload failed",
@@ -1799,7 +1799,7 @@ export default {
       }
     },
     handleUploadImgSuccess(res, file) {
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.$Notice.success({
           title: "Icon upload successful",
           desc: res.message
