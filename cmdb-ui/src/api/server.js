@@ -195,3 +195,6 @@ export const queryReferenceEnumCodes = data =>
   req.post(`/referenceEnumCodes/${data.attrId}/query`, data.params);
 export const queryReferenceCiData = data =>
   req.post(`/referenceCiData/${data.attrId}/query`, data.queryObject);
+// log
+export const queryLogHeader = () => req.get("/log/queryHeader");
+export const queryLog = data => req.post("/log/query", data);
