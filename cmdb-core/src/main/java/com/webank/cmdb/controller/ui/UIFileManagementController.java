@@ -1,4 +1,4 @@
-package com.webank.cmdb.controller.browser;
+package com.webank.cmdb.controller.ui;
 
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_CMDB_MODEL_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_ENQUIRY;
@@ -31,8 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
-@RequestMapping("/browser/v2")
-public class BrowserFileManagementController {
+@RequestMapping("/ui/v2")
+public class UIFileManagementController {
 
     @Autowired
     private ApplicationProperties applicationProperties;

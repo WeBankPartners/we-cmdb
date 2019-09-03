@@ -21,8 +21,8 @@ public class ApplicationProperties {
     }
 
     @Data
-    @ConfigurationProperties(prefix = "browser.access")
-    public class BrowserAccessProperties {
+    @ConfigurationProperties(prefix = "ui.access")
+    public class UIAccessProperties {
         private Integer enumCategoryTypeSystem = 1;
         private Integer enumCategoryTypeCommon = 2;
         private Integer ciTypeIdOfIdcDesign = 22;

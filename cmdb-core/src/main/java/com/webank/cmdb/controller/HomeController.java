@@ -8,14 +8,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.webank.cmdb.controller.browser.helper.BrowserUserManagerService;
+import com.webank.cmdb.controller.ui.helper.UIUserManagerService;
 import com.webank.cmdb.exception.CmdbException;
 
 @Controller
 public class HomeController {
 
     @Autowired
-    private BrowserUserManagerService userManagerService;
+    private UIUserManagerService userManagerService;
 
     @GetMapping(value = { "/", "index.html" })
     public String index() {
@@ -34,7 +34,7 @@ public class HomeController {
         return "login.html";
     }
 
-    @GetMapping("/browser/v2/my-menus")
+    @GetMapping("/ui/v2/my-menus")
     @ResponseBody
     public Object retrieveRoleMenus(Principal principal) {
         if (principal == null)

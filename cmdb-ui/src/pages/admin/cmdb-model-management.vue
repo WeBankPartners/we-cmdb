@@ -258,7 +258,7 @@
             <FormItem label="图标">
               <img
                 v-if="addNewCITypeForm.imageFileId !== 0"
-                :src="`/cmdb/browser/v2/files/${addNewCITypeForm.imageFileId}`"
+                :src="`/cmdb/ui/v2/files/${addNewCITypeForm.imageFileId}`"
                 style="width:58px;height:58px"
               />
               <Upload
@@ -269,7 +269,7 @@
                 :max-size="100"
                 :on-exceeded-size="handleMaxSize"
                 type="drag"
-                action="/cmdb/browser/v2/files/upload"
+                action="/cmdb/ui/v2/files/upload"
                 :headers="setUploadActionHeader"
                 style="display: inline-block;width:58px;"
               >
@@ -1110,11 +1110,11 @@ export default {
                 let imgFileSource =
                   i.imageFileId === 0 || i.imageFileId === undefined
                     ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
-                    : `/cmdb/browser/v2/files/${i.imageFileId}`;
+                    : `/cmdb/ui/v2/files/${i.imageFileId}`;
                 this.$set(i, "form", {
                   ...i,
                   imgSource: imgFileSource,
-                  imgUploadURL: `/cmdb/browser/v2/ci-types/${i.ciTypeId}/icon`
+                  imgUploadURL: `/cmdb/ui/v2/ci-types/${i.ciTypeId}/icon`
                 });
                 i.attributes &&
                   i.attributes.forEach(j => {

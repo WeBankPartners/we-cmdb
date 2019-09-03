@@ -41,7 +41,7 @@ public class UserRoleControllerTest extends AbstractBaseControllerTest {
 
     @Test
     public void whenQueryMenusShouldReturnProperResult() throws Exception {
-        mvc.perform(post("/browser/v2/menus/retrieve").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/ui/v2/menus/retrieve").contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(jsonPath("$.statusCode", is("OK")))
                 .andExpect(jsonPath("$.data.contents[*].name", hasItems("menuA", "menuB", "menuC")));
@@ -57,7 +57,7 @@ public class UserRoleControllerTest extends AbstractBaseControllerTest {
                         .build())
                 .build();
         String reqJson = JsonUtil.toJson(jsonList);
-        mvc.perform(post("/browser/v2/role-menus/create").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/ui/v2/role-menus/create").contentType(MediaType.APPLICATION_JSON)
                 .content(reqJson))
                 .andExpect(jsonPath("$.statusCode", is("OK")))
                 .andExpect(jsonPath("$.data[0].roleMenuId", greaterThanOrEqualTo(1)));
@@ -69,16 +69,16 @@ public class UserRoleControllerTest extends AbstractBaseControllerTest {
         queryRequest.getFilters()
                 .add(new Filter("roleMenuId", "in", Lists.newArrayList(1, 2, 3)));
         String reqJson = JsonUtil.toJsonString(queryRequest);
-        mvc.perform(post("/browser/v2/role-menus/retrieve").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/ui/v2/role-menus/retrieve").contentType(MediaType.APPLICATION_JSON)
                 .content(reqJson))
                 .andExpect(jsonPath("$.statusCode", is("OK")))
                 .andExpect(jsonPath("$.data.contents[*].roleMenuId", contains(1, 2, 3)));
 
-        mvc.perform(post("/browser/v2/role-menus/delete").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/ui/v2/role-menus/delete").contentType(MediaType.APPLICATION_JSON)
                 .content("[2,3]"))
                 .andExpect(jsonPath("$.statusCode", is("OK")));
 
-        mvc.perform(post("/browser/v2/role-menus/retrieve").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/ui/v2/role-menus/retrieve").contentType(MediaType.APPLICATION_JSON)
                 .content(reqJson))
                 .andExpect(jsonPath("$.statusCode", is("OK")))
                 .andExpect(jsonPath("$.data.contents[*].roleMenuId", contains(1)));

@@ -1,4 +1,4 @@
-package com.webank.cmdb.controller.browser.helper;
+package com.webank.cmdb.controller.ui.helper;
 
 import static com.webank.cmdb.dto.CiTypePermissions.ACTION_CREATION;
 import static com.webank.cmdb.dto.CiTypePermissions.ACTION_ENQUIRY;

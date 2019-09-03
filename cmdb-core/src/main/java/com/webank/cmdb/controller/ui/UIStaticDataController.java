@@ -1,4 +1,4 @@
-package com.webank.cmdb.controller.browser;
+package com.webank.cmdb.controller.ui;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webank.cmdb.service.impl.ConstantService;
 
 @RestController
-@RequestMapping("/browser/v2")
-public class BrowserStaticDataController {
+@RequestMapping("/ui/v2")
+public class UIStaticDataController {
     @Autowired
     private ConstantService constantService;
 

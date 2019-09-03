@@ -1,6 +1,6 @@
-package com.webank.cmdb.controller.browser.helper;
+package com.webank.cmdb.controller.ui.helper;
 
-import static com.webank.cmdb.controller.browser.helper.CollectionUtils.groupUp;
+import static com.webank.cmdb.controller.ui.helper.CollectionUtils.groupUp;
 import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
-import com.webank.cmdb.config.ApplicationProperties.BrowserAccessProperties;
+import com.webank.cmdb.config.ApplicationProperties.UIAccessProperties;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
@@ -49,7 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @Transactional
-public class BrowserWrapperService {
+public class UIWrapperService {
 
     private static final String CONSTANT_CAT_TYPE_ID = "catTypeId";
     private static final String CONSTANT_CI_TYPE = "ciType";
@@ -61,7 +61,7 @@ public class BrowserWrapperService {
     private static final String CONSTANT_SEQ_NO = "seqNo";
 
     @Autowired
-    BrowserAccessProperties cmdbDataProperties;
+    private UIAccessProperties uiAccessProperties;
     @Autowired
     private CiService ciService;
     @Autowired
@@ -119,13 +119,13 @@ public class BrowserWrapperService {
 
     public QueryResponse<CategoryDto> getAllSystemEnumCategories() {
         QueryRequest queryObject = new QueryRequest();
-        queryObject.addEqualsFilter(CONSTANT_CAT_TYPE_ID, cmdbDataProperties.getEnumCategoryTypeSystem());
+        queryObject.addEqualsFilter(CONSTANT_CAT_TYPE_ID, uiAccessProperties.getEnumCategoryTypeSystem());
         return queryEnumCategories(queryObject);
     }
 
     public QueryResponse<CategoryDto> getAllCommonEnumCategories() {
         QueryRequest queryObject = new QueryRequest();
-        queryObject.addEqualsFilter(CONSTANT_CAT_TYPE_ID, cmdbDataProperties.getEnumCategoryTypeCommon());
+        queryObject.addEqualsFilter(CONSTANT_CAT_TYPE_ID, uiAccessProperties.getEnumCategoryTypeCommon());
         return queryEnumCategories(queryObject);
     }
 
@@ -144,15 +144,15 @@ public class BrowserWrapperService {
     }
 
     public List<CatCodeDto> getCiTypesGroupByLayers(boolean withAttributes, String status) {
-        return getCiTypesInGroups(cmdbDataProperties.getEnumCategoryCiTypeLayer(), withAttributes, status, CiTypeDto::getLayerId);
+        return getCiTypesInGroups(uiAccessProperties.getEnumCategoryCiTypeLayer(), withAttributes, status, CiTypeDto::getLayerId);
     }
 
     public List<CatCodeDto> getCiTypesGroupByCatalogs(boolean withAttributes, String status) {
-        return getCiTypesInGroups(cmdbDataProperties.getEnumCategoryCiTypeCatalog(), withAttributes, status, CiTypeDto::getCatalogId);
+        return getCiTypesInGroups(uiAccessProperties.getEnumCategoryCiTypeCatalog(), withAttributes, status, CiTypeDto::getCatalogId);
     }
 
     public List<CatCodeDto> getAllLayers() {
-        return getEnumCodesByCategoryName(cmdbDataProperties.getEnumCategoryCiTypeLayer());
+        return getEnumCodesByCategoryName(uiAccessProperties.getEnumCategoryCiTypeLayer());
     }
 
     public List<CiTypeAttrDto> getCiTypeReferenceBy(Integer ciTypeId) {
@@ -168,7 +168,7 @@ public class BrowserWrapperService {
     }
 
     public List<String> getAvailableCiTypeZoomLevels() {
-        CategoryDto cat = getEnumCategoryByName(cmdbDataProperties.getEnumCategoryCiTypeZoomLevels());
+        CategoryDto cat = getEnumCategoryByName(uiAccessProperties.getEnumCategoryCiTypeZoomLevels());
         List<CatCodeDto> catCodes = getEnumCodesByCategoryId(cat.getCatId());
         List<String> zoomLevels = new ArrayList<>();
         for (CatCodeDto catCode : catCodes) {
@@ -184,7 +184,7 @@ public class BrowserWrapperService {
     }
 
     private int getMaxLayerSeqNumber() {
-        List<CatCodeDto> catCodesResult = getEnumCodesByCategoryName(cmdbDataProperties.getEnumCategoryCiTypeLayer());
+        List<CatCodeDto> catCodesResult = getEnumCodesByCategoryName(uiAccessProperties.getEnumCategoryCiTypeLayer());
         Integer maxSeq = 0;
         for (CatCodeDto code : catCodesResult) {
             if (code.getSeqNo() > maxSeq) {
@@ -220,18 +220,18 @@ public class BrowserWrapperService {
     }
 
     private Integer getLayerCategoryId() {
-        return getEnumCategoryByName(cmdbDataProperties.getEnumCategoryCiTypeLayer()).getCatId();
+        return getEnumCategoryByName(uiAccessProperties.getEnumCategoryCiTypeLayer()).getCatId();
     }
 
     public QueryResponse<CatCodeDto> querySystemEnumCodesWithRefResources(QueryRequest queryObject) {
-        queryObject.addEqualsFilter(CONSTANT_CAT_CAT_TYPE, cmdbDataProperties.getEnumCategoryTypeSystem());
+        queryObject.addEqualsFilter(CONSTANT_CAT_CAT_TYPE, uiAccessProperties.getEnumCategoryTypeSystem());
         queryObject.addReferenceResource("cat");
         queryObject.addReferenceResource(CONSTANT_CAT_CAT_TYPE);
         return queryEnumCodes(queryObject);
     }
 
     public QueryResponse<CatCodeDto> queryNonSystemEnumCodesWithRefResources(QueryRequest queryObject) {
-        queryObject.addNotEqualsFilter("cat.catTypeId", cmdbDataProperties.getEnumCategoryTypeSystem());
+        queryObject.addNotEqualsFilter("cat.catTypeId", uiAccessProperties.getEnumCategoryTypeSystem());
         queryObject.addReferenceResource("cat");
         queryObject.addReferenceResource(CONSTANT_CAT_CAT_TYPE);
         return queryEnumCodes(queryObject);
@@ -239,7 +239,7 @@ public class BrowserWrapperService {
 
     public QueryResponse<CategoryDto> getAllNonSystemEnumCategories() {
         QueryRequest queryObject = new QueryRequest();
-        queryObject.addNotEqualsFilter(CONSTANT_CAT_TYPE_ID, cmdbDataProperties.getEnumCategoryTypeSystem());
+        queryObject.addNotEqualsFilter(CONSTANT_CAT_TYPE_ID, uiAccessProperties.getEnumCategoryTypeSystem());
         return queryEnumCategories(queryObject);
     }
 
@@ -250,7 +250,7 @@ public class BrowserWrapperService {
     public List<CatCodeDto> getCiTypeStatusOptions(int ciTypeId) {
         List<CiTypeAttrDto> statusCiTypeAttributes = queryCiTypeAttributes(
                 defaultQueryObject(CONSTANT_CI_TYPE_ID, ciTypeId)
-                        .addEqualsFilter("propertyName", cmdbDataProperties.getStatusAttributeName()));
+                        .addEqualsFilter("propertyName", uiAccessProperties.getStatusAttributeName()));
         if (isNotEmpty(statusCiTypeAttributes)) {
             return getEnumCodesByCategoryId(statusCiTypeAttributes.get(0).getReferenceId());
         }

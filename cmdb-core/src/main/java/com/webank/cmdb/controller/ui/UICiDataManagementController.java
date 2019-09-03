@@ -1,7 +1,7 @@
-package com.webank.cmdb.controller.browser;
+package com.webank.cmdb.controller.ui;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.webank.cmdb.controller.browser.helper.BooleanUtils.isTrue;
+import static com.webank.cmdb.controller.ui.helper.BooleanUtils.isTrue;
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_CMDB_MODEL_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_ENQUIRY;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_MANAGEMENT;
@@ -30,7 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.google.common.collect.Lists;
 import com.webank.cmdb.config.ApplicationProperties;
-import com.webank.cmdb.controller.browser.helper.BrowserWrapperService;
+import com.webank.cmdb.controller.ui.helper.UIWrapperService;
 import com.webank.cmdb.dto.CiIndentity;
 import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
@@ -42,15 +42,15 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
-@RequestMapping("/browser/v2")
-public class BrowserCiDataManagementController {
+@RequestMapping("/ui/v2")
+public class UICiDataManagementController {
 
     @Autowired
     private ApplicationProperties applicationProperties;
     @Autowired
     private ImageService imageService;
     @Autowired
-    private BrowserWrapperService wrapperService;
+    private UIWrapperService wrapperService;
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_DESIGNING_CI_DATA_MANAGEMENT, MENU_DESIGNING_CI_DATA_ENQUIRY })
     @GetMapping("/ci-types")
