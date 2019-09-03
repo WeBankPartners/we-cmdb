@@ -41,8 +41,7 @@
 							<goal>npm</goal>
 						</goals>
 						<configuration>
-							<arguments>--registry https://registry.npm.taobao.org install
-								--unsafe-perm</arguments>
+							<arguments>--registry https://registry.npm.taobao.org install --unsafe-perm</arguments>
 						</configuration>
 					</execution>
 					<execution>
