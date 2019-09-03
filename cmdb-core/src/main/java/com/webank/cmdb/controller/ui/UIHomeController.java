@@ -1,4 +1,4 @@
-package com.webank.cmdb.controller;
+package com.webank.cmdb.controller.ui;
 
 import java.security.Principal;
 
@@ -12,7 +12,7 @@ import com.webank.cmdb.controller.ui.helper.UIUserManagerService;
 import com.webank.cmdb.exception.CmdbException;
 
 @Controller
-public class HomeController {
+public class UIHomeController {
 
     @Autowired
     private UIUserManagerService userManagerService;
