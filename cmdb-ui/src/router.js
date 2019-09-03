@@ -77,6 +77,11 @@ export default new Router({
           name: "integrateQueryMgmt",
           component: () =>
             import("@/pages/designing/ci-integrated-query-management")
+        },
+        {
+          path: "/admin/query-log",
+          name: "queryLog",
+          component: () => import("@/pages/admin/query-log")
         }
       ]
     }

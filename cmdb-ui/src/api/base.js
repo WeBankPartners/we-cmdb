@@ -12,7 +12,7 @@ req.defaults.headers.common["Http-Client-Type"] = "Ajax";
 const throwError = res => new Error(res.message || "error");
 req.interceptors.response.use(
   res => {
-    if (res.status === 200 && res.data.statusCode === "OK") {
+    if (res.status === 200) {
       if (res.headers["cas-redirect-flag"] === "true") {
         const currentUrl = window.location.href;
         if (currentUrl.indexOf("ticket=") !== -1) return;
@@ -30,7 +30,8 @@ req.interceptors.response.use(
         });
       }
       return {
-        ...res.data.data,
+        ...res.data,
+        status: res.data.statusCode,
         user: res.headers["current_user"] || " - "
       };
     } else {

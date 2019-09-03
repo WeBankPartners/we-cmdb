@@ -66,6 +66,7 @@ export const MENUS = [
   {
     code: "ADMIN_QUERY_LOG",
     cnName: "日志查询",
-    enName: "QUERY_LOG"
+    enName: "QUERY_LOG",
+    link: "/admin/query-log"
   }
 ];
