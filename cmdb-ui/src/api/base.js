@@ -19,10 +19,10 @@ req.interceptors.response.use(
         window.location.href =
           res.headers.location.split("?")[0] + "?service=" + currentUrl;
       }
-      if (res.data.statusCode.startsWith("ERR_") && res.data.data) {
+      if (res.data.statusCode.startsWith("ERR_")) {
         const errorMes = Array.isArray(res.data.data)
           ? res.data.data.map(_ => _.errorMessage).join("<br/>")
-          : res.data.message;
+          : res.data.statusMessage;
         Vue.prototype.$Notice.error({
           title: "Error",
           desc: errorMes,
