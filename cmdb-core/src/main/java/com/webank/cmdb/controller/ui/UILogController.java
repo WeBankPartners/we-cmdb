@@ -1,4 +1,4 @@
-package com.webank.cmdb.controller.browser;
+package com.webank.cmdb.controller.ui;
 
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_QUERY_LOG;
 
@@ -21,8 +21,8 @@ import com.webank.cmdb.service.LogService;
 
 @RestController
 @RolesAllowed({ MENU_ADMIN_QUERY_LOG })
-@RequestMapping("/browser/v2")
-public class BrowserLogController {
+@RequestMapping("/ui/v2")
+public class UILogController {
     @Autowired
     private LogService logService;
 
