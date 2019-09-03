@@ -1,6 +1,6 @@
 import Vue from "vue";
 import axios from "axios";
-const baseURL = "/cmdb/browser/v2";
+const baseURL = "/cmdb/ui/v2";
 const req = axios.create({
   withCredentials: true,
   baseURL,
@@ -12,14 +12,14 @@ req.defaults.headers.common["Http-Client-Type"] = "Ajax";
 const throwError = res => new Error(res.message || "error");
 req.interceptors.response.use(
   res => {
-    if (res.status === 200) {
+    if (res.status === 200 && res.data.statusCode === "OK") {
       if (res.headers["cas-redirect-flag"] === "true") {
         const currentUrl = window.location.href;
         if (currentUrl.indexOf("ticket=") !== -1) return;
         window.location.href =
           res.headers.location.split("?")[0] + "?service=" + currentUrl;
       }
-      if (res.data.status === "ERROR") {
+      if (res.data.statusCode.startsWith("ERR_") && res.data.data) {
         const errorMes = Array.isArray(res.data.data)
           ? res.data.data.map(_ => _.errorMessage).join("<br/>")
           : res.data.message;
