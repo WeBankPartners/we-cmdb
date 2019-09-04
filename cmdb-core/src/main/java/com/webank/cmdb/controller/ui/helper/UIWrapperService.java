@@ -96,7 +96,7 @@ public class UIWrapperService {
         updateTargetAttribute.setCiTypeAttrId(targetAttribute.getCiTypeAttrId());
         updateTargetAttribute.setDisplaySeqNo(attribute.getDisplaySeqNo());
 
-        updateCiTypeAttributes(BeanMapUtils.convertBeanToMap(Lists.newArrayList(updateSourceAttribute, updateTargetAttribute)));
+        updateCiTypeAttributes(BeanMapUtils.convertBeansToMaps(Lists.newArrayList(updateSourceAttribute, updateTargetAttribute)));
     }
 
     public LinkedHashMap<String, Object> getEnumCategoryByMultipleTypes(String types, Integer ciTypeId) {
@@ -202,7 +202,8 @@ public class UIWrapperService {
         if (catCode.getCatId().equals(getLayerCategoryId())) {
             catCode.setSeqNo(getMaxLayerSeqNumber() + 1);
         }
-        return createEnumCodes(catCode);
+
+        return staticDtoService.create(CatCodeDto.class, Arrays.asList(catCode));
     }
 
     private List<CatCodeDto> getCiTypesInGroups(String categoryName, boolean withAttributes, String status, Function<CiTypeDto, Object> parentMapperOfElement) {
@@ -319,10 +320,6 @@ public class UIWrapperService {
 
     public void deleteEnumCategories(Integer... ids) {
         staticDtoService.delete(CategoryDto.class, Arrays.asList(ids));
-    }
-
-    public List<CatCodeDto> createEnumCodes(CatCodeDto... catCodeDtos) {
-        return staticDtoService.create(CatCodeDto.class, Arrays.asList(catCodeDtos));
     }
 
     public QueryResponse<CatCodeDto> queryEnumCodes(QueryRequest queryObject) {
@@ -684,6 +681,6 @@ public class UIWrapperService {
     }
 
     public List<RoleCiTypeDto> updateRoleCiTypes(RoleCiTypeDto... roleCiTypes) {
-        return staticDtoService.update(RoleCiTypeDto.class, Lists.newArrayList(BeanMapUtils.convertBeanToMap(roleCiTypes)));
+        return staticDtoService.update(RoleCiTypeDto.class, BeanMapUtils.convertBeansToMaps(Arrays.asList(roleCiTypes)));
     }
 }
