@@ -10,6 +10,7 @@ import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -157,8 +158,8 @@ public class UICiDataManagementController {
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
     @PutMapping("/ci-types/{ci-type-id}/attributes/{attribute-id}")
     @ResponseBody
-    public Object updateCiTypeAttribute(@PathVariable(value = "ci-type-id") int ciTypeId, @PathVariable(value = "attribute-id") int attributeId, @RequestBody List<Map<String, Object>> ciTypeAttrDto) {
-        return wrapperService.updateCiTypeAttributes(ciTypeAttrDto);
+    public Object updateCiTypeAttribute(@PathVariable(value = "ci-type-id") int ciTypeId, @PathVariable(value = "attribute-id") int attributeId, @RequestBody Map<String, Object> ciTypeAttrDto) {
+        return wrapperService.updateCiTypeAttributes(Arrays.asList(ciTypeAttrDto));
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
