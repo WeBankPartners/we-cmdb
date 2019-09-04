@@ -347,17 +347,7 @@ export default {
                   this.inputVal.lastIndexOf("]")
                 )
                 .split(",");
-              const array = groupInfo.map(_ => {
-                if (
-                  (_[0] === '"' && _[_.length - 1] === '"') ||
-                  (_[0] === "'" && _[_.length - 1] === "'")
-                ) {
-                  return _.substr(1, _.length - 2);
-                } else {
-                  return Number(_);
-                }
-              });
-              this.filterRuleArray.push(array);
+              this.filterRuleArray.push(groupInfo);
               this.inputVal = this.$refs.textarea.value + " ";
               this.createRespRuleData();
               if (this.filterRuleArray.length !== 0) {
