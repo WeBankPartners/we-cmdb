@@ -54,6 +54,15 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>npm save core-js@2</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<configuration>
+							<arguments>install --save core-js@2</arguments>
+						</configuration>
+					</execution>
+					<execution>
 						<id>npm run build</id>
 						<goals>
 							<goal>npm</goal>
