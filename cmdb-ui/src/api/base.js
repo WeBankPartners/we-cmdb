@@ -19,7 +19,7 @@ req.interceptors.response.use(
         window.location.href =
           res.headers.location.split("?")[0] + "?service=" + currentUrl;
       }
-      if (res.data.statusCode.startsWith("ERR_")) {
+      if (res.data.statusCode.startsWith("ERR")) {
         const errorMes = Array.isArray(res.data.data)
           ? res.data.data.map(_ => _.errorMessage).join("<br/>")
           : res.data.statusMessage;
