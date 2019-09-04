@@ -1,27 +1,28 @@
 package com.webank.cmdb.util;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.beanutils.BeanMap;
-import org.apache.commons.beanutils.BeanUtils;
+import org.springframework.cglib.beans.BeanMap;
 
-import com.webank.cmdb.exception.CmdbException;
+import com.google.common.collect.Maps;
 
 public class BeanMapUtils {
-    public static Map<String, Object> convertBeanToMap(Object bean) {
-        Map<String, Object> map = new HashMap<>();
-        try {
-            BeanUtils.populate(new BeanMap(bean), map);
-        } catch (Exception e) {
-            throw new CmdbException(String.format("Populate bean[%s] to map error.", bean));
+    public static <T> Map<String, Object> convertBeanToMap(T bean) {
+        Map<String, Object> map = Maps.newHashMap();
+        if (bean != null) {
+            BeanMap beanMap = BeanMap.create(bean);
+            for (Object key : beanMap.keySet()) {
+                if (beanMap.get(key) != null) {
+                    map.put(key.toString(), beanMap.get(key));
+                }
+            }
         }
         return map;
     }
 
-    public static List<Map<String, Object>> convertBeanToMap(List<Object> beans) {
+    public static List<Map<String, Object>> convertBeansToMaps(List<Object> beans) {
         List<Map<String, Object>> maps = new ArrayList<>();
         beans.forEach(bean -> {
             maps.add(convertBeanToMap(bean));
