@@ -741,14 +741,7 @@ export default {
             this.filterRuleArray.push(filterRightRule);
             if (filterRightRule.length > 0) {
               if (!filterRightRule[0].ciTypeId) {
-                const array = filterRightRule.map(_ => {
-                  if (typeof _ === "string") {
-                    return `"${_}"`;
-                  } else {
-                    return _;
-                  }
-                });
-                val += "in [" + array + "] ";
+                val += "in [" + filterRightRule + "] ";
               } else {
                 val += "in { ";
                 filterRightRule.forEach(item => {
