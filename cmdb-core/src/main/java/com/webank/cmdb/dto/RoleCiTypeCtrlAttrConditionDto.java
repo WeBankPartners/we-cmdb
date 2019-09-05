@@ -20,6 +20,7 @@ public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeC
     private String ciTypeAttrName;
     private String conditionValue;
     private String conditionValueType;
+    private Object conditionValueObject;
 
     @DtoField(domainField = "admRoleCiTypeCtrlAttr", updatable = false)
     private RoleCiTypeCtrlAttrDto roleCiTypeCtrlAttr = new RoleCiTypeCtrlAttrDto();
@@ -141,5 +142,13 @@ public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeC
                 .add("conditionValue", conditionValue)
                 .add("conditionValueType", conditionValueType)
                 .toString();
+    }
+
+    public Object getConditionValueObject() {
+        return conditionValueObject;
+    }
+
+    public void setConditionValueObject(Object conditionValueObject) {
+        this.conditionValueObject = conditionValueObject;
     }
 }

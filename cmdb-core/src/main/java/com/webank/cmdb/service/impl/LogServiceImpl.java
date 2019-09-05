@@ -49,9 +49,9 @@ public class LogServiceImpl implements LogService {
         headers.add(new QueryHeader("ciTypeName", InputType.Text.getCode()));
         headers.add(new QueryHeader("createdDate", InputType.Date.getCode()));
         headers.add(new QueryHeader("user", InputType.Text.getCode()));
-        headers.add(new QueryHeader("logCat", InputType.Text.getCode(), LogCategory.codes()));
+        headers.add(new QueryHeader("logCat", InputType.Droplist.getCode(), LogCategory.codes()));
         headers.add(new QueryHeader("logContent", InputType.Text.getCode()));
-        headers.add(new QueryHeader("operation", InputType.Text.getCode(), LogOperation.codes()));
+        headers.add(new QueryHeader("operation", InputType.Droplist.getCode(), LogOperation.codes()));
         headers.add(new QueryHeader("remark", InputType.Text.getCode()));
         return headers;
     }
