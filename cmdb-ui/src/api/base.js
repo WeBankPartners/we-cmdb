@@ -32,7 +32,7 @@ req.interceptors.response.use(
       return {
         ...res.data,
         status: res.data.statusCode,
-        user: res.headers["current_user"] || " - "
+        user: res.headers["username"] || " - "
       };
     } else {
       return {
