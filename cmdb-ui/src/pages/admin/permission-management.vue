@@ -860,6 +860,7 @@ export default {
       data.forEach(_ => {
         if (!_.parentId) {
           let menuObj = MENUS.find(m => m.code === _.code);
+          if (!menuObj) return;
           menus.push({
             ..._,
             title: this.$lang === "zh-CN" ? menuObj.cnName : menuObj.enName,
