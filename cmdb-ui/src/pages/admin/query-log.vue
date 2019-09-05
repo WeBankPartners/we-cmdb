@@ -1,17 +1,21 @@
 <template>
-  <div>
-    <SimpleTable
-      :columns="columns"
-      :data="tableData"
-      :page="pageInfo"
-      @pageChange="pageChange"
-      @pageSizeChange="pageSizeChange"
-    ></SimpleTable>
-  </div>
+  <WeTable
+    :tableData="tableData"
+    :tableColumns="columns"
+    :tableOuterActions="null"
+    :tableInnerActions="null"
+    :showCheckbox="false"
+    :pagination="pageInfo"
+    @pageChange="pageChange"
+    @pageSizeChange="pageSizeChange"
+    @handleSubmit="handleSubmit"
+    ref="table"
+  ></WeTable>
 </template>
 
 <script>
 import { queryLogHeader, queryLog } from "@/api/server";
+import { components } from "@/const/actions";
 export default {
   data() {
     return {
@@ -21,7 +25,8 @@ export default {
         pageSize: 10,
         currentPage: 1,
         total: 0
-      }
+      },
+      filters: []
     };
   },
   methods: {
@@ -29,10 +34,24 @@ export default {
       const { data, statusCode } = await queryLogHeader();
       if (statusCode === "OK") {
         this.columns = data.map(_ => {
-          return {
+          let result = {
+            inputType: _.inputType,
             title: _.name,
-            key: _.name
+            key: _.name,
+            inputKey: _.name,
+            disEditor: true,
+            displaySeqNo: 1,
+            searchSeqNo: 1
           };
+          if (_.vals) {
+            result.options = _.vals.map(opt => {
+              return {
+                value: opt,
+                label: opt
+              };
+            });
+          }
+          return { ...components[_.inputType], ...result };
         });
       }
       this.fetchTableData();
@@ -47,19 +66,24 @@ export default {
         pageable: {
           pageSize: this.pageInfo.pageSize,
           startIndex: (this.pageInfo.currentPage - 1) * this.pageInfo.pageSize
-        }
+        },
+        filters: this.filters
       });
       if (statusCode === "OK") {
         this.tableData = data.contents;
         this.pageInfo.total = data.pageInfo.totalRows;
       }
     },
-    pageChange(v) {
-      this.pageInfo.currentPage = v;
-      this.fetchTableData();
+    pageChange(currentPage) {
+      this.$refs.table.handleSubmit();
+      this.pageInfo.currentPage = currentPage;
     },
-    pageSizeChange(v) {
-      this.pageInfo.pageSize = v;
+    pageSizeChange(size) {
+      this.$refs.table.handleSubmit();
+      this.pageInfo.pageSize = size;
+    },
+    handleSubmit(v) {
+      this.filters = v;
       this.fetchTableData();
     }
   },
