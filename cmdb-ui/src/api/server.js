@@ -1,9 +1,6 @@
 import req from "./base";
 
-export const getMyMenus = () =>
-  process.env.NODE_ENV === "development"
-    ? req.get("/admin/menus")
-    : req.get("/my-menus");
+export const getMyMenus = () => req.get("/my-menus");
 // init page
 
 // admin
