@@ -36,7 +36,7 @@ WeCMDB具备以下特点：
 	提供管理界面，支持多维度数据变迁历史查询
 
 
-## 技术架构
+## 产品架构
 WeCMDB1.0版本已经完成开发，整体架构如下图：
 
 ![WeCMDB系统架构](cmdb-wiki/images/wecmdb_arch_1.png) 
