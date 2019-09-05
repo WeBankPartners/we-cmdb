@@ -1285,17 +1285,18 @@ INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`) V
     ('1', '1', '1');
 
 INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `seq_no`, `parent_id_adm_menu`) VALUES
-(1, 'QUERY', 1, NULL),
-(2, 'QUERY_CONFIG', 2, 1),
-(3, 'COMMON_INTERFACE_RUNNER', 3, 1),
-(4, 'CONFIG_MANAGEMENT', 4, NULL),
-(5, 'BASIC_CONFIG_QUERY', 5, 4),
-(6, 'OVERVIEW', 6, 4),
-(7, 'COMMON_INTERFACE_CONFIG', 7, 4),
-(8, 'SYSTEM_MANAGEMENT', 8, NULL),
-(9, 'PERMISSION', 9, 8),
-(10, 'QUERY_LOG', 10, 8),
-(11, 'RULE', 11, 8);
+(1, 'DESIGNING', 1, NULL),
+(2, 'DESIGNING_CI_DATA_MANAGEMENT', 1, 1),
+(3, 'DESIGNING_CI_DATA_ENQUIRY', 2, 1),
+(4, 'DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT', 3, 1),
+(5, 'DESIGNING_CI_INTEGRATED_QUERY_EXECUTION', 4, 1),
+(6, 'DESIGNING_ENUM_MANAGEMENT', 5, 1),
+(7, 'DESIGNING_ENUM_ENQUIRY', 6, 1),
+(8, 'ADMIN', 2, NULL),
+(9, 'ADMIN_CMDB_MODEL_MANAGEMENT', 1, 8),
+(10, 'ADMIN_PERMISSION_MANAGEMENT', 2, 8),
+(11, 'ADMIN_BASE_DATA_MANAGEMENT', 3, 8),
+(12, 'ADMIN_QUERY_LOG', 4, 8);
 
 INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`) VALUES
 (1, 1, 1),
@@ -1308,6 +1309,7 @@ INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`) V
 (8, 1, 8),
 (9, 1, 9),
 (10, 1, 10),
-(11, 1, 11);
+(11, 1, 11),
+(12, 1, 12);
 
 SET FOREIGN_KEY_CHECKS=1;

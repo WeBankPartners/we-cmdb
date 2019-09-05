@@ -33,6 +33,11 @@ public class RoleUserDto extends BasicResourceDto<RoleUserDto, AdmRoleUser> {
         this.userId = userId;
     }
 
+    public RoleUserDto(Integer roleId, String userId) {
+        this.roleId = roleId;
+        this.userId = userId;
+    }
+
     @Override
     public RoleUserDto fromDomain(AdmRoleUser domainObj, List<String> refResource) {
         RoleUserDto dto = from(domainObj, false);

@@ -17,7 +17,7 @@ import org.springframework.cglib.beans.BeanMap;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.webank.cmdb.config.AppProperties;
+import com.webank.cmdb.config.ApplicationProperties;
 import com.webank.cmdb.config.TestDatabase;
 import com.webank.cmdb.constant.DynamicEntityType;
 
@@ -30,7 +30,7 @@ public class DynamicEntityGeneratorTest {
     @Autowired
     private DynamicEntityClassLoader entityCL;
     @Autowired
-    private AppProperties appProperties;
+    private ApplicationProperties appProperties;
 
     @Before
     public void setup() {
