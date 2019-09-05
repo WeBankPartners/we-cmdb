@@ -12,13 +12,13 @@ import com.webank.cmdb.util.DtoId;
 public class MenuDto extends BasicResourceDto<MenuDto, AdmMenu> {
     @DtoId
     @DtoField(domainField = "idAdmMenu")
-    private Integer menuId;
+    private Integer id;
     private String classPath;
     private Integer isActive;
-    private String name;
+    private String code;
     private String otherName;
-    private Integer parentIdAdmMenu;
-    private String remark;
+    private Integer parentId;
+    private String decription;
     private Integer seqNo;
     private String url;
 
@@ -38,13 +38,13 @@ public class MenuDto extends BasicResourceDto<MenuDto, AdmMenu> {
 
     public static MenuDto from(AdmMenu domain, boolean withChild) {
         MenuDto dto = new MenuDto();
-        dto.setMenuId(domain.getIdAdmMenu());
+        dto.setId(domain.getIdAdmMenu());
         dto.setClassPath(domain.getClassPath());
         dto.setIsActive(domain.getIsActive());
-        dto.setName(domain.getName());
+        dto.setCode(domain.getName());
         dto.setOtherName(domain.getOtherName());
-        dto.setParentIdAdmMenu(domain.getParentIdAdmMenu());
-        dto.setRemark(domain.getRemark());
+        dto.setParentId(domain.getParentIdAdmMenu());
+        dto.setDecription(domain.getRemark());
         dto.setSeqNo(domain.getSeqNo());
         dto.setUrl(domain.getUrl());
         if (withChild) {
@@ -54,24 +54,24 @@ public class MenuDto extends BasicResourceDto<MenuDto, AdmMenu> {
 
     public AdmMenu toDomain() {
         AdmMenu domain = new AdmMenu();
-        domain.setIdAdmMenu(this.menuId);
+        domain.setIdAdmMenu(this.id);
         domain.setClassPath(this.classPath);
         domain.setIsActive(this.isActive);
-        domain.setName(this.name);
+        domain.setName(this.code);
         domain.setOtherName(this.otherName);
-        domain.setParentIdAdmMenu(this.parentIdAdmMenu);
-        domain.setRemark(this.remark);
+        domain.setParentIdAdmMenu(this.parentId);
+        domain.setRemark(this.decription);
         domain.setSeqNo(this.seqNo);
         domain.setUrl(this.url);
         return domain;
     }
 
-    public Integer getMenuId() {
-        return menuId;
+    public Integer getId() {
+        return id;
     }
 
-    public void setMenuId(Integer menuId) {
-        this.menuId = menuId;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getClassPath() {
@@ -90,12 +90,12 @@ public class MenuDto extends BasicResourceDto<MenuDto, AdmMenu> {
         this.isActive = isActive;
     }
 
-    public String getName() {
-        return name;
+    public String getCode() {
+        return code;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setCode(String name) {
+        this.code = name;
     }
 
     public String getOtherName() {
@@ -106,20 +106,20 @@ public class MenuDto extends BasicResourceDto<MenuDto, AdmMenu> {
         this.otherName = otherName;
     }
 
-    public Integer getParentIdAdmMenu() {
-        return parentIdAdmMenu;
+    public Integer getParentId() {
+        return parentId;
     }
 
-    public void setParentIdAdmMenu(Integer parentIdAdmMenu) {
-        this.parentIdAdmMenu = parentIdAdmMenu;
+    public void setParentId(Integer parentId) {
+        this.parentId = parentId;
     }
 
-    public String getRemark() {
-        return remark;
+    public String getDescription() {
+        return decription;
     }
 
-    public void setRemark(String remark) {
-        this.remark = remark;
+    public void setDecription(String decription) {
+        this.decription = decription;
     }
 
     public Integer getSeqNo() {
