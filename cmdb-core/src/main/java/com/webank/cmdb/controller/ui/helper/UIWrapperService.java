@@ -348,6 +348,9 @@ public class UIWrapperService {
     }
 
     public List<CatCodeDto> updateEnumCodes(List<Map<String, Object>> catCodeDtos) {
+        catCodeDtos.forEach(dto -> {
+            dto.remove("ciTypes");
+        });
         return staticDtoService.update(CatCodeDto.class, catCodeDtos);
     }
 
