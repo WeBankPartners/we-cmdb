@@ -109,12 +109,14 @@ public class UIUserManagerService {
                     } else {
                         toFetchedParentIds.add(parentId);
                     }
-                    menuDtos.add(MenuDto.from(menu, withParentMenu));
                 }
                 toFetchedParentIds.removeAll(fetchedParentIds);
                 Iterable<AdmMenu> parentMenus = admMenusRepository.findAllById(toFetchedParentIds);
                 parentMenus.forEach(admMenus::add);
             }
+            admMenus.forEach(menu->{
+                menuDtos.add(MenuDto.from(menu, false));
+            });
             return menuDtos;
         }
         return Collections.emptyList();
