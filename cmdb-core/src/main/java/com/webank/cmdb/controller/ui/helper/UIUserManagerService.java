@@ -364,6 +364,7 @@ public class UIUserManagerService {
         }
     }
 
+    @Transactional
     public void assignMenuPermissionForRoles(int roleId, List<String> menuCodes) {
         if (isNotEmpty(menuCodes)) {
             for (String menuCode : menuCodes) {
@@ -379,6 +380,7 @@ public class UIUserManagerService {
         AdmRoleMenu roleMenu = new AdmRoleMenu();
         roleMenu.setAdmMenu(menu);
         roleMenu.setIdAdmRole(roleId);
+        roleMenu.setIdAdmMenu(menu.getIdAdmMenu());
         menu.getAssignedRoles().add(roleMenu);
         admMenusRepository.save(menu);
     }
