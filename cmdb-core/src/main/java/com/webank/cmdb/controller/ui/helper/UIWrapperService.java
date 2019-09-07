@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Lists;
 import com.webank.cmdb.config.ApplicationProperties.UIAccessProperties;
 import com.webank.cmdb.constant.FilterOperator;
+import com.webank.cmdb.constant.ImplementOperation;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
 import com.webank.cmdb.dto.CategoryDto;
@@ -685,5 +686,9 @@ public class UIWrapperService {
 
     public List<RoleCiTypeDto> updateRoleCiTypes(RoleCiTypeDto... roleCiTypes) {
         return staticDtoService.update(RoleCiTypeDto.class, BeanMapUtils.convertBeansToMaps(Arrays.asList(roleCiTypes)));
+    }
+
+    public void implementCiType(Integer ciTypeId, String operation) {
+        ciTypeService.implementCiType(ciTypeId, ImplementOperation.fromCode(operation));
     }
 }
