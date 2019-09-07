@@ -234,4 +234,11 @@ public class UICiDataManagementController {
             @RequestBody List<CiIndentity> operateCiObject) {
         return wrapperService.operateCiForState(operateCiObject, operation);
     }
+
+    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
+    @PostMapping("/ci-types/{ci-type-id}/implement")
+    @ResponseBody
+    public void implementCiType(@PathVariable(value = "ci-type-id") Integer ciTypeId, @RequestParam(value = "operation") String operation) {
+        wrapperService.implementCiType(ciTypeId, operation);
+    }
 }
