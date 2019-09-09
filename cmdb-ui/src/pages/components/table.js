@@ -11,7 +11,6 @@ export default {
     showCheckbox: { default: () => true },
     highlightRow: { default: () => false },
     filtersHidden: { default: () => false },
-    tableHeight: { default: () => "" },
     tableOuterActions: { default: () => [] },
     tableInnerActions: { default: () => [] },
     pagination: { type: Object },
@@ -665,14 +664,7 @@ export default {
     }
   },
   render(h) {
-    const {
-      data,
-      tableHeight,
-      columns,
-      pagination,
-      highlightRow,
-      filtersHidden
-    } = this;
+    const { data, columns, pagination, highlightRow, filtersHidden } = this;
     return (
       <div>
         {!filtersHidden && <div>{this.getFormFilters()}</div>}
@@ -682,7 +674,6 @@ export default {
           border
           data={data}
           columns={columns}
-          max-height={tableHeight}
           highlight-row={highlightRow}
           on-on-selection-change={this.onCheckboxSelect}
           on-on-current-change={this.onRadioSelect}
