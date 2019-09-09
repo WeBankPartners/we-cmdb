@@ -433,8 +433,10 @@ export default {
             this.$route.name === "baseData" ? "Basic Enums Data" : "Enums Data",
           data: data.contents.map(_ => {
             const formatValue = _.value ? _.value.replace(/,/g, ";") : "";
+            const formatCode = _.code ? _.code.replace(/,/g, ";") : "";
             return {
               ..._,
+              code: formatCode,
               value: formatValue,
               groupCodeId: _.groupCodeId ? _.groupCodeId.value : "",
               catName: _.cat.catName
