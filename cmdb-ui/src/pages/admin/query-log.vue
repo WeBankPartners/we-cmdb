@@ -75,12 +75,12 @@ export default {
       }
     },
     pageChange(currentPage) {
-      this.$refs.table.handleSubmit();
       this.pageInfo.currentPage = currentPage;
+      this.$refs.table.handleSubmit();
     },
     pageSizeChange(size) {
-      this.$refs.table.handleSubmit();
       this.pageInfo.pageSize = size;
+      this.$refs.table.handleSubmit();
     },
     handleSubmit(v) {
       this.filters = v;
