@@ -191,7 +191,7 @@ public class IntegrationQueryServiceImpl implements IntegrationQueryService {
             if (!ciTypeAttrOpt.isPresent()) {
                 throw new InvalidArgumentException(String.format("Can not find attribute [%d] for relationship.", relationship.getAttrId()));
             } else {
-                if (!InputType.Reference.getCode().equals(ciTypeAttrOpt.get().getInputType()) && !InputType.MultRef.getCode().equals(ciTypeAttrOpt.get().getInputType())) {
+                if (!(InputType.Reference.getCode().equals(ciTypeAttrOpt.get().getInputType()) || InputType.MultRef.getCode().equals(ciTypeAttrOpt.get().getInputType()))) {
                     throw new InvalidArgumentException(String.format("AttrId [%d] is not reference type, can not be used to join different Ci type.", relationship.getAttrId()));
                 } else {
                     int refAttCiTypeId = ciTypeAttrOpt.get().getCiTypeId();
