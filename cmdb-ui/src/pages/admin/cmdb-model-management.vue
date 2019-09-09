@@ -1328,7 +1328,7 @@ export default {
             });
         });
         this.updatedCINameValue = {
-          ciTypeId: this.g.id,
+          ciTypeId: parseInt(this.g.id),
           name: this.currentSelectedCI.name
         };
         this.getAllEnumTypes();
