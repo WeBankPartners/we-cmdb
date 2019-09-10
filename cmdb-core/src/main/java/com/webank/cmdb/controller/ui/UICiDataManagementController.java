@@ -241,4 +241,11 @@ public class UICiDataManagementController {
     public void implementCiType(@PathVariable(value = "ci-type-id") Integer ciTypeId, @RequestParam(value = "operation") String operation) {
         wrapperService.implementCiType(ciTypeId, operation);
     }
+
+    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
+    @PostMapping("/ci-types/{ci-type-id}/attributes/{attribute-id}/implement")
+    @ResponseBody
+    public void implementCiTypeAttribute(@PathVariable(value = "ci-type-id") Integer ciTypeId, @PathVariable(value = "attribute-id") Integer attributeId, @RequestParam(value = "operation") String operation) {
+        wrapperService.implementCiTypeAttribute(attributeId, operation);
+    }
 }
