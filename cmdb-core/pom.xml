@@ -123,6 +123,12 @@
 			<groupId>org.easetech</groupId>
 			<artifactId>easytest-core</artifactId>
 			<version>1.4.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javaee</groupId>
+					<artifactId>javaee-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.easetech</groupId>
