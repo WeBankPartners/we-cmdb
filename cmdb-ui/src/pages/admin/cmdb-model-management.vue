@@ -1306,13 +1306,13 @@ export default {
       if (!this.nodeName) return;
       if (!!this.isLayerSelected) {
         this.currentSelectedLayer = this.layers.find(
-          _ => _.name === this.nodeName
+          _ => _.layerId === this.isLayerSelected.layerId
         );
         this.updatedLayerNameValue = {
           codeId: this.currentSelectedLayer.layerId,
           code: this.currentSelectedLayer.name
         };
-        this.handleLayerSelect(this.nodeName);
+        this.handleLayerSelect(this.currentSelectedLayer.layerId);
       } else {
         this.source.forEach(_ => {
           _.ciTypes &&
@@ -1352,9 +1352,9 @@ export default {
         }
       }
     },
-    handleLayerSelect(layerName) {
+    handleLayerSelect(layerId) {
       this.currentSelectLayerChildren = this.source.find(
-        _ => _.value === layerName
+        _ => _.codeId === layerId
       );
       this.addNewCITypeForm.layerId = this.currentSelectLayerChildren.codeId;
     },
