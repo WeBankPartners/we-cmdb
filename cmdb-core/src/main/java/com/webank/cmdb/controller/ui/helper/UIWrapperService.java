@@ -691,4 +691,8 @@ public class UIWrapperService {
     public void implementCiType(Integer ciTypeId, String operation) {
         ciTypeService.implementCiType(ciTypeId, ImplementOperation.fromCode(operation));
     }
+
+    public void implementCiTypeAttribute(Integer attributeId, String operation) {
+        ciTypeService.implementCiTypeAttr(attributeId, ImplementOperation.fromCode(operation));
+    }
 }
