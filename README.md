@@ -23,6 +23,9 @@ WeCMDB是集中配置数据中心，管理IT各层面组件及组件关系信息
 
 &ensp;&ensp;&ensp;&ensp;包括权限管理（角色管理，用户角色管理， 数据权限， 菜单管理）。
 
+## 试用链接
+[点此试用WeCMDB](http://111.230.161.237:28080/cmdb/index.html#/)
+
 ## 快速入门
 WeCMDB采用容器化部署。
 
@@ -55,3 +58,34 @@ WeCMDB是基于 Apache License 2.0 协议， 详情请参考
 ## 社区
 - 如果您想得到最快的响应，请给我们提issue。
 - 联系我们：fintech@webank.com
+
+## 功能演示
+- 设计 > CI数据管理
+<img src="./cmdb-wiki/docs/manual/images/ci-data-management.gif" />
+
+- 设计 > CI数据查询
+<img src="./cmdb-wiki/docs/manual/images/ci-data-query.gif" />
+
+- 设计 > CI综合查询管理
+<img src="./cmdb-wiki/docs/manual/images/ci-integrated-query-management.gif" />
+
+- 设计 > CI数据综合查询
+<img src="./cmdb-wiki/docs/manual/images/ci-integrated-query.gif" />
+
+- 设计 > 枚举数据管理
+<img src="./cmdb-wiki/docs/manual/images/enum-management.gif" />
+
+- 设计 > 枚举数据查询
+<img src="./cmdb-wiki/docs/manual/images/enum-query.gif" />
+
+- 系统 > 权限管理
+<img src="./cmdb-wiki/docs/manual/images/permission-management.gif" />
+
+- 系统 > 模型管理
+<img src="./cmdb-wiki/docs/manual/images/model-management.gif" />
+
+- 系统 > 日志查询
+<img src="./cmdb-wiki/docs/manual/images/query-log.gif" />
+
+- 系统 > 基础数据管理
+<img src="./cmdb-wiki/docs/manual/images/base-data-management.gif" />
