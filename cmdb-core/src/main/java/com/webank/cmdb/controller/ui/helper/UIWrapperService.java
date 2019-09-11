@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.webank.cmdb.config.ApplicationProperties.UIAccessProperties;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.ImplementOperation;
+import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
 import com.webank.cmdb.dto.CategoryDto;
@@ -38,6 +39,7 @@ import com.webank.cmdb.dto.RoleDto;
 import com.webank.cmdb.dto.RoleUserDto;
 import com.webank.cmdb.dto.UserDto;
 import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.repository.StaticEntityRepository;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.service.CiTypeService;
 import com.webank.cmdb.service.IntegrationQueryService;
@@ -67,6 +69,10 @@ public class UIWrapperService {
     private CiService ciService;
     @Autowired
     private StaticDtoService staticDtoService;
+    
+    @Autowired
+    private StaticEntityRepository staticEntityRepository;
+    
     @Autowired
     private CiTypeService ciTypeService;
     @Autowired
@@ -86,15 +92,15 @@ public class UIWrapperService {
     }
 
     public void swapCiTypeAttributePosition(int attributeId, int targetAttributeId) {
-        CiTypeAttrDto attribute = getCiTypeAttribute(attributeId);
-        CiTypeAttrDto targetAttribute = getCiTypeAttribute(targetAttributeId);
+    	AdmCiTypeAttr attribute = getCiTypeAttribute(attributeId);
+    	AdmCiTypeAttr targetAttribute = getCiTypeAttribute(targetAttributeId);
 
         CiTypeAttrDto updateSourceAttribute = new CiTypeAttrDto();
-        updateSourceAttribute.setCiTypeAttrId(attribute.getCiTypeAttrId());
+        updateSourceAttribute.setCiTypeAttrId(attribute.getIdAdmCiTypeAttr());
         updateSourceAttribute.setDisplaySeqNo(targetAttribute.getDisplaySeqNo());
 
         CiTypeAttrDto updateTargetAttribute = new CiTypeAttrDto();
-        updateTargetAttribute.setCiTypeAttrId(targetAttribute.getCiTypeAttrId());
+        updateTargetAttribute.setCiTypeAttrId(targetAttribute.getIdAdmCiTypeAttr());
         updateTargetAttribute.setDisplaySeqNo(attribute.getDisplaySeqNo());
 
         updateCiTypeAttributes(BeanMapUtils.convertBeansToMaps(Lists.newArrayList(updateSourceAttribute, updateTargetAttribute)));
@@ -402,9 +408,9 @@ public class UIWrapperService {
         return response != null ? response.getContents() : null;
     }
 
-    public CiTypeAttrDto getCiTypeAttribute(Integer ciTypeAttributeId) {
-        QueryRequest queryObject = defaultQueryObject().addEqualsFilter("ciTypeAttrId", ciTypeAttributeId);
-        QueryResponse<CiTypeAttrDto> response = staticDtoService.query(CiTypeAttrDto.class, queryObject);
+    public AdmCiTypeAttr getCiTypeAttribute(Integer ciTypeAttributeId) {
+        QueryRequest queryObject = defaultQueryObject().addEqualsFilter("idAdmCiTypeAttr", ciTypeAttributeId);
+        QueryResponse<AdmCiTypeAttr> response = staticEntityRepository.query(AdmCiTypeAttr.class, queryObject);
         if (response != null && !response.getContents().isEmpty()) {
             return response.getContents().get(0);
         }
