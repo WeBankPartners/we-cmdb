@@ -179,9 +179,9 @@ export default {
           if (data[cur].node.attrs && data[cur].node.attrs.length) {
             return pre.concat({
               label: data[cur].node.label,
-              attrList: data[cur].node.attrAliases
-                ? data[cur].node.attrAliases
-                : data[cur].node.attrs.map(_ => _.name)
+              attrList: data[cur].node.attrs.map((_, index) =>
+                _.name ? _.name : data[cur].node.attrAliases[index]
+              )
             });
           } else {
             return pre;
@@ -205,11 +205,9 @@ export default {
             attrs: root.node.attrs
               ? root.node.attrs.map(_ => _ && _.ciTypeAttrId)
               : [],
-            attrAliases: root.node.attrAliases
-              ? root.node.attrAliases
-              : root.node.attrs
-              ? root.node.attrs.map(_ => _ && _.name)
-              : []
+            attrAliases: root.node.attrs.map((_, index) =>
+              _.name ? _.name : root.node.attrAliases[index]
+            )
           };
         const t = {
           children: [],
@@ -218,11 +216,9 @@ export default {
           attrs: root.node.attrs
             ? root.node.attrs.map(_ => _ && _.ciTypeAttrId)
             : [],
-          attrAliases: root.node.attrAliases
-            ? root.node.attrAliases
-            : root.node.attrs
-            ? root.node.attrs.map(_ => _ && _.name)
-            : []
+          attrAliases: root.node.attrs.map((_, index) =>
+            _.name ? _.name : root.node.attrAliases[index]
+          )
         };
 
         if (root.to) {
