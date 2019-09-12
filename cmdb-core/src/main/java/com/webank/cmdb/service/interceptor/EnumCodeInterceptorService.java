@@ -9,6 +9,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,7 +123,9 @@ public class EnumCodeInterceptorService extends BasicInterceptorService<CatCodeD
     }
 
     private void assignDefaultStatus(AdmBasekeyCode domainBean) {
-        domainBean.setStatus(EffectiveStatus.Active.getCode());
+        if (StringUtils.isBlank(domainBean.getStatus())) {
+            domainBean.setStatus(EffectiveStatus.Active.getCode());
+        }
     }
 
     @Override

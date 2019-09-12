@@ -1,5 +1,6 @@
 package com.webank.cmdb.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.constraints.NotNull;
@@ -13,7 +14,11 @@ import com.webank.cmdb.util.CollectionUtils;
 import com.webank.cmdb.util.DtoField;
 import com.webank.cmdb.util.DtoId;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 @JsonInclude(Include.NON_NULL)
+@Data @EqualsAndHashCode(callSuper = true)
 public class CatCodeDto extends BasicResourceDto<CatCodeDto, AdmBasekeyCode> {
     @NotNull
     private String code = null;
@@ -29,6 +34,7 @@ public class CatCodeDto extends BasicResourceDto<CatCodeDto, AdmBasekeyCode> {
     @DtoField(domainField = "admBasekeyCat", updatable = false)
     private CategoryDto cat = new CategoryDto();
     private String status;
+    private List<CiTypeDto> ciTypes = new ArrayList<>(); 
 
     public CategoryDto getCat() {
         return cat;

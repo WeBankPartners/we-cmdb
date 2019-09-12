@@ -116,5 +116,78 @@ public class QueryRequest {
     public void setDialect(Dialect dialect) {
         this.dialect = dialect;
     }
+    
+    public QueryRequest addEqualsFilter(String name, Object value) {
+        filters.add(new Filter(name, "eq", value));
+        return this;
+    }
+
+    public QueryRequest setFiltersRelationship(String relationship) {
+        filterRs = relationship;
+        return this;
+    }
+
+    public QueryRequest addEqualsFilters(Map<String, Object> filterObject) {
+        filterObject.entrySet().forEach(entry -> filters.add(new Filter(entry.getKey(), "eq", entry.getValue())));
+        return this;
+    }
+
+    public QueryRequest addInFilters(Map<String, Object> filterObject) {
+        filterObject.entrySet().forEach(entry -> filters.add(new Filter(entry.getKey(), "in", entry.getValue())));
+        return this;
+    }
+
+    public QueryRequest addNotEqualsFilter(String name, Object value) {
+        filters.add(new Filter(name, "ne", value));
+        return this;
+    }
+
+    public QueryRequest addInFilter(String name, List values) {
+        filters.add(new Filter(name, "in", values));
+        return this;
+    }
+
+    public QueryRequest addContainsFilter(String name, String value) {
+        filters.add(new Filter(name, "contains", value));
+        return this;
+    }
+
+    public QueryRequest addNotNullFilter(String name) {
+        filters.add(new Filter(name, "notNull", null));
+        return this;
+    }
+
+    public QueryRequest addNullFilter(String name) {
+        filters.add(new Filter(name, "null", null));
+        return this;
+    }
+
+    public QueryRequest ascendingSortBy(String field) {
+        sorting = new Sorting(true, field);
+        return this;
+    }
+
+    public QueryRequest descendingSortBy(String field) {
+        sorting = new Sorting(false, field);
+        return this;
+    }
+
+    public QueryRequest addReferenceResource(String refResource) {
+        refResources.add(refResource);
+        return this;
+    }
+
+    public QueryRequest withResultColumns(List<String> resultColumns) {
+        this.resultColumns = resultColumns;
+        return this;
+    }
+
+    public static QueryRequest defaultQueryObject() {
+        return new QueryRequest();
+    }
+
+    public static QueryRequest defaultQueryObject(String name, Object value) {
+        return defaultQueryObject().addEqualsFilter(name, value);
+    }
 
 }

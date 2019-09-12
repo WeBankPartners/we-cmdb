@@ -879,4 +879,44 @@ public class ApiV2ControllerCiTypeAttrTest extends LegacyAbstractBaseControllerT
                 .andExpect(jsonPath("$.statusCode", is("OK")));
     	
     }
+
+    @Test
+    public void whenUpdateMultiRefAttrAndApplyThenShouldSuccess() throws Exception {
+        List<?> jsonList = ImmutableList.builder()
+                .add(ImmutableMap.builder()
+                        .put("callbackId", "123456")
+                        .put("ciTypeId", 1)
+                        .put("name", "mock_ref_name")
+                        .put("length", 1000)
+                        .put("inputType", "multiRef")
+                        .put("referenceName", "refName")
+                        .put("referenceId", 2)
+                        .put("propertyName", "columnA")
+                        .put("propertyType", "varchar")
+                        .put("isNullable", 0)
+                        .build())
+                .build();
+        String reqJson = JsonUtil.toJson(jsonList);
+        MvcResult mvcResult = mvc.perform(post("/api/v2/ciTypeAttrs/create").contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("OK")))
+                .andReturn();
+        String retContent = mvcResult.getResponse().getContentAsString();
+        Integer ciTypeattrId = JsonUtil.asNodeByPath(retContent, "/data/0/ciTypeAttrId").asInt();
+
+        mvc.perform(post("/api/v2/ciTypes/applyAll").contentType(MediaType.APPLICATION_JSON));
+
+        Map<?, ?> jsonMap = ImmutableMap.builder()
+                .put("ciTypeAttrId", ciTypeattrId)
+                .put("length", 1000)
+                .put("name", "mock_ref_name_new")
+                .build();
+
+        String updateJson = JsonUtil.toJson(ImmutableList.of(jsonMap));
+
+        mvc.perform(post("/api/v2/ciTypeAttrs/update").contentType(MediaType.APPLICATION_JSON)
+                .content(updateJson))
+                .andExpect(jsonPath("$.statusCode", is("OK")))
+                .andExpect(jsonPath("$.data[0].status", is("created")));
+    }
 }
