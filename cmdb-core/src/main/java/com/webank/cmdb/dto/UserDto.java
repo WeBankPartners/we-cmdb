@@ -66,6 +66,7 @@ public class UserDto extends BasicResourceDto<UserDto, AdmUser> {
 
     public AdmUser toDomain() {
         AdmUser domain = new AdmUser();
+        domain.setIdAdmUser(this.getUserId());
         domain.setCode(this.getUsername());
         domain.setName(this.getFullName());
         domain.setDescription(this.getDescription());
