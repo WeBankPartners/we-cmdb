@@ -78,6 +78,11 @@
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-collections4</artifactId>
+			<version>4.1</version>
+		</dependency>
+		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>test</scope>
@@ -173,7 +178,7 @@
 							<overwrite>true</overwrite>
 							<resources>
 								<resource>
-									<directory>${project.parent.basedir}/cmdb-ui/build</directory>
+									<directory>${project.parent.basedir}/cmdb-ui/dist</directory>
 									<includes>
 										<include>**/*</include>
 									</includes>
@@ -192,7 +197,7 @@
 							<overwrite>true</overwrite>
 							<resources>
 								<resource>
-									<directory>${project.parent.basedir}/cmdb-ui/build</directory>
+									<directory>${project.parent.basedir}/cmdb-ui/dist</directory>
 									<includes>
 										<include>index.html</include>
 									</includes>
