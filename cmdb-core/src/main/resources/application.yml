@@ -15,9 +15,9 @@ spring:
       spec: expireAfterWrite=30s
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://tdsql-66a3mko1.sql.tencentcdb.com:75/smoke2_cmdb?characterEncoding=utf8&serverTimezone=UTC
-    username: mariadb
-    password: qq123456
+    url: jdbc:mysql://db-server:3306/db_schema?characterEncoding=utf8&serverTimezone=UTC
+    username: db_user
+    password: db_password
   jpa:
     database: MySQL
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
@@ -27,7 +27,7 @@ spring:
 
 cmdb:
   datasource:
-    schema: smoke2_cmdb
+    schema: db_user
     
   #Authentication provider options: local or CAS
   authentication-provider: local
@@ -41,6 +41,6 @@ logging:
 
 cas-server:
   url: http://localhost:8080/cas
-  enabled: false
+  enabled: true
   whitelist-ip-address:
   redirect-app-addr:
