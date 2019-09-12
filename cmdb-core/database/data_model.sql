@@ -88,7 +88,8 @@ INSERT INTO `adm_basekey_cat` (`id_adm_basekey_cat`, `cat_name`, `description`, 
 	(65, 'orchestration', '编排', NULL, 25, NULL),
 	(66, 'orchestration', '编排', NULL, 26, NULL),
 	(67, 'orchestration', '编排', NULL, 27, NULL),
-	(68, 'orchestration', '编排', NULL, 28, NULL);
+	(68, 'orchestration', '编排', NULL, 28, NULL),
+	(69, 'seed', '种子', NULL, 1, NULL);
 
 CREATE TABLE IF NOT EXISTS `adm_basekey_cat_type` (
   `id_adm_basekey_cat_type` int(11) NOT NULL AUTO_INCREMENT,
@@ -351,7 +352,8 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(236, 1, '<script>alert(1)</script>', '<script>alert(2)</script>', NULL, '<script>alert(3)</script>', 6, 'active'),
 	(237, 30, 'code1', 'value1', NULL, NULL, 4, 'active'),
 	(238, 58, 'wecube1564467202875', 'test', NULL, NULL, 6, 'active'),
-	(239, 31, 'wecube1564468847441', 'test\n', NULL, NULL, 1, 'active');
+	(239, 31, 'wecube1564468847441', 'test\n', NULL, NULL, 1, 'active'),
+	(240, 69, 'seed123456', 'seed', NULL, NULL, 1, 'active');
 
 CREATE TABLE IF NOT EXISTS `adm_ci_type` (
   `id_adm_ci_type` int(4) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type',
@@ -926,7 +928,9 @@ INSERT INTO `adm_ci_type_attr` (`id_adm_ci_type_attr`, `id_adm_ci_type`, `name`,
 	(491, 26, '创建日期', '创建日期', 'date', 'created_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, 0),
 	(492, 26, '数据中心节点设计', '数据中心节点设计', 'ref', 'dcn_design', 'varchar', 15, 25, '属于', 29, NULL, 6, 1, 13, 0, 0, 0, 1, 0, NULL, 'notCreated', 0, 0, 0, NULL, 0),
 	(493, 26, '类型', '类型', 'select', 'type', 'int', 15, 28, NULL, NULL, NULL, 7, 1, 14, 0, 0, 0, 1, 0, NULL, 'notCreated', 0, 0, 0, NULL, 0),
-	(498, 16, '网段', '网段', 'ref', 'network_segment', 'varchar', 15, 21, '使用', 32, NULL, 13, 1, 13, 1, 0, 0, 1, 0, NULL, 'notCreated', 0, 0, 0, NULL, 0);
+	(498, 16, '网段', '网段', 'ref', 'network_segment', 'varchar', 15, 21, '使用', 32, NULL, 13, 1, 13, 1, 0, 0, 1, 0, NULL, 'notCreated', 0, 0, 0, NULL, 0),
+	(499, 12, '用户名', '主机登陆用户名', 'text', 'username', 'varchar', 50, NULL, NULL, NULL, NULL, 16, 1, 17, 0, 0, 0, 1, 0, NULL, 'notCreated', 0, 0, 0, NULL, 0),
+	(500, 12, '密码', '主机登陆密码', 'text', 'password', 'varchar', 64, NULL, NULL, NULL, NULL, 17, 1, 18, 0, 0, 0, 1, 0, NULL, 'notCreated', 0, 0, 0, NULL, 0);
 
 CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_group` (
   `id_adm_ci_type_attr_group` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type_attr_group',
@@ -1261,6 +1265,7 @@ CREATE TABLE IF NOT EXISTS `adm_user` (
   `id_adm_tenement` int(11) DEFAULT NULL COMMENT 'id_adm_tenement',
   `action_flag` tinyint(1) DEFAULT '0' COMMENT '用户操作Flag',
   PRIMARY KEY (`id_adm_user`),
+  UNIQUE KEY `adm_user_code` (`code`),
   KEY `fk_adm_user_adm_tenement_1` (`id_adm_tenement`),
   CONSTRAINT `fk_adm_user_adm_tenement_1` FOREIGN KEY (`id_adm_tenement`) REFERENCES `adm_tenement` (`id_adm_tenement`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
