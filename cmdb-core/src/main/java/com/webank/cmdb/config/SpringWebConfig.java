@@ -112,7 +112,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                 .formLogin()
                 .loginPage("/login.html")
                 .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/index.html", true)
+                .defaultSuccessUrl("/index.html")
                 .failureUrl("/login.html?error=true")
             .and()
                 .logout()
