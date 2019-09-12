@@ -394,6 +394,11 @@ public class ApiV2Controller {
     public QueryResponse<UserDto> retrieveUsers(@RequestBody QueryRequest request) {
         return staticDtoService.query(UserDto.class, request);
     }
+    
+    @PostMapping("/users/create")
+    public List<UserDto> createUsers(@Valid @RequestBody List<UserDto> userDtos) {
+        return staticDtoService.create(UserDto.class, userDtos);
+    }
 
     @PostMapping("/roles/retrieve")
     public QueryResponse<RoleDto> retrieveRoles(@RequestBody QueryRequest request) {
