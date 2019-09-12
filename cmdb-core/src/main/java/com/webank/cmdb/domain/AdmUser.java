@@ -7,13 +7,14 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
 
 /**
  * The persistent class for the adm_user database table.
@@ -22,6 +23,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "adm_user")
 @NamedQuery(name = "AdmUser.findAll", query = "SELECT a FROM AdmUser a")
+@GenericGenerator(name = "userid", strategy = "uuid")
 public class AdmUser implements Serializable {
     private static final long serialVersionUID = 1L;
     private String idAdmUser;
@@ -38,7 +40,7 @@ public class AdmUser implements Serializable {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator = "userid")
     @Column(name = "id_adm_user")
     public String getIdAdmUser() {
         return this.idAdmUser;
