@@ -13,22 +13,10 @@
 	
 	需要有一个Mysql数据库， 也可以在开发电脑上安装Mysql，请参考[Mysql安装文档](mysql_install_guide.md)
 
-4. 安装CAS
-	
-	需要有一个CAS服务， 也可以在开发电脑上安装cas。dockerhub上有容器镜像，可以直接下载安装。
-	
-	命令如下：
-	
-	```
-	docker pull kawhii/sso
-	docker run -d --name cas -p 8443:8443 -p 8878:8080 kawhii/sso
-	```
-	
-	CAS默认用户密码：admin/123
-
-5. 安装node.js
+4. 安装node.js
 	
 	访问node.js官方网站：http://nodejs.cn/download， 下载v10.16.3版本。双击下载后的安装文件， 按默认配置进行安装。
+
 
 
 ## 导入工程
@@ -78,7 +66,7 @@
 	在 *Project Explorer* 视图中，将 *application-uat.yml* 复制一份，更名为 *application-dev.yml*
 	![wecmdb_import_7](images/wecmdb_import_7.png)
 	
-	打开 *application-dev.yml* ，修改相关配置，
+	打开 *application-dev.yml* ，修改相关配置，开发模式下无需CAS， 可将CAS相关配置去掉。
 	
 	application-dev.yml配置示例：
 
@@ -98,10 +86,6 @@
 	  datasource:
 	    schema: wecmdb_dev
 	
-	cas-server:
-	  url: http://192.168.10.33:8080/cas
-	  redirect-app-addr: localhost:37000
-	  enabled: true
 	```
 
 5. 启动WeCMDB后端
@@ -118,23 +102,33 @@
 
 	![wecmdb_start](images/wecmdb_start.png)
 	
-	打开 *http://localhost:37000/cmdb/swagger-ui.html* 打开 *swagger* 页面， 输入cas登录用户及密码，即可查看并测试API
+	在浏览器输入 *http://localhost:37000/cmdb/swagger-ui.html* 会跳转到登录页面
+
+	![wecmdb_swagger_login](images/wecmdb_swagger_login.png)
+
+	输入用户后确认， 会重定向到首页index页面
+
+	![wecmdb_swagger_redirect](images/wecmdb_swagger_redirect.png)
+
+	需要重新输入 *http://localhost:37000/cmdb/swagger-ui.html* , 进入swagger页面
 
 	![wecmdb_swagger_ui](images/wecmdb_swagger_ui.png)
 
 
 6. 启动WeCMDB前端
 	
-	运行CMD（Win+R或右下角点开始菜单的输入处），在展开的命令行窗口中,进入we-cmdb的代码子目录wecmbd-ui目录
+	运行CMD（Win+R或右下角点开始菜单的输入处），在展开的命令行窗口中,进入we-cmdb的代码子目录wecmdb-ui目录
 
 	![wecmdb_ui_npm_install](images/wecmdb_ui_npm_install.png)
 	
 	执行npm安装命令
 	
 	```
-	npm i
+	npm install
 	```
 	
+	![wecmdb_ui_npm_install](images/wecmdb_ui_npm_install_end.png)
+
 	安装完成后， 执行命令
 
 	
