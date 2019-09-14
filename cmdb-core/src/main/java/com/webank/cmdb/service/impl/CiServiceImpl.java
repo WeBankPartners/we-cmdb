@@ -623,22 +623,8 @@ public class CiServiceImpl implements CiService {
             return value;
 
         InputType inputType = InputType.fromCode(attr.getInputType());
-        if (InputType.Droplist.equals(inputType) || InputType.MultSelDroplist.equals(inputType)) {
-            Integer codeId = null;
-            try {
-                codeId = Integer.valueOf(String.valueOf(value));
-            } catch (NumberFormatException ex) {
-                logger.warn("Failed to get codeId from value:[{}], field:[{}]", value, fieldName);
-            }
-            if (codeId != null) {
-                CatCodeDto codeDto = null;
-                try {
-                    codeDto = basekeyInfoService.getCode(codeId);
-                } catch (InvalidArgumentException ex) {
-                    logger.warn("Failed to get cat code for codeId [{}].", codeId);
-                }
-                value = codeDto;
-            }
+        if (InputType.Droplist.equals(inputType) ) {
+            value = convertCodeValue(fieldName, value);
         } else if (InputType.Reference.equals(inputType)) {
             int ciTypeId = attr.getReferenceId();
             if (value != null) {
@@ -662,12 +648,87 @@ public class CiServiceImpl implements CiService {
                 String dateTxt = dateFmt.format((Timestamp) value);
                 value = dateTxt;
             }
+        }else if(InputType.MultSelDroplist.equals(inputType)) {
+        	String guid = String.valueOf(value);
+            PriorityEntityManager priEntityManager = getEntityManager();
+            EntityManager entityManager = priEntityManager.getEntityManager();
+            List codeIds = Lists.newLinkedList();
+
+            try {
+            	CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            	Class joinEntityClzz = multSelectMetaMap.get(attr.getIdAdmCiTypeAttr()).getEntityClazz();
+            	CriteriaQuery query = cb.createQuery(joinEntityClzz);
+            	Root root = query.from(joinEntityClzz);
+            	query.select(root);
+            	query.where(cb.equal(root.get("from_guid"), guid));
+            	TypedQuery typedQuery = entityManager.createQuery(query);
+            	List results = typedQuery.getResultList();
+            	if(results != null && results.size()>0) {
+            		for(Object record:results) {
+            			BeanMap map = new BeanMap(record);
+            			Integer codeId = (Integer)(map.get("to_code"));
+            			Object code = convertCodeValue(fieldName, codeId);
+            			codeIds.add(code);
+            		}
+            	}
+            	return codeIds;
+            }finally {
+            	priEntityManager.close();
+            }
+        }else if(InputType.MultRef.equals(inputType)) {
+        	String guid = String.valueOf(value);
+            PriorityEntityManager priEntityManager = getEntityManager();
+            EntityManager entityManager = priEntityManager.getEntityManager();
+            List ciObjs = Lists.newLinkedList();
+
+            try {
+            	CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            	Integer toCiTypeId = attr.getReferenceId();
+            	Class joinEntityClzz = dynamicEntityMetaMap.get(toCiTypeId).getEntityClazz();
+            	CriteriaQuery query = cb.createQuery(joinEntityClzz);
+            	Root root = query.from(joinEntityClzz);
+            	query.select(root);
+            	query.where(cb.equal(root.get("from_guid"), guid));
+            	TypedQuery typedQuery = entityManager.createQuery(query);
+            	List results = typedQuery.getResultList();
+            	if(results != null && results.size()>0) {
+            		for(Object record:results) {
+            			BeanMap map = new BeanMap(record);
+            			String to_guid = (String)(map.get("to_guid"));
+            			Object toCiObj = getCi(toCiTypeId, to_guid);
+            			ciObjs.add(toCiObj);
+            		}
+            	}
+            	return ciObjs;
+            }finally {
+            	priEntityManager.close();
+            }
+        	
         }
         /*
          * else if (value == null) { value = ""; }
          */
         return value;
     }
+
+	private Object convertCodeValue(String fieldName, Object value) {
+		Integer codeId = null;
+		try {
+		    codeId = Integer.valueOf(String.valueOf(value));
+		} catch (NumberFormatException ex) {
+		    logger.warn("Failed to get codeId from value:[{}], field:[{}]", value, fieldName);
+		}
+		if (codeId != null) {
+		    CatCodeDto codeDto = null;
+		    try {
+		        codeDto = basekeyInfoService.getCode(codeId);
+		    } catch (InvalidArgumentException ex) {
+		        logger.warn("Failed to get cat code for codeId [{}].", codeId);
+		    }
+		    value = codeDto;
+		}
+		return value;
+	}
 
     @Override
     public List<DynamicEntityHolder> filterBy(int ciType, List<FilterInfo> filterInfos, Pageable pageable, Sorting sorting) {
@@ -1527,7 +1588,13 @@ public class CiServiceImpl implements CiService {
                 AdmCiTypeAttr attr = ciTypeAttrRepository.getOne(attrIds.get(i));
                 // String alias = curQuery.getAttrAliases().get(i);
                 String keyName = curQuery.getAttrKeyNames().get(i);
-                Expression attrExpression = curFrom.get(attr.getPropertyName());
+                Expression attrExpression = null;
+                if(InputType.MultSelDroplist.getCode().equals(attr.getInputType())
+                		|| InputType.MultRef.getCode().equals(attr.getInputType())) {
+                	attrExpression = curFrom.join(attr.getPropertyName()).get("from_guid");//need guid to fetch mult selection value 
+                }else {
+                	attrExpression = curFrom.get(attr.getPropertyName());
+                }
                 attrExpression.alias(keyName);
                 if (attrExprMap.containsKey(keyName)) {
                     throw new ServiceException(String.format("There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()));
@@ -1557,7 +1624,15 @@ public class CiServiceImpl implements CiService {
                 AdmCiTypeAttr attr = ciTypeAttrRepository.getOne(attrIds.get(i));
                 // String alias = curQuery.getAttrAliases().get(i);
                 String keyName = curQuery.getAttrKeyNames().get(i);
-                Expression attrExpression = curFrom.get(attr.getPropertyName());
+                Expression attrExpression = null;
+                
+                if(InputType.MultSelDroplist.getCode().equals(attr.getInputType())
+                		|| InputType.MultRef.getCode().equals(attr.getInputType())) {
+                	attrExpression = curFrom.join(attr.getPropertyName()).get("from_guid");//need guid to fetch mult selection value 
+                }else {
+                	attrExpression = curFrom.get(attr.getPropertyName());
+                }
+
                 attrExpression.alias(keyName);
                 if (attrExprMap.containsKey(keyName)) {
                     throw new ServiceException(String.format("There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()));
