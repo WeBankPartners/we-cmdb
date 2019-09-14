@@ -1261,6 +1261,7 @@ CREATE TABLE IF NOT EXISTS `adm_user` (
   `id_adm_user` varchar(64) NOT NULL COMMENT 'id_adm_user',
   `name` varchar(64) DEFAULT NULL COMMENT '名称',
   `code` varchar(100) DEFAULT NULL COMMENT '编码（接口类用户使用）',
+  `password` varchar(100) DEFAULT NULL COMMENT '加密的密码',
   `description` varchar(255) DEFAULT NULL COMMENT '描述',
   `id_adm_tenement` int(11) DEFAULT NULL COMMENT 'id_adm_tenement',
   `action_flag` tinyint(1) DEFAULT '0' COMMENT '用户操作Flag',
@@ -1283,8 +1284,8 @@ INSERT INTO `adm_role` (`id_adm_role`, `role_name`, `description`, `id_adm_tenem
 	(10, 'REGULAR', '普通用户', NULL, NULL, 'REGULAR'),
 	(11, 'READONLY', '只读用户', NULL, NULL, 'READONLY');
 
-INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `description`, `id_adm_tenement`, `action_flag`) VALUES
-	('1', 'admin', 'admin', 'admin', NULL, 0);
+INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `password`, `description`, `id_adm_tenement`, `action_flag`) VALUES
+	('1', 'admin', 'admin','$2a$10$.0CM2e2tMQqNp1x4Cfq7AOcS943TJVgGpRX3B1bnGFWnuGKUrJ3x2', 'admin', NULL, 0);
 
 INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`) VALUES
     ('1', '1', '1');

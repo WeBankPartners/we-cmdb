@@ -1,12 +1,12 @@
 package com.webank.cmdb.config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jasig.cas.client.validation.Cas20ServiceTicketValidator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -20,16 +20,20 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
 import com.webank.cmdb.controller.interceptor.HttpAccessUsernameInterceptor;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.mvc.CustomRolesPrefixPostProcessor;
@@ -44,28 +48,19 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @ComponentScan({ "com.webank.cmdb.controller", "com.webank.cmdb.mvc", "com.webank.cmdb.stateTransition" })
 public class SpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
-    private static final int SECENDS_OF_1_WEEK = 604800;
-    
-    private static final String AUTH_PROVIDER_LOCAL = "local";
+    private static final String AUTH_PROVIDER_LOCAL = "LOCAL";
     private static final String AUTH_PROVIDER_CAS = "CAS";
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Autowired
     private ServerProperties serverProperties;
     
-    @Value("${cmdb.authentication-provider}")
-    private String authenticationProvider;
-
-    @Value("${cas-server.url}")
-    private String casServerUrl;
-
-    @Value("${cas-server.enabled}")
-    private boolean enabled;
-
-    @Value("${cas-server.redirect-app-addr}")
-    private String casRedirectAppAddr;
-
-    @Value("#{'${cas-server.whitelist-ipaddress}'.split(',')}")
-    private List<String> whitelistIpaddress;
+    @Autowired
+    private SecurityProperties securityProperties;
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -92,82 +87,110 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        if (AUTH_PROVIDER_LOCAL.equalsIgnoreCase(authenticationProvider)) {
-            configureLocalAuthentication(http);
-        } else if (AUTH_PROVIDER_CAS.equalsIgnoreCase(authenticationProvider)) {
-            configureCasAuthentication(http);
+        ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry = http.authorizeRequests();
+        if (securityProperties.isEnabled()) {
+            registry = configureWhiteListAuthentication(registry);
+            if (AUTH_PROVIDER_LOCAL.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
+                configureLocalAuthentication(registry);
+            } else if (AUTH_PROVIDER_CAS.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
+                configureCasAuthentication(registry);
+            } else {
+                throw new CmdbException("Unsupported authentication-provider: " + securityProperties.getAuthenticationProvider());
+            }
         } else {
-            throw new CmdbException("Unsupported authentication-provider: " + authenticationProvider);
+            registry = configureWhiteListAuthentication(registry);
+            configurePrivacyFreeAuthentication(registry);
         }
     }
     
-    protected void configureLocalAuthentication(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-            .authorizeRequests()
-                .antMatchers("/login*").permitAll()
+    protected void configureLocalAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) throws Exception {
+        registry.antMatchers("/login-with-password*").permitAll()
                 .antMatchers("/logout*").permitAll()
-                .antMatchers("/api/**").permitAll()
+                .antMatchers("/ui/v2/**").permitAll()
                 .anyRequest().authenticated()
             .and()
                 .formLogin()
-                .loginPage("/login.html")
-                .loginProcessingUrl("/login")
+                .loginPage("/login-with-password.html")
+                .loginProcessingUrl("/login-with-password")
                 .defaultSuccessUrl("/index.html")
-                .failureUrl("/login.html?error=true")
+                .failureUrl("/login-with-password.html?error=true")
             .and()
                 .logout()
                 .logoutUrl("/logout")
                 .deleteCookies("JSESSIONID")
-                .logoutSuccessUrl("/login.html");
+                .logoutSuccessUrl("/login-with-password.html")
+            .and()
+                .csrf()
+                .disable();
     }
     
-    protected void configureCasAuthentication(HttpSecurity http) throws Exception {
-        if (enabled) {
-            List<String> convertedList = new ArrayList<String>();
-            for (String ipAddress : whitelistIpaddress) {
+    protected void configurePrivacyFreeAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) throws Exception {
+        registry.antMatchers("/login-privacy-free*").permitAll()
+                .antMatchers("/logout*").permitAll()
+                .antMatchers("/ui/v2/**").permitAll()
+                .anyRequest().authenticated()
+            .and()
+                .formLogin()
+                .loginPage("/login-privacy-free.html")
+                .loginProcessingUrl("/login-privacy-free")
+                .defaultSuccessUrl("/index.html")
+                .failureUrl("/login-privacy-free.html?error=true")
+            .and()
+                .logout()
+                .logoutUrl("/logout")
+                .deleteCookies("JSESSIONID")
+                .logoutSuccessUrl("/login-privacy-free.html")
+            .and()
+                .csrf()
+                .disable();
+    }
+
+    protected ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry configureWhiteListAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) throws Exception {
+        List<String> convertedList = new ArrayList<String>();
+        if (StringUtils.isNotBlank(securityProperties.getWhitelistIpAddress())) {
+            List<String> whiteListIpAddress = Arrays.asList(securityProperties.getWhitelistIpAddress().split(","));
+            for (String ipAddress : whiteListIpAddress) {
                 convertedList.add(String.format("hasIpAddress('%s')", ipAddress));
             }
 
-            http.authorizeRequests()
-                    .antMatchers("/api/**")
-                    .access(StringUtils.join(convertedList, " or "))
-                    .and()
-                    .exceptionHandling()
-                    .authenticationEntryPoint(casAuthenticationEntryPoint())
-                    .and()
-                    .addFilter(casAuthenticationFilter())
-                    .addFilterBefore(logoutFilter(), LogoutFilter.class)
-                    .authorizeRequests()
-                    .anyRequest()
-                    .authenticated()
-                    .and()
-                    .logout()
-                    .permitAll()
-                    .and()
-                    .rememberMe()
-                    .tokenValiditySeconds(SECENDS_OF_1_WEEK)
-                    // .and().csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
-                    .and()
-                    .csrf()
-                    .disable();
-        } else {
-            http.csrf().disable().antMatcher("/**").anonymous();
+            return registry.antMatchers("/api/v2/**")
+                    .access(StringUtils.join(convertedList, " or "));
         }
+        return registry;
     }
 
-    
+    protected void configureCasAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) throws Exception {
+        registry.and()
+                .exceptionHandling()
+                .authenticationEntryPoint(casAuthenticationEntryPoint())
+                .and()
+                .addFilter(casAuthenticationFilter())
+                .addFilterBefore(logoutFilter(), LogoutFilter.class)
+                .authorizeRequests()
+                .anyRequest()
+                .authenticated()
+                .and()
+                .logout()
+                .permitAll()
+                .and()
+                .csrf()
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+    }
+
     @Override
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
-        if (AUTH_PROVIDER_LOCAL.equalsIgnoreCase(authenticationProvider)) {
+        if (!securityProperties.isEnabled()) {
             auth.userDetailsService(userDetailsService).passwordEncoder(new BypassPasswordEncoder());
+        } else if (AUTH_PROVIDER_LOCAL.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
+            auth.userDetailsService(userDetailsService);
         } else {
             super.configure(auth);
         }
     }
-    
+
     public AuthenticationEntryPoint casAuthenticationEntryPoint() {
         CasAuthenticationEntryPoint point = new CasAuthenticationEntryPoint();
-        point.setLoginUrl(casServerUrl + "/login");
+        point.setLoginUrl(securityProperties.getCasServerUrl() + "/login");
         point.setServiceProperties(serviceProperties());
         return point;
     }
@@ -179,13 +202,13 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     }
 
     public LogoutFilter logoutFilter() {
-        return new LogoutFilter(casServerUrl + "/logout?service=" + getServerUrl(), new SecurityContextLogoutHandler());
+        return new LogoutFilter(securityProperties.getCasServerUrl() + "/logout?service=" + getServerUrl(), new SecurityContextLogoutHandler());
     }
 
     @Bean
     public CasAuthenticationProvider casAuthenticationProvider() {
         CasAuthenticationProvider provider = new CasAuthenticationProvider();
-        provider.setTicketValidator(new Cas20ServiceTicketValidator(casServerUrl));
+        provider.setTicketValidator(new Cas20ServiceTicketValidator(securityProperties.getCasServerUrl()));
         provider.setServiceProperties(serviceProperties());
         provider.setKey("casAuthProviderKey");
         provider.setUserDetailsService(userDetailsService);
@@ -204,26 +227,26 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
         return properties;
     }
 
-	private String getServerUrl() {
-		String serverUrl = null;
-		if (serverProperties.getServlet().getContextPath() != null) {
-			serverUrl = String.format("http://%s%s", casRedirectAppAddr, serverProperties.getServlet().getContextPath());
-		} else {
-			serverUrl = String.format("http://%s", casRedirectAppAddr);
-		}
-		return serverUrl;
-	}
-	
-	private class BypassPasswordEncoder implements PasswordEncoder{
-	    @Override
+    private String getServerUrl() {
+        String serverUrl = null;
+        if (serverProperties.getServlet().getContextPath() != null) {
+            serverUrl = String.format("http://%s%s", securityProperties.getCasRedirectAppAddr(), serverProperties.getServlet().getContextPath());
+        } else {
+            serverUrl = String.format("http://%s", securityProperties.getCasRedirectAppAddr());
+        }
+        return serverUrl;
+    }
+
+    private class BypassPasswordEncoder implements PasswordEncoder {
+        @Override
         public boolean matches(CharSequence rawPassword, String encodedPassword) {
             return true;
         }
-        
+
         @Override
         public String encode(CharSequence rawPassword) {
             return String.valueOf(rawPassword);
         }
-	}
+    }
 
 }
