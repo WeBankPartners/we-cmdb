@@ -10,7 +10,7 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanMap;
 
-import com.webank.cmdb.config.AppProperties;
+import com.webank.cmdb.config.ApplicationProperties;
 import com.webank.cmdb.constant.DynamicEntityType;
 import com.webank.cmdb.dynamicEntity.DynamicEntityClassLoader;
 import com.webank.cmdb.dynamicEntity.DynamicEntityGenerator;
@@ -26,7 +26,7 @@ public class domainTest {
     @Autowired
     private DynamicEntityClassLoader entityCL;
     @Autowired
-    private AppProperties appProperties;
+    private ApplicationProperties appProperties;
 
     // @Test
     public void testDomain() throws Exception {
