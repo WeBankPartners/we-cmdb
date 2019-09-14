@@ -14,6 +14,7 @@ import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -79,6 +80,8 @@ public class ApiV2Controller {
     private StateTransitionService stateTransitionService;
     @Autowired
     private ConstantService constantService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     // Enum code
     @PostMapping("/enum/codes/retrieve")
@@ -394,9 +397,12 @@ public class ApiV2Controller {
     public QueryResponse<UserDto> retrieveUsers(@RequestBody QueryRequest request) {
         return staticDtoService.query(UserDto.class, request);
     }
-    
+
     @PostMapping("/users/create")
     public List<UserDto> createUsers(@Valid @RequestBody List<UserDto> userDtos) {
+        userDtos.forEach(userDto -> {
+            userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        });
         return staticDtoService.create(UserDto.class, userDtos);
     }
 
