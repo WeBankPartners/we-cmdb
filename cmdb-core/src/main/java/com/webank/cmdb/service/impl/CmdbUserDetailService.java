@@ -1,8 +1,8 @@
 package com.webank.cmdb.service.impl;
 
 import static com.webank.cmdb.domain.AdmMenu.ROLE_PREFIX;
-import static java.util.stream.Collectors.toList;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 
@@ -20,8 +20,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
 import com.webank.cmdb.domain.AdmMenu;
+import com.webank.cmdb.domain.AdmUser;
 import com.webank.cmdb.repository.AdmMenusRepository;
+import com.webank.cmdb.repository.AdmUserRepository;
 
 @Service
 public class CmdbUserDetailService implements UserDetailsService {
@@ -30,10 +33,17 @@ public class CmdbUserDetailService implements UserDetailsService {
     @Autowired
     private AdmMenusRepository admMenusRepository;
 
+    @Autowired
+    private AdmUserRepository admUserRepository;
+
+    @Autowired
+    private SecurityProperties securityProperties;
+
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         List<AdmMenu> admMenus = admMenusRepository.findMenusByUserName(username);
+        String password = getPassword(username);
 
         if (CollectionUtils.isNotEmpty(admMenus)) {
             List<GrantedAuthority> authorities = admMenus.stream()
@@ -41,11 +51,22 @@ public class CmdbUserDetailService implements UserDetailsService {
                     .map(menuName -> new SimpleGrantedAuthority(ROLE_PREFIX + menuName))
                     .collect(toList());
             logger.info("Menu permissions {} found for user {}", authorities, username);
-            return new User(username, "", authorities);
+            return new User(username, password, authorities);
         } else {
             logger.warn("No accessible menu found for user {}", username);
-            return new User(username, "", emptyList());
+            return new User(username, password, emptyList());
         }
+    }
+
+    private String getPassword(String username) {
+        String password;
+        AdmUser user = admUserRepository.findByCode(username);
+        if (securityProperties.isEnabled()) {
+            password = user.getPassword();
+        } else {
+            password = "";
+        }
+        return password;
     }
 
 }

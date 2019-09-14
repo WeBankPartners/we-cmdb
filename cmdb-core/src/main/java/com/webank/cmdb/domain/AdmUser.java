@@ -31,6 +31,7 @@ public class AdmUser implements Serializable {
     private String code;
     private String description;
     private String name;
+    private String password;
     private List<AdmRoleUser> admRoleUsers;
     private AdmTenement admTenement;
     private List<AdmUserIntegrateTemplate> admUserIntegrateTemplates;
@@ -164,6 +165,14 @@ public class AdmUser implements Serializable {
         admUserPartner.setAdmUser(null);
 
         return admUserPartner;
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
 }
