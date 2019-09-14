@@ -23,12 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.google.common.collect.Lists;
-import com.webank.cmdb.constant.CiStatus;
-import com.webank.cmdb.constant.EffectiveStatus;
 import com.webank.cmdb.constant.ImplementOperation;
-import com.webank.cmdb.constant.InputType;
-import com.webank.cmdb.constant.ReferenceType;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
@@ -59,6 +54,7 @@ import com.webank.cmdb.service.ImageService;
 import com.webank.cmdb.service.IntegrationQueryService;
 import com.webank.cmdb.service.StateTransitionService;
 import com.webank.cmdb.service.StaticDtoService;
+import com.webank.cmdb.service.impl.ConstantService;
 import com.webank.cmdb.service.impl.FilterRuleService;
 import com.webank.cmdb.util.JsonUtil;
 
@@ -81,6 +77,8 @@ public class ApiV2Controller {
     private FilterRuleService filterRuleService;
     @Autowired
     private StateTransitionService stateTransitionService;
+    @Autowired
+    private ConstantService constantService;
 
     // Enum code
     @PostMapping("/enum/codes/retrieve")
@@ -281,50 +279,22 @@ public class ApiV2Controller {
     // Constants
     @PostMapping("/constants/ciStatus/retrieve")
     public List<String> retrieveConstantsOfCiStatus() {
-        List<String> statuses = Lists.newLinkedList();
-        for (CiStatus status : CiStatus.values()) {
-            if (CiStatus.None.equals(status))
-                continue;
-
-            statuses.add(status.getCode());
-        }
-        return statuses;
+        return constantService.getCiStatus();
     }
 
     @PostMapping("/constants/referenceTypes/retrieve")
     public List<String> retrieveConstantsOfReferenceTypes() {
-        List<String> referenceTypes = Lists.newLinkedList();
-        for (ReferenceType referenceType : ReferenceType.values()) {
-            if (ReferenceType.None.equals(referenceType))
-                continue;
-
-            referenceTypes.add(referenceType.getCode());
-        }
-        return referenceTypes;
+        return constantService.getReferenceTypes();
     }
 
     @PostMapping("/constants/inputTypes/retrieve")
     public List<String> retrieveConstantsOfInputTypes() {
-        List<String> inputTypes = Lists.newLinkedList();
-        for (InputType inputType : InputType.values()) {
-            if (InputType.None.equals(inputType))
-                continue;
-
-            inputTypes.add(inputType.getCode());
-        }
-        return inputTypes;
+        return constantService.getInputTypes();
     }
 
     @PostMapping("/constants/effectiveStatus/retrieve")
     public List<String> retrieveConstantsOfEffectiveStatus() {
-        List<String> effectiveStatus = Lists.newLinkedList();
-        for (EffectiveStatus status : EffectiveStatus.values()) {
-            if (EffectiveStatus.None.equals(status))
-                continue;
-
-            effectiveStatus.add(status.getCode());
-        }
-        return effectiveStatus;
+        return constantService.getEffectiveStatus();
     }
 
     // Images
