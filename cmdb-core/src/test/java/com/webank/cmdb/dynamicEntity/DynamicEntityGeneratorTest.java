@@ -17,7 +17,7 @@ import org.springframework.cglib.beans.BeanMap;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.webank.cmdb.config.ApplicationProperties;
+import com.webank.cmdb.config.ApplicationProperties.DatasourceProperties;
 import com.webank.cmdb.config.TestDatabase;
 import com.webank.cmdb.constant.DynamicEntityType;
 
@@ -30,7 +30,7 @@ public class DynamicEntityGeneratorTest {
     @Autowired
     private DynamicEntityClassLoader entityCL;
     @Autowired
-    private ApplicationProperties appProperties;
+    private DatasourceProperties datasourceProperties;
 
     @Before
     public void setup() {
@@ -48,7 +48,7 @@ public class DynamicEntityGeneratorTest {
         byte[] domainBuf = DynamicEntityGenerator.generate("test.domain.AdmMenu", "adm_menu", fields);
 
         Class clzz = entityCL.getClass(domainBuf);
-        HibernateJpaEntityManagerFactory ciManagerFactory = new HibernateJpaEntityManagerFactory(Arrays.asList(clzz), dataSource, entityCL, appProperties.getSchema());
+        HibernateJpaEntityManagerFactory ciManagerFactory = new HibernateJpaEntityManagerFactory(Arrays.asList(clzz), dataSource, entityCL, datasourceProperties.getSchema());
         EntityManager ciEntityManager = ciManagerFactory.getEntityManagerFactory()
                 .createEntityManager();
 

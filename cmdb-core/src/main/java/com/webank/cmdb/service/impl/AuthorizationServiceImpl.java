@@ -8,9 +8,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
 import com.webank.cmdb.domain.AdmRole;
 import com.webank.cmdb.domain.AdmRoleCiType;
 import com.webank.cmdb.exception.CmdbAccessDeniedException;
@@ -28,9 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class AuthorizationServiceImpl implements AuthorizationService {
 
-    @Value("${cas-server.enabled}")
-    private boolean securityEnabled;
-
+    @Autowired
+    private SecurityProperties securityProperties;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -38,7 +37,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     @Override
     public void authorizeCiData(int ciTypeId, Object ciData, String action) {
-        if (!securityEnabled) {
+        if (!securityProperties.isEnabled()) {
             log.warn("Security authorization is disabled.");
             return;
         }
@@ -52,7 +51,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     @Override
     public boolean isCiDataPermitted(int ciTypeId, Object ciData, String action) {
-        if (!securityEnabled) {
+        if (!securityProperties.isEnabled()) {
             log.warn("Security authorization is disabled.");
             return true;
         }
@@ -63,7 +62,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     @Override
     public boolean isCiTypePermitted(int ciTypeId, String action) {
-        if (!securityEnabled) {
+        if (!securityProperties.isEnabled()) {
             log.warn("Security authorization is disabled.");
             return true;
         }
@@ -98,6 +97,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     public void setSecurityEnabled(boolean securityEnabled) {
-        this.securityEnabled = securityEnabled;
+        securityProperties.setEnabled(securityEnabled);
     }
 }

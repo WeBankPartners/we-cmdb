@@ -10,7 +10,7 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.beans.BeanMap;
 
-import com.webank.cmdb.config.ApplicationProperties;
+import com.webank.cmdb.config.ApplicationProperties.DatasourceProperties;
 import com.webank.cmdb.constant.DynamicEntityType;
 import com.webank.cmdb.dynamicEntity.DynamicEntityClassLoader;
 import com.webank.cmdb.dynamicEntity.DynamicEntityGenerator;
@@ -26,7 +26,7 @@ public class domainTest {
     @Autowired
     private DynamicEntityClassLoader entityCL;
     @Autowired
-    private ApplicationProperties appProperties;
+    private DatasourceProperties datasourceProperties;
 
     // @Test
     public void testDomain() throws Exception {
@@ -39,7 +39,7 @@ public class domainTest {
         byte[] domainBuf = DynamicEntityGenerator.generate("test/domain/AdmMenu", "adm_menu", fields);
 
         Class clzz = entityCL.getClass(domainBuf);
-        HibernateJpaEntityManagerFactory ciManagerFactory = new HibernateJpaEntityManagerFactory(Arrays.asList(clzz), dataSource, entityCL, appProperties.getSchema());
+        HibernateJpaEntityManagerFactory ciManagerFactory = new HibernateJpaEntityManagerFactory(Arrays.asList(clzz), dataSource, entityCL, datasourceProperties.getSchema());
         EntityManager ciEntityManager = ciManagerFactory.getEntityManagerFactory()
                 .createEntityManager();
 
