@@ -1,0 +1,26 @@
+.ivu-table-row-highlight td {
+  background-color: rgb(101, 180, 233) !important;
+}
+.ivu-btn>span {
+  text-transform: capitalize !important;
+}
+.ivu-table-body{
+  .ivu-tooltip,
+  .ivu-table-cell-ellipsis {
+    width: 100%;
+  }
+}
+.ivu-form-inline .ivu-form-item {
+  display:block
+}
+.hidden-filters {
+  display: none;
+}
+
+.hidden-filters-show {
+  display: block;
+}
+
+.ivu-tooltip-inner-with-width{
+  word-break: break-all;
+}

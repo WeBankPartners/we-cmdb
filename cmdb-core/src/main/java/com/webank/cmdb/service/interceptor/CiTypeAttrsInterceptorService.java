@@ -236,7 +236,7 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
     }
 
     private boolean isDirtyChange(Map<String, Object> vals, AdmCiTypeAttr entity) {
-        if (vals.get("length") != null && entity.getLength() != vals.get("length")) {
+        if (vals.get("length") != null && !DataTypeConverter.convertToInteger(vals.get("length")).equals(entity.getLength())) {
             return true;
         }
 
@@ -244,7 +244,7 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
             return true;
         }
 
-        if (vals.get("isNullable") != null && entity.getEditIsNull() != DataTypeConverter.convertToInteger(vals.get("isNullable"))) {
+        if (vals.get("isNullable") != null && !DataTypeConverter.convertToInteger(vals.get("isNullable")).equals(entity.getEditIsNull())) {
             return true;
         }
         return false;

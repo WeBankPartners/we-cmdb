@@ -9,7 +9,6 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.Lists;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.constant.LogCategory;
 import com.webank.cmdb.constant.LogOperation;
@@ -20,9 +19,12 @@ import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.repository.StaticEntityRepository;
 import com.webank.cmdb.service.LogService;
+import com.webank.cmdb.service.StaticDtoService;
 
 @Service
 public class LogServiceImpl implements LogService {
+    @Autowired
+    private StaticDtoService staticDtoService;
     @Autowired
     private StaticEntityRepository staticEntityRepository;
 
@@ -33,12 +35,8 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public QueryResponse<LogDto> query(QueryRequest ciRequest) {
-        QueryResponse<AdmLog> domainResponse = staticEntityRepository.query(AdmLog.class, ciRequest);
-        List<LogDto> dtos = Lists.transform(domainResponse.getContents(), (x) -> {
-            return LogDto.fromDomain(x);
-        });
-        QueryResponse<LogDto> dtoResponse = new QueryResponse<>(domainResponse.getPageInfo(), dtos);
-        return dtoResponse;
+        QueryResponse<LogDto> domainResponse = staticDtoService.query(LogDto.class, ciRequest);
+        return domainResponse;
     }
 
     @Override
@@ -49,9 +47,9 @@ public class LogServiceImpl implements LogService {
         headers.add(new QueryHeader("ciTypeName", InputType.Text.getCode()));
         headers.add(new QueryHeader("createdDate", InputType.Date.getCode()));
         headers.add(new QueryHeader("user", InputType.Text.getCode()));
-        headers.add(new QueryHeader("logCat", InputType.Text.getCode(), LogCategory.codes()));
+        headers.add(new QueryHeader("logCat", InputType.Droplist.getCode(), LogCategory.codes()));
         headers.add(new QueryHeader("logContent", InputType.Text.getCode()));
-        headers.add(new QueryHeader("operation", InputType.Text.getCode(), LogOperation.codes()));
+        headers.add(new QueryHeader("operation", InputType.Droplist.getCode(), LogOperation.codes()));
         headers.add(new QueryHeader("remark", InputType.Text.getCode()));
         return headers;
     }

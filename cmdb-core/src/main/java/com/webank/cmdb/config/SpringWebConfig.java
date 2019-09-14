@@ -81,15 +81,13 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String context_path = serverProperties.getServlet().getContextPath() == null ? "" : serverProperties.getServlet().getContextPath();
-
         registry.addResourceHandler("/swagger-ui.html").addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
 
-        registry.addResourceHandler("/css/**").addResourceLocations("classpath:/static" + context_path + "/css/");
-        registry.addResourceHandler("/fonts/**").addResourceLocations("classpath:/static" + context_path + "/fonts/");
-        registry.addResourceHandler("/img/**").addResourceLocations("classpath:/static" + context_path + "/img/");
-        registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static" + context_path + "/js/");
+        registry.addResourceHandler("/css/**").addResourceLocations("classpath:/static/css/");
+        registry.addResourceHandler("/fonts/**").addResourceLocations("classpath:/static/fonts/");
+        registry.addResourceHandler("/img/**").addResourceLocations("classpath:/static/img/");
+        registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static/js/");
     }
 
     @Override

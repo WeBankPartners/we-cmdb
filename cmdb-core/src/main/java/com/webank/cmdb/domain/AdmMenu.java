@@ -1,14 +1,21 @@
 package com.webank.cmdb.domain;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * The persistent class for the adm_menu database table.
@@ -19,21 +26,20 @@ import javax.persistence.Table;
 @NamedQuery(name = "AdmMenu.findAll", query = "SELECT a FROM AdmMenu a")
 public class AdmMenu implements Serializable {
 
-    public final static String ROLE_PREFIX = "MENU_";
-    
-    public final static String MENU_QUERY = "QUERY";
-    public final static String MENU_QUERY_CONFIG = "QUERY_CONFIG";
-    public final static String MENU_COMMON_INTERFACE_RUNNER = "COMMON_INTERFACE_RUNNER";
-    public final static String MENU_CONFIG_MANAGEMENT = "CONFIG_MANAGEMENT";
-    public final static String MENU_BASIC_CONFIG_QUERY = "BASIC_CONFIG_QUERY";
-    public final static String MENU_OVERVIEW = "OVERVIEW";
-    public final static String MENU_COMMON_INTERFACE_CONFIG = "COMMON_INTERFACE_CONFIG";
-    public final static String MENU_SYSTEM_MANAGEMENT = "SYSTEM_MANAGEMENT";
-    public final static String MENU_PERMISSION = "PERMISSION";
-    public final static String MENU_QUERY_LOG = "QUERY_LOG";
-    public final static String MENU_RULE = "RULE";
-    
     private static final long serialVersionUID = 1L;
+    public final static String ROLE_PREFIX = "MENU_";
+
+    public final static String MENU_DESIGNING_CI_DATA_MANAGEMENT = "DESIGNING_CI_DATA_MANAGEMENT";
+    public final static String MENU_DESIGNING_CI_DATA_ENQUIRY = "DESIGNING_CI_DATA_ENQUIRY";
+    public final static String MENU_DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT = "DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT";
+    public final static String MENU_DESIGNING_CI_INTEGRATED_QUERY_EXECUTION = "DESIGNING_CI_INTEGRATED_QUERY_EXECUTION";
+    public final static String MENU_DESIGNING_ENUM_MANAGEMENT = "DESIGNING_ENUM_MANAGEMENT";
+    public final static String MENU_DESIGNING_ENUM_ENQUIRY = "DESIGNING_ENUM_ENQUIRY";
+    public final static String MENU_ADMIN_CMDB_MODEL_MANAGEMENT = "ADMIN_CMDB_MODEL_MANAGEMENT";
+    public final static String MENU_ADMIN_PERMISSION_MANAGEMENT = "ADMIN_PERMISSION_MANAGEMENT";
+    public final static String MENU_ADMIN_BASE_DATA_MANAGEMENT = "ADMIN_BASE_DATA_MANAGEMENT";
+    public final static String MENU_ADMIN_QUERY_LOG = "ADMIN_QUERY_LOG";
+
     private Integer idAdmMenu;
     private String classPath;
     private Integer isActive;
@@ -126,5 +132,17 @@ public class AdmMenu implements Serializable {
     public void setUrl(String url) {
         this.url = url;
     }
+
+    @OneToMany(mappedBy = "admMenu", cascade = CascadeType.ALL, orphanRemoval = true)
+    public List<AdmRoleMenu> getAssignedRoles() {
+        return assignedRoles;
+    }
+
+    public void setAssignedRoles(List<AdmRoleMenu> assignedRoles) {
+        this.assignedRoles = assignedRoles;
+    }
+
+    @EqualsAndHashCode.Exclude @ToString.Exclude
+    private List<AdmRoleMenu> assignedRoles = new ArrayList<>();
 
 }
