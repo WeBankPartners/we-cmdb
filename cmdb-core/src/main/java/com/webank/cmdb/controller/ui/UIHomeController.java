@@ -29,9 +29,14 @@ public class UIHomeController {
         return "home.html";
     }
 
-    @GetMapping(value = { "login.html" })
-    public String loginPage() {
-        return "login.html";
+    @GetMapping(value = { "login-privacy-free.html" })
+    public String loginPrivacyFreePage() {
+        return "login-privacy-free.html";
+    }
+
+    @GetMapping(value = { "login-with-password.html" })
+    public String loginWithPasswordPage() {
+        return "login-with-password.html";
     }
 
     @GetMapping("/ui/v2/my-menus")

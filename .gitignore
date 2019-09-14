@@ -18,6 +18,7 @@ target/
 # dependencies
 */node_modules/
 */node/
+*/build
 */package-lock.json
 /.pnp
 .pnp.js

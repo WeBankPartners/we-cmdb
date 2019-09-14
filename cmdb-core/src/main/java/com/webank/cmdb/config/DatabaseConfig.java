@@ -16,6 +16,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import com.webank.cmdb.config.ApplicationProperties.DatasourceProperties;
 import com.webank.cmdb.util.DatabaseUtils;
 
 @Configuration
@@ -24,7 +25,7 @@ import com.webank.cmdb.util.DatabaseUtils;
 public class DatabaseConfig {
 
     @Autowired
-    ApplicationProperties applicationProperties;
+    DatasourceProperties datasourceProperties;
 
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource, JpaVendorAdapter jpaVendorAdapter) {
@@ -38,7 +39,7 @@ public class DatabaseConfig {
 
     private Map getCustomizedProperties() {
         Map prop = new HashMap();
-        prop.put("hibernate.default_schema", applicationProperties.getSchema());
+        prop.put("hibernate.default_schema", datasourceProperties.getSchema());
         return prop;
     }
 
