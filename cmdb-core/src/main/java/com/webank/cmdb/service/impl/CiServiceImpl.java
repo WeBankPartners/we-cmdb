@@ -1589,9 +1589,11 @@ public class CiServiceImpl implements CiService {
                 // String alias = curQuery.getAttrAliases().get(i);
                 String keyName = curQuery.getAttrKeyNames().get(i);
                 Expression attrExpression = null;
-                if(InputType.MultSelDroplist.getCode().equals(attr.getInputType())
-                		|| InputType.MultRef.getCode().equals(attr.getInputType())) {
-                	attrExpression = curFrom.join(attr.getPropertyName()).get("from_guid");//need guid to fetch mult selection value 
+                if(InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
+                	attrExpression = curFrom.get("guid");//need guid to fetch mult selection value
+                	//attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId,"guid");
+                }else if(InputType.MultRef.getCode().equals(attr.getInputType())){
+                	attrExpression = curFrom.join(attr.getPropertyName()).get("guid");//need guid to fetch mult ref value
                 }else {
                 	attrExpression = curFrom.get(attr.getPropertyName());
                 }
@@ -1626,9 +1628,10 @@ public class CiServiceImpl implements CiService {
                 String keyName = curQuery.getAttrKeyNames().get(i);
                 Expression attrExpression = null;
                 
-                if(InputType.MultSelDroplist.getCode().equals(attr.getInputType())
-                		|| InputType.MultRef.getCode().equals(attr.getInputType())) {
-                	attrExpression = curFrom.join(attr.getPropertyName()).get("from_guid");//need guid to fetch mult selection value 
+                if(InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
+                	attrExpression = curFrom.get("guid");//need guid to fetch mult selection value
+                }if(InputType.MultRef.getCode().equals(attr.getInputType())){
+                	attrExpression = curFrom.join(attr.getPropertyName()).get("guid");//need guid to fetch mult ref value
                 }else {
                 	attrExpression = curFrom.get(attr.getPropertyName());
                 }
