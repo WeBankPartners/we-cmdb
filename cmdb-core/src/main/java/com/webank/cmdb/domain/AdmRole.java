@@ -32,6 +32,7 @@ public class AdmRole implements Serializable {
     private AdmRole admRole;
     private List<AdmRole> admRoles;
     private AdmTenement admTenement;
+    private Integer isSystem;
     private List<AdmRoleCiType> admRoleCiTypes;
     private List<AdmRoleUser> admRoleUsers;
     private List<AdmRoleMenu> admRoleMenus;
@@ -144,6 +145,15 @@ public class AdmRole implements Serializable {
 
     public void setAdmTenement(AdmTenement admTenement) {
         this.admTenement = admTenement;
+    }
+
+    @Column(name = "is_system")
+    public Integer getIsSystem() {
+        return this.isSystem;
+    }
+
+    public void setIsSystem(Integer isSystem) {
+        this.isSystem = isSystem;
     }
 
     // bi-directional many-to-one association to AdmRoleCiType
