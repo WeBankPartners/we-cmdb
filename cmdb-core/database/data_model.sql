@@ -1289,25 +1289,36 @@ INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `description`, `id_adm_te
 INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`) VALUES
     ('1', '1', '1');
 
-INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `seq_no`, `parent_id_adm_menu`) VALUES
-(1, 'DESIGNING', 1, NULL),
-(2, 'DESIGNING_CI_DATA_MANAGEMENT', 1, 1),
-(3, 'DESIGNING_CI_DATA_ENQUIRY', 2, 1),
-(4, 'DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT', 3, 1),
-(5, 'DESIGNING_CI_INTEGRATED_QUERY_EXECUTION', 4, 1),
-(6, 'DESIGNING_ENUM_MANAGEMENT', 5, 1),
-(7, 'DESIGNING_ENUM_ENQUIRY', 6, 1),
-(8, 'ADMIN', 2, NULL),
-(9, 'ADMIN_CMDB_MODEL_MANAGEMENT', 1, 8),
-(10, 'ADMIN_PERMISSION_MANAGEMENT', 2, 8),
-(11, 'ADMIN_BASE_DATA_MANAGEMENT', 3, 8),
-(12, 'ADMIN_QUERY_LOG', 4, 8);
+INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `other_name`, `seq_no`, `parent_id_adm_menu`) VALUES
+(1, 'DATA_QUERY', '数据查询', 1, NULL),
+(2, 'DATA_MANAGEMENT', '数据管理', 2, NULL),
+-- (3, 'VIEW_QUERY', '视图查询', 3, NULL),
+-- (4, 'VIEW_MANAGEMENT', '视图管理', 4, NULL),
+(5, 'ADMIN', '系统', 5, NULL),
+(6, 'DESIGNING_CI_DATA_ENQUIRY', 'CI数据查询', 6, 1),
+(7, 'DESIGNING_CI_INTEGRATED_QUERY_EXECUTION', 'CI数据综合查询', 7, 1),
+(8, 'DESIGNING_ENUM_ENQUIRY', '枚举数据查询', 8, 1),
+(9, 'DESIGNING_CI_DATA_MANAGEMENT', 'CI数据管理', 9, 2),
+(10, 'DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT', 'CI综合查询管理', 10, 2),
+(11, 'DESIGNING_ENUM_MANAGEMENT', '枚举数据管理', 11, 2),
+-- (12, 'IDC_PLANNING_QUERY', 'IDC规划查询', 12, 3),
+-- (13, 'IDC_RESOURCE_PLANNING_QUERY', 'IDC资源规划查询', 13, 3),
+-- (14, 'APPLICATION_ARCHITECTURE_QUERY', '应用架构设计查询', 14, 3),
+-- (15, 'APPLICATION_DEPLOYMENT_QUERY', '应用部署设计查询', 15, 3),
+-- (16, 'IDC_PLANNING_DESIGN', 'IDC规划设计', 16, 4),
+-- (17, 'IDC_RESOURCE_PLANNING', 'IDC资源规划', 17, 4),
+-- (18, 'APPLICATION_ARCHITECTURE_DESIGN', '应用架构设计', 18, 4),
+-- (19, 'APPLICATION_DEPLOYMENT_DESIGN', '应用部署设计', 19, 4),
+(20, 'ADMIN_CMDB_MODEL_MANAGEMENT', 'CMDB模型管理', 20, 5),
+(21, 'ADMIN_PERMISSION_MANAGEMENT', '系统权限管理', 21, 5),
+(22, 'ADMIN_BASE_DATA_MANAGEMENT', '基础数据管理', 22, 5),
+(23, 'ADMIN_QUERY_LOG', '日志查询', 23, 5);
 
 INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`) VALUES
 (1, 1, 1),
 (2, 1, 2),
-(3, 1, 3),
-(4, 1, 4),
+-- (3, 1, 3),
+-- (4, 1, 4),
 (5, 1, 5),
 (6, 1, 6),
 (7, 1, 7),
@@ -1315,6 +1326,17 @@ INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`) V
 (9, 1, 9),
 (10, 1, 10),
 (11, 1, 11),
-(12, 1, 12);
+-- (12, 1, 12),
+-- (13, 1, 13),
+-- (14, 1, 14),
+-- (15, 1, 15),
+-- (16, 1, 16),
+-- (17, 1, 17),
+-- (18, 1, 18),
+-- (19, 1, 19),
+(20, 1, 20),
+(21, 1, 21),
+(22, 1, 22),
+(23, 1, 23);
 
 SET FOREIGN_KEY_CHECKS=1;
