@@ -23,5 +23,5 @@ cmdb:
     cas-server-url: http://prod-cas-server-ip:8080/cas
     cas-redirect-app-addr: prod-host:8080
 
-    #Effective as long as the ip address is config
+    #Effective ONLY when security-enabled set as true
     whitelist-ip-address: 127.0.0.1
