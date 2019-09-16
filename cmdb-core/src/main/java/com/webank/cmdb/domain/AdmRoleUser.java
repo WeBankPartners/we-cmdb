@@ -24,6 +24,7 @@ public class AdmRoleUser implements Serializable {
     private Integer idAdmRoleUser;
     private Integer roleId;
     private String userId;
+    private Integer isSystem;
     private AdmRole admRole;
     private AdmUser admUser;
 
@@ -79,5 +80,14 @@ public class AdmRoleUser implements Serializable {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    @Column(name = "is_system")
+    public Integer getIsSystem() {
+        return this.isSystem;
+    }
+
+    public void setIsSystem(Integer isSystem) {
+        this.isSystem = isSystem;
     }
 }
