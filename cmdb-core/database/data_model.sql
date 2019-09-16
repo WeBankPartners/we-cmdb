@@ -1293,32 +1293,34 @@ INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `description`, `id_adm_te
 INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`, `is_system`) VALUES
     ('1', '1', '1', 1);
 
-INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `seq_no`, `parent_id_adm_menu`) VALUES
-(1, 'DESIGNING', 1, NULL),
-(2, 'DESIGNING_CI_DATA_MANAGEMENT', 1, 1),
-(3, 'DESIGNING_CI_DATA_ENQUIRY', 2, 1),
-(4, 'DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT', 3, 1),
-(5, 'DESIGNING_CI_INTEGRATED_QUERY_EXECUTION', 4, 1),
-(6, 'DESIGNING_ENUM_MANAGEMENT', 5, 1),
-(7, 'DESIGNING_ENUM_ENQUIRY', 6, 1),
-(8, 'ADMIN', 2, NULL),
-(9, 'ADMIN_CMDB_MODEL_MANAGEMENT', 1, 8),
-(10, 'ADMIN_PERMISSION_MANAGEMENT', 2, 8),
-(11, 'ADMIN_BASE_DATA_MANAGEMENT', 3, 8),
-(12, 'ADMIN_QUERY_LOG', 4, 8);
+INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `other_name`, `seq_no`, `parent_id_adm_menu`) VALUES
+(1, 'DATA_QUERY', '数据查询', 1, NULL),
+(2, 'DATA_MANAGEMENT', '数据管理', 2, NULL),
+(5, 'ADMIN', '系统', 5, NULL),
+(6, 'DESIGNING_CI_DATA_ENQUIRY', 'CI数据查询', 6, 1),
+(7, 'DESIGNING_CI_INTEGRATED_QUERY_EXECUTION', 'CI数据综合查询', 7, 1),
+(8, 'DESIGNING_ENUM_ENQUIRY', '枚举数据查询', 8, 1),
+(9, 'DESIGNING_CI_DATA_MANAGEMENT', 'CI数据管理', 9, 2),
+(10, 'DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT', 'CI综合查询管理', 10, 2),
+(11, 'DESIGNING_ENUM_MANAGEMENT', '枚举数据管理', 11, 2),
+(20, 'ADMIN_CMDB_MODEL_MANAGEMENT', 'CMDB模型管理', 20, 5),
+(21, 'ADMIN_PERMISSION_MANAGEMENT', '系统权限管理', 21, 5),
+(22, 'ADMIN_BASE_DATA_MANAGEMENT', '基础数据管理', 22, 5),
+(23, 'ADMIN_QUERY_LOG', '日志查询', 23, 5);
 
 INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`, `is_system`) VALUES
-(1, 1, 1, 1),
+(1, 1, 1, 0),
 (2, 1, 2, 0),
-(3, 1, 3, 0),
-(4, 1, 4, 0),
-(5, 1, 5, 0),
+(5, 1, 5, 1),
 (6, 1, 6, 0),
 (7, 1, 7, 0),
-(8, 1, 8, 1),
+(8, 1, 8, 0),
 (9, 1, 9, 0),
-(10, 1, 10, 1),
-(11, 1, 11, 0),
-(12, 1, 12, 0);
+(10, 1, 10, 0),
+(11, 1, 11, 1),
+(20, 1, 20, 0),
+(21, 1, 21, 0),
+(22, 1, 22, 0),
+(23, 1, 23, 0);
 
 SET FOREIGN_KEY_CHECKS=1;

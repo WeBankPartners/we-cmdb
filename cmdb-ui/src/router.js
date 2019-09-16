@@ -82,6 +82,48 @@ export default new Router({
           path: "/admin/query-log",
           name: "queryLog",
           component: () => import("@/pages/admin/query-log")
+        },
+        // 视图查询
+        {
+          path: "/view-query/idc-planning-query",
+          name: "idcPlanningQuery",
+          component: () => import("@/pages/coming-soon")
+        },
+        {
+          path: "/view-query/idc-resource-planning-query",
+          name: "idcResourcePlanningQuery",
+          component: () => import("@/pages/coming-soon")
+        },
+        {
+          path: "/view-query/application-architecture-query",
+          name: "applicationArchitectureQuery",
+          component: () => import("@/pages/coming-soon")
+        },
+        {
+          path: "/view-query/application-deployment-query",
+          name: "applicationDeploymentQuery",
+          component: () => import("@/pages/coming-soon")
+        },
+        // 视图管理
+        {
+          path: "/view-management/idc-planning-design",
+          name: "idcPlanningDesign",
+          component: () => import("@/pages/coming-soon")
+        },
+        {
+          path: "/view-management/idc-resource-planning",
+          name: "idcResourcePlanning",
+          component: () => import("@/pages/coming-soon")
+        },
+        {
+          path: "/view-management/application-architecture-design",
+          name: "applicationArchitectureDesign",
+          component: () => import("@/pages/coming-soon")
+        },
+        {
+          path: "/view-management/application-deployment-design",
+          name: "applicationDeploymentDesign",
+          component: () => import("@/pages/coming-soon")
         }
       ]
     }

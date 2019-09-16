@@ -1,8 +1,13 @@
 export const MENUS = [
   {
-    code: "DESIGNING",
-    cnName: "设计",
-    enName: "Designing"
+    code: "DATA_QUERY",
+    cnName: "数据查询",
+    enName: "Data Query"
+  },
+  {
+    code: "DATA_MANAGEMENT",
+    cnName: "数据管理",
+    enName: "Data Management"
   },
   {
     code: "ADMIN",
@@ -68,5 +73,65 @@ export const MENUS = [
     cnName: "日志查询",
     enName: "QUERY_LOG",
     link: "/admin/query-log"
+  },
+  // 视图查询
+  {
+    code: "VIEW_QUERY",
+    cnName: "视图查询",
+    enName: "View Query"
+  },
+  {
+    code: "IDC_PLANNING_QUERY",
+    cnName: "IDC规划查询",
+    enName: "IDC Planning Query",
+    link: "/view-query/idc-planning-query"
+  },
+  {
+    code: "IDC_RESOURCE_PLANNING_QUERY",
+    cnName: "IDC资源规划查询",
+    enName: "IDC Resource Planning Query",
+    link: "/view-query/idc-resource-planning-query"
+  },
+  {
+    code: "APPLICATION_ARCHITECTURE_QUERY",
+    cnName: "应用架构设计查询",
+    enName: "Application Architecture Query",
+    link: "/view-query/application-architecture-query"
+  },
+  {
+    code: "APPLICATION_DEPLOYMENT_QUERY",
+    cnName: "应用部署设计查询",
+    enName: "Application Deployment Query",
+    link: "/view-query/application-deployment-query"
+  },
+  // 视图管理
+  {
+    code: "VIEW_MANAGEMENT",
+    cnName: "视图管理",
+    enName: "View Management"
+  },
+  {
+    code: "IDC_PLANNING_DESIGN",
+    cnName: "IDC规划设计",
+    enName: "IDC Planning Design",
+    link: "/view-management/idc-planning-design"
+  },
+  {
+    code: "IDC_RESOURCE_PLANNING",
+    cnName: "IDC资源规划",
+    enName: "IDC Resource Planning",
+    link: "/view-management/idc-resource-planning"
+  },
+  {
+    code: "APPLICATION_ARCHITECTURE_DESIGN",
+    cnName: "应用架构设计",
+    enName: "Application Architecture Design",
+    link: "/view-management/application-architecture-design"
+  },
+  {
+    code: "APPLICATION_DEPLOYMENT_DESIGN",
+    cnName: "应用部署设计",
+    enName: "Application Deployment Design",
+    link: "/view-management/application-deployment-design"
   }
 ];
