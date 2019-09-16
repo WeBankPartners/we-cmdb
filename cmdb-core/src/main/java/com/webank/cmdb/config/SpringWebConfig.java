@@ -89,7 +89,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     protected void configure(HttpSecurity http) throws Exception {
         ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry = http.authorizeRequests();
         if (securityProperties.isEnabled()) {
-            registry = configureWhiteListAuthentication(registry);
+            registry = configureWhiteListAuthentication(registry, true);
             if (AUTH_PROVIDER_LOCAL.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
                 configureLocalAuthentication(registry);
             } else if (AUTH_PROVIDER_CAS.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
@@ -98,7 +98,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                 throw new CmdbException("Unsupported authentication-provider: " + securityProperties.getAuthenticationProvider());
             }
         } else {
-            registry = configureWhiteListAuthentication(registry);
+            registry = configureWhiteListAuthentication(registry, false);
             configurePrivacyFreeAuthentication(registry);
         }
     }
@@ -145,16 +145,22 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                 .disable();
     }
 
-    protected ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry configureWhiteListAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) throws Exception {
+    protected ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry configureWhiteListAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry,
+            boolean checkRequired) throws Exception {
         List<String> convertedList = new ArrayList<String>();
-        if (StringUtils.isNotBlank(securityProperties.getWhitelistIpAddress())) {
-            List<String> whiteListIpAddress = Arrays.asList(securityProperties.getWhitelistIpAddress().split(","));
-            for (String ipAddress : whiteListIpAddress) {
-                convertedList.add(String.format("hasIpAddress('%s')", ipAddress));
-            }
+        if (checkRequired) {
+            if (StringUtils.isNotBlank(securityProperties.getWhitelistIpAddress())) {
+                List<String> whiteListIpAddress = Arrays.asList(securityProperties.getWhitelistIpAddress().split(","));
+                for (String ipAddress : whiteListIpAddress) {
+                    convertedList.add(String.format("hasIpAddress('%s')", ipAddress));
+                }
 
+                return registry.antMatchers("/api/v2/**")
+                        .access(StringUtils.join(convertedList, " or "));
+            }
+        } else {
             return registry.antMatchers("/api/v2/**")
-                    .access(StringUtils.join(convertedList, " or "));
+                    .permitAll();
         }
         return registry;
     }
