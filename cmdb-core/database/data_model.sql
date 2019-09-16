@@ -1080,6 +1080,7 @@ CREATE TABLE IF NOT EXISTS `adm_role` (
   `id_adm_tenement` int(11) DEFAULT NULL COMMENT 'id_adm_tenement',
   `parent_id_adm_role` int(11) DEFAULT NULL COMMENT '父角色ID',
   `role_type` varchar(32) DEFAULT NULL COMMENT '角色类型（平台管理、租户管理、CI管理、数据使用）',
+  `is_system` int(1) DEFAULT '0' COMMENT '是否系统数据',
   PRIMARY KEY (`id_adm_role`),
   KEY `fk_adm_role_adm_tenement_1` (`id_adm_tenement`),
   KEY `fk_adm_role_adm_role_1` (`parent_id_adm_role`),
@@ -1140,6 +1141,7 @@ CREATE TABLE IF NOT EXISTS `adm_role_menu` (
   `id_adm_role_menu` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_menu',
   `id_adm_role` int(11) DEFAULT NULL COMMENT 'id_adm_role',
   `id_adm_menu` int(11) DEFAULT NULL COMMENT 'id_adm_menu',
+  `is_system` int(1) DEFAULT '0' COMMENT '是否系统数据',
   PRIMARY KEY (`id_adm_role_menu`),
   UNIQUE KEY `role_menu_unique` (`id_adm_role`,`id_adm_menu`),
   KEY `fk_adm_role_menu_adm_role_1` (`id_adm_role`),
@@ -1152,6 +1154,7 @@ CREATE TABLE IF NOT EXISTS `adm_role_user` (
   `id_adm_role_user` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_user',
   `id_adm_role` int(11) DEFAULT NULL COMMENT 'id_adm_role',
   `id_adm_user` varchar(64) DEFAULT NULL COMMENT 'id_adm_user',
+  `is_system` int(1) DEFAULT '0' COMMENT '是否系统数据',
   PRIMARY KEY (`id_adm_role_user`),
   KEY `fk_adm_role_user_adm_role_1` (`id_adm_role`),
   KEY `fk_adm_role_user_adm_user_1` (`id_adm_user`),
@@ -1264,36 +1267,35 @@ CREATE TABLE IF NOT EXISTS `adm_user` (
   `description` varchar(255) DEFAULT NULL COMMENT '描述',
   `id_adm_tenement` int(11) DEFAULT NULL COMMENT 'id_adm_tenement',
   `action_flag` tinyint(1) DEFAULT '0' COMMENT '用户操作Flag',
+  `is_system` int(1) DEFAULT '0' COMMENT '是否系统数据',
   PRIMARY KEY (`id_adm_user`),
   UNIQUE KEY `adm_user_code` (`code`),
   KEY `fk_adm_user_adm_tenement_1` (`id_adm_tenement`),
   CONSTRAINT `fk_adm_user_adm_tenement_1` FOREIGN KEY (`id_adm_tenement`) REFERENCES `adm_tenement` (`id_adm_tenement`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `adm_role` (`id_adm_role`, `role_name`, `description`, `id_adm_tenement`, `parent_id_adm_role`, `role_type`) VALUES
-	(1, 'SUPER_ADMIN', '超级管理员', NULL, NULL, 'ADMIN'),
-	(2, 'CMDB_ADMIN', 'CMDB管理员', NULL, NULL, 'ADMIN'),
-	(3, 'PLUGIN_ADMIN', '插件管理员', NULL, NULL, 'ADMIN'),
-	(4, 'IDC_ARCHITECT', '基础架构规划-IDC', NULL, NULL, 'ADMIN'),
-	(5, 'NETWORK_ARCHITECT', '基础架构规划-网络', NULL, NULL, 'ADMIN'),
-	(6, 'APP_ARCHITECT', '应用架构师', NULL, NULL, 'ADMIN'),
-	(7, 'OPS-PROD', '生产环境运维', NULL, NULL, 'ADMIN'),
-	(8, 'OPS-TEST', '测试环境运维', NULL, NULL, 'ADMIN'),
-	(9, 'DEVELOPER', '开发人员', NULL, NULL, 'ADMIN'),
-	(10, 'REGULAR', '普通用户', NULL, NULL, 'REGULAR'),
-	(11, 'READONLY', '只读用户', NULL, NULL, 'READONLY');
+INSERT INTO `adm_role` (`id_adm_role`, `role_name`, `description`, `id_adm_tenement`, `parent_id_adm_role`, `role_type`, `is_system`) VALUES
+	(1, 'SUPER_ADMIN', '超级管理员', NULL, NULL, 'ADMIN', 1),
+	(2, 'CMDB_ADMIN', 'CMDB管理员', NULL, NULL, 'ADMIN', 0),
+	(3, 'PLUGIN_ADMIN', '插件管理员', NULL, NULL, 'ADMIN', 0),
+	(4, 'IDC_ARCHITECT', '基础架构规划-IDC', NULL, NULL, 'ADMIN', 0),
+	(5, 'NETWORK_ARCHITECT', '基础架构规划-网络', NULL, NULL, 'ADMIN', 0),
+	(6, 'APP_ARCHITECT', '应用架构师', NULL, NULL, 'ADMIN', 0),
+	(7, 'OPS-PROD', '生产环境运维', NULL, NULL, 'ADMIN', 0),
+	(8, 'OPS-TEST', '测试环境运维', NULL, NULL, 'ADMIN', 0),
+	(9, 'DEVELOPER', '开发人员', NULL, NULL, 'ADMIN', 0),
+	(10, 'REGULAR', '普通用户', NULL, NULL, 'REGULAR', 0),
+	(11, 'READONLY', '只读用户', NULL, NULL, 'READONLY', 0);
 
-INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `description`, `id_adm_tenement`, `action_flag`) VALUES
-	('1', 'admin', 'admin', 'admin', NULL, 0);
+INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `description`, `id_adm_tenement`, `action_flag`, `is_system`) VALUES
+	('1', 'admin', 'admin', 'admin', NULL, 0, 1);
 
-INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`) VALUES
-    ('1', '1', '1');
+INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`, `is_system`) VALUES
+    ('1', '1', '1', 1);
 
 INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `other_name`, `seq_no`, `parent_id_adm_menu`) VALUES
 (1, 'DATA_QUERY', '数据查询', 1, NULL),
 (2, 'DATA_MANAGEMENT', '数据管理', 2, NULL),
--- (3, 'VIEW_QUERY', '视图查询', 3, NULL),
--- (4, 'VIEW_MANAGEMENT', '视图管理', 4, NULL),
 (5, 'ADMIN', '系统', 5, NULL),
 (6, 'DESIGNING_CI_DATA_ENQUIRY', 'CI数据查询', 6, 1),
 (7, 'DESIGNING_CI_INTEGRATED_QUERY_EXECUTION', 'CI数据综合查询', 7, 1),
@@ -1301,42 +1303,24 @@ INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `other_name`, `seq_no`, `parent_i
 (9, 'DESIGNING_CI_DATA_MANAGEMENT', 'CI数据管理', 9, 2),
 (10, 'DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT', 'CI综合查询管理', 10, 2),
 (11, 'DESIGNING_ENUM_MANAGEMENT', '枚举数据管理', 11, 2),
--- (12, 'IDC_PLANNING_QUERY', 'IDC规划查询', 12, 3),
--- (13, 'IDC_RESOURCE_PLANNING_QUERY', 'IDC资源规划查询', 13, 3),
--- (14, 'APPLICATION_ARCHITECTURE_QUERY', '应用架构设计查询', 14, 3),
--- (15, 'APPLICATION_DEPLOYMENT_QUERY', '应用部署设计查询', 15, 3),
--- (16, 'IDC_PLANNING_DESIGN', 'IDC规划设计', 16, 4),
--- (17, 'IDC_RESOURCE_PLANNING', 'IDC资源规划', 17, 4),
--- (18, 'APPLICATION_ARCHITECTURE_DESIGN', '应用架构设计', 18, 4),
--- (19, 'APPLICATION_DEPLOYMENT_DESIGN', '应用部署设计', 19, 4),
 (20, 'ADMIN_CMDB_MODEL_MANAGEMENT', 'CMDB模型管理', 20, 5),
 (21, 'ADMIN_PERMISSION_MANAGEMENT', '系统权限管理', 21, 5),
 (22, 'ADMIN_BASE_DATA_MANAGEMENT', '基础数据管理', 22, 5),
 (23, 'ADMIN_QUERY_LOG', '日志查询', 23, 5);
 
-INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`) VALUES
-(1, 1, 1),
-(2, 1, 2),
--- (3, 1, 3),
--- (4, 1, 4),
-(5, 1, 5),
-(6, 1, 6),
-(7, 1, 7),
-(8, 1, 8),
-(9, 1, 9),
-(10, 1, 10),
-(11, 1, 11),
--- (12, 1, 12),
--- (13, 1, 13),
--- (14, 1, 14),
--- (15, 1, 15),
--- (16, 1, 16),
--- (17, 1, 17),
--- (18, 1, 18),
--- (19, 1, 19),
-(20, 1, 20),
-(21, 1, 21),
-(22, 1, 22),
-(23, 1, 23);
+INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`, `is_system`) VALUES
+(1, 1, 1, 0),
+(2, 1, 2, 0),
+(5, 1, 5, 1),
+(6, 1, 6, 0),
+(7, 1, 7, 0),
+(8, 1, 8, 0),
+(9, 1, 9, 0),
+(10, 1, 10, 0),
+(11, 1, 11, 1),
+(20, 1, 20, 0),
+(21, 1, 21, 0),
+(22, 1, 22, 0),
+(23, 1, 23, 0);
 
 SET FOREIGN_KEY_CHECKS=1;
