@@ -15,4 +15,5 @@ public interface UserRepository extends JpaRepository<AdmUser, String> {
     @Cacheable("user-roles")
     @Query("SELECT DISTINCT role FROM AdmUser user JOIN user.admRoleUsers ru JOIN ru.admRole role WHERE user.name = :username")
     List<AdmRole> findRolesByUserName(String username);
+    Boolean existsByCode(String code);
 }
