@@ -623,22 +623,8 @@ public class CiServiceImpl implements CiService {
             return value;
 
         InputType inputType = InputType.fromCode(attr.getInputType());
-        if (InputType.Droplist.equals(inputType) || InputType.MultSelDroplist.equals(inputType)) {
-            Integer codeId = null;
-            try {
-                codeId = Integer.valueOf(String.valueOf(value));
-            } catch (NumberFormatException ex) {
-                logger.warn("Failed to get codeId from value:[{}], field:[{}]", value, fieldName);
-            }
-            if (codeId != null) {
-                CatCodeDto codeDto = null;
-                try {
-                    codeDto = basekeyInfoService.getCode(codeId);
-                } catch (InvalidArgumentException ex) {
-                    logger.warn("Failed to get cat code for codeId [{}].", codeId);
-                }
-                value = codeDto;
-            }
+        if (InputType.Droplist.equals(inputType) ) {
+            value = convertCodeValue(fieldName, value);
         } else if (InputType.Reference.equals(inputType)) {
             int ciTypeId = attr.getReferenceId();
             if (value != null) {
@@ -662,12 +648,87 @@ public class CiServiceImpl implements CiService {
                 String dateTxt = dateFmt.format((Timestamp) value);
                 value = dateTxt;
             }
+        }else if(InputType.MultSelDroplist.equals(inputType)) {
+        	String guid = String.valueOf(value);
+            PriorityEntityManager priEntityManager = getEntityManager();
+            EntityManager entityManager = priEntityManager.getEntityManager();
+            List codeIds = Lists.newLinkedList();
+
+            try {
+            	CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            	Class joinEntityClzz = multSelectMetaMap.get(attr.getIdAdmCiTypeAttr()).getEntityClazz();
+            	CriteriaQuery query = cb.createQuery(joinEntityClzz);
+            	Root root = query.from(joinEntityClzz);
+            	query.select(root);
+            	query.where(cb.equal(root.get("from_guid"), guid));
+            	TypedQuery typedQuery = entityManager.createQuery(query);
+            	List results = typedQuery.getResultList();
+            	if(results != null && results.size()>0) {
+            		for(Object record:results) {
+            			BeanMap map = new BeanMap(record);
+            			Integer codeId = (Integer)(map.get("to_code"));
+            			Object code = convertCodeValue(fieldName, codeId);
+            			codeIds.add(code);
+            		}
+            	}
+            	return codeIds;
+            }finally {
+            	priEntityManager.close();
+            }
+        }else if(InputType.MultRef.equals(inputType)) {
+        	String guid = String.valueOf(value);
+            PriorityEntityManager priEntityManager = getEntityManager();
+            EntityManager entityManager = priEntityManager.getEntityManager();
+            List ciObjs = Lists.newLinkedList();
+
+            try {
+            	CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            	Integer toCiTypeId = attr.getReferenceId();
+            	Class joinEntityClzz = dynamicEntityMetaMap.get(toCiTypeId).getEntityClazz();
+            	CriteriaQuery query = cb.createQuery(joinEntityClzz);
+            	Root root = query.from(joinEntityClzz);
+            	query.select(root);
+            	query.where(cb.equal(root.get("from_guid"), guid));
+            	TypedQuery typedQuery = entityManager.createQuery(query);
+            	List results = typedQuery.getResultList();
+            	if(results != null && results.size()>0) {
+            		for(Object record:results) {
+            			BeanMap map = new BeanMap(record);
+            			String to_guid = (String)(map.get("to_guid"));
+            			Object toCiObj = getCi(toCiTypeId, to_guid);
+            			ciObjs.add(toCiObj);
+            		}
+            	}
+            	return ciObjs;
+            }finally {
+            	priEntityManager.close();
+            }
+        	
         }
         /*
          * else if (value == null) { value = ""; }
          */
         return value;
     }
+
+	private Object convertCodeValue(String fieldName, Object value) {
+		Integer codeId = null;
+		try {
+		    codeId = Integer.valueOf(String.valueOf(value));
+		} catch (NumberFormatException ex) {
+		    logger.warn("Failed to get codeId from value:[{}], field:[{}]", value, fieldName);
+		}
+		if (codeId != null) {
+		    CatCodeDto codeDto = null;
+		    try {
+		        codeDto = basekeyInfoService.getCode(codeId);
+		    } catch (InvalidArgumentException ex) {
+		        logger.warn("Failed to get cat code for codeId [{}].", codeId);
+		    }
+		    value = codeDto;
+		}
+		return value;
+	}
 
     @Override
     public List<DynamicEntityHolder> filterBy(int ciType, List<FilterInfo> filterInfos, Pageable pageable, Sorting sorting) {
@@ -1171,7 +1232,9 @@ public class CiServiceImpl implements CiService {
 
         List<Expression> selections = new LinkedList<>();
         selectedFields.forEach(x -> {
-            selections.add(x.getExpression());
+        	if(!selections.contains(x.getExpression())) {
+        		selections.add(x.getExpression());
+        	}
         });
 
         List<Map<String, Object>> results = new LinkedList<>();
@@ -1260,7 +1323,9 @@ public class CiServiceImpl implements CiService {
                         continue;
                     }
                     selectedFields.add(kv.getValue());
-                    selections.add(kv.getValue().getExpression());
+                    if(!selections.contains(kv.getValue().getExpression())) {
+                    	selections.add(kv.getValue().getExpression());
+                    }
                 }
                 query.multiselect(selections);
             }
@@ -1416,14 +1481,16 @@ public class CiServiceImpl implements CiService {
         private String inputType;
         private String name;
         private Integer attrId;
+        private String alias;
 
-        public FieldInfo(Expression selection, Class<?> type, int ciTypeId, String inputType, String name, Integer attrId) {
+        public FieldInfo(Expression selection, Class<?> type, int ciTypeId, String inputType, String name, Integer attrId, String alias) {
             this.expression = selection;
             this.type = type;
             this.ciTypeId = ciTypeId;
             this.name = name;
             this.inputType = inputType;
             this.attrId = attrId;
+            this.alias = alias;
         }
 
         public Expression getExpression() {
@@ -1474,23 +1541,38 @@ public class CiServiceImpl implements CiService {
             this.attrId = attrId;
         }
 
+		public String getAlias() {
+			return alias;
+		}
+
+		public void setAlias(String alias) {
+			this.alias = alias;
+		}
+
     }
 
     private Map<String, Object> convertResponse(List<Expression> selections, Object[] response, List<FieldInfo> fieldInfos) {
-        if (selections.size() != fieldInfos.size()) {
-            throw new ServiceException("Selections and query result size are not matched.");
+        if (selections.size() > fieldInfos.size()) {
+            throw new ServiceException("Selections size should not be larger than field infor size.");
+        }
+        
+        Map<Expression,Integer> exprIndexMap = new HashMap<>();
+        for(int i=0;i<selections.size();i++) {
+        	exprIndexMap.put(selections.get(i), i);
         }
 
         Map<String, Object> rowMap = new HashMap<>();
-        for (int i = 0; i < selections.size(); i++) {
-            FieldInfo fieldInfo = fieldInfos.get(i);
+        
+        for(FieldInfo fieldInfo:fieldInfos) {
+        	Expression expr = fieldInfo.getExpression();
             AdmCiTypeAttr attr = null;
             if (fieldInfo.getAttrId() != null) {
                 attr = ciTypeAttrRepository.getOne(fieldInfo.getAttrId());
             }
-            Object convertedObj = convertFieldValue(selections.get(i).getAlias(), response[i], attr);
-            rowMap.put(selections.get(i).getAlias(), convertedObj);
+            Object convertedObj = convertFieldValue(expr.getAlias(), response[exprIndexMap.get(expr)], attr);
+            rowMap.put(fieldInfo.getAlias(), convertedObj);
         }
+        
         return rowMap;
     }
 
@@ -1520,19 +1602,27 @@ public class CiServiceImpl implements CiService {
         From curFrom = null;
         if (parentPath == null) {// root query
             curFrom = query.from(entityMeta.getEntityClazz());
-            attrExprMap.put("root", new FieldInfo(curFrom, entityMeta.getEntityClazz(), curCiTypeId, null, "root", null));
+            attrExprMap.put("root", new FieldInfo(curFrom, entityMeta.getEntityClazz(), curCiTypeId, null, "root", null,null));
 
             List<Integer> attrIds = curQuery.getAttrs();
             for (int i = 0; i < attrIds.size(); i++) {
                 AdmCiTypeAttr attr = ciTypeAttrRepository.getOne(attrIds.get(i));
                 // String alias = curQuery.getAttrAliases().get(i);
                 String keyName = curQuery.getAttrKeyNames().get(i);
-                Expression attrExpression = curFrom.get(attr.getPropertyName());
+                Expression attrExpression = null;
+                if(InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
+                	attrExpression = curFrom.get("guid");//need guid to fetch mult selection value
+                	//attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId,"guid");
+                }else if(InputType.MultRef.getCode().equals(attr.getInputType())){
+                	attrExpression = curFrom.join(attr.getPropertyName()).get("guid");//need guid to fetch mult ref value
+                }else {
+                	attrExpression = curFrom.get(attr.getPropertyName());
+                }
                 attrExpression.alias(keyName);
                 if (attrExprMap.containsKey(keyName)) {
                     throw new ServiceException(String.format("There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()));
                 }
-                attrExprMap.put(keyName, new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr()));
+                attrExprMap.put(keyName, new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr(),keyName));
                 currentCiTypeAttrExprMap.put(attr.getPropertyName(), attrExprMap.get(keyName));
             }
         } else {
@@ -1557,12 +1647,21 @@ public class CiServiceImpl implements CiService {
                 AdmCiTypeAttr attr = ciTypeAttrRepository.getOne(attrIds.get(i));
                 // String alias = curQuery.getAttrAliases().get(i);
                 String keyName = curQuery.getAttrKeyNames().get(i);
-                Expression attrExpression = curFrom.get(attr.getPropertyName());
+                Expression attrExpression = null;
+                
+                if(InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
+                	attrExpression = curFrom.get("guid");//need guid to fetch mult selection value
+                }if(InputType.MultRef.getCode().equals(attr.getInputType())){
+                	attrExpression = curFrom.join(attr.getPropertyName()).get("guid");//need guid to fetch mult ref value
+                }else {
+                	attrExpression = curFrom.get(attr.getPropertyName());
+                }
+
                 attrExpression.alias(keyName);
                 if (attrExprMap.containsKey(keyName)) {
                     throw new ServiceException(String.format("There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()));
                 }
-                attrExprMap.put(keyName, new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr()));
+                attrExprMap.put(keyName, new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr(),keyName));
                 currentCiTypeAttrExprMap.put(attr.getPropertyName(), attrExprMap.get(keyName));
             }
         }
@@ -1584,7 +1683,7 @@ public class CiServiceImpl implements CiService {
                 if (fieldInfo == null) {
                     Expression attrExpression = curFrom.get(propertyName);
                     attrExpression.alias(keyName);
-                    fieldInfo = new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr());
+                    fieldInfo = new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr(),keyName);
                 }
                 attrExprMap.put(keyName, fieldInfo);
             }
@@ -1609,7 +1708,7 @@ public class CiServiceImpl implements CiService {
         if (expression.getAlias() == null) {
             expression.alias(alias);
         }
-        attrExprMap.put(alias, new FieldInfo(expression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), null));
+        attrExprMap.put(alias, new FieldInfo(expression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), null,alias));
     }
 
     @Override
@@ -1755,8 +1854,10 @@ public class CiServiceImpl implements CiService {
         resultList = doIntegrateQuery(intQueryDto, queryRequest, false, selectedFields);
 
         List<Expression> selections = new LinkedList<>();
-        selectedFields.forEach(x -> {
-            selections.add(x.getExpression());
+        selectedFields.forEach(field -> {
+        	if(!selections.contains(field.getExpression())) {
+        		selections.add(field.getExpression());
+        	}
         });
 
         List<Map<String, Object>> results = new LinkedList<>();
