@@ -1284,7 +1284,7 @@ INSERT INTO `adm_role` (`id_adm_role`, `role_name`, `description`, `id_adm_tenem
 	(10, 'REGULAR', '普通用户', NULL, NULL, 'REGULAR'),
 	(11, 'READONLY', '只读用户', NULL, NULL, 'READONLY');
 
-INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `password`, `description`, `id_adm_tenement`, `action_flag`) VALUES
+INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `encrypted_password`, `description`, `id_adm_tenement`, `action_flag`) VALUES
 	('1', 'admin', 'admin','$2a$10$.0CM2e2tMQqNp1x4Cfq7AOcS943TJVgGpRX3B1bnGFWnuGKUrJ3x2', 'admin', NULL, 0);
 
 INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`) VALUES
