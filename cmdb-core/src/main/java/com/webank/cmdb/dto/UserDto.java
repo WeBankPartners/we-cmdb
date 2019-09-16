@@ -70,7 +70,7 @@ public class UserDto extends BasicResourceDto<UserDto, AdmUser> {
         domain.setIdAdmUser(this.getUserId());
         domain.setCode(this.getUsername());
         domain.setName(this.getFullName());
-        domain.setPassword(this.getPassword());
+        domain.setEncryptedPassword(this.getPassword());
         domain.setDescription(this.getDescription());
         return domain;
     }
