@@ -694,30 +694,30 @@ INSERT INTO `adm_integrate_template_alias_attr` (`id_attr`, `id_alias`, `id_ci_t
 INSERT INTO `adm_integrate_template_relation` (`id_relation`, `child_alias_id`, `child_ref_attr_id`, `parent_alias_id`, `is_refered_from_parent`) VALUES
 	(1, 1, 236, 2, 0);
 
-INSERT INTO adm_role (id_adm_role, role_name,description,id_adm_tenement,parent_id_adm_role,role_type) VALUES
-(1,'SUPER_ADMIN','超级管理员',NULL,NULL,'ADMIN')
-,(2,'CMDB_ADMIN','CMDB管理员',NULL,NULL,'ADMIN')
-,(3,'PLUGIN_ADMIN','插件管理员',NULL,NULL,'ADMIN')
-,(4,'IDC_ARCHITECT','基础架构规划-IDC',NULL,NULL,'ADMIN')
-,(5,'NETWORK_ARCHITECT','基础架构规划-网络',NULL,NULL,'ADMIN')
-,(6,'APP_ARCHITECT','应用架构师',NULL,NULL,'ADMIN')
-,(7,'OPS-PROD','生产环境运维',NULL,NULL,'ADMIN')
-,(8,'OPS-TEST','测试环境运维',NULL,NULL,'ADMIN')
-,(9,'DEVELOPER','开发人员',NULL,NULL,'ADMIN')
-,(10,'REGULAR','普通用户',NULL,NULL,'REGULAR')
-,(11,'READONLY','只读用户',NULL,NULL,'READONLY')
+INSERT INTO adm_role (id_adm_role, role_name,description,id_adm_tenement,parent_id_adm_role,role_type,is_system) VALUES
+(1,'SUPER_ADMIN','超级管理员',NULL,NULL,'ADMIN',1)
+,(2,'CMDB_ADMIN','CMDB管理员',NULL,NULL,'ADMIN',0)
+,(3,'PLUGIN_ADMIN','插件管理员',NULL,NULL,'ADMIN',0)
+,(4,'IDC_ARCHITECT','基础架构规划-IDC',NULL,NULL,'ADMIN',0)
+,(5,'NETWORK_ARCHITECT','基础架构规划-网络',NULL,NULL,'ADMIN',0)
+,(6,'APP_ARCHITECT','应用架构师',NULL,NULL,'ADMIN',0)
+,(7,'OPS-PROD','生产环境运维',NULL,NULL,'ADMIN',0)
+,(8,'OPS-TEST','测试环境运维',NULL,NULL,'ADMIN',0)
+,(9,'DEVELOPER','开发人员',NULL,NULL,'ADMIN',0)
+,(10,'REGULAR','普通用户',NULL,NULL,'REGULAR',0)
+,(11,'READONLY','只读用户',NULL,NULL,'READONLY',0)
 ;
 
-INSERT INTO adm_user (id_adm_user, name, code, description) VALUES
-('1001', 'mock_user1','mock_user1','mock_user1')
-,('1002', 'mock_user2','mock_user2','mock_user2')
-,('1003', 'mock_user3','mock_user3','mock_user3')
-,('1004', 'mock_user4','mock_user4','mock_user4')
+INSERT INTO adm_user (id_adm_user, name, code, description,is_system) VALUES
+('1001', 'mock_user1','mock_user1','mock_user1',1)
+,('1002', 'mock_user2','mock_user2','mock_user2',0)
+,('1003', 'mock_user3','mock_user3','mock_user3',0)
+,('1004', 'mock_user4','mock_user4','mock_user4',0)
 ;
-INSERT INTO adm_role_user (id_adm_role_user, id_adm_role, id_adm_user) VALUES
-(1, 1,'1001')
-,(2, 1,'1002')
-,(3, 1,'1003')
+INSERT INTO adm_role_user (id_adm_role_user, id_adm_role, id_adm_user, is_system) VALUES
+(1, 1,'1001',1)
+,(2, 1,'1002',0)
+,(3, 1,'1003',0)
 ;
 
 INSERT INTO adm_role_ci_type (id_adm_role_ci_type, id_adm_role,id_adm_ci_type,ci_type_name,creation_permission,removal_permission,modification_permission,enquiry_permission,execution_permission,grant_permission) VALUES
@@ -750,10 +750,10 @@ INSERT INTO adm_menu (id_adm_menu, name,other_name,url,seq_no,remark,parent_id_a
 ,(4, 'menuD','','menuD/index.html',4,NULL,NULL,NULL,0)
 ;
 
-INSERT INTO adm_role_menu (id_adm_role_menu, id_adm_role,id_adm_menu) VALUES
-(1,1,1)
-,(2,1,2)
-,(3,1,3)
+INSERT INTO adm_role_menu (id_adm_role_menu, id_adm_role,id_adm_menu,is_system) VALUES
+(1,1,1,1)
+,(2,1,2,0)
+,(3,1,3,0)
 ;
 
 INSERT INTO `adm_files` (`id_adm_file`, `type`, `name`, `content`) VALUES
