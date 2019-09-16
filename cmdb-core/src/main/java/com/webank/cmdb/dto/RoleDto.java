@@ -19,6 +19,7 @@ public class RoleDto extends BasicResourceDto<RoleDto, AdmRole> {
     private String roleName;
     private String roleType;
     private String description;
+    private Boolean isSystem;
     @DtoField(domainField = "admRoleUsers", updatable = false)
     private List<RoleUserDto> roleUsers = new LinkedList<>();
     @DtoField(domainField = "admRoleMenus", updatable = false)
@@ -27,11 +28,12 @@ public class RoleDto extends BasicResourceDto<RoleDto, AdmRole> {
     public RoleDto() {
     }
 
-    public RoleDto(Integer roleId, String roleName, String roleType, String description) {
+    public RoleDto(Integer roleId, String roleName, String roleType, String description, Boolean isSystem) {
         this.roleId = roleId;
         this.roleName = roleName;
         this.roleType = roleType;
         this.description = description;
+        this.isSystem = isSystem;
     }
 
     @Override
@@ -61,7 +63,7 @@ public class RoleDto extends BasicResourceDto<RoleDto, AdmRole> {
     }
 
     public static RoleDto from(AdmRole domain, boolean withChild) {
-        RoleDto dto = new RoleDto(domain.getIdAdmRole(), domain.getRoleName(), domain.getRoleType(), domain.getDescription());
+        RoleDto dto = new RoleDto(domain.getIdAdmRole(), domain.getRoleName(), domain.getRoleType(), domain.getDescription(), domain.getIsSystem() == null ? false : domain.getIsSystem() != 0);
         if (withChild) {
             domain.getAdmRoleUsers().forEach(x -> dto.roleUsers.add(RoleUserDto.from(x, true)));
             domain.getAdmRoleMenus().forEach(x -> dto.roleMenus.add(RoleMenuDto.from(x, true)));
@@ -74,6 +76,7 @@ public class RoleDto extends BasicResourceDto<RoleDto, AdmRole> {
         domain.setRoleName(this.getRoleName());
         domain.setRoleType(this.getRoleType());
         domain.setDescription(this.getDescription());
+        domain.setIsSystem(Boolean.TRUE.equals(this.isSystem) ? 1 : 0);
         return domain;
     }
 
@@ -128,5 +131,13 @@ public class RoleDto extends BasicResourceDto<RoleDto, AdmRole> {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this).add("roleId", roleId).add("roleName", roleName).add("roleType", roleType).add("description", description).toString();
+    }
+
+    public Boolean getIsSystem() {
+        return isSystem;
+    }
+
+    public void setIsSystem(Boolean isSystem) {
+        this.isSystem = isSystem;
     }
 }

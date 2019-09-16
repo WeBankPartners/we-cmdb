@@ -18,6 +18,7 @@ public class RoleUserDto extends BasicResourceDto<RoleUserDto, AdmRoleUser> {
 
     private Integer roleId;
     private String userId;
+    private Boolean isSystem;
 
     @DtoField(domainField = "admRole", updatable = false)
     private RoleDto role;
@@ -27,10 +28,11 @@ public class RoleUserDto extends BasicResourceDto<RoleUserDto, AdmRoleUser> {
     public RoleUserDto() {
     }
 
-    public RoleUserDto(Integer roleUserId, Integer roleId, String userId) {
+    public RoleUserDto(Integer roleUserId, Integer roleId, String userId, Boolean isSystem) {
         this.roleUserId = roleUserId;
         this.roleId = roleId;
         this.userId = userId;
+        this.setIsSystem(isSystem);
     }
 
     public RoleUserDto(Integer roleId, String userId) {
@@ -61,7 +63,7 @@ public class RoleUserDto extends BasicResourceDto<RoleUserDto, AdmRoleUser> {
     }
 
     public static RoleUserDto from(AdmRoleUser domain, boolean withChild) {
-        RoleUserDto dto = new RoleUserDto(domain.getIdAdmRoleUser(), domain.getRoleId(), domain.getUserId());
+        RoleUserDto dto = new RoleUserDto(domain.getIdAdmRoleUser(), domain.getRoleId(), domain.getUserId(), domain.getIsSystem() == null ? false : domain.getIsSystem() != 0);
         if (withChild) {
             dto.user = UserDto.from(domain.getAdmUser(), false);
             dto.role = RoleDto.from(domain.getAdmRole(), false);
@@ -76,6 +78,7 @@ public class RoleUserDto extends BasicResourceDto<RoleUserDto, AdmRoleUser> {
         domain.setAdmUser(this.user.toDomain());
         domain.setRoleId(this.roleId);
         domain.setUserId(this.userId);
+        domain.setIsSystem(Boolean.TRUE.equals(this.getIsSystem()) ? 1 : 0);
         return domain;
     }
 
@@ -122,5 +125,13 @@ public class RoleUserDto extends BasicResourceDto<RoleUserDto, AdmRoleUser> {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this).add("roleUserId", roleUserId).add("roleId", roleId).add("userId", userId).toString();
+    }
+
+    public Boolean getIsSystem() {
+        return isSystem;
+    }
+
+    public void setIsSystem(Boolean isSystem) {
+        this.isSystem = isSystem;
     }
 }

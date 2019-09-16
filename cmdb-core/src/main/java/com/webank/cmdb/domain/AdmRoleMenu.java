@@ -25,6 +25,7 @@ public class AdmRoleMenu implements Serializable {
     private Integer idAdmRoleMenu;
     private Integer idAdmMenu;
     private Integer idAdmRole;
+    private Integer isSystem;
     private AdmMenu admMenu;
     private AdmRole admRole;
 
@@ -58,6 +59,15 @@ public class AdmRoleMenu implements Serializable {
 
     public void setIdAdmRole(Integer idAdmRole) {
         this.idAdmRole = idAdmRole;
+    }
+
+    @Column(name = "is_system")
+    public Integer getIsSystem() {
+        return this.isSystem;
+    }
+
+    public void setIsSystem(Integer isSystem) {
+        this.isSystem = isSystem;
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
