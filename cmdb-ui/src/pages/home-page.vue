@@ -1,8 +1,5 @@
 <template>
-  <div class="home-page">
-    <div v-if="showModel" id="graph" class="home-page"></div>
-    <img v-else src="./images/cmdb-home-page.gif" />
-  </div>
+  <div id="graph" class="home-page"></div>
 </template>
 
 <script>
@@ -16,8 +13,7 @@ export default {
       layers: [],
       graph: {},
       g: null,
-      selectedStatus: ["notCreated", "created"],
-      showModel: false
+      selectedStatus: ["notCreated", "created"]
     };
   },
   methods: {
@@ -59,7 +55,6 @@ export default {
 
       let layerResponse = await getAllLayers();
       if (layerResponse.status === "OK") {
-        this.showModel = true;
         let tempLayer = layerResponse.data
           .filter(i => i.status === "active")
           .map(_ => {
@@ -256,10 +251,5 @@ export default {
   font-weight: 600;
   height: calc(100vh - 60px);
   justify-content: center;
-
-  > div {
-    height: 100%;
-    width: 100%;
-  }
 }
 </style>
