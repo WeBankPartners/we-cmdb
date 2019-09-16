@@ -62,7 +62,7 @@ public class CmdbUserDetailService implements UserDetailsService {
         String password;
         AdmUser user = admUserRepository.findByCode(username);
         if (securityProperties.isEnabled()) {
-            password = user.getPassword();
+            password = user.getEncryptedPassword();
         } else {
             password = "";
         }
