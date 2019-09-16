@@ -60,7 +60,6 @@ public class UIFileManagementController {
         }
     }
 
-    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_DESIGNING_CI_DATA_MANAGEMENT, MENU_DESIGNING_CI_DATA_ENQUIRY })
     @GetMapping("/files/{file-id}")
     public void downloadFile(@PathVariable(value = "file-id") int fileId, HttpServletResponse response) {
         ServletOutputStream out;
