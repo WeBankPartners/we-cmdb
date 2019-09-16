@@ -53,7 +53,6 @@ public class UICiDataManagementController {
     @Autowired
     private UIWrapperService wrapperService;
 
-    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_DESIGNING_CI_DATA_MANAGEMENT, MENU_DESIGNING_CI_DATA_ENQUIRY })
     @GetMapping("/ci-types")
     @ResponseBody
     public Object getCiTypes(@RequestParam(name = "group-by", required = false) String groupBy, @RequestParam(name = "with-attributes", required = false) String withAttributes,

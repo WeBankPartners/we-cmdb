@@ -98,7 +98,6 @@ public class UIEnumManagementController {
         return wrapperService.getEnumCodesByCategoryId(categoryId);
     }
 
-    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_DESIGNING_CI_DATA_MANAGEMENT, MENU_DESIGNING_CI_DATA_ENQUIRY })
     @GetMapping("/ci-type-layers")
     public Object getCiTypeLayers() {
         return wrapperService.getAllLayers();
