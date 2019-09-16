@@ -22,6 +22,7 @@ import com.webank.cmdb.controller.ui.helper.UIWrapperService;
 import com.webank.cmdb.dto.MenuDto;
 import com.webank.cmdb.dto.RoleCiTypeDto;
 import com.webank.cmdb.dto.RoleDto;
+import com.webank.cmdb.dto.UserDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -48,6 +49,12 @@ public class UIUserManagementController {
     @ResponseBody
     public Object getAllUsers() {
         return wrapperService.getAllUsers();
+    }
+
+    @PostMapping("/users/create")
+    @ResponseBody
+    public List<UserDto> createNewUser(@RequestBody UserDto user) {
+        return userManagerService.createUser(user);
     }
 
     @GetMapping("/roles")

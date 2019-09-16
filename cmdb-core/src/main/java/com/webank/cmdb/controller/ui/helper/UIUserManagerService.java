@@ -7,6 +7,7 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -39,6 +40,8 @@ import com.webank.cmdb.dto.RoleUserDto;
 import com.webank.cmdb.dto.UserDto;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.repository.AdmMenusRepository;
+import com.webank.cmdb.repository.UserRepository;
+import com.webank.cmdb.service.StaticDtoService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,6 +61,12 @@ public class UIUserManagerService {
 
     @Autowired
     AdmMenusRepository admMenusRepository;
+
+    @Autowired
+    private StaticDtoService staticDtoService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     UIWrapperService uiWrapperService;
@@ -428,6 +437,26 @@ public class UIUserManagerService {
         public int compare(RoleCiTypeDto o1, RoleCiTypeDto o2) {
             return o1.getCiTypeId().compareTo(o2.getCiTypeId());
         }
+    }
+
+    public Boolean checkUserExists(String username) {
+        return userRepository.existsByCode(username);
+    }
+
+    public List<UserDto> createUser(UserDto userDto) {
+        if (userDto == null)
+            throw new CmdbException("User parameter should not be null.");
+        if (userDto.getUsername() == null)
+            throw new CmdbException("Username should not be null.");
+        if (userDto.getFullName() == null)
+            userDto.setFullName(userDto.getUsername());
+        if (userDto.getDescription() == null)
+            userDto.setDescription(userDto.getFullName());
+        if (checkUserExists(userDto.getUsername())) {
+            throw new CmdbException(String.format("Username[%s] already exists.", userDto.getUsername()));
+        }
+
+        return staticDtoService.create(UserDto.class, Arrays.asList(userDto));
     }
 
 }
