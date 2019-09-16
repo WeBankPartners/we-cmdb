@@ -180,7 +180,8 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                 .permitAll()
                 .and()
                 .csrf()
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+                .disable();
+                //.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
     }
 
     @Override
