@@ -20,6 +20,7 @@ target/
 */node/
 */build
 */package-lock.json
+*/build
 /.pnp
 .pnp.js
 
