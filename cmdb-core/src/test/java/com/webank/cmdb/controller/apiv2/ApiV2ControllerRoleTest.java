@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.junit.Test;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -87,4 +88,30 @@ public class ApiV2ControllerRoleTest extends LegacyAbstractBaseControllerTest {
                 .andExpect(jsonPath("$.statusCode", is("OK")))
                 .andExpect(jsonPath("$.data.contents[*].roleName", contains("DEVELOPER")));
     }
+
+    @Test
+    public void whenDeleteSystemRoleShouldFail() throws Exception {
+        List<?> jsonList = ImmutableList.builder()
+                .add(ImmutableMap.builder()
+                        .put("callbackId", "123456")
+                        .put("roleName", "mock_super_admin")
+                        .put("roleType", "mock_role_type")
+                        .put("description", "mock_super_admin")
+                        .put("isSystem",true)
+                        .build())
+                .build();
+        String reqJson = JsonUtil.toJson(jsonList);
+        MvcResult mvcResult = mvc.perform(post("/api/v2/roles/create").contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("OK")))
+                .andExpect(jsonPath("$.data[0].roleId", greaterThanOrEqualTo(1)))
+                .andReturn();
+        String retContent = mvcResult.getResponse().getContentAsString();
+        Integer roleId = JsonUtil.asNodeByPath(retContent, "/data/0/roleId").asInt();
+
+        mvc.perform(post("/api/v2/roles/delete").contentType(MediaType.APPLICATION_JSON)
+                .content("["+roleId+"]"))
+                .andExpect(jsonPath("$.statusCode", is("ERR_INVALID_ARGUMENT")));
+    }
+
 }
