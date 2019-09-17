@@ -1,5 +1,6 @@
 INSERT INTO `adm_tenement` VALUES (1,'微众银行','前海微众银行','wb');
-INSERT INTO `adm_user` VALUES ('umadmin','umadmin',NULL,'umadmin',1,0);
+INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `description`, `id_adm_tenement`, `action_flag`,`is_system`) VALUES
+	('1', 'umadmin', 'umadmin', 'umadmin', NULL, 0, 1);
 
 INSERT INTO `adm_sequence`(id_adm_sequence,seq_name,current_val,increment_val,length_limitation,left_zero_padding) 
 VALUES 
