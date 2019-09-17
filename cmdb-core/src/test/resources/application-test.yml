@@ -14,6 +14,9 @@ spring:
 cmdb:
   datasource:
     schema: cmdb_test
+  security:
+    enabled: false
+    whitelist-ip-address: localhost
 
 logging:
   level:
@@ -24,6 +27,3 @@ logging:
     org:
       hibernate:
         SQL: INFO
-
-cas-server:
-  enabled: false

@@ -28,9 +28,19 @@ spring:
 cmdb:
   datasource:
     schema: db_user
-    
-  #Authentication provider options: local or CAS
-  authentication-provider: local
+
+  security:
+    enabled: false
+
+    #Authentication provider options: LOCAL or CAS. Effective ONLY when security-enabled set as true.
+    authentication-provider: LOCAL
+
+    #Effective ONLY when security-enabled set as true and authentication-provider turns to CAS
+    cas-server-url: http://cas-server-ip:8080/cas
+    cas-redirect-app-addr: localhost:8080
+
+    #Effective ONLY when security-enabled set as true
+    whitelist-ip-address:
 
 logging:
   level:
@@ -38,9 +48,3 @@ logging:
     com:
       webank:
         cmdb: DEBUG
-
-cas-server:
-  url: http://localhost:8080/cas
-  enabled: true
-  whitelist-ip-address:
-  redirect-app-addr:

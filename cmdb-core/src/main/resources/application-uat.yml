@@ -1,6 +1,6 @@
 server:
   port: 37000
-  address: localhost
+  address: uat-host
 
 spring:
   datasource:
@@ -13,7 +13,15 @@ cmdb:
   datasource:
     schema: uat_db_user
 
-cas-server:
-  url: http://uat-cas-server:8080/cas
-  redirect-app-addr: localhost:37000
-  enabled: true
+  security:
+    enabled: true
+
+    #Authentication provider options: LOCAL or CAS. Effective ONLY when security-enabled set as true.
+    authentication-provider: CAS
+
+    #Effective ONLY when security-enabled set as true and authentication-provider turns to CAS
+    cas-server-url: http://uat-cas-server-ip:8080/cas
+    cas-redirect-app-addr: uat-host:8080
+
+    #Effective ONLY when security-enabled set as true
+    whitelist-ip-address:

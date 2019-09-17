@@ -1218,6 +1218,7 @@ CREATE TABLE IF NOT EXISTS `adm_user` (
   `id_adm_user` varchar(64) NOT NULL COMMENT 'id_adm_user',
   `name` varchar(64) DEFAULT NULL COMMENT '名称',
   `code` varchar(100) DEFAULT NULL COMMENT '编码（接口类用户使用）',
+  `encrypted_password` varchar(100) DEFAULT NULL COMMENT '加密的密码',
   `description` varchar(255) DEFAULT NULL COMMENT '描述',
   `id_adm_tenement` int(11) DEFAULT NULL COMMENT 'id_adm_tenement',
   `action_flag` tinyint(1) DEFAULT '0' COMMENT '用户操作Flag',
