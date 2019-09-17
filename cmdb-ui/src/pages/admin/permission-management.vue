@@ -2,7 +2,16 @@
   <Row>
     <Col span="4">
       <Card>
-        <p slot="title">用户</p>
+        <p slot="title">
+          用户
+          <Button
+            icon="ios-add"
+            type="dashed"
+            size="small"
+            @click="openAddUserModal"
+            >添加用户</Button
+          >
+        </p>
         <Tag
           v-for="item in users"
           :key="item.id"
@@ -102,6 +111,30 @@
       <Input v-model="addedRoleValue" placeholder="请输入用户名" />
     </Modal>
     <Modal
+      v-model="addUserModalVisible"
+      title="添加用户"
+      @on-ok="addUser"
+      @on-cancel="cancel"
+    >
+      <Form
+        class="validation-form"
+        ref="addedUserForm"
+        :model="addedUser"
+        label-position="left"
+        :label-width="100"
+      >
+        <FormItem label="用户名" prop="username">
+          <Input v-model="addedUser.username" />
+        </FormItem>
+        <FormItem label="全名" prop="fullName">
+          <Input v-model="addedUser.fullName" />
+        </FormItem>
+        <FormItem label="描述说明" prop="description">
+          <Input v-model="addedUser.description" />
+        </FormItem>
+      </Form>
+    </Modal>
+    <Modal
       v-model="userManageModal"
       width="700"
       title="编辑用户"
@@ -156,6 +189,7 @@ import {
   getRolesByUser,
   getUsersByRole,
   addRole,
+  addUser,
   getPermissionsByRole,
   addUsersToRole,
   romoveUsersFromRole,
@@ -198,11 +232,6 @@ export default {
           type: "ENQUIRY",
           actionName: "查"
         },
-        // {
-        //   actionCode: "grantPermission",
-        //   type: "GRANT",
-        //   actionName: "授"
-        // },
         {
           actionCode: "executionPermission",
           type: "EXECUTION",
@@ -218,6 +247,7 @@ export default {
       permissionEntryPointsForEdit: [],
       permissionEntryPointsBackup: [],
       addRoleModalVisible: false,
+      addUserModalVisible: false,
       addedRoleValue: "",
       userManageModal: false,
       permissionManageModal: false,
@@ -328,25 +358,9 @@ export default {
             }
           ]
         }
-        // {
-        //   title: "授权",
-        //   key: "grantPermission",
-        //   inputKey: "grantPermission",
-        //   placeholder: "请选择",
-        //   component: "WeSelect",
-        //   options: [
-        //     {
-        //       label: "是",
-        //       value: "Y"
-        //     },
-        //     {
-        //       label: "否",
-        //       value: "N"
-        //     }
-        //   ]
-        // }
       ],
-      seletedRows: []
+      seletedRows: [],
+      addedUser: {}
     };
   },
   methods: {
@@ -711,6 +725,24 @@ export default {
         this.getAllRoles();
       }
     },
+    async addUser() {
+      if (this.addedUser.username === "") {
+        this.$Notice.warning({
+          title: "Warning",
+          desc: "用户名不能为空"
+        });
+        return;
+      }
+      let { status, data, message } = await addUser(this.addedUser);
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "success",
+          desc: message
+        });
+        this.addedUser = {};
+        this.getAllUsers();
+      }
+    },
     async getPermissions(
       queryAfterEditing,
       checked,
@@ -784,6 +816,9 @@ export default {
     },
     openAddRoleModal() {
       this.addRoleModalVisible = true;
+    },
+    openAddUserModal() {
+      this.addUserModalVisible = true;
     },
 
     menusPermissionSelected(allMenus, menusPermissions = []) {
@@ -860,7 +895,6 @@ export default {
       data.forEach(_ => {
         if (!_.parentId) {
           let menuObj = MENUS.find(m => m.code === _.code);
-          if (!menuObj) return;
           menus.push({
             ..._,
             title: this.$lang === "zh-CN" ? menuObj.cnName : menuObj.enName,
@@ -924,9 +958,6 @@ export default {
       return arr1.concat(arr2).filter(function(v, i, arr) {
         return arr.indexOf(v) === arr.lastIndexOf(v);
       });
-    },
-    openAddRoleModal() {
-      this.addRoleModalVisible = true;
     },
     async openUserManageModal(id) {
       this.usersKeyBySelectedRole = [];
