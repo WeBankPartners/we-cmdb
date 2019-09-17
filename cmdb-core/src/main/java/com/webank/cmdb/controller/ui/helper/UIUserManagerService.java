@@ -25,6 +25,7 @@ import org.thymeleaf.util.StringUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.domain.AdmMenu;
 import com.webank.cmdb.domain.AdmRoleMenu;
@@ -406,6 +407,13 @@ public class UIUserManagerService {
         AdmMenu menu = admMenusRepository.findByName(menuName);
         if (menu == null)
             throw new CmdbException("Unknown menu name " + menuName);
+
+        menu.getAssignedRoles().forEach(roleMenu -> {
+            if (roleMenu.getIsSystem() == CmdbConstants.IS_SYSTEM_YES) {
+                throw new CmdbException(String.format("Failed to revoke menu permission as it is system permission. [%s]", roleMenu.getAdmMenu().getName()));
+            }
+        });
+
         if (menu.getAssignedRoles() != null) {
             menu.getAssignedRoles().removeIf(roleMenu -> roleMenu.getIdAdmRole().equals(roleId));
         }
