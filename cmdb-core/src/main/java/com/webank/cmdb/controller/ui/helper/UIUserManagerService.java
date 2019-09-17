@@ -60,7 +60,7 @@ public class UIUserManagerService {
     private static final String CONSTANT_CALLBACK_ID = "callbackId";
 
     @Autowired
-    AdmMenusRepository admMenusRepository;
+    private AdmMenusRepository admMenusRepository;
 
     @Autowired
     private StaticDtoService staticDtoService;
@@ -69,7 +69,7 @@ public class UIUserManagerService {
     private UserRepository userRepository;
 
     @Autowired
-    UIWrapperService uiWrapperService;
+    private UIWrapperService uiWrapperService;
 
     public void deleteRole(int roleId) {
         List<UserDto> users = uiWrapperService.getUsersByRoleId(roleId);
