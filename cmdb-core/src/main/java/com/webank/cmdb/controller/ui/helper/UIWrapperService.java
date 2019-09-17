@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
-import com.webank.cmdb.config.ApplicationProperties.UIAccessProperties;
+import com.webank.cmdb.config.ApplicationProperties.UIProperties;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.ImplementOperation;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
@@ -64,7 +64,7 @@ public class UIWrapperService {
     private static final String CONSTANT_SEQ_NO = "seqNo";
 
     @Autowired
-    private UIAccessProperties uiAccessProperties;
+    private UIProperties uiAccessProperties;
     @Autowired
     private CiService ciService;
     @Autowired
