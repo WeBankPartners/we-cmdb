@@ -7,7 +7,9 @@ import java.util.Map;
 
 import javax.annotation.security.RolesAllowed;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,6 +34,9 @@ import lombok.Data;
 @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
 public class UIUserManagementController {
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Data
     @AllArgsConstructor
     class Permissions {
@@ -53,8 +58,13 @@ public class UIUserManagementController {
 
     @PostMapping("/users/create")
     @ResponseBody
-    public List<UserDto> createNewUser(@RequestBody UserDto user) {
-        return userManagerService.createUser(user);
+    public List<UserDto> createNewUser(@RequestBody UserDto userDto) {
+        if (StringUtils.isBlank(userDto.getPassword())) {
+            userDto.setPassword(passwordEncoder.encode(userDto.getUsername()));
+        } else {
+            userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        }
+        return userManagerService.createUser(userDto);
     }
 
     @GetMapping("/roles")
