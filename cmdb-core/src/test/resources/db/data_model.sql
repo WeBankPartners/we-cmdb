@@ -1221,13 +1221,14 @@ CREATE TABLE IF NOT EXISTS `adm_user` (
   `description` varchar(255) DEFAULT NULL COMMENT '描述',
   `id_adm_tenement` int(11) DEFAULT NULL COMMENT 'id_adm_tenement',
   `action_flag` tinyint(1) DEFAULT '0' COMMENT '用户操作Flag',
+  `is_system` int(1) DEFAULT '0' COMMENT '是否系统数据',
   PRIMARY KEY (`id_adm_user`),
   KEY `fk_adm_user_adm_tenement_1` (`id_adm_tenement`),
   CONSTRAINT `fk_adm_user_adm_tenement_1` FOREIGN KEY (`id_adm_tenement`) REFERENCES `adm_tenement` (`id_adm_tenement`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `description`, `id_adm_tenement`, `action_flag`) VALUES
-	('1', 'umadmin', 'umadmin', 'umadmin', NULL, 0);
+INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `description`, `id_adm_tenement`, `action_flag`,`is_system`) VALUES
+	('1', 'umadmin', 'umadmin', 'umadmin', NULL, 0, 1);
 
 CREATE TABLE IF NOT EXISTS `adm_role` (
   `id_adm_role` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role',
@@ -1236,6 +1237,7 @@ CREATE TABLE IF NOT EXISTS `adm_role` (
   `id_adm_tenement` int(11) DEFAULT NULL COMMENT 'id_adm_tenement',
   `parent_id_adm_role` int(11) DEFAULT NULL COMMENT '父角色ID',
   `role_type` varchar(32) DEFAULT NULL COMMENT '角色类型（平台管理、租户管理、CI管理、数据使用）',
+  `is_system` int(1) DEFAULT '0' COMMENT '是否系统数据',
   PRIMARY KEY (`id_adm_role`),
   KEY `fk_adm_role_adm_tenement_1` (`id_adm_tenement`),
   KEY `fk_adm_role_adm_role_1` (`parent_id_adm_role`),
@@ -1243,18 +1245,18 @@ CREATE TABLE IF NOT EXISTS `adm_role` (
   CONSTRAINT `fk_adm_role_adm_tenement_1` FOREIGN KEY (`id_adm_tenement`) REFERENCES `adm_tenement` (`id_adm_tenement`)
 ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;
 
-INSERT INTO `adm_role` (`id_adm_role`, `role_name`, `description`, `id_adm_tenement`, `parent_id_adm_role`, `role_type`) VALUES
-	(1, 'SUPER_ADMIN', '超级管理员', NULL, NULL, 'ADMIN'),
-	(2, 'CMDB_ADMIN', 'CMDB管理员', NULL, NULL, 'ADMIN'),
-	(3, 'PLUGIN_ADMIN', '插件管理员', NULL, NULL, 'ADMIN'),
-	(4, 'IDC_ARCHITECT', '基础架构规划-IDC', NULL, NULL, 'ADMIN'),
-	(5, 'NETWORK_ARCHITECT', '基础架构规划-网络', NULL, NULL, 'ADMIN'),
-	(6, 'APP_ARCHITECT', '应用架构师', NULL, NULL, 'ADMIN'),
-	(7, 'OPS-PROD', '生产环境运维', NULL, NULL, 'ADMIN'),
-	(8, 'OPS-TEST', '测试环境运维', NULL, NULL, 'ADMIN'),
-	(9, 'DEVELOPER', '开发人员', NULL, NULL, 'ADMIN'),
-	(10, 'REGULAR', '普通用户', NULL, NULL, 'REGULAR'),
-	(11, 'READONLY', '只读用户', NULL, NULL, 'READONLY');
+INSERT INTO `adm_role` (`id_adm_role`, `role_name`, `description`, `id_adm_tenement`, `parent_id_adm_role`, `role_type`, `is_system`) VALUES
+	(1, 'SUPER_ADMIN', '超级管理员', NULL, NULL, 'ADMIN', 1),
+	(2, 'CMDB_ADMIN', 'CMDB管理员', NULL, NULL, 'ADMIN', 0),
+	(3, 'PLUGIN_ADMIN', '插件管理员', NULL, NULL, 'ADMIN', 0),
+	(4, 'IDC_ARCHITECT', '基础架构规划-IDC', NULL, NULL, 'ADMIN', 0),
+	(5, 'NETWORK_ARCHITECT', '基础架构规划-网络', NULL, NULL, 'ADMIN', 0),
+	(6, 'APP_ARCHITECT', '应用架构师', NULL, NULL, 'ADMIN', 0),
+	(7, 'OPS-PROD', '生产环境运维', NULL, NULL, 'ADMIN', 0),
+	(8, 'OPS-TEST', '测试环境运维', NULL, NULL, 'ADMIN', 0),
+	(9, 'DEVELOPER', '开发人员', NULL, NULL, 'ADMIN', 0),
+	(10, 'REGULAR', '普通用户', NULL, NULL, 'REGULAR', 0),
+	(11, 'READONLY', '只读用户', NULL, NULL, 'READONLY', 0);
 
 CREATE TABLE IF NOT EXISTS `adm_role_ci_type` (
   `id_adm_role_ci_type` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_ci_type',
@@ -1411,6 +1413,7 @@ CREATE TABLE IF NOT EXISTS `adm_role_user` (
   `id_adm_role_user` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_user',
   `id_adm_role` int(11) DEFAULT NULL COMMENT 'id_adm_role',
   `id_adm_user` varchar(64) DEFAULT NULL COMMENT 'id_adm_user',
+  `is_system` int(1) DEFAULT '0' COMMENT '是否系统数据',
   PRIMARY KEY (`id_adm_role_user`),
   KEY `fk_adm_role_user_adm_role_1` (`id_adm_role`),
   KEY `fk_adm_role_user_adm_user_1` (`id_adm_user`),
@@ -1418,14 +1421,15 @@ CREATE TABLE IF NOT EXISTS `adm_role_user` (
   CONSTRAINT `fk_adm_role_user_adm_user_1` FOREIGN KEY (`id_adm_user`) REFERENCES `adm_user` (`id_adm_user`)
 ) ENGINE=InnoDB AUTO_INCREMENT=349 DEFAULT CHARSET=utf8;
 
-INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`) VALUES
-	(5, 2, '1'),
-	(348, 1, '1');
+INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`, `is_system`) VALUES
+	(5, 2, '1', '1'),
+	(348, 1, '1', '0');
 
 CREATE TABLE `adm_role_menu` (
   `id_adm_role_menu` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_menu',
   `id_adm_role` int(11) DEFAULT NULL COMMENT 'id_adm_role',
   `id_adm_menu` int(11) DEFAULT NULL COMMENT 'id_adm_menu',
+  `is_system` int(1) DEFAULT '0' COMMENT '是否系统数据',
   PRIMARY KEY (`id_adm_role_menu`),
   UNIQUE KEY `role_menu_unique` (`id_adm_role`,`id_adm_menu`),
   KEY `fk_adm_role_menu_adm_role_1` (`id_adm_role`),
@@ -1434,11 +1438,11 @@ CREATE TABLE `adm_role_menu` (
   CONSTRAINT `fk_adm_role_menu_adm_menu_1` FOREIGN KEY (`id_adm_menu`) REFERENCES `adm_menu` (`id_adm_menu`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO adm_role_menu (id_adm_role_menu, id_adm_role, id_adm_menu) VALUES
-(1,1,1)
-,(2,1,2)
-,(3,1,3)
-,(4,2,1)
+INSERT INTO adm_role_menu (id_adm_role_menu, id_adm_role, id_adm_menu,is_system) VALUES
+(1,1,1,1)
+,(2,1,2,0)
+,(3,1,3,0)
+,(4,2,1,0)
 ;
 
 CREATE TABLE IF NOT EXISTS `adm_sequence` (

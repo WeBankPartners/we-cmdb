@@ -33,6 +33,7 @@ public class AdmUser implements Serializable {
     private String name;
     private List<AdmRoleUser> admRoleUsers;
     private AdmTenement admTenement;
+    private Integer isSystem;
     private List<AdmUserIntegrateTemplate> admUserIntegrateTemplates;
     private List<AdmUserPartner> admUserPartners;
 
@@ -116,6 +117,15 @@ public class AdmUser implements Serializable {
 
     public void setAdmTenement(AdmTenement admTenement) {
         this.admTenement = admTenement;
+    }
+
+    @Column(name = "is_system")
+    public Integer getIsSystem() {
+        return this.isSystem;
+    }
+
+    public void setIsSystem(Integer isSystem) {
+        this.isSystem = isSystem;
     }
 
     // bi-directional many-to-one association to AdmUserIntegrateTemplate
