@@ -17,6 +17,7 @@ export const getPermissionsByRole = roleId =>
 export const getPermissionsByUser = username =>
   req.get(`/admin/users/${username}/permissions`);
 export const addRole = data => req.post(`/admin/roles/create`, data);
+export const addUser = data => req.post(`/admin/users/create`, data);
 export const addUsersToRole = (users, roleId) =>
   req.post(`/admin/roles/${roleId}/users`, users);
 export const romoveUsersFromRole = (users, roleId) =>
