@@ -1289,7 +1289,7 @@ INSERT INTO `adm_role` (`id_adm_role`, `role_name`, `description`, `id_adm_tenem
 	(11, 'READONLY', '只读用户', NULL, NULL, 'READONLY', 0);
 
 INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `encrypted_password`, `description`, `id_adm_tenement`, `action_flag`, `is_system`) VALUES
-	('1', 'admin', 'admin','$2a$10$.0CM2e2tMQqNp1x4Cfq7AOcS943TJVgGpRX3B1bnGFWnuGKUrJ3x2', 'admin', NULL, 0, 1);
+	('1', 'admin', 'admin','$2a$10$Gh3WDwZ8kFpxbmo/h.oywuN.LuYwgrlx53ZeG.mz7P4eKgct7IYZm', 'admin', NULL, 0, 1);
 
 INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`, `is_system`) VALUES
     ('1', '1', '1', 1);

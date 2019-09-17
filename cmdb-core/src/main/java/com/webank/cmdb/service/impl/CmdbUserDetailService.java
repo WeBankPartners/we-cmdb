@@ -9,6 +9,7 @@ import java.util.List;
 import javax.transaction.Transactional;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
 import com.webank.cmdb.domain.AdmMenu;
 import com.webank.cmdb.domain.AdmUser;
+import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.repository.AdmMenusRepository;
 import com.webank.cmdb.repository.AdmUserRepository;
 
@@ -60,8 +62,14 @@ public class CmdbUserDetailService implements UserDetailsService {
 
     private String getPassword(String username) {
         String password;
-        AdmUser user = admUserRepository.findByCode(username);
         if (securityProperties.isEnabled()) {
+            AdmUser user = admUserRepository.findByCode(username);
+            if (user == null) {
+                throw new CmdbException(String.format("Username [%s] not found.", username));
+            }
+            if (StringUtils.isBlank(user.getEncryptedPassword())) {
+                throw new CmdbException(String.format("Can not authenticate the user [%s] as password not found.", username));
+            }
             password = user.getEncryptedPassword();
         } else {
             password = "";
