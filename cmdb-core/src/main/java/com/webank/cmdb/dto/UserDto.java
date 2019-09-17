@@ -20,6 +20,7 @@ public class UserDto extends BasicResourceDto<UserDto, AdmUser> {
     @NotEmpty
     @DtoField(domainField = "code")
     private String username;
+    private String password;
     @DtoField(domainField = "name")
     private String fullName;
     private String description;
@@ -69,6 +70,7 @@ public class UserDto extends BasicResourceDto<UserDto, AdmUser> {
         domain.setIdAdmUser(this.getUserId());
         domain.setCode(this.getUsername());
         domain.setName(this.getFullName());
+        domain.setEncryptedPassword(this.getPassword());
         domain.setDescription(this.getDescription());
         return domain;
     }
@@ -111,5 +113,13 @@ public class UserDto extends BasicResourceDto<UserDto, AdmUser> {
 
     public void setRoleUsers(List<RoleUserDto> roleUsers) {
         this.roleUsers = roleUsers;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

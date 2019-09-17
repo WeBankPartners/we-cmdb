@@ -31,6 +31,7 @@ public class AdmUser implements Serializable {
     private String code;
     private String description;
     private String name;
+    private String encryptedPassword;
     private List<AdmRoleUser> admRoleUsers;
     private AdmTenement admTenement;
     private Integer isSystem;
@@ -174,6 +175,15 @@ public class AdmUser implements Serializable {
         admUserPartner.setAdmUser(null);
 
         return admUserPartner;
+    }
+
+    @Column (name = "encrypted_password")
+    public String getEncryptedPassword() {
+        return this.encryptedPassword;
+    }
+
+    public void setEncryptedPassword(String encryptedPassword) {
+        this.encryptedPassword = encryptedPassword;
     }
 
 }

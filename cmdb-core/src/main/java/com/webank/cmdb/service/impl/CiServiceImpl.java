@@ -58,7 +58,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.webank.cmdb.config.ApplicationProperties;
+import com.webank.cmdb.config.ApplicationProperties.DatasourceProperties;
 import com.webank.cmdb.config.log.OperationLogPointcut;
 import com.webank.cmdb.constant.CiStatus;
 import com.webank.cmdb.constant.CmdbConstants;
@@ -161,8 +161,8 @@ public class CiServiceImpl implements CiService {
     private DynamicEntityClassLoader dyClassLoader;
     private volatile boolean isLoaded = false;
 
-    public CiServiceImpl(DataSource dataSource, ApplicationProperties appProperties) {
-        dynamicEntityManagerFactory = new DynamicEntityManagerFactory(dataSource, appProperties.getSchema());
+    public CiServiceImpl(DataSource dataSource, DatasourceProperties datasourceProperties) {
+        dynamicEntityManagerFactory = new DynamicEntityManagerFactory(dataSource, datasourceProperties.getSchema());
     }
 
     @Override
