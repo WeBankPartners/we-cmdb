@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -400,8 +401,12 @@ public class ApiV2Controller {
 
     @PostMapping("/users/create")
     public List<UserDto> createUsers(@Valid @RequestBody List<UserDto> userDtos) {
-        userDtos.forEach(userDto -> {
-            userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        userDtos.forEach(userDto->{
+            if (StringUtils.isBlank(userDto.getPassword())) {
+                userDto.setPassword(passwordEncoder.encode(userDto.getUsername()));
+            } else {
+                userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
+            }
         });
         return staticDtoService.create(UserDto.class, userDtos);
     }
