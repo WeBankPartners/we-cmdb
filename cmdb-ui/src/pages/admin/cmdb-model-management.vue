@@ -1605,6 +1605,7 @@ export default {
             this.resetAddNewCITypeForm();
             this.isAddNewCITypeModalVisible = false;
             this.initGraph();
+            this.getAllEnumTypes();
           }
         }
       });
