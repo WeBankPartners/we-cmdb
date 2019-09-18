@@ -18,7 +18,6 @@
                 </span>
               </p>
             </Col>
-
             <Col span="13" offset="1">
               <span class="filter-title">状态</span>
               <Select
@@ -1050,16 +1049,16 @@ export default {
       this.enumGroupModalVisible = true;
     },
     hideEnumGroupModal(val) {
-      // this.currentCategory = val;
       this.enumGroupModalVisible = false;
     },
     async initGraph(status = []) {
-      var origin;
-      var edges = {};
-      var levels = {};
+      let origin;
+      let edges = {};
+      let levels = {};
       let graph;
       let graphviz;
 
+      const graphEl = document.getElementById("graph");
       const initEvent = () => {
         graph = d3.select("#graph");
         graph
@@ -1070,20 +1069,18 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           .zoom(true)
-          .scale(1.2)
-          .width(window.innerWidth * 0.8)
-          .height(window.innerHeight * 0.75)
+          .width(graphEl.innerWidth * 1)
           .attributer(function(d) {
             if (d.attributes.class === "edge") {
-              var keys = d.key.split("->");
-              var from = keys[0].trim();
-              var to = keys[1].trim();
+              const keys = d.key.split("->");
+              const from = keys[0].trim();
+              const to = keys[1].trim();
               d.attributes.from = from;
               d.attributes.to = to;
             }
 
             if (d.tag === "text") {
-              var key = d.children[0].text;
+              const key = d.children[0].text;
               d3.select(this).attr("text-key", key);
             }
           });
