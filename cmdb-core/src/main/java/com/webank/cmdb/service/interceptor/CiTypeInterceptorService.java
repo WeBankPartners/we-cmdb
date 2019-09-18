@@ -147,8 +147,16 @@ public class CiTypeInterceptorService extends BasicInterceptorService<CiTypeDto,
     }
 
     private void deleteCatType(Integer id) {
-        List<AdmBasekeyCatType> cats = catTypeRepository.findAllByCiTypeId(id);
-        cats.forEach(cat -> catTypeRepository.delete(cat));
+        List<AdmBasekeyCatType> catTypes = catTypeRepository.findAllByCiTypeId(id);
+        catTypes.forEach(catType -> {
+            List<AdmBasekeyCat> cats = catRepository.findAllByIdAdmBasekeyCatType(catType.getIdAdmBasekeyCatType());
+            cats.forEach(cat -> {
+                List<AdmBasekeyCode> codes = codeRepository.findByAdmBasekeyCat_idAdmBasekeyCat(cat.getIdAdmBasekeyCat());
+                codes.forEach(code -> codeRepository.delete(code));
+                catRepository.delete(cat);
+            });
+            catTypeRepository.delete(catType);
+        });
     }
 
     private void validateIfNameIsUnique(Object oldName, Object name) {
