@@ -612,7 +612,7 @@ public class AdmCiType implements Serializable {
         bizKey.setIsDefunct(0);
         bizKey.setIsAuto(0);
         bizKey.setEditIsNull(1);
-        bizKey.setEditIsEditable(0);
+        bizKey.setEditIsEditable(1);
         bizKey.setSearchSeqNo(0);
         bizKey.setDisplayType(0);
         bizKey.setDisplaySeqNo(0);
