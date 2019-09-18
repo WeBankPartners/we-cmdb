@@ -1031,7 +1031,7 @@ CREATE TABLE IF NOT EXISTS `adm_integrate_template_alias_attr` (
   `is_displayed` varchar(2) DEFAULT NULL COMMENT '是否展示',
   `mapping_name` varchar(200) DEFAULT NULL COMMENT '属性英文别名',
   `filter` varchar(200) DEFAULT NULL COMMENT '过滤条件',
-  `key_name` varchar(100) DEFAULT NULL COMMENT '唯一值',
+  `key_name` varchar(500) DEFAULT NULL COMMENT '唯一值',
   `seq_no` int(11) DEFAULT NULL COMMENT '展示排序序号（越小优先级越高）',
   `cn_alias` varchar(64) DEFAULT NULL COMMENT '属性中文别名',
   `sys_attr` varchar(64) DEFAULT NULL COMMENT '系统属性（guid,created_user,created_date,updated_user,updated_date）',
