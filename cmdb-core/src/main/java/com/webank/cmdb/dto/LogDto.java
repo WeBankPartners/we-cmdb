@@ -11,7 +11,7 @@ public class LogDto extends BasicResourceDto<LogDto, AdmLog> {
     private String ciName;
     private String guid;
     private String ciTypeName;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai"))
     private Date createdDate;
     @DtoField(domainField = "idAdmUser")
     private String user;
