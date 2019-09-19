@@ -224,7 +224,12 @@ export default {
           return {
             ..._,
             ..._.cat,
-            catTypeName: _.cat.catType.catTypeName
+            catTypeName:
+              _.cat.catType.catTypeName === "sys"
+                ? "系统枚举"
+                : _.cat.catType.catTypeName === "common"
+                ? "共有枚举"
+                : _.cat.catType.catTypeName
           };
         });
       }
