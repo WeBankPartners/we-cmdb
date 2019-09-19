@@ -1194,11 +1194,11 @@ public class CiServiceImpl implements CiService {
     public void doDelete(EntityManager entityManager, int ciTypeId, String guid, boolean enableStateTransition) {
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
         Object entityBean = validateCi(ciTypeId, guid, entityMeta, entityManager, ACTION_REMOVAL);
-        ciDataInterceptorService.preDelete(ciTypeId, guid, entityMeta);
         if (enableStateTransition) {
             DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
             this.stateTransEngine.process(entityManager, ciTypeId, guid, StateOperation.Delete.getCode(), null, entityHolder);
         } else {
+            ciDataInterceptorService.preDelete(ciTypeId, guid, entityMeta);
             entityManager.remove(entityBean);
         }
         entityManager.flush();
