@@ -3,6 +3,18 @@
 ## 试用链接
 [点此试用WeCMDB](http://111.230.161.237:28080/cmdb/index.html#/)<br>
 
+## 功能演示
+<img src="./cmdb-wiki/docs/manual/images/ci-data-management.gif" />
+
+## 产品架构
+WeCMDB1.0版本已经完成开发，整体架构如下图：
+
+![WeCMDB系统架构](cmdb-wiki/images/wecmdb_arch_1.png) 
+
+- WeCMDB1.0版本需要CAS服务提供鉴权能力，在WeCMDB1.1版本，会增加支持本地用户验证模式；
+- WeCMDB1.0版本通过API对外提供数据服务。
+- WeCMDB1.0版本支持从外部数据源导入数据。
+
 ## 引言
 在IT运维领域中，CMDB信息的准确性和完整性一直是行业内公认的挑战。如何保证企业的IT信息从物理层，到逻辑层，到应用层以及其关系信息被准确记录，以及如何利用CMDB的信息完成各种复杂的IT运维流程，甚至实现自动化、智能化，CMDB已成为IT运维可正常开展的基石。随着云计算和互联网业务高速发展，IT资源信息成几何级增加。如何管理日益增长的IT数据，拥有一套强大的CMDB系统显得尤为重要。
 
@@ -37,16 +49,6 @@ WeCMDB具备以下特点：
 - 多维度日志查询
 	
 	提供管理界面，支持多维度数据变迁历史查询。
-
-
-## 产品架构
-WeCMDB1.0版本已经完成开发，整体架构如下图：
-
-![WeCMDB系统架构](cmdb-wiki/images/wecmdb_arch_1.png) 
-
-- WeCMDB1.0版本需要CAS服务提供鉴权能力，在WeCMDB1.1版本，会增加支持本地用户验证模式；
-- WeCMDB1.0版本通过API对外提供数据服务。
-- WeCMDB1.0版本支持从外部数据源导入数据。
 
 ## 主要功能
 - 信息查询功能
@@ -91,36 +93,5 @@ WeCMDB是基于 Apache License 2.0 协议， 详情请参考
 [LICENSE](LICENSE)
 
 ## 社区
-- 如果您想得到最快的响应，请给我们提issue。
+- 如果您想得到最快的响应，请给我们提[issue](https://github.com/WeBankPartners/we-cmdb/issues/new/choose)。
 - 联系我们：fintech@webank.com
-
-## 功能演示
-- 设计 > CI数据管理
-<img src="./cmdb-wiki/docs/manual/images/ci-data-management.gif" />
-
-- 设计 > CI数据查询
-<img src="./cmdb-wiki/docs/manual/images/ci-data-query.gif" />
-
-- 设计 > CI综合查询管理
-<img src="./cmdb-wiki/docs/manual/images/ci-integrated-query-management.gif" />
-
-- 设计 > CI数据综合查询
-<img src="./cmdb-wiki/docs/manual/images/ci-integrated-query.gif" />
-
-- 设计 > 枚举数据管理
-<img src="./cmdb-wiki/docs/manual/images/enum-management.gif" />
-
-- 设计 > 枚举数据查询
-<img src="./cmdb-wiki/docs/manual/images/enum-query.gif" />
-
-- 系统 > 权限管理
-<img src="./cmdb-wiki/docs/manual/images/permission-management.gif" />
-
-- 系统 > 模型管理
-<img src="./cmdb-wiki/docs/manual/images/model-management.gif" />
-
-- 系统 > 日志查询
-<img src="./cmdb-wiki/docs/manual/images/query-log.gif" />
-
-- 系统 > 基础数据管理
-<img src="./cmdb-wiki/docs/manual/images/base-data-management.gif" />
