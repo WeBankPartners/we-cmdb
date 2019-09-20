@@ -1651,7 +1651,7 @@ public class CiServiceImpl implements CiService {
                 
                 if(InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
                 	attrExpression = curFrom.get("guid");//need guid to fetch mult selection value
-                }if(InputType.MultRef.getCode().equals(attr.getInputType())){
+                }else if(InputType.MultRef.getCode().equals(attr.getInputType())){
                 	attrExpression = curFrom.join(attr.getPropertyName()).get("guid");//need guid to fetch mult ref value
                 }else {
                 	attrExpression = curFrom.get(attr.getPropertyName());
