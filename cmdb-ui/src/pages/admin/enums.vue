@@ -7,6 +7,7 @@
     :pagination="pagination"
     :ascOptions="ascOptions"
     :showCheckbox="showCheckbox"
+    :isSortable="false"
     @actionFun="actionFun"
     @getSelectedRows="onSelectedRowsChange"
     @handleSubmit="handleSubmit"
@@ -80,7 +81,7 @@ export default {
           title: "枚举类型",
           key: "catTypeName",
           inputKey: "cat.catType.catTypeName",
-          searchSeqNo: 0,
+          searchSeqNo: 0, // 不可作为搜索条件
           displaySeqNo: 4,
           component: "Input",
           disEditor: true, // 枚举类型不可改
