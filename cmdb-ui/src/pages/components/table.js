@@ -10,11 +10,13 @@ export default {
     tableData: { default: () => [] },
     showCheckbox: { default: () => true },
     highlightRow: { default: () => false },
+    isSortable: { default: () => true },
     filtersHidden: { default: () => false },
     tableOuterActions: { default: () => [] },
     tableInnerActions: { default: () => [] },
     pagination: { type: Object },
-    ascOptions: { type: Object }
+    ascOptions: { type: Object },
+    isRefreshable: { default: () => false }
   },
   data() {
     return {
@@ -155,10 +157,12 @@ export default {
               }
             }
           }
-          // const found = this.tableColumns.find(q => q.inputKey === i);
-          // if (found && found.isRefreshable) {
-          //   _[i] = "";
-          // }
+          if (this.isRefreshable) {
+            const found = this.tableColumns.find(q => q.inputKey === i);
+            if (found && found.isRefreshable) {
+              _[i] = null;
+            }
+          }
         }
       });
     },
@@ -532,7 +536,7 @@ export default {
         ...col,
         maxWidth: 500,
         minWidth: 200,
-        sortable: "custom",
+        sortable: this.isSortable ? "custom" : false,
         render: (h, params) => {
           if (
             params.row.isRowEditable &&
