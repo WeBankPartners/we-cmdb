@@ -24,6 +24,7 @@
           :pagination="ci.pagination"
           :ascOptions="ci.ascOptions"
           :showCheckbox="needCheckout"
+          :isRefreshable="true"
           @actionFun="actionFun"
           @handleSubmit="handleSubmit"
           @sortHandler="sortHandler"
@@ -113,7 +114,7 @@ export default {
       const initEvent = () => {
         graph = d3.select("#graph");
         graph
-          .on("click.zoom", null)
+          .on("dblclick.zoom", null)
           .on("wheel.zoom", null)
           .on("mousewheel.zoom", null);
 
@@ -311,15 +312,11 @@ export default {
       addEvent(".node", "mouseover", async e => {
         e.preventDefault();
         e.stopPropagation();
+        d3.selectAll("g").attr("cursor", "pointer");
         var g = e.currentTarget;
         var nodeName = g.children[0].innerHTML.trim();
         this.shadeAll();
         this.colorNode(nodeName);
-      });
-      addEvent(".node", "mouseover", e => {
-        e.preventDefault();
-        e.stopPropagation();
-        d3.selectAll("g").attr("cursor", "pointer");
       });
 
       addEvent("svg", "mouseover", e => {
