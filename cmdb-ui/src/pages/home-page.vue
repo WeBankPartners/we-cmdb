@@ -7,6 +7,7 @@ import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
 import { getAllLayers, getAllCITypesByLayerWithAttr } from "@/api/server";
 import { setHeaders } from "@/api/base.js";
+import { addEvent } from "./util/event.js";
 export default {
   data() {
     return {
@@ -105,13 +106,63 @@ export default {
             "X-XSRF-TOKEN": uploadToken && uploadToken.split("=")[1]
           });
           initEvent();
-          let nodesString = this.genDOT(ciResponse.data);
-          this.loadImage(nodesString);
-          this.graph.graphviz.renderDot(nodesString);
-          let svg = d3.select("#graph").select("svg");
-          svg.append("g").lower();
+          this.renderGraph(ciResponse.data);
         }
       }
+    },
+    renderGraph(data) {
+      let nodesString = this.genDOT(data);
+      this.loadImage(nodesString);
+      this.graph.graphviz.renderDot(nodesString);
+      let svg = d3.select("#graph").select("svg");
+      svg.append("g").lower();
+      addEvent("svg", "mouseover", e => {
+        this.shadeAll();
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      this.shadeAll();
+      addEvent(".node", "mouseover", async e => {
+        e.preventDefault();
+        e.stopPropagation();
+        d3.selectAll("g").attr("cursor", "pointer");
+
+        this.g = e.currentTarget;
+        this.nodeName = this.g.children[0].innerHTML.trim();
+        this.shadeAll();
+        this.colorNode(this.nodeName);
+      });
+    },
+    shadeAll() {
+      d3.selectAll("g path")
+        .attr("stroke", "#7f8fa6")
+        .attr("stroke-opacity", ".2");
+      d3.selectAll("g polygon")
+        .attr("stroke", "#7f8fa6")
+        .attr("stroke-opacity", ".2")
+        .attr("fill", "#7f8fa6")
+        .attr("fill-opacity", ".2");
+      d3.selectAll(".edge text").attr("fill", "#7f8fa6");
+    },
+    colorNode(nodeName) {
+      d3.selectAll('g[from="' + nodeName + '"] path')
+        .attr("stroke", "red")
+        .attr("stroke-opacity", "1");
+      d3.selectAll('g[from="' + nodeName + '"] text').attr("fill", "red");
+      d3.selectAll('g[from="' + nodeName + '"] polygon')
+        .attr("stroke", "red")
+        .attr("fill", "red")
+        .attr("fill-opacity", "1")
+        .attr("stroke-opacity", "1");
+      d3.selectAll('g[to="' + nodeName + '"] path')
+        .attr("stroke", "green")
+        .attr("stroke-opacity", "1");
+      d3.selectAll('g[to="' + nodeName + '"] text').attr("fill", "green");
+      d3.selectAll('g[to="' + nodeName + '"] polygon')
+        .attr("stroke", "green")
+        .attr("fill", "green")
+        .attr("fill-opacity", "1")
+        .attr("stroke-opacity", "1");
     },
     renderRightPanels() {
       if (!this.nodeName) return;
