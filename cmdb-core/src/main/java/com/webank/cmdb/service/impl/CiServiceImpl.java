@@ -68,6 +68,7 @@ import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.FilterRelationship;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.constant.StateOperation;
+import com.webank.cmdb.domain.AdmBasekeyCat;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.domain.AdmStateTransition;
@@ -100,6 +101,7 @@ import com.webank.cmdb.exception.CmdbAccessDeniedException;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.exception.InvalidArgumentException;
 import com.webank.cmdb.exception.ServiceException;
+import com.webank.cmdb.repository.AdmBasekeyCatRepository;
 import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
 import com.webank.cmdb.repository.AdmCiTypeRepository;
 import com.webank.cmdb.repository.AdmStateTransitionRepository;
@@ -146,6 +148,8 @@ public class CiServiceImpl implements CiService {
     private Engine stateTransEngine;
     @Autowired
     private AdmStateTransitionRepository stateTransitionRepository;
+    @Autowired
+    private AdmBasekeyCatRepository cateRepository;
 
     @Autowired
     @Value("${spring.jpa.show-sql}")
@@ -160,6 +164,13 @@ public class CiServiceImpl implements CiService {
     private Map<Integer, DynamicEntityMeta> multRefMetaMap;
     private DynamicEntityClassLoader dyClassLoader;
     private volatile boolean isLoaded = false;
+
+    private static final Map<String, String> finalStates = new HashMap<>();
+    static {
+        finalStates.put(CmdbConstants.CI_STATE_DESIGN, "delete");
+        finalStates.put(CmdbConstants.CI_STATE_CREATE, "destroyed");
+        finalStates.put(CmdbConstants.CI_STATE_START_STOP, "destroyed");
+    }
 
     public CiServiceImpl(DataSource dataSource, DatasourceProperties datasourceProperties) {
         dynamicEntityManagerFactory = new DynamicEntityManagerFactory(dataSource, datasourceProperties.getSchema());
@@ -1201,7 +1212,7 @@ public class CiServiceImpl implements CiService {
         } else {
             entityManager.remove(entityBean);
         }
-        entityManager.flush();
+        //entityManager.flush();
         ciDataInterceptorService.postDelete(ciTypeId, guid, entityMeta);
     }
 
@@ -2047,6 +2058,10 @@ public class CiServiceImpl implements CiService {
             List<Map<String, Object>> ciData = queryWithFilters(attr.getCiTypeId(), Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), guid)), false);
             if (ciData != null && ciData.size() > 0) {
                 ciData.forEach(data -> {
+                    if (isFinalStateCi(attr, data)) {
+                        return;
+                    };
+
                     Map ciMap = Maps.newHashMap();
                     MapUtils.putAll(ciMap, new Object[] { "ciTypeId", attr.getCiTypeId(), "guid", data.get("guid"), "propertyName", attr.getPropertyName() });
                     dependentCis.add(ciMap);
@@ -2054,6 +2069,18 @@ public class CiServiceImpl implements CiService {
             }
         });
         return dependentCis;
+    }
+
+    private boolean isFinalStateCi(AdmCiTypeAttr attr, Map<String, Object> data) {
+        Object state = data.get(CmdbConstants.DEFAULT_FIELD_STATE);
+        if (state instanceof CatCodeDto) {
+            CatCodeDto codeDto = (CatCodeDto) state;
+            AdmBasekeyCat cat = cateRepository.getOne(codeDto.getCatId());
+            if (codeDto.getCode().equals(finalStates.get(cat.getCatName()))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
