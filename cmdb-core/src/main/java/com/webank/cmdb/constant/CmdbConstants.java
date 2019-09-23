@@ -6,6 +6,9 @@ public class CmdbConstants {
     public static final String CI_TYPE_ZOOM_LEVEL = "ci_zoom_level";
     public static final String CI_TYPE_REFERENCE_TYPE = "CI Reference Type";
     public static final String CI_TYPE_CI_STATE_TYPE = "ci_state_type";
+    public static final String CI_STATE_DESIGN = "ci_state_design";
+    public static final String CI_STATE_CREATE = "ci_state_create";
+    public static final String CI_STATE_START_STOP = "ci_state_start_stop";
 
     public static final String TENEMENT_EN_SORT_NAME = "en_sort_name";
     public static final String TENEMENT_ID = "id_adm_tennement";
