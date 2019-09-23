@@ -1,5 +1,9 @@
 # WeCMDB
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![](https://img.shields.io/badge/language-java-orange.svg)
+![](https://img.shields.io/badge/language-vue-green.svg)
+
 ## 试用链接
 [点此试用WeCMDB](http://111.230.161.237:28080/cmdb/index.html#/)<br>
 
