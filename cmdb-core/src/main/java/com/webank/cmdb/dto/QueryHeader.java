@@ -9,15 +9,17 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class QueryHeader {
     private String name;
+    private String key;
     private String inputType;
     private List<?> vals = new LinkedList<>();
 
-    public QueryHeader(String name, String inputType) {
-        this(name, inputType, null);
+    public QueryHeader(String name, String key, String inputType) {
+        this(name, key, inputType, null);
     }
 
-    public QueryHeader(String name, String inputType, List<?> vals) {
+    public QueryHeader(String name, String key, String inputType, List<?> vals) {
         this.name = name;
+        this.setKey(key);
         this.inputType = inputType;
         this.vals = vals;
     }
@@ -44,6 +46,14 @@ public class QueryHeader {
 
     public void setVals(List<?> vals) {
         this.vals = vals;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
 }
