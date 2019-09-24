@@ -5,7 +5,7 @@
 ![](https://img.shields.io/badge/language-vue-green.svg)
 
 ## 试用链接
-[点此试用WeCMDB](http://111.230.161.237:28080/cmdb/index.html#/)<br>
+[点此试用WeCMDB](http://106.53.80.138/cmdb/index.html#/)<br>
 
 ## 功能演示
 <img src="./cmdb-wiki/docs/manual/images/ci-data-management.gif" />
@@ -97,5 +97,6 @@ WeCMDB是基于 Apache License 2.0 协议， 详情请参考
 [LICENSE](LICENSE)
 
 ## 社区
-- 如果您想得到最快的响应，请给我们提[Issue](https://github.com/WeBankPartners/we-cmdb/issues/new/choose)，我们会第一时间反馈。
+- 如果您想得到最快的响应，请给我们提[Issue](https://github.com/WeBankPartners/we-cmdb/issues/new/choose)或扫描下面的二维码，我们会第一时间反馈。  
+![WeCMDB系统架构](cmdb-wiki/images/wecube_qr_code.png) 
 - 联系我们：fintech@webank.com
