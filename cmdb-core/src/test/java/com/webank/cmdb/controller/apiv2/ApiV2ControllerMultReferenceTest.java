@@ -338,5 +338,40 @@ public class ApiV2ControllerMultReferenceTest extends AbstractBaseControllerTest
                 .content(JsonUtil.toJson(Lists.newArrayList(new CiIndentity(ciTypeId, guid)))))
                 .andExpect(jsonPath("$.statusCode", is("OK")));
     }
+    
+    @Test
+    public void operateStartupThenTheCICanStartupSuccessfully()  throws Exception {
+        mvc.perform(post("/api/v2/ciTypes/apply").contentType(MediaType.APPLICATION_JSON)
+                .content("[51,50]"))
+                .andExpect(jsonPath("$.statusCode", is("OK")));
+
+        List<String> ciBs = createCIDataB();
+        String guidB1 = ciBs.get(0);
+        String guidB2 = ciBs.get(1);
+
+        Map<?, ?> jsonMap = ImmutableMap.builder()
+                .put("description", "multi selection ci data")
+                .put("mul_select", Lists.newArrayList(47))
+                .put("mul_reference", Lists.newArrayList(guidB1))
+                .build();
+
+        String reqJson = JsonUtil.toJson(ImmutableList.of(jsonMap));
+        int ciTypeId = 50;
+        // creation
+        MvcResult mvcResult = mvc.perform(post("/api/v2/ci/{ciTypeId}/create", ciTypeId).contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("OK")))
+                .andExpect(jsonPath("$.data[0].guid", notNullValue()))
+                .andReturn();
+
+        String retContent = mvcResult.getResponse()
+                .getContentAsString();
+        String guidA = JsonUtil.asNodeByPath(retContent, "/data/0/guid")
+                .asText();
+
+        operateState(ciTypeId, guidA, StateOperation.Confirm);
+        operateState(ciTypeId, guidA, StateOperation.Startup);
+   	
+    }
 
 }
