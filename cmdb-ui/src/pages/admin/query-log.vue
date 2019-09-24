@@ -37,8 +37,8 @@ export default {
           let result = {
             inputType: _.inputType,
             title: _.name,
-            key: _.name,
-            inputKey: _.name,
+            key: _.key,
+            inputKey: _.key,
             disEditor: true,
             displaySeqNo: 1,
             searchSeqNo: 1
