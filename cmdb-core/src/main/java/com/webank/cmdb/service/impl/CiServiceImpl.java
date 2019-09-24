@@ -695,7 +695,7 @@ public class CiServiceImpl implements CiService {
             try {
             	CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             	Integer toCiTypeId = attr.getReferenceId();
-            	Class joinEntityClzz = dynamicEntityMetaMap.get(toCiTypeId).getEntityClazz();
+            	Class joinEntityClzz = multRefMetaMap.get(attr.getIdAdmCiTypeAttr()).getEntityClazz();
             	CriteriaQuery query = cb.createQuery(joinEntityClzz);
             	Root root = query.from(joinEntityClzz);
             	query.select(root);
@@ -1625,7 +1625,7 @@ public class CiServiceImpl implements CiService {
                 	attrExpression = curFrom.get("guid");//need guid to fetch mult selection value
                 	//attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId,"guid");
                 }else if(InputType.MultRef.getCode().equals(attr.getInputType())){
-                	attrExpression = curFrom.join(attr.getPropertyName()).get("guid");//need guid to fetch mult ref value
+                	attrExpression = curFrom.get("guid");//need guid to fetch mult ref value
                 }else {
                 	attrExpression = curFrom.get(attr.getPropertyName());
                 }
@@ -1663,7 +1663,7 @@ public class CiServiceImpl implements CiService {
                 if(InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
                 	attrExpression = curFrom.get("guid");//need guid to fetch mult selection value
                 }else if(InputType.MultRef.getCode().equals(attr.getInputType())){
-                	attrExpression = curFrom.join(attr.getPropertyName()).get("guid");//need guid to fetch mult ref value
+                	attrExpression = curFrom.get("guid");//need guid to fetch mult ref value
                 }else {
                 	attrExpression = curFrom.get(attr.getPropertyName());
                 }
