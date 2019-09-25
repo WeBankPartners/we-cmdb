@@ -33,6 +33,7 @@ import com.webank.cmdb.dto.IntegrationQueryDto;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.dto.Relationship;
+import com.webank.cmdb.exception.InvalidArgumentException;
 import com.webank.cmdb.repository.AdmIntegrateTemplateRepository;
 
 @SpringBootTest
@@ -45,12 +46,30 @@ public class IntegrationQueryServiceImplTest extends LegacyAbstractBaseControlle
     private AdmIntegrateTemplateRepository intTempRepository;
     @Autowired
     private CiService ciService;
+    @Autowired
+    private CiTypeService ciTypeService;
+
+    @Test(expected = InvalidArgumentException.class)
+    public void whenCreateIntQueryWithNotCreatedCiTypeShouldFail() {
+        IntegrationQueryDto admLog = new IntegrationQueryDto("admLog", 1, Arrays.asList(1), null);
+        int queryId = integrationQueryService.createIntegrationQuery(1, "Test query log", admLog);
+        intTempRepository.getOne(queryId);
+    }
+
+    @Test
+    public void whenCreateIntQueryWithCreatedCiTypeShouldSuccess() {
+        ciTypeService.applyCiType(Lists.newArrayList(1));
+        IntegrationQueryDto admLog = new IntegrationQueryDto("admLog", 1, Arrays.asList(1), null);
+        int queryId = integrationQueryService.createIntegrationQuery(1, "Test query log", admLog);
+        AdmIntegrateTemplate intTemplate = intTempRepository.getOne(queryId);
+        assertThat(intTemplate, notNullValue());
+    }
 
     @Test
     @Transactional
     public void createIntegrationQueryThenReturnQueryId() {
         IntegrationQueryDto unitQuery = new IntegrationQueryDto("Unit", 5, Arrays.asList(21), new Relationship(50, true));
-        IntegrationQueryDto subSysQuery = new IntegrationQueryDto("Subsystem Query", 3, Arrays.asList(6), null);
+        IntegrationQueryDto subSysQuery = new IntegrationQueryDto("Subsystem Query", 3, Arrays.asList(18), null);
         subSysQuery.addChild(unitQuery);
 
         int queryId = integrationQueryService.createIntegrationQuery(5, "Test query", subSysQuery);
@@ -65,7 +84,7 @@ public class IntegrationQueryServiceImplTest extends LegacyAbstractBaseControlle
 
     @Test
     public void getIntegrationQueryByIdThenReturnProperDto() {
-        IntegrationQueryDto grandson1 = new IntegrationQueryDto("3-1-System-null", 2, Arrays.asList(1), new Relationship(9, false));
+        IntegrationQueryDto grandson1 = new IntegrationQueryDto("3-1-System-null", 2, Arrays.asList(7), new Relationship(9, false));
         IntegrationQueryDto grandson2 = new IntegrationQueryDto("3-2-Sub System-System ID", 3, Arrays.asList(11), new Relationship(23, false));
 
         IntegrationQueryDto child = new IntegrationQueryDto("2-1-System-null", 2, new LinkedList(), new Relationship(9, false));
