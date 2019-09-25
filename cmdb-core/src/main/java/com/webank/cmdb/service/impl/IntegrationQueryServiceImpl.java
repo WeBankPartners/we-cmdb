@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.webank.cmdb.constant.CiStatus;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.constant.IntQueryAggOperation;
 import com.webank.cmdb.domain.AdmCiType;
@@ -114,6 +115,10 @@ public class IntegrationQueryServiceImpl implements IntegrationQueryService {
             throw new InvalidArgumentException(String.format("Can not find out given CIType [%d].", ciTypeId));
         }
 
+        if (CiStatus.NotCreated.getCode().equals(ciTypeOpt.get().getStatus())) {
+            throw new InvalidArgumentException(String.format("Can not build integration as the given CiType [%s], status is [%s].", ciTypeOpt.get().getName(), ciTypeOpt.get().getStatus()));
+        }
+
         // String curCiTypeName = ciTypeOpt.get().getName();
         path.push(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, ciTypeOpt.get().getTableName()));
         // create current alias
@@ -144,6 +149,10 @@ public class IntegrationQueryServiceImpl implements IntegrationQueryService {
             Optional<AdmCiTypeAttr> attrOpt = ciTypeAttrRepository.findById(attrId);
             if (!attrOpt.isPresent()) {
                 throw new InvalidArgumentException(String.format("Can not find out given attribute [%d] for CIType [%d].", attrId, ciTypeId));
+            }
+
+            if (CiStatus.NotCreated.getCode().equals(attrOpt.get().getStatus())) {
+                throw new InvalidArgumentException(String.format("Can not build integration as the given ci type attr [%s], status is [%s].", attrOpt.get().getName(), attrOpt.get().getStatus()));
             }
 
             // user attr alias if it is existed in dto obj otherwise alias will be generated
@@ -190,14 +199,18 @@ public class IntegrationQueryServiceImpl implements IntegrationQueryService {
             Optional<AdmCiTypeAttr> ciTypeAttrOpt = ciTypeAttrRepository.findById(relationship.getAttrId());
             if (!ciTypeAttrOpt.isPresent()) {
                 throw new InvalidArgumentException(String.format("Can not find attribute [%d] for relationship.", relationship.getAttrId()));
+            }
+
+            if (CiStatus.NotCreated.getCode().equals(ciTypeAttrOpt.get().getStatus())) {
+                throw new InvalidArgumentException(String.format("Can not build relationship as the given ci type attr [%s], status is [%s].", ciTypeAttrOpt.get().getName(), ciTypeAttrOpt.get().getStatus()));
+            }
+
+            if (!(InputType.Reference.getCode().equals(ciTypeAttrOpt.get().getInputType()) || InputType.MultRef.getCode().equals(ciTypeAttrOpt.get().getInputType()))) {
+                throw new InvalidArgumentException(String.format("AttrId [%d] is not reference type, can not be used to join different Ci type.", relationship.getAttrId()));
             } else {
-                if (!(InputType.Reference.getCode().equals(ciTypeAttrOpt.get().getInputType()) || InputType.MultRef.getCode().equals(ciTypeAttrOpt.get().getInputType()))) {
-                    throw new InvalidArgumentException(String.format("AttrId [%d] is not reference type, can not be used to join different Ci type.", relationship.getAttrId()));
-                } else {
-                    int refAttCiTypeId = ciTypeAttrOpt.get().getCiTypeId();
-                    if (refAttCiTypeId != parentTemplAlias.getCiTypeId() && refAttCiTypeId != intQueryDto.getCiTypeId()) {
-                        throw new InvalidArgumentException(String.format("AttrId [%d] dose not belong to parent ci type [%d] or current ci type [%d]", relationship.getAttrId(), parentTemplAlias.getCiTypeId(), intQueryDto.getCiTypeId()));
-                    }
+                int refAttCiTypeId = ciTypeAttrOpt.get().getCiTypeId();
+                if (refAttCiTypeId != parentTemplAlias.getCiTypeId() && refAttCiTypeId != intQueryDto.getCiTypeId()) {
+                    throw new InvalidArgumentException(String.format("AttrId [%d] dose not belong to parent ci type [%d] or current ci type [%d]", relationship.getAttrId(), parentTemplAlias.getCiTypeId(), intQueryDto.getCiTypeId()));
                 }
             }
 
