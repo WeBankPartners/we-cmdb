@@ -428,6 +428,7 @@ CREATE TABLE IF NOT EXISTS `adm_ci_type_attr` (
   `is_access_controlled` int(1) DEFAULT '0' COMMENT '是否权限控制',
   `is_auto` int(1) DEFAULT NULL,
   `auto_fill_rule` varchar(1000) DEFAULT NULL COMMENT '自动填充规则',
+  `regular_expression_rule` varchar(200) DEFAULT NULL COMMENT '正则规则',
   `is_refreshable` int(1) DEFAULT NULL,
   PRIMARY KEY (`id_adm_ci_type_attr`),
   UNIQUE KEY `uniqCiType` (`id_adm_ci_type`,`property_name`)
