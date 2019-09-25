@@ -1621,9 +1621,7 @@ public class CiServiceImpl implements CiService {
             List<Integer> attrIds = curQuery.getAttrs();
             for (int i = 0; i < attrIds.size(); i++) {
                 AdmCiTypeAttr attr = ciTypeAttrRepository.getOne(attrIds.get(i));
-                if (CiStatus.NotCreated.getCode().equals(attr.getStatus())) {
-                    throw new InvalidArgumentException(String.format("Can not build integration as the given ci type attr [%s], status is [%s].", attr.getName(), attr.getStatus()));
-                }
+                validateStatusOfCiTypeAttr(attr);
                 // String alias = curQuery.getAttrAliases().get(i);
                 String keyName = curQuery.getAttrKeyNames().get(i);
                 Expression attrExpression = null;
@@ -1649,9 +1647,7 @@ public class CiServiceImpl implements CiService {
             }
             int reltAttrId = relt.getAttrId();
             AdmCiTypeAttr reltAttr = ciTypeAttrRepository.getOne(reltAttrId);
-            if (CiStatus.NotCreated.getCode().equals(reltAttr.getStatus())) {
-                throw new InvalidArgumentException(String.format("Can not build relationship as the given ci type attr [%s], status is [%s].", reltAttr.getName(), reltAttr.getStatus()));
-            }
+            validateStatusOfCiTypeAttr(reltAttr);
             String joinField = null;
             // if(relt.getIsReferedFromParent()) {
             if (reltAttr.getCiTypeId().equals(parentCiType.getIdAdmCiType())) {
@@ -1665,6 +1661,7 @@ public class CiServiceImpl implements CiService {
             List<Integer> attrIds = curQuery.getAttrs();
             for (int i = 0; i < attrIds.size(); i++) {
                 AdmCiTypeAttr attr = ciTypeAttrRepository.getOne(attrIds.get(i));
+                validateStatusOfCiTypeAttr(attr);
                 // String alias = curQuery.getAttrAliases().get(i);
                 String keyName = curQuery.getAttrKeyNames().get(i);
                 Expression attrExpression = null;
@@ -1717,8 +1714,15 @@ public class CiServiceImpl implements CiService {
         return attrExprMap;
     }
 
+    private void validateStatusOfCiTypeAttr(AdmCiTypeAttr attr) {
+        if (CiStatus.NotCreated.getCode().equals(attr.getStatus())) {
+            throw new InvalidArgumentException(String.format("Can not build integration as the given ci type attr [%s], status is [%s].", attr.getName(), attr.getStatus()));
+        }
+    }
+
     private void attachAdditionalAttr(Map<String, FieldInfo> attrExprMap, Stack<String> path, int curCiTypeId, From curFrom, String propertyName) {
         AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId, propertyName);
+        validateStatusOfCiTypeAttr(attr);
         if (attr == null) {
             throw new ServiceException(String.format("Can not find out [%s] for CI Type [%d].", propertyName, curCiTypeId));
         }

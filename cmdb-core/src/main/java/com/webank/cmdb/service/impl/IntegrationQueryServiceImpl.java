@@ -151,9 +151,7 @@ public class IntegrationQueryServiceImpl implements IntegrationQueryService {
                 throw new InvalidArgumentException(String.format("Can not find out given attribute [%d] for CIType [%d].", attrId, ciTypeId));
             }
 
-            if (CiStatus.NotCreated.getCode().equals(attrOpt.get().getStatus())) {
-                throw new InvalidArgumentException(String.format("Can not build integration as the given ci type attr [%s], status is [%s].", attrOpt.get().getName(), attrOpt.get().getStatus()));
-            }
+            validateStatusOfCiTypeAttr(attrOpt.get());
 
             // user attr alias if it is existed in dto obj otherwise alias will be generated
             // by path
@@ -201,9 +199,7 @@ public class IntegrationQueryServiceImpl implements IntegrationQueryService {
                 throw new InvalidArgumentException(String.format("Can not find attribute [%d] for relationship.", relationship.getAttrId()));
             }
 
-            if (CiStatus.NotCreated.getCode().equals(ciTypeAttrOpt.get().getStatus())) {
-                throw new InvalidArgumentException(String.format("Can not build relationship as the given ci type attr [%s], status is [%s].", ciTypeAttrOpt.get().getName(), ciTypeAttrOpt.get().getStatus()));
-            }
+            validateStatusOfCiTypeAttr(ciTypeAttrOpt.get());
 
             if (!(InputType.Reference.getCode().equals(ciTypeAttrOpt.get().getInputType()) || InputType.MultRef.getCode().equals(ciTypeAttrOpt.get().getInputType()))) {
                 throw new InvalidArgumentException(String.format("AttrId [%d] is not reference type, can not be used to join different Ci type.", relationship.getAttrId()));
@@ -244,6 +240,12 @@ public class IntegrationQueryServiceImpl implements IntegrationQueryService {
 
         path.pop();
         return intTemplate;
+    }
+
+    private void validateStatusOfCiTypeAttr(AdmCiTypeAttr attr) {
+        if (CiStatus.NotCreated.getCode().equals(attr.getStatus())) {
+            throw new InvalidArgumentException(String.format("Can not build integration as the given ci type attr [%s], status is [%s].", attr.getName(), attr.getStatus()));
+        }
     }
 
     private String getTemplAlias(List<String> path) {
