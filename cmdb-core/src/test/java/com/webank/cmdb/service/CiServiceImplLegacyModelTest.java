@@ -49,7 +49,7 @@ public class CiServiceImplLegacyModelTest extends LegacyAbstractBaseControllerTe
     @Test
     public void createSubSysToUnitIntegrationQueryAndExecuteThenReturnProperResult() {
         IntegrationQueryDto unitQuery = new IntegrationQueryDto("Unit", 5, Arrays.asList(45), new Relationship(50, false));
-        IntegrationQueryDto subSysQuery = new IntegrationQueryDto("Subsystem Query", 3, Arrays.asList(6), Arrays.asList("Sub_system.englishName"), null);
+        IntegrationQueryDto subSysQuery = new IntegrationQueryDto("Subsystem Query", 3, Arrays.asList(12), Arrays.asList("Sub_system.englishName"), null);
         subSysQuery.addChild(unitQuery);
 
         int queryId = integrationQueryService.createIntegrationQuery(5, "Test query", subSysQuery);
@@ -107,7 +107,7 @@ public class CiServiceImplLegacyModelTest extends LegacyAbstractBaseControllerTe
     public void executeAdhocIntegrateQueryThenReturnProperResult() {
         IntegrationQueryDto systemQuery = new IntegrationQueryDto("system");
         systemQuery.setCiTypeId(2);
-        systemQuery.setAttrs(Lists.newArrayList(2));
+        systemQuery.setAttrs(Lists.newArrayList(8));
         systemQuery.setAttrKeyNames(Lists.newArrayList("system.name"));
         systemQuery.setParentRs(new Relationship(23, true));
 
