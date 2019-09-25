@@ -270,7 +270,7 @@
                     width="30"
                     height="30"
                   />
-                  {{}}
+                  &nbsp;
                 </Option>
               </Select>
             </FormItem>
