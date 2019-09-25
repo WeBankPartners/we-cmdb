@@ -400,6 +400,16 @@
                     >
                   </Select>
                 </FormItem>
+                <FormItem
+                  v-if="
+                    item.form.inputType === 'text' ||
+                      item.form.inputType === 'textArea'
+                  "
+                  prop="regularExpressionRule"
+                  label="正则规则"
+                >
+                  <Input v-model="item.form.regularExpressionRule"></Input>
+                </FormItem>
                 <FormItem label="真实类型">
                   <Input v-model="item.form.propertyType" disabled></Input>
                 </FormItem>
@@ -706,6 +716,16 @@
                   >{{ item }}</Option
                 >
               </Select>
+            </FormItem>
+            <FormItem
+              v-if="
+                addNewAttrForm.inputType === 'text' ||
+                  addNewAttrForm.inputType === 'textArea'
+              "
+              prop="regularExpressionRule"
+              label="正则规则"
+            >
+              <Input v-model="addNewAttrForm.regularExpressionRule"></Input>
             </FormItem>
             <FormItem prop="propertyType" label="真实类型">
               <Input v-model="addNewAttrForm.propertyType" disabled></Input>
