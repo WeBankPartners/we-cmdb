@@ -46,6 +46,7 @@ import com.webank.cmdb.service.IntegrationQueryService;
 import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.service.impl.FilterRuleService;
 import com.webank.cmdb.util.BeanMapUtils;
+import com.webank.cmdb.util.Sorting;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -442,6 +443,9 @@ public class UIWrapperService {
     }
 
     public QueryResponse<?> queryCiData(Integer ciTypeId, QueryRequest queryObject) {
+        if (queryObject.getSorting() == null) {
+            queryObject.setSorting(new Sorting(false, "created_date"));
+        }
         return ciService.query(ciTypeId, queryObject);
     }
 
