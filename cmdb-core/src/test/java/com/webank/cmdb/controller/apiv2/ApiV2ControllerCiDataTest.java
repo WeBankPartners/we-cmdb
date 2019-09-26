@@ -126,6 +126,16 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
     }
 
     @Test
+    public void queryCiDataThenTheDecommissionedFieldShouldNotBeReturned() throws Exception {
+        mvc.perform(post("/api/v2/ci/{ciTypeId}/retrieve", 4).contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(jsonPath("$.statusCode", is("OK")))
+                .andExpect(jsonPath("$.data.contents", hasSize(1)))
+                .andExpect(jsonPath("$.data.contents[0].name_cn").doesNotExist());
+    }
+    
+    
+    @Test
     public void queryCiDataWithFilterThenReturnCi() throws Exception {
         QueryRequestUtils queryObject = defaultQueryObject();
         queryObject.addContainsFilter("description", "Subsystem2")
