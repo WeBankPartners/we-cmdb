@@ -30,6 +30,21 @@ import com.webank.cmdb.util.JsonUtil;
 public class ApiV2ControllerCiTypeTest extends LegacyAbstractBaseControllerTest {
 
     @Test
+    public void whenCreateCiTypeWithKeywordAsTableNameShouldFail() throws Exception {
+        List<?> jsonList = ImmutableList.builder()
+                .add(ImmutableMap.builder()
+                        .put("callbackId", "123456")
+                        .put("tableName", "DATABASE")
+                        .put("name", "mock_ci_type")
+                        .build())
+                .build();
+        String reqJson = JsonUtil.toJson(jsonList);
+        mvc.perform(post("/api/v2/ciTypes/create").contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("ERR_BATCH_CHANG")));
+    }
+
+    @Test
     public void createCiTypesThenAllDefautAttrsHasDesplaySeqNo() throws Exception {
         String reqJson = JsonUtil.toJson(ImmutableList.of(mockCiTypeDtoWithName("Name1")));
         MvcResult result = mvc.perform(post("/api/v2/ciTypes/create").contentType(MediaType.APPLICATION_JSON)
