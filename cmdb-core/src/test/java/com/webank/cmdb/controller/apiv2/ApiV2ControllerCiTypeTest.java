@@ -41,7 +41,7 @@ public class ApiV2ControllerCiTypeTest extends LegacyAbstractBaseControllerTest 
         String reqJson = JsonUtil.toJson(jsonList);
         mvc.perform(post("/api/v2/ciTypes/create").contentType(MediaType.APPLICATION_JSON)
                 .content(reqJson))
-                .andExpect(jsonPath("$.statusCode", is("ERR_BATCH_CHANG")));
+                .andExpect(jsonPath("$.statusCode", is("ERR_BATCH_CHANGE")));
     }
 
     @Test
