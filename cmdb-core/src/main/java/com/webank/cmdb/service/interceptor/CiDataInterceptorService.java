@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import javax.persistence.EntityManager;
 
@@ -94,8 +95,24 @@ public class CiDataInterceptorService {
         validateRefInputType(entityHolder, cloneCi);
         validateUniqueField(entityHolder.getEntityMeta().getCiTypeId(), cloneCi);
         validateIsAutoField(entityHolder, cloneCi);
+        validateRegularExpressionRule(entityHolder, ciBeanMap);
 
         authorizationService.authorizeCiData(entityHolder.getEntityMeta().getCiTypeId(), entityHolder.getEntityObj(), ACTION_CREATION);
+    }
+
+    private void validateRegularExpressionRule(DynamicEntityHolder entityHolder, Map ciBeanMap) {
+        int ciTypeId = entityHolder.getEntityMeta().getCiTypeId();
+        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(ciTypeId);
+        if (attrs != null && !attrs.isEmpty()) {
+            attrs.forEach(attr -> {
+                if ((InputType.Text.getCode().equals(attr.getInputType()) || InputType.TextArea.getCode().equals(attr.getInputType())) && !StringUtils.isBlank(attr.getRegularExpressionRule())) {
+                    Object val = ciBeanMap.get(attr.getPropertyName());
+                    if (val != null && !Pattern.matches(attr.getRegularExpressionRule(), (String) val)) {
+                        throw new InvalidArgumentException(String.format("The input value [%s] is not match the regular expression rule [%s].", val, attr.getRegularExpressionRule()));
+                    }
+                }
+            });
+        }
     }
 
     private void validateCiTypeAttrStatus(DynamicEntityHolder entityHolder, BeanMap ciBeanMap) {
@@ -538,6 +555,7 @@ public class CiDataInterceptorService {
         validateIsAutoField(entityHolder, cloneCi);
         validateNotNullable(entityHolder, cloneCi);
         validateUniqueFieldForUpdate(entityHolder.getEntityMeta().getCiTypeId(), ci);
+        validateRegularExpressionRule(entityHolder, cloneCi);
     }
 
     // can not update not editable field
