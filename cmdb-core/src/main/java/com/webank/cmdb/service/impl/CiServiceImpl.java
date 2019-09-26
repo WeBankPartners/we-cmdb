@@ -556,18 +556,19 @@ public class CiServiceImpl implements CiService {
             Object value = kv.getValue();
             FieldNode fieldNode = entityMeta.getFieldNode(fieldName);
             if (fieldNode != null) {
-                if(!fieldNode.isJoinNode()) {
-            
                 int attrId = fieldNode.getAttrId();
-                if (attrMap.containsKey(attrId)) {
-                    AdmCiTypeAttr attr = attrMap.get(attrId);
-                    // Don't return the field if editIsHidden is enable
-                    if (attr.getEditIsHiden() != null && attr.getEditIsHiden() != 0) {
-                        continue;
-                    }
+                if (!attrMap.containsKey(attrId)) {
+                    continue;
+                }
+                AdmCiTypeAttr attr = attrMap.get(attrId);
+                // Don't return the field if editIsHidden is enable
+                if (CiStatus.Decommissioned.getCode().equals(attr.getStatus()) || (attr.getEditIsHiden() != null && attr.getEditIsHiden() != 0)) {
+                    continue;
+                }
+                
+                if(!fieldNode.isJoinNode()) {
                     value = convertFieldValue(fieldName, value, attrMap.get(attrId));
                     ciMap.put(fieldName, value);
-                }
                 } else if (fieldNode.isJoinNode() && DynamicEntityType.MultiSelection.equals(fieldNode.getEntityType())) {
                     Set codeImSet = (Set) value;
                     List codeImList = Lists.newLinkedList(codeImSet);
@@ -588,14 +589,8 @@ public class CiServiceImpl implements CiService {
                     }
                     ciMap.put(fieldName, enrichMulSels);
                 } else if (fieldNode.isJoinNode() && DynamicEntityType.MultiReference.equals(fieldNode.getEntityType()) && Strings.isNullOrEmpty(fieldNode.getMappedBy())) {
-                    int attrId = fieldNode.getAttrId();
-    
-                    if (!attrMap.containsKey(attrId)) {
-                        continue;
-                    }
-    
                     Set<Map> referCis = (Set<Map>) value;
-                    AdmCiTypeAttr attr = attrMap.get(attrId);
+                    attr = attrMap.get(attrId);
                     DynamicEntityMeta multRefMeta = multRefMetaMap.get(attrId);
                     Map<String, Integer> sortMap = JpaQueryUtils.getSortedMapForMultiRef(entityManager, attr, multRefMeta);
     
