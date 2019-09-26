@@ -283,20 +283,25 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
 
     private void validatePropertyName(Object oldPropertyName, Object propertyName, Integer ciTypeId) {
         if (propertyName != null) {
-            if (!propertyName.equals(oldPropertyName) && ciTypeAttrRepository.existsByPropertyNameAndCiTypeId((String) propertyName, ciTypeId)) {
-                throw new InvalidArgumentException(String.format("Property name [%s] already existed for ciType [%s(%d)]", propertyName, getCiTypeName(ciTypeId), ciTypeId));
+            String propertyNameStr = (String)propertyName;
+            if (CmdbConstants.MYSQL_SCHEMA_KEYWORDS.contains(propertyNameStr.trim().toUpperCase())) {
+                throw new InvalidArgumentException(String.format("Invalid property name [%s] as it is database key words.", propertyNameStr));
             }
 
-            if (((String) propertyName).length() > CmdbConstants.MAX_LENGTH_OF_COLUMN) {
-                throw new InvalidArgumentException(String.format("Field propertyName [%s] is too long, max length is [%d]", propertyName, CmdbConstants.MAX_LENGTH_OF_COLUMN));
+            if (!propertyNameStr.equals(oldPropertyName) && ciTypeAttrRepository.existsByPropertyNameAndCiTypeId(propertyNameStr, ciTypeId)) {
+                throw new InvalidArgumentException(String.format("Property name [%s] already existed for ciType [%s(%d)]", propertyNameStr, getCiTypeName(ciTypeId), ciTypeId));
             }
 
-            if (!Pattern.matches("[a-zA-Z0-9_]+", (String) propertyName)) {
-                throw new InvalidArgumentException(String.format("Field propertyName [%s] must be composed by letters, '_' or numbers", propertyName));
+            if (propertyNameStr.length() > CmdbConstants.MAX_LENGTH_OF_COLUMN) {
+                throw new InvalidArgumentException(String.format("Field propertyName [%s] is too long, max length is [%d]", propertyNameStr, CmdbConstants.MAX_LENGTH_OF_COLUMN));
             }
 
-            if (StringUtils.isAllUpperCase(propertyName.toString().substring(0, 1))) {
-                throw new InvalidArgumentException(String.format("Field propertyName [%s] must be start with lowercase.", propertyName));
+            if (!Pattern.matches("[a-zA-Z0-9_]+", propertyNameStr)) {
+                throw new InvalidArgumentException(String.format("Field propertyName [%s] must be composed by letters, '_' or numbers", propertyNameStr));
+            }
+
+            if (StringUtils.isAllUpperCase(propertyNameStr.toString().substring(0, 1))) {
+                throw new InvalidArgumentException(String.format("Field propertyName [%s] must be start with lowercase.", propertyNameStr));
             }
         }
     }
