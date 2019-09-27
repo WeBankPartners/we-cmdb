@@ -236,7 +236,7 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 -- Zone
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
 ('English Name','text','English Name',4,'name_en','varchar',1,'1',1,'0','1','0','0','0',NULL,45,0,'created','0')
-,('Chinese Name','text','Chinese Name',4,'name_cn','varchar',2,'1',2,'1','0','0','0','0',NULL,45,0,'created','0')
+,('Chinese Name','text','Chinese Name',4,'name_cn','varchar',2,'1',2,'1','0','0','0','0',NULL,45,0,'decommissioned','0')
 ,('Zone Type','select','Zone Type',4,'zone_type','int',3,'1',3,'0','0','0','0','0',NULL,45,25,'created','0')
 ,('IDC Min','number','IDC Min',4,'idc_min','int',5,'1',4,'0','0','0','0','0',NULL,2,0,'created','0')
 ,('Description','text','Description',4,'description','varchar',5,'1',5,'1','0','0','0','0',NULL,200,0,'created','0')
