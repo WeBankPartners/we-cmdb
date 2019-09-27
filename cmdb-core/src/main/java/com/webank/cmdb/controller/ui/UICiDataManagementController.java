@@ -3,9 +3,13 @@ package com.webank.cmdb.controller.ui;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.webank.cmdb.controller.ui.helper.BooleanUtils.isTrue;
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_CMDB_MODEL_MANAGEMENT;
+import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_APPLICATION_ARCHITECTURE;
+import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_APPLICATION_DEPLOYMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_ENQUIRY;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT;
+import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_PLANNING;
+import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_RESOURCE_PLANNING;
 import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
@@ -31,7 +35,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.google.common.collect.Lists;
 import com.webank.cmdb.config.ApplicationProperties;
+import com.webank.cmdb.controller.ui.helper.ResourceTreeDto;
 import com.webank.cmdb.controller.ui.helper.UIWrapperService;
+import com.webank.cmdb.controller.ui.helper.ZoneLinkDto;
+import com.webank.cmdb.dto.CiData;
 import com.webank.cmdb.dto.CiIndentity;
 import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
@@ -247,4 +254,123 @@ public class UICiDataManagementController {
     public void implementCiTypeAttribute(@PathVariable(value = "ci-type-id") Integer ciTypeId, @PathVariable(value = "attribute-id") Integer attributeId, @RequestParam(value = "operation") String operation) {
         wrapperService.implementCiTypeAttribute(attributeId, operation);
     }
+
+    @RolesAllowed({ MENU_DESIGNING_PLANNING })
+    @GetMapping("/ci-data/all-idc-design")
+    @ResponseBody
+    public List<CiData> getAllIdcDesignData() {
+        return wrapperService.getAllIdcDesignData();
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_PLANNING })
+    @PostMapping("/data-tree/query-idc-design-tree")
+    @ResponseBody
+    public List<ResourceTreeDto> getIdcDesignTreeByGuid(@RequestBody List<String> idcDesignGuids) {
+        return wrapperService.getIdcDesignTreesByGuid(idcDesignGuids);
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_PLANNING, MENU_DESIGNING_APPLICATION_ARCHITECTURE })
+    @GetMapping("/all-zone-link-design")
+    @ResponseBody
+    public List<ZoneLinkDto> getAllZoneLinkDesignGroupByIdcDesign() {
+        return wrapperService.getAllZoneLinkDesignGroupByIdcDesign();
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_PLANNING })
+    @GetMapping("/ci-data/all-idc")
+    @ResponseBody
+    public List<CiData> getAllIdcData() {
+        return wrapperService.getAllIdcData();
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_RESOURCE_PLANNING })
+    @PostMapping("/data-tree/query-idc-tree")
+    @ResponseBody
+    public List<ResourceTreeDto> getIdcImplementTreeByGuid(@RequestBody List<String> idcGuids) {
+        return wrapperService.getIdcTreeByGuid(idcGuids);
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_APPLICATION_DEPLOYMENT, MENU_DESIGNING_RESOURCE_PLANNING })
+    @GetMapping("/all-zone-link")
+    @ResponseBody
+    public List<ZoneLinkDto> getAllZoneLinkGroupByIdc() {
+        return wrapperService.getAllZoneLinkGroupByIdc();
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_APPLICATION_ARCHITECTURE, MENU_DESIGNING_APPLICATION_DEPLOYMENT })
+    @GetMapping("/system-designs")
+    @ResponseBody
+    public Object getSystemDesigns() {
+        return wrapperService.getSystemDesigns();
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_APPLICATION_ARCHITECTURE })
+    @PutMapping("/ci-types/{ci-type-id}/ci-data/{ci-data-id}")
+    @ResponseBody
+    public List<Map<String, Object>> updateCiData(@PathVariable(value = "ci-type-id") int ciTypeId,
+            @PathVariable(value = "ci-data-id") String ciDataId, @RequestBody Map<String, Object> ciData) {
+        return wrapperService.updateCiData(ciTypeId, Arrays.asList(ciData));
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_APPLICATION_ARCHITECTURE })
+    @GetMapping("/trees/all-design-trees/from-system-design")
+    @ResponseBody
+    public List<ResourceTreeDto> getAllDesignTreesFromSystemDesign(@RequestParam(value = "system-design-guid") String systemDesignGuid) {
+        return wrapperService.getAllDesignTreesFromSystemDesign(systemDesignGuid);
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_APPLICATION_ARCHITECTURE })
+    @PostMapping("/trees/all-design-trees/from-system-design/save")
+    @ResponseBody
+    public void saveAllDesignTreesFromSystemDesign(@RequestParam(value = "system-design-guid") String systemDesignGuid) {
+        wrapperService.saveAllDesignTreesFromSystemDesign(systemDesignGuid);
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_APPLICATION_ARCHITECTURE })
+    @GetMapping("/architecture-designs/tabs")
+    @ResponseBody
+    public Object getArchitectureDesignTabs() {
+        return wrapperService.getArchitectureDesignTabs();
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_APPLICATION_ARCHITECTURE })
+    @PostMapping("/architecture-designs/tabs/ci-data")
+    @ResponseBody
+    public Object getArchitectureCiData(@RequestParam(value = "code-id") Integer codeId,
+            @RequestParam(value = "system-design-guid") String systemDesignGuid,
+            @RequestBody QueryRequest queryObject) {
+        return wrapperService.getArchitectureCiData(codeId, systemDesignGuid, queryObject);
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_APPLICATION_DEPLOYMENT })
+    @PostMapping("/deploy-designs/tabs/ci-data")
+    @ResponseBody
+    public Object getDeployCiData(@RequestParam(value = "code-id") Integer codeId,
+            @RequestParam(value = "env-code") String envCode,
+            @RequestParam(value = "system-design-guid") String systemDesignGuid,
+            @RequestBody QueryRequest queryObject) {
+        return wrapperService.getDeployCiData(codeId, envCode, systemDesignGuid, queryObject);
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_APPLICATION_DEPLOYMENT })
+    @GetMapping("/deploy-designs/tabs")
+    @ResponseBody
+    public Object getDeployDesignTabs() {
+        return wrapperService.getDeployDesignTabs();
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_APPLICATION_DEPLOYMENT })
+    @GetMapping("/trees/all-deploy-trees/from-subsys")
+    @ResponseBody
+    public List<ResourceTreeDto> getAllDeployTreesFromSubSys(@RequestParam(value = "env-code") String envCode, @RequestParam(value = "system-design-guid") String systemDesignGuid) {
+        return wrapperService.getAllDeployTreesFromSubSys(envCode, systemDesignGuid);
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_APPLICATION_DEPLOYMENT })
+    @GetMapping("/data-tree/application-deployment-design")
+    @ResponseBody
+    public List<ResourceTreeDto> getApplicationDeploymentDesignDataTree(@RequestParam(value = "system-design-guid") String systemDesignGuid, @RequestParam(value = "env-code") Integer envCodeId) {
+        return wrapperService.getApplicationDeploymentDesignDataTreeBySystemDesignGuidAndEnvCode(systemDesignGuid, envCodeId);
+    }
+
 }
