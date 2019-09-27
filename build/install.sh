@@ -20,6 +20,7 @@ else
   source cmdb.cfg
 fi
 
+cd `dirname $0`
 
 sed "s~{{CMDB_CORE_IMAGE_NAME}}~$cmdb_image_name~g" docker-compose-all.tpl > docker-compose.yml
 sed -i "s~{{CMDB_SERVER_PORT}}~$cmdb_server_port~g" docker-compose.yml  
