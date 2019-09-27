@@ -1,4 +1,6 @@
 #!/bin/bash
+cd `dirname $0`
+
 rm -rf database
 
 cp -r ../../cmdb-core/database  database
