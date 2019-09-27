@@ -189,14 +189,19 @@ public class CiTypeInterceptorService extends BasicInterceptorService<CiTypeDto,
 
     private void validateIfTableNameIsUnique(Object oldTableName, Object tableName) {
         if (tableName != null) {
-            if (((String) tableName).length() > CmdbConstants.MAX_LENGTH_OF_TABLE) {
-                throw new InvalidArgumentException(String.format("Field tableName [%s] is too long, max length is [%d]", tableName, CmdbConstants.MAX_LENGTH_OF_TABLE));
+            String tableNameStr = (String) tableName;
+            if (CmdbConstants.MYSQL_SCHEMA_KEYWORDS.contains(tableNameStr.trim().toUpperCase())) {
+                throw new InvalidArgumentException(String.format("Invalid table name [%s] as it is database key words.", tableNameStr));
             }
-            if (!tableName.equals(oldTableName) && ciTypeRepository.findByTableName((String) tableName) != null) {
-                throw new InvalidArgumentException(String.format("The tableName [%s] is already existed", tableName));
+
+            if (tableNameStr.length() > CmdbConstants.MAX_LENGTH_OF_TABLE) {
+                throw new InvalidArgumentException(String.format("Field tableName [%s] is too long, max length is [%d]", tableNameStr, CmdbConstants.MAX_LENGTH_OF_TABLE));
             }
-            if (!Pattern.matches("[a-zA-Z0-9_]+", (String) tableName)) {
-                throw new InvalidArgumentException(String.format("Field tableName [%s] must be composed by letters, '_' or numbers", tableName));
+            if (!tableNameStr.equals(oldTableName) && ciTypeRepository.findByTableName(tableNameStr) != null) {
+                throw new InvalidArgumentException(String.format("The tableName [%s] is already existed", tableNameStr));
+            }
+            if (!Pattern.matches("[a-zA-Z0-9_]+", tableNameStr)) {
+                throw new InvalidArgumentException(String.format("Field tableName [%s] must be composed by letters, '_' or numbers", tableNameStr));
             }
         }
     }
