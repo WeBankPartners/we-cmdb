@@ -126,6 +126,16 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
     }
 
     @Test
+    public void queryCiDataThenTheDecommissionedFieldShouldNotBeReturned() throws Exception {
+        mvc.perform(post("/api/v2/ci/{ciTypeId}/retrieve", 4).contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(jsonPath("$.statusCode", is("OK")))
+                .andExpect(jsonPath("$.data.contents", hasSize(1)))
+                .andExpect(jsonPath("$.data.contents[0].name_cn").doesNotExist());
+    }
+    
+    
+    @Test
     public void queryCiDataWithFilterThenReturnCi() throws Exception {
         QueryRequestUtils queryObject = defaultQueryObject();
         queryObject.addContainsFilter("description", "Subsystem2")
@@ -550,6 +560,45 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
 
         assertThat(TestDatabase.getQueryCount(entityManager), lessThanOrEqualTo(3));
         TestDatabase.disableH2Statistics(entityManager);
+    }
+
+    @Test
+    public void whenCreateCiDataWithRegularExpressionRuleAndCreateWithValidValueThenShouldSuccess() throws Exception {
+        validateValueWithRegularExpressionRule("[a-z]+", "lowercase", "OK");
+    }
+
+    @Test
+    public void whenCreateCiDataWithRegularExpressionRuleAndCreateWithInvalidValueThenShouldFail() throws Exception {
+        validateValueWithRegularExpressionRule("[a-z]+", "UPPERCASE", "ERR_BATCH_CHANGE");
+    }
+
+    @Test
+    public void whenCreateCiDataWithEmptyRegularExpressionRuleAndCreateWithAnyValudThenShouldSuccess() throws Exception {
+        validateValueWithRegularExpressionRule("", "UPPERCASElowercase", "OK");
+    }
+
+    private void validateValueWithRegularExpressionRule(String regularExpressionRule, String inputValue, String expectedStatusCode) throws Exception {
+        List<?> jsonList = ImmutableList.builder()
+                .add(ImmutableMap.builder()
+                        .put("ciTypeAttrId", 7)
+                        .put("regularExpressionRule", regularExpressionRule)
+                        .build())
+                .build();
+        String reqJson = JsonUtil.toJson(jsonList);
+        mvc.perform(post("/api/v2/ciTypeAttrs/update").contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("OK")));
+
+        Map<?, ?> jsonMap = ImmutableMap.builder()
+                .put("description", "test desc")
+                .put("name_en", inputValue)
+                .put("system_type", 554)
+                .build();
+        reqJson = JsonUtil.toJson(ImmutableList.of(jsonMap));
+        mvc.perform(post("/api/v2/ci/{ciTypeId}/create", 2).contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is(expectedStatusCode)))
+                .andExpect(jsonPath("$.data[0].guid", notNullValue()));
     }
 
 }

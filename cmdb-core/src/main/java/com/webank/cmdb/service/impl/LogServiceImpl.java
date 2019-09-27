@@ -42,15 +42,13 @@ public class LogServiceImpl implements LogService {
     @Override
     public List<QueryHeader> queryHeader() {
         List<QueryHeader> headers = new LinkedList<>();
-        headers.add(new QueryHeader("ciName", InputType.Text.getCode()));
-        headers.add(new QueryHeader("guid", InputType.Text.getCode()));
-        headers.add(new QueryHeader("ciTypeName", InputType.Text.getCode()));
-        headers.add(new QueryHeader("createdDate", InputType.Date.getCode()));
-        headers.add(new QueryHeader("user", InputType.Text.getCode()));
-        headers.add(new QueryHeader("logCat", InputType.Droplist.getCode(), LogCategory.codes()));
-        headers.add(new QueryHeader("logContent", InputType.Text.getCode()));
-        headers.add(new QueryHeader("operation", InputType.Droplist.getCode(), LogOperation.codes()));
-        headers.add(new QueryHeader("remark", InputType.Text.getCode()));
+        headers.add(new QueryHeader("Guid", "guid", InputType.Text.getCode()));
+        headers.add(new QueryHeader("Created Date", "createdDate", InputType.Date.getCode()));
+        headers.add(new QueryHeader("User", "user", InputType.Text.getCode()));
+        headers.add(new QueryHeader("Log Cat", "logCat", InputType.Droplist.getCode(), LogCategory.codes()));
+        headers.add(new QueryHeader("Log Content", "logContent", InputType.Text.getCode()));
+        headers.add(new QueryHeader("Operation", "operation", InputType.Droplist.getCode(), LogOperation.codes()));
+        headers.add(new QueryHeader("Remark", "remark", InputType.Text.getCode()));
         return headers;
     }
 

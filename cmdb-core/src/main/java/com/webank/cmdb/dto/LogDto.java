@@ -8,9 +8,7 @@ import com.webank.cmdb.domain.AdmLog;
 import com.webank.cmdb.util.DtoField;
 
 public class LogDto extends BasicResourceDto<LogDto, AdmLog> {
-    private String ciName;
     private String guid;
-    private String ciTypeName;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
     private Date createdDate;
     @DtoField(domainField = "idAdmUser")
@@ -20,22 +18,6 @@ public class LogDto extends BasicResourceDto<LogDto, AdmLog> {
     private String operation;
     private String remark;
     private int status;
-
-    public String getCiName() {
-        return ciName;
-    }
-
-    public void setCiName(String ciName) {
-        this.ciName = ciName;
-    }
-
-    public String getCiTypeName() {
-        return ciTypeName;
-    }
-
-    public void setCiTypeName(String ciTypeName) {
-        this.ciTypeName = ciTypeName;
-    }
 
     public Date getCreatedDate() {
         return createdDate;
@@ -104,8 +86,6 @@ public class LogDto extends BasicResourceDto<LogDto, AdmLog> {
     @Override
     public LogDto fromDomain(AdmLog domain, List<String> refResource) {
         LogDto dto = new LogDto();
-        dto.setCiName(domain.getCiName());
-        dto.setCiTypeName(domain.getCiTypeName());
         dto.setCreatedDate(domain.getCreatedDate());
         dto.setGuid(domain.getGuid());
         dto.setLogCat(domain.getLogCat());

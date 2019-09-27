@@ -121,7 +121,7 @@ public class MultiValueFeildOperationUtils {
                 int attrId = fn.getAttrId();
                 DynamicEntityMeta multSelMeta = ciService.getMultSelectMetaMap().get(attrId);
                 Set multSelSet = (Set) fromBeanMap.get(fn.getName());
-                if (multSelSet != null && !multSelSet.isEmpty()) {
+                if (multSelSet != null ) {
                     Set newMultiSet = new HashSet();
                     multSelSet.forEach(item -> {
                         DynamicEntityHolder newMultiSelItem = DynamicEntityHolder.cloneDynamicEntityBean(multSelMeta, item);

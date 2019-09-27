@@ -556,18 +556,19 @@ public class CiServiceImpl implements CiService {
             Object value = kv.getValue();
             FieldNode fieldNode = entityMeta.getFieldNode(fieldName);
             if (fieldNode != null) {
-                if(!fieldNode.isJoinNode()) {
-            
                 int attrId = fieldNode.getAttrId();
-                if (attrMap.containsKey(attrId)) {
-                    AdmCiTypeAttr attr = attrMap.get(attrId);
-                    // Don't return the field if editIsHidden is enable
-                    if (attr.getEditIsHiden() != null && attr.getEditIsHiden() != 0) {
-                        continue;
-                    }
+                if (!attrMap.containsKey(attrId)) {
+                    continue;
+                }
+                AdmCiTypeAttr attr = attrMap.get(attrId);
+                // Don't return the field if editIsHidden is enable
+                if (CiStatus.Decommissioned.getCode().equals(attr.getStatus()) || (attr.getEditIsHiden() != null && attr.getEditIsHiden() != 0)) {
+                    continue;
+                }
+                
+                if(!fieldNode.isJoinNode()) {
                     value = convertFieldValue(fieldName, value, attrMap.get(attrId));
                     ciMap.put(fieldName, value);
-                }
                 } else if (fieldNode.isJoinNode() && DynamicEntityType.MultiSelection.equals(fieldNode.getEntityType())) {
                     Set codeImSet = (Set) value;
                     List codeImList = Lists.newLinkedList(codeImSet);
@@ -588,14 +589,8 @@ public class CiServiceImpl implements CiService {
                     }
                     ciMap.put(fieldName, enrichMulSels);
                 } else if (fieldNode.isJoinNode() && DynamicEntityType.MultiReference.equals(fieldNode.getEntityType()) && Strings.isNullOrEmpty(fieldNode.getMappedBy())) {
-                    int attrId = fieldNode.getAttrId();
-    
-                    if (!attrMap.containsKey(attrId)) {
-                        continue;
-                    }
-    
                     Set<Map> referCis = (Set<Map>) value;
-                    AdmCiTypeAttr attr = attrMap.get(attrId);
+                    attr = attrMap.get(attrId);
                     DynamicEntityMeta multRefMeta = multRefMetaMap.get(attrId);
                     Map<String, Integer> sortMap = JpaQueryUtils.getSortedMapForMultiRef(entityManager, attr, multRefMeta);
     
@@ -1607,6 +1602,9 @@ public class CiServiceImpl implements CiService {
         int curCiTypeId = curQuery.getCiTypeId();
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(curCiTypeId);
         AdmCiType curCiType = ciTypeRepository.getOne(curCiTypeId);
+        if (CiStatus.NotCreated.getCode().equals(curCiType.getStatus())) {
+            throw new InvalidArgumentException(String.format("Can not build integration as the given CiType [%s], status is [%s].", curCiType.getName(), curCiType.getStatus()));
+        }
         path.push(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, curCiType.getTableName()));
 
         Map<String, FieldInfo> currentCiTypeAttrExprMap = new HashMap<>();
@@ -1618,6 +1616,7 @@ public class CiServiceImpl implements CiService {
             List<Integer> attrIds = curQuery.getAttrs();
             for (int i = 0; i < attrIds.size(); i++) {
                 AdmCiTypeAttr attr = ciTypeAttrRepository.getOne(attrIds.get(i));
+                validateStatusOfCiTypeAttr(attr);
                 // String alias = curQuery.getAttrAliases().get(i);
                 String keyName = curQuery.getAttrKeyNames().get(i);
                 Expression attrExpression = null;
@@ -1643,6 +1642,7 @@ public class CiServiceImpl implements CiService {
             }
             int reltAttrId = relt.getAttrId();
             AdmCiTypeAttr reltAttr = ciTypeAttrRepository.getOne(reltAttrId);
+            validateStatusOfCiTypeAttr(reltAttr);
             String joinField = null;
             // if(relt.getIsReferedFromParent()) {
             if (reltAttr.getCiTypeId().equals(parentCiType.getIdAdmCiType())) {
@@ -1656,6 +1656,7 @@ public class CiServiceImpl implements CiService {
             List<Integer> attrIds = curQuery.getAttrs();
             for (int i = 0; i < attrIds.size(); i++) {
                 AdmCiTypeAttr attr = ciTypeAttrRepository.getOne(attrIds.get(i));
+                validateStatusOfCiTypeAttr(attr);
                 // String alias = curQuery.getAttrAliases().get(i);
                 String keyName = curQuery.getAttrKeyNames().get(i);
                 Expression attrExpression = null;
@@ -1708,8 +1709,15 @@ public class CiServiceImpl implements CiService {
         return attrExprMap;
     }
 
+    private void validateStatusOfCiTypeAttr(AdmCiTypeAttr attr) {
+        if (CiStatus.NotCreated.getCode().equals(attr.getStatus())) {
+            throw new InvalidArgumentException(String.format("Can not build integration as the given ci type attr [%s], status is [%s].", attr.getName(), attr.getStatus()));
+        }
+    }
+
     private void attachAdditionalAttr(Map<String, FieldInfo> attrExprMap, Stack<String> path, int curCiTypeId, From curFrom, String propertyName) {
         AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId, propertyName);
+        validateStatusOfCiTypeAttr(attr);
         if (attr == null) {
             throw new ServiceException(String.format("Can not find out [%s] for CI Type [%d].", propertyName, curCiTypeId));
         }
