@@ -19,6 +19,7 @@ import com.webank.cmdb.dto.IntegrationQueryDto;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.dto.Relationship;
+import com.webank.cmdb.exception.InvalidArgumentException;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
@@ -27,6 +28,20 @@ import com.webank.cmdb.dto.Relationship;
 public class CiServiceImplTest extends AbstractBaseControllerTest {
     @Autowired
     private CiService ciService;
+
+    @Transactional
+    @Test(expected = InvalidArgumentException.class)
+    public void whenCreateIntQueryWithNotCreatedCiTypeShouldFail() {
+        IntegrationQueryDto queryDto = new IntegrationQueryDto("muti_ref_ci_a");
+        queryDto.setCiTypeId(50);
+        queryDto.setAttrs(Lists.newArrayList(810));
+        queryDto.setAttrKeyNames(Lists.newArrayList("muti_ref_ci_a.description"));
+
+        AdhocIntegrationQueryDto adhocQuery = new AdhocIntegrationQueryDto();
+        adhocQuery.setCriteria(queryDto);
+        adhocQuery.setQueryRequest(new QueryRequest());
+        ciService.adhocIntegrateQuery(adhocQuery);
+    }
 
     @Transactional
     @Test
