@@ -1,4 +1,5 @@
 #!/bin/bash
+
 set -ex
 if ! docker --version &> /dev/null
 then
@@ -12,7 +13,14 @@ then
     exit 1
 fi
 
-source cmdb.cfg
+if [ $# -ge 1 ]
+then
+  source $1
+else
+  source cmdb.cfg
+fi
+
+cd `dirname $0`
 
 sed "s~{{CMDB_CORE_IMAGE_NAME}}~$cmdb_image_name~g" docker-compose-all.tpl > docker-compose.yml
 sed -i "s~{{CMDB_SERVER_PORT}}~$cmdb_server_port~g" docker-compose.yml  
