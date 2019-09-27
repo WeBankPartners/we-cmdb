@@ -587,8 +587,7 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
         reqJson = JsonUtil.toJson(ImmutableList.of(jsonMap));
         mvc.perform(post("/api/v2/ci/{ciTypeId}/create", 2).contentType(MediaType.APPLICATION_JSON)
                 .content(reqJson))
-                .andExpect(jsonPath("$.statusCode", is(expectedStatusCode)))
-                .andExpect(jsonPath("$.data[0].guid", notNullValue()));
+                .andExpect(jsonPath("$.statusCode", is(expectedStatusCode)));
     }
 
 }
