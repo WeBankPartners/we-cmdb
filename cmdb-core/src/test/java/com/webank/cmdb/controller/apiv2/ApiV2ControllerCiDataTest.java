@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.webank.cmdb.config.TestDatabase;
 import com.webank.cmdb.constant.AutoFillType;
 import com.webank.cmdb.controller.LegacyAbstractBaseControllerTest;
@@ -600,4 +601,18 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
                 .andExpect(jsonPath("$.statusCode", is(expectedStatusCode)));
     }
 
+    @Test
+    public void updateCiDataWithImproperListValueThenGetError() throws Exception {
+        Map<?, ?> jsonMap = ImmutableMap.builder()
+                .put("guid", "0002_0000000002")
+                .put("name_cn", Lists.newArrayList("name1","name2"))
+                .build();
+        String updateJson = JsonUtil.toJson(ImmutableList.of(jsonMap));
+
+        mvc.perform(post("/api/v2/ci/{ciTypeId}/update", 2).contentType(MediaType.APPLICATION_JSON)
+                .content(updateJson))
+                .andExpect(jsonPath("$.statusCode", is("ERR_BATCH_CHANGE")));
+
+    }
+    
 }
