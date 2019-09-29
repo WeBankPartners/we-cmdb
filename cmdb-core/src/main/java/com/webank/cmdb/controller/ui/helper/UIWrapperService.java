@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.webank.cmdb.config.ApplicationProperties.UIProperties;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.ImplementOperation;
+import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.CatCodeDto;
@@ -723,8 +724,8 @@ public class UIWrapperService {
     public void recursiveGetChildrenData(Integer ciTypeId, List<Integer> limitedCiTypes, List<ResourceTreeDto> resourceTrees, Map<String, Object> inputFilters) {
         List<CiData> ciDatas = queryCiData(ciTypeId, buildQueryObjectWithEqualsFilter(inputFilters)).getContents();
         for (int i = 0; i < ciDatas.size(); i++) {
-            Object ciData = ciDatas.get(i);
-            Map ciDataMap = (Map) ((Map) ciData).get("data");
+            CiData ciData = ciDatas.get(i);
+            Map<String, Object> ciDataMap = ciData.getData();
             resourceTrees.add(buildNewResourceTreeDto(ciData, ciTypeId));
 
             List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceNameOfBelong());
@@ -753,9 +754,9 @@ public class UIWrapperService {
         List<CiData> ciDatas = response.getContents();
 
         for (int i = 0; i < ciDatas.size(); i++) {
-            Object ciData = ciDatas.get(i);
+            CiData ciData = ciDatas.get(i);
             resourceTrees.add(buildNewResourceTreeDto(ciData, ciTypeId));
-            Map ciDataMap = (Map) ((Map) ciData).get("data");
+            Map<String, Object> ciDataMap = ciData.getData();
             List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceNameOfBelong());
 
             if (childrenCiTypeRelativeAttributes.size() == 0) {
@@ -777,8 +778,8 @@ public class UIWrapperService {
     private List<Integer> getSameCiTypesByCiTypeId(Integer ciTypeId) {
         List<Integer> ciTypeIds = new ArrayList<>();
 
-        CiTypeDto ciTypeDto = staticEntityRepository.findEntityById(CiTypeDto.class, ciTypeId);
-        QueryRequest queryObject = defaultQueryObject().addEqualsFilter("layerId", ciTypeDto.getLayerId());
+        AdmCiType admCiType = staticEntityRepository.findEntityById(AdmCiType.class, ciTypeId);
+        QueryRequest queryObject = defaultQueryObject().addEqualsFilter("layerId", admCiType.getLayerId());
 
         QueryResponse<CiTypeDto> ciTypeDtos = staticDtoService.query(CiTypeDto.class, queryObject);
         if (ciTypeDtos != null && ciTypeDtos.getContents() != null) {
@@ -790,14 +791,14 @@ public class UIWrapperService {
         return ciTypeIds;
     }
 
-    private ResourceTreeDto buildNewResourceTreeDto(Object ciData, Integer ciTypeId) {
+    private ResourceTreeDto buildNewResourceTreeDto(CiData ciData, Integer ciTypeId) {
         ResourceTreeDto resourceTree = new ResourceTreeDto();
-        Map map = (Map) ((Map) ciData).get("data");
-        resourceTree.setGuid(map.get("guid").toString());
+        Map<String, Object> data = ciData.getData();
+        resourceTree.setGuid(data.get("guid").toString());
         resourceTree.setCiTypeId(ciTypeId);
         List<CiTypeAttrDto> ciTypeAttributes = getCiTypeAttributesByCiTypeId(ciTypeId);
         resourceTree.setAttrs(ciTypeAttributes);
-        resourceTree.setData(((Map) ciData).get("data"));
+        resourceTree.setData(data);
 
         return resourceTree;
     }
@@ -859,8 +860,8 @@ public class UIWrapperService {
             return results;
         }
 
-        for (Object idcDesign : idcDesignData) {
-            String idcDesignGuid = ((Map) ((Map) idcDesign).get("data")).get("guid").toString();
+        for (CiData idcDesign : idcDesignData) {
+            String idcDesignGuid = idcDesign.getData().get("guid").toString();
 
             ZoneLinkDto result = new ZoneLinkDto();
             result.setIdcGuid(idcDesignGuid);
@@ -868,7 +869,7 @@ public class UIWrapperService {
             List<CiData> zoneDesignData = queryCiData(uiProperties.getCiTypeIdOfZoneDesign(), defaultQueryObject().addEqualsFilter("idc_design", idcDesignGuid)).getContents();
             List<String> zoneDesignList = new ArrayList<>();
             for (Object zoneDesign : zoneDesignData) {
-                zoneDesignList.add(((Map) ((Map) zoneDesign).get("data")).get("guid").toString());
+                zoneDesignList.add(idcDesign.getData().get("guid").toString());
             }
 
             if (zoneDesignList.size() != 0) {
@@ -896,8 +897,8 @@ public class UIWrapperService {
         List<ZoneLinkDto> results = new ArrayList<>();
 
         List<CiData> idcData = queryCiData(uiProperties.getCiTypeIdOfIdc(), defaultQueryObject()).getContents();
-        for (Object idc : idcData) {
-            String idcGuid = ((Map) ((Map) idc).get("data")).get("guid").toString();
+        for (CiData idc : idcData) {
+            String idcGuid = idc.getData().get("guid").toString();
 
             ZoneLinkDto result = new ZoneLinkDto();
             result.setIdcGuid(idcGuid);
@@ -905,7 +906,7 @@ public class UIWrapperService {
             List<CiData> zoneData = queryCiData(uiProperties.getCiTypeIdOfZone(), defaultQueryObject().addEqualsFilter("idc", idcGuid)).getContents();
             List<String> zoneList = new ArrayList<>();
             for (Object zone : zoneData) {
-                zoneList.add(((Map) ((Map) zone).get("data")).get("guid").toString());
+                zoneList.add(idc.getData().get("guid").toString());
             }
             if (zoneList.size() != 0) {
                 List<CiData> zoneLinkData = queryCiData(uiProperties.getCiTypeIdOfZoneLink(),
@@ -954,8 +955,8 @@ public class UIWrapperService {
     public void recursiveGetChildrenDataFilterState(Integer ciTypeId, int stateEnumCat, String stateEnumCode, List<ResourceTreeDto> resourceTrees, Map<String, Object> inputFilters) {
         List<CiData> ciDatas = queryCiData(ciTypeId, buildQueryObjectWithEqualsFilter(inputFilters)).getContents();
         for (int i = 0; i < ciDatas.size(); i++) {
-            Object ciData = ciDatas.get(i);
-            Map ciDataMap = (Map) ((Map) ciData).get("data");
+            CiData ciData = ciDatas.get(i);
+            Map<String, Object> ciDataMap = ciData.getData();
             ResourceTreeDto resourceTreeDto = buildNewResourceTreeDto(ciData, ciTypeId);
 
             List<CiTypeAttrDto> ciTypeAttributes = (List<CiTypeAttrDto>) resourceTreeDto.getAttrs();
@@ -1279,7 +1280,7 @@ public class UIWrapperService {
             Map<String, Object> subsystemFilters) {
         List<CiData> ciDatas = queryCiData(ciTypeId, buildQueryObjectWithEqualsFilter(inputFilters)).getContents();
         if (ciTypeId.equals(bottomCiTypeId)) {
-            for (Object ciData : ciDatas) {
+            for (CiData ciData : ciDatas) {
                 ResourceTreeDto ci = buildNewResourceTreeDto(ciData, ciTypeId);
                 bottomChildrenData.add(ci);
             }
@@ -1287,8 +1288,8 @@ public class UIWrapperService {
         }
 
         boolean findBelongCi = false;
-        for (Object ciData : ciDatas) {
-            Map ciDataMap = (Map) ((Map) ciData).get("data");
+        for (CiData ciData : ciDatas) {
+            Map<String, Object> ciDataMap = ciData.getData();
             List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceNameOfBelong());
             if (childrenCiTypeRelativeAttributes.size() != 0) {
                 findBelongCi = getBottomChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, limitedCiTypeIds, ciDataMap.get("guid").toString(), bottomChildrenData, bottomCiTypeId, subsystemFilters);
