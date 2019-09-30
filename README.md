@@ -1,7 +1,11 @@
 # WeCMDB
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![](https://img.shields.io/badge/language-java-orange.svg)
+![](https://img.shields.io/badge/language-vue-green.svg)
+
 ## 试用链接
-[点此试用WeCMDB](http://111.230.161.237:28080/cmdb/index.html#/)<br>
+[点此试用WeCMDB](http://106.53.80.138/cmdb/index.html#/)<br>
 
 ## 功能演示
 <img src="./cmdb-wiki/docs/manual/images/ci-data-management.gif" />
@@ -64,7 +68,7 @@ WeCMDB具备以下特点：
 	包括权限管理（角色管理，用户角色管理， 数据权限， 菜单管理）。
 
 ## 快速入门
-WeCMDB采用容器化部署。
+WeCMDB常规容器化部署。
 
 如何编译WeCMDB，请查看以下文档
 [WeCMDB编译文档](cmdb-wiki/docs/install/wecmdb_compile_guide.md)
@@ -80,6 +84,10 @@ WeCMDB采用容器化部署。
 [WeCMDB用户手册](cmdb-wiki/docs/manual/wecmdb_user_guide.md)
 
 ## 开发者文档
+#### WeCMDB快速本地启动
+[WeCMDB快速本地启动环境配置](cmdb-wiki/docs/developer/wecmdb_local_standalone_guide.md)
+
+#### WeCMDB常规环境搭建
 WeCMDB使用Java和React JS进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
 
 请参考以下文档进行开发环境配置[WeCMDB开发环境配置](cmdb-wiki/docs/developer/wecmdb_developer_guide.md)
@@ -93,5 +101,11 @@ WeCMDB是基于 Apache License 2.0 协议， 详情请参考
 [LICENSE](LICENSE)
 
 ## 社区
-- 如果您想得到最快的响应，请给我们提[Issue](https://github.com/WeBankPartners/we-cmdb/issues/new/choose)，我们会第一时间反馈。
+- 如果您想得到最快的响应，请给我们提[Issue](https://github.com/WeBankPartners/we-cmdb/issues/new/choose)或扫描下面的二维码，我们会第一时间反馈。
+
+	<div align="left">
+	<img src="cmdb-wiki/images/wecube_qr_code.png"  height="200" width="200">
+	</div>
+
+
 - 联系我们：fintech@webank.com

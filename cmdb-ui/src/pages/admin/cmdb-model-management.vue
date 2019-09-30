@@ -255,27 +255,24 @@
               <Input v-model="addNewCITypeForm.description"></Input>
             </FormItem>
             <FormItem label="图标">
-              <img
-                v-if="addNewCITypeForm.imageFileId !== 0"
-                :src="`/cmdb/ui/v2/files/${addNewCITypeForm.imageFileId}`"
-                style="width:58px;height:58px"
-              />
-              <Upload
-                ref="upload"
-                :on-success="handleNewCITypeUploadImgSuccess"
-                :show-upload-list="false"
-                accept=".png"
-                :max-size="100"
-                :on-exceeded-size="handleMaxSize"
-                type="drag"
-                action="/cmdb/ui/v2/files/upload"
-                :headers="setUploadActionHeader"
-                style="display: inline-block;width:58px;"
-              >
-                <div style="width: 58px;height:58px;line-height: 58px;">
-                  <Icon type="ios-camera" size="20"></Icon>
-                </div>
-              </Upload>
+              <Select v-model="addNewCITypeForm.imageFileId">
+                <img
+                  v-if="addNewCITypeForm.imageFileId"
+                  :src="`/cmdb/ui/v2/files/${addNewCITypeForm.imageFileId}.png`"
+                  slot="prefix"
+                  height="24"
+                  width="24"
+                />
+                <Option v-for="i in imgs" :key="i" :value="i">
+                  <img
+                    slot
+                    :src="`/cmdb/ui/v2/files/${i}.png`"
+                    width="30"
+                    height="30"
+                  />
+                  &nbsp;
+                </Option>
+              </Select>
             </FormItem>
             <FormItem>
               <Button
@@ -402,6 +399,16 @@
                       >{{ item }}</Option
                     >
                   </Select>
+                </FormItem>
+                <FormItem
+                  v-if="
+                    item.form.inputType === 'text' ||
+                      item.form.inputType === 'textArea'
+                  "
+                  prop="regularExpressionRule"
+                  label="正则规则"
+                >
+                  <Input v-model="item.form.regularExpressionRule"></Input>
                 </FormItem>
                 <FormItem label="真实类型">
                   <Input v-model="item.form.propertyType" disabled></Input>
@@ -710,6 +717,16 @@
                 >
               </Select>
             </FormItem>
+            <FormItem
+              v-if="
+                addNewAttrForm.inputType === 'text' ||
+                  addNewAttrForm.inputType === 'textArea'
+              "
+              prop="regularExpressionRule"
+              label="正则规则"
+            >
+              <Input v-model="addNewAttrForm.regularExpressionRule"></Input>
+            </FormItem>
             <FormItem prop="propertyType" label="真实类型">
               <Input v-model="addNewAttrForm.propertyType" disabled></Input>
             </FormItem>
@@ -965,6 +982,34 @@ export default {
   },
   data() {
     return {
+      imgs: [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26
+      ],
       source: {},
       layers: [],
       graph: {},
@@ -1069,7 +1114,7 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           .zoom(true)
-          .width(graphEl.innerWidth * 1)
+          .width(graphEl.offsetWidth * 1)
           .attributer(function(d) {
             if (d.attributes.class === "edge") {
               const keys = d.key.split("->");

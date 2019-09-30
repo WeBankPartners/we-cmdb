@@ -68,6 +68,7 @@ import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.FilterRelationship;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.constant.StateOperation;
+import com.webank.cmdb.domain.AdmBasekeyCat;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.domain.AdmStateTransition;
@@ -100,6 +101,7 @@ import com.webank.cmdb.exception.CmdbAccessDeniedException;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.exception.InvalidArgumentException;
 import com.webank.cmdb.exception.ServiceException;
+import com.webank.cmdb.repository.AdmBasekeyCatRepository;
 import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
 import com.webank.cmdb.repository.AdmCiTypeRepository;
 import com.webank.cmdb.repository.AdmStateTransitionRepository;
@@ -146,6 +148,8 @@ public class CiServiceImpl implements CiService {
     private Engine stateTransEngine;
     @Autowired
     private AdmStateTransitionRepository stateTransitionRepository;
+    @Autowired
+    private AdmBasekeyCatRepository cateRepository;
 
     @Autowired
     @Value("${spring.jpa.show-sql}")
@@ -160,6 +164,13 @@ public class CiServiceImpl implements CiService {
     private Map<Integer, DynamicEntityMeta> multRefMetaMap;
     private DynamicEntityClassLoader dyClassLoader;
     private volatile boolean isLoaded = false;
+
+    private static final Map<String, String> finalStates = new HashMap<>();
+    static {
+        finalStates.put(CmdbConstants.CI_STATE_DESIGN, "delete");
+        finalStates.put(CmdbConstants.CI_STATE_CREATE, "destroyed");
+        finalStates.put(CmdbConstants.CI_STATE_START_STOP, "destroyed");
+    }
 
     public CiServiceImpl(DataSource dataSource, DatasourceProperties datasourceProperties) {
         dynamicEntityManagerFactory = new DynamicEntityManagerFactory(dataSource, datasourceProperties.getSchema());
@@ -545,18 +556,19 @@ public class CiServiceImpl implements CiService {
             Object value = kv.getValue();
             FieldNode fieldNode = entityMeta.getFieldNode(fieldName);
             if (fieldNode != null) {
-                if(!fieldNode.isJoinNode()) {
-            
                 int attrId = fieldNode.getAttrId();
-                if (attrMap.containsKey(attrId)) {
-                    AdmCiTypeAttr attr = attrMap.get(attrId);
-                    // Don't return the field if editIsHidden is enable
-                    if (attr.getEditIsHiden() != null && attr.getEditIsHiden() != 0) {
-                        continue;
-                    }
+                if (!attrMap.containsKey(attrId)) {
+                    continue;
+                }
+                AdmCiTypeAttr attr = attrMap.get(attrId);
+                // Don't return the field if editIsHidden is enable
+                if (CiStatus.Decommissioned.getCode().equals(attr.getStatus()) || (attr.getEditIsHiden() != null && attr.getEditIsHiden() != 0)) {
+                    continue;
+                }
+                
+                if(!fieldNode.isJoinNode()) {
                     value = convertFieldValue(fieldName, value, attrMap.get(attrId));
                     ciMap.put(fieldName, value);
-                }
                 } else if (fieldNode.isJoinNode() && DynamicEntityType.MultiSelection.equals(fieldNode.getEntityType())) {
                     Set codeImSet = (Set) value;
                     List codeImList = Lists.newLinkedList(codeImSet);
@@ -577,14 +589,8 @@ public class CiServiceImpl implements CiService {
                     }
                     ciMap.put(fieldName, enrichMulSels);
                 } else if (fieldNode.isJoinNode() && DynamicEntityType.MultiReference.equals(fieldNode.getEntityType()) && Strings.isNullOrEmpty(fieldNode.getMappedBy())) {
-                    int attrId = fieldNode.getAttrId();
-    
-                    if (!attrMap.containsKey(attrId)) {
-                        continue;
-                    }
-    
                     Set<Map> referCis = (Set<Map>) value;
-                    AdmCiTypeAttr attr = attrMap.get(attrId);
+                    attr = attrMap.get(attrId);
                     DynamicEntityMeta multRefMeta = multRefMetaMap.get(attrId);
                     Map<String, Integer> sortMap = JpaQueryUtils.getSortedMapForMultiRef(entityManager, attr, multRefMeta);
     
@@ -684,7 +690,7 @@ public class CiServiceImpl implements CiService {
             try {
             	CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             	Integer toCiTypeId = attr.getReferenceId();
-            	Class joinEntityClzz = dynamicEntityMetaMap.get(toCiTypeId).getEntityClazz();
+            	Class joinEntityClzz = multRefMetaMap.get(attr.getIdAdmCiTypeAttr()).getEntityClazz();
             	CriteriaQuery query = cb.createQuery(joinEntityClzz);
             	Root root = query.from(joinEntityClzz);
             	query.select(root);
@@ -978,13 +984,13 @@ public class CiServiceImpl implements CiService {
 
     private Map<String, Object> doUpdate(EntityManager entityManager, int ciTypeId, Map<String, Object> ci, boolean enableStateTransition) {
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
-        Map<String, Object> convertedCi = MultiValueFeildOperationUtils.convertMultiValueFieldsForCICreation(entityManager, ciTypeId, ci, (String) ci.get(CmdbConstants.DEFAULT_FIELD_GUID), ciTypeAttrRepository, this);
 
-        String guid = convertedCi.get(GUID).toString();
+        String guid = ci.get(GUID).toString();
         Object entityBean = validateCi(ciTypeId, guid, entityMeta, entityManager, ACTION_MODIFICATION);
         DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
 
-        ciDataInterceptorService.preUpdate(entityHolder, convertedCi);
+        ciDataInterceptorService.preUpdate(entityHolder, ci);
+        Map<String, Object> convertedCi = MultiValueFeildOperationUtils.convertMultiValueFieldsForCICreation(entityManager, ciTypeId, ci, (String) ci.get(CmdbConstants.DEFAULT_FIELD_GUID), ciTypeAttrRepository, this);
         Map<String, Object> updatedMap = null;
         if (onlyIncludeRefreshableFields(ciTypeId, convertedCi.keySet()) || !enableStateTransition) {
             entityHolder.update(convertedCi, CmdbThreadLocal.getIntance().getCurrentUser(), entityManager);
@@ -1201,7 +1207,7 @@ public class CiServiceImpl implements CiService {
         } else {
             entityManager.remove(entityBean);
         }
-        entityManager.flush();
+        //entityManager.flush();
         ciDataInterceptorService.postDelete(ciTypeId, guid, entityMeta);
     }
 
@@ -1596,6 +1602,9 @@ public class CiServiceImpl implements CiService {
         int curCiTypeId = curQuery.getCiTypeId();
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(curCiTypeId);
         AdmCiType curCiType = ciTypeRepository.getOne(curCiTypeId);
+        if (CiStatus.NotCreated.getCode().equals(curCiType.getStatus())) {
+            throw new InvalidArgumentException(String.format("Can not build integration as the given CiType [%s], status is [%s].", curCiType.getName(), curCiType.getStatus()));
+        }
         path.push(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, curCiType.getTableName()));
 
         Map<String, FieldInfo> currentCiTypeAttrExprMap = new HashMap<>();
@@ -1607,6 +1616,7 @@ public class CiServiceImpl implements CiService {
             List<Integer> attrIds = curQuery.getAttrs();
             for (int i = 0; i < attrIds.size(); i++) {
                 AdmCiTypeAttr attr = ciTypeAttrRepository.getOne(attrIds.get(i));
+                validateStatusOfCiTypeAttr(attr);
                 // String alias = curQuery.getAttrAliases().get(i);
                 String keyName = curQuery.getAttrKeyNames().get(i);
                 Expression attrExpression = null;
@@ -1614,7 +1624,7 @@ public class CiServiceImpl implements CiService {
                 	attrExpression = curFrom.get("guid");//need guid to fetch mult selection value
                 	//attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId,"guid");
                 }else if(InputType.MultRef.getCode().equals(attr.getInputType())){
-                	attrExpression = curFrom.join(attr.getPropertyName()).get("guid");//need guid to fetch mult ref value
+                	attrExpression = curFrom.get("guid");//need guid to fetch mult ref value
                 }else {
                 	attrExpression = curFrom.get(attr.getPropertyName());
                 }
@@ -1632,6 +1642,7 @@ public class CiServiceImpl implements CiService {
             }
             int reltAttrId = relt.getAttrId();
             AdmCiTypeAttr reltAttr = ciTypeAttrRepository.getOne(reltAttrId);
+            validateStatusOfCiTypeAttr(reltAttr);
             String joinField = null;
             // if(relt.getIsReferedFromParent()) {
             if (reltAttr.getCiTypeId().equals(parentCiType.getIdAdmCiType())) {
@@ -1645,6 +1656,7 @@ public class CiServiceImpl implements CiService {
             List<Integer> attrIds = curQuery.getAttrs();
             for (int i = 0; i < attrIds.size(); i++) {
                 AdmCiTypeAttr attr = ciTypeAttrRepository.getOne(attrIds.get(i));
+                validateStatusOfCiTypeAttr(attr);
                 // String alias = curQuery.getAttrAliases().get(i);
                 String keyName = curQuery.getAttrKeyNames().get(i);
                 Expression attrExpression = null;
@@ -1652,7 +1664,7 @@ public class CiServiceImpl implements CiService {
                 if(InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
                 	attrExpression = curFrom.get("guid");//need guid to fetch mult selection value
                 }else if(InputType.MultRef.getCode().equals(attr.getInputType())){
-                	attrExpression = curFrom.join(attr.getPropertyName()).get("guid");//need guid to fetch mult ref value
+                	attrExpression = curFrom.get("guid");//need guid to fetch mult ref value
                 }else {
                 	attrExpression = curFrom.get(attr.getPropertyName());
                 }
@@ -1697,8 +1709,15 @@ public class CiServiceImpl implements CiService {
         return attrExprMap;
     }
 
+    private void validateStatusOfCiTypeAttr(AdmCiTypeAttr attr) {
+        if (CiStatus.NotCreated.getCode().equals(attr.getStatus())) {
+            throw new InvalidArgumentException(String.format("Can not build integration as the given ci type attr [%s], status is [%s].", attr.getName(), attr.getStatus()));
+        }
+    }
+
     private void attachAdditionalAttr(Map<String, FieldInfo> attrExprMap, Stack<String> path, int curCiTypeId, From curFrom, String propertyName) {
         AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId, propertyName);
+        validateStatusOfCiTypeAttr(attr);
         if (attr == null) {
             throw new ServiceException(String.format("Can not find out [%s] for CI Type [%d].", propertyName, curCiTypeId));
         }
@@ -2047,6 +2066,10 @@ public class CiServiceImpl implements CiService {
             List<Map<String, Object>> ciData = queryWithFilters(attr.getCiTypeId(), Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), guid)), false);
             if (ciData != null && ciData.size() > 0) {
                 ciData.forEach(data -> {
+                    if (isFinalStateCi(attr, data)) {
+                        return;
+                    };
+
                     Map ciMap = Maps.newHashMap();
                     MapUtils.putAll(ciMap, new Object[] { "ciTypeId", attr.getCiTypeId(), "guid", data.get("guid"), "propertyName", attr.getPropertyName() });
                     dependentCis.add(ciMap);
@@ -2054,6 +2077,18 @@ public class CiServiceImpl implements CiService {
             }
         });
         return dependentCis;
+    }
+
+    private boolean isFinalStateCi(AdmCiTypeAttr attr, Map<String, Object> data) {
+        Object state = data.get(CmdbConstants.DEFAULT_FIELD_STATE);
+        if (state instanceof CatCodeDto) {
+            CatCodeDto codeDto = (CatCodeDto) state;
+            AdmBasekeyCat cat = cateRepository.getOne(codeDto.getCatId());
+            if (codeDto.getCode().equals(finalStates.get(cat.getCatName()))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
