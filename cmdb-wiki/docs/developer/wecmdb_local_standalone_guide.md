@@ -22,6 +22,10 @@
     ```shell script
     java -jar -Dspring.profiles.active=local cmdb-core/target/cmdb-core-*.jar
     ```
+    
+5. 打开浏览器，访问如下地址：  
+
+   http://localhost:37000/cmdb
    
 ## 说明
 指定spring.profiles.active=local参数启动CMDB，系统会启动内存数据库H2并配置为系统数据库源，初始化schema以及插入测试数据。
