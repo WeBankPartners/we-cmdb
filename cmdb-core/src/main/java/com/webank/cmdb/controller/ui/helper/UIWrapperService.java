@@ -1030,7 +1030,7 @@ public class UIWrapperService {
         }
 
         if (routineForGetingSystemDesignGuid == null) {
-            return null;
+            return new QueryResponse<CiData>();
         }
 
         List<Map<String, Object>> ciDatas = getAllCiDataOfRootCi(ciTypeId, envEnumCat, envCode, systemDesignCiTypeId,
@@ -1041,7 +1041,7 @@ public class UIWrapperService {
 
         List<Object> guids = ciDatas.stream().map(item -> item.get(CONSTANT_GUID_PATH)).collect(Collectors.toList());
         if (guids.size() == 0) {
-            return null;
+            return new QueryResponse<CiData>();
         }
 
         queryObject.addInFilter("guid", guids);
