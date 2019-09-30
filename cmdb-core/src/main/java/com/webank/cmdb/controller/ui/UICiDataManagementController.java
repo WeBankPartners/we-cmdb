@@ -373,4 +373,11 @@ public class UICiDataManagementController {
         return wrapperService.getApplicationDeploymentDesignDataTreeBySystemDesignGuidAndEnvCode(systemDesignGuid, envCodeId);
     }
 
+    @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN })
+    @GetMapping("/data-tree/application-framework-design")
+    @ResponseBody
+    public List<ResourceTreeDto> getApplicationFrameworkDesignDataTree(@RequestParam(value = "system-design-guid") String systemDesignGuid) {
+        return wrapperService.getApplicationFrameworkDesignDataTreeBySystemDesignGuid(systemDesignGuid);
+    }
+
 }

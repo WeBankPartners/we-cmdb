@@ -1443,4 +1443,51 @@ public class UIWrapperService {
         private boolean isEndOfData;
         private boolean continueFlag;
     }
+
+    public List<ResourceTreeDto> getApplicationFrameworkDesignDataTreeBySystemDesignGuid(String systemDesignGuid) {
+        List<ResourceTreeDto> unitDesignDatas = new ArrayList<>();
+        Map<String, Object> inputFilter = new HashMap<>();
+        inputFilter.put("guid", systemDesignGuid);
+        getBottomChildrenDataByBottomCiTypeId(uiProperties.getCiTypeIdOfSystemDesign(),
+                uiProperties.getCiTypeIdOfUnitDesign(),
+                unitDesignDatas,
+                getSameCiTypesByCiTypeId(uiProperties.getCiTypeIdOfSystemDesign()),
+                inputFilter,
+                new HashMap<>());
+
+        List<ResourceTreeDto> allIdcDesignDatas = getAllIdcDesignTrees();
+
+        List<CiTypeAttrDto> relateCiAttrDtoList = getRelateCiTypeAttrByCiTypeId(uiProperties.getCiTypeIdOfUnitDesign());
+        if (relateCiAttrDtoList.size() == 0) {
+            return unitDesignDatas;
+        }
+
+        List<ResourceTreeDto> unitDesignDatasAfterGroup = groupByAttr(unitDesignDatas, relateCiAttrDtoList.get(0));
+        if (unitDesignDatasAfterGroup.size() == 0) {
+            return unitDesignDatas;
+        }
+
+        mergeDataToDataTree(allIdcDesignDatas, unitDesignDatasAfterGroup);
+        return allIdcDesignDatas;
+    }
+
+    private List<ResourceTreeDto> getAllIdcDesignTrees() {
+        Integer rootCiTypeId = uiProperties.getCiTypeIdOfIdcDesign();
+        List<ResourceTreeDto> resourceTrees = new ArrayList<>();
+
+        recursiveGetChildrenData(rootCiTypeId, getSameCiTypesByCiTypeId(rootCiTypeId), resourceTrees, null);
+
+        return resourceTrees;
+    }
+
+    private List<CiTypeAttrDto> getRelateCiTypeAttrByCiTypeId(Integer ciTypeId) {
+        List<CiTypeAttrDto> relateCiAttrs = new ArrayList<>();
+        List<CiTypeAttrDto> referenceByList = getCiTypeReferenceTo(ciTypeId);
+        for (CiTypeAttrDto attrDto : referenceByList) {
+            if (attrDto.getReferenceName().equals(uiProperties.getReferenceNameOfRelate())) {
+                relateCiAttrs.add(attrDto);
+            }
+        }
+        return relateCiAttrs;
+    }
 }
