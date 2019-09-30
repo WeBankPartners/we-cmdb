@@ -5,10 +5,12 @@ import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_CREAT
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import javax.persistence.EntityManager;
 
@@ -94,8 +96,24 @@ public class CiDataInterceptorService {
         validateRefInputType(entityHolder, cloneCi);
         validateUniqueField(entityHolder.getEntityMeta().getCiTypeId(), cloneCi);
         validateIsAutoField(entityHolder, cloneCi);
+        validateRegularExpressionRule(entityHolder, ciBeanMap);
 
         authorizationService.authorizeCiData(entityHolder.getEntityMeta().getCiTypeId(), entityHolder.getEntityObj(), ACTION_CREATION);
+    }
+
+    private void validateRegularExpressionRule(DynamicEntityHolder entityHolder, Map ciBeanMap) {
+        int ciTypeId = entityHolder.getEntityMeta().getCiTypeId();
+        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(ciTypeId);
+        if (attrs != null && !attrs.isEmpty()) {
+            attrs.forEach(attr -> {
+                if ((InputType.Text.getCode().equals(attr.getInputType()) || InputType.TextArea.getCode().equals(attr.getInputType())) && !StringUtils.isBlank(attr.getRegularExpressionRule())) {
+                    Object val = ciBeanMap.get(attr.getPropertyName());
+                    if (val != null && !Pattern.matches(attr.getRegularExpressionRule(), (String) val)) {
+                        throw new InvalidArgumentException(String.format("The input value [%s] is not match the regular expression rule [%s].", val, attr.getRegularExpressionRule()));
+                    }
+                }
+            });
+        }
     }
 
     private void validateCiTypeAttrStatus(DynamicEntityHolder entityHolder, BeanMap ciBeanMap) {
@@ -538,6 +556,24 @@ public class CiDataInterceptorService {
         validateIsAutoField(entityHolder, cloneCi);
         validateNotNullable(entityHolder, cloneCi);
         validateUniqueFieldForUpdate(entityHolder.getEntityMeta().getCiTypeId(), ci);
+        validateRegularExpressionRule(entityHolder, cloneCi);
+        validateValueType(entityHolder, cloneCi);
+    }
+
+    private void validateValueType(DynamicEntityHolder entityHolder, Map cloneCi) {
+        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(entityHolder.getEntityMeta().getCiTypeId());
+        attrs.forEach(attr -> {
+            String inputType = attr.getInputType();
+            String name = attr.getPropertyName();
+            Object value = cloneCi.get(name);
+            if(value != null) {
+                if(value instanceof Collection) {
+                    if(!(InputType.MultRef.getCode().equals(inputType) || InputType.MultSelDroplist.getCode().equals(inputType))) {
+                        throw new InvalidArgumentException(String.format("Field [%s] shold not be list.",name));
+                    }
+                }
+            }
+        });
     }
 
     // can not update not editable field

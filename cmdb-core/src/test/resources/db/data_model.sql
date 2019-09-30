@@ -404,6 +404,7 @@ CREATE TABLE IF NOT EXISTS `adm_ci_type_attr` (
   `is_refreshable` INT(1) NULL DEFAULT 0,
   `is_auto` int(1) DEFAULT NULL,
   `auto_fill_rule` varchar(1000) DEFAULT NULL COMMENT '自动填充规则',
+  `regular_expression_rule` varchar(200) DEFAULT NULL COMMENT '正则规则',
   PRIMARY KEY (`id_adm_ci_type_attr`),
   UNIQUE KEY `uniqCiType` (`id_adm_ci_type`,`property_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=455 DEFAULT CHARSET=utf8;
