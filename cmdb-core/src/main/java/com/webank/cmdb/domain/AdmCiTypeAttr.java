@@ -64,6 +64,7 @@ public class AdmCiTypeAttr implements Serializable {
     private Integer isAuto;
     private String autoFillRule;
     private String filterRule;
+    private String regularExpressionRule;
     private String status = CiStatus.NotCreated.getCode();
     private AdmCiType admCiType;
     private List<AdmCiTypeAttrGroup> admCiTypeAttrGroups;
@@ -549,6 +550,15 @@ public class AdmCiTypeAttr implements Serializable {
 
     public void setIsRefreshable(Integer isRefreshable) {
         this.isRefreshable = isRefreshable;
+    }
+
+    @Column(name = "regular_expression_rule")
+    public String getRegularExpressionRule() {
+        return regularExpressionRule;
+    }
+
+    public void setRegularExpressionRule(String regularExpressionRule) {
+        this.regularExpressionRule = regularExpressionRule;
     }
 
 }
