@@ -524,6 +524,25 @@ export default {
     },
     renderCol(col) {
       let setValueHandler = (_this, v, col, params) => {
+        if (
+          (col.inputType === "text" || col.inputType === "textArea") &&
+          col.regularExpressionRule
+        ) {
+          const regularExpressionRule = col.regularExpressionRule;
+          const pattern = regularExpressionRule.replace(
+            /^\/(.+)\/[g|i]?$/,
+            "$1"
+          );
+          const flags = /[g|i|m|u|y|s]$/.test(regularExpressionRule)
+            ? regularExpressionRule[regularExpressionRule.length - 1]
+            : "";
+          const r = new RegExp(pattern, flags);
+          if (!r.test(v)) {
+            this.$Message.warning(
+              `请输入符合以下正则规则的内容：${regularExpressionRule}`
+            );
+          }
+        }
         _this.selectedRows.forEach(_ => {
           if (_.weTableRowId === params.row.weTableRowId) {
             _[col.inputKey] = v;

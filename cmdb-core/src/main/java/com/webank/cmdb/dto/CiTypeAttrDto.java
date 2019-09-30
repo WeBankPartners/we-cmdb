@@ -60,6 +60,7 @@ public class CiTypeAttrDto extends BasicResourceDto<CiTypeAttrDto, AdmCiTypeAttr
     private String autoFillRule;
     private String filterRule;
     private Boolean isRefreshable;
+    private String regularExpressionRule;
 
     // reference resource
     @DtoField(domainField = "admCiType", updatable = false)
@@ -106,6 +107,7 @@ public class CiTypeAttrDto extends BasicResourceDto<CiTypeAttrDto, AdmCiTypeAttr
         if (refResource != null && refResource.contains("ciType")) {
             ciTypeAttr.setCiType(CiTypeDto.fromAdmCIType(admCiTypeAttr.getAdmCiType()));
         }
+        ciTypeAttr.setRegularExpressionRule(admCiTypeAttr.getRegularExpressionRule());
 
         return ciTypeAttr;
     }
@@ -145,6 +147,7 @@ public class CiTypeAttrDto extends BasicResourceDto<CiTypeAttrDto, AdmCiTypeAttr
         ciTypeAttr.setAutoFillRule(admCiTypeAttr.getAutoFillRule());
         ciTypeAttr.setFilterRule(admCiTypeAttr.getFilterRule());
         ciTypeAttr.setIsRefreshable(admCiTypeAttr.getIsRefreshable() == null ? false : admCiTypeAttr.getIsRefreshable() != 0);
+        ciTypeAttr.setRegularExpressionRule(admCiTypeAttr.getRegularExpressionRule());
         return ciTypeAttr;
     }
 
@@ -177,6 +180,7 @@ public class CiTypeAttrDto extends BasicResourceDto<CiTypeAttrDto, AdmCiTypeAttr
         admCiTypeAttr.setAutoFillRule(this.autoFillRule);
         admCiTypeAttr.setFilterRule(this.getFilterRule());
         admCiTypeAttr.setIsRefreshable(Boolean.TRUE.equals(this.isRefreshable) ? 1 : 0);
+        admCiTypeAttr.setRegularExpressionRule(this.getRegularExpressionRule());
         return admCiTypeAttr;
     }
 
@@ -209,6 +213,7 @@ public class CiTypeAttrDto extends BasicResourceDto<CiTypeAttrDto, AdmCiTypeAttr
         toUpdateAttr.setAutoFillRule(this.autoFillRule);
         toUpdateAttr.setFilterRule(this.getFilterRule());
         toUpdateAttr.setIsRefreshable(Boolean.TRUE.equals(this.isRefreshable) ? 1 : 0);
+        toUpdateAttr.setRegularExpressionRule(this.getRegularExpressionRule());
         return toUpdateAttr;
 
     }
@@ -467,6 +472,15 @@ public class CiTypeAttrDto extends BasicResourceDto<CiTypeAttrDto, AdmCiTypeAttr
                 .add("autoFillRule", autoFillRule)
                 .add("filterRule", filterRule)
                 .add("isRefreshable", isRefreshable)
+                .add("regularExpressionRule", regularExpressionRule)
                 .toString();
+    }
+
+    public String getRegularExpressionRule() {
+        return regularExpressionRule;
+    }
+
+    public void setRegularExpressionRule(String regularExpressionRule) {
+        this.regularExpressionRule = regularExpressionRule;
     }
 }

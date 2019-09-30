@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.webank.cmdb.config.TestDatabase;
 import com.webank.cmdb.constant.AutoFillType;
 import com.webank.cmdb.controller.LegacyAbstractBaseControllerTest;
@@ -125,6 +126,16 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
                 .andExpect(jsonPath("$.data.contents", hasSize(12)));
     }
 
+    @Test
+    public void queryCiDataThenTheDecommissionedFieldShouldNotBeReturned() throws Exception {
+        mvc.perform(post("/api/v2/ci/{ciTypeId}/retrieve", 4).contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(jsonPath("$.statusCode", is("OK")))
+                .andExpect(jsonPath("$.data.contents", hasSize(1)))
+                .andExpect(jsonPath("$.data.contents[0].name_cn").doesNotExist());
+    }
+    
+    
     @Test
     public void queryCiDataWithFilterThenReturnCi() throws Exception {
         QueryRequestUtils queryObject = defaultQueryObject();
@@ -552,4 +563,56 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
         TestDatabase.disableH2Statistics(entityManager);
     }
 
+    @Test
+    public void whenCreateCiDataWithRegularExpressionRuleAndCreateWithValidValueThenShouldSuccess() throws Exception {
+        validateValueWithRegularExpressionRule("[a-z]+", "lowercase", "OK");
+    }
+
+    @Test
+    public void whenCreateCiDataWithRegularExpressionRuleAndCreateWithInvalidValueThenShouldFail() throws Exception {
+        validateValueWithRegularExpressionRule("[a-z]+", "UPPERCASE", "ERR_BATCH_CHANGE");
+    }
+
+    @Test
+    public void whenCreateCiDataWithEmptyRegularExpressionRuleAndCreateWithAnyValudThenShouldSuccess() throws Exception {
+        validateValueWithRegularExpressionRule("", "UPPERCASElowercase", "OK");
+    }
+
+    private void validateValueWithRegularExpressionRule(String regularExpressionRule, String inputValue, String expectedStatusCode) throws Exception {
+        List<?> jsonList = ImmutableList.builder()
+                .add(ImmutableMap.builder()
+                        .put("ciTypeAttrId", 7)
+                        .put("regularExpressionRule", regularExpressionRule)
+                        .build())
+                .build();
+        String reqJson = JsonUtil.toJson(jsonList);
+        mvc.perform(post("/api/v2/ciTypeAttrs/update").contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("OK")));
+
+        Map<?, ?> jsonMap = ImmutableMap.builder()
+                .put("description", "test desc")
+                .put("name_en", inputValue)
+                .put("system_type", 554)
+                .build();
+        reqJson = JsonUtil.toJson(ImmutableList.of(jsonMap));
+        mvc.perform(post("/api/v2/ci/{ciTypeId}/create", 2).contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is(expectedStatusCode)));
+    }
+
+    @Test
+    public void updateCiDataWithImproperListValueThenGetError() throws Exception {
+        Map<?, ?> jsonMap = ImmutableMap.builder()
+                .put("guid", "0002_0000000002")
+                .put("name_cn", Lists.newArrayList("name1","name2"))
+                .build();
+        String updateJson = JsonUtil.toJson(ImmutableList.of(jsonMap));
+
+        mvc.perform(post("/api/v2/ci/{ciTypeId}/update", 2).contentType(MediaType.APPLICATION_JSON)
+                .content(updateJson))
+                .andExpect(jsonPath("$.statusCode", is("ERR_BATCH_CHANGE")));
+
+    }
+    
 }

@@ -32,6 +32,25 @@ import com.webank.cmdb.util.JsonUtil;
 public class ApiV2ControllerCiTypeAttrTest extends LegacyAbstractBaseControllerTest {
 
     @Test
+    public void whenCreateCiAttrWithSchemaKeywordAsPropertyNameThenShouldFail() throws Exception {
+        List<?> jsonList = ImmutableList.builder()
+                .add(ImmutableMap.builder()
+                        .put("callbackId", "123456")
+                        .put("ciTypeId", 1)
+                        .put("name", "mock_name")
+                        .put("inputType", "text")
+                        .put("propertyName", "DATABASE")
+                        .put("propertyType", "varchar")
+                        .put("isNullable", 1)
+                        .build())
+                .build();
+        String reqJson = JsonUtil.toJson(jsonList);
+        mvc.perform(post("/api/v2/ciTypeAttrs/create").contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("ERR_BATCH_CHANGE")));
+    }
+
+    @Test
     public void whenCreateCiAttrPropertyNameStartWithUppercaseLetterThenShouldFail() throws Exception {
         Map<?, ?> map = ImmutableMap.builder()
                 .put("ciTypeId", 1)
