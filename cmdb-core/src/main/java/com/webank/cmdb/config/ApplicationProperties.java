@@ -23,6 +23,7 @@ public class ApplicationProperties {
         private Integer enumCategoryTypeCommon = 2;
         private Integer ciTypeIdOfSystemDesign = 1;
         private Integer ciTypeIdOfSubsystemDesign = 2;
+        private Integer ciTypeIdOfUnitDesign = 3;
         private Integer ciTypeIdOfUnit = 8;
         private Integer ciTypeIdOfSubsys = 7;
         private Integer ciTypeIdOfHost = 12;
@@ -40,6 +41,7 @@ public class ApplicationProperties {
         private String referenceNameOfBelong = "属于";
         private String referenceNameOfRunning = "运行在";
         private String referenceNameOfRealize = "实现";
+        private String referenceNameOfRelate = "关联";
         private String propertyNameOfState = "state";
         private String enumCodeOfStateDelete = "delete";
         private String propertyNameOfFixedDate = "fixed_date";
