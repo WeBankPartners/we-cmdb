@@ -179,27 +179,29 @@
                   ></Input>
                 </FormItem>
                 <FormItem label="图标">
-                  <img
-                    :src="item.form.imgSource + '.png'"
-                    style="width:58px;height:58px"
-                  />
-                  <Upload
-                    v-if="item.form.status !== 'decommissioned'"
-                    ref="upload"
-                    :on-success="handleUploadImgSuccess"
-                    :show-upload-list="false"
-                    accept=".png"
-                    :max-size="100"
-                    :on-exceeded-size="handleMaxSize"
-                    type="drag"
-                    :action="item.form.imgUploadURL || ''"
-                    :headers="setUploadActionHeader"
-                    style="display: inline-block;width:58px;"
-                  >
-                    <div style="width: 58px;height:58px;line-height: 58px;">
-                      <Icon type="ios-camera" size="20"></Icon>
-                    </div>
-                  </Upload>
+                  <Select v-model="item.form.imageFileId">
+                    <img
+                      v-if="item.form.imageFileId"
+                      :src="`/cmdb/ui/v2/files/${item.form.imageFileId}.png`"
+                      slot="prefix"
+                      height="24"
+                      width="24"
+                      style="margin-top:2px;"
+                    />
+                    <Option
+                      v-for="(item, i) in imgs"
+                      :key="i + 1"
+                      :value="i + 1"
+                    >
+                      <img
+                        slot
+                        :src="`/cmdb/ui/v2/files/${i + 1}.png`"
+                        width="30"
+                        height="30"
+                      />
+                      &nbsp;
+                    </Option>
+                  </Select>
                 </FormItem>
                 <FormItem>
                   <Button
@@ -263,10 +265,10 @@
                   height="24"
                   width="24"
                 />
-                <Option v-for="i in imgs" :key="i" :value="i">
+                <Option v-for="(item, i) in imgs" :key="i + 1" :value="i + 1">
                   <img
                     slot
-                    :src="`/cmdb/ui/v2/files/${i}.png`"
+                    :src="`/cmdb/ui/v2/files/${i + 1}.png`"
                     width="30"
                     height="30"
                   />
@@ -982,34 +984,7 @@ export default {
   },
   data() {
     return {
-      imgs: [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20,
-        21,
-        22,
-        23,
-        24,
-        25,
-        26
-      ],
+      imgs: new Array(26),
       source: {},
       layers: [],
       graph: {},
@@ -1218,11 +1193,7 @@ export default {
               let fontcolor =
                 node.status === "notCreated" ? "#10a34e" : "black";
               tempClusterObjForGraph[index].push(
-                `"${node.name}"[id="${
-                  node.ciTypeId
-                }",fontcolor="${fontcolor}", image="${
-                  node.form.imgSource
-                }.png", labelloc="b"]`
+                `"${node.name}"[id="${node.ciTypeId}",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`
               );
             }
             if (nodeIndex === nodes.length - 1) {
