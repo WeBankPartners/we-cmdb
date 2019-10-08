@@ -22,6 +22,11 @@
     ```shell script
     java -jar -Dspring.profiles.active=local cmdb-core/target/cmdb-core-*.jar
     ```
-   
+
+4. 打开浏览器，输入下面的URL,即可体验WeCMDB功能：
+  
+   [http://localhost:9080/cmdb/](http://localhost:9080/cmdb/)
+    
+      
 ## 说明
 指定spring.profiles.active=local参数启动CMDB，系统会启动内存数据库H2并配置为系统数据库源，初始化schema以及插入测试数据。
