@@ -68,7 +68,7 @@ WeCMDB具备以下特点：
 	包括权限管理（角色管理，用户角色管理， 数据权限， 菜单管理）。
 
 ## 快速入门
-WeCMDB采用容器化部署。
+WeCMDB常规容器化部署。
 
 如何编译WeCMDB，请查看以下文档
 [WeCMDB编译文档](cmdb-wiki/docs/install/wecmdb_compile_guide.md)
@@ -84,6 +84,10 @@ WeCMDB采用容器化部署。
 [WeCMDB用户手册](cmdb-wiki/docs/manual/wecmdb_user_guide.md)
 
 ## 开发者文档
+#### WeCMDB快速本地启动
+[WeCMDB快速本地启动环境配置](cmdb-wiki/docs/developer/wecmdb_local_standalone_guide.md)
+
+#### WeCMDB常规环境搭建
 WeCMDB使用Java和React JS进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
 
 请参考以下文档进行开发环境配置[WeCMDB开发环境配置](cmdb-wiki/docs/developer/wecmdb_developer_guide.md)
