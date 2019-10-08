@@ -1,7 +1,9 @@
 #!/bin/bash
+cd `dirname $0`
+
 rm -rf database
 
-cp -r ../../cmdb-core/database  database
+cp -r ../../cmdb-core/src/main/resources/database  database
 
 cd database
 for i in `ls -1 ./*.sql`; do
