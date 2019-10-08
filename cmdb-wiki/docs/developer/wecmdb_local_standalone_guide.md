@@ -23,7 +23,7 @@
     java -jar -Dspring.profiles.active=local cmdb-core/target/cmdb-core-*.jar
     ```
 
-4. 打开浏览器，输入下面的URL,即可体验WeCMDB功能：
+5. 打开浏览器，输入下面的URL,即可体验WeCMDB功能  
   
    [http://localhost:9080/cmdb/](http://localhost:9080/cmdb/)
     
