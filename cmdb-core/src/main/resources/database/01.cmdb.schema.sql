@@ -5,49 +5,6 @@ CREATE TABLE IF NOT EXISTS `adm_attr_group` (
   PRIMARY KEY (`id_adm_attr_group`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `adm_basekey_cat` (
-  `id_adm_basekey_cat` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_basekey_cat',
-  `cat_name` varchar(32) DEFAULT NULL COMMENT '类别名称',
-  `description` varchar(255) DEFAULT NULL COMMENT '描述',
-  `id_adm_role` int(11) DEFAULT NULL COMMENT 'id_adm_role',
-  `id_adm_basekey_cat_type` int(11) DEFAULT NULL COMMENT '类型',
-  `group_type_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id_adm_basekey_cat`),
-  KEY `fk_adm_basekey_cat_adm_role_1` (`id_adm_role`),
-  KEY `fk_adm_basekey_cat_type` (`id_adm_basekey_cat_type`),
-  KEY `fk_adm_basekey_group_type_id` (`group_type_id`),
-  CONSTRAINT `fk_adm_basekey_cat_type` FOREIGN KEY (`id_adm_basekey_cat_type`) REFERENCES `adm_basekey_cat_type` (`id_adm_basekey_cat_type`),
-  CONSTRAINT `fk_adm_basekey_group_type_id` FOREIGN KEY (`group_type_id`) REFERENCES `adm_basekey_cat` (`id_adm_basekey_cat`)
-) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `adm_basekey_cat_type` (
-  `id_adm_basekey_cat_type` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(25) DEFAULT NULL,
-  `description` varchar(255) DEFAULT NULL,
-  `ci_type_id` int(11) DEFAULT NULL,
-  `type` int(4) DEFAULT NULL,
-  PRIMARY KEY (`id_adm_basekey_cat_type`),
-  KEY `adm_basekey_cat_type_ci_type_1` (`ci_type_id`),
-  CONSTRAINT `adm_basekey_cat_type_ci_type_1` FOREIGN KEY (`ci_type_id`) REFERENCES `adm_ci_type` (`id_adm_ci_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `adm_basekey_code` (
-  `id_adm_basekey` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_basekey',
-  `id_adm_basekey_cat` int(11) DEFAULT NULL COMMENT 'id_adm_basekey_cat',
-  `code` varchar(255) DEFAULT NULL COMMENT 'key',
-  `value` varchar(2000) DEFAULT NULL COMMENT 'name',
-  `group_code_id` int(11) DEFAULT NULL COMMENT 'the group code it belong to',
-  `code_description` varchar(255) DEFAULT NULL COMMENT '编码描述',
-  `seq_no` int(11) DEFAULT NULL COMMENT '排序序号',
-  `status` varchar(20) DEFAULT 'active' COMMENT '枚举状态',
-  PRIMARY KEY (`id_adm_basekey`),
-  UNIQUE KEY `id_adm_basekey_cat_code` (`id_adm_basekey_cat`,`code`),
-  KEY `fk_adm_basekey_code_adm_basekey_cat_1` (`id_adm_basekey_cat`),
-  KEY `fk_adm_basekey_code_group_code_id` (`group_code_id`),
-  CONSTRAINT `fk_adm_basekey_code_adm_basekey_cat_1` FOREIGN KEY (`id_adm_basekey_cat`) REFERENCES `adm_basekey_cat` (`id_adm_basekey_cat`),
-  CONSTRAINT `fk_adm_basekey_code_group_code_id` FOREIGN KEY (`group_code_id`) REFERENCES `adm_basekey_code` (`id_adm_basekey`)
-) ENGINE=InnoDB AUTO_INCREMENT=235 DEFAULT CHARSET=utf8;
-
 CREATE TABLE IF NOT EXISTS `adm_ci_type` (
   `id_adm_ci_type` int(4) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type',
   `name` varchar(32) DEFAULT NULL COMMENT 'ci类型中文名称',
@@ -66,6 +23,61 @@ CREATE TABLE IF NOT EXISTS `adm_ci_type` (
   UNIQUE KEY `tableNameIndex` (`table_name`),
   KEY `fk_adm_ci_type_adm_ci_type_1` (`catalog_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `adm_basekey_cat_type` (
+  `id_adm_basekey_cat_type` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(25) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `ci_type_id` int(11) DEFAULT NULL,
+  `type` int(4) DEFAULT NULL,
+  PRIMARY KEY (`id_adm_basekey_cat_type`),
+  KEY `adm_basekey_cat_type_ci_type_1` (`ci_type_id`),
+  CONSTRAINT `adm_basekey_cat_type_ci_type_1` FOREIGN KEY (`ci_type_id`) REFERENCES `adm_ci_type` (`id_adm_ci_type`)
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `adm_basekey_cat` (
+  `id_adm_basekey_cat` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_basekey_cat',
+  `cat_name` varchar(32) DEFAULT NULL COMMENT '类别名称',
+  `description` varchar(255) DEFAULT NULL COMMENT '描述',
+  `id_adm_role` int(11) DEFAULT NULL COMMENT 'id_adm_role',
+  `id_adm_basekey_cat_type` int(11) DEFAULT NULL COMMENT '类型',
+  `group_type_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id_adm_basekey_cat`),
+  KEY `fk_adm_basekey_cat_adm_role_1` (`id_adm_role`),
+  KEY `fk_adm_basekey_cat_type` (`id_adm_basekey_cat_type`),
+  KEY `fk_adm_basekey_group_type_id` (`group_type_id`),
+  CONSTRAINT `fk_adm_basekey_cat_type` FOREIGN KEY (`id_adm_basekey_cat_type`) REFERENCES `adm_basekey_cat_type` (`id_adm_basekey_cat_type`),
+  CONSTRAINT `fk_adm_basekey_group_type_id` FOREIGN KEY (`group_type_id`) REFERENCES `adm_basekey_cat` (`id_adm_basekey_cat`)
+) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `adm_basekey_code` (
+  `id_adm_basekey` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_basekey',
+  `id_adm_basekey_cat` int(11) DEFAULT NULL COMMENT 'id_adm_basekey_cat',
+  `code` varchar(255) DEFAULT NULL COMMENT 'key',
+  `value` varchar(2000) DEFAULT NULL COMMENT 'name',
+  `group_code_id` int(11) DEFAULT NULL COMMENT 'the group code it belong to',
+  `code_description` varchar(255) DEFAULT NULL COMMENT '编码描述',
+  `seq_no` int(11) DEFAULT NULL COMMENT '排序序号',
+  `status` varchar(20) DEFAULT 'active' COMMENT '枚举状态',
+  PRIMARY KEY (`id_adm_basekey`),
+  UNIQUE KEY `id_adm_basekey_cat_code` (`id_adm_basekey_cat`,`code`),
+  KEY `fk_adm_basekey_code_adm_basekey_cat_1` (`id_adm_basekey_cat`),
+  KEY `fk_adm_basekey_code_group_code_id` (`group_code_id`),
+  CONSTRAINT `fk_adm_basekey_code_adm_basekey_cat_1` FOREIGN KEY (`id_adm_basekey_cat`) REFERENCES `adm_basekey_cat` (`id_adm_basekey_cat`),
+  CONSTRAINT `fk_adm_basekey_code_group_code_id` FOREIGN KEY (`group_code_id`) REFERENCES `adm_basekey_code` (`id_adm_basekey`)
+) ENGINE=InnoDB AUTO_INCREMENT=235 DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `adm_basekey_cat_type` (
+  `id_adm_basekey_cat_type` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(25) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `ci_type_id` int(11) DEFAULT NULL,
+  `type` int(4) DEFAULT NULL,
+  PRIMARY KEY (`id_adm_basekey_cat_type`),
+  KEY `adm_basekey_cat_type_ci_type_1` (`ci_type_id`),
+  CONSTRAINT `adm_basekey_cat_type_ci_type_1` FOREIGN KEY (`ci_type_id`) REFERENCES `adm_ci_type` (`id_adm_ci_type`)
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `adm_ci_type_attr` (
   `id_adm_ci_type_attr` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type_attr',
@@ -93,7 +105,7 @@ CREATE TABLE IF NOT EXISTS `adm_ci_type_attr` (
   `is_system` int(1) DEFAULT NULL COMMENT '是否系统字段',
   `is_access_controlled` int(1) DEFAULT '0' COMMENT '是否权限控制',
   `is_auto` int(1) DEFAULT NULL,
-  `auto_fill_rule` varchar(1000) DEFAULT NULL COMMENT '自动填充规则',
+  `auto_fill_rule` varchar(2000) DEFAULT NULL COMMENT '自动填充规则',
   `regular_expression_rule` varchar(200) DEFAULT NULL COMMENT '正则规则',
   `is_refreshable` int(1) DEFAULT NULL,
   PRIMARY KEY (`id_adm_ci_type_attr`),
@@ -213,6 +225,14 @@ CREATE TABLE IF NOT EXISTS `adm_menu` (
   KEY `fk_adm_menu_adm_menu_1` (`parent_id_adm_menu`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `adm_tenement` (
+  `id_adm_tenement` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(32) DEFAULT NULL COMMENT '名称',
+  `description` varchar(255) DEFAULT NULL COMMENT '描述',
+  `en_short_name` varchar(32) DEFAULT NULL COMMENT '英文简称',
+  PRIMARY KEY (`id_adm_tenement`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 CREATE TABLE IF NOT EXISTS `adm_role` (
   `id_adm_role` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role',
   `role_name` varchar(32) DEFAULT NULL COMMENT '角色名称',
@@ -290,6 +310,21 @@ CREATE TABLE IF NOT EXISTS `adm_role_menu` (
   CONSTRAINT `fk_adm_role_menu_adm_role_1` FOREIGN KEY (`id_adm_role`) REFERENCES `adm_role` (`id_adm_role`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `adm_user` (
+  `id_adm_user` varchar(64) NOT NULL COMMENT 'id_adm_user',
+  `name` varchar(64) DEFAULT NULL COMMENT '名称',
+  `code` varchar(100) DEFAULT NULL COMMENT '编码（接口类用户使用）',
+  `encrypted_password` varchar(100) DEFAULT NULL COMMENT '加密的密码',
+  `description` varchar(255) DEFAULT NULL COMMENT '描述',
+  `id_adm_tenement` int(11) DEFAULT NULL COMMENT 'id_adm_tenement',
+  `action_flag` tinyint(1) DEFAULT '0' COMMENT '用户操作Flag',
+  `is_system` int(1) DEFAULT '0' COMMENT '是否系统数据',
+  PRIMARY KEY (`id_adm_user`),
+  UNIQUE KEY `adm_user_code` (`code`),
+  KEY `fk_adm_user_adm_tenement_1` (`id_adm_tenement`),
+  CONSTRAINT `fk_adm_user_adm_tenement_1` FOREIGN KEY (`id_adm_tenement`) REFERENCES `adm_tenement` (`id_adm_tenement`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 CREATE TABLE IF NOT EXISTS `adm_role_user` (
   `id_adm_role_user` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_user',
   `id_adm_role` int(11) DEFAULT NULL COMMENT 'id_adm_role',
@@ -300,7 +335,7 @@ CREATE TABLE IF NOT EXISTS `adm_role_user` (
   KEY `fk_adm_role_user_adm_user_1` (`id_adm_user`),
   CONSTRAINT `fk_adm_role_user_adm_role_1` FOREIGN KEY (`id_adm_role`) REFERENCES `adm_role` (`id_adm_role`),
   CONSTRAINT `fk_adm_role_user_adm_user_1` FOREIGN KEY (`id_adm_user`) REFERENCES `adm_user` (`id_adm_user`)
-) ENGINE=InnoDB AUTO_INCREMENT=351 DEFAULT CHARSET=utf8 COMMENT='角色与用户关系';
+) ENGINE=InnoDB AUTO_INCREMENT=351 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `adm_sequence` (
   `id_adm_sequence` int(10) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_sequence',
@@ -331,29 +366,6 @@ CREATE TABLE IF NOT EXISTS `adm_state_transition` (
   CONSTRAINT `fk_adm_state_transition_current_state` FOREIGN KEY (`current_state`) REFERENCES `adm_basekey_code` (`id_adm_basekey`),
   CONSTRAINT `fk_adm_state_transition_operation` FOREIGN KEY (`operation`) REFERENCES `adm_basekey_code` (`id_adm_basekey`),
   CONSTRAINT `fk_adm_state_transition_target_state` FOREIGN KEY (`target_state`) REFERENCES `adm_basekey_code` (`id_adm_basekey`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `adm_tenement` (
-  `id_adm_tenement` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(32) DEFAULT NULL COMMENT '名称',
-  `description` varchar(255) DEFAULT NULL COMMENT '描述',
-  `en_short_name` varchar(32) DEFAULT NULL COMMENT '英文简称',
-  PRIMARY KEY (`id_adm_tenement`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `adm_user` (
-  `id_adm_user` varchar(64) NOT NULL COMMENT 'id_adm_user',
-  `name` varchar(64) DEFAULT NULL COMMENT '名称',
-  `code` varchar(100) DEFAULT NULL COMMENT '编码（接口类用户使用）',
-  `encrypted_password` varchar(100) DEFAULT NULL COMMENT '加密的密码',
-  `description` varchar(255) DEFAULT NULL COMMENT '描述',
-  `id_adm_tenement` int(11) DEFAULT NULL COMMENT 'id_adm_tenement',
-  `action_flag` tinyint(1) DEFAULT '0' COMMENT '用户操作Flag',
-  `is_system` int(1) DEFAULT '0' COMMENT '是否系统数据',
-  PRIMARY KEY (`id_adm_user`),
-  UNIQUE KEY `adm_user_code` (`code`),
-  KEY `fk_adm_user_adm_tenement_1` (`id_adm_tenement`),
-  CONSTRAINT `fk_adm_user_adm_tenement_1` FOREIGN KEY (`id_adm_tenement`) REFERENCES `adm_tenement` (`id_adm_tenement`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `block_storage` (
@@ -978,5 +990,6 @@ CREATE TABLE `zone_link_design` (
   `zone_design2` varchar(15) DEFAULT NULL COMMENT '安全区域设计',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 SET FOREIGN_KEY_CHECKS=1;

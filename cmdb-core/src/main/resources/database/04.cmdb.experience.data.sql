@@ -1,3 +1,4 @@
+SET FOREIGN_KEY_CHECKS=0;
 INSERT INTO `DCN` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_date`, `created_by`, `created_date`, `key_name`, `state`, `fixed_date`, `code`, `description`, `orchestration`, `biz_key`, `dcn_design`, `name`, `zone`) VALUES
 	('0019_0000000001', NULL, '0019_0000000001', 'admin', '2019-07-24 12:26:42', 'admin', '2019-07-24 07:12:44', 'PRD-GZ1-SF-RDCN', 37, NULL, 'RDCN', 'RDCN', NULL, NULL, '0025_0000000001', 'RDCN1', '0017_0000000001'),
 	('0019_0000000005', NULL, '0019_0000000005', 'admin', '2019-07-24 12:26:43', 'admin', '2019-07-24 07:30:50', 'PRD-GZ1-DMZ-DMZ', 37, NULL, 'DMZ', 'DMZ', NULL, NULL, '0025_0000000002', 'DMZ', '0017_0000000004'),
@@ -300,3 +301,4 @@ INSERT INTO `zone_link_design` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updat
 	('0024_0000000006', NULL, '0024_0000000006', 'admin', '2019-07-24 07:42:33', 'admin', '2019-07-24 07:42:33', 'PRD-PARTNERNET_link_PRD-ECN', 34, NULL, 'PARTNERNET-ECN', 'PARTNERNET-ECN', NULL, NULL, '0023_0000000007', '0023_0000000004'),
 	('0024_0000000007', NULL, '0024_0000000007', 'admin', '2019-07-24 07:43:05', 'admin', '2019-07-24 07:43:04', 'PRD-INTERNET_link_PRD-DMZ', 34, NULL, 'INTERNET-DMZ', 'INTERNET-DMZ', NULL, NULL, '0023_0000000005', '0023_0000000002'),
 	('0024_0000000008', NULL, '0024_0000000008', 'admin', '2019-07-24 07:43:40', 'admin', '2019-07-24 07:43:39', 'PRD-INTRANET_link_PRD-MGMT', 34, NULL, 'INTRANET-MGMT', 'INTRANET-MGMT', NULL, NULL, '0023_0000000006', '0023_0000000003');
+SET FOREIGN_KEY_CHECKS=1;
