@@ -984,13 +984,13 @@ public class CiServiceImpl implements CiService {
 
     private Map<String, Object> doUpdate(EntityManager entityManager, int ciTypeId, Map<String, Object> ci, boolean enableStateTransition) {
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
-        Map<String, Object> convertedCi = MultiValueFeildOperationUtils.convertMultiValueFieldsForCICreation(entityManager, ciTypeId, ci, (String) ci.get(CmdbConstants.DEFAULT_FIELD_GUID), ciTypeAttrRepository, this);
 
-        String guid = convertedCi.get(GUID).toString();
+        String guid = ci.get(GUID).toString();
         Object entityBean = validateCi(ciTypeId, guid, entityMeta, entityManager, ACTION_MODIFICATION);
         DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
 
-        ciDataInterceptorService.preUpdate(entityHolder, convertedCi);
+        ciDataInterceptorService.preUpdate(entityHolder, ci);
+        Map<String, Object> convertedCi = MultiValueFeildOperationUtils.convertMultiValueFieldsForCICreation(entityManager, ciTypeId, ci, (String) ci.get(CmdbConstants.DEFAULT_FIELD_GUID), ciTypeAttrRepository, this);
         Map<String, Object> updatedMap = null;
         if (onlyIncludeRefreshableFields(ciTypeId, convertedCi.keySet()) || !enableStateTransition) {
             entityHolder.update(convertedCi, CmdbThreadLocal.getIntance().getCurrentUser(), entityManager);

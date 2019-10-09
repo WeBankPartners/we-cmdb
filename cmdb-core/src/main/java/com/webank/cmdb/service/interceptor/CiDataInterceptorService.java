@@ -5,6 +5,7 @@ import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_CREAT
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -556,6 +557,23 @@ public class CiDataInterceptorService {
         validateNotNullable(entityHolder, cloneCi);
         validateUniqueFieldForUpdate(entityHolder.getEntityMeta().getCiTypeId(), ci);
         validateRegularExpressionRule(entityHolder, cloneCi);
+        validateValueType(entityHolder, cloneCi);
+    }
+
+    private void validateValueType(DynamicEntityHolder entityHolder, Map cloneCi) {
+        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(entityHolder.getEntityMeta().getCiTypeId());
+        attrs.forEach(attr -> {
+            String inputType = attr.getInputType();
+            String name = attr.getPropertyName();
+            Object value = cloneCi.get(name);
+            if(value != null) {
+                if(value instanceof Collection) {
+                    if(!(InputType.MultRef.getCode().equals(inputType) || InputType.MultSelDroplist.getCode().equals(inputType))) {
+                        throw new InvalidArgumentException(String.format("Field [%s] shold not be list.",name));
+                    }
+                }
+            }
+        });
     }
 
     // can not update not editable field

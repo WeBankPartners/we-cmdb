@@ -79,7 +79,8 @@ export default {
       },
       source: {},
       layers: [],
-      graph: {}
+      graph: {},
+      ciTypesName: {}
     };
   },
   computed: {
@@ -156,6 +157,7 @@ export default {
           this.source.forEach(_ => {
             _.ciTypes &&
               _.ciTypes.forEach(async i => {
+                this.ciTypesName[i.ciTypeId] = i.name;
                 let imgFileSource =
                   i.imageFileId === 0 || i.imageFileId === undefined
                     ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
@@ -654,7 +656,7 @@ export default {
       });
       if (status === "OK") {
         this.$refs[this.tableRef][0].export({
-          filename: "Ci Data",
+          filename: this.ciTypesName[this.currentTab],
           data: formatData(data.contents.map(_ => _.data))
         });
       }
