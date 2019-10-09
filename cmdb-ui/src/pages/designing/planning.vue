@@ -110,8 +110,7 @@ export default {
           pageSize: 10,
           startIndex: 0
         },
-        paging: true,
-        sorting: {}
+        paging: true
       },
       graph: new Map(),
       graphBig: "",
@@ -468,10 +467,14 @@ export default {
       }
     },
     sortHandler(data) {
-      this.payload.sorting = {
-        asc: data.order === "asc",
-        field: data.key
-      };
+      if (data.order === "normal") {
+        delete this.payload.sorting;
+      } else {
+        this.payload.sorting = {
+          asc: data.order === "asc",
+          field: data.key
+        };
+      }
       this.queryCiData();
     },
 
