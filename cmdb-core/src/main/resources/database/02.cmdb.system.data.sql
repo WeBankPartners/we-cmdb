@@ -68,7 +68,8 @@ INSERT INTO `adm_basekey_cat` (`id_adm_basekey_cat`, `cat_name`, `description`, 
 	(66, 'orchestration', '编排', NULL, 26, NULL),
 	(67, 'orchestration', '编排', NULL, 27, NULL),
 	(68, 'orchestration', '编排', NULL, 28, NULL),
-	(69, 'seed', '种子', NULL, 1, NULL);
+	(69, 'seed', '种子', NULL, 1, NULL),
+	(70, 'deploy_tree_layer', '部署树层级', NULL, 2, 1);
 
 INSERT INTO `adm_basekey_cat_type` (`id_adm_basekey_cat_type`, `name`, `description`, `ci_type_id`, `type`) VALUES
 	(1, 'sys', NULL, NULL, 1),
@@ -303,7 +304,11 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(237, 30, 'code1', 'value1', NULL, NULL, 4, 'active'),
 	(238, 58, 'wecube1564467202875', 'test', NULL, NULL, 6, 'active'),
 	(239, 31, 'wecube1564468847441', 'test\n', NULL, NULL, 1, 'active'),
-	(240, 69, 'seed123456', 'seed', NULL, NULL, 1, 'active');
+	(240, 69, 'seed123456', 'seed', NULL, NULL, 1, 'active'),
+	(241, 70, '1', '系统', 2, NULL, 1, 'active'),
+	(242, 70, '2', '子系统', 2, NULL, 2, 'active'),
+	(243, 70, '3', '单元', 2, NULL, 3, 'active'),
+	(244, 70, '4', '服务', 2, NULL, 4, 'active');
 
 INSERT INTO `adm_ci_type` (`id_adm_ci_type`, `name`, `description`, `id_adm_tenement`, `table_name`, `status`, `catalog_id`, `ci_global_unique_id`, `seq_no`, `layer_id`, `zoom_level_id`, `image_file_id`, `ci_state_type`) VALUES
 	(1, '系统设计', '系统设计', NULL, 'system_design', 'created', 6, NULL, 1, 1, NULL, 1, NULL),
