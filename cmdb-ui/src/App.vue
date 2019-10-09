@@ -15,6 +15,10 @@
   color: #2c3e50;
   height: 100%;
   min-width: 1280px;
+
+  .content-container {
+    height: 100%;
+  }
 }
 #nav {
   padding: 30px;
