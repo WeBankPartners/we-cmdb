@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.InputType;
@@ -504,20 +505,29 @@ public class UIUserManagerService {
     }
 
 	public ResponseDto<Object> resertPassword(List<Map<String, Object>> userDtos) {
-		userDtos.forEach(user->{
-			String username = (String) user.get("username");
-			if (username==null) {return;}
-			AdmUser findByName = userRepository.findByName(username);
-			if(findByName==null) {return;}
-	    	if(!passwordEncoder.matches((String)user.get("password"), findByName.getEncryptedPassword())) {
-	    		return;
-	    	}
-	    	String newPassword = passwordEncoder.encode((String)user.get("newPassword"));
-	    	user.put("password", newPassword);
-	    	user.remove("newPassword");
-	    	staticDtoService.update(UserDto.class,findByName.getIdAdmUser(), user);
-		});
-		return new ResponseDto<Object>(ResponseDto.STATUS_OK, null);
+		ResponseDto<Object> responseDto = new ResponseDto<Object>(ResponseDto.STATUS_OK, null);
+		HashMap<String, String> data = Maps.newHashMap();
+		try {
+			userDtos.forEach(user->{
+				String username = (String) user.get("username");
+				if (username==null) {return;}
+				AdmUser findByName = userRepository.findByName(username);
+				if(findByName==null) {return;}
+		    	if(!passwordEncoder.matches((String)user.get("password"), findByName.getEncryptedPassword())) {
+		    		responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
+		    		return;
+		    	}
+		    	String newPassword = passwordEncoder.encode((String)user.get("newPassword"));
+		    	user.put("password", newPassword);
+		    	user.remove("newPassword");
+		    	staticDtoService.update(UserDto.class,findByName.getIdAdmUser(), user);
+			});
+		}catch (Exception e) {
+			data.put("ERROR", e.getMessage());
+			return new ResponseDto<Object>(ResponseDto.STATUS_ERROR_BATCH_CHANGE, null);
+		}
+		responseDto.setData(data);
+		return responseDto;
 	}
 
 	public List<UserDto> updateUser(List<Map<String, Object>> userDtos) {
