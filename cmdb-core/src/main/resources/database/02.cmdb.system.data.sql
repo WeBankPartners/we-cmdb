@@ -912,7 +912,7 @@ INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`, `
 INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `other_name`, `seq_no`, `parent_id_adm_menu`) VALUES
 (1, 'DATA_QUERY', '数据查询', 1, NULL),
 (2, 'DATA_MANAGEMENT', '数据管理', 2, NULL),
-(4, 'VIEW_MANAGEMENT', '数据管理', 4, NULL),
+(4, 'VIEW_MANAGEMENT', '视图管理', 4, NULL),
 (5, 'ADMIN', '系统', 5, NULL),
 (6, 'DESIGNING_CI_DATA_ENQUIRY', 'CI数据查询', 6, 1),
 (7, 'DESIGNING_CI_INTEGRATED_QUERY_EXECUTION', 'CI数据综合查询', 7, 1),
