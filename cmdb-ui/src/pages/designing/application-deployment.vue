@@ -828,25 +828,14 @@ export default {
     genChildrenDot(data, level) {
       let dots = [];
       data.forEach(_ => {
-        if (_.ciTypeId === 9) {
-          dots = dots.concat([
-            `"${_.data.service.guid}"`,
-            `[id="n_${_.data.service.guid}";`,
-            `label="${_.data.service.code || _.data.service.key_name}";`,
-            "shape=ellipse;",
-            `style="filled";color="${colors[level]}";`,
-            `tooltip="${_.data.service.description || "-"}"];`
-          ]);
-        } else {
-          dots = dots.concat([
-            `"${_.guid}"`,
-            `[id="n_${_.guid}";`,
-            `label="${_.data.code || _.data.key_name}";`,
-            "shape=ellipse;",
-            `style="filled";color="${colors[level]}";`,
-            `tooltip="${_.data.description || "-"}"];`
-          ]);
-        }
+        dots = dots.concat([
+          `"${_.guid}"`,
+          `[id="n_${_.guid}";`,
+          `label="${_.data.code || _.data.key_name}";`,
+          "shape=ellipse;",
+          `style="filled";color="${colors[level]}";`,
+          `tooltip="${_.data.description || "-"}"];`
+        ]);
         this.rankNodes[level].push(`"${_.guid}"`);
         if (_.children instanceof Array && _.children.length) {
           dots = dots.concat(this.genChildrenDot(_.children, level + 1));
