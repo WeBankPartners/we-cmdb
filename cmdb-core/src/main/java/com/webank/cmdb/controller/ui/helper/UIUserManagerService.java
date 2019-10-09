@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,10 +30,12 @@ import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.domain.AdmMenu;
 import com.webank.cmdb.domain.AdmRoleMenu;
+import com.webank.cmdb.domain.AdmUser;
 import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
 import com.webank.cmdb.dto.CiTypePermissions;
 import com.webank.cmdb.dto.MenuDto;
+import com.webank.cmdb.dto.ResponseDto;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrConditionDto;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrDto;
 import com.webank.cmdb.dto.RoleCiTypeDto;
@@ -71,6 +74,9 @@ public class UIUserManagerService {
 
     @Autowired
     private UIWrapperService uiWrapperService;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public void deleteRole(int roleId) {
         List<UserDto> users = uiWrapperService.getUsersByRoleId(roleId);
@@ -476,5 +482,45 @@ public class UIUserManagerService {
 
         return staticDtoService.create(UserDto.class, Arrays.asList(userDto));
     }
+    
 
+	public String getRandomPassword() {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < 8; i++) {
+			int flag = (int)(Math.random()*62);
+			if (flag<10) {
+				sb.append(flag);
+			}else if(flag<36) {
+				sb.append((char)(flag+'A'-10));
+			}else {
+				sb.append((char)(flag+'a'-36));
+			}
+		}
+		return sb.toString();
+	}
+	
+	public AdmUser findByName(String username) {
+        return userRepository.findByName(username);
+    }
+
+	public ResponseDto<Object> resertPassword(List<Map<String, Object>> userDtos) {
+		userDtos.forEach(user->{
+			String username = (String) user.get("username");
+			if (username==null) {return;}
+			AdmUser findByName = userRepository.findByName(username);
+			if(findByName==null) {return;}
+	    	if(!passwordEncoder.matches((String)user.get("password"), findByName.getEncryptedPassword())) {
+	    		return;
+	    	}
+	    	String newPassword = passwordEncoder.encode((String)user.get("newPassword"));
+	    	user.put("password", newPassword);
+	    	user.remove("newPassword");
+	    	staticDtoService.update(UserDto.class,findByName.getIdAdmUser(), user);
+		});
+		return new ResponseDto<Object>(ResponseDto.STATUS_OK, null);
+	}
+
+	public List<UserDto> updateUser(List<Map<String, Object>> userDtos) {
+		return staticDtoService.update(UserDto.class, userDtos);
+	}
 }

@@ -7,6 +7,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -26,7 +27,7 @@ import org.hibernate.annotations.GenericGenerator;
 @GenericGenerator(name = "userid", strategy = "uuid")
 public class AdmUser implements Serializable {
     private static final long serialVersionUID = 1L;
-    private String idAdmUser;
+    private Integer idAdmUser;
     private Byte actionFlag;
     private String code;
     private String description;
@@ -42,13 +43,13 @@ public class AdmUser implements Serializable {
     }
 
     @Id
-    @GeneratedValue(generator = "userid")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_adm_user")
-    public String getIdAdmUser() {
+    public Integer getIdAdmUser() {
         return this.idAdmUser;
     }
 
-    public void setIdAdmUser(String idAdmUser) {
+    public void setIdAdmUser(Integer idAdmUser) {
         this.idAdmUser = idAdmUser;
     }
 
