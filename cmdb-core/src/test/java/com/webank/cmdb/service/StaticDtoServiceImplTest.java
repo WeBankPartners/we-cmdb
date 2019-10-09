@@ -122,11 +122,11 @@ public class StaticDtoServiceImplTest {
         request.getFilters()
                 .add(new Filter("codeId", FilterOperator.Equal.getCode(), 557));
         request.setPaging(false);
-        QueryResponse response = staticDtoService.query(CatCodeDto.class, request);
+        QueryResponse<CatCodeDto> response = staticDtoService.query(CatCodeDto.class, request);
         assertThat(response.getContents()
                 .size(), equalTo(1));
-        assertThat(((Map) response.getContents()
-                .get(0)).get("groupCodeId"), is(instanceOf(CatCodeDto.class)));
+        assertThat(response.getContents()
+                .get(0).getGroupCodeId(), is(instanceOf(CatCodeDto.class)));
 
     }
 }
