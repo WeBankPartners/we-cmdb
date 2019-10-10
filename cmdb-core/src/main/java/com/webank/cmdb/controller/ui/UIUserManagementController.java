@@ -61,17 +61,6 @@ public class UIUserManagementController {
     public Object getAllUsers() {
         return wrapperService.getAllUsers();
     }
-
-    @PostMapping("/users/create")
-    @ResponseBody
-    public List<UserDto> createNewUser(@RequestBody UserDto userDto) {
-        if (StringUtils.isBlank(userDto.getPassword())) {
-            userDto.setPassword(passwordEncoder.encode(userDto.getUsername()));
-        } else {
-            userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        }
-        return userManagerService.createUser(userDto);
-    }
     
     @PostMapping("/users/create")
     @ResponseBody
