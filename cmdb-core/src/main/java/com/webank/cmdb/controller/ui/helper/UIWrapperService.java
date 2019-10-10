@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.webank.cmdb.config.ApplicationProperties.UIProperties;
+import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.ImplementOperation;
 import com.webank.cmdb.domain.AdmCiType;
@@ -53,6 +54,7 @@ import com.webank.cmdb.service.IntegrationQueryService;
 import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.service.impl.FilterRuleService;
 import com.webank.cmdb.util.BeanMapUtils;
+import com.webank.cmdb.util.Sorting;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -452,6 +454,11 @@ public class UIWrapperService {
     }
 
     public QueryResponse<CiData> queryCiData(Integer ciTypeId, QueryRequest queryObject) {
+        if (queryObject == null) {
+            queryObject = QueryRequest.defaultQueryObject().descendingSortBy(CmdbConstants.DEFAULT_FIELD_CREATED_DATE);
+        } else if (queryObject.getSorting() == null || queryObject.getSorting().getField() == null) {
+            queryObject.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_CREATED_DATE));
+        }
         return ciService.query(ciTypeId, queryObject);
     }
 
