@@ -8,4 +8,4 @@ java -jar /application/cmdb-core.jar  --server.address=0.0.0.0 --server.port=${C
 --cmdb.datasource.schema=${MYSQL_SERVER_DATABASE_NAME} \
 --cmdb.security.enabled=false \
 --cmdb.security.whitelist-ip-address=${CMDB_IP_WHITELISTS}
-{CUSTOM_PARAM} >>/log/cmdb-core.log 
+${CUSTOM_PARAM} >>/log/cmdb-core.log 
