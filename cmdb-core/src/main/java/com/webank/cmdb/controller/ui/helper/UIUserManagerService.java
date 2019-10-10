@@ -47,6 +47,7 @@ import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.repository.AdmMenusRepository;
 import com.webank.cmdb.repository.UserRepository;
 import com.webank.cmdb.service.StaticDtoService;
+import com.webank.cmdb.util.CmdbThreadLocal;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -119,10 +120,7 @@ public class UIUserManagerService {
             Set<AdmMenu> admMenus = Sets.newTreeSet(new Comparator<AdmMenu>() {
 				@Override
 				public int compare(AdmMenu o1, AdmMenu o2) {
-					if (o1.getIdAdmMenu()>o2.getIdAdmMenu()) {
-						return 1;
-					}
-					return 0;
+					return o1.getIdAdmMenu().compareTo(o2.getIdAdmMenu());
 				}
 			});
             admMenus.addAll(admMenusTemp);
@@ -504,25 +502,28 @@ public class UIUserManagerService {
 	public AdmUser findByName(String username) {
         return userRepository.findByName(username);
     }
-
+	
 	public ResponseDto<Object> resertPassword(List<Map<String, Object>> userDtos) {
 		ResponseDto<Object> responseDto = new ResponseDto<Object>(ResponseDto.STATUS_OK, null);
 		HashMap<String, String> data = Maps.newHashMap();
 		try {
-			userDtos.forEach(user->{
-				String username = (String) user.get("username");
-				if (username==null) {return;}
-				AdmUser findByName = userRepository.findByName(username);
-				if(findByName==null) {return;}
-		    	if(!passwordEncoder.matches((String)user.get("password"), findByName.getEncryptedPassword())) {
-		    		responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
-		    		return;
-		    	}
-		    	String newPassword = passwordEncoder.encode((String)user.get("newPassword"));
-		    	user.put("password", newPassword);
-		    	user.remove("newPassword");
-		    	staticDtoService.update(UserDto.class,findByName.getIdAdmUser(), user);
-			});
+			String currentUser = CmdbThreadLocal.getIntance().getCurrentUser();
+			if (currentUser!=null) {
+				userDtos.forEach(user->{
+					AdmUser findByName = userRepository.findByName(currentUser);
+					if(findByName==null) {return;}
+			    	if(!passwordEncoder.matches((String)user.get("password"), findByName.getEncryptedPassword())) {
+			    		responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
+			    		return;
+			    	}
+			    	String newPassword = passwordEncoder.encode((String)user.get("newPassword"));
+			    	user.put("password", newPassword);
+			    	user.remove("newPassword");
+			    	staticDtoService.update(UserDto.class,findByName.getIdAdmUser(), user);
+				});
+			}else {
+				responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
+			}
 		}catch (Exception e) {
     		responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
 			data.put(ResponseDto.STATUS_ERROR, e.getMessage());
