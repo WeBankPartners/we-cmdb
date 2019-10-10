@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.security.RolesAllowed;
+import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webank.cmdb.controller.ui.helper.UIUserManagerService;
 import com.webank.cmdb.controller.ui.helper.UIWrapperService;
 import com.webank.cmdb.dto.MenuDto;
+import com.webank.cmdb.dto.ResponseDto;
 import com.webank.cmdb.dto.RoleCiTypeDto;
 import com.webank.cmdb.dto.RoleDto;
 import com.webank.cmdb.dto.UserDto;
+import com.webank.cmdb.service.StaticDtoService;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -36,6 +39,9 @@ public class UIUserManagementController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private StaticDtoService staticDtoService;
 
     @Data
     @AllArgsConstructor
@@ -55,16 +61,30 @@ public class UIUserManagementController {
     public Object getAllUsers() {
         return wrapperService.getAllUsers();
     }
-
+    
     @PostMapping("/users/create")
     @ResponseBody
-    public List<UserDto> createNewUser(@RequestBody UserDto userDto) {
-        if (StringUtils.isBlank(userDto.getPassword())) {
-            userDto.setPassword(passwordEncoder.encode(userDto.getUsername()));
-        } else {
-            userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        }
-        return userManagerService.createUser(userDto);
+    public List<UserDto> createNewUser(@RequestBody List<UserDto> userDtos) {
+    	//随机密码生成
+    	String randomPassword = userManagerService.getRandomPassword();
+        userDtos.forEach(userDto->{
+            userDto.setPassword(passwordEncoder.encode(randomPassword));
+        });
+        List<UserDto> create = staticDtoService.create(UserDto.class, userDtos);
+        create.forEach(userDto->{
+        	userDto.setPassword(randomPassword);
+        });
+        return create;
+    }
+    
+    @PostMapping("/users/update")
+    public List<UserDto> updateUsers(@RequestBody List<Map<String, Object>> userDtos) {
+		return userManagerService.updateUser(userDtos);
+    }
+    
+    @PostMapping("/users/password/resert")
+    public ResponseDto<?> resertPassword(@RequestBody Map<String, Object> userDto) {
+		return userManagerService.resertPassword(userDto);
     }
 
     @GetMapping("/roles")
