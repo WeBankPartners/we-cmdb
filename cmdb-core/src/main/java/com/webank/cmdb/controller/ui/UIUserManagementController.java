@@ -83,8 +83,8 @@ public class UIUserManagementController {
     }
     
     @PostMapping("/users/password/resert")
-    public ResponseDto<?> resertPassword(@RequestBody List<Map<String, Object>> userDtos) {
-		return userManagerService.resertPassword(userDtos);
+    public ResponseDto<?> resertPassword(@RequestBody Map<String, Object> userDto) {
+		return userManagerService.resertPassword(userDto);
     }
 
     @GetMapping("/roles")
