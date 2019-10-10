@@ -311,7 +311,7 @@ CREATE TABLE IF NOT EXISTS `adm_role_menu` (
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `adm_user` (
-  `id_adm_user` int(11) NOT NULL COMMENT 'id_adm_user',
+  `id_adm_user` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_user',
   `name` varchar(64) DEFAULT NULL COMMENT '名称',
   `code` varchar(100) DEFAULT NULL COMMENT '编码（接口类用户使用）',
   `encrypted_password` varchar(100) DEFAULT NULL COMMENT '加密的密码',
