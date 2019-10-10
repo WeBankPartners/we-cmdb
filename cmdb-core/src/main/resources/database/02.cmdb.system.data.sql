@@ -904,10 +904,10 @@ INSERT INTO `adm_role` (`id_adm_role`, `role_name`, `description`, `id_adm_tenem
 	(11, 'READONLY', '只读用户', NULL, NULL, 'READONLY', 0);
 
 INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `encrypted_password`, `description`, `id_adm_tenement`, `action_flag`, `is_system`) VALUES
-	('1', 'admin', 'admin','$2a$10$Gh3WDwZ8kFpxbmo/h.oywuN.LuYwgrlx53ZeG.mz7P4eKgct7IYZm', 'admin', NULL, 0, 1);
+	(1, 'admin', 'admin','$2a$10$Gh3WDwZ8kFpxbmo/h.oywuN.LuYwgrlx53ZeG.mz7P4eKgct7IYZm', 'admin', NULL, 0, 1);
 
 INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`, `is_system`) VALUES
-    ('1', '1', '1', 1);
+    ('1', '1', 1, 1);
 
 INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `other_name`, `seq_no`, `parent_id_adm_menu`) VALUES
 (1, 'DATA_QUERY', '数据查询', 1, NULL),

@@ -16,7 +16,7 @@ import com.webank.cmdb.util.DtoId;
 public class UserDto extends BasicResourceDto<UserDto, AdmUser> {
     @DtoId
     @DtoField(domainField = "idAdmUser")
-    private String userId;
+    private Integer userId;
     @NotEmpty
     @DtoField(domainField = "code")
     private String username;
@@ -31,7 +31,7 @@ public class UserDto extends BasicResourceDto<UserDto, AdmUser> {
     public UserDto() {
     }
 
-    public UserDto(String userId, @NotEmpty String username, String fullName, String description) {
+    public UserDto(Integer userId, @NotEmpty String username, String fullName, String description) {
         this.userId = userId;
         this.username = username;
         this.fullName = fullName;
@@ -76,11 +76,11 @@ public class UserDto extends BasicResourceDto<UserDto, AdmUser> {
         return domain;
     }
 
-    public String getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 
