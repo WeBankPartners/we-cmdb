@@ -75,7 +75,7 @@ public class UIUserManagerService {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -120,11 +120,11 @@ public class UIUserManagerService {
             Integer[] roleIds = roles.stream().map(RoleDto::getRoleId).toArray(Integer[]::new);
             List<AdmMenu> admMenusTemp = admMenusRepository.findAdmMenusByRoles(roleIds);
             Set<AdmMenu> admMenus = Sets.newTreeSet(new Comparator<AdmMenu>() {
-				@Override
-				public int compare(AdmMenu o1, AdmMenu o2) {
-					return o1.getIdAdmMenu().compareTo(o2.getIdAdmMenu());
-				}
-			});
+                @Override
+                public int compare(AdmMenu o1, AdmMenu o2) {
+                    return o1.getIdAdmMenu().compareTo(o2.getIdAdmMenu());
+                }
+            });
             admMenus.addAll(admMenusTemp);
             if (isNotEmpty(admMenus) && withParentMenu) {
                 Set<Integer> fetchedParentIds = Sets.newHashSet();
@@ -141,7 +141,7 @@ public class UIUserManagerService {
                 Iterable<AdmMenu> parentMenus = admMenusRepository.findAllById(toFetchedParentIds);
                 parentMenus.forEach(admMenus::add);
             }
-            admMenus.forEach(menu->{
+            admMenus.forEach(menu -> {
                 menuDtos.add(MenuDto.from(menu, false));
             });
             return menuDtos;
@@ -483,59 +483,59 @@ public class UIUserManagerService {
 
         return staticDtoService.create(UserDto.class, Arrays.asList(userDto));
     }
-    
 
-	public String getRandomPassword() {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < 8; i++) {
-			int flag = (int)(Math.random()*62);
-			if (flag<10) {
-				sb.append(flag);
-			}else if(flag<36) {
-				sb.append((char)(flag+'A'-10));
-			}else {
-				sb.append((char)(flag+'a'-36));
-			}
-		}
-		return sb.toString();
-	}
-	
-	
-	public AdmUser findByName(String username) {
+    public String getRandomPassword() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 8; i++) {
+            int flag = (int) (Math.random() * 62);
+            if (flag < 10) {
+                sb.append(flag);
+            } else if (flag < 36) {
+                sb.append((char) (flag + 'A' - 10));
+            } else {
+                sb.append((char) (flag + 'a' - 36));
+            }
+        }
+        return sb.toString();
+    }
+
+    public AdmUser findByName(String username) {
         return userRepository.findByName(username);
     }
-	
-	public ResponseDto<Object> resertPassword(Map<String, Object> password) {
-		ResponseDto<Object> responseDto = new ResponseDto<Object>(ResponseDto.STATUS_OK, null);
-		HashMap<String, String> data = Maps.newHashMap();
-		try {
-			String currentUser = CmdbThreadLocal.getIntance().getCurrentUser();
-			if (currentUser!=null) {
-				AdmUser findByName = userRepository.findByName(currentUser);
-				if(findByName==null) {return null;}
-		    	if(!passwordEncoder.matches((String)password.get("password"), findByName.getEncryptedPassword())) {
-		    		responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
-		    		data.put(ResponseDto.STATUS_ERROR, "原密码错误");
-		    		responseDto.setData(data);
-		    		return responseDto;
-		    	}
-		    	String newPassword = passwordEncoder.encode((String)password.get("newPassword"));
-		    	findByName.setEncryptedPassword(newPassword);
-		    	staticDtoService.update(UserDto.class,findByName.getIdAdmUser(), BeanMapUtils.convertBeanToMap(findByName));
-			}else {
-				data.put(ResponseDto.STATUS_ERROR, "用户未登录");
-				responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
-			}
-		}catch (Exception e) {
-    		responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
-			data.put(ResponseDto.STATUS_ERROR, e.getMessage());
-		}
-		responseDto.setData(data);
-		return responseDto;
-	}
 
-	public List<UserDto> updateUser(List<Map<String, Object>> userDtos) {
-		return staticDtoService.update(UserDto.class, userDtos);
-	}
+    public ResponseDto<Object> resertPassword(Map<String, Object> password) {
+        ResponseDto<Object> responseDto = new ResponseDto<Object>(ResponseDto.STATUS_OK, null);
+        HashMap<String, String> data = Maps.newHashMap();
+        try {
+            String currentUser = CmdbThreadLocal.getIntance().getCurrentUser();
+            if (currentUser != null) {
+                AdmUser findByName = userRepository.findByName(currentUser);
+                if (findByName == null) {
+                    return null;
+                }
+                if (!passwordEncoder.matches((String) password.get("password"), findByName.getEncryptedPassword())) {
+                    responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
+                    data.put(ResponseDto.STATUS_ERROR, "原密码错误");
+                    responseDto.setData(data);
+                    return responseDto;
+                }
+                String newPassword = passwordEncoder.encode((String) password.get("newPassword"));
+                findByName.setEncryptedPassword(newPassword);
+                staticDtoService.update(UserDto.class, findByName.getIdAdmUser(), BeanMapUtils.convertBeanToMap(findByName));
+            } else {
+                data.put(ResponseDto.STATUS_ERROR, "用户未登录");
+                responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
+            }
+        } catch (Exception e) {
+            responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
+            data.put(ResponseDto.STATUS_ERROR, e.getMessage());
+        }
+        responseDto.setData(data);
+        return responseDto;
+    }
+
+    public List<UserDto> updateUser(List<Map<String, Object>> userDtos) {
+        return staticDtoService.update(UserDto.class, userDtos);
+    }
 
 }
