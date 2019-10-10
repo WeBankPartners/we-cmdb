@@ -20,19 +20,23 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.domain.AdmMenu;
 import com.webank.cmdb.domain.AdmRoleMenu;
+import com.webank.cmdb.domain.AdmUser;
 import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
 import com.webank.cmdb.dto.CiTypePermissions;
 import com.webank.cmdb.dto.MenuDto;
+import com.webank.cmdb.dto.ResponseDto;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrConditionDto;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrDto;
 import com.webank.cmdb.dto.RoleCiTypeDto;
@@ -43,6 +47,9 @@ import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.repository.AdmMenusRepository;
 import com.webank.cmdb.repository.UserRepository;
 import com.webank.cmdb.service.StaticDtoService;
+import com.webank.cmdb.util.BeanMapUtils;
+import com.webank.cmdb.util.ClassUtils;
+import com.webank.cmdb.util.CmdbThreadLocal;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -68,6 +75,9 @@ public class UIUserManagerService {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private UIWrapperService uiWrapperService;
@@ -108,7 +118,14 @@ public class UIUserManagerService {
         log.info("Roles {} found for user {}", roles, username);
         if (isNotEmpty(roles)) {
             Integer[] roleIds = roles.stream().map(RoleDto::getRoleId).toArray(Integer[]::new);
-            List<AdmMenu> admMenus = admMenusRepository.findAdmMenusByRoles(roleIds);
+            List<AdmMenu> admMenusTemp = admMenusRepository.findAdmMenusByRoles(roleIds);
+            Set<AdmMenu> admMenus = Sets.newTreeSet(new Comparator<AdmMenu>() {
+				@Override
+				public int compare(AdmMenu o1, AdmMenu o2) {
+					return o1.getIdAdmMenu().compareTo(o2.getIdAdmMenu());
+				}
+			});
+            admMenus.addAll(admMenusTemp);
             if (isNotEmpty(admMenus) && withParentMenu) {
                 Set<Integer> fetchedParentIds = Sets.newHashSet();
                 Set<Integer> toFetchedParentIds = Sets.newHashSet();
@@ -466,5 +483,59 @@ public class UIUserManagerService {
 
         return staticDtoService.create(UserDto.class, Arrays.asList(userDto));
     }
+    
+
+	public String getRandomPassword() {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < 8; i++) {
+			int flag = (int)(Math.random()*62);
+			if (flag<10) {
+				sb.append(flag);
+			}else if(flag<36) {
+				sb.append((char)(flag+'A'-10));
+			}else {
+				sb.append((char)(flag+'a'-36));
+			}
+		}
+		return sb.toString();
+	}
+	
+	
+	public AdmUser findByName(String username) {
+        return userRepository.findByName(username);
+    }
+	
+	public ResponseDto<Object> resertPassword(Map<String, Object> password) {
+		ResponseDto<Object> responseDto = new ResponseDto<Object>(ResponseDto.STATUS_OK, null);
+		HashMap<String, String> data = Maps.newHashMap();
+		try {
+			String currentUser = CmdbThreadLocal.getIntance().getCurrentUser();
+			if (currentUser!=null) {
+				AdmUser findByName = userRepository.findByName(currentUser);
+				if(findByName==null) {return null;}
+		    	if(!passwordEncoder.matches((String)password.get("password"), findByName.getEncryptedPassword())) {
+		    		responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
+		    		data.put(ResponseDto.STATUS_ERROR, "原密码错误");
+		    		responseDto.setData(data);
+		    		return responseDto;
+		    	}
+		    	String newPassword = passwordEncoder.encode((String)password.get("newPassword"));
+		    	findByName.setEncryptedPassword(newPassword);
+		    	staticDtoService.update(UserDto.class,findByName.getIdAdmUser(), BeanMapUtils.convertBeanToMap(findByName));
+			}else {
+				data.put(ResponseDto.STATUS_ERROR, "用户未登录");
+				responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
+			}
+		}catch (Exception e) {
+    		responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
+			data.put(ResponseDto.STATUS_ERROR, e.getMessage());
+		}
+		responseDto.setData(data);
+		return responseDto;
+	}
+
+	public List<UserDto> updateUser(List<Map<String, Object>> userDtos) {
+		return staticDtoService.update(UserDto.class, userDtos);
+	}
 
 }
