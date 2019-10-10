@@ -47,6 +47,8 @@ import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.repository.AdmMenusRepository;
 import com.webank.cmdb.repository.UserRepository;
 import com.webank.cmdb.service.StaticDtoService;
+import com.webank.cmdb.util.BeanMapUtils;
+import com.webank.cmdb.util.ClassUtils;
 import com.webank.cmdb.util.CmdbThreadLocal;
 
 import lombok.extern.slf4j.Slf4j;
@@ -503,25 +505,25 @@ public class UIUserManagerService {
         return userRepository.findByName(username);
     }
 	
-	public ResponseDto<Object> resertPassword(List<Map<String, Object>> userDtos) {
+	public ResponseDto<Object> resertPassword(Map<String, Object> password) {
 		ResponseDto<Object> responseDto = new ResponseDto<Object>(ResponseDto.STATUS_OK, null);
 		HashMap<String, String> data = Maps.newHashMap();
 		try {
 			String currentUser = CmdbThreadLocal.getIntance().getCurrentUser();
 			if (currentUser!=null) {
-				userDtos.forEach(user->{
-					AdmUser findByName = userRepository.findByName(currentUser);
-					if(findByName==null) {return;}
-			    	if(!passwordEncoder.matches((String)user.get("password"), findByName.getEncryptedPassword())) {
-			    		responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
-			    		return;
-			    	}
-			    	String newPassword = passwordEncoder.encode((String)user.get("newPassword"));
-			    	user.put("password", newPassword);
-			    	user.remove("newPassword");
-			    	staticDtoService.update(UserDto.class,findByName.getIdAdmUser(), user);
-				});
+				AdmUser findByName = userRepository.findByName(currentUser);
+				if(findByName==null) {return null;}
+		    	if(!passwordEncoder.matches((String)password.get("password"), findByName.getEncryptedPassword())) {
+		    		responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
+		    		data.put(ResponseDto.STATUS_ERROR, "原密码错误");
+		    		responseDto.setData(data);
+		    		return responseDto;
+		    	}
+		    	String newPassword = passwordEncoder.encode((String)password.get("newPassword"));
+		    	findByName.setEncryptedPassword(newPassword);
+		    	staticDtoService.update(UserDto.class,findByName.getIdAdmUser(), BeanMapUtils.convertBeanToMap(findByName));
 			}else {
+				data.put(ResponseDto.STATUS_ERROR, "用户未登录");
 				responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
 			}
 		}catch (Exception e) {
