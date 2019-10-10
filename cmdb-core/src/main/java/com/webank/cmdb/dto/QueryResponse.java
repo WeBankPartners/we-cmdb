@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonInclude(Include.NON_NULL)
 public class QueryResponse<T> {
-    private PageInfo pageInfo = null;
+    private PageInfo pageInfo = new PageInfo();
     private List<T> contents = new LinkedList<>();
 
     public QueryResponse() {
