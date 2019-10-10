@@ -112,10 +112,7 @@ public class UIUserManagerService {
             Set<AdmMenu> admMenus = Sets.newTreeSet(new Comparator<AdmMenu>() {
 				@Override
 				public int compare(AdmMenu o1, AdmMenu o2) {
-					if (o1.getIdAdmMenu()>o2.getIdAdmMenu()) {
-						return 1;
-					}
-					return 0;
+					return o1.getIdAdmMenu().compareTo(o2.getIdAdmMenu());
 				}
 			});
             admMenus.addAll(admMenusTemp);
