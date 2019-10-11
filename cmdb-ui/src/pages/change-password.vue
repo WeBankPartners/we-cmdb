@@ -44,6 +44,7 @@
 </template>
 
 <script>
+import { editPassword } from "@/api/server.js";
 export default {
   data() {
     return {
@@ -73,21 +74,34 @@ export default {
     handleSubmit(name) {
       this.$refs[name].validate(valid => {
         if (valid) {
-          this.$Message.success("Success!");
+          this.editPassword();
         } else {
           this.$Message.error("Fail!");
+          return;
         }
       });
-      console.log("handleSubmit", name);
+    },
+    async editPassword() {
+      const { status, data, message } = await editPassword({
+        password: this.formItem.newPassword,
+        newPassword: this.formItem.oldPassword
+      });
+      if (status === "OK") {
+        this.$Message.success("密码重设成功！");
+        this.$router.push("/homepage");
+      }
     },
     handleReset(name) {
       this.$refs[name].resetFields();
+    },
+    focusOnInput() {
+      this.$nextTick(() => {
+        this.$refs["oldPassword"].focus();
+      });
     }
   },
   mounted() {
-    this.$nextTick(() => {
-      this.$refs["oldPassword"].focus();
-    });
+    this.focusOnInput();
   }
 };
 </script>

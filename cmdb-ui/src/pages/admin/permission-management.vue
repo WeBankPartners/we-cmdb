@@ -733,11 +733,15 @@ export default {
         });
         return;
       }
-      let { status, data, message } = await addUser(this.addedUser);
+      let { status, data, message } = await addUser([this.addedUser]);
       if (status === "OK") {
         this.$Notice.success({
           title: "success",
           desc: message
+        });
+        this.$Modal.info({
+          title: `以下为用户${data[0].username}的初始密码，请保存`,
+          content: data[0].password
         });
         this.addedUser = {};
         this.getAllUsers();
@@ -987,7 +991,6 @@ export default {
     this.getAllUsers();
     this.getAllRoles();
     this.getAllMenus();
-    // this.getAllPermissionEntryPoints();
   },
   watch: {}
 };
