@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.InputType;
@@ -501,39 +500,39 @@ public class UIUserManagerService {
         return userRepository.findByName(username);
     }
 
-    public ResponseDto<Object> resertPassword(Map<String, Object> password) {
-        ResponseDto<Object> responseDto = new ResponseDto<Object>(ResponseDto.STATUS_OK, null);
-        HashMap<String, String> data = Maps.newHashMap();
-        try {
-            String currentUser = CmdbThreadLocal.getIntance().getCurrentUser();
-            if (currentUser != null) {
-                AdmUser findByName = userRepository.findByName(currentUser);
-                if (findByName == null) {
-                    return null;
-                }
-                if (!passwordEncoder.matches((String) password.get("password"), findByName.getEncryptedPassword())) {
-                    responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
-                    data.put(ResponseDto.STATUS_ERROR, "原密码错误");
-                    responseDto.setData(data);
-                    return responseDto;
-                }
-                String newPassword = passwordEncoder.encode((String) password.get("newPassword"));
-                findByName.setEncryptedPassword(newPassword);
-                userRepository.updateEncryptedPasswordByIdAdmUserAndCode(newPassword, findByName.getIdAdmUser(), findByName.getCode());
-            } else {
-                data.put(ResponseDto.STATUS_ERROR, "用户未登录");
-                responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
+    public Object changePassword(Map<String, Object> password) {
+        ResponseDto<UserDto> responseDto = new ResponseDto<UserDto>(ResponseDto.STATUS_OK, null);
+        String currentUser = CmdbThreadLocal.getIntance().getCurrentUser();
+        if (currentUser != null) {
+            AdmUser user = findByName(currentUser);
+            if (user == null) {
+                throw new CmdbException("This user does not exist");
             }
-        } catch (Exception e) {
-            responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
-            data.put(ResponseDto.STATUS_ERROR, e.getMessage());
+            if (!passwordEncoder.matches((String) password.get("password"), user.getEncryptedPassword())) {
+                throw new CmdbException("The original password is wrong.");
+            }
+            String newPassword = passwordEncoder.encode((String) password.get("newPassword"));
+            userRepository.updateEncryptedPasswordByIdAdmUserAndCode(newPassword, user.getIdAdmUser(), currentUser);
+        } else {
+            throw new CmdbException("Logon user not found.");
         }
-        responseDto.setData(data);
+        responseDto.setStatusMessage("The password was successfully modified.");
         return responseDto;
     }
 
     public List<UserDto> updateUser(List<Map<String, Object>> userDtos) {
         return staticDtoService.update(UserDto.class, userDtos);
+    }
+
+    public Object adminResetPassword(Map<String, Object> userDto) {
+        String randomPassword = getRandomPassword();
+        AdmUser user = findByName((String) userDto.get("username"));
+        if (user != null) {
+            userRepository.updateEncryptedPasswordByIdAdmUserAndCode(passwordEncoder.encode(randomPassword), user.getIdAdmUser(), user.getCode());
+            return new ResponseDto<Object>(ResponseDto.STATUS_OK, randomPassword);
+        } else {
+            throw new CmdbException("This user does not exist");
+        }
     }
 
 }
