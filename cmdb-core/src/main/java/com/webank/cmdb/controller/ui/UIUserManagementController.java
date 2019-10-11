@@ -6,9 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.security.RolesAllowed;
-import javax.validation.Valid;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,7 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webank.cmdb.controller.ui.helper.UIUserManagerService;
 import com.webank.cmdb.controller.ui.helper.UIWrapperService;
 import com.webank.cmdb.dto.MenuDto;
-import com.webank.cmdb.dto.ResponseDto;
+import com.webank.cmdb.dto.QueryRequest;
+import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.dto.RoleCiTypeDto;
 import com.webank.cmdb.dto.RoleDto;
 import com.webank.cmdb.dto.UserDto;
@@ -39,7 +38,7 @@ public class UIUserManagementController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-    
+
     @Autowired
     private StaticDtoService staticDtoService;
 
@@ -61,30 +60,37 @@ public class UIUserManagementController {
     public Object getAllUsers() {
         return wrapperService.getAllUsers();
     }
-    
+
+    @GetMapping("/users/{username}")
+    @ResponseBody
+    public Object getUserByUsername(@PathVariable(value = "username") String username) {
+        QueryRequest ciRequest = QueryRequest.defaultQueryObject("username", username);
+        QueryResponse<UserDto> query = staticDtoService.query(UserDto.class, ciRequest);
+        return query;
+    }
+
     @PostMapping("/users/create")
     @ResponseBody
-    public List<UserDto> createNewUser(@RequestBody List<UserDto> userDtos) {
-    	//随机密码生成
-    	String randomPassword = userManagerService.getRandomPassword();
-        userDtos.forEach(userDto->{
+    public Object createNewUser(@RequestBody List<UserDto> userDtos) {
+        String randomPassword = userManagerService.getRandomPassword();
+        userDtos.forEach(userDto -> {
             userDto.setPassword(passwordEncoder.encode(randomPassword));
         });
-        List<UserDto> create = staticDtoService.create(UserDto.class, userDtos);
-        create.forEach(userDto->{
-        	userDto.setPassword(randomPassword);
+        List<UserDto> createdUsers = staticDtoService.create(UserDto.class, userDtos);
+        createdUsers.forEach(userDto -> {
+            userDto.setPassword(randomPassword);
         });
-        return create;
+        return createdUsers;
     }
-    
-    @PostMapping("/users/update")
-    public List<UserDto> updateUsers(@RequestBody List<Map<String, Object>> userDtos) {
-		return userManagerService.updateUser(userDtos);
+
+    @PostMapping("/users/password/change")
+    public Object resertPassword(@RequestBody Map<String, Object> userDto) {
+        return userManagerService.changePassword(userDto);
     }
-    
-    @PostMapping("/users/password/resert")
-    public ResponseDto<?> resertPassword(@RequestBody Map<String, Object> userDto) {
-		return userManagerService.resertPassword(userDto);
+
+    @PostMapping("/users/password/reset")
+    public Object adminResetPassword(@RequestBody Map<String, Object> userDto) {
+        return userManagerService.adminResetPassword(userDto);
     }
 
     @GetMapping("/roles")

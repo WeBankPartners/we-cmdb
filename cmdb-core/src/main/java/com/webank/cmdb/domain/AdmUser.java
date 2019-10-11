@@ -36,8 +36,6 @@ public class AdmUser implements Serializable {
 	private List<AdmRoleUser> admRoleUsers;
 	private AdmTenement admTenement;
 	private Integer isSystem;
-	private List<AdmUserIntegrateTemplate> admUserIntegrateTemplates;
-	private List<AdmUserPartner> admUserPartners;
 
 	public AdmUser() {
 	}
@@ -130,53 +128,8 @@ public class AdmUser implements Serializable {
 		this.isSystem = isSystem;
 	}
 
-	// bi-directional many-to-one association to AdmUserIntegrateTemplate
-	@OneToMany(mappedBy = "admUser")
-	public List<AdmUserIntegrateTemplate> getAdmUserIntegrateTemplates() {
-		return this.admUserIntegrateTemplates;
-	}
-
-	public void setAdmUserIntegrateTemplates(List<AdmUserIntegrateTemplate> admUserIntegrateTemplates) {
-		this.admUserIntegrateTemplates = admUserIntegrateTemplates;
-	}
-
-	public AdmUserIntegrateTemplate addAdmUserIntegrateTemplate(AdmUserIntegrateTemplate admUserIntegrateTemplate) {
-		getAdmUserIntegrateTemplates().add(admUserIntegrateTemplate);
-		admUserIntegrateTemplate.setAdmUser(this);
-
-		return admUserIntegrateTemplate;
-	}
-
-	public AdmUserIntegrateTemplate removeAdmUserIntegrateTemplate(AdmUserIntegrateTemplate admUserIntegrateTemplate) {
-		getAdmUserIntegrateTemplates().remove(admUserIntegrateTemplate);
-		admUserIntegrateTemplate.setAdmUser(null);
-
-		return admUserIntegrateTemplate;
-	}
-
 	// bi-directional many-to-one association to AdmUserPartner
-	@OneToMany(mappedBy = "admUser")
-	public List<AdmUserPartner> getAdmUserPartners() {
-		return this.admUserPartners;
-	}
 
-	public void setAdmUserPartners(List<AdmUserPartner> admUserPartners) {
-		this.admUserPartners = admUserPartners;
-	}
-
-	public AdmUserPartner addAdmUserPartner(AdmUserPartner admUserPartner) {
-		getAdmUserPartners().add(admUserPartner);
-		admUserPartner.setAdmUser(this);
-
-		return admUserPartner;
-	}
-
-	public AdmUserPartner removeAdmUserPartner(AdmUserPartner admUserPartner) {
-		getAdmUserPartners().remove(admUserPartner);
-		admUserPartner.setAdmUser(null);
-
-		return admUserPartner;
-	}
 
 	@Column(name = "encrypted_password")
 	public String getEncryptedPassword() {
