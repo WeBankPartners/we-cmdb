@@ -637,8 +637,8 @@ public class CiDataInterceptorService {
         });
     }
 
-    public void preDelete(int ciTypeId, String guid, DynamicEntityMeta entityMeta) {
-        List<Map<String, Object>> dependentCis = ciService.lookupReferenceByCis(ciTypeId, guid);
+    public void preDelete(int ciTypeId, String guid, boolean checkFinalState, DynamicEntityMeta entityMeta) {
+        List<Map<String, Object>> dependentCis = ciService.lookupReferenceByCis(ciTypeId, guid, checkFinalState);
         if (!dependentCis.isEmpty()) {
             throw new InvalidArgumentException(String.format("Ci [%s] is referenced by other ci currently, can not be deleted.", guid), dependentCis);
         }
