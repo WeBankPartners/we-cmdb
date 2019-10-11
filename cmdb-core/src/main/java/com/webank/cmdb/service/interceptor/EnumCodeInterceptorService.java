@@ -7,16 +7,13 @@ import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.EffectiveStatus;
 import com.webank.cmdb.constant.InputType;
@@ -70,9 +67,9 @@ public class EnumCodeInterceptorService extends BasicInterceptorService<CatCodeD
         List<CatCodeDto> codeDtos = dtoResponse.getContents();
 
         if (codeDtos != null && !codeDtos.isEmpty()) {
-            List<Object> convertedDtos = Lists.newLinkedList();
+            List<CatCodeDto> convertedDtos = Lists.newLinkedList();
             for (CatCodeDto codeDto : codeDtos) {
-                if (codeDto.getGroupCodeId() != null) {
+                if (codeDto.getGroupCodeId() != null && codeDto.getGroupCodeId() instanceof Integer) {
                     enrichGroupCodeId(convertedDtos, codeDto);
                 } else {
                     convertedDtos.add(codeDto);
@@ -85,24 +82,15 @@ public class EnumCodeInterceptorService extends BasicInterceptorService<CatCodeD
         }
     }
 
-    private void enrichGroupCodeId(List<Object> convertedDtos, CatCodeDto codeDto) {
-        Optional<AdmBasekeyCode> domainCodeOpt = codeRepository.findById(codeDto.getGroupCodeId());
+    private void enrichGroupCodeId(List<CatCodeDto> convertedDtos, CatCodeDto codeDto) {
+        Optional<AdmBasekeyCode> domainCodeOpt = codeRepository.findById((Integer) codeDto.getGroupCodeId());
         if (!domainCodeOpt.isPresent()) {
             logger.warn("The group code id [{}] is not valid of code [{}].", codeDto.getGroupCodeId(), codeDto.getCodeId());
             convertedDtos.add(codeDto);
         } else {
             CatCodeDto groupCodeDto = CatCodeDto.fromAdmBasekeyCode(domainCodeOpt.get());
-            Map<String, Object> convertedDtoMap = Maps.newHashMap();
-            BeanMap codeMap = new BeanMap(codeDto);
-            for (Map.Entry<Object, Object> kv : codeMap.entrySet()) {
-                String fieldName = String.valueOf(kv.getKey());
-                if ("groupCodeId".equals(kv.getKey())) {
-                    convertedDtoMap.put(fieldName, groupCodeDto);
-                } else {
-                    convertedDtoMap.put(fieldName, kv.getValue());
-                }
-            }
-            convertedDtos.add(convertedDtoMap);
+            codeDto.setGroupCodeId(groupCodeDto);
+            convertedDtos.add(codeDto);
         }
     }
 
