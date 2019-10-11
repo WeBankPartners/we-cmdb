@@ -3,6 +3,7 @@ package com.webank.cmdb.controller.ui;
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_BASE_DATA_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_CMDB_MODEL_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_PERMISSION_MANAGEMENT;
+import static com.webank.cmdb.domain.AdmMenu.MENU_APPLICATION_DEPLOYMENT_DESIGN;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_ENQUIRY;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_INTEGRATED_QUERY_EXECUTION;
@@ -29,6 +30,7 @@ import com.webank.cmdb.controller.ui.helper.UIWrapperService;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CategoryDto;
 import com.webank.cmdb.dto.QueryRequest;
+import com.webank.cmdb.dto.QueryResponse;
 
 @RestController
 @RequestMapping("/ui/v2")
@@ -171,5 +173,21 @@ public class UIEnumManagementController {
     @ResponseBody
     public void deleteEnumCodes(@RequestBody List<Integer> codeIds) {
         wrapperService.deleteEnumCodes(codeIds.toArray(new Integer[codeIds.size()]));
+    }
+
+    @RolesAllowed({ MENU_APPLICATION_DEPLOYMENT_DESIGN })
+    @PostMapping("/enum/categories/query")
+    @ResponseBody
+    public QueryResponse<CategoryDto> queryEnumCategories(@RequestBody QueryRequest queryObject) {
+        return wrapperService.queryEnumCategories(queryObject);
+    }
+
+    @RolesAllowed({ MENU_APPLICATION_DEPLOYMENT_DESIGN })
+    @PostMapping("/enum/category-types/{category-type-id}/categories/{category-id}/codes/query")
+    @ResponseBody
+    public QueryResponse<CatCodeDto> queryEnumCodes(@PathVariable(value = "category-type-id", required = false) Integer categoryTypeId,
+            @PathVariable(value = "category-id") Integer categoryId,
+            @RequestBody QueryRequest queryObject) {
+        return wrapperService.queryEnumCodes(queryObject.addEqualsFilter("catId", categoryId));
     }
 }
