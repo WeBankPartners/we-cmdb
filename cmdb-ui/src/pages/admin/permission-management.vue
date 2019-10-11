@@ -740,7 +740,7 @@ export default {
           desc: message
         });
         this.$Modal.info({
-          title: `以下为用户${data[0].username}的初始密码，请保存`,
+          title: `请保存 ${data[0].username} 的初始密码`,
           content: data[0].password
         });
         this.addedUser = {};
