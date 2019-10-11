@@ -88,6 +88,11 @@ export default new Router({
           name: "queryLog",
           component: () => import("@/pages/admin/query-log")
         },
+        {
+          path: "/admin/user-password-management",
+          name: "resetPassword",
+          component: () => import("@/pages/admin/resetPassword")
+        },
         // 视图查询
         {
           path: "/view-query/idc-planning-query",

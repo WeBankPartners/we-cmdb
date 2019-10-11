@@ -932,7 +932,8 @@ INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `other_name`, `seq_no`, `parent_i
 (20, 'ADMIN_CMDB_MODEL_MANAGEMENT', 'CMDB模型管理', 20, 5),
 (21, 'ADMIN_PERMISSION_MANAGEMENT', '系统权限管理', 21, 5),
 (22, 'ADMIN_BASE_DATA_MANAGEMENT', '基础数据管理', 22, 5),
-(23, 'ADMIN_QUERY_LOG', '日志查询', 23, 5);
+(23, 'ADMIN_QUERY_LOG', '日志查询', 23, 5),
+(24, 'ADMIN_USER_PASSWORD_MANAGEMENT', '用户密码管理', 24, 5);
 
 INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`, `is_system`) VALUES
 (1, 1, 1, 0),
@@ -951,6 +952,7 @@ INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`, `
 (20, 1, 20, 0),
 (21, 1, 21, 1),
 (22, 1, 22, 0),
-(23, 1, 23, 0);
+(23, 1, 23, 0),
+(24, 1, 24, 0);
 
 SET FOREIGN_KEY_CHECKS=1;

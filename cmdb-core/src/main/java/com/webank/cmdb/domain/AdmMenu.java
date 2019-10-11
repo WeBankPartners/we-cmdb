@@ -44,6 +44,7 @@ public class AdmMenu implements Serializable {
 
     public final static String MENU_ADMIN_CMDB_MODEL_MANAGEMENT = "ADMIN_CMDB_MODEL_MANAGEMENT";
     public final static String MENU_ADMIN_PERMISSION_MANAGEMENT = "ADMIN_PERMISSION_MANAGEMENT";
+    public final static String MENU_ADMIN_USER_PASSWORD_MANAGEMENT = "ADMIN_USER_PASSWORD_MANAGEMENT";
     public final static String MENU_ADMIN_BASE_DATA_MANAGEMENT = "ADMIN_BASE_DATA_MANAGEMENT";
     public final static String MENU_ADMIN_QUERY_LOG = "ADMIN_QUERY_LOG";
 
