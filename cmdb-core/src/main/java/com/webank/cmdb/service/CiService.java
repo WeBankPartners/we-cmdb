@@ -70,7 +70,7 @@ public interface CiService extends CmdbService {
 
     Object cloneCiAsParent(EntityManager entityManager, int ciTypeId, String guid);
 
-    List<Map<String, Object>> lookupReferenceByCis(int ciTypeId, String guid);
+    List<Map<String, Object>> lookupReferenceByCis(int ciTypeId, String guid, boolean checkFinalState);
 
     List<Map<String, Object>> lookupReferenceToCis(int ciTypeId, String guid);
 

@@ -203,7 +203,7 @@ public class CiServiceImpl implements CiService {
         Map<Integer, List<AdmCiTypeAttr>> referedAttrMap = new HashMap<>();
         ciTypes.forEach(ciType -> {
             if (!CiStatus.shouldBeLoadedForDynamicEntity(CiStatus.fromCode(ciType.getStatus()))) {
-                logger.warn("CiType [{}] status is {} , ignore ...");
+                logger.warn("CiType [{}] status is {} , ignore ...", ciType.getName(), ciType.getStatus());
                 return;
             }
 
@@ -1200,14 +1200,14 @@ public class CiServiceImpl implements CiService {
     public void doDelete(EntityManager entityManager, int ciTypeId, String guid, boolean enableStateTransition) {
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
         Object entityBean = validateCi(ciTypeId, guid, entityMeta, entityManager, ACTION_REMOVAL);
-        ciDataInterceptorService.preDelete(ciTypeId, guid, entityMeta);
         if (enableStateTransition) {
+            ciDataInterceptorService.preDelete(ciTypeId, guid, true, entityMeta);
             DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
             this.stateTransEngine.process(entityManager, ciTypeId, guid, StateOperation.Delete.getCode(), null, entityHolder);
         } else {
+            ciDataInterceptorService.preDelete(ciTypeId, guid, false, entityMeta);
             entityManager.remove(entityBean);
         }
-        //entityManager.flush();
         ciDataInterceptorService.postDelete(ciTypeId, guid, entityMeta);
     }
 
@@ -2059,14 +2059,14 @@ public class CiServiceImpl implements CiService {
     }
 
     @Override
-    public List<Map<String, Object>> lookupReferenceByCis(int ciTypeId, String guid) {
+    public List<Map<String, Object>> lookupReferenceByCis(int ciTypeId, String guid, boolean checkFinalState) {
         List<Map<String, Object>> dependentCis = Lists.newLinkedList();
         List<AdmCiTypeAttr> referredAttrs = ciTypeAttrRepository.findByInputTypeAndReferenceId(InputType.Reference.getCode(), ciTypeId);
         referredAttrs.forEach(attr -> {
             List<Map<String, Object>> ciData = queryWithFilters(attr.getCiTypeId(), Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), guid)), false);
             if (ciData != null && ciData.size() > 0) {
                 ciData.forEach(data -> {
-                    if (isFinalStateCi(attr, data)) {
+                    if (checkFinalState && isFinalStateCi(attr, data)) {
                         return;
                     };
 
