@@ -31,11 +31,12 @@ public class UserDto extends BasicResourceDto<UserDto, AdmUser> {
     public UserDto() {
     }
 
-    public UserDto(Integer userId, @NotEmpty String username, String fullName, String description) {
+    public UserDto(Integer userId, @NotEmpty String username, String fullName, String description, String password) {
         this.userId = userId;
         this.username = username;
         this.fullName = fullName;
         this.description = description;
+        this.password = password;
     }
 
     @Override
@@ -57,7 +58,7 @@ public class UserDto extends BasicResourceDto<UserDto, AdmUser> {
     }
 
     public static UserDto from(AdmUser domain, boolean withChild) {
-        UserDto dto = new UserDto(domain.getIdAdmUser(), domain.getCode(), domain.getName(), domain.getDescription());
+        UserDto dto = new UserDto(domain.getIdAdmUser(), domain.getCode(), domain.getName(), domain.getDescription(), domain.getEncryptedPassword());
         if (withChild) {
             domain.getAdmRoleUsers().forEach(x -> {
                 dto.roleUsers.add(RoleUserDto.from(x, true));
