@@ -1,4 +1,32 @@
 SET FOREIGN_KEY_CHECKS=0;
+INSERT INTO `adm_sequence` (`id_adm_sequence`, `seq_name`, `current_val`, `increment_val`, `length_limitation`, `left_zero_padding`) VALUES
+	(25, 'system_design', 14, 1, 8, 'N'),
+	(26, 'subsys_design', 15, 1, 8, 'N'),
+	(27, 'unit_design', 21, 1, 8, 'N'),
+	(28, 'IDC_design', 3, 1, 8, 'N'),
+	(29, 'zone_design', 7, 1, 8, 'N'),
+	(30, 'DCN_desgin', 8, 1, 8, 'N'),
+	(31, 'resource_set_design', 11, 1, 8, 'N'),
+	(32, 'service_design', 7, 1, 8, 'N'),
+	(33, 'invoke_design', 9, 1, 8, 'N'),
+	(34, 'subsys', 11, 1, 8, 'N'),
+	(35, 'IDC', 21, 1, 8, 'N'),
+	(36, 'zone', 7, 1, 8, 'N'),
+	(37, 'DCN', 13, 1, 8, 'N'),
+	(38, 'resource_set', 13, 1, 8, 'N'),
+	(39, 'zone_link_design', 8, 1, 8, 'N'),
+	(40, 'zone_link', 9, 1, 8, 'N'),
+	(41, 'unit', 10, 1, 8, 'N'),
+	(42, 'package', 15, 1, 8, 'N'),
+	(43, 'network_segment', 13, 1, 8, 'N'),
+	(44, 'ip_addr', 82, 1, 8, 'N'),
+	(45, 'running_instance', 15, 1, 8, 'N'),
+	(46, 'host', 3503, 1, 8, 'N'),
+	(47, 'service', 1, 1, 8, 'N'),
+	(48, 'invoke', 1, 1, 8, 'N'),
+	(49, 'invoke_sequence_design', 1, 1, 8, 'N'),
+	(50, 'block_storage', 5, 1, 8, 'N');
+
 INSERT INTO `DCN` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_date`, `created_by`, `created_date`, `key_name`, `state`, `fixed_date`, `code`, `description`, `orchestration`, `biz_key`, `dcn_design`, `name`, `zone`) VALUES
 	('0019_0000000001', NULL, '0019_0000000001', 'admin', '2019-07-24 12:26:42', 'admin', '2019-07-24 07:12:44', 'PRD-GZ1-SF-RDCN', 37, NULL, 'RDCN', 'RDCN', NULL, NULL, '0025_0000000001', 'RDCN1', '0017_0000000001'),
 	('0019_0000000005', NULL, '0019_0000000005', 'admin', '2019-07-24 12:26:43', 'admin', '2019-07-24 07:30:50', 'PRD-GZ1-DMZ-DMZ', 37, NULL, 'DMZ', 'DMZ', NULL, NULL, '0025_0000000002', 'DMZ', '0017_0000000004'),
