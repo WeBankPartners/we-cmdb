@@ -61,11 +61,10 @@ public class UIUserManagementController {
         return wrapperService.getAllUsers();
     }
 
-    @GetMapping("/users/{username}")
+    @GetMapping("/users/retrieve")
     @ResponseBody
-    public Object getUserByUsername(@PathVariable(value = "username") String username) {
-        QueryRequest ciRequest = QueryRequest.defaultQueryObject("username", username);
-        QueryResponse<UserDto> query = staticDtoService.query(UserDto.class, ciRequest);
+    public Object getUserByUsername(@RequestBody QueryRequest queryRequest) {
+        QueryResponse<UserDto> query = staticDtoService.query(UserDto.class, queryRequest);
         return query;
     }
 
