@@ -47,8 +47,6 @@ import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.repository.AdmMenusRepository;
 import com.webank.cmdb.repository.UserRepository;
 import com.webank.cmdb.service.StaticDtoService;
-import com.webank.cmdb.util.BeanMapUtils;
-import com.webank.cmdb.util.ClassUtils;
 import com.webank.cmdb.util.CmdbThreadLocal;
 
 import lombok.extern.slf4j.Slf4j;
@@ -521,7 +519,7 @@ public class UIUserManagerService {
                 }
                 String newPassword = passwordEncoder.encode((String) password.get("newPassword"));
                 findByName.setEncryptedPassword(newPassword);
-                staticDtoService.update(UserDto.class, findByName.getIdAdmUser(), BeanMapUtils.convertBeanToMap(findByName));
+                userRepository.updateEncryptedPasswordByIdAdmUserAndCode(newPassword, findByName.getIdAdmUser(), findByName.getCode());
             } else {
                 data.put(ResponseDto.STATUS_ERROR, "用户未登录");
                 responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
