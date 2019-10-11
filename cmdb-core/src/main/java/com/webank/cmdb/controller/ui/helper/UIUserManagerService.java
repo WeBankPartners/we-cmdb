@@ -35,6 +35,8 @@ import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
 import com.webank.cmdb.dto.CiTypePermissions;
 import com.webank.cmdb.dto.MenuDto;
+import com.webank.cmdb.dto.QueryRequest;
+import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.dto.ResponseDto;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrConditionDto;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrDto;
@@ -46,6 +48,7 @@ import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.repository.AdmMenusRepository;
 import com.webank.cmdb.repository.UserRepository;
 import com.webank.cmdb.service.StaticDtoService;
+import com.webank.cmdb.util.BeanMapUtils;
 import com.webank.cmdb.util.CmdbThreadLocal;
 
 import lombok.extern.slf4j.Slf4j;
@@ -496,23 +499,26 @@ public class UIUserManagerService {
         return sb.toString();
     }
 
-    public AdmUser findByName(String username) {
-        return userRepository.findByName(username);
+    public QueryResponse<UserDto> findByName(String username) {
+        QueryRequest ciRequest = QueryRequest.defaultQueryObject("username", username);
+        return staticDtoService.query(UserDto.class, ciRequest);
     }
 
     public Object changePassword(Map<String, Object> password) {
         ResponseDto<UserDto> responseDto = new ResponseDto<UserDto>(ResponseDto.STATUS_OK, null);
         String currentUser = CmdbThreadLocal.getIntance().getCurrentUser();
         if (currentUser != null) {
-            AdmUser user = findByName(currentUser);
+            QueryResponse<UserDto> queryData = findByName(currentUser);
+            UserDto user = CollectionUtils.pickRandomOne(queryData.getContents());
             if (user == null) {
                 throw new CmdbException("This user does not exist");
             }
-            if (!passwordEncoder.matches((String) password.get("password"), user.getEncryptedPassword())) {
+            if (!passwordEncoder.matches((String) password.get("password"), user.getPassword())) {
                 throw new CmdbException("The original password is wrong.");
             }
             String newPassword = passwordEncoder.encode((String) password.get("newPassword"));
-            userRepository.updateEncryptedPasswordByIdAdmUserAndCode(newPassword, user.getIdAdmUser(), currentUser);
+            user.setPassword(newPassword);
+            staticDtoService.update(UserDto.class, user.getUserId(), BeanMapUtils.convertBeanToMap(user));
         } else {
             throw new CmdbException("Logon user not found.");
         }
@@ -526,12 +532,14 @@ public class UIUserManagerService {
 
     public Object adminResetPassword(Map<String, Object> userDto) {
         String randomPassword = getRandomPassword();
-        AdmUser user = findByName((String) userDto.get("username"));
-        if (user != null) {
-            userRepository.updateEncryptedPasswordByIdAdmUserAndCode(passwordEncoder.encode(randomPassword), user.getIdAdmUser(), user.getCode());
-            return new ResponseDto<Object>(ResponseDto.STATUS_OK, randomPassword);
-        } else {
+        QueryResponse<UserDto> queryData = findByName((String) userDto.get("username"));
+        UserDto user = CollectionUtils.pickRandomOne(queryData.getContents());
+        if (user == null) {
             throw new CmdbException("This user does not exist");
+        } else {
+            user.setPassword(passwordEncoder.encode(randomPassword));
+            staticDtoService.update(UserDto.class, user.getUserId(),BeanMapUtils.convertBeanToMap(user));
+            return new ResponseDto<Object>(ResponseDto.STATUS_OK, randomPassword);
         }
     }
 
