@@ -68,7 +68,8 @@ INSERT INTO `adm_basekey_cat` (`id_adm_basekey_cat`, `cat_name`, `description`, 
 	(66, 'orchestration', '编排', NULL, 26, NULL),
 	(67, 'orchestration', '编排', NULL, 27, NULL),
 	(68, 'orchestration', '编排', NULL, 28, NULL),
-	(69, 'seed', '种子', NULL, 1, NULL);
+	(69, 'seed', '种子', NULL, 1, NULL),
+	(70, 'deploy_tree_layer', '部署树层级', NULL, 2, 1);
 
 INSERT INTO `adm_basekey_cat_type` (`id_adm_basekey_cat_type`, `name`, `description`, `ci_type_id`, `type`) VALUES
 	(1, 'sys', NULL, NULL, 1),
@@ -303,7 +304,11 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(237, 30, 'code1', 'value1', NULL, NULL, 4, 'active'),
 	(238, 58, 'wecube1564467202875', 'test', NULL, NULL, 6, 'active'),
 	(239, 31, 'wecube1564468847441', 'test\n', NULL, NULL, 1, 'active'),
-	(240, 69, 'seed123456', 'seed', NULL, NULL, 1, 'active');
+	(240, 69, 'seed123456', 'seed', NULL, NULL, 1, 'active'),
+	(241, 70, '1', '系统', 2, NULL, 1, 'active'),
+	(242, 70, '2', '子系统', 2, NULL, 2, 'active'),
+	(243, 70, '3', '单元', 2, NULL, 3, 'active'),
+	(244, 70, '4', '服务', 2, NULL, 4, 'active');
 
 INSERT INTO `adm_ci_type` (`id_adm_ci_type`, `name`, `description`, `id_adm_tenement`, `table_name`, `status`, `catalog_id`, `ci_global_unique_id`, `seq_no`, `layer_id`, `zoom_level_id`, `image_file_id`, `ci_state_type`) VALUES
 	(1, '系统设计', '系统设计', NULL, 'system_design', 'created', 6, NULL, 1, 1, NULL, 1, NULL),
@@ -912,6 +917,7 @@ INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`, `
 INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `other_name`, `seq_no`, `parent_id_adm_menu`) VALUES
 (1, 'DATA_QUERY', '数据查询', 1, NULL),
 (2, 'DATA_MANAGEMENT', '数据管理', 2, NULL),
+(4, 'VIEW_MANAGEMENT', '视图管理', 4, NULL),
 (5, 'ADMIN', '系统', 5, NULL),
 (6, 'DESIGNING_CI_DATA_ENQUIRY', 'CI数据查询', 6, 1),
 (7, 'DESIGNING_CI_INTEGRATED_QUERY_EXECUTION', 'CI数据综合查询', 7, 1),
@@ -919,10 +925,15 @@ INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `other_name`, `seq_no`, `parent_i
 (9, 'DESIGNING_CI_DATA_MANAGEMENT', 'CI数据管理', 9, 2),
 (10, 'DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT', 'CI综合查询管理', 10, 2),
 (11, 'DESIGNING_ENUM_MANAGEMENT', '枚举数据管理', 11, 2),
+(16, 'IDC_PLANNING_DESIGN', 'IDC规划设计', 16, 4),
+(17, 'IDC_RESOURCE_PLANNING', 'IDC资源规划', 17, 4),
+(18, 'APPLICATION_ARCHITECTURE_DESIGN', '应用架构设计', 18, 4),
+(19, 'APPLICATION_DEPLOYMENT_DESIGN', '应用部署设计', 19, 4),
 (20, 'ADMIN_CMDB_MODEL_MANAGEMENT', 'CMDB模型管理', 20, 5),
 (21, 'ADMIN_PERMISSION_MANAGEMENT', '系统权限管理', 21, 5),
 (22, 'ADMIN_BASE_DATA_MANAGEMENT', '基础数据管理', 22, 5),
-(23, 'ADMIN_QUERY_LOG', '日志查询', 23, 5);
+(23, 'ADMIN_QUERY_LOG', '日志查询', 23, 5),
+(24, 'ADMIN_USER_PASSWORD_MANAGEMENT', '用户密码管理', 24, 5);
 
 INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`, `is_system`) VALUES
 (1, 1, 1, 0),
@@ -934,9 +945,14 @@ INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`, `
 (9, 1, 9, 0),
 (10, 1, 10, 0),
 (11, 1, 11, 0),
+(16, 1, 16, 0),
+(17, 1, 17, 0),
+(18, 1, 18, 0),
+(19, 1, 19, 0),
 (20, 1, 20, 0),
 (21, 1, 21, 1),
 (22, 1, 22, 0),
-(23, 1, 23, 0);
+(23, 1, 23, 0),
+(24, 1, 24, 0);
 
 SET FOREIGN_KEY_CHECKS=1;
