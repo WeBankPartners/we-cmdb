@@ -54,6 +54,7 @@ import com.webank.cmdb.service.IntegrationQueryService;
 import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.service.impl.FilterRuleService;
 import com.webank.cmdb.util.BeanMapUtils;
+import com.webank.cmdb.util.ResourceDto;
 import com.webank.cmdb.util.Sorting;
 
 import lombok.Data;
@@ -1496,5 +1497,9 @@ public class UIWrapperService {
             }
         }
         return relateCiAttrs;
+    }
+
+    public <T extends ResourceDto<T, D>, D> QueryResponse<T> query(Class<T> dtoClzz, QueryRequest request) {
+        return staticDtoService.query(dtoClzz, request);
     }
 }
