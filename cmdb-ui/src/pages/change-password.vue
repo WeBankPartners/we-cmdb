@@ -83,8 +83,8 @@ export default {
     },
     async editPassword() {
       const { status, data, message } = await editPassword({
-        password: this.formItem.newPassword,
-        newPassword: this.formItem.oldPassword
+        password: this.formItem.oldPassword,
+        newPassword: this.formItem.newPassword
       });
       if (status === "OK") {
         this.$Message.success("密码重设成功！");
