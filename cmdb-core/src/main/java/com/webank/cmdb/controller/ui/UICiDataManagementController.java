@@ -43,8 +43,10 @@ import com.webank.cmdb.dto.CiIndentity;
 import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
 import com.webank.cmdb.dto.QueryRequest;
+import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.service.ImageService;
+import com.webank.cmdb.service.StaticDtoService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,6 +73,12 @@ public class UICiDataManagementController {
         } else {
             return wrapperService.getAllCiTypes(isTrue(withAttributes), status);
         }
+    }
+
+    @PostMapping("/ci-types/retrieve")
+    @ResponseBody
+    public QueryResponse<CiTypeDto> retrieveCiTypes(@RequestBody QueryRequest request) {
+        return wrapperService.query(CiTypeDto.class, request);
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
