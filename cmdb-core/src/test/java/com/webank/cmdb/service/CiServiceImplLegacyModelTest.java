@@ -353,7 +353,7 @@ public class CiServiceImplLegacyModelTest extends LegacyAbstractBaseControllerTe
     @Transactional
     @Test
     public void queryReferenceByCis() {
-        List<Map<String, Object>> cis = ciService.lookupReferenceByCis(2, "0002_0000000001");
+        List<Map<String, Object>> cis = ciService.lookupReferenceByCis(2, "0002_0000000001", false);
         Assert.assertThat(cis.size(), equalTo(13));
     }
 

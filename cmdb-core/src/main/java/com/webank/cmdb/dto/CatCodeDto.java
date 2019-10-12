@@ -14,11 +14,7 @@ import com.webank.cmdb.util.CollectionUtils;
 import com.webank.cmdb.util.DtoField;
 import com.webank.cmdb.util.DtoId;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 @JsonInclude(Include.NON_NULL)
-@Data @EqualsAndHashCode(callSuper = true)
 public class CatCodeDto extends BasicResourceDto<CatCodeDto, AdmBasekeyCode> {
     @NotNull
     private String code = null;
@@ -28,7 +24,7 @@ public class CatCodeDto extends BasicResourceDto<CatCodeDto, AdmBasekeyCode> {
     @DtoField(domainField = "idAdmBasekey")
     private Integer codeId;
     private String codeDescription;
-    private Integer groupCodeId;
+    private Object groupCodeId;
     private String groupName;
     private Integer catId;
     @DtoField(domainField = "admBasekeyCat", updatable = false)
@@ -142,11 +138,11 @@ public class CatCodeDto extends BasicResourceDto<CatCodeDto, AdmBasekeyCode> {
         this.codeDescription = codeDescription;
     }
 
-    public Integer getGroupCodeId() {
+    public Object getGroupCodeId() {
         return groupCodeId;
     }
 
-    public void setGroupCodeId(Integer groupCodeId) {
+    public void setGroupCodeId(Object groupCodeId) {
         this.groupCodeId = groupCodeId;
     }
 
@@ -199,5 +195,13 @@ public class CatCodeDto extends BasicResourceDto<CatCodeDto, AdmBasekeyCode> {
                 .add("catId", catId)
                 .add("status", status)
                 .toString();
+    }
+
+    public List<CiTypeDto> getCiTypes() {
+        return ciTypes;
+    }
+
+    public void setCiTypes(List<CiTypeDto> ciTypes) {
+        this.ciTypes = ciTypes;
     }
 }
