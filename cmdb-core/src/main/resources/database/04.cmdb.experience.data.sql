@@ -1,4 +1,32 @@
 SET FOREIGN_KEY_CHECKS=0;
+INSERT INTO `adm_sequence` (`id_adm_sequence`, `seq_name`, `current_val`, `increment_val`, `length_limitation`, `left_zero_padding`) VALUES
+	(25, 'system_design', 14, 1, 8, 'N'),
+	(26, 'subsys_design', 15, 1, 8, 'N'),
+	(27, 'unit_design', 21, 1, 8, 'N'),
+	(28, 'IDC_design', 3, 1, 8, 'N'),
+	(29, 'zone_design', 7, 1, 8, 'N'),
+	(30, 'DCN_desgin', 8, 1, 8, 'N'),
+	(31, 'resource_set_design', 11, 1, 8, 'N'),
+	(32, 'service_design', 7, 1, 8, 'N'),
+	(33, 'invoke_design', 9, 1, 8, 'N'),
+	(34, 'subsys', 11, 1, 8, 'N'),
+	(35, 'IDC', 21, 1, 8, 'N'),
+	(36, 'zone', 7, 1, 8, 'N'),
+	(37, 'DCN', 13, 1, 8, 'N'),
+	(38, 'resource_set', 13, 1, 8, 'N'),
+	(39, 'zone_link_design', 8, 1, 8, 'N'),
+	(40, 'zone_link', 9, 1, 8, 'N'),
+	(41, 'unit', 10, 1, 8, 'N'),
+	(42, 'package', 15, 1, 8, 'N'),
+	(43, 'network_segment', 13, 1, 8, 'N'),
+	(44, 'ip_addr', 82, 1, 8, 'N'),
+	(45, 'running_instance', 15, 1, 8, 'N'),
+	(46, 'host', 3503, 1, 8, 'N'),
+	(47, 'service', 1, 1, 8, 'N'),
+	(48, 'invoke', 1, 1, 8, 'N'),
+	(49, 'invoke_sequence_design', 1, 1, 8, 'N'),
+	(50, 'block_storage', 5, 1, 8, 'N');
+
 INSERT INTO `DCN` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_date`, `created_by`, `created_date`, `key_name`, `state`, `fixed_date`, `code`, `description`, `orchestration`, `biz_key`, `dcn_design`, `name`, `zone`) VALUES
 	('0019_0000000001', NULL, '0019_0000000001', 'admin', '2019-07-24 12:26:42', 'admin', '2019-07-24 07:12:44', 'PRD-GZ1-SF-RDCN', 37, NULL, 'RDCN', 'RDCN', NULL, NULL, '0025_0000000001', 'RDCN1', '0017_0000000001'),
 	('0019_0000000005', NULL, '0019_0000000005', 'admin', '2019-07-24 12:26:43', 'admin', '2019-07-24 07:30:50', 'PRD-GZ1-DMZ-DMZ', 37, NULL, 'DMZ', 'DMZ', NULL, NULL, '0025_0000000002', 'DMZ', '0017_0000000004'),
@@ -24,12 +52,12 @@ INSERT INTO `host` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_date`, `c
 	('0012_0000000003', NULL, '0012_0000000003', 'admin', '2019-07-25 13:47:00', 'admin', '2019-07-25 13:44:53', 'HOST08_10.0.21.2', 40, '2019-07-25 21:47:00', 'HOST-08', 'HOST-08', NULL, 'rxf8rvAJ2Bi', 'ins-eh5hzypa', 115, 167, 3, '', '0014_0000000021', 'HOST08', 164, '0020_0000000013', 163);
 
 INSERT INTO `IDC` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_date`, `created_by`, `created_date`, `key_name`, `state`, `fixed_date`, `code`, `description`, `orchestration`, `biz_key`, `address`, `city`, `env_type`, `idc_design`, `name`, `parameter`, `network_segment`) VALUES
-	('0016_0000000001', NULL, '0016_0000000001', 'admin', '2019-07-24 14:19:54', 'admin', '2019-07-24 06:57:33', 'PRD-GZ1', 38, NULL, 'GZ1', '生产广州云机房1', NULL, NULL, '', '广州', 109, '0022_0000000001', '生产广州云机房1', 'Region=ap-guangzhou;AvailableZone=ap-guangzhou-3;SecretID=AKIDy6BPXXFAmRxarf69i7iroYqOga3GawOa;SecretKey=DE3iKNFuJYXHm12HFxOaWFiFZdR5fNxN', '0021_0000000001'),
-	('0016_0000000002', NULL, '0016_0000000002', 'admin', '2019-07-24 12:11:01', 'admin', '2019-07-24 06:57:58', 'PRD-GZ2', 38, NULL, 'GZ2', '生产广州云机房2', NULL, NULL, '', '广州', NULL, '0022_0000000001', '生产广州云机房2', 'Region=ap-guangzhou;AvailableZone=ap-guangzhou-3;SecretID=AKIDy6BPXXFAmRxarf69i7iroYqOga3GawOa;SecretKey=DE3iKNFuJYXHm12HFxOaWFiFZdR5fNxN', NULL),
-	('0016_0000000003', NULL, '0016_0000000003', 'admin', '2019-07-24 12:11:01', 'admin', '2019-07-24 06:58:50', 'STG-SH1', 38, NULL, 'SH1', '测试上海云机房1', NULL, NULL, '', '上海', NULL, '0022_0000000002', '测试上海云机房1', 'Region=ap-shanghai;AvailableZone=ap-shanghai-2;SecretID=AKIDy6BPXXFAmRxarf69i7iroYqOga3GawOa;SecretKey=DE3iKNFuJYXHm12HFxOaWFiFZdR5fNxN', NULL),
-	('0016_0000000004', NULL, '0016_0000000001', 'admin', '2019-07-24 07:32:57', 'admin', '2019-07-24 06:57:33', 'PRD-0016_0000000001', 37, '2019-07-24 15:32:57', '0016_0000000001', '生产广州云机房1', NULL, NULL, '', '广州', NULL, '0022_0000000001', '生产广州云机房1', 'Region=ap-guangzhou;AvailableZone=ap-guangzhou-3;SecretID=AKIDy6BPXXFAmRxarf69i7iroYqOga3GawOa;SecretKey=DE3iKNFuJYXHm12HFxOaWFiFZdR5fNxN', NULL),
-	('0016_0000000005', NULL, '0016_0000000002', 'admin', '2019-07-24 07:32:58', 'admin', '2019-07-24 06:57:58', 'PRD-0016_0000000002', 37, '2019-07-24 15:32:58', '0016_0000000002', '生产广州云机房2', NULL, NULL, '', '广州', NULL, '0022_0000000001', '生产广州云机房2', 'Region=ap-guangzhou;AvailableZone=ap-guangzhou-3;SecretID=AKIDy6BPXXFAmRxarf69i7iroYqOga3GawOa;SecretKey=DE3iKNFuJYXHm12HFxOaWFiFZdR5fNxN', NULL),
-	('0016_0000000006', NULL, '0016_0000000003', 'admin', '2019-07-24 07:32:59', 'admin', '2019-07-24 06:58:50', 'STG-0016_0000000003', 37, '2019-07-24 15:32:59', '0016_0000000003', '测试上海云机房1', NULL, NULL, '', '上海', NULL, '0022_0000000002', '测试上海云机房1', 'Region=ap-shanghai;AvailableZone=ap-shanghai-2;SecretID=AKIDy6BPXXFAmRxarf69i7iroYqOga3GawOa;SecretKey=DE3iKNFuJYXHm12HFxOaWFiFZdR5fNxN', NULL);
+	('0016_0000000001', NULL, '0016_0000000001', 'admin', '2019-07-24 14:19:54', 'admin', '2019-07-24 06:57:33', 'PRD-GZ1', 38, NULL, 'GZ1', '生产广州云机房1', NULL, NULL, '', '广州', 109, '0022_0000000001', '生产广州云机房1', 'Region=ap-guangzhou;AvailableZone=ap-guangzhou-3;SecretID=SecretID;SecretKey=SecretKey', '0021_0000000001'),
+	('0016_0000000002', NULL, '0016_0000000002', 'admin', '2019-07-24 12:11:01', 'admin', '2019-07-24 06:57:58', 'PRD-GZ2', 38, NULL, 'GZ2', '生产广州云机房2', NULL, NULL, '', '广州', NULL, '0022_0000000001', '生产广州云机房2', 'Region=ap-guangzhou;AvailableZone=ap-guangzhou-3;SecretID=SecretID;SecretKey=SecretKey', NULL),
+	('0016_0000000003', NULL, '0016_0000000003', 'admin', '2019-07-24 12:11:01', 'admin', '2019-07-24 06:58:50', 'STG-SH1', 38, NULL, 'SH1', '测试上海云机房1', NULL, NULL, '', '上海', NULL, '0022_0000000002', '测试上海云机房1', 'Region=ap-shanghai;AvailableZone=ap-shanghai-2;SecretID=SecretID;SecretKey=SecretKey', NULL),
+	('0016_0000000004', NULL, '0016_0000000001', 'admin', '2019-07-24 07:32:57', 'admin', '2019-07-24 06:57:33', 'PRD-0016_0000000001', 37, '2019-07-24 15:32:57', '0016_0000000001', '生产广州云机房1', NULL, NULL, '', '广州', NULL, '0022_0000000001', '生产广州云机房1', 'Region=ap-guangzhou;AvailableZone=ap-guangzhou-3;SecretID=SecretID;SecretKey=SecretKey', NULL),
+	('0016_0000000005', NULL, '0016_0000000002', 'admin', '2019-07-24 07:32:58', 'admin', '2019-07-24 06:57:58', 'PRD-0016_0000000002', 37, '2019-07-24 15:32:58', '0016_0000000002', '生产广州云机房2', NULL, NULL, '', '广州', NULL, '0022_0000000001', '生产广州云机房2', 'Region=ap-guangzhou;AvailableZone=ap-guangzhou-3;SecretID=SecretID;SecretKey=SecretKey', NULL),
+	('0016_0000000006', NULL, '0016_0000000003', 'admin', '2019-07-24 07:32:59', 'admin', '2019-07-24 06:58:50', 'STG-0016_0000000003', 37, '2019-07-24 15:32:59', '0016_0000000003', '测试上海云机房1', NULL, NULL, '', '上海', NULL, '0022_0000000002', '测试上海云机房1', 'Region=ap-shanghai;AvailableZone=ap-shanghai-2;SecretID=SecretID;SecretKey=SecretKey', NULL);
 
 INSERT INTO `IDC_design` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_date`, `created_by`, `created_date`, `key_name`, `state`, `fixed_date`, `code`, `description`, `orchestration`, `biz_key`, `env_type`, `name`) VALUES
 	('0022_0000000001', NULL, '0022_0000000001', 'admin', '2019-07-24 07:33:06', 'admin', '2019-07-23 13:52:15', 'PRD', 34, '2019-07-24 15:33:06', 'PRD', '生产机房设计', NULL, NULL, 109, '生产机房设计'),
@@ -301,4 +329,70 @@ INSERT INTO `zone_link_design` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updat
 	('0024_0000000006', NULL, '0024_0000000006', 'admin', '2019-07-24 07:42:33', 'admin', '2019-07-24 07:42:33', 'PRD-PARTNERNET_link_PRD-ECN', 34, NULL, 'PARTNERNET-ECN', 'PARTNERNET-ECN', NULL, NULL, '0023_0000000007', '0023_0000000004'),
 	('0024_0000000007', NULL, '0024_0000000007', 'admin', '2019-07-24 07:43:05', 'admin', '2019-07-24 07:43:04', 'PRD-INTERNET_link_PRD-DMZ', 34, NULL, 'INTERNET-DMZ', 'INTERNET-DMZ', NULL, NULL, '0023_0000000005', '0023_0000000002'),
 	('0024_0000000008', NULL, '0024_0000000008', 'admin', '2019-07-24 07:43:40', 'admin', '2019-07-24 07:43:39', 'PRD-INTRANET_link_PRD-MGMT', 34, NULL, 'INTRANET-MGMT', 'INTRANET-MGMT', NULL, NULL, '0023_0000000006', '0023_0000000003');
+
+INSERT INTO `adm_integrate_template` (`id_adm_integrate_template`, `ci_type_id`, `name`, `des`) VALUES
+	(2, 1, '查询系统设计下的子系统', '查询系统设计下的子系统'),
+	(3, 2, '查询子系统下的单元', '查询子系统下的单元'),
+	(4, 12, '查询主机及运行实例', '查询主机及运行实例'),
+	(5, 19, '查询数据中心节点下的主机', '查询数据中心节点下的主机');
+
+INSERT INTO `adm_integrate_template_alias` (`id_alias`, `id_adm_ci_type`, `id_adm_integrate_template`, `alias`) VALUES
+	(11, 1, 2, '系统设计'),
+	(12, 2, 2, '2-1-子系统设计-系统设计'),
+	(13, 7, 2, '3-1-子系统-子系统设计'),
+	(14, 2, 3, '子系统设计'),
+	(15, 3, 3, '2-1-单元设计-子系统设计'),
+	(16, 8, 3, '3-1-单元-单元设计'),
+	(17, 12, 4, '主机'),
+	(18, 14, 4, '2-2-内网IP-使用'),
+	(19, 15, 4, '2-1-运行实例-主机'),
+	(20, 19, 5, '数据中心节点'),
+	(21, 20, 5, '2-1-资源集-DCN'),
+	(22, 12, 5, '3-1-主机-资源集');
+
+INSERT INTO `adm_integrate_template_alias_attr` (`id_attr`, `id_alias`, `id_ci_type_attr`, `is_condition`, `is_displayed`, `mapping_name`, `filter`, `key_name`, `seq_no`, `cn_alias`, `sys_attr`) VALUES
+	(13, 11, 8, '1', '1', '编码', NULL, 'systemDesign$code', 1, NULL, NULL),
+	(14, 11, 15, '1', '1', '名称', NULL, 'systemDesign$name', 1, NULL, NULL),
+	(15, 11, 16, '1', '1', '业务群组', NULL, 'systemDesign$businessGroup', 1, NULL, NULL),
+	(16, 12, 24, '1', '1', '编码', NULL, 'systemDesign-subsysDesign$code', 1, NULL, NULL),
+	(17, 12, 32, '1', '1', '名称', NULL, 'systemDesign-subsysDesign$name', 1, NULL, NULL),
+	(18, 13, 114, '1', '1', '编码', NULL, 'systemDesign-subsysDesign-subsys$code', 1, NULL, NULL),
+	(19, 13, 122, '1', '1', '环境', NULL, 'systemDesign-subsysDesign-subsys$env', 1, NULL, NULL),
+	(20, 14, 24, '1', '1', '编码', NULL, 'subsysDesign$code', 1, NULL, NULL),
+	(21, 14, 32, '1', '1', '名称', NULL, 'subsysDesign$name', 1, NULL, NULL),
+	(22, 14, 33, '1', '1', '业务群组', NULL, 'subsysDesign$businessGroup', 1, NULL, NULL),
+	(23, 15, 42, '1', '1', '编码', NULL, 'subsysDesign-unitDesign$code', 1, NULL, NULL),
+	(24, 15, 52, '1', '1', '名称', NULL, 'subsysDesign-unitDesign$name', 1, NULL, NULL),
+	(25, 16, 126, '1', '1', '状态', NULL, 'subsysDesign-unitDesign-unit$state', 1, NULL, NULL),
+	(26, 16, 131, '1', '1', '编码', NULL, 'subsysDesign-unitDesign-unit$code', 1, NULL, NULL),
+	(27, 17, 215, '1', '1', '编码', NULL, 'host$code', 1, NULL, NULL),
+	(28, 17, 223, '1', '1', '名称', NULL, 'host$name', 1, NULL, NULL),
+	(29, 17, 224, '1', '1', '类型', NULL, 'host$type', 1, NULL, NULL),
+	(30, 17, 226, '1', '1', '内网IP', NULL, 'host$intranetIp', 1, NULL, NULL),
+	(31, 17, 231, '1', '1', '资产编码', NULL, 'host$assetCode', 1, NULL, NULL),
+	(32, 18, 261, '1', '1', '编码', NULL, 'host-ipAddr$code', 1, NULL, NULL),
+	(33, 18, 270, '1', '1', 'IP网段', NULL, 'host-ipAddr$networkSegment', 1, NULL, NULL),
+	(34, 19, 278, '1', '1', '编码', NULL, 'host-runningInstance$code', 1, NULL, NULL),
+	(35, 19, 287, '1', '1', '端口', NULL, 'host-runningInstance$port', 1, NULL, NULL),
+	(36, 19, 290, '1', '1', '实例磁盘(GB)', NULL, 'host-runningInstance$instanceDisk', 1, NULL, NULL),
+	(37, 20, 362, '1', '1', '编码', NULL, 'dcn$code', 1, NULL, NULL),
+	(38, 20, 371, '1', '1', '名称', NULL, 'dcn$name', 1, NULL, NULL),
+	(39, 21, 379, '1', '1', '编码', NULL, 'dcn-resourceSet$code', 1, NULL, NULL),
+	(40, 21, 388, '1', '1', '名称', NULL, 'dcn-resourceSet$name', 1, NULL, NULL),
+	(41, 21, 389, '1', '1', '环境', NULL, 'dcn-resourceSet$env', 1, NULL, NULL),
+	(42, 22, 215, '1', '1', '编码', NULL, 'dcn-resourceSet-host$code', 1, NULL, NULL),
+	(43, 22, 223, '1', '1', '名称', NULL, 'dcn-resourceSet-host$name', 1, NULL, NULL),
+	(44, 22, 226, '1', '1', '内网IP', NULL, 'dcn-resourceSet-host$intranetIp', 1, NULL, NULL),
+	(45, 22, 231, '1', '1', '资产编码', NULL, 'dcn-resourceSet-host$assetCode', 1, NULL, NULL);
+
+INSERT INTO `adm_integrate_template_relation` (`id_relation`, `child_alias_id`, `child_ref_attr_id`, `parent_alias_id`, `is_refered_from_parent`) VALUES
+	(7, 12, 31, 11, 0),
+	(8, 13, 121, 12, 0),
+	(9, 15, 49, 14, 0),
+	(10, 16, 139, 15, 0),
+	(11, 18, 226, 17, 1),
+	(12, 19, 286, 17, 0),
+	(13, 21, 386, 20, 0),
+	(14, 22, 222, 21, 0);
+
 SET FOREIGN_KEY_CHECKS=1;
