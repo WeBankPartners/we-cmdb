@@ -338,16 +338,24 @@ export default {
     },
     async saveGraph() {
       const reqData = this.treeifyCiTypes();
-      const { status, data, message } = this.isNewIntQuery
-        ? await saveIntQuery(this.selectedCI.id, this.newGraphName, reqData)
-        : await updateIntQuery(this.selectedQuery.id, reqData);
-      if (status === "OK") {
-        this.$Notice.success({
-          title: "Success",
-          desc: message
+      if (!reqData) {
+        this.$Notice.warning({
+          title: "Warning",
+          desc: "不合理的综合查询，请选择CI属性或引用关系"
         });
-        if (this.isNewIntQuery) {
-          this.getQueryNameList(this.selectedCI.id);
+        return;
+      } else {
+        const { status, data, message } = this.isNewIntQuery
+          ? await saveIntQuery(this.selectedCI.id, this.newGraphName, reqData)
+          : await updateIntQuery(this.selectedQuery.id, reqData);
+        if (status === "OK") {
+          this.$Notice.success({
+            title: "Success",
+            desc: message
+          });
+          if (this.isNewIntQuery) {
+            this.getQueryNameList(this.selectedCI.id);
+          }
         }
       }
     },
