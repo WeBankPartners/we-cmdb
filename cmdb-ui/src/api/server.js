@@ -112,6 +112,67 @@ export const getEnumByCIType = id =>
   req.get(
     `/enum/category-types/categories/query-by-multiple-types?ci-type-id=${id}&types=common-private`
   );
+export const getCiTypes = data =>
+  req.get(`/ci-types?${data.key}=${data.value}`);
+export const getAllIdcDesignData = () => req.get(`/ci-data/all-idc-design`);
+export const getIdcDesignTreeByGuid = data =>
+  req.post(`/data-tree/query-idc-design-tree`, data);
+export const getAllZoneLinkDesignGroupByIdcDesign = () =>
+  req.get(`/all-zone-link-design`);
+export const getAllIdcData = () => req.get(`/ci-data/all-idc`);
+export const getIdcImplementTreeByGuid = data =>
+  req.post(`/data-tree/query-idc-tree`, data);
+export const getAllZoneLinkGroupByIdc = () => req.get(`/all-zone-link`);
+export const getSystemDesigns = () => {
+  return req.get(`/system-designs`);
+};
+export const getAllDesignTreeFromSystemDesign = id =>
+  req.get(
+    `/trees/all-design-trees/from-system-design?system-design-guid=${id}`
+  );
+export const saveAllDesignTreeFromSystemDesign = id =>
+  req.post(
+    `/trees/all-design-trees/from-system-design/save?system-design-guid=${id}`
+  );
+export const getArchitectureDesignTabs = () =>
+  req.get("/architecture-designs/tabs");
+export const getArchitectureCiDatas = (tabId, sysId, payload) =>
+  req.post(
+    `/architecture-designs/tabs/ci-data?code-id=${tabId}&system-design-guid=${sysId}`,
+    payload
+  );
+export const getApplicationFrameworkDesignDataTree = guid =>
+  req.get(`/data-tree/application-framework-design?system-design-guid=${guid}`);
+export const getDeployCiData = (data, payload) =>
+  req.post(
+    `/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${
+      data.envCode
+    }&system-design-guid=${data.systemDesignGuid}`,
+    payload
+  );
+export const getDeployDesignTabs = () => req.get(`/deploy-designs/tabs`);
+export const previewDeployGraph = data => {
+  return req.post(`/process/definitions/preview`, data);
+};
+export const getAllDeployTreesFromDesignCi = (id, env) => {
+  return req.get(
+    `/trees/all-deploy-trees/from-subsys?env-code=${env}&system-design-guid=${id}`
+  );
+};
+export const startProcessInstancesWithCiDataInbatch = data => {
+  return req.post(`/process/inbatch/instances`, data);
+};
+export const getApplicationDeploymentDesignDataTree = (guid, codeId) =>
+  req.get(
+    `/data-tree/application-deployment-design?env-code=${codeId}&system-design-guid=${guid}`
+  );
+export const queryEnumCategories = data =>
+  req.post(`/enum/categories/query`, data);
+export const queryEnumCodes = (catTypeId, catId, data) =>
+  req.post(
+    `/enum/category-types/${catTypeId}/categories/${catId}/codes/query`,
+    data
+  );
 
 export const getTableStatus = () =>
   req.get("/static-data/available-ci-type-table-status");

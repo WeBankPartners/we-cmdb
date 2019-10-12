@@ -108,7 +108,14 @@ public class UIUserManagerService {
         log.info("Roles {} found for user {}", roles, username);
         if (isNotEmpty(roles)) {
             Integer[] roleIds = roles.stream().map(RoleDto::getRoleId).toArray(Integer[]::new);
-            List<AdmMenu> admMenus = admMenusRepository.findAdmMenusByRoles(roleIds);
+            List<AdmMenu> admMenusTemp = admMenusRepository.findAdmMenusByRoles(roleIds);
+            Set<AdmMenu> admMenus = Sets.newTreeSet(new Comparator<AdmMenu>() {
+                @Override
+                public int compare(AdmMenu o1, AdmMenu o2) {
+                    return o1.getIdAdmMenu().compareTo(o2.getIdAdmMenu());
+                }
+            });
+            admMenus.addAll(admMenusTemp);
             if (isNotEmpty(admMenus) && withParentMenu) {
                 Set<Integer> fetchedParentIds = Sets.newHashSet();
                 Set<Integer> toFetchedParentIds = Sets.newHashSet();
@@ -124,7 +131,7 @@ public class UIUserManagerService {
                 Iterable<AdmMenu> parentMenus = admMenusRepository.findAllById(toFetchedParentIds);
                 parentMenus.forEach(admMenus::add);
             }
-            admMenus.forEach(menu->{
+            admMenus.forEach(menu -> {
                 menuDtos.add(MenuDto.from(menu, false));
             });
             return menuDtos;
