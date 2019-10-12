@@ -329,4 +329,70 @@ INSERT INTO `zone_link_design` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updat
 	('0024_0000000006', NULL, '0024_0000000006', 'admin', '2019-07-24 07:42:33', 'admin', '2019-07-24 07:42:33', 'PRD-PARTNERNET_link_PRD-ECN', 34, NULL, 'PARTNERNET-ECN', 'PARTNERNET-ECN', NULL, NULL, '0023_0000000007', '0023_0000000004'),
 	('0024_0000000007', NULL, '0024_0000000007', 'admin', '2019-07-24 07:43:05', 'admin', '2019-07-24 07:43:04', 'PRD-INTERNET_link_PRD-DMZ', 34, NULL, 'INTERNET-DMZ', 'INTERNET-DMZ', NULL, NULL, '0023_0000000005', '0023_0000000002'),
 	('0024_0000000008', NULL, '0024_0000000008', 'admin', '2019-07-24 07:43:40', 'admin', '2019-07-24 07:43:39', 'PRD-INTRANET_link_PRD-MGMT', 34, NULL, 'INTRANET-MGMT', 'INTRANET-MGMT', NULL, NULL, '0023_0000000006', '0023_0000000003');
+
+INSERT INTO `adm_integrate_template` (`id_adm_integrate_template`, `ci_type_id`, `name`, `des`) VALUES
+	(2, 1, '查询系统设计下的子系统', '查询系统设计下的子系统'),
+	(3, 2, '查询子系统下的单元', '查询子系统下的单元'),
+	(4, 12, '查询主机及运行实例', '查询主机及运行实例'),
+	(5, 19, '查询数据中心节点下的主机', '查询数据中心节点下的主机');
+
+INSERT INTO `adm_integrate_template_alias` (`id_alias`, `id_adm_ci_type`, `id_adm_integrate_template`, `alias`) VALUES
+	(11, 1, 2, '系统设计'),
+	(12, 2, 2, '2-1-子系统设计-系统设计'),
+	(13, 7, 2, '3-1-子系统-子系统设计'),
+	(14, 2, 3, '子系统设计'),
+	(15, 3, 3, '2-1-单元设计-子系统设计'),
+	(16, 8, 3, '3-1-单元-单元设计'),
+	(17, 12, 4, '主机'),
+	(18, 14, 4, '2-2-内网IP-使用'),
+	(19, 15, 4, '2-1-运行实例-主机'),
+	(20, 19, 5, '数据中心节点'),
+	(21, 20, 5, '2-1-资源集-DCN'),
+	(22, 12, 5, '3-1-主机-资源集');
+
+INSERT INTO `adm_integrate_template_alias_attr` (`id_attr`, `id_alias`, `id_ci_type_attr`, `is_condition`, `is_displayed`, `mapping_name`, `filter`, `key_name`, `seq_no`, `cn_alias`, `sys_attr`) VALUES
+	(13, 11, 8, '1', '1', '编码', NULL, 'systemDesign$code', 1, NULL, NULL),
+	(14, 11, 15, '1', '1', '名称', NULL, 'systemDesign$name', 1, NULL, NULL),
+	(15, 11, 16, '1', '1', '业务群组', NULL, 'systemDesign$businessGroup', 1, NULL, NULL),
+	(16, 12, 24, '1', '1', '编码', NULL, 'systemDesign-subsysDesign$code', 1, NULL, NULL),
+	(17, 12, 32, '1', '1', '名称', NULL, 'systemDesign-subsysDesign$name', 1, NULL, NULL),
+	(18, 13, 114, '1', '1', '编码', NULL, 'systemDesign-subsysDesign-subsys$code', 1, NULL, NULL),
+	(19, 13, 122, '1', '1', '环境', NULL, 'systemDesign-subsysDesign-subsys$env', 1, NULL, NULL),
+	(20, 14, 24, '1', '1', '编码', NULL, 'subsysDesign$code', 1, NULL, NULL),
+	(21, 14, 32, '1', '1', '名称', NULL, 'subsysDesign$name', 1, NULL, NULL),
+	(22, 14, 33, '1', '1', '业务群组', NULL, 'subsysDesign$businessGroup', 1, NULL, NULL),
+	(23, 15, 42, '1', '1', '编码', NULL, 'subsysDesign-unitDesign$code', 1, NULL, NULL),
+	(24, 15, 52, '1', '1', '名称', NULL, 'subsysDesign-unitDesign$name', 1, NULL, NULL),
+	(25, 16, 126, '1', '1', '状态', NULL, 'subsysDesign-unitDesign-unit$state', 1, NULL, NULL),
+	(26, 16, 131, '1', '1', '编码', NULL, 'subsysDesign-unitDesign-unit$code', 1, NULL, NULL),
+	(27, 17, 215, '1', '1', '编码', NULL, 'host$code', 1, NULL, NULL),
+	(28, 17, 223, '1', '1', '名称', NULL, 'host$name', 1, NULL, NULL),
+	(29, 17, 224, '1', '1', '类型', NULL, 'host$type', 1, NULL, NULL),
+	(30, 17, 226, '1', '1', '内网IP', NULL, 'host$intranetIp', 1, NULL, NULL),
+	(31, 17, 231, '1', '1', '资产编码', NULL, 'host$assetCode', 1, NULL, NULL),
+	(32, 18, 261, '1', '1', '编码', NULL, 'host-ipAddr$code', 1, NULL, NULL),
+	(33, 18, 270, '1', '1', 'IP网段', NULL, 'host-ipAddr$networkSegment', 1, NULL, NULL),
+	(34, 19, 278, '1', '1', '编码', NULL, 'host-runningInstance$code', 1, NULL, NULL),
+	(35, 19, 287, '1', '1', '端口', NULL, 'host-runningInstance$port', 1, NULL, NULL),
+	(36, 19, 290, '1', '1', '实例磁盘(GB)', NULL, 'host-runningInstance$instanceDisk', 1, NULL, NULL),
+	(37, 20, 362, '1', '1', '编码', NULL, 'dcn$code', 1, NULL, NULL),
+	(38, 20, 371, '1', '1', '名称', NULL, 'dcn$name', 1, NULL, NULL),
+	(39, 21, 379, '1', '1', '编码', NULL, 'dcn-resourceSet$code', 1, NULL, NULL),
+	(40, 21, 388, '1', '1', '名称', NULL, 'dcn-resourceSet$name', 1, NULL, NULL),
+	(41, 21, 389, '1', '1', '环境', NULL, 'dcn-resourceSet$env', 1, NULL, NULL),
+	(42, 22, 215, '1', '1', '编码', NULL, 'dcn-resourceSet-host$code', 1, NULL, NULL),
+	(43, 22, 223, '1', '1', '名称', NULL, 'dcn-resourceSet-host$name', 1, NULL, NULL),
+	(44, 22, 226, '1', '1', '内网IP', NULL, 'dcn-resourceSet-host$intranetIp', 1, NULL, NULL),
+	(45, 22, 231, '1', '1', '资产编码', NULL, 'dcn-resourceSet-host$assetCode', 1, NULL, NULL);
+
+INSERT INTO `adm_integrate_template_relation` (`id_relation`, `child_alias_id`, `child_ref_attr_id`, `parent_alias_id`, `is_refered_from_parent`) VALUES
+	(7, 12, 31, 11, 0),
+	(8, 13, 121, 12, 0),
+	(9, 15, 49, 14, 0),
+	(10, 16, 139, 15, 0),
+	(11, 18, 226, 17, 1),
+	(12, 19, 286, 17, 0),
+	(13, 21, 386, 20, 0),
+	(14, 22, 222, 21, 0);
+
 SET FOREIGN_KEY_CHECKS=1;
