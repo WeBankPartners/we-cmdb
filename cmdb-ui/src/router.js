@@ -32,6 +32,11 @@ export default new Router({
           props: true
         },
         {
+          path: "setting/change-password",
+          name: "changePassword",
+          component: () => import("@/pages/change-password")
+        },
+        {
           path: "/admin/permission-management",
           name: "permissions",
           component: () => import("@/pages/admin/permission-management")
@@ -83,6 +88,11 @@ export default new Router({
           name: "queryLog",
           component: () => import("@/pages/admin/query-log")
         },
+        {
+          path: "/admin/user-password-management",
+          name: "resetPassword",
+          component: () => import("@/pages/admin/resetPassword")
+        },
         // 视图查询
         {
           path: "/view-query/idc-planning-query",
@@ -108,22 +118,22 @@ export default new Router({
         {
           path: "/view-management/idc-planning-design",
           name: "idcPlanningDesign",
-          component: () => import("@/pages/coming-soon")
+          component: () => import("@/pages/designing/planning")
         },
         {
           path: "/view-management/idc-resource-planning",
           name: "idcResourcePlanning",
-          component: () => import("@/pages/coming-soon")
+          component: () => import("@/pages/designing/resource-planning")
         },
         {
           path: "/view-management/application-architecture-design",
           name: "applicationArchitectureDesign",
-          component: () => import("@/pages/coming-soon")
+          component: () => import("@/pages/designing/application-architecture")
         },
         {
           path: "/view-management/application-deployment-design",
           name: "applicationDeploymentDesign",
-          component: () => import("@/pages/coming-soon")
+          component: () => import("@/pages/designing/application-deployment")
         }
       ]
     }
