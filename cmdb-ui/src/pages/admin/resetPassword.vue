@@ -14,7 +14,7 @@
         class="user-button"
         v-for="user in filterUsers"
         :key="user.username"
-        @click="() => selectUser(user.username)"
+        @click="() => selectUser(user)"
         >{{ user.username }}({{ user.description }})</Button
       >
     </Row>
@@ -26,7 +26,8 @@
       <div style="text-align:center">
         <p style="font-size: 14px;">
           是否重置
-          <span style="font-weight: 600;">{{ targetUser }} </span>的密码
+          <span style="font-weight: 600;">{{ targetUser.username }} </span
+          >的密码
         </p>
       </div>
     </Modal>
@@ -42,7 +43,7 @@ export default {
       inputData: "",
       users: [],
       username: "",
-      targetUser: "",
+      targetUser: {},
       modalVisible: false
     };
   },
@@ -73,18 +74,18 @@ export default {
         });
       }
     },
-    selectUser(username) {
-      this.targetUser = username;
+    selectUser(user) {
+      this.targetUser = user;
       this.modalVisible = true;
     },
     async handleReset() {
       const { status, data, message } = await resetPassword({
-        username: this.targetUser
+        username: this.targetUser.username
       });
       if (status === "OK") {
         this.modalVisible = false;
         this.$Modal.info({
-          title: `请保存 ${this.targetUser} 的新密码`,
+          title: `请保存 ${this.targetUser.username}(${this.targetUser.description}) 的新密码`,
           content: data
         });
       }
