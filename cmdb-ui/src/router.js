@@ -108,22 +108,22 @@ export default new Router({
         {
           path: "/view-management/idc-planning-design",
           name: "idcPlanningDesign",
-          component: () => import("@/pages/coming-soon")
+          component: () => import("@/pages/designing/planning")
         },
         {
           path: "/view-management/idc-resource-planning",
           name: "idcResourcePlanning",
-          component: () => import("@/pages/coming-soon")
+          component: () => import("@/pages/designing/resource-planning")
         },
         {
           path: "/view-management/application-architecture-design",
           name: "applicationArchitectureDesign",
-          component: () => import("@/pages/coming-soon")
+          component: () => import("@/pages/designing/application-architecture")
         },
         {
           path: "/view-management/application-deployment-design",
           name: "applicationDeploymentDesign",
-          component: () => import("@/pages/coming-soon")
+          component: () => import("@/pages/designing/application-deployment")
         }
       ]
     }

@@ -91,6 +91,7 @@ export default {
       let { status, data, message, user } = await getMyMenus();
       if (status === "OK") {
         this.user = user;
+        data.sort((a, b) => a.seqNo - b.seqNo);
         data.forEach(_ => {
           if (!_.parentId) {
             let menuObj = MENUS.find(m => m.code === _.code);

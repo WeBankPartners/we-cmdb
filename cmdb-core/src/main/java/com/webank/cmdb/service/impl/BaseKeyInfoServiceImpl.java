@@ -216,7 +216,7 @@ public class BaseKeyInfoServiceImpl implements BaseKeyInfoService {
         if (basekeyCodeRepository.countForSameCatAndCode(keyCat.getIdAdmBasekeyCat(), codeId, codeDto.getCode()) > 0) {
             throw new InvalidArgumentException("The given code is existed.", "code", codeDto.getCode());
         }
-        Integer groupCodeId = codeDto.getGroupCodeId();
+        Integer groupCodeId = (Integer)codeDto.getGroupCodeId();
         if (groupCodeId != null && basekeyCodeRepository.existsById(groupCodeId)) {
             throw new InvalidArgumentException("The give group code is not existed.", "groupCodeId", groupCodeId);
         }
