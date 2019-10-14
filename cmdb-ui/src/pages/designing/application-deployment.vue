@@ -458,6 +458,9 @@ export default {
       }
       this.spinShow = true;
       this.treeSpinShow = true;
+      if (this.currentTab) {
+        this.queryCiData();
+      }
       let { status, message, data } = await getAllCITypes();
       if (status === "OK") {
         data.forEach(ci => {
@@ -1228,6 +1231,7 @@ export default {
         }
       });
       let found = this.tabList.find(i => i.code === this.currentTab);
+      if (!found) return;
       let requst = {
         codeId: found.codeId,
         envCode: this.env,
