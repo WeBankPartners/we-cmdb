@@ -22,8 +22,8 @@
           :fade="false"
           @on-change="handleUserClick"
         >
-          <span :title="` ${item.fullName} ( ${item.description} ) `">{{
-            ` ${item.fullName} ( ${item.description} ) `
+          <span :title="` ${item.username} ( ${item.description} ) `">{{
+            ` ${item.username} ( ${item.description} ) `
           }}</span>
         </Tag>
       </Card>
@@ -975,7 +975,7 @@ export default {
         return {
           key: _.id,
           username: _.username,
-          label: ` ${_.fullName} ( ${_.description} ) `
+          label: ` ${_.username} ( ${_.description} ) `
         };
       });
       this.userManageModal = true;
