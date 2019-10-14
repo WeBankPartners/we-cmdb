@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,10 +30,14 @@ import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.domain.AdmMenu;
 import com.webank.cmdb.domain.AdmRoleMenu;
+import com.webank.cmdb.domain.AdmUser;
 import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
 import com.webank.cmdb.dto.CiTypePermissions;
 import com.webank.cmdb.dto.MenuDto;
+import com.webank.cmdb.dto.QueryRequest;
+import com.webank.cmdb.dto.QueryResponse;
+import com.webank.cmdb.dto.ResponseDto;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrConditionDto;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrDto;
 import com.webank.cmdb.dto.RoleCiTypeDto;
@@ -43,6 +48,8 @@ import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.repository.AdmMenusRepository;
 import com.webank.cmdb.repository.UserRepository;
 import com.webank.cmdb.service.StaticDtoService;
+import com.webank.cmdb.util.BeanMapUtils;
+import com.webank.cmdb.util.CmdbThreadLocal;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -68,6 +75,9 @@ public class UIUserManagerService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private UIWrapperService uiWrapperService;
@@ -108,7 +118,14 @@ public class UIUserManagerService {
         log.info("Roles {} found for user {}", roles, username);
         if (isNotEmpty(roles)) {
             Integer[] roleIds = roles.stream().map(RoleDto::getRoleId).toArray(Integer[]::new);
-            List<AdmMenu> admMenus = admMenusRepository.findAdmMenusByRoles(roleIds);
+            List<AdmMenu> admMenusTemp = admMenusRepository.findAdmMenusByRoles(roleIds);
+            Set<AdmMenu> admMenus = Sets.newTreeSet(new Comparator<AdmMenu>() {
+                @Override
+                public int compare(AdmMenu o1, AdmMenu o2) {
+                    return o1.getIdAdmMenu().compareTo(o2.getIdAdmMenu());
+                }
+            });
+            admMenus.addAll(admMenusTemp);
             if (isNotEmpty(admMenus) && withParentMenu) {
                 Set<Integer> fetchedParentIds = Sets.newHashSet();
                 Set<Integer> toFetchedParentIds = Sets.newHashSet();
@@ -124,7 +141,7 @@ public class UIUserManagerService {
                 Iterable<AdmMenu> parentMenus = admMenusRepository.findAllById(toFetchedParentIds);
                 parentMenus.forEach(admMenus::add);
             }
-            admMenus.forEach(menu->{
+            admMenus.forEach(menu -> {
                 menuDtos.add(MenuDto.from(menu, false));
             });
             return menuDtos;
@@ -465,6 +482,65 @@ public class UIUserManagerService {
         }
 
         return staticDtoService.create(UserDto.class, Arrays.asList(userDto));
+    }
+
+    public String getRandomPassword() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 8; i++) {
+            int flag = (int) (Math.random() * 62);
+            if (flag < 10) {
+                sb.append(flag);
+            } else if (flag < 36) {
+                sb.append((char) (flag + 'A' - 10));
+            } else {
+                sb.append((char) (flag + 'a' - 36));
+            }
+        }
+        return sb.toString();
+    }
+
+    public QueryResponse<UserDto> findByName(String username) {
+        QueryRequest ciRequest = QueryRequest.defaultQueryObject("username", username);
+        return staticDtoService.query(UserDto.class, ciRequest);
+    }
+
+    public Object changePassword(Map<String, Object> password) {
+        ResponseDto<UserDto> responseDto = new ResponseDto<UserDto>(ResponseDto.STATUS_OK, null);
+        String currentUser = CmdbThreadLocal.getIntance().getCurrentUser();
+        if (currentUser != null) {
+            QueryResponse<UserDto> queryData = findByName(currentUser);
+            UserDto user = CollectionUtils.pickRandomOne(queryData.getContents());
+            if (user == null) {
+                throw new CmdbException("This user does not exist");
+            }
+            if (!passwordEncoder.matches((String) password.get("password"), user.getPassword())) {
+                throw new CmdbException("The original password is wrong.");
+            }
+            String newPassword = passwordEncoder.encode((String) password.get("newPassword"));
+            user.setPassword(newPassword);
+            staticDtoService.update(UserDto.class, user.getUserId(), BeanMapUtils.convertBeanToMap(user));
+        } else {
+            throw new CmdbException("Logon user not found.");
+        }
+        responseDto.setStatusMessage("The password was successfully modified.");
+        return responseDto;
+    }
+
+    public List<UserDto> updateUser(List<Map<String, Object>> userDtos) {
+        return staticDtoService.update(UserDto.class, userDtos);
+    }
+
+    public Object adminResetPassword(Map<String, Object> userDto) {
+        String randomPassword = getRandomPassword();
+        QueryResponse<UserDto> queryData = findByName((String) userDto.get("username"));
+        UserDto user = CollectionUtils.pickRandomOne(queryData.getContents());
+        if (user == null) {
+            throw new CmdbException("This user does not exist");
+        } else {
+            user.setPassword(passwordEncoder.encode(randomPassword));
+            staticDtoService.update(UserDto.class, user.getUserId(),BeanMapUtils.convertBeanToMap(user));
+            return new ResponseDto<Object>(ResponseDto.STATUS_OK, randomPassword);
+        }
     }
 
 }

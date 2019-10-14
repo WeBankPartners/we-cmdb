@@ -1,10 +1,10 @@
 <template>
-  <div>
+  <div id="cmdb">
     <div class="header">
       <Header @allMenus="allMenus" />
     </div>
     <div class="content-container">
-      <Breadcrumb style="margin: 10px 0;" v-if="isShowBreadcrum">
+      <Breadcrumb style="margin: 10px 0;" v-if="isShowBreadcrum && !isSetting">
         <BreadcrumbItem to="/">Home</BreadcrumbItem>
         <BreadcrumbItem>{{ parentBreadcrumb }}</BreadcrumbItem>
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
@@ -28,7 +28,8 @@ export default {
       isShowBreadcrum: true,
       allMenusAry: [],
       parentBreadcrumb: "",
-      childBreadcrumb: ""
+      childBreadcrumb: "",
+      isSetting: this.$route.path.startsWith("/setting")
     };
   },
   methods: {
@@ -77,12 +78,16 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+#cmdb {
+  height: 100%;
+}
 .header {
   width: 100%;
   background-color: #515a6e;
   display: block;
 }
 .content-container {
+  height: calc(100% - 50px);
   padding: 5px 30px;
 }
 
