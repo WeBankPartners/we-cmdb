@@ -38,10 +38,15 @@ Vue.use(VueHighlightJS);
 
 router.beforeEach((to, from, next) => {
   if (window.myMenus) {
-    let isHasPermission = []
+    let hasPermission = []
       .concat(...window.myMenus.map(_ => _.submenus))
       .find(_ => _.link === to.path);
-    if (isHasPermission || to.path === "/404") {
+    if (
+      hasPermission ||
+      to.path === "/homepage" ||
+      to.path.startsWith("/setting") ||
+      to.path === "/404"
+    ) {
       /* has permission*/
       next();
     } else {

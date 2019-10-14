@@ -42,6 +42,10 @@ export const updateRoleCiTypeCtrlAttributes = (roleCitypeId, data) =>
   req.post(`/admin/role-citypes/${roleCitypeId}/ctrl-attributes/update`, data);
 export const deleteRoleCiTypeCtrlAttributes = (roleCitypeId, data) =>
   req.post(`/admin/role-citypes/${roleCitypeId}/ctrl-attributes/delete`, data);
+export const editPassword = data =>
+  req.post("/admin/users/password/change", data);
+export const resetPassword = data =>
+  req.post("/admin/users/password/reset", data);
 
 //enum
 export const getEnumCodesByCategoryId = (catTypeId, catId) =>

@@ -82,50 +82,6 @@
           </Spin>
         </div>
       </TabPane>
-      <!-- <TabPane label="部署详情" name="deploy-detail" :index="4">
-        <Row style="max-height: 500px">
-          <Tree
-            :data="deployTree"
-            show-checkbox
-            multiple
-            @on-check-change="onTreeCheck"
-            check-strictly
-          ></Tree>
-        </Row>
-        <Row style="margin-top: 20px">
-          <Button
-            icon="md-eye"
-            @click="previewDeploy"
-            :disabled="this.selectedDeployItems.length < 1"
-            >预览</Button
-          >
-        </Row>
-        <Row>
-          <div style="overflow-x: auto; display: -webkit-box; margin-top: 20px">
-            <div
-              v-for="(item, index) in graphSource"
-              :key="index"
-              style="width: 20%;"
-            >
-              <h3 style="text-align: center;">{{ item.definitionName }}</h3>
-              <div
-                class="graph-container"
-                :id="`graph_${item.defintiionKey}_${index}`"
-                style="text-align: center;margin-top: 20px;"
-              ></div>
-            </div>
-          </div>
-        </Row>
-        <Row>
-          <Button
-            icon="md-checkmark-circle-outline"
-            type="info"
-            @click="executeDeploy"
-            :disabled="this.selectedDeployItems.length < 1"
-            >执行流程</Button
-          >
-        </Row>
-      </TabPane> -->
       <TabPane
         v-for="(ci, index) in tabList"
         :key="ci.id"
