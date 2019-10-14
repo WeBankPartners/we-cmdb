@@ -414,6 +414,7 @@ export default {
         this.systemDesignVersion
       );
       if (status === "OK") {
+        this.queryCiData();
         this.$Notice.success({
           title: "Success",
           desc: message
