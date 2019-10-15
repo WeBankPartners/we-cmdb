@@ -233,20 +233,21 @@ import { getExtraInnerActions } from "../util/state-operations.js";
 import PhysicalGraph from "./physical-graph";
 
 const stateColorMap = new Map([
-  ["new", "#2f7344"],
-  ["created", "#2f7344"],
-  ["update", "dodgerblue"],
-  ["change", "dodgerblue"],
-  ["destroyed", "red"],
-  ["delete", "red"]
+  ["new", "#47cb89"],
+  ["created", "#47cb89"],
+  ["update", "#2d8cf0"],
+  ["change", "#2d8cf0"],
+  ["destroyed", "#ed4014"],
+  ["delete", "#ed4014"]
 ]);
 const colors = [
-  "#E1F5FE",
-  "#B3E5FC",
-  "#81D4FA",
-  "#4FC3F7",
-  "#29B6F6",
-  "#0091EA"
+  "#bbdefb",
+  "#90caf9",
+  "#64b5f6",
+  "#42a5f5",
+  "#2196f3",
+  "#1e88e5",
+  "#1976d2"
 ];
 export default {
   components: {
@@ -413,6 +414,7 @@ export default {
         this.systemDesignVersion
       );
       if (status === "OK") {
+        this.queryCiData();
         this.$Notice.success({
           title: "Success",
           desc: message
@@ -558,7 +560,7 @@ export default {
         'Edge [fontname=Arial, minlen="2",fontsize=10];',
         `size="${width},${height}";`,
         `subgraph cluster_${sysData[0].guid} {`,
-        `style="filled";color="#c8d6f0";`,
+        `style="filled";color="${colors[0]}";`,
         `tooltip="${sysData[0].data.description}";`,
         `label="${sysData[0].data.code}";`,
         this.genChildrenDot(sysData[0].children || [], 1),

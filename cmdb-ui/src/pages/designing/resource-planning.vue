@@ -97,12 +97,13 @@ import { formatData } from "../util/format.js";
 import { getExtraInnerActions } from "../util/state-operations.js";
 
 const colors = [
-  "#c8d6f0",
-  "#cde4fd",
-  "#acc1e8",
-  "#516282",
-  "#243047",
-  "#0f1624"
+  "#bbdefb",
+  "#90caf9",
+  "#64b5f6",
+  "#42a5f5",
+  "#2196f3",
+  "#1e88e5",
+  "#1976d2"
 ];
 
 export default {
