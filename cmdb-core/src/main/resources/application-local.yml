@@ -12,7 +12,7 @@ spring:
     schema: classpath:/database/01.cmdb.schema.sql
     data:
       - classpath:/database/02.cmdb.system.data.sql
-      - classpath:/local/03.cmdb.system.data.files.h2.sql
+      - classpath:/local/03.cmdb.system.data.h2.sql
       - classpath:/database/04.cmdb.experience.data.sql
     sql-script-encoding: utf-8
 
