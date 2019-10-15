@@ -22,8 +22,8 @@
           :fade="false"
           @on-change="handleUserClick"
         >
-          <span :title="` ${item.fullName} ( ${item.description} ) `">{{
-            ` ${item.fullName} ( ${item.description} ) `
+          <span :title="` ${item.username} ( ${item.description} ) `">{{
+            ` ${item.username} ( ${item.description} ) `
           }}</span>
         </Tag>
       </Card>
@@ -733,11 +733,15 @@ export default {
         });
         return;
       }
-      let { status, data, message } = await addUser(this.addedUser);
+      let { status, data, message } = await addUser([this.addedUser]);
       if (status === "OK") {
         this.$Notice.success({
           title: "success",
           desc: message
+        });
+        this.$Modal.info({
+          title: `请保存 ${data[0].username} 的初始密码`,
+          content: data[0].password
         });
         this.addedUser = {};
         this.getAllUsers();
@@ -971,7 +975,7 @@ export default {
         return {
           key: _.id,
           username: _.username,
-          label: ` ${_.fullName} ( ${_.description} ) `
+          label: ` ${_.username} ( ${_.description} ) `
         };
       });
       this.userManageModal = true;
@@ -987,7 +991,6 @@ export default {
     this.getAllUsers();
     this.getAllRoles();
     this.getAllMenus();
-    // this.getAllPermissionEntryPoints();
   },
   watch: {}
 };
