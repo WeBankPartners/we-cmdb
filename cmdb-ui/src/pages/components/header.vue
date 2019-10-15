@@ -30,6 +30,9 @@
                 $t("logout")
               }}</a>
             </DropdownItem>
+            <DropdownItem name="changePassword">
+              <router-link to="/setting/change-password">修改密码</router-link>
+            </DropdownItem>
           </DropdownMenu>
         </Dropdown>
       </div>

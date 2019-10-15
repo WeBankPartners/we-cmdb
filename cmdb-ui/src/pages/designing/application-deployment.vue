@@ -82,50 +82,6 @@
           </Spin>
         </div>
       </TabPane>
-      <!-- <TabPane label="部署详情" name="deploy-detail" :index="4">
-        <Row style="max-height: 500px">
-          <Tree
-            :data="deployTree"
-            show-checkbox
-            multiple
-            @on-check-change="onTreeCheck"
-            check-strictly
-          ></Tree>
-        </Row>
-        <Row style="margin-top: 20px">
-          <Button
-            icon="md-eye"
-            @click="previewDeploy"
-            :disabled="this.selectedDeployItems.length < 1"
-            >预览</Button
-          >
-        </Row>
-        <Row>
-          <div style="overflow-x: auto; display: -webkit-box; margin-top: 20px">
-            <div
-              v-for="(item, index) in graphSource"
-              :key="index"
-              style="width: 20%;"
-            >
-              <h3 style="text-align: center;">{{ item.definitionName }}</h3>
-              <div
-                class="graph-container"
-                :id="`graph_${item.defintiionKey}_${index}`"
-                style="text-align: center;margin-top: 20px;"
-              ></div>
-            </div>
-          </div>
-        </Row>
-        <Row>
-          <Button
-            icon="md-checkmark-circle-outline"
-            type="info"
-            @click="executeDeploy"
-            :disabled="this.selectedDeployItems.length < 1"
-            >执行流程</Button
-          >
-        </Row>
-      </TabPane> -->
       <TabPane
         v-for="(ci, index) in tabList"
         :key="ci.id"
@@ -198,21 +154,22 @@ const serviceTask = require("../images/serviceTask.png");
 import { getExtraInnerActions } from "../util/state-operations.js";
 import PhysicalGraph from "./physical-graph";
 const stateColorMap = new Map([
-  ["new", "green"],
-  ["created", "green"],
-  ["update", "dodgerblue"],
-  ["change", "dodgerblue"],
-  ["destroyed", "red"],
-  ["delete", "red"]
+  ["new", "#47cb89"],
+  ["created", "#47cb89"],
+  ["update", "#2d8cf0"],
+  ["change", "#2d8cf0"],
+  ["destroyed", "#ed4014"],
+  ["delete", "#ed4014"]
 ]);
 
 const colors = [
-  "#E1F5FE",
-  "#B3E5FC",
-  "#81D4FA",
-  "#4FC3F7",
-  "#29B6F6",
-  "#0091EA"
+  "#bbdefb",
+  "#90caf9",
+  "#64b5f6",
+  "#42a5f5",
+  "#2196f3",
+  "#1e88e5",
+  "#1976d2"
 ];
 
 export default {
@@ -353,7 +310,7 @@ export default {
             }
             dots.push("subgraph cluster_" + unit.guid + "{");
             dots.push(
-              `label="${unitLabel}"; style=filled; color=${color};tooltip="${
+              `label="${unitLabel}"; style=filled; color="${color}";tooltip="${
                 unit.data.description
               }"`
             );
@@ -428,39 +385,20 @@ export default {
         }
 
         dots.push(
-          '"' +
-            invoke.data.unit.guid +
-            '"' +
-            "->" +
-            '"' +
-            invoke.data.service.guid +
-            '"' +
-            '[id="' +
-            invoke.guid +
-            '"' +
-            ',color="' +
-            color +
-            '"' +
-            "];"
+          `"${invoke.data.unit.guid}"->"${invoke.data.service.guid}"[id="${
+            invoke.guid
+          }",color="${color}"];`
         );
         if (!graphMap.has(invoke.data.unit.guid)) {
           dots.push(
-            '"' +
-              invoke.data.unit.guid +
-              '"' +
-              '[label="' +
-              invoke.data.unit.key_name +
-              '"];'
+            `"${invoke.data.unit.guid}"[label="${invoke.data.unit.key_name}"`
           );
         }
         if (!graphMap.has(invoke.data.service.guid)) {
           dots.push(
-            '"' +
-              invoke.data.service.guid +
-              '"' +
-              '[label="' +
-              invoke.data.service.key_name +
-              '"];'
+            `"${invoke.data.service.guid}"[label="${
+              invoke.data.service.key_name
+            }"];`
           );
         }
       });
@@ -520,6 +458,9 @@ export default {
       }
       this.spinShow = true;
       this.treeSpinShow = true;
+      if (this.currentTab) {
+        this.queryCiData();
+      }
       let { status, message, data } = await getAllCITypes();
       if (status === "OK") {
         data.forEach(ci => {
@@ -1290,6 +1231,7 @@ export default {
         }
       });
       let found = this.tabList.find(i => i.code === this.currentTab);
+      if (!found) return;
       let requst = {
         codeId: found.codeId,
         envCode: this.env,
