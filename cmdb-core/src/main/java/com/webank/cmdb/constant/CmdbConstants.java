@@ -19,14 +19,14 @@ public class CmdbConstants {
     public static final String SEQ_CI_TYPE = "seq_ci_type";
     public static final String SEQ_CI_INSTANCE = "seq_ci_instance";
 
-    public static final String PERMISSION_TYPE_READONLY = "只读";
-    public static final String PERMISSION_TYPE_EDITABLE = "编辑";
-    public static final String PERMISSION_TYPE_ADDDELE = "增删";
+    public static final String PERMISSION_TYPE_READONLY = "readonly";
+    public static final String PERMISSION_TYPE_EDITABLE = "editable";
+    public static final String PERMISSION_TYPE_ADDDELE = "adddele";
 
-    public static final String ROLE_TYPE_PLATFORM_ADM = "平台管理";
-    public static final String ROLE_TYPE_TENEMENT_ADM = "租户管理";
-    public static final String ROLE_TYPE_CI_ADM = "CI管理";
-    public static final String ROLE_TYPE_DATA_USER = "数据使用";
+    public static final String ROLE_TYPE_PLATFORM_ADM = "platform_adm";
+    public static final String ROLE_TYPE_TENEMENT_ADM = "tenement_adm";
+    public static final String ROLE_TYPE_CI_ADM = "ci_adm";
+    public static final String ROLE_TYPE_DATA_USER = "data_user";
 
     public static final String ACTION_TYPE_SELECT = "select";
     public static final String ACTION_TYPE_UPDATE = "update";
@@ -47,12 +47,12 @@ public class CmdbConstants {
 
     public static final int OPERATE_CI_LIMIT_ROW_COUNT = 20;
 
-    public static final String ADD_SUCCESS = "新增成功";
-    public static final String ADD_FAILURE = "新增失败";
-    public static final String UPDATE_SUCCESS = "修改成功";
-    public static final String UPDATE_FAILURE = "修改失败";
-    public static final String DELETE_SUCCESS = "删除成功";
-    public static final String DELETE_FAILURE = "删除失败";
+    public static final String ADD_SUCCESS = "add_success";
+    public static final String ADD_FAILURE = "add_failure";
+    public static final String UPDATE_SUCCESS = "update_success";
+    public static final String UPDATE_FAILURE = "update_failure";
+    public static final String DELETE_SUCCESS = "delete_success";
+    public static final String DELETE_FAILURE = "delete_failure";
 
     public static final String CUR_ADM_USER = "cur_adm_user";
 
