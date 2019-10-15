@@ -6,9 +6,9 @@
           <Row slot="title">
             <Col span="10">
               <p>
-                架构图
+                {{ $t("architecture_diagram") }}
                 <span class="header-buttons-container margin-left">
-                  <Tooltip content="新增层" placement="top-start">
+                  <Tooltip :content="$t('add_layer')" placement="top-start">
                     <Button
                       size="small"
                       @click="isAddNewLayerModalVisible = true"
@@ -19,7 +19,7 @@
               </p>
             </Col>
             <Col span="13" offset="1">
-              <span class="filter-title">状态</span>
+              <span class="filter-title">{{ $("state") }}</span>
               <Select
                 multiple
                 :max-tag-count="3"
@@ -36,7 +36,7 @@
           <div class="graph-container" id="graph"></div>
           <Modal
             v-model="isAddNewLayerModalVisible"
-            title="新增层"
+            :title="$t('add_layer')"
             @on-visible-change="addLayerModalToggle"
           >
             <Form
@@ -52,14 +52,17 @@
               <FormItem label="Value" prop="addNewLayerValue">
                 <Input v-model="newLayer.addNewLayerValue" />
               </FormItem>
-              <FormItem label="描述说明" prop="addNewLayerDescription">
+              <FormItem
+                :label="$t('description')"
+                prop="addNewLayerDescription"
+              >
                 <Input v-model="newLayer.addNewLayerDescription" />
               </FormItem>
             </Form>
             <div slot="footer">
-              <Button type="primary" @click="addNewLayer('newLayerForm')"
-                >提交</Button
-              >
+              <Button type="primary" @click="addNewLayer('newLayerForm')">{{
+                $t("submit")
+              }}</Button>
             </div>
           </Modal>
         </Card>
@@ -80,35 +83,35 @@
             <p>{{ currentSelectedLayer.name }}</p>
           </Col>
           <span class="header-buttons-container">
-            <Tooltip content="新增CI类型" placement="top-start">
+            <Tooltip :content="$t('new_ci_type')" placement="top-start">
               <Button
                 size="small"
                 @click="isAddNewCITypeModalVisible = true"
                 icon="md-add"
               ></Button>
             </Tooltip>
-            <Tooltip content="编辑层名称" placement="top-start">
+            <Tooltip :content="$t('edit_layer_name')" placement="top-start">
               <Button
                 size="small"
                 @click="isEditLayerNameModalVisible = true"
                 icon="md-build"
               ></Button>
             </Tooltip>
-            <Tooltip content="上移层" placement="top-start">
+            <Tooltip :content="$t('move_up_layer')" placement="top-start">
               <Button
                 size="small"
                 @click="upLayer(currentSelectedLayer.layerId)"
                 icon="md-arrow-round-up"
               ></Button>
             </Tooltip>
-            <Tooltip content="下移层" placement="top-start">
+            <Tooltip :content="$t('move_down_layer')" placement="top-start">
               <Button
                 size="small"
                 @click="downLayer(currentSelectedLayer.layerId)"
                 icon="md-arrow-round-down"
               ></Button>
             </Tooltip>
-            <Tooltip content="删除层" placement="top-start">
+            <Tooltip :content="$t('delete_layer')" placement="top-start">
               <Button
                 size="small"
                 @click="deleteLayer(currentSelectedLayer.layerId)"
@@ -132,7 +135,7 @@
             <span class="header-buttons-container margin-right">
               <Tooltip
                 v-if="item.status === 'decommissioned'"
-                content="回滚"
+                :content="$t('roll_back')"
                 placement="top-start"
               >
                 <Button
@@ -141,7 +144,7 @@
                   icon="md-redo"
                 ></Button>
               </Tooltip>
-              <Tooltip v-else content="删除CI" placement="top-start">
+              <Tooltip v-else :content="$t('delete_ci')" placement="top-start">
                 <Button
                   size="small"
                   @click.stop.prevent="deleteCI(item.ciTypeId, item.status)"
@@ -156,10 +159,10 @@
                 label-position="left"
                 :label-width="100"
               >
-                <FormItem label="CI类型ID" prop="tableName">
+                <FormItem :label="$t('ci_type_id')" prop="tableName">
                   <Input v-model="item.form.tableName" disabled></Input>
                 </FormItem>
-                <FormItem label="所属层级">
+                <FormItem :label="$t('refrence_layer')">
                   <Select
                     v-model="item.form.layerId"
                     :disabled="item.form.status === 'decommissioned'"
@@ -172,13 +175,13 @@
                     >
                   </Select>
                 </FormItem>
-                <FormItem label="描述说明" prop="description">
+                <FormItem :label="$t('description')" prop="description">
                   <Input
                     v-model="item.form.description"
                     :disabled="item.form.status === 'decommissioned'"
                   ></Input>
                 </FormItem>
-                <FormItem label="图标">
+                <FormItem :label="$t('icon')">
                   <Select v-model="item.form.imageFileId">
                     <img
                       v-if="item.form.imageFileId"
@@ -209,7 +212,7 @@
                     small
                     @click="saveCiType(item.ciTypeId, item.form)"
                     :disabled="item.form.status !== 'notCreated'"
-                    >暂存</Button
+                    >{{ $t("save_draft") }}</Button
                   >
                   <Button
                     type="primary"
@@ -217,7 +220,7 @@
                     @click="submitCiType(item.ciTypeId, item.form)"
                     style="margin-left: 8px"
                     :disabled="item.form.status === 'decommissioned'"
-                    >提交</Button
+                    >{{ $t("submit") }}</Button
                   >
                 </FormItem>
               </Form>
@@ -226,7 +229,7 @@
         </Collapse>
         <Modal
           v-model="isAddNewCITypeModalVisible"
-          title="新增CI类型"
+          :title="$t('new_ci_type')"
           @on-visible-change="addCiTypeModalToggle"
           footer-hide
         >
@@ -237,13 +240,13 @@
             label-position="left"
             :label-width="100"
           >
-            <FormItem label="名称" prop="name">
+            <FormItem :label="$t('name')" prop="name">
               <Input v-model="addNewCITypeForm.name"></Input>
             </FormItem>
-            <FormItem label="CI类型ID" prop="tableName">
+            <FormItem :label="$t('ci_type_id')" prop="tableName">
               <Input v-model="addNewCITypeForm.tableName"></Input>
             </FormItem>
-            <FormItem label="所属层级">
+            <FormItem :label="$t('refrence_layer')">
               <Select disabled v-model="addNewCITypeForm.layerId">
                 <Option
                   v-for="layer in layers"
@@ -253,10 +256,10 @@
                 >
               </Select>
             </FormItem>
-            <FormItem label="描述说明" prop="description">
+            <FormItem :v-html="$t('description')" prop="description">
               <Input v-model="addNewCITypeForm.description"></Input>
             </FormItem>
-            <FormItem label="图标">
+            <FormItem :label="$t('icon')">
               <Select v-model="addNewCITypeForm.imageFileId">
                 <img
                   v-if="addNewCITypeForm.imageFileId"
@@ -282,7 +285,7 @@
                 small
                 @click="addNewCIType"
                 style="float: right"
-                >确认</Button
+                >{{ $t("confirm") }}</Button
               >
             </FormItem>
           </Form>
@@ -294,14 +297,14 @@
             <p>{{ currentSelectedCI.name }}</p>
           </Col>
           <span class="header-buttons-container">
-            <Tooltip content="新增CI属性" placement="top-start">
+            <Tooltip :content="$t('new_ci_attribute')" placement="top-start">
               <Button
                 size="small"
                 @click="addNewAttrHandler"
                 icon="md-add"
               ></Button>
             </Tooltip>
-            <Tooltip content="编辑名称" placement="top-start">
+            <Tooltip :content="$t('edit_name')" placement="top-start">
               <Button
                 size="small"
                 @click="isEditCINameModalVisible = true"
@@ -324,14 +327,20 @@
               >{{ item.name }}</span
             >
             <span class="header-buttons-container margin-right">
-              <Tooltip content="上移CI属性" placement="top-start">
+              <Tooltip
+                :content="$t('move_up_ci_attribute')"
+                placement="top-start"
+              >
                 <Button
                   size="small"
                   @click.stop.prevent="moveUpAttr(item.ciTypeAttrId)"
                   icon="md-arrow-round-up"
                 ></Button>
               </Tooltip>
-              <Tooltip content="下移CI属性" placement="top-start">
+              <Tooltip
+                :content="$t('move_down_ci_attribute')"
+                placement="top-start"
+              >
                 <Button
                   size="small"
                   @click.stop.prevent="moveDownAttr(item.ciTypeAttrId)"
@@ -340,7 +349,7 @@
               </Tooltip>
               <Tooltip
                 v-if="item.status === 'decommissioned'"
-                content="回滚"
+                :content="$t('roll_back')"
                 placement="top-start"
               >
                 <Button
@@ -349,7 +358,11 @@
                   icon="md-redo"
                 ></Button>
               </Tooltip>
-              <Tooltip v-else content="删除CI属性" placement="top-start">
+              <Tooltip
+                v-else
+                :content="$t('delete_ci_attribute')"
+                placement="top-start"
+              >
                 <Button
                   size="small"
                   @click.stop.prevent="
@@ -367,23 +380,26 @@
                 label-position="left"
                 :label-width="120"
               >
-                <FormItem prop="propertyName" label="CI属性ID">
+                <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
                   <Input v-model="item.form.propertyName" disabled></Input>
                 </FormItem>
-                <FormItem prop="name" label="CI属性名称">
+                <FormItem prop="name" :label="$t('ci_attribute_name')">
                   <Input
                     v-model="item.form.name"
                     :disabled="item.form.status === 'decommissioned'"
                   ></Input>
                 </FormItem>
-                <FormItem label="搜索条件排序序号" prop="searchSeqNo">
+                <FormItem
+                  :label="$t('search_filter_number')"
+                  prop="searchSeqNo"
+                >
                   <InputNumber
                     :min="0"
                     :disabled="item.form.status === 'decommissioned'"
                     v-model="item.form.searchSeqNo"
                   ></InputNumber>
                 </FormItem>
-                <FormItem prop="inputType" label="数据类型">
+                <FormItem prop="inputType" :label="$t('data_type')">
                   <Select
                     v-model="item.form.inputType"
                     @on-change="
@@ -408,16 +424,16 @@
                       item.form.inputType === 'textArea'
                   "
                   prop="regularExpressionRule"
-                  label="正则规则"
+                  :label="$t('regular_rule')"
                 >
                   <Input v-model="item.form.regularExpressionRule"></Input>
                 </FormItem>
-                <FormItem label="真实类型">
+                <FormItem :label="t('real_type')">
                   <Input v-model="item.form.propertyType" disabled></Input>
                 </FormItem>
                 <FormItem
                   prop="length"
-                  label="长度"
+                  :label="$t('length')"
                   v-if="
                     item.form.inputType === 'text' ||
                       item.form.inputType === 'textArea'
@@ -435,7 +451,7 @@
                     item.form.inputType === 'ref' ||
                       item.form.inputType === 'multiRef'
                   "
-                  label="引用选择"
+                  :label="$t('reference_select')"
                 >
                   <Select
                     v-model="item.form.referenceId"
@@ -455,7 +471,7 @@
                     item.form.inputType === 'ref' ||
                       item.form.inputType === 'multiRef'
                   "
-                  label="引用命名"
+                  :label="$t('reference_name')"
                 >
                   <Input
                     v-model="item.form.referenceName"
@@ -468,7 +484,7 @@
                     item.form.inputType === 'ref' ||
                       item.form.inputType === 'multiRef'
                   "
-                  label="引用类型"
+                  :label="$t('reference_type')"
                 >
                   <Select
                     v-model="item.form.referenceType"
@@ -488,7 +504,7 @@
                     item.form.inputType === 'select' ||
                       item.form.inputType === 'multiSelect'
                   "
-                  label="枚举选择"
+                  :label="$t('select')"
                 >
                   <Select
                     v-if="item.form.isSystem === true"
@@ -538,7 +554,7 @@
                     </Option>
                   </Select>
                 </FormItem>
-                <FormItem prop="isRefreshable" label="是否复用">
+                <FormItem prop="isRefreshable" :label="$t('is_refreshable')">
                   <RadioGroup v-model="item.form.isRefreshable">
                     <Radio
                       :disabled="item.form.status === 'decommissioned'"
@@ -552,7 +568,7 @@
                     >
                   </RadioGroup>
                 </FormItem>
-                <FormItem prop="isDisplayed" label="显示在表">
+                <FormItem prop="isDisplayed" :label="$t('is_displayed')">
                   <RadioGroup v-model="item.form.isDisplayed">
                     <Radio
                       :disabled="item.form.status === 'decommissioned'"
@@ -574,7 +590,7 @@
                       item.form.inputType === 'multiSelect' ||
                       item.form.inputType === 'multiRef'
                   "
-                  label="权限控制"
+                  :label="$t('is_access_controlled')"
                 >
                   <RadioGroup v-model="item.form.isAccessControlled">
                     <Radio
@@ -589,7 +605,7 @@
                     >
                   </RadioGroup>
                 </FormItem>
-                <FormItem prop="isNullable" label="允许为空">
+                <FormItem prop="isNullable" :label="$t('is_nullable')">
                   <RadioGroup v-model="item.form.isNullable">
                     <Radio
                       :disabled="item.form.status === 'decommissioned'"
@@ -603,7 +619,7 @@
                     >
                   </RadioGroup>
                 </FormItem>
-                <FormItem prop="isEditable" label="是否可编辑">
+                <FormItem prop="isEditable" :label="$t('is_editable')">
                   <RadioGroup v-model="item.form.isEditable">
                     <Radio
                       :disabled="item.form.status === 'decommissioned'"
@@ -617,7 +633,7 @@
                     >
                   </RadioGroup>
                 </FormItem>
-                <FormItem prop="isAuto" label="自动填充">
+                <FormItem prop="isAuto" :label="$t('is_auto')">
                   <RadioGroup v-model="item.form.isAuto">
                     <Radio
                       :disabled="item.form.status === 'decommissioned'"
@@ -634,7 +650,7 @@
                 <FormItem
                   prop="autoFillRule"
                   v-if="item.form.isAuto === 'yes'"
-                  label="填充规则"
+                  :label="$t('auto_fill_rule')"
                 >
                   <AutoFill
                     :allLayers="source"
@@ -649,7 +665,7 @@
                     item.form.inputType === 'ref' ||
                       item.form.inputType === 'select'
                   "
-                  label="过滤规则"
+                  :label="$t('filter_rule')"
                 >
                   <FilterRule
                     :allLayers="source"
@@ -666,7 +682,7 @@
                     @click="applyAttr(item.ciTypeAttrId, item.form)"
                     style="float: right"
                     :disabled="item.form.status === 'decommissioned'"
-                    >提交</Button
+                    >{{ $t("submit") }}</Button
                   >
                   <Button
                     type="primary"
@@ -674,7 +690,7 @@
                     @click="saveAttr(item.ciTypeAttrId, item.form)"
                     style="float: right; margin-right: 20px"
                     :disabled="item.form.status !== 'notCreated'"
-                    >暂存</Button
+                    >{{ $t("save_draft") }}</Button
                   >
                 </FormItem>
               </Form>
@@ -683,7 +699,7 @@
         </Collapse>
         <Modal
           v-model="isAddNewAttrModalVisible"
-          title="新增CI属性"
+          :title="$t('new_ci_attribute')"
           @on-visible-change="addAttrModalToggle"
           footer-hide
         >
@@ -694,19 +710,19 @@
             label-position="left"
             :label-width="120"
           >
-            <FormItem label="CI属性名称" prop="name">
+            <FormItem :label="$t('ci_attribute_name')" prop="name">
               <Input v-model="addNewAttrForm.name"></Input>
             </FormItem>
-            <FormItem prop="propertyName" label="CI属性ID">
+            <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
               <Input v-model="addNewAttrForm.propertyName"></Input>
             </FormItem>
-            <FormItem label="搜索条件排序序号">
+            <FormItem :label="$t('search_filter_number')">
               <InputNumber
                 :min="0"
                 v-model="addNewAttrForm.searchSeqNo"
               ></InputNumber>
             </FormItem>
-            <FormItem prop="inputType" label="数据类型">
+            <FormItem prop="inputType" :label="$t('data_type')">
               <Select
                 v-model="addNewAttrForm.inputType"
                 @on-change="onInputTypeChange($event, false)"
@@ -725,16 +741,16 @@
                   addNewAttrForm.inputType === 'textArea'
               "
               prop="regularExpressionRule"
-              label="正则规则"
+              :label="$t('regular_rule')"
             >
               <Input v-model="addNewAttrForm.regularExpressionRule"></Input>
             </FormItem>
-            <FormItem prop="propertyType" label="真实类型">
+            <FormItem prop="propertyType" :label="$t('real_type')">
               <Input v-model="addNewAttrForm.propertyType" disabled></Input>
             </FormItem>
             <FormItem
               prop="length"
-              label="长度"
+              :label="$t('length')"
               v-if="
                 addNewAttrForm.inputType === 'text' ||
                   addNewAttrForm.inputType === 'textArea'
@@ -751,7 +767,7 @@
                 addNewAttrForm.inputType === 'ref' ||
                   addNewAttrForm.inputType === 'multiRef'
               "
-              label="引用选择"
+              :label="$t('reference_select')"
             >
               <Select v-model="addNewAttrForm.referenceId">
                 <Option
@@ -768,7 +784,7 @@
                 addNewAttrForm.inputType === 'ref' ||
                   addNewAttrForm.inputType === 'multiRef'
               "
-              label="引用命名"
+              :label="$t('reference_name')"
             >
               <Input v-model="addNewAttrForm.referenceName"></Input>
             </FormItem>
@@ -778,7 +794,7 @@
                 addNewAttrForm.inputType === 'ref' ||
                   addNewAttrForm.inputType === 'multiRef'
               "
-              label="引用类型"
+              :label="$t('reference_type')"
             >
               <Select v-model="addNewAttrForm.referenceType">
                 <Option
@@ -795,7 +811,7 @@
                 addNewAttrForm.inputType === 'select' ||
                   addNewAttrForm.inputType === 'multiSelect'
               "
-              label="枚举选择"
+              :label="$t('select')"
             >
               <Select clearable v-model="addNewAttrForm.referenceId">
                 <span
@@ -824,13 +840,13 @@
                 </Option>
               </Select>
             </FormItem>
-            <FormItem prop="isRefreshable" label="是否复用">
+            <FormItem prop="isRefreshable" :label="$t('is_refreshable')">
               <RadioGroup v-model="addNewAttrForm.isRefreshable">
                 <Radio label="yes">Yes</Radio>
                 <Radio label="no">No</Radio>
               </RadioGroup>
             </FormItem>
-            <FormItem prop="isDisplayed" label="显示在表">
+            <FormItem prop="isDisplayed" :label="$t('is_displayed')">
               <RadioGroup v-model="addNewAttrForm.isDisplayed">
                 <Radio label="yes">Yes</Radio>
                 <Radio label="no">No</Radio>
@@ -844,26 +860,26 @@
                   addNewAttrForm.inputType === 'ref' ||
                   addNewAttrForm.inputType === 'multiRef'
               "
-              label="权限控制"
+              :label="$t('is_access_controlled')"
             >
               <RadioGroup v-model="addNewAttrForm.isAccessControlled">
                 <Radio label="yes">Yes</Radio>
                 <Radio label="no">No</Radio>
               </RadioGroup>
             </FormItem>
-            <FormItem prop="isNullable" label="允许为空">
+            <FormItem prop="isNullable" :label="$t('is_nullable')">
               <RadioGroup v-model="addNewAttrForm.isNullable">
                 <Radio label="yes">Yes</Radio>
                 <Radio label="no">No</Radio>
               </RadioGroup>
             </FormItem>
-            <FormItem prop="isEditable" label="是否可编辑">
+            <FormItem prop="isEditable" :label="$t('is_editable')">
               <RadioGroup v-model="addNewAttrForm.isEditable">
                 <Radio label="yes">Yes</Radio>
                 <Radio label="no">No</Radio>
               </RadioGroup>
             </FormItem>
-            <FormItem prop="isAuto" label="自动填充">
+            <FormItem prop="isAuto" :label="$t('is_auto')">
               <RadioGroup v-model="addNewAttrForm.isAuto">
                 <Radio label="yes">Yes</Radio>
                 <Radio label="no">No</Radio>
@@ -872,7 +888,7 @@
             <FormItem
               prop="layerId"
               v-if="addNewAttrForm.isAuto === 'yes'"
-              label="填充规则"
+              :label="$t('auto_fill_rule')"
             >
               <AutoFill
                 :allLayers="source"
@@ -886,7 +902,7 @@
                 small
                 @click="addNewAttr"
                 style="float: right"
-                >提交</Button
+                >{{ $t("submit") }}</Button
               >
             </FormItem>
           </Form>
@@ -895,20 +911,26 @@
 
       <Modal
         v-model="isEditLayerNameModalVisible"
-        title="编辑层名称"
+        :title="$t('edit_layer_name')"
         @on-ok="editLayerName"
         @on-cancel="() => {}"
       >
-        <Input v-model="updatedLayerNameValue.code" placeholder="请输入" />
+        <Input
+          v-model="updatedLayerNameValue.code"
+          :placeholder="$t('placeholder_please_input')"
+        />
       </Modal>
 
       <Modal
         v-model="isEditCINameModalVisible"
-        title="编辑CI名称"
+        :title="$t('edit_ci_name')"
         @on-ok="editCIName"
         @on-cancel="() => {}"
       >
-        <Input v-model="updatedCINameValue.name" placeholder="请输入" />
+        <Input
+          v-model="updatedCINameValue.name"
+          :placeholder="$t('placeholder_please_input')"
+        />
       </Modal>
       <enumGroupModal
         @hideHandler="hideEnumGroupModal"
@@ -923,9 +945,9 @@
     <Col span="6" offset="0" class="func-wrapper" v-else>
       <Card>
         <Row slot="title">
-          <p>编辑区</p>
+          <p>{{ $t("input_area") }}</p>
         </Row>
-        <p>请点击架构图进行操作</p>
+        <p>{{ $t("architecture_diagram_operation_tips") }}</p>
       </Card>
     </Col>
   </Row>
@@ -1193,7 +1215,11 @@ export default {
               let fontcolor =
                 node.status === "notCreated" ? "#10a34e" : "black";
               tempClusterObjForGraph[index].push(
-                `"${node.name}"[id="${node.ciTypeId}",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`
+                `"${node.name}"[id="${
+                  node.ciTypeId
+                }",fontcolor="${fontcolor}", image="${
+                  node.form.imgSource
+                }.png", labelloc="b"]`
               );
             }
             if (nodeIndex === nodes.length - 1) {
