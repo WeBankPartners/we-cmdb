@@ -5,18 +5,18 @@
     @on-visible-change="visibleChangeHandler"
     :footer-hide="true"
     v-model="isVisible"
-    title="枚举管理"
+    :title="$t('enum_management')"
   >
     <div style="border-bottom: 1px solid grey;">
       <Form v-model="form">
         <Row>
           <Col span="5">
-            <FormItem :label-width="50" label="名称">
+            <FormItem :label-width="50" :label="$t('form_name')">
               <Input v-model="form.catName"></Input>
             </FormItem>
           </Col>
           <Col offset="1" span="6">
-            <FormItem :label-width="90" label="枚举类型">
+            <FormItem :label-width="90" :label="$t('form_enum_type')">
               <Select :disabled="!!category" v-model="form.catTypeId">
                 <Option
                   v-for="item in catTypes"
@@ -28,7 +28,7 @@
             </FormItem>
           </Col>
           <Col offset="1" span="5">
-            <FormItem :label-width="50" label="分组">
+            <FormItem :label-width="50" :label="$t('form_gounp')">
               <Select filterable clearable v-model="form.catGroupId">
                 <Option
                   v-for="item in allCategory"
@@ -40,7 +40,9 @@
             </FormItem>
           </Col>
           <Col offset="1" span="5">
-            <Button type="primary" @click="saveCategoryHandler">保存</Button>
+            <Button type="primary" @click="saveCategoryHandler">{{
+              $t("save")
+            }}</Button>
           </Col>
         </Row>
       </Form>
@@ -55,6 +57,7 @@
   </Modal>
 </template>
 <script>
+import Vue from "vue";
 import baseData from "../enums";
 import { createEnumCategory, updateEnumCategory } from "@/api/server";
 export default {
@@ -71,11 +74,11 @@ export default {
       categoryId: -1,
       catTypes: [
         {
-          label: "公共枚举",
+          label: this.$t("common_enum"),
           value: 2
         },
         {
-          label: "私有枚举",
+          label: this.$t("private_enum"),
           value: 3
         }
       ],
@@ -131,7 +134,7 @@ export default {
         const { message, data, status } = await updateEnumCategory(payload);
         if (status === "OK") {
           this.$Notice.success({
-            title: "update category Success",
+            title: this.$t("update_category_success_message"),
             desc: message
           });
           this.$refs.enumModal.$refs.table.form.catId = this.categoryId;
@@ -148,7 +151,7 @@ export default {
         const { message, data, status } = await createEnumCategory(payload);
         if (status === "OK") {
           this.$Notice.success({
-            title: "Add category Success",
+            title: this.$t("add_category_success_message"),
             desc: message
           });
           this.categoryId = data[0].catId;

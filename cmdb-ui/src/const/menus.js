@@ -71,13 +71,13 @@ export const MENUS = [
   {
     code: "ADMIN_QUERY_LOG",
     cnName: "日志查询",
-    enName: "QUERY_LOG",
+    enName: "Query Log",
     link: "/admin/query-log"
   },
   {
     code: "ADMIN_USER_PASSWORD_MANAGEMENT",
     cnName: "用户密码管理",
-    enName: "USER_PASSWORD_MANAGEMENT",
+    enName: "User Password Management",
     link: "/admin/user-password-management"
   },
   // 视图查询
