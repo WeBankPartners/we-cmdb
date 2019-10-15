@@ -4,6 +4,8 @@
 ![](https://img.shields.io/badge/language-java-orange.svg)
 ![](https://img.shields.io/badge/language-vue-green.svg)
 
+中文 / [English](README_EN.md)
+
 ## 试用链接
 [点此试用WeCMDB](http://106.53.80.138/cmdb/index.html#/)<br>
 
