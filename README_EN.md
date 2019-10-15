@@ -13,14 +13,14 @@
 ## Introduction
 To ensure the accuracy and the integrity of CMDB data is a widely recognized challenge in the domain of IT operation. In order to answer the questions such as "how to record with accuracy the IT information ranging from physical layer, logical layer to application layer as well as the relations between them", "how to accomplish complicated IT operation processes using those information" and "how to implement automation and intelligence", we realize that CMDB is becoming the foundation for carrying out IT operation properly. 
 
-Furthermore, thanks to the rapid development of cloud computing technology and Internet business, IT information is increasing in a exponential pattern, a powerful CMDB system is especially important to manage the this data growth . 
+Furthermore, thanks to the rapid development of cloud computing technology and Internet business, IT information is increasing in a exponential pattern, a powerful CMDB system is especially important to manage this data growth. 
 
 ## Origin
 WeCMDB is a configuration management database system originating from IT operation practices in WeBank. 
 
 Distributed architecture has been widely adopted in order to support large amount of user traffic and data in Internet application systems. Compared to traditional system architecture, in the meanwhile, it also brings 3 changes to IT infrastructure: massive servers, frequent rolling deployment of applications and complex dependencies between services. These challeges quickly promote the development of DevOps tools and the new ideas in more intelligent IT operation management.
 
-CMDB, as the core of IT operation tools, working as the single source of truth for information in the entire IT system, is the foundation and prerequisites for IT operation to become automated and intelligent. With a reliable CMDB, IT information ranging from physical layer (including data centers, chassises, positions, servers, network information, etc.), logical layer (IP addresses, architecture information) to application layer (information of business application systems) can all be recorded and managed properly.
+CMDB, as the core of IT operation tools, working as the single source of truth for information in the entire IT system, is the foundation and prerequisite for IT operation to become automated and intelligent. With a reliable CMDB, IT information ranging from physical layer (including data centers, chassises, positions, servers, network information, etc.), logical layer (IP addresses, architecture information) to application layer (information of business application systems) can all be recorded and managed properly.
 
 ## System Architecture
 WeCMDB 1.1 is now released, its architecture is as follows: 
@@ -78,7 +78,7 @@ Please refer to the [WeCMDB Deployment Guide](cmdb-wiki/docs/install/wecmdb_inst
 ## User Manuals
 Please refer to the [WeCMDB Model Guide](cmdb-wiki/docs/manual/wecmdb_model_guide.md) for guide on WeCMDB model.
 
-Please refer to the [WeCMDB User Guide](cmdb-wiki/docs/manual/wecmdb_user_guide.md) on usage and operations.
+Please refer to the [WeCMDB User Guide](cmdb-wiki/docs/manual/wecmdb_user_guide.md) for usage and operations.
 
 ## Developer Documentation
 #### Deploy WeCMDB in Standalone Mode
