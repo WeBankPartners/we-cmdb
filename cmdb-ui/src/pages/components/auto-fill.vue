@@ -405,47 +405,44 @@ export default {
       if (!this.allCiTypes.length || !this.value) {
         return;
       }
-      if (this.value) {
-        this.inputVal = "";
-        this.autoFillArray = JSON.parse(this.value);
-        if (
-          this.autoFillArray[this.autoFillArray.length - 1].type !== "delimiter"
-        ) {
-          this.autoFillArray.push({ type: "delimiter", value: "" });
-        }
-        this.autoFillArray.forEach(_ => {
-          if (_.type === "delimiter") {
-            this.inputVal += _.value;
-          } else {
-            let val = "{ ";
-            let data = JSON.parse(_.value);
-            data.forEach(item => {
-              const ciTypeName = this.ciTypesObj[item.ciTypeId].name;
-              if (item.parentRs) {
-                const refType =
-                  item.parentRs.isReferedFromParent === 1 ? "." : "-";
-                const attrName = this.ciTypeAttrsObj[item.parentRs.attrId].name;
-                if (
-                  this.ciTypeAttrsObj[item.parentRs.attrId].inputType === "ref"
-                ) {
-                  val += `${refType}(${attrName})${ciTypeName} `;
-                } else if (
-                  this.ciTypeAttrsObj[item.parentRs.attrId].inputType ===
-                  "select"
-                ) {
-                  val += `${refType}${attrName} .${item.enumCodeAttr} `;
-                } else {
-                  val += `${refType}${attrName} `;
-                }
-              } else {
-                val += ciTypeName + " ";
-              }
-            });
-            val += "}";
-            this.inputVal += val;
-          }
-        });
+      this.inputVal = "";
+      this.autoFillArray = JSON.parse(this.value);
+      if (
+        this.autoFillArray[this.autoFillArray.length - 1].type !== "delimiter"
+      ) {
+        this.autoFillArray.push({ type: "delimiter", value: "" });
       }
+      this.autoFillArray.forEach(_ => {
+        if (_.type === "delimiter") {
+          this.inputVal += _.value;
+        } else {
+          let val = "{ ";
+          let data = JSON.parse(_.value);
+          data.forEach(item => {
+            const ciTypeName = this.ciTypesObj[item.ciTypeId].name;
+            if (item.parentRs) {
+              const refType =
+                item.parentRs.isReferedFromParent === 1 ? "." : "-";
+              const attrName = this.ciTypeAttrsObj[item.parentRs.attrId].name;
+              if (
+                this.ciTypeAttrsObj[item.parentRs.attrId].inputType === "ref"
+              ) {
+                val += `${refType}(${attrName})${ciTypeName} `;
+              } else if (
+                this.ciTypeAttrsObj[item.parentRs.attrId].inputType === "select"
+              ) {
+                val += `${refType}${attrName} .${item.enumCodeAttr} `;
+              } else {
+                val += `${refType}${attrName} `;
+              }
+            } else {
+              val += ciTypeName + " ";
+            }
+          });
+          val += "}";
+          this.inputVal += val;
+        }
+      });
     }
   }
 };
