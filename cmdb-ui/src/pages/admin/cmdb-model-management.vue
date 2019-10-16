@@ -19,7 +19,7 @@
               </p>
             </Col>
             <Col span="13" offset="1">
-              <span class="filter-title">{{ $("state") }}</span>
+              <span class="filter-title">{{ $t("state") }}</span>
               <Select
                 multiple
                 :max-tag-count="3"
@@ -256,7 +256,7 @@
                 >
               </Select>
             </FormItem>
-            <FormItem :v-html="$t('description')" prop="description">
+            <FormItem :label="$t('description')" prop="description">
               <Input v-model="addNewCITypeForm.description"></Input>
             </FormItem>
             <FormItem :label="$t('icon')">
@@ -917,7 +917,7 @@
       >
         <Input
           v-model="updatedLayerNameValue.code"
-          :placeholder="$t('placeholder_please_input')"
+          :placeholder="$t('input_placeholder')"
         />
       </Modal>
 
@@ -929,7 +929,7 @@
       >
         <Input
           v-model="updatedCINameValue.name"
-          :placeholder="$t('placeholder_please_input')"
+          :placeholder="$t('input_placeholder')"
         />
       </Modal>
       <enumGroupModal
@@ -1252,16 +1252,9 @@ export default {
     genEdge(nodes, from, to) {
       const target = nodes.find(_ => _.ciTypeId === to.referenceId);
       let labels = to.referenceName ? to.referenceName.trim() : "";
-      return (
-        '"' +
-        from.name +
-        '"->' +
-        '"' +
-        target.name.trim() +
-        '"[taillabel="' +
-        labels +
-        '", labeldistance=3];'
-      );
+      return `"${
+        from.name
+      }"->"${target.name.trim()}"[taillabel="${labels}",labeldistance=3];`;
     },
     shadeAll() {
       d3.selectAll("g path")
