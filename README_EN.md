@@ -27,7 +27,7 @@ CMDB, as the core of IT operation tools, working as the single source of truth f
 ## System Architecture
 WeCMDB 1.1 is now released, its architecture is as follows: 
 
-![WeCMDB System Architecture](cmdb-wiki/images/wecmdb_arch_1.png) 
+![WeCMDB System Architecture](cmdb-wiki/images/wecmdb_arch_en.png) 
 
 - WeCMDB 1.0 relies on a CAS server for authentication, while a local user based autentication mode is added in WeCMDB 1.1.
 - WeCMDB can provide data exchange service with APIs.
