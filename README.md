@@ -4,6 +4,8 @@
 ![](https://img.shields.io/badge/language-java-orange.svg)
 ![](https://img.shields.io/badge/language-vue-green.svg)
 
+中文 / [English](README_EN.md)
+
 ## 试用链接
 [点此试用WeCMDB](http://106.53.80.138/cmdb/index.html#/)<br>
 
@@ -24,7 +26,7 @@ CMDB，作为运维工具的核心，提供了全体系IT信息唯一数据源�
 ## 系统架构
 WeCMDB1.1版本已经完成开发，整体架构如下图：
 
-![WeCMDB系统架构](cmdb-wiki/images/wecmdb_arch_1.png) 
+![WeCMDB系统架构](cmdb-wiki/images/wecmdb_arch_cn.png) 
 
 - WeCMDB1.0版本需要CAS服务提供鉴权能力，在WeCMDB1.1版本，已经增加支持本地用户验证模式；
 - WeCMDB通过API对外提供数据交换服务。
