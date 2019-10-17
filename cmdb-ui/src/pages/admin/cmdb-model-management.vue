@@ -428,7 +428,7 @@
                 >
                   <Input v-model="item.form.regularExpressionRule"></Input>
                 </FormItem>
-                <FormItem :label="t('real_type')">
+                <FormItem :label="$t('real_type')">
                   <Input v-model="item.form.propertyType" disabled></Input>
                 </FormItem>
                 <FormItem
@@ -957,6 +957,7 @@
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
 import { addEvent } from "../util/event.js";
+import { formatString } from "../util/format.js";
 import {
   getAllCITypesByLayerWithAttr,
   getAllLayers,
@@ -1427,7 +1428,7 @@ export default {
           let res = await createLayer(payload);
           if (res.status === "OK") {
             this.$Notice.success({
-              title: "Add Layer Success",
+              title: this.$t("add_layer_success"),
               desc: res.message
             });
           }
@@ -1445,7 +1446,7 @@ export default {
       ]);
       if (res.status === "OK") {
         this.$Notice.success({
-          title: "Edit layer name success",
+          title: this.$t("edit_layer_name_success"),
           desc: res.message
         });
         this.initGraph();
@@ -1456,7 +1457,7 @@ export default {
       if (!this.layers[currentIndex - 1]) {
         this.$Notice.warning({
           title: "Warning",
-          desc: "已经是第一层"
+          desc: this.$t("is_first_layer")
         });
         return;
       }
@@ -1464,7 +1465,7 @@ export default {
       let res = await swapLayerPosition(id, targetID);
       if (res.status === "OK") {
         this.$Notice.success({
-          title: "Move Up Layer Success",
+          title: this.$t("move_up_layer_success"),
           desc: res.message
         });
         this.initGraph();
@@ -1475,7 +1476,7 @@ export default {
       if (!this.layers[currentIndex + 1]) {
         this.$Notice.warning({
           title: "Warning",
-          desc: "已经是最后一层"
+          desc: this.$t("is_last_layer")
         });
         return;
       }
@@ -1483,7 +1484,7 @@ export default {
       let res = await swapLayerPosition(id, targetID);
       if (res.status === "OK") {
         this.$Notice.success({
-          title: "Move Down Layer Success",
+          title: this.$t("move_down_layer_success"),
           desc: res.message
         });
         this.initGraph();
@@ -1491,14 +1492,14 @@ export default {
     },
     async deleteLayer(id) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("delete_confirm"),
         "z-index": 1000000,
         onOk: async () => {
           const { status, message, data } = await deleteLayer(id);
 
           if (status === "OK") {
             this.$Notice.success({
-              title: "Delete Layer Success",
+              title: this.$t("delete_layer_success"),
               desc: message
             });
             this.initGraph();
@@ -1513,7 +1514,7 @@ export default {
       let res = await implementCiType(ciTypeId, "revert");
       if (res.status === "OK") {
         this.$Notice.success({
-          title: "Revert ci type success",
+          title: this.$t("revert_ci_type_success"),
           desc: res.message
         });
         this.initGraph();
@@ -1527,7 +1528,7 @@ export default {
       );
       if (res.status === "OK") {
         this.$Notice.success({
-          title: "Revert CI Attr Success",
+          title: this.$t("revert_ci_attribute_success"),
           desc: res.message
         });
         this.initGraph();
@@ -1540,7 +1541,7 @@ export default {
       );
       if (res.status === "OK") {
         this.$Notice.success({
-          title: "Edit ci type name success",
+          title: this.$t("update_ci_name_success"),
           desc: res.message
         });
         this.initGraph();
@@ -1548,7 +1549,7 @@ export default {
     },
     async deleteCI(id, status) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("delete_confirm"),
         "z-index": 1000000,
         onOk: async () => {
           let res =
@@ -1607,7 +1608,7 @@ export default {
       });
       if (res.status === "OK") {
         this.$Notice.success({
-          title: "Save CI Successful",
+          title: this.$t("save_ci_success"),
           desc: res.message
         });
         this.initGraph();
@@ -1620,7 +1621,7 @@ export default {
           let res = await createNewCIType(payload);
           if (res.status === "OK") {
             this.$Notice.success({
-              title: "Add New CI Type Success",
+              title: this.$t("add_ci_type_success"),
               desc: res.message
             });
             this.resetAddNewCITypeForm();
@@ -1654,7 +1655,7 @@ export default {
           });
       if (res.status === "OK") {
         this.$Notice.success({
-          title: "Apply CI Success",
+          title: this.$t("apply_ci_success"),
           desc: res.message
         });
         this.initGraph();
@@ -1667,7 +1668,7 @@ export default {
       if (!this.currentSelectedCIChildren[currentIndex - 1]) {
         this.$Notice.warning({
           title: "Warning",
-          desc: "已经是第一个"
+          desc: this.$t("is_first_one")
         });
         return;
       }
@@ -1680,7 +1681,7 @@ export default {
       );
       if (res.status === "OK") {
         this.$Notice.success({
-          title: "Move up CI attr Success",
+          title: this.$t("move_up_ci_attr_success"),
           desc: res.message
         });
         this.initGraph();
@@ -1693,7 +1694,7 @@ export default {
       if (!this.currentSelectedCIChildren[currentIndex + 1]) {
         this.$Notice.warning({
           title: "Warning",
-          desc: "已经是最后一个"
+          desc: this.$t("is_last_one")
         });
         return;
       }
@@ -1706,7 +1707,7 @@ export default {
       );
       if (res.status === "OK") {
         this.$Notice.success({
-          title: "Move Down CI attr Success",
+          title: this.$t("move_down_ci_attr_success"),
           desc: res.message
         });
         this.initGraph();
@@ -1727,7 +1728,7 @@ export default {
       let res = await createNewCIAttr(this.currentSelectedCI.ciTypeId, payload);
       if (res.status === "OK") {
         this.$Notice.success({
-          title: "Add New CI Attr Success",
+          title: this.$t("add_ci_attr_success"),
           desc: res.message
         });
         this.resetAddAttrForm();
@@ -1763,7 +1764,7 @@ export default {
       );
       if (res.status === "OK") {
         this.$Notice.success({
-          title: "Save CI Attr Success",
+          title: this.$t("save_ci_attr_success"),
           desc: res.message
         });
         this.initGraph();
@@ -1791,7 +1792,7 @@ export default {
         ]);
         if (applyRes.status === "OK") {
           this.$Notice.success({
-            title: "Apply CI Attr Success",
+            title: this.$t("apply_ci_attr_success"),
             desc: applyRes.message
           });
           this.initGraph();
@@ -1802,14 +1803,14 @@ export default {
     handleNewCITypeUploadImgSuccess(res, file) {
       if (res.statusCode === "OK") {
         this.$Notice.success({
-          title: "Icon upload successful",
+          title: this.$t("icon_upload_success"),
           desc: res.message
         });
 
         this.addNewCITypeForm.imageFileId = res.data.id;
       } else {
         this.$Notice.warning({
-          title: "Icon upload failed",
+          title: this.$t("icon_upload_failed"),
           desc: res.message
         });
       }
@@ -1817,28 +1818,27 @@ export default {
     handleUploadImgSuccess(res, file) {
       if (res.statusCode === "OK") {
         this.$Notice.success({
-          title: "Icon upload successful",
+          title: this.$t("icon_upload_success"),
           desc: res.message
         });
         this.initGraph(this.selectedStatus);
       } else {
         this.$Notice.warning({
-          title: "Icon upload failed",
+          title: this.$t("icon_upload_failed"),
           desc: res.message
         });
       }
     },
     handleFormatError(file) {
       this.$Notice.warning({
-        title: "The file format is incorrect",
-        desc:
-          "File format of " + file.name + " is incorrect, please select png."
+        title: this.$t("file_format_incorrect"),
+        desc: formatString(this.$t("file_format_incorrect_message"), file.name)
       });
     },
     handleMaxSize(file) {
       this.$Notice.warning({
         title: "Exceeding file size limit",
-        desc: "File  " + file.name + " is too large, no more than 100kb."
+        desc: formatString(this.$t("file_oversize_message"), file.name)
       });
     },
     async getAllCITypesList() {
