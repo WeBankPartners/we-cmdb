@@ -1305,8 +1305,14 @@ public class CiServiceImpl implements CiService {
             // TODO, enable Bizkey & status logic should be removed
             enableBiz = checkBizEnable(intQueryReq);
             logger.info("enable biz:{}", enableBiz);
+            
+            StopWatch watch = new StopWatch();
+            watch.start();
 
             buildIntQuery(null, null, intQueryDto, query, selFieldMap, enableBiz, null);
+            
+            watch.split();
+            logger.info("integrate query build int query take: {}, isSelRowCount:{}",watch.getTime(), isSelRowCount);
 
             validateIntQueryFilter(intQueryReq, selFieldMap, enableBiz);
             List<Expression> selections = new LinkedList<>();
@@ -1363,7 +1369,14 @@ public class CiServiceImpl implements CiService {
                 JpaQueryUtils.applyPaging(intQueryReq.isPaging(), intQueryReq.getPageable(), typedQuery);
             }
 
+            watch.split();
+            logger.info("integrate query prepare query take: {}, isSelRowCount:{}",watch.getTime(),isSelRowCount);
+            
             List resultList = typedQuery.getResultList();
+
+            watch.stop();
+            logger.info("integrate query actual query take: {}, isSelRowCount:{}",watch.getTime(), isSelRowCount);
+            
             return resultList;
         } finally {
             priEntityManager.close();
@@ -1853,6 +1866,9 @@ public class CiServiceImpl implements CiService {
         if (logger.isDebugEnabled()) {
             logger.debug("Got adhoc integrate request:{}", JsonUtil.toJsonString(adhocQueryRequest));
         }
+        
+        StopWatch watch = new StopWatch();
+        watch.start();
 
         IntegrationQueryDto intQueryDto = adhocQueryRequest.getCriteria();
         QueryRequest queryRequest = adhocQueryRequest.getQueryRequest();
@@ -1866,11 +1882,18 @@ public class CiServiceImpl implements CiService {
             throw new ServiceException("Failed to clone int query filters.", e);
         }
 
+        watch.split();
+        logger.info("adhoc integrate query before totalcount query takes: {}",watch.getTime());
         List resultList = doIntegrateQuery(intQueryDto, queryRequest, true, selectedFields);
         int totalCount = convertResultToInteger(resultList);
+        watch.split();
+        logger.info("adhoc integrate totalcount query takes: {}",watch.getTime());
+        
 
         queryRequest.setFilters(srcFilters);
         resultList = doIntegrateQuery(intQueryDto, queryRequest, false, selectedFields);
+        watch.split();
+        logger.info("adhoc integrate real data query takes: {}",watch.getTime());
 
         List<Expression> selections = new LinkedList<>();
         selectedFields.forEach(field -> {
@@ -1900,6 +1923,8 @@ public class CiServiceImpl implements CiService {
         if (logger.isDebugEnabled()) {
             logger.debug("Return integrate response:{}", JsonUtil.toJsonString(response));
         }
+        watch.stop();
+        logger.info("adhoc integrate render response data takes: {}",watch.getTime());
         return response;
     }
 
