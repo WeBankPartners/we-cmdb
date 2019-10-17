@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.webank.cmdb.domain.AdmBasekeyCode;
+import com.webank.cmdb.domain.AdmCiTypeAttr;
 
 @CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "admCiTypeAttr")
 @Cacheable
@@ -69,5 +70,8 @@ public interface AdmBasekeyCodeRepository extends JpaRepository<AdmBasekeyCode, 
 
     @Query(value = "select * from adm_basekey_code where id_adm_basekey_cat = :catId and :fieldName = :value", nativeQuery = true)
     List<AdmBasekeyCode> findByCatIdAndFieldName(Integer catId, String fieldName, Object value);
+
+    //for cache purpose
+    AdmBasekeyCode getOne(Integer id);
 
 }

@@ -67,4 +67,8 @@ public interface AdmCiTypeAttrRepository extends JpaRepository<AdmCiTypeAttr, In
     List<AdmCiTypeAttr> findByIdAdmCiTypeAttrIn(List<Integer> ids);
 
     List<AdmCiTypeAttr> findByCiTypeIdAndIsRefreshable(int ciTypeId, int isRefreshable);
+    
+    //for cache purpose
+    AdmCiTypeAttr getOne(Integer id);
+
 }
