@@ -12,7 +12,7 @@
       @on-visible-change="visibleChangeHandler"
       width="300"
       :mask-closable="false"
-      title="选择编排"
+      :title="$t('select_orchestration')"
       @on-cancel
       @on-ok="saveOrchestration"
     >
