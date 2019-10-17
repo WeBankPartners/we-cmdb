@@ -80,7 +80,7 @@ export const formatDataPermissionTree = (
                       }
                     }
                   },
-                  "增"
+                  this.$t("permission_management_data_creation")
                 ),
                 h(
                   "Tag",
@@ -97,7 +97,7 @@ export const formatDataPermissionTree = (
                       }
                     }
                   },
-                  "删"
+                  this.$t("permission_management_data_removal")
                 ),
                 h(
                   "Tag",
@@ -114,7 +114,7 @@ export const formatDataPermissionTree = (
                       }
                     }
                   },
-                  "改"
+                  this.$t("permission_management_data_modification")
                 ),
                 h(
                   "Tag",
@@ -131,7 +131,7 @@ export const formatDataPermissionTree = (
                       }
                     }
                   },
-                  "查"
+                  this.$t("permission_management_data_enquiry")
                 ),
                 h(
                   "Tag",
@@ -148,7 +148,7 @@ export const formatDataPermissionTree = (
                       }
                     }
                   },
-                  "执"
+                  this.$t("permission_management_data_execution")
                 ),
                 h(
                   "Tag",
@@ -165,7 +165,7 @@ export const formatDataPermissionTree = (
                       }
                     }
                   },
-                  "授"
+                  this.$t("permission_management_data_empower")
                 )
               ]
             )
