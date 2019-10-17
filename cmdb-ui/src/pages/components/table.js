@@ -387,7 +387,7 @@ export default {
                           this.isShowHiddenFilters = true;
                         }}
                       >
-                        更多条件
+                        {this.$t("more_filter")}
                       </Button>
                     </FormItem>
                   ) : (
@@ -401,7 +401,7 @@ export default {
                           this.isShowHiddenFilters = false;
                         }}
                       >
-                        更少条件
+                        {this.$t("less_filter")}
                       </Button>
                     </FormItem>
                   ))}
@@ -412,12 +412,12 @@ export default {
                     icon="ios-search"
                     onClick={() => this.handleSubmit("form")}
                   >
-                    搜索
+                    {this.$t("search")}
                   </Button>
                 </FormItem>
                 <FormItem style="position: relative; bottom: -22px;">
                   <Button icon="md-refresh" onClick={() => this.reset("form")}>
-                    重置
+                    {this.$t("reset")}
                   </Button>
                 </FormItem>
               </div>
@@ -539,7 +539,8 @@ export default {
           const r = new RegExp(pattern, flags);
           if (!r.test(v)) {
             this.$Message.warning(
-              `请输入符合以下正则规则的内容：${regularExpressionRule}`
+              this.$t("please_input_right_regular_rule_content") +
+                regularExpressionRule
             );
           }
         }
