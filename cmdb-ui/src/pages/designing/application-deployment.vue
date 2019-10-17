@@ -2,7 +2,7 @@
   <div>
     <Row class="artifact-management">
       <Col span="6">
-        <span style="margin-right: 10px">系统设计</span>
+        <span style="margin-right: 10px">{{ $t("system_design") }}</span>
         <Select
           filterable
           @on-change="onSystemDesignSelect"
@@ -19,7 +19,7 @@
         </Select>
       </Col>
       <Col span="6" offset="1">
-        <span style="margin-right: 10px">环境类型</span>
+        <span style="margin-right: 10px">{{ $t("environmental_type") }}</span>
         <Select
           @on-change="onEnvSelect"
           v-model="env"
@@ -32,7 +32,7 @@
         </Select>
       </Col>
       <Col span="3" offset="1">
-        <Button type="info" @click="querySysTree">查询</Button>
+        <Button type="info" @click="querySysTree">{{ $t("query") }}</Button>
       </Col>
     </Row>
     <hr style="margin: 10px 0" />
@@ -42,7 +42,11 @@
       :closable="false"
       @on-click="handleTabClick"
     >
-      <TabPane label="应用逻辑图" name="logic-graph" :index="1">
+      <TabPane
+        :label="$t('application_logic_diagram')"
+        name="logic-graph"
+        :index="1"
+      >
         <Alert show-icon closable v-if="isDataChanged">
           Data has beed changed, click Reload button to reload graph.
           <Button slot="desc" @click="reloadHandler">Reload</Button>
@@ -51,11 +55,15 @@
         <div class="graph-container" id="graph">
           <Spin size="large" fix v-if="spinShow">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-            <div>加载中...</div>
+            <div>{{ $t("loading") }}</div>
           </Spin>
         </div>
       </TabPane>
-      <TabPane label="应用树状逻辑图" name="logic-tree-graph" :index="2">
+      <TabPane
+        :label="$t('application_logic_tree_diagram')"
+        name="logic-tree-graph"
+        :index="2"
+      >
         <Alert show-icon closable v-if="isDataChanged">
           Data has beed changed, click Reload button to reload graph.
           <Button slot="desc" @click="reloadHandler">Reload</Button>
@@ -64,11 +72,15 @@
         <div class="graph-container" id="graphTree">
           <Spin size="large" fix v-if="treeSpinShow">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-            <div>加载中...</div>
+            <div>{{ $t("loading") }}</div>
           </Spin>
         </div>
       </TabPane>
-      <TabPane label="物理部署图" name="physicalGraph" :index="3">
+      <TabPane
+        :label="$t('physical_deployment_diagram')"
+        name="physicalGraph"
+        :index="3"
+      >
         <div id="physicalGraph">
           <PhysicalGraph
             v-if="physicalGraphData.length"
@@ -78,7 +90,7 @@
           ></PhysicalGraph>
           <Spin size="large" fix v-if="physicalSpin">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-            <div>加载中...</div>
+            <div>{{ $t("loading") }}</div>
           </Spin>
         </div>
       </TabPane>
@@ -452,7 +464,7 @@ export default {
       if (!this.systemDesignVersion || !this.env) {
         this.$Notice.warning({
           title: "Warning",
-          desc: "请先选择系统设计和环境类型"
+          desc: this.$t("please_select_system_design_and_environmental_type")
         });
         return;
       }
@@ -583,7 +595,7 @@ export default {
       } = await startProcessInstancesWithCiDataInbatch(payload);
       if (status === "OK") {
         this.$Notice.success({
-          title: "开始执行",
+          title: this.$t("start_execution"),
           desc: message
         });
       }
@@ -976,7 +988,7 @@ export default {
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("delete_confirm"),
         "z-index": 1000000,
         onOk: async () => {
           const payload = {
@@ -1217,7 +1229,7 @@ export default {
       if (this.env === "" || this.systemDesignVersion === "") {
         this.$Notice.warning({
           title: "Warning",
-          desc: "请先选择系统设计和环境类型"
+          desc: this.$t("please_select_system_design_and_environmental_type")
         });
         return;
       }
