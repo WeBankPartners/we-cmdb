@@ -8,7 +8,9 @@
           @input="inputHandler"
           :value="inputVal"
         ></textarea>
-        <span class="wecube-error-message">请选择非引用属性</span>
+        <span class="wecube-error-message">{{
+          $t("please_select_without_refrence")
+        }}</span>
       </div>
       <div slot="content">
         <div v-if="rootCiType" class="attr-ul">
@@ -271,7 +273,7 @@ export default {
       }
       if (!(v.data === "." || v.data === "-")) {
         this.$Message.error({
-          content: "请输入正确的操作符 . 或 -"
+          content: this.$t("please_input_legitimate_character")
         });
         this.$refs.textarea.value = this.inputVal;
       } else {
