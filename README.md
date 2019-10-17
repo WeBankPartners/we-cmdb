@@ -94,6 +94,10 @@ WeCMDB使用Java和React JS进行开发，数据存储于MySQL，并依赖Tomcat
 
 请参考以下文档进行开发环境配置[WeCMDB开发环境配置](cmdb-wiki/docs/developer/wecmdb_developer_guide.md)
 
+#### WeCMDB代码贡献指引
+关于WeCMDB代码贡献， 请查看以下文档
+[WeCMDB代码贡献指引手册](cmdb-wiki/docs/developer/code_contributors_submit_guide.md)
+
 ## API说明
 关于WeCMDB的API说明， 请查看以下文档
 [WeCMDB API手册](cmdb-wiki/docs/api/wecmdb_api_guide.md)
