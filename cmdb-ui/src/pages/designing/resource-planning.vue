@@ -182,17 +182,31 @@ export default {
       });
     },
     genDOT(idcData, linkData) {
-      let children = idcData.children || [];
-      let links = linkData || [];
-      let fsize = 16;
-      let width = 16;
-      let height = 12;
-      let dots = [
+      const links = linkData || [];
+      const fsize = 16;
+      const width = 16;
+      const height = 12;
+      const dots = [
         "digraph G {",
         "rankdir=TB nodesep=0.5;",
-        'node [shape="box", fontsize=' + fsize + ', labelloc="t", penwidth=2];',
-        'size = "' + width + "," + height + '";'
+        `node [shape="box", fontsize="${fsize}", labelloc="t", penwidth="2"];`,
+        `subgraph cluster_${idcData.data.guid} {`,
+        `style="filled";color="${colors[0]}";`,
+        `label="${idcData.data.name ||
+          idcData.data.description ||
+          idcData.data.code}";`,
+        `size="${width},${height}";`,
+        this.genChildren(idcData),
+        this.genLink(links),
+        "}}"
       ];
+      return dots.join("");
+    },
+    genChildren(idcData) {
+      const width = 16;
+      const height = 12;
+      let dots = [];
+      const children = idcData.children || [];
       let layers = new Map();
       children.forEach(zone => {
         if (layers.has(zone.data.zone_layer.value)) {
@@ -203,42 +217,46 @@ export default {
           layers.set(zone.data.zone_layer.value, layer);
         }
       });
-      layers.forEach(layer => {
-        dots.push('{rank = "same";');
-        let n = layers.size;
-        let lg = (height - 3) / n;
-        let ll = (width - 0.5 * layer.length) / layer.length;
-        layer.forEach(zone => {
-          let label;
-          if (
-            zone.data.code &&
-            zone.data.code !== null &&
-            zone.data.code !== ""
-          ) {
-            label = zone.data.code;
-          } else {
-            label = zone.data.key_name;
-          }
-          dots.push(
-            `g_${zone.guid}` +
-              '[id="g_' +
-              zone.guid +
-              '", label="' +
-              label +
-              '", width=' +
-              ll +
-              ",height=" +
-              lg +
-              "];"
-          );
+      if (layers.size) {
+        layers.forEach(layer => {
+          dots.push('{rank = "same";');
+          let n = layers.size;
+          let lg = (height - 3) / n;
+          let ll = (width - 0.5 * layer.length) / layer.length;
+          layer.forEach(zone => {
+            let label;
+            if (
+              zone.data.code &&
+              zone.data.code !== null &&
+              zone.data.code !== ""
+            ) {
+              label = zone.data.code;
+            } else {
+              label = zone.data.key_name;
+            }
+            dots.push(
+              `g_${zone.guid}[id="g_${
+                zone.guid
+              }", label="${label}", width=${ll},height=${lg}];`
+            );
+          });
+          dots.push("}");
         });
-        dots.push("}");
-      });
-      links.forEach(link => {
-        dots.push(link.azone + "->" + link.bzone + '[arrowhead="none"];');
-      });
-      dots.push("}");
+      } else {
+        dots.push(
+          `g_${idcData.data.guid}[label=" ";color="${
+            colors[0]
+          }";width="${width - 0.5}";height="${height - 3}"]`
+        );
+      }
       return dots.join("");
+    },
+    genLink(links) {
+      let result = "";
+      links.forEach(link => {
+        result += `${link.azone}->${link.bzone}[arrowhead="none"];`;
+      });
+      return result;
     },
     renderGraph(idcData) {
       let nodesString = this.genDOT(
@@ -259,7 +277,7 @@ export default {
       children.forEach(zone => {
         d3.select(`#g_${zone.guid}`)
           .select("polygon")
-          .attr("fill", colors[0]);
+          .attr("fill", colors[1]);
         if (Array.isArray(zone.children)) {
           let points = d3
             .select(`#g_${zone.guid}`)
@@ -360,7 +378,7 @@ export default {
               d3.select("#graphBig")
                 .select(`#g_${zone.guid}`)
                 .select("polygon")
-                .attr("fill", colors[0]);
+                .attr("fill", colors[1]);
               if (Array.isArray(zone.children)) {
                 let points = d3
                   .select(`#g_${zone.guid}`)
@@ -396,7 +414,7 @@ export default {
       let n = node.children.length;
       let w, h, mgap, fontsize, strokewidth;
       let rx, ry, tx, ty, g;
-      let color = colors[deep];
+      let color = colors[deep + 1];
       if (pw > ph * 1.2) {
         if (pw / n > ph - tfsize) {
           mgap = (ph - tfsize) * 0.04;
@@ -821,6 +839,7 @@ export default {
       this.queryCiData();
     },
     async queryCiData() {
+      this.getAllIdcData();
       this.payload.pageable.pageSize = 10;
       this.payload.pageable.startIndex = 0;
       this.tabList.forEach(ci => {
@@ -1007,7 +1026,7 @@ export default {
   margin-right: 10px;
 }
 .graph-list {
-  overflow-x: scroll;
+  overflow-x: auto;
   display: flex;
 }
 .graph-list > div {
