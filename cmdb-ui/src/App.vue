@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <div class="content-container">
+    <div class="app-content-container">
       <BackTop :height="100" :bottom="100" />
       <router-view :key="$route.path" />
     </div>
@@ -16,7 +16,7 @@
   height: 100%;
   min-width: 1280px;
 
-  .content-container {
+  .app-content-container {
     height: 100%;
   }
 }
