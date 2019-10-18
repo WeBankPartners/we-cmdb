@@ -80,6 +80,12 @@ INSERT INTO `invoke_design` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_
 INSERT INTO `invoke_sequence_design` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_date`, `created_by`, `created_date`, `key_name`, `state`, `fixed_date`, `code`, `description`, `orchestration`, `biz_key`, `name`, `service_design`) VALUES
 	('0006_0000000001', NULL, '0006_0000000001', 'admin', '2019-07-29 03:38:01', 'admin', '2019-07-24 15:13:03', 'EDP-CONSOLE-APP-SER1-MANAGE', 34, '', 'MANAGE', '管理', 223, 'rxA3j9uJ2BD', '管理', '0004_0000000004');
 
+INSERT INTO `invoke_sequence_design$invoke_design_sequence` (`id`, `from_guid`, `to_guid`, `seq_no`) VALUES
+    ('1','0006_0000000001','0005_0000000009',1),
+    ('2','0006_0000000001','0005_0000000007',3),
+    ('3','0006_0000000001','0005_0000000008',2),
+    ('4','0006_0000000001','0005_0000000006',4);
+
 INSERT INTO `ip_addr` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_date`, `created_by`, `created_date`, `key_name`, `state`, `fixed_date`, `code`, `description`, `orchestration`, `biz_key`, `network_segment`, `type`, `used_record`) VALUES
 	('0014_0000000001', NULL, '0014_0000000001', 'admin', '2019-07-24 11:41:45', 'admin', '2019-07-24 11:40:31', '10.0.16.1/24', 37, '', '10.0.16.1', 'DMZ proxy 网关', NULL, NULL, '0021_0000000006', 172, '0014_0000000001_0014_0000000001_0014_0000000001_10.0.16.0/24_VPC子网网段'),
 	('0014_0000000002', NULL, '0014_0000000002', 'admin', '2019-07-24 11:47:11', 'admin', '2019-07-24 11:47:10', '10.0.16.2/24', 37, '', '10.0.16.2', 'DMZ proxy 可用IP', NULL, NULL, '0021_0000000006', 172, '0014_0000000002_0014_0000000002_0014_0000000002_0014_0000000002'),
