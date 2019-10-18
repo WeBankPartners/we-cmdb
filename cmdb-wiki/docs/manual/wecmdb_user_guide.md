@@ -1,8 +1,8 @@
  # WeCMDB User Guide
-
+[toc]
 ## 主菜单介绍
 ![主页面](images/cmdb_main.png)
-CMDB的功能分为三大菜单：系统、数据管理、数据查询。下面详细介绍每个菜单下的每个功能。
+CMDB的功能分为四大菜单：系统、数据管理、数据查询，视图查询。下面详细介绍每个菜单下的每个功能。
 
 ## 系统
 系统管理包括CMDB模型管理、日志查询、基础数据管理、系统权限管理。
@@ -97,3 +97,44 @@ CMDB模型管理页面以图形化方式展示了各CI之间的关系，并可�
 ### 枚举数据查询
 1. 枚举数据查询页面可以查询并对公有枚举/私有枚举进行查询。
 ![枚举数据查询](images/enum_enquiry.png)
+
+##视图管理
+
+###IDC规划设计
+1. 选择IDC，展示该IDC的规划设计图，滚动鼠标可放大缩小设计图。
+![IDC规划设计图](images/idc_planning_design_diagram.png)
+
+1. 选择"IDC规划设计图"卡片旁边的任一个卡片，对该IDC下的任一规划项进行设计。
+![IDC规划设计项](images/idc_planning_design_items.png)
+
+###IDC资源规划
+1. 选择IDC，展示该IDC的资源规划图，滚动鼠标可放大缩小规划图。
+![IDC资源规划图](images/idc_resource_planning_diagram.png)
+
+1. 选择"IDC资源规划图"卡片旁边的任一个卡片，对该IDC下的任一资源进行规划。
+![IDC资源规划项](images/idc_resource_planning_items.png)
+
+###应用架构设计
+1. 选择系统设计，展示该系统设计的应用架构设计图，滚动鼠标可放大缩小设计图。
+![应用架构设计图](images/app_arch_design_diagram.png)
+2. 选择设计图右边的调用时序设计，点击确定，列出该系统设计的时序调用步骤，按左右箭头，可依次查看应用间的调用关系。
+![应用架构设计时序](images/app_arch_design_invoke_seq.png)
+   
+3. 选择"应用架构设计图"卡片旁边的"物理部署图"，浏览该系统设计的物理部署情况。
+![物理部署图](images/app_phisical_deploy_diagram.png)
+
+4. 选择"物理部署图"右边任一卡片，对该系统设计下的任一配置项进行设计，如时序设计：
+![调用时序设计](images/invoke_seq_design.png)
+
+###应用部署设计
+1. 选择系统设计，展示该系统设计的应用部署设计图，滚动鼠标可放大缩小设计图。
+![应用部署设计图](images/app_deploy_design_diagram.png)
+
+2. 选择"应用部署设计图"卡片旁边的"应用树状逻辑图",展示该系统设计应用部署的树状视图，滚动鼠标可放大缩小视图。
+![应用树状逻辑图](images/app_deploy_design_tree.png)
+
+3. 选择"应用树状逻辑图"卡片旁边的"物理部署图",展示该系统设计的应用部署图，滚动鼠标可放大缩小视图。
+![物理部署图](images/app_deploy_design_physical.png)
+
+4. 选择"物理部署图"右边任一卡片,对该系统设计下的任一配置项进行配置：
+![应用部署设计项](images/app_deploy_design_items.png)
