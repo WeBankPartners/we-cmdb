@@ -82,7 +82,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         return userAuthority.getPermittedData(action);
     }
 
-    @Cacheable
+    @Cacheable("authorizationService-getUserAuthority")
     private UserCiTypeAuthority getUserAuthority(int ciTypeId) {
         String username = getCurrentUsername();
         List<AdmRole> roles = userRepository.findRolesByUserName(username);

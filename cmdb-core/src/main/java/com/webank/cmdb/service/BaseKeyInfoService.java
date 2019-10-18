@@ -46,12 +46,12 @@ public interface BaseKeyInfoService extends CmdbService {
 
     List<CategoryDto> listCommonCats();
 
-    @Cacheable
+    @Cacheable("baseKeyInfoService-listCiTypeCats")
     List<CategoryDto> listCiTypeCats(int ciTypeId);
 
-    @Cacheable
+    @Cacheable("baseKeyInfoService-getCode-codeId")
     CatCodeDto getCode(int CodeId);
 
-    @Cacheable
+    @Cacheable("baseKeyInfoService-getCode-catId_code")
     CatCodeDto getCode(int catId, String code);
 }

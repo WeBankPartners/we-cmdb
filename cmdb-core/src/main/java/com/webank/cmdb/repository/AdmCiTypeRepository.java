@@ -13,7 +13,6 @@ import org.springframework.data.repository.query.Param;
 import com.webank.cmdb.domain.AdmCiType;
 
 @CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "admCiTypeRepository")
-@Cacheable
 public interface AdmCiTypeRepository extends JpaRepository<AdmCiType, Integer> {
     List<AdmCiType> findAll();
 
@@ -107,6 +106,7 @@ public interface AdmCiTypeRepository extends JpaRepository<AdmCiType, Integer> {
     boolean existsByName(String name);
     
     //for cache
+    @Cacheable("ciType-findById")
     @Override
     Optional<AdmCiType> findById(Integer id);
 }
