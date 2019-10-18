@@ -89,7 +89,7 @@ export default {
           placeholder: "catTypeName"
         },
         {
-          title: this.$t("table_enum_groud"),
+          title: this.$t("table_enum_group"),
           key: "groupCodeId",
           inputKey: "groupCodeId",
           searchSeqNo: 5,
