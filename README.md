@@ -24,17 +24,15 @@ CMDB，作为运维工具的核心，提供了全体系IT信息唯一数据源�
 到逻辑层（IP、系统架构信息），到应用层（业务应用系统信息）被完整的记录并管理起来。
 
 ## 系统架构
-WeCMDB1.1版本已经完成开发，整体架构如下图：
+整体架构如下图：
 
 ![WeCMDB系统架构](cmdb-wiki/images/wecmdb_arch_cn.png) 
 
-- WeCMDB1.0版本需要CAS服务提供鉴权能力，在WeCMDB1.1版本，已经增加支持本地用户验证模式；
-- WeCMDB通过API对外提供数据交换服务。
 
 ## 简介
 WeCMDB是集中配置数据中心，管理IT各层面组件及组件关系信息。同时与自动化运维管理工具紧密相联，支持运维管理工具及流程的运作，发挥配置信息的价值，同时依赖这些工具、流程保证数据准确性。
 
-WeCMDB具备以下特点：
+**WeCMDB具备以下特点：**
 
 - 配置模型，动态扩展
 	
@@ -65,6 +63,9 @@ WeCMDB具备以下特点：
 
 	包括配置信息管理、基础配置查询、综合查询管理、综合查询接口配置。
 
+- 视图管理功能
+    包括IDC规划设计、IDC资源规划、应用架构设计、应用部署设计。
+
 - 系统管理功能
 
 	包括权限管理（角色管理，用户角色管理， 数据权限， 菜单管理）。
@@ -72,37 +73,37 @@ WeCMDB具备以下特点：
 ## 快速入门
 WeCMDB常规容器化部署。
 
-如何编译WeCMDB，请查看以下文档
+如何编译WeCMDB，请查看文档
 [WeCMDB编译文档](cmdb-wiki/docs/install/wecmdb_compile_guide.md)
 
-如何安装WeCMDB， 请查看以下文档
+如何安装WeCMDB， 请查看文档
 [WeCMDB部署文档](cmdb-wiki/docs/install/wecmdb_install_guide.md)
 
 ## 用户手册
-关于WeCMDB模型说明， 请查看以下文档
+关于WeCMDB模型说明， 请查看文档
 [WeCMDB 模型说明手册](cmdb-wiki/docs/manual/wecmdb_model_guide.md)
 
-关于WeCMDB的使用和操作说明， 请查看以下文档
+关于WeCMDB的使用和操作说明， 请查看文档
 [WeCMDB用户手册](cmdb-wiki/docs/manual/wecmdb_user_guide.md)
 
 ## 开发者文档
-#### WeCMDB快速本地启动
-[WeCMDB快速本地启动环境配置](cmdb-wiki/docs/developer/wecmdb_local_standalone_guide.md)
+**WeCMDB快速本地启动**
+如何本地快速体验，请查看文档[WeCMDB快速本地启动环境配置](cmdb-wiki/docs/developer/wecmdb_local_standalone_guide.md)
 
-#### WeCMDB常规环境搭建
-WeCMDB使用Java和React JS进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
+**WeCMDB常规环境搭建**
+WeCMDB使用Java和Vue进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
 
-请参考以下文档进行开发环境配置[WeCMDB开发环境配置](cmdb-wiki/docs/developer/wecmdb_developer_guide.md)
+请参考文档进行开发环境配置[WeCMDB开发环境配置](cmdb-wiki/docs/developer/wecmdb_developer_guide.md)
 
-#### WeCMDB代码贡献指引
-关于WeCMDB代码贡献， 请查看以下文档
-[WeCMDB代码贡献指引手册](cmdb-wiki/docs/developer/code_contributors_submit_guide.md)
+**WeCMDB代码贡献指引**
+关于WeCMDB代码贡献， 请查看文档
+[WeCMDB代码贡献指引](cmdb-wiki/docs/developer/code_contributors_submit_guide.md)
 
 ## API说明
-关于WeCMDB的API说明， 请查看以下文档
+关于WeCMDB的API说明， 请查看文档
 [WeCMDB API手册](cmdb-wiki/docs/api/wecmdb_api_guide.md)
 
-## License
+## 版权声明
 WeCMDB是基于 Apache License 2.0 协议， 详情请参考
 [LICENSE](LICENSE)
 
