@@ -44,6 +44,7 @@ import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.exception.InvalidArgumentException;
 import com.webank.cmdb.exception.ServiceException;
 import com.webank.cmdb.repository.StaticEntityRepository;
+import com.webank.cmdb.service.impl.AdmCodeValueService;
 import com.webank.cmdb.util.ClassUtils;
 import com.webank.cmdb.util.JpaQueryUtils;
 import com.webank.cmdb.util.Pageable;
@@ -520,7 +521,8 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
     @Transactional
     @Override
     public int applyCiType(AdmCiType admCiType) {
-        String sql = admCiType.genCreateCiTypeWithDefaultAttrSQL();
+//        String sql = admCiType.genCreateCiTypeWithDefaultAttrSQL();
+        String sql = null;
         if (Strings.isNullOrEmpty(sql))
             return 0;
         if (logger.isDebugEnabled()) {
@@ -538,9 +540,8 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
     @Transactional
     @Override
     public void createDefaultCiTypeAttrs(AdmCiType admCiType) {
-        for (AdmCiTypeAttr attr : admCiType.retrieveDefaultAdmCiTypeAttrs()) {
-            create(attr);
-        }
+        String code = "DefaultCiTypeAttrsSQL";
+        String sql = new AdmCodeValueService().getValueByCode(code);
+        entityManager.createNativeQuery(sql).executeUpdate();
     }
-
 }
