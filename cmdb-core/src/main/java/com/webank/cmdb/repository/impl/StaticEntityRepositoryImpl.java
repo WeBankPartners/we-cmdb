@@ -540,8 +540,8 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
     @Transactional
     @Override
     public void createDefaultCiTypeAttrs(AdmCiType admCiType) {
-        String code = "DefaultCiTypeAttrsSQL";
-        String sql = new AdmCodeValueService().getValueByCode(code);
-        entityManager.createNativeQuery(sql).executeUpdate();
+        String sql = new AdmCodeValueService().getValueByCode("DefaultCiTypeAttrsSQL");
+        String replace = sql.replace("$", admCiType.getIdAdmCiType().toString());
+        entityManager.createNativeQuery(replace).executeUpdate();
     }
 }

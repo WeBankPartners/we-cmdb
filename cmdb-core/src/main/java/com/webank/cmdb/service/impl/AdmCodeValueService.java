@@ -26,8 +26,7 @@ public class AdmCodeValueService {
 
     private void getMap() {
         CodeValueRepository bean = SpringUtils.getBean(CodeValueRepository.class);
-        @SuppressWarnings("unchecked")
-        List<AdmCodeValue> resultList = codeValueRepository.findAll();
+        List<AdmCodeValue> resultList = bean.findAll();
         resultList.forEach(c -> {
             codeValue.put(c.getCode(), c.getValue());
         });
