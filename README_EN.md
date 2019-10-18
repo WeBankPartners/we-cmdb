@@ -25,12 +25,9 @@ Distributed architecture has been widely adopted in order to support large amoun
 CMDB, as the core of IT operation tools, working as the single source of truth for information in the entire IT system, is the foundation and prerequisite for IT operation to become automated and intelligent. With a reliable CMDB, IT information ranging from physical layer (including data centers, chassises, positions, servers, network information, etc.), logical layer (IP addresses, architecture information) to application layer (information of business application systems) can all be recorded and managed properly.
 
 ## System Architecture
-WeCMDB 1.1 is now released, its architecture is as follows: 
+Architecture is as follows: 
 
 ![WeCMDB System Architecture](cmdb-wiki/images/wecmdb_arch_en.png) 
-
-- WeCMDB 1.0 relies on a CAS server for authentication, while a local user based autentication mode is added in WeCMDB 1.1.
-- WeCMDB can provide data exchange service with APIs.
 
 ## Summary
 WeCMDB is a centralized store for configuration data, which is used to manage the information of components and the relations between those components in all layers of IT systems. It is closely related to the automation tools in IT operation as well as the processes they are caryying, so that these tools can function smoothly and the value of configuration data is well utilized. In the contrary, those tools and processcess are also playing an important role in keeping the configuration data accurate.
