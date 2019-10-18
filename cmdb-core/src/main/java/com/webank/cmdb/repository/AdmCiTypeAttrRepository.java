@@ -12,8 +12,10 @@ import com.webank.cmdb.domain.AdmCiTypeAttr;
 
 @CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "admCiTypeAttrRepository")
 public interface AdmCiTypeAttrRepository extends JpaRepository<AdmCiTypeAttr, Integer> {
+    @Cacheable("admCiTypeAttrRepository-findAllByCiTypeId")
     List<AdmCiTypeAttr> findAllByCiTypeId(Integer ciTypeId);
 
+    @Cacheable("admCiTypeAttrRepository-findAllByAdmCiType_idAdmCiTypeAndStatus")
     List<AdmCiTypeAttr> findAllByAdmCiType_idAdmCiTypeAndStatus(Integer ciTypeId, List<String> statuses);
 
     /**
@@ -68,7 +70,7 @@ public interface AdmCiTypeAttrRepository extends JpaRepository<AdmCiTypeAttr, In
     List<AdmCiTypeAttr> findByCiTypeIdAndIsRefreshable(int ciTypeId, int isRefreshable);
     
     //for cache purpose
-    @Cacheable("ciType-attributes")
+    @Cacheable("admCiTypeAttrRepository-getOne")
     AdmCiTypeAttr getOne(Integer id);
 
 }
