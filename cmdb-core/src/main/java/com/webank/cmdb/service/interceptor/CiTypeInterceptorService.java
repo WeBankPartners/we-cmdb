@@ -89,7 +89,7 @@ public class CiTypeInterceptorService extends BasicInterceptorService<CiTypeDto,
         validateEnumCode(domainBean.getCiStateTypeId(), CmdbConstants.CI_TYPE_CI_STATE_TYPE);
         validateEnumCode(domainBean.getZoomLevelId(), CmdbConstants.CI_TYPE_ZOOM_LEVEL);
         validateImageId(domainBean.getImageFileId());
-        validateTableExisted(domainBean.getTableName());
+        //validateTableExisted(domainBean.getTableName());
         assignSeqNo(domainBean);
     }
 
