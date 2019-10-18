@@ -207,7 +207,7 @@ public class CiTypeServiceImpl implements CiTypeService {
      *
      * @param ciTypeId
      * @exception throw InvalidArgumentException if the corresponding CI type can
-     *            not be found
+     *                  not be found
      */
     private Optional<AdmCiType> validateCiType(int ciTypeId) {
         Optional<AdmCiType> optCiType = ciTypeRepository.findById(ciTypeId);
@@ -426,11 +426,11 @@ public class CiTypeServiceImpl implements CiTypeService {
                         headerDto.addEnumValue(c.getIdAdmBasekey(), c.getCode());
                     });
                 }
-            }else if ((InputType.Reference.equals(inputType) || InputType.MultRef.equals(inputType)) && attr.getReferenceId() != null) {
+            } else if ((InputType.Reference.equals(inputType) || InputType.MultRef.equals(inputType)) && attr.getReferenceId() != null) {
                 List<CiKeyPair> ciKeyPairs = ciService.retrieveKeyPairs(attr.getReferenceId());
                 if (ciKeyPairs != null && ciKeyPairs.size() > 0) {
                     headerDto.addValues(ciKeyPairs);
-                }                
+                }
             }
             headerDtos.add(headerDto);
         });
@@ -579,15 +579,14 @@ public class CiTypeServiceImpl implements CiTypeService {
 
     private void applySingleCiTypeAttr(AdmCiTypeAttr admCiTypeAttr) {
         AdmCiType admCiType = staticEntityRepository.findEntityById(AdmCiType.class, admCiTypeAttr.getCiTypeId());
-        if(admCiType == null) {
+        if (admCiType == null) {
             throw new ServiceException(String.format("Can not find out ci Type [%d]", admCiTypeAttr.getCiTypeId()));
         }
-        
+
         if (CiStatus.fromCode(admCiType.getStatus()) == CiStatus.NotCreated) {
             throw new DependencyException(String.format("Can not create ciTypeAttr [%s] due to it's ciType [%s] is not created yet", admCiTypeAttr.getPropertyName(), admCiType.getTableName()));
         }
-
-        List<String> defaultColumns = convertToPeropertyList(admCiType.retrieveDefaultAdmCiTypeAttrs());
+        List<String> defaultColumns = CmdbConstants.DEFAULT_FIELDS;
         CiStatus ciStatus = CiStatus.fromCode(admCiTypeAttr.getStatus());
         if (ciStatus == CiStatus.NotCreated || ciStatus == CiStatus.Dirty) {
             // system default columns should be created with table
@@ -600,13 +599,6 @@ public class CiTypeServiceImpl implements CiTypeService {
         }
 
         ciService.invalidate();
-    }
-
-    private List<String> convertToPeropertyList(List<AdmCiTypeAttr> defaultAttrs) {
-        List<String> defaultColumns = Lists.transform(defaultAttrs, (x) -> {
-            return x.getPropertyName();
-        });
-        return defaultColumns;
     }
 
     @OperationLogPointcut(operation = Implementation, objectClass = CiTypeDto.class)
