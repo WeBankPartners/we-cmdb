@@ -28,7 +28,7 @@
             </FormItem>
           </Col>
           <Col offset="1" span="5">
-            <FormItem :label-width="50" :label="$t('form_gounp')">
+            <FormItem :label-width="50" :label="$t('form_group')">
               <Select filterable clearable v-model="form.catGroupId">
                 <Option
                   v-for="item in allCategory"
