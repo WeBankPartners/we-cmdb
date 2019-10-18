@@ -5,11 +5,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 @Component
-public class CacheHandlerInterceptor extends HandlerInterceptorAdapter{
+public class CacheHandlerInterceptor implements HandlerInterceptor{
 
     @Autowired
     private RequestScopedCacheManager requestScopedCacheManager;
