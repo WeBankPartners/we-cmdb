@@ -1,4 +1,14 @@
 SET FOREIGN_KEY_CHECKS=0;
+
+CREATE TABLE IF NOT EXISTS `adm_code_value` (
+  `id` int(8) NOT NULL AUTO_INCREMENT,
+  `code` varchar(255) DEFAULT NULL COMMENT '代码',
+  `value` varchar(20000) DEFAULT NULL COMMENT 'ci类型中文名称',
+  `description` varchar(255) DEFAULT NULL COMMENT '描述',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `codeIndex` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8;
+
 CREATE TABLE IF NOT EXISTS `adm_attr_group` (
   `id_adm_attr_group` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_attr_group',
   `name` varchar(64) DEFAULT NULL COMMENT '组名',
