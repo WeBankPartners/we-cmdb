@@ -717,7 +717,7 @@ export default {
       if (this.addedRoleValue === "") {
         this.$Notice.warning({
           title: "Warning",
-          desc: this.$t("username_is_required")
+          desc: this.$t("role_name_is_required")
         });
         return;
       }
@@ -737,7 +737,7 @@ export default {
       if (this.addedUser.username === "") {
         this.$Notice.warning({
           title: "Warning",
-          desc: this.$t("username_is_required")
+          desc: this.$t("role_name_is_required")
         });
         return;
       }

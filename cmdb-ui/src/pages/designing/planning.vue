@@ -1,7 +1,7 @@
 <template>
   <div>
     <Row class="resource-design-select-row">
-      <span>{{ $t("select_idc") }}:</span>
+      <span>{{ $t("select_idc") }}：</span>
       <Select
         :placeholder="$t('select_idc')"
         v-model="selectedIdc"
