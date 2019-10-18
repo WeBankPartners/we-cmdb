@@ -5,14 +5,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.webank.cmdb.domain.AdmCodeValue;
 import com.webank.cmdb.repository.CodeValueRepository;
 import com.webank.cmdb.util.SpringUtils;
-@Component
+@Service
 public class AdmCodeValueService {
-    private static Map<String, String> codeValue = new HashMap<String, String>();
+    private Map<String, String> codeValue = new HashMap<String, String>();
    
     @Autowired
     private CodeValueRepository codeValueRepository;
