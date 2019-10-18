@@ -66,6 +66,9 @@ Here are the characteristics of WeCMDB:
 
   Support configuration data management, basic configuration query, integrated query management and interface configuration for integrated queries.
 
+- View Management
+  Support configuration management from different aspects,IDC planning design， IDC resource planning, application architecture design, application deployment design, which include graphic display all the configuration items of the selected aspects and you can maintain the items there easily.
+
 - System Management
 
   Support authorization management (including users, roles, data permision and access to menu items).
@@ -82,12 +85,12 @@ Please refer to the [WeCMDB Model Guide](cmdb-wiki/docs/manual/wecmdb_model_guid
 
 Please refer to the [WeCMDB User Guide](cmdb-wiki/docs/manual/wecmdb_user_guide.md) for usage and operations.
 
-## Developer Documentation
+## Developer Guide
 #### Deploy WeCMDB in Standalone Mode
-[WeCMDB Quick Start in Standalone Mode](cmdb-wiki/docs/developer/wecmdb_local_standalone_guide.md)
+Please refer to the [WeCMDB Quick Start in Standalone Mode](cmdb-wiki/docs/developer/wecmdb_local_standalone_guide.md) for setting up local environment quickly.
 
 #### Deploy WeCMDB in Normal Mode
-WeCMDB is developed with Java and ReactJS, uses MySQL for data persistence and relies on Tomcat as the web application container.
+WeCMDB is developed with Java and Vue, uses MySQL for data persistence and relies on Tomcat as the web application container.
 
 Please refer to the [WeCMDB Developer Guide](cmdb-wiki/docs/developer/wecmdb_developer_guide.md) for setting up development environment.
 
