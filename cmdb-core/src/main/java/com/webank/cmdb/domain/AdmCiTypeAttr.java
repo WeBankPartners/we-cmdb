@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.webank.cmdb.constant.CiStatus;
+import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.exception.ServiceException;
 
@@ -159,8 +160,8 @@ public class AdmCiTypeAttr implements Serializable {
     }
 
     private boolean isDefaultField(String propertyName) {
-        for (AdmCiTypeAttr attr : this.admCiType.retrieveDefaultAdmCiTypeAttrs()) {
-            if (propertyName != null && propertyName.equals(attr.getPropertyName())) {
+        for (String fields : CmdbConstants.DEFAULT_FIELDS) {
+            if (propertyName != null && propertyName.equals(fields)) {
                 return true;
             }
         }
