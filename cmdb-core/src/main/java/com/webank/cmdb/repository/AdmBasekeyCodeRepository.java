@@ -12,9 +12,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.webank.cmdb.domain.AdmBasekeyCode;
-import com.webank.cmdb.domain.AdmCiTypeAttr;
 
-@CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "admCiTypeAttr")
+@CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "admBasekeyCodeRepository")
 @Cacheable
 public interface AdmBasekeyCodeRepository extends JpaRepository<AdmBasekeyCode, Integer> {
     @Query(value = "select max(seq_no) from adm_basekey_code where id_adm_basekey_cat = :catId", nativeQuery = true)
@@ -73,5 +72,7 @@ public interface AdmBasekeyCodeRepository extends JpaRepository<AdmBasekeyCode, 
 
     //for cache purpose
     AdmBasekeyCode getOne(Integer id);
+    
+    boolean existsById(Integer id);
 
 }

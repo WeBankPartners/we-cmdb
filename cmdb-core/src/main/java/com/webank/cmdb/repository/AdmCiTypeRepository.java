@@ -2,13 +2,18 @@ package com.webank.cmdb.repository;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.webank.cmdb.domain.AdmCiType;
 
+@CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "admCiTypeRepository")
+@Cacheable
 public interface AdmCiTypeRepository extends JpaRepository<AdmCiType, Integer> {
     List<AdmCiType> findAll();
 
@@ -100,4 +105,8 @@ public interface AdmCiTypeRepository extends JpaRepository<AdmCiType, Integer> {
     HashSet<String> findAllRefCiTableFrom(int ciTypeId);
 
     boolean existsByName(String name);
+    
+    //for cache
+    @Override
+    Optional<AdmCiType> findById(Integer id);
 }

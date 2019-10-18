@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 
-@CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "admCiTypeAttr")
+@CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "admCiTypeAttrRepository")
 @Cacheable
 public interface AdmCiTypeAttrRepository extends JpaRepository<AdmCiTypeAttr, Integer> {
     List<AdmCiTypeAttr> findAllByCiTypeId(Integer ciTypeId);

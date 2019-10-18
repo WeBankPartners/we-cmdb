@@ -801,7 +801,6 @@ public class CiServiceImpl implements CiService {
     @Override
     public Map<String, Object> getCi(int ciTypeId, String guid) {
         validateCiType(ciTypeId);
-        validateCiType(ciTypeId);
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
         // Object entityBean = entityManager.find(entityMeta.getEntityClazz(), guid);
         PriorityEntityManager priEntityManager = getEntityManager();
