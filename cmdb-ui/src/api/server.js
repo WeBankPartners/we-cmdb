@@ -55,6 +55,8 @@ export const getEnumCategoriesByTypeId = catTypeId =>
   req.get(`/enum/category-types/${catTypeId}/categories`);
 
 //CI
+export const updateCIRecord = (ciTypeId, data) =>
+  req.put(`/ci-types/${ciTypeId}/ci-data/${data.guid}`, data);
 export const getRefCiTypeFrom = id => req.get(`/ci-types/${id}/references/by`);
 export const getRefCiTypeTo = id => req.get(`/ci-types/${id}/references/to`);
 export const getCiTypeAttr = id => req.get(`/ci-types/${id}/attributes`);
