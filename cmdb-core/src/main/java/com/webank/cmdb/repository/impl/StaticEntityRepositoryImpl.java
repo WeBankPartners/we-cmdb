@@ -35,16 +35,17 @@ import com.google.common.collect.ImmutableSet;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.FilterRelationship;
 import com.webank.cmdb.constant.InputType;
+import com.webank.cmdb.controller.ui.helper.CollectionUtils;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dto.PageInfo;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
+import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.exception.InvalidArgumentException;
 import com.webank.cmdb.exception.ServiceException;
 import com.webank.cmdb.repository.StaticEntityRepository;
-import com.webank.cmdb.service.impl.AdmCodeValueService;
 import com.webank.cmdb.util.ClassUtils;
 import com.webank.cmdb.util.JpaQueryUtils;
 import com.webank.cmdb.util.Pageable;
@@ -520,19 +521,6 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
 
     @Transactional
     @Override
-    public int applyCiType(AdmCiType admCiType) {
-//        String sql = admCiType.genCreateCiTypeWithDefaultAttrSQL();
-        String sql = null;
-        if (Strings.isNullOrEmpty(sql))
-            return 0;
-        if (logger.isDebugEnabled()) {
-            logger.debug("The applying CiType DDL SQL [%s]", sql);
-        }
-        return entityManager.createNativeQuery(sql).executeUpdate();
-    }
-
-    @Transactional
-    @Override
     public <D> D findEntityById(Class<D> domainClzz, Integer id) {
         return entityManager.find(domainClzz, id);
     }
@@ -540,8 +528,16 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
     @Transactional
     @Override
     public void createDefaultCiTypeAttrs(AdmCiType admCiType) {
-        String sql = new AdmCodeValueService().getValueByCode("DefaultCiTypeAttrsSQL");
-        String replace = sql.replace("$", admCiType.getIdAdmCiType().toString());
-        entityManager.createNativeQuery(replace).executeUpdate();
+        String sql = getDefaultCiTypeAttrsSQL(admCiType);
+        if (sql == null || sql.length() == 0) {
+            throw new CmdbException("Missing underlying data: SQL cannot be empty; Please configure");
+        }
+        entityManager.createNativeQuery(sql).executeUpdate();
+    }
+
+    private String getDefaultCiTypeAttrsSQL(AdmCiType admCiType) {
+        List<String> resultList = entityManager.createNativeQuery("select acv.value from adm_code_value acv where acv.code='DefaultCiTypeAttrsSQL' ").getResultList();
+        String sql = CollectionUtils.pickRandomOne(resultList);
+        return sql == null ? null : sql.replace("$", admCiType.getIdAdmCiType().toString());
     }
 }
