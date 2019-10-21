@@ -21,8 +21,6 @@ public interface StaticEntityRepository {
 
     void applyCiTypeAttr(AdmCiTypeAttr admCiTypeAttr);
 
-    int applyCiType(AdmCiType admCiType);
-
     <D> D findEntityById(Class<D> domainClzz, Integer id);
 
     Object update(Object domainObj);
