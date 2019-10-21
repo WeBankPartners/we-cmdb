@@ -38,6 +38,7 @@ public interface AdmCiTypeAttrRepository extends JpaRepository<AdmCiTypeAttr, In
 
     List<AdmCiTypeAttr> findByInputTypeAndCiTypeId(String inputType, Integer ciTypeId);
 
+    @Cacheable("admCiTypeAttrRepository-findFirstByCiTypeIdAndPropertyName")
     AdmCiTypeAttr findFirstByCiTypeIdAndPropertyName(int ciTypeId, String propertyName);
 
     @Query(value = "SELECT * FROM adm_ci_type_attr WHERE id_adm_ci_type = :ciTypeId and edit_is_null =:isNullable AND is_auto = :isAuto", nativeQuery = true)

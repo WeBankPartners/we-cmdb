@@ -434,6 +434,9 @@ public class CiServiceImpl implements CiService {
     }
 
     private List<Object> doQuery(QueryRequest ciRequest, DynamicEntityMeta entityMeta, boolean isSelRowCount) {
+        StopWatch sw = new StopWatch();
+        sw.start();
+        
         PriorityEntityManager priEntityManager = getEntityManager();
         EntityManager entityManager = priEntityManager.getEntityManager();
         try {
@@ -481,6 +484,8 @@ public class CiServiceImpl implements CiService {
                 fieldTypeMap.put(x.getName(), x.getType());
             });
 
+            sw.split();
+            logger.info("Ci doQuery - prepare take {}",sw.getTime());
             if (ciRequest != null) {
                 List<Predicate> predicates = Lists.newLinkedList();
                 if (!ciRequest.getDialect().getShowCiHistory()) {
@@ -495,6 +500,9 @@ public class CiServiceImpl implements CiService {
                     JpaQueryUtils.applySorting(ciRequest.getSorting(), cb, query, selectionMap);
                 }
             }
+            
+            sw.split();
+            logger.info("Ci doQuery - authentication query preparation take {}", sw.getTime());
 
             TypedQuery<?> typedQuery = entityManager.createQuery(query);
 
@@ -503,6 +511,8 @@ public class CiServiceImpl implements CiService {
             }
 
             List<Object> results = (List<Object>) typedQuery.getResultList();
+            sw.stop();
+            logger.info("Ci doQuery - query take {}",sw.getTime());
             return results;
         } finally {
             priEntityManager.close();
