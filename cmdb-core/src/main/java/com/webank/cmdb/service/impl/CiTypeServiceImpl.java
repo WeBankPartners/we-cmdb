@@ -276,12 +276,12 @@ public class CiTypeServiceImpl implements CiTypeService {
                 sb.append(" UNIQUE KEY (`").append(attr.getPropertyName()).append("`),");
             }
         }
-        sb.append("guid varchar(13) NOT NULL COMMENT '全局唯一ID',");
-        sb.append("key_name varchar(64) NOT NULL COMMENT '唯一值',");
-        sb.append("`updated_by` varchar(64) DEFAULT NULL COMMENT '更新用户',");
-        sb.append("`updated_date` datetime DEFAULT NULL COMMENT '更新日期',");
-        sb.append("`created_by` varchar(64) DEFAULT NULL COMMENT '创建用户',");
-        sb.append("`created_date` datetime DEFAULT NULL COMMENT '创建日期',");
+        sb.append("guid varchar(13) NOT NULL COMMENT 'Globally unique ID',");
+        sb.append("key_name varchar(64) NOT NULL COMMENT 'unique name',");
+        sb.append("`updated_by` varchar(64) DEFAULT NULL COMMENT 'Update by',");
+        sb.append("`updated_date` datetime DEFAULT NULL COMMENT 'Update date',");
+        sb.append("`created_by` varchar(64) DEFAULT NULL COMMENT 'Create by',");
+        sb.append("`created_date` datetime DEFAULT NULL COMMENT 'Create date',");
         sb.append(" PRIMARY KEY (`guid`)");
         for (int i = 0; i < ciType.getAdmCiTypeAttrs().size(); i++) {
             AdmCiTypeAttr attr = ciType.getAdmCiTypeAttrs().get(i);
@@ -615,8 +615,6 @@ public class CiTypeServiceImpl implements CiTypeService {
     }
 
     private void applySingleCiType(AdmCiType admCiType) {
-        staticEntityRepository.applyCiType(admCiType);
-
         admCiType.setStatus(CiStatus.Created.getCode());
         staticEntityRepository.update(admCiType);
 
