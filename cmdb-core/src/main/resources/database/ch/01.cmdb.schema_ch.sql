@@ -3,7 +3,7 @@ SET FOREIGN_KEY_CHECKS=0;
 CREATE TABLE IF NOT EXISTS `adm_code_value` (
   `id` int(8) NOT NULL AUTO_INCREMENT,
   `code` varchar(255) DEFAULT NULL COMMENT '代码',
-  `value` varchar(20000) DEFAULT NULL COMMENT 'ci类型中文名称',
+  `value` varchar(20000) DEFAULT NULL COMMENT '值',
   `description` varchar(255) DEFAULT NULL COMMENT '描述',
   PRIMARY KEY (`id`),
   UNIQUE KEY `codeIndex` (`code`)
