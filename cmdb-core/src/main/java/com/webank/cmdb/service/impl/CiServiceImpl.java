@@ -45,7 +45,6 @@ import javax.transaction.Transactional;
 
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -323,8 +322,6 @@ public class CiServiceImpl implements CiService {
         if (logger.isDebugEnabled()) {
             logger.debug("CI query request, ciTypeId:{}, query request:{}", ciTypeId, JsonUtil.toJsonString(ciRequest));
         }
-        StopWatch sw = new StopWatch();
-        sw.start();
 
         validateCiType(ciTypeId);
         validateRequest(ciTypeId, ciRequest);
@@ -340,14 +337,10 @@ public class CiServiceImpl implements CiService {
             // ciRequest.setFilters(convertFilterForMultiValueField(entityManager,
             // ciRequest.getFilters()));
             results = doQuery(ciRequest, entityMeta, true);
-            sw.split();
             
             totalCount = convertResultToInteger(results);
-            logger.info("Ci query - query total count take {} ms",sw.getTime());
 
             results = doQuery(ciRequest, entityMeta, false);
-            sw.split();
-            logger.info("Ci query - query data take {} ms",sw.getTime());
 
             results.forEach(x -> {
                 // DynamicEntityHolder entityBean =
@@ -361,8 +354,6 @@ public class CiServiceImpl implements CiService {
                 ciInfoResp.addContent(ciData);
             });
             
-            sw.stop();
-            logger.info("Ci query - enhance result take {} ms",sw.getTime());
         } finally {
             priEntityManager.close();
         }
@@ -434,9 +425,6 @@ public class CiServiceImpl implements CiService {
     }
 
     private List<Object> doQuery(QueryRequest ciRequest, DynamicEntityMeta entityMeta, boolean isSelRowCount) {
-        StopWatch sw = new StopWatch();
-        sw.start();
-        
         PriorityEntityManager priEntityManager = getEntityManager();
         EntityManager entityManager = priEntityManager.getEntityManager();
         try {
@@ -484,8 +472,6 @@ public class CiServiceImpl implements CiService {
                 fieldTypeMap.put(x.getName(), x.getType());
             });
 
-            sw.split();
-            logger.info("Ci doQuery - prepare take {}",sw.getTime());
             if (ciRequest != null) {
                 List<Predicate> predicates = Lists.newLinkedList();
                 if (!ciRequest.getDialect().getShowCiHistory()) {
@@ -501,9 +487,6 @@ public class CiServiceImpl implements CiService {
                 }
             }
             
-            sw.split();
-            logger.info("Ci doQuery - authentication query preparation take {}", sw.getTime());
-
             TypedQuery<?> typedQuery = entityManager.createQuery(query);
 
             if (ciRequest != null && !isSelRowCount) {
@@ -511,8 +494,6 @@ public class CiServiceImpl implements CiService {
             }
 
             List<Object> results = (List<Object>) typedQuery.getResultList();
-            sw.stop();
-            logger.info("Ci doQuery - query take {}",sw.getTime());
             return results;
         } finally {
             priEntityManager.close();
@@ -564,8 +545,6 @@ public class CiServiceImpl implements CiService {
     }
 
     private Map<String, Object> enrichCiObject(DynamicEntityMeta entityMeta, Map<String, Object> ciObjMap, EntityManager entityManager) {
-        StopWatch watch = new StopWatch();
-        watch.start();
         Map<String, Object> ciMap = new HashMap<>();
         List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(entityMeta.getCiTypeId());
 
@@ -625,11 +604,6 @@ public class CiServiceImpl implements CiService {
                 logger.warn("Failed to get field node for field name [{}] in dynamic entity [{}].", fieldName, entityMeta.getEntityClazz().toString());
             }
         }
-        watch.stop();
-        if (logger.isDebugEnabled()) {
-            logger.debug("enrichCiObject function consumed: " + String.valueOf(watch.getTime()) + " ms.");
-        }
-
         return ciMap;
     }
 
@@ -1333,14 +1307,8 @@ public class CiServiceImpl implements CiService {
             enableBiz = checkBizEnable(intQueryReq);
             logger.info("enable biz:{}", enableBiz);
             
-            StopWatch watch = new StopWatch();
-            watch.start();
-
             buildIntQuery(null, null, intQueryDto, query, selFieldMap, enableBiz, null);
             
-            watch.split();
-            logger.info("integrate query build int query take: {}, isSelRowCount:{}",watch.getTime(), isSelRowCount);
-
             validateIntQueryFilter(intQueryReq, selFieldMap, enableBiz);
             List<Expression> selections = new LinkedList<>();
 
@@ -1396,14 +1364,8 @@ public class CiServiceImpl implements CiService {
                 JpaQueryUtils.applyPaging(intQueryReq.isPaging(), intQueryReq.getPageable(), typedQuery);
             }
 
-            watch.split();
-            logger.info("integrate query prepare query take: {}, isSelRowCount:{}",watch.getTime(),isSelRowCount);
-            
             List resultList = typedQuery.getResultList();
 
-            watch.stop();
-            logger.info("integrate query actual query take: {}, isSelRowCount:{}",watch.getTime(), isSelRowCount);
-            
             return resultList;
         } finally {
             priEntityManager.close();
@@ -1894,9 +1856,6 @@ public class CiServiceImpl implements CiService {
             logger.debug("Got adhoc integrate request:{}", JsonUtil.toJsonString(adhocQueryRequest));
         }
         
-        StopWatch watch = new StopWatch();
-        watch.start();
-
         IntegrationQueryDto intQueryDto = adhocQueryRequest.getCriteria();
         QueryRequest queryRequest = adhocQueryRequest.getQueryRequest();
         validateForQuery(intQueryDto);
@@ -1909,18 +1868,12 @@ public class CiServiceImpl implements CiService {
             throw new ServiceException("Failed to clone int query filters.", e);
         }
 
-        watch.split();
-        logger.info("adhoc integrate query before totalcount query takes: {}",watch.getTime());
         List resultList = doIntegrateQuery(intQueryDto, queryRequest, true, selectedFields);
         int totalCount = convertResultToInteger(resultList);
-        watch.split();
-        logger.info("adhoc integrate totalcount query takes: {}",watch.getTime());
         
 
         queryRequest.setFilters(srcFilters);
         resultList = doIntegrateQuery(intQueryDto, queryRequest, false, selectedFields);
-        watch.split();
-        logger.info("adhoc integrate real data query takes: {}",watch.getTime());
 
         List<Expression> selections = new LinkedList<>();
         selectedFields.forEach(field -> {
@@ -1950,8 +1903,6 @@ public class CiServiceImpl implements CiService {
         if (logger.isDebugEnabled()) {
             logger.debug("Return integrate response:{}", JsonUtil.toJsonString(response));
         }
-        watch.stop();
-        logger.info("adhoc integrate render response data takes: {}",watch.getTime());
         return response;
     }
 
