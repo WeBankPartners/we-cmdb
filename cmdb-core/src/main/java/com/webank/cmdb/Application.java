@@ -4,6 +4,7 @@ import javax.servlet.Filter;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
@@ -11,6 +12,7 @@ import com.webank.cmdb.config.SpringAppConfig;
 import com.webank.cmdb.config.SpringWebConfig;
 
 @SpringBootApplication
+@ComponentScan("com.webank.cmdb")
 public class Application extends AbstractAnnotationConfigDispatcherServletInitializer {
 
     public static void main(String[] args) {
