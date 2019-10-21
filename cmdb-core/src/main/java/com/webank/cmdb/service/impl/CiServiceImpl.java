@@ -323,6 +323,8 @@ public class CiServiceImpl implements CiService {
         if (logger.isDebugEnabled()) {
             logger.debug("CI query request, ciTypeId:{}, query request:{}", ciTypeId, JsonUtil.toJsonString(ciRequest));
         }
+        StopWatch sw = new StopWatch();
+        sw.start();
 
         validateCiType(ciTypeId);
         validateRequest(ciTypeId, ciRequest);
@@ -338,21 +340,29 @@ public class CiServiceImpl implements CiService {
             // ciRequest.setFilters(convertFilterForMultiValueField(entityManager,
             // ciRequest.getFilters()));
             results = doQuery(ciRequest, entityMeta, true);
+            sw.split();
+            
             totalCount = convertResultToInteger(results);
+            logger.info("Ci query - query total count take {} ms",sw.getTime());
 
             results = doQuery(ciRequest, entityMeta, false);
+            sw.split();
+            logger.info("Ci query - query data take {} ms",sw.getTime());
 
             results.forEach(x -> {
                 // DynamicEntityHolder entityBean =
                 // DynamicEntityHolder.createDynamicEntityBean(entityMeta, x);
                 Map<String, Object> entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true);
                 Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
-
+                
                 List<String> nextOperations = getNextOperations(entityBeanMap);
                 CiData ciData = new CiData(enhacedMap, nextOperations);
 
                 ciInfoResp.addContent(ciData);
             });
+            
+            sw.stop();
+            logger.info("Ci query - enhance result take {} ms",sw.getTime());
         } finally {
             priEntityManager.close();
         }
