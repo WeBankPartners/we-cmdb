@@ -51,6 +51,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.CaseFormat;
@@ -124,6 +126,7 @@ import com.webank.cmdb.util.Sorting;
 
 @Service
 @SuppressWarnings({ "rawtypes", "unchecked" })
+@CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "ciServiceImpl")
 public class CiServiceImpl implements CiService {
     private static Logger logger = LoggerFactory.getLogger(CiServiceImpl.class);
 
@@ -638,7 +641,7 @@ public class CiServiceImpl implements CiService {
                 if (!StringUtils.isBlank(guid)) {
                     Object childCi = null;
                     try {
-                        childCi = getCi(ciTypeId, guid);
+                        childCi = getCacheableCi(ciTypeId, guid);
                     } catch (Exception ex) {
                         throw new ServiceException(String.format("Failed to get ci data [ciType:%d, guid:%s]", ciTypeId, guid), ex);
                     }
@@ -830,6 +833,11 @@ public class CiServiceImpl implements CiService {
         } finally {
             priEntityManager.close();
         }
+    }
+    
+    @Cacheable("ciServiceImpl-getCacheableCi")
+    private Map<String, Object> getCacheableCi(int ciTypeId, String guid) {
+        return getCi(ciTypeId,guid);
     }
 
     @OperationLogPointcut(operation = Removal, objectClass = CiData.class, ciTypeIdArgumentIndex = 0, ciGuidArgumentIndex = 1)
