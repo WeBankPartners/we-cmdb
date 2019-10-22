@@ -27,12 +27,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import com.webank.cmdb.cache.CacheHandlerInterceptor;
 import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
 import com.webank.cmdb.controller.interceptor.HttpAccessUsernameInterceptor;
 import com.webank.cmdb.exception.CmdbException;
@@ -67,10 +67,14 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
 
     @Autowired
     private HttpAccessUsernameInterceptor cookieHandlerInterceptor;
+    
+    @Autowired
+    private CacheHandlerInterceptor cacheHandlerInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(cookieHandlerInterceptor).addPathPatterns("/**");
+        registry.addInterceptor(cacheHandlerInterceptor).addPathPatterns("/**");
         WebMvcConfigurer.super.addInterceptors(registry);
     }
 
