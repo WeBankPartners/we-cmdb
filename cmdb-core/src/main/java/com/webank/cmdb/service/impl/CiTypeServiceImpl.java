@@ -615,6 +615,8 @@ public class CiTypeServiceImpl implements CiTypeService {
     }
 
     private void applySingleCiType(AdmCiType admCiType) {
+        staticEntityRepository.applyCiType(admCiType);
+
         admCiType.setStatus(CiStatus.Created.getCode());
         staticEntityRepository.update(admCiType);
 
