@@ -14,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.webank.cmdb.cache.CacheHandlerInterceptor;
 import com.webank.cmdb.config.TestDatabase;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.service.DatabaseService;
@@ -32,6 +33,8 @@ public abstract class AbstractBaseControllerTest {
     protected CiService ciService;
     @MockBean
     protected DatabaseService databaseService;
+    @Autowired
+    private CacheHandlerInterceptor cacheHandlerInterceptor;
 
     public void reload() {
         ciService.invalidate();
@@ -52,5 +55,10 @@ public abstract class AbstractBaseControllerTest {
     @After
     public void cleanUp() {
         TestDatabase.cleanUpDatabase(dataSource);
+        try {
+            cacheHandlerInterceptor.postHandle(null, null, null, null);
+        } catch (Exception e) {
+            System.out.print(e.toString());
+        }
     }
 }

@@ -2,11 +2,15 @@ package com.webank.cmdb.service;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
+
 import com.webank.cmdb.constant.PriorityUpdateOper;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
 import com.webank.cmdb.dto.CategoryDto;
 
+@CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "baseKeyInfoService")
 public interface BaseKeyInfoService extends CmdbService {
     static public String NAME = "BaseKeyInfoService";
 
@@ -42,9 +46,12 @@ public interface BaseKeyInfoService extends CmdbService {
 
     List<CategoryDto> listCommonCats();
 
+    @Cacheable("baseKeyInfoService-listCiTypeCats")
     List<CategoryDto> listCiTypeCats(int ciTypeId);
 
+    @Cacheable("baseKeyInfoService-getCode-codeId")
     CatCodeDto getCode(int CodeId);
 
+    @Cacheable("baseKeyInfoService-getCode-catId_code")
     CatCodeDto getCode(int catId, String code);
 }

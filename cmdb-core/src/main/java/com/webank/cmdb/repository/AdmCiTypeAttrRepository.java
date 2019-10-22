@@ -2,15 +2,20 @@ package com.webank.cmdb.repository;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 
+@CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "admCiTypeAttrRepository")
 public interface AdmCiTypeAttrRepository extends JpaRepository<AdmCiTypeAttr, Integer> {
+    @Cacheable("admCiTypeAttrRepository-findAllByCiTypeId")
     List<AdmCiTypeAttr> findAllByCiTypeId(Integer ciTypeId);
 
+    @Cacheable("admCiTypeAttrRepository-findAllByAdmCiType_idAdmCiTypeAndStatus")
     List<AdmCiTypeAttr> findAllByAdmCiType_idAdmCiTypeAndStatus(Integer ciTypeId, List<String> statuses);
 
     /**
@@ -33,6 +38,7 @@ public interface AdmCiTypeAttrRepository extends JpaRepository<AdmCiTypeAttr, In
 
     List<AdmCiTypeAttr> findByInputTypeAndCiTypeId(String inputType, Integer ciTypeId);
 
+    @Cacheable("admCiTypeAttrRepository-findFirstByCiTypeIdAndPropertyName")
     AdmCiTypeAttr findFirstByCiTypeIdAndPropertyName(int ciTypeId, String propertyName);
 
     @Query(value = "SELECT * FROM adm_ci_type_attr WHERE id_adm_ci_type = :ciTypeId and edit_is_null =:isNullable AND is_auto = :isAuto", nativeQuery = true)
@@ -63,4 +69,9 @@ public interface AdmCiTypeAttrRepository extends JpaRepository<AdmCiTypeAttr, In
     List<AdmCiTypeAttr> findByIdAdmCiTypeAttrIn(List<Integer> ids);
 
     List<AdmCiTypeAttr> findByCiTypeIdAndIsRefreshable(int ciTypeId, int isRefreshable);
+    
+    //for cache purpose
+    @Cacheable("admCiTypeAttrRepository-getOne")
+    AdmCiTypeAttr getOne(Integer id);
+
 }
