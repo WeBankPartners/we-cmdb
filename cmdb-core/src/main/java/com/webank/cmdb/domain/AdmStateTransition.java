@@ -117,7 +117,7 @@ public class AdmStateTransition implements Serializable {
         this.targetStateCode = targetStateCode;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "operation", insertable = false, updatable = false)
     public AdmBasekeyCode getOperationCode() {
         return operationCode;
