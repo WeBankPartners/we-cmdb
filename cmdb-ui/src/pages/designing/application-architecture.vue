@@ -50,6 +50,9 @@
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
               <div>加载中...</div>
             </Spin>
+            <div v-else-if="!systemDesignData.length" class="no-data">
+              暂无数据
+            </div>
             <Row>
               <Col span="18">
                 <div style="padding-right: 20px">
@@ -70,14 +73,14 @@
                       ref="invokeSequenceForm"
                       :model="invokeSequenceForm"
                       label-position="left"
-                      :label-width="120"
+                      :label-width="110"
                     >
                       <Form-item label="调用时序设计">
                         <Row>
                           <Select
                             placeholder="请选择"
                             v-model="invokeSequenceForm.selectedInvokeSequence"
-                            style="width:calc(100% - 70px)"
+                            style="width:calc(100% - 80px)"
                           >
                             <Option
                               v-for="item in invokeSequenceForm.invokeSequenceData"
@@ -87,7 +90,7 @@
                             >
                           </Select>
                           <Button
-                            style="margin-right: 10px;float: right; width=70px;"
+                            style="float:right;width:70px;"
                             @click="onSearchInvokeSquence"
                             >确定</Button
                           >
@@ -159,6 +162,7 @@
                 :links="physicalGraphLinks"
                 :callback="graphCallback"
               ></PhysicalGraph>
+              <div v-else class="no-data">暂无数据</div>
               <Spin size="large" fix v-if="physicalSpin">
                 <Icon
                   type="ios-loading"
@@ -233,8 +237,8 @@ import { getExtraInnerActions } from "../util/state-operations.js";
 import PhysicalGraph from "./physical-graph";
 
 const stateColorMap = new Map([
-  ["new", "#47cb89"],
-  ["created", "#47cb89"],
+  ["new", "#19be6b"],
+  ["created", "#19be6b"],
   ["update", "#2d8cf0"],
   ["change", "#2d8cf0"],
   ["destroyed", "#ed4014"],
@@ -520,7 +524,7 @@ export default {
         }
       });
     },
-    initGraph(filters = {}) {
+    initGraph() {
       this.isShowInvokeSequence = true;
       this.spinShow = true;
       let graph;
@@ -562,7 +566,7 @@ export default {
         `subgraph cluster_${sysData[0].guid} {`,
         `style="filled";color="${colors[0]}";`,
         `tooltip="${sysData[0].data.description}";`,
-        `label="${sysData[0].data.code}";`,
+        `label="${sysData[0].data.name}";`,
         this.genChildrenDot(sysData[0].children || [], 1),
         "}",
         ...this.invokeLines,
@@ -580,32 +584,41 @@ export default {
       return dots.join("");
     },
     genChildrenDot(data, level) {
+      const width = 12;
+      const height = 9;
       let dots = [];
-      data.forEach(_ => {
-        if (_.children instanceof Array && _.children.length) {
-          dots = dots.concat([
-            `subgraph cluster_${_.guid}{`,
-            `id="g_${_.guid}";`,
-            `style="filled";color="${colors[level]}";`,
-            `label="${_.data.code || _.data.key_name}";`,
-            `tooltip="${_.data.description || _.data.name}"`,
-            _.ciTypeId === 3
-              ? this.genServiceInvokeLine(_)
-              : this.genChildrenDot(_.children, level + 1),
-            "}"
-          ]);
-        } else {
-          this.physicalGraphNodes[_.guid] = _;
-          dots = dots.concat([
-            `"${_.guid}"`,
-            `[id="n_${_.guid}";`,
-            `label="${_.data.code || _.data.key_name}";`,
-            "shape=box;",
-            `style="filled";color="${colors[level]}";`,
-            `tooltip="${_.data.description || _.data.name}"];`
-          ]);
-        }
-      });
+      if (data.length) {
+        data.forEach(_ => {
+          if (_.children instanceof Array && _.children.length) {
+            dots = dots.concat([
+              `subgraph cluster_${_.guid}{`,
+              `id="g_${_.guid}";`,
+              `style="filled";color="${colors[level]}";`,
+              `label="${_.data.code || _.data.key_name}";`,
+              `tooltip="${_.data.description || _.data.name}"`,
+              _.ciTypeId === 3
+                ? this.genServiceInvokeLine(_)
+                : this.genChildrenDot(_.children, level + 1),
+              "}"
+            ]);
+          } else {
+            this.physicalGraphNodes[_.guid] = _;
+            dots = dots.concat([
+              `"${_.guid}"`,
+              `[id="n_${_.guid}";`,
+              `label="${_.data.code || _.data.key_name}";`,
+              "shape=box;",
+              `style="filled";color="${colors[level]}";`,
+              `tooltip="${_.data.description || _.data.name}"];`
+            ]);
+          }
+        });
+      } else {
+        dots.push(
+          `g[label=" ",color="${colors[0]}";width="${width}";height="${height -
+            3}"]`
+        );
+      }
       return dots.join("");
     },
     genServiceInvokeLine(unitNode) {
@@ -626,11 +639,7 @@ export default {
             color = stateColorMap.get(line.data.state.code);
           }
           this.invokeLines.push(
-            `gn_${line.data.unit_design.guid} -> gn_${
-              line.data.service_design.guid
-            } [id="gl_${line.guid}",color="${color}",taillabel="${
-              line.data.type.value
-            }", labeldistance=3];`
+            `gn_${line.data.unit_design.guid} -> gn_${line.data.service_design.guid} [id="gl_${line.guid}",color="${color}",taillabel="${line.data.type.value}", labeldistance=3];`
           );
           this.physicalGraphLineNodes.serviceDesign[
             line.data.service_design.guid
@@ -1215,5 +1224,8 @@ export default {
 #physicalGraph {
   position: relative;
   min-height: 300px;
+}
+.no-data {
+  text-align: center;
 }
 </style>

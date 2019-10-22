@@ -7,7 +7,6 @@
         v-model="selectedIdc"
         class="graph-select"
         @on-change="onIdcDataChange"
-        @on-open-change="getAllIdcDesignData"
       >
         <Option v-for="item in allIdcs" :value="item.guid" :key="item.guid">
           {{ item.name }}
@@ -175,9 +174,24 @@ export default {
       let dots = [
         "digraph G {",
         "rankdir=TB nodesep=0.5;",
-        'node [shape="box", fontsize=' + fsize + ', labelloc="t", penwidth=2];',
-        'size = "' + width + "," + height + '";'
+        `node [shape="box", fontsize="${fsize}", labelloc="t", penwidth="2"];`,
+        `subgraph cluster_${idcData.data.guid} {`,
+        `style="filled";color="${colors[0]}";`,
+        `label="${idcData.data.name ||
+          idcData.data.description ||
+          idcData.data.code}";`,
+        `size="${width},${height}";`,
+        this.genChildren(idcData),
+        this.genLink(links),
+        "}}"
       ];
+      return dots.join("");
+    },
+    genChildren(idcData) {
+      const width = 16;
+      const height = 12;
+      let dots = [];
+      const children = idcData.children || [];
       let layers = new Map();
       children.forEach(zone => {
         if (layers.has(zone.data.zone_layer.value)) {
@@ -188,42 +202,44 @@ export default {
           layers.set(zone.data.zone_layer.value, layer);
         }
       });
-      layers.forEach(layer => {
-        dots.push('{rank = "same";');
-        let n = layers.size;
-        let lg = (height - 3) / n;
-        let ll = (width - 0.5 * layer.length) / layer.length;
-        layer.forEach(zone => {
-          let label;
-          if (
-            zone.data.code &&
-            zone.data.code !== null &&
-            zone.data.code !== ""
-          ) {
-            label = zone.data.code;
-          } else {
-            label = zone.data.key_name;
-          }
-          dots.push(
-            `g_${zone.guid}` +
-              '[id="g_' +
-              zone.guid +
-              '", label="' +
-              label +
-              '", width=' +
-              ll +
-              ",height=" +
-              lg +
-              "];"
-          );
+      if (layers.size) {
+        layers.forEach(layer => {
+          dots.push('{rank = "same";');
+          let n = layers.size;
+          let lg = (height - 3) / n;
+          let ll = (width - 0.5 * layer.length) / layer.length;
+          layer.forEach(zone => {
+            let label;
+            if (
+              zone.data.code &&
+              zone.data.code !== null &&
+              zone.data.code !== ""
+            ) {
+              label = zone.data.code;
+            } else {
+              label = zone.data.key_name;
+            }
+            dots.push(
+              `g_${zone.guid}[id="g_${zone.guid}", label="${label}", width=${ll},height=${lg}];`
+            );
+          });
+          dots.push("}");
         });
-        dots.push("}");
-      });
-      links.forEach(link => {
-        dots.push(link.azone + "->" + link.bzone + '[arrowhead="none"];');
-      });
-      dots.push("}");
+      } else {
+        dots.push(
+          `g_${idcData.data.guid}[label=" ";color="${
+            colors[0]
+          }";width="${width - 0.5}";height="${height - 3}"]`
+        );
+      }
       return dots.join("");
+    },
+    genLink(links) {
+      let result = "";
+      links.forEach(link => {
+        result += `${link.azone}->${link.bzone}[arrowhead="none"];`;
+      });
+      return result;
     },
     renderGraph(idcData) {
       let nodesString = this.genDOT(
@@ -687,6 +703,7 @@ export default {
       this.queryCiData();
     },
     async queryCiData() {
+      this.getAllIdcDesignData();
       this.payload.pageable.pageSize = 10;
       this.payload.pageable.startIndex = 0;
       this.tabList.forEach(ci => {
@@ -844,17 +861,16 @@ export default {
         });
       }
     },
-    async getAllIdcDesignData(status) {
-      if (status) {
-        const { status, message, data } = await getAllIdcDesignData();
-        if (status === "OK") {
-          this.allIdcs = data.map(_ => _.data);
-        }
+    async getAllIdcDesignData() {
+      const { status, message, data } = await getAllIdcDesignData();
+      if (status === "OK") {
+        this.allIdcs = data.map(_ => _.data);
       }
     }
   },
-  created() {
+  mounted() {
     this.getAllCiTypeByLayer(this.layerId);
+    this.getAllIdcDesignData();
   }
 };
 </script>

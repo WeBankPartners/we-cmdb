@@ -55,6 +55,8 @@ export const getEnumCategoriesByTypeId = catTypeId =>
   req.get(`/enum/category-types/${catTypeId}/categories`);
 
 //CI
+export const updateCIRecord = (ciTypeId, data) =>
+  req.put(`/ci-types/${ciTypeId}/ci-data/${data.guid}`, data);
 export const getRefCiTypeFrom = id => req.get(`/ci-types/${id}/references/by`);
 export const getRefCiTypeTo = id => req.get(`/ci-types/${id}/references/to`);
 export const getCiTypeAttr = id => req.get(`/ci-types/${id}/attributes`);
@@ -149,9 +151,7 @@ export const getApplicationFrameworkDesignDataTree = guid =>
   req.get(`/data-tree/application-framework-design?system-design-guid=${guid}`);
 export const getDeployCiData = (data, payload) =>
   req.post(
-    `/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${
-      data.envCode
-    }&system-design-guid=${data.systemDesignGuid}`,
+    `/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${data.envCode}&system-design-guid=${data.systemDesignGuid}`,
     payload
   );
 export const getDeployDesignTabs = () => req.get(`/deploy-designs/tabs`);
