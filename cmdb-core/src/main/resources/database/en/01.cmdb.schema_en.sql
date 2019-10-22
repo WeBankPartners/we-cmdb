@@ -89,6 +89,38 @@ CREATE TABLE IF NOT EXISTS `adm_basekey_cat_type` (
   CONSTRAINT `adm_basekey_cat_type_ci_type_1` FOREIGN KEY (`ci_type_id`) REFERENCES `adm_ci_type` (`id_adm_ci_type`)
 ) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_base` (
+  `id_adm_ci_type_attr` int(11) NOT NULL AUTO_INCREMENT ,
+  `id_adm_ci_type` int(4) NOT NULL ,
+  `name` varchar(64) NOT NULL ,
+  `description` varchar(255) DEFAULT NULL ,
+  `input_type` varchar(32) NOT NULL ,
+  `property_name` varchar(64) NOT NULL ,
+  `property_type` varchar(32) NOT NULL ,
+  `length` int(32) DEFAULT '1' ,
+  `reference_id` int(11) DEFAULT NULL ,
+  `reference_name` varchar(64) DEFAULT NULL ,
+  `reference_type` int(4) DEFAULT NULL ,
+  `filter_rule` varchar(1000) DEFAULT NULL,
+  `search_seq_no` int(11) DEFAULT NULL ,
+  `display_type` int(1) DEFAULT NULL ,
+  `display_seq_no` int(11) DEFAULT NULL ,
+  `edit_is_null` int(1) DEFAULT NULL,
+  `edit_is_only` int(1) DEFAULT NULL ,
+  `edit_is_hiden` int(1) DEFAULT NULL ,
+  `edit_is_editable` int(1) DEFAULT NULL ,
+  `is_defunct` int(1) DEFAULT '0' ,
+  `special_logic` varchar(32) DEFAULT NULL ,
+  `status` varchar(20) DEFAULT 'notCreated' ,
+  `is_system` int(1) DEFAULT NULL ,
+  `is_access_controlled` int(1) DEFAULT '0' ,
+  `is_auto` int(1) DEFAULT NULL,
+  `auto_fill_rule` varchar(2000) DEFAULT NULL ,
+  `regular_expression_rule` varchar(200) DEFAULT NULL ,
+  `is_refreshable` int(1) DEFAULT NULL,
+  PRIMARY KEY (`id_adm_ci_type_attr`),
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
 CREATE TABLE IF NOT EXISTS `adm_ci_type_attr` (
   `id_adm_ci_type_attr` int(11) NOT NULL AUTO_INCREMENT ,
   `id_adm_ci_type` int(4) NOT NULL ,
