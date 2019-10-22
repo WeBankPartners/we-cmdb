@@ -3,6 +3,7 @@ package com.webank.cmdb.repository.impl;
 import static java.lang.reflect.Modifier.isStatic;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -13,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.Subgraph;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -35,14 +37,12 @@ import com.google.common.collect.ImmutableSet;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.FilterRelationship;
 import com.webank.cmdb.constant.InputType;
-import com.webank.cmdb.controller.ui.helper.CollectionUtils;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dto.PageInfo;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
-import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.exception.InvalidArgumentException;
 import com.webank.cmdb.exception.ServiceException;
 import com.webank.cmdb.repository.StaticEntityRepository;
@@ -53,7 +53,7 @@ import com.webank.cmdb.util.Sorting;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 @Repository
-public class StaticEntityRepositoryImpl implements StaticEntityRepository {
+public class StaticEntityRepositoryImpl<E> implements StaticEntityRepository {
     private Logger logger = LoggerFactory.getLogger(StaticEntityRepositoryImpl.class);
 
     @Autowired
@@ -518,6 +518,18 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
             entityManager.createNativeQuery(sql).executeUpdate();
         }
     }
+    
+    @Transactional
+    @Override
+    public int applyCiType(AdmCiType admCiType) {
+        String sql = genCreateCiTypeWithDefaultAttrSQL(admCiType);
+        if (Strings.isNullOrEmpty(sql))
+            return 0;
+        if (logger.isDebugEnabled()) {
+            logger.debug("The applying CiType DDL SQL [%s]", sql);
+        }
+        return entityManager.createNativeQuery(sql).executeUpdate();
+    }
 
     @Transactional
     @Override
@@ -528,16 +540,78 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
     @Transactional
     @Override
     public void createDefaultCiTypeAttrs(AdmCiType admCiType) {
-        String sql = getDefaultCiTypeAttrsSQL(admCiType);
-        if (sql == null || sql.length() == 0) {
-            throw new CmdbException("Missing underlying data: SQL cannot be empty; Please configure");
+        for (AdmCiTypeAttr attr : retrieveDefaultAdmCiTypeAttrs(admCiType)) {
+            create(attr);
         }
-        entityManager.createNativeQuery(sql).executeUpdate();
     }
 
-    private String getDefaultCiTypeAttrsSQL(AdmCiType admCiType) {
-        List<String> resultList = entityManager.createNativeQuery("select acv.value from adm_code_value acv where acv.code='DefaultCiTypeAttrsSQL' ").getResultList();
-        String sql = CollectionUtils.pickRandomOne(resultList);
-        return sql == null ? null : sql.replace("$", admCiType.getIdAdmCiType().toString());
+    public String genCreateCiTypeWithDefaultAttrSQL(AdmCiType admCiType) {
+        StringBuffer sb = new StringBuffer("CREATE TABLE ");
+        sb.append(admCiType.getTableName()).append(" (");
+        for (AdmCiTypeAttr attr : retrieveDefaultAdmCiTypeAttrs(null)) {
+            sb.append("`").append(attr.getPropertyName()).append("`").append(" ").append(attr.getPropertyType()).append(" ");
+            if (!("datetime".equals(attr.getPropertyType()) || "date".equals(attr.getPropertyType()) || "text".equals(attr.getPropertyType()) || "longtext".equals(attr.getPropertyType()))) {
+                sb.append("(").append(attr.getLength()).append(")").append(" ");
+            }
+            if ("guid".equals(attr.getPropertyName())) {
+                sb.append(" NOT NULL ");
+            } else {
+                sb.append(" DEFAULT NULL ");
+            }
+            if (admCiType.getDescription() != null) {
+                sb.append("COMMENT '").append(attr.getDescription()).append("'");
+            }
+            sb.append(", ");
+        }
+        sb.append("PRIMARY KEY (`guid`)");
+        sb.append(") ENGINE=InnoDB DEFAULT CHARSET=utf8");
+        return sb.toString();
+    }
+
+    public List<AdmCiTypeAttr> retrieveDefaultAdmCiTypeAttrs(AdmCiType admCiType) {
+        Query createNativeQuery = entityManager.createNativeQuery("SELECT * FROM ADM_CI_TYPE_ATTR_BASE ");
+        List objects = createNativeQuery.getResultList();
+        List<AdmCiTypeAttr> citypes = objectArrToEos(objects,admCiType);
+        return citypes;
+    }
+    
+    public List<AdmCiTypeAttr> objectArrToEos(List<Object[]> Objects,AdmCiType admCiType) {
+        List<AdmCiTypeAttr>  ciTypes = new ArrayList<AdmCiTypeAttr>();
+        Objects.stream().forEach(arr->{
+            AdmCiTypeAttr ciType = objectToEo(arr,admCiType);
+            ciTypes.add(ciType);
+        });
+        return ciTypes;
+    }
+    public AdmCiTypeAttr objectToEo(Object[] arr,AdmCiType admCiType) {
+        AdmCiTypeAttr admCiTypeAttr = new AdmCiTypeAttr();
+        admCiTypeAttr.setCiTypeId(admCiType.getIdAdmCiType());
+        admCiTypeAttr.setName((String)arr[2]);
+        admCiTypeAttr.setDescription((String)arr[3]);
+        admCiTypeAttr.setInputType((String)arr[4]);
+        admCiTypeAttr.setPropertyName((String)arr[5]);
+        admCiTypeAttr.setPropertyType((String)arr[6]);
+        admCiTypeAttr.setLength((Integer)arr[7]);
+        admCiTypeAttr.setReferenceId((Integer)arr[8]);
+        admCiTypeAttr.setReferenceName((String)arr[9]);
+        admCiTypeAttr.setReferenceType((Integer)arr[10]);
+        admCiTypeAttr.setFilterRule((String)arr[11]);
+        admCiTypeAttr.setSearchSeqNo((Integer)arr[12]);
+        admCiTypeAttr.setDisplayType((Integer)arr[13]);
+        admCiTypeAttr.setDisplaySeqNo((Integer)arr[14]);
+        admCiTypeAttr.setEditIsNull((Integer)arr[15]);
+        admCiTypeAttr.setEditIsOnly((Integer)arr[16]);
+        admCiTypeAttr.setEditIsHiden((Integer)arr[17]);
+        admCiTypeAttr.setEditIsEditable((Integer)arr[18]);
+        admCiTypeAttr.setIsDefunct((Integer)arr[19]);
+        admCiTypeAttr.setSpecialLogic((String)arr[20]);
+        admCiTypeAttr.setStatus((String)arr[21]);
+        admCiTypeAttr.setIsSystem((Integer)arr[22]);
+        admCiTypeAttr.setIsAccessControlled((Integer)arr[23]);
+        admCiTypeAttr.setIsAuto((Integer)arr[24]);
+        admCiTypeAttr.setAutoFillRule((String)arr[25]);
+        admCiTypeAttr.setRegularExpressionRule((String)arr[26]);
+        admCiTypeAttr.setIsRefreshable((Integer)arr[27]);
+        return admCiTypeAttr;
     }
 }
