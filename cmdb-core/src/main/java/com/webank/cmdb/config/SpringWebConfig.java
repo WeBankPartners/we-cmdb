@@ -102,18 +102,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
             configurePrivacyFreeAuthentication(registry);
         }
     }
-    
-    
-      @Autowired 
-      public void configureGlobal(AuthenticationManagerBuilder auth)throws Exception {
-          auth 
-          .inMemoryAuthentication() 
-          .withUser("admin")
-          .password("admin")
-          .roles("USER");
-      }
      
-    
     protected void configureLocalAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) throws Exception {
         registry.antMatchers("/login-with-password*").permitAll()
                 .antMatchers("/logout*").permitAll()
@@ -155,8 +144,6 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                 .csrf()
                 .disable();
     }
-    
-    
 
     protected ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry configureWhiteListAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry,
             boolean checkRequired) throws Exception {
