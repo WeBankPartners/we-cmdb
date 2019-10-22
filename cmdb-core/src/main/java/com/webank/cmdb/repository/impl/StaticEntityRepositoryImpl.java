@@ -53,7 +53,7 @@ import com.webank.cmdb.util.Sorting;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 @Repository
-public class StaticEntityRepositoryImpl<E> implements StaticEntityRepository {
+public class StaticEntityRepositoryImpl implements StaticEntityRepository {
     private Logger logger = LoggerFactory.getLogger(StaticEntityRepositoryImpl.class);
 
     @Autowired
@@ -518,7 +518,7 @@ public class StaticEntityRepositoryImpl<E> implements StaticEntityRepository {
             entityManager.createNativeQuery(sql).executeUpdate();
         }
     }
-    
+
     @Transactional
     @Override
     public int applyCiType(AdmCiType admCiType) {
@@ -571,47 +571,48 @@ public class StaticEntityRepositoryImpl<E> implements StaticEntityRepository {
     public List<AdmCiTypeAttr> retrieveDefaultAdmCiTypeAttrs(AdmCiType admCiType) {
         Query createNativeQuery = entityManager.createNativeQuery("SELECT * FROM ADM_CI_TYPE_ATTR_BASE ");
         List objects = createNativeQuery.getResultList();
-        List<AdmCiTypeAttr> citypes = objectArrToEos(objects,admCiType);
+        List<AdmCiTypeAttr> citypes = objectArrToEos(objects, admCiType);
         return citypes;
     }
-    
-    public List<AdmCiTypeAttr> objectArrToEos(List<Object[]> Objects,AdmCiType admCiType) {
-        List<AdmCiTypeAttr>  ciTypes = new ArrayList<AdmCiTypeAttr>();
-        Objects.stream().forEach(arr->{
-            AdmCiTypeAttr ciType = objectToEo(arr,admCiType);
+
+    public List<AdmCiTypeAttr> objectArrToEos(List<Object[]> Objects, AdmCiType admCiType) {
+        List<AdmCiTypeAttr> ciTypes = new ArrayList<AdmCiTypeAttr>();
+        Objects.stream().forEach(arr -> {
+            AdmCiTypeAttr ciType = objectToEo(arr, admCiType);
             ciTypes.add(ciType);
         });
         return ciTypes;
     }
-    public AdmCiTypeAttr objectToEo(Object[] arr,AdmCiType admCiType) {
+
+    public AdmCiTypeAttr objectToEo(Object[] arr, AdmCiType admCiType) {
         AdmCiTypeAttr admCiTypeAttr = new AdmCiTypeAttr();
         admCiTypeAttr.setCiTypeId(admCiType.getIdAdmCiType());
-        admCiTypeAttr.setName((String)arr[2]);
-        admCiTypeAttr.setDescription((String)arr[3]);
-        admCiTypeAttr.setInputType((String)arr[4]);
-        admCiTypeAttr.setPropertyName((String)arr[5]);
-        admCiTypeAttr.setPropertyType((String)arr[6]);
-        admCiTypeAttr.setLength((Integer)arr[7]);
-        admCiTypeAttr.setReferenceId((Integer)arr[8]);
-        admCiTypeAttr.setReferenceName((String)arr[9]);
-        admCiTypeAttr.setReferenceType((Integer)arr[10]);
-        admCiTypeAttr.setFilterRule((String)arr[11]);
-        admCiTypeAttr.setSearchSeqNo((Integer)arr[12]);
-        admCiTypeAttr.setDisplayType((Integer)arr[13]);
-        admCiTypeAttr.setDisplaySeqNo((Integer)arr[14]);
-        admCiTypeAttr.setEditIsNull((Integer)arr[15]);
-        admCiTypeAttr.setEditIsOnly((Integer)arr[16]);
-        admCiTypeAttr.setEditIsHiden((Integer)arr[17]);
-        admCiTypeAttr.setEditIsEditable((Integer)arr[18]);
-        admCiTypeAttr.setIsDefunct((Integer)arr[19]);
-        admCiTypeAttr.setSpecialLogic((String)arr[20]);
-        admCiTypeAttr.setStatus((String)arr[21]);
-        admCiTypeAttr.setIsSystem((Integer)arr[22]);
-        admCiTypeAttr.setIsAccessControlled((Integer)arr[23]);
-        admCiTypeAttr.setIsAuto((Integer)arr[24]);
-        admCiTypeAttr.setAutoFillRule((String)arr[25]);
-        admCiTypeAttr.setRegularExpressionRule((String)arr[26]);
-        admCiTypeAttr.setIsRefreshable((Integer)arr[27]);
+        admCiTypeAttr.setName((String) arr[2]);
+        admCiTypeAttr.setDescription((String) arr[3]);
+        admCiTypeAttr.setInputType((String) arr[4]);
+        admCiTypeAttr.setPropertyName((String) arr[5]);
+        admCiTypeAttr.setPropertyType((String) arr[6]);
+        admCiTypeAttr.setLength((Integer) arr[7]);
+        admCiTypeAttr.setReferenceId((Integer) arr[8]);
+        admCiTypeAttr.setReferenceName((String) arr[9]);
+        admCiTypeAttr.setReferenceType((Integer) arr[10]);
+        admCiTypeAttr.setFilterRule((String) arr[11]);
+        admCiTypeAttr.setSearchSeqNo((Integer) arr[12]);
+        admCiTypeAttr.setDisplayType((Integer) arr[13]);
+        admCiTypeAttr.setDisplaySeqNo((Integer) arr[14]);
+        admCiTypeAttr.setEditIsNull((Integer) arr[15]);
+        admCiTypeAttr.setEditIsOnly((Integer) arr[16]);
+        admCiTypeAttr.setEditIsHiden((Integer) arr[17]);
+        admCiTypeAttr.setEditIsEditable((Integer) arr[18]);
+        admCiTypeAttr.setIsDefunct((Integer) arr[19]);
+        admCiTypeAttr.setSpecialLogic((String) arr[20]);
+        admCiTypeAttr.setStatus((String) arr[21]);
+        admCiTypeAttr.setIsSystem((Integer) arr[22]);
+        admCiTypeAttr.setIsAccessControlled((Integer) arr[23]);
+        admCiTypeAttr.setIsAuto((Integer) arr[24]);
+        admCiTypeAttr.setAutoFillRule((String) arr[25]);
+        admCiTypeAttr.setRegularExpressionRule((String) arr[26]);
+        admCiTypeAttr.setIsRefreshable((Integer) arr[27]);
         return admCiTypeAttr;
     }
 }
