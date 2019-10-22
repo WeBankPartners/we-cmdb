@@ -103,6 +103,11 @@ WeCMDB使用Java和Vue进行开发，数据存储于MySQL，并依赖Tomcat Web�
 关于WeCMDB的API说明， 请查看文档
 [WeCMDB API手册](cmdb-wiki/docs/api/wecmdb_api_guide.md)
 
+## 性能
+关于WeCMDB的性能，请查看文档
+[WeCMDB 性能](cmdb-wiki/docs/developer/performance.md)
+
+
 ## 版权声明
 WeCMDB是基于 Apache License 2.0 协议， 详情请参考
 [LICENSE](LICENSE)
