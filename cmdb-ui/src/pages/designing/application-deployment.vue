@@ -53,7 +53,6 @@
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
             <div>加载中...</div>
           </Spin>
-          <div v-else-if="!systemData.length" class="no-data">暂无数据</div>
         </div>
       </TabPane>
       <TabPane label="应用树状逻辑图" name="logic-tree-graph" :index="2">
@@ -77,7 +76,6 @@
             :links="physicalGraphLinks"
             :callback="graphCallback"
           ></PhysicalGraph>
-          <div v-else class="no-data">暂无数据</div>
           <Spin size="large" fix v-if="physicalSpin">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
             <div>加载中...</div>
@@ -156,8 +154,8 @@ const serviceTask = require("../images/serviceTask.png");
 import { getExtraInnerActions } from "../util/state-operations.js";
 import PhysicalGraph from "./physical-graph";
 const stateColorMap = new Map([
-  ["new", "#19be6b"],
-  ["created", "#19be6b"],
+  ["new", "#47cb89"],
+  ["created", "#47cb89"],
   ["update", "#2d8cf0"],
   ["change", "#2d8cf0"],
   ["destroyed", "#ed4014"],
@@ -229,7 +227,7 @@ export default {
     }
   },
   methods: {
-    initADGraph() {
+    initADGraph(filters = {}) {
       this.spinShow = true;
       const initEvent = () => {
         let graph = d3.select("#graph");
@@ -1289,8 +1287,5 @@ export default {
 #graphTree {
   position: relative;
   min-height: calc(50% + 300px);
-}
-.no-data {
-  text-align: center;
 }
 </style>
