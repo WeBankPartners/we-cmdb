@@ -12,7 +12,7 @@ import com.webank.cmdb.config.ApplicationProperties.UIProperties;
 
 @Configuration
 @EnableCaching
-@ComponentScan({ "com.webank.cmdb.service", "com.webank.cmdb.mvc", "com.webank.cmdb.util" })
+@ComponentScan({ "com.webank.cmdb.service", "com.webank.cmdb.mvc", "com.webank.cmdb.util","com.webank.cmdb.cache" })
 @Import({ DatabaseConfig.class })
 @EnableConfigurationProperties({ ApplicationProperties.class ,DatasourceProperties.class, UIProperties.class, SecurityProperties.class})
 public class SpringAppConfig {
