@@ -26,4 +26,6 @@ public interface StaticEntityRepository {
     Object update(Object domainObj);
 
     void createDefaultCiTypeAttrs(AdmCiType admCiType);
+
+    int applyCiType(AdmCiType admCiType);
 }
