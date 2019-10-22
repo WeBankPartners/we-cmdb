@@ -46,4 +46,4 @@ logging:
     root: INFO
     com:
       webank:
-        cmdb: DEBUG
+        cmdb: INFO

@@ -2,6 +2,8 @@ package com.webank.cmdb.repository;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -11,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.webank.cmdb.domain.AdmBasekeyCode;
 
+@CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "admBasekeyCodeRepository")
 public interface AdmBasekeyCodeRepository extends JpaRepository<AdmBasekeyCode, Integer> {
     @Query(value = "select max(seq_no) from adm_basekey_code where id_adm_basekey_cat = :catId", nativeQuery = true)
     Integer getMaxSeqNoByCatId(@Param("catId") int catId);
@@ -65,5 +68,12 @@ public interface AdmBasekeyCodeRepository extends JpaRepository<AdmBasekeyCode, 
 
     @Query(value = "select * from adm_basekey_code where id_adm_basekey_cat = :catId and :fieldName = :value", nativeQuery = true)
     List<AdmBasekeyCode> findByCatIdAndFieldName(Integer catId, String fieldName, Object value);
+
+    //for cache purpose
+    @Cacheable("basekeyCode-getOne")
+    AdmBasekeyCode getOne(Integer id);
+    
+    @Cacheable("basekeyCode-existsById")
+    boolean existsById(Integer id);
 
 }
