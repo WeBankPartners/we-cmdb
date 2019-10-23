@@ -60,9 +60,7 @@ export default {
             ciType = this.ciTypesObj[_.ciTypeId].name;
             if (_.parentRs) {
               refType = _.parentRs.isReferedFromParent === 1 ? "." : "-";
-              ciTypeAttr = `(${
-                this.ciTypeAttributeObj[_.parentRs.attrId].name
-              })`;
+              ciTypeAttr = `(${this.ciTypeAttributeObj[_.parentRs.attrId].name})`;
               if (
                 this.ciTypeAttributeObj[_.parentRs.attrId].inputType !== "ref"
               ) {
