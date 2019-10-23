@@ -84,14 +84,14 @@
                       ref="invokeSequenceForm"
                       :model="invokeSequenceForm"
                       label-position="left"
-                      :label-width="120"
+                      :label-width="110"
                     >
                       <Form-item :label="$t('invoking_sequential_design')">
                         <Row>
                           <Select
                             :placeholder="$t('select_placeholder')"
                             v-model="invokeSequenceForm.selectedInvokeSequence"
-                            style="width:calc(100% - 70px)"
+                            style="width:calc(100% - 80px)"
                           >
                             <Option
                               v-for="item in invokeSequenceForm.invokeSequenceData"
@@ -101,7 +101,7 @@
                             >
                           </Select>
                           <Button
-                            style="margin-right: 10px;float: right; width=70px;"
+                            style="float:right;width:70px;"
                             @click="onSearchInvokeSquence"
                             >{{ $t("confirm") }}</Button
                           >
@@ -586,7 +586,7 @@ export default {
         `subgraph cluster_${sysData[0].guid} {`,
         `style="filled";color="${colors[0]}";`,
         `tooltip="${sysData[0].data.description}";`,
-        `label="${sysData[0].data.code}";`,
+        `label="${sysData[0].data.name}";`,
         this.genChildrenDot(sysData[0].children || [], 1),
         "}",
         ...this.invokeLines,
@@ -604,8 +604,8 @@ export default {
       return dots.join("");
     },
     genChildrenDot(data, level) {
-      const width = 16;
-      const height = 12;
+      const width = 12;
+      const height = 9;
       let dots = [];
       if (data.length) {
         data.forEach(_ => {
@@ -635,8 +635,8 @@ export default {
         });
       } else {
         dots.push(
-          `g[label=" ",color="${colors[0]}";width="${width -
-            0.5}";height="${height - 3}"]`
+          `g[label=" ",color="${colors[0]}";width="${width}";height="${height -
+            3}"]`
         );
       }
       return dots.join("");

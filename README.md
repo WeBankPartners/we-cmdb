@@ -87,21 +87,26 @@ WeCMDB常规容器化部署。
 [WeCMDB用户手册](cmdb-wiki/docs/manual/wecmdb_user_guide.md)
 
 ## 开发者文档
-**WeCMDB快速本地启动**
+**WeCMDB快速本地启动**  
 如何本地快速体验，请查看文档[WeCMDB快速本地启动环境配置](cmdb-wiki/docs/developer/wecmdb_local_standalone_guide.md)
 
-**WeCMDB常规环境搭建**
+**WeCMDB常规环境搭建**  
 WeCMDB使用Java和Vue进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
 
 请参考文档进行开发环境配置[WeCMDB开发环境配置](cmdb-wiki/docs/developer/wecmdb_developer_guide.md)
 
-**WeCMDB代码贡献指引**
+**WeCMDB代码贡献指引**  
 关于WeCMDB代码贡献， 请查看文档
 [WeCMDB代码贡献指引](cmdb-wiki/docs/developer/code_contributors_submit_guide.md)
 
 ## API说明
 关于WeCMDB的API说明， 请查看文档
 [WeCMDB API手册](cmdb-wiki/docs/api/wecmdb_api_guide.md)
+
+## 性能
+关于WeCMDB的性能，请查看文档
+[WeCMDB 性能](cmdb-wiki/docs/developer/performance.md)
+
 
 ## 版权声明
 WeCMDB是基于 Apache License 2.0 协议， 详情请参考

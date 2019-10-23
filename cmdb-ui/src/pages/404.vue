@@ -7,7 +7,7 @@
     <h2>
       Page Not Found
     </h2>
-    <p>Back to <a href="/cmdb/">homepage</a></p>
+    <p>Back to <a href="/wecmdb/">homepage</a></p>
   </div>
 </template>
 
