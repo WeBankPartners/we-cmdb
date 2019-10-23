@@ -131,6 +131,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                 .anyRequest().authenticated()
             .and()
                 .formLogin()
+               // .loginPage("/index.html")
                 .loginPage("/login-privacy-free.html")
                 .loginProcessingUrl("/login-privacy-free")
                 .defaultSuccessUrl("/index.html")
@@ -187,6 +188,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     @Override
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
         if (!securityProperties.isEnabled()) {
+            //默认密码登录
             auth.userDetailsService(userDetailsService).passwordEncoder(new BypassPasswordEncoder());
         } else if (AUTH_PROVIDER_LOCAL.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
             auth.userDetailsService(userDetailsService);
