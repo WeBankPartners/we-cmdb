@@ -105,7 +105,7 @@ export default {
       this.translateAndScale(_this, idcData.guid, divWidth, divHeight);
     },
     genDOT(data) {
-      const label = data.data.code || data.data.key_name;
+      const label = data.data.name || data.data.code || data.data.key_name;
       const tooltip = data.data.description || data.data.code;
       let dots = [
         "digraph G{",
@@ -119,6 +119,7 @@ export default {
         this.genLink(data.guid),
         "}}"
       ];
+      // console.log(dots.join("").replace(/(;)/g, ";\n").replace(/];/g, "];\n"))
       return dots.join("");
     },
     genArea(data) {
@@ -157,7 +158,7 @@ export default {
           `g_${data.guid}`,
           `[id="g_${data.guid}";`,
           `label=" ";`,
-          `color="${colors[0]}"`,
+          `color="${colors[0]}";`,
           `tooltip="${data.data.description || data.data.code}";`,
           `width="${width - 0.5}";`,
           `height="${height - 3}"]`,
@@ -180,18 +181,14 @@ export default {
             this.idcs[guid].indexOf(_.data.zone_design1.guid) >= 0 &&
             this.idcs[guid].indexOf(_.data.zone_design2.guid) >= 0
           ) {
-            result += `g_${_.data.zone_design1.guid}->g_${
-              _.data.zone_design2.guid
-            }[arrowhead=none];`;
+            result += `g_${_.data.zone_design1.guid}->g_${_.data.zone_design2.guid}[arrowhead=none];`;
           }
         } else {
           if (
             this.idcs[guid].indexOf(_.data.zone1.guid) >= 0 &&
             this.idcs[guid].indexOf(_.data.zone2.guid) >= 0
           ) {
-            result += `g_${_.data.zone1.guid}->g_${
-              _.data.zone2.guid
-            }[arrowhead=none];`;
+            result += `g_${_.data.zone1.guid}->g_${_.data.zone2.guid}[arrowhead=none];`;
           }
         }
       });
@@ -458,7 +455,7 @@ export default {
 
 <style lang="scss" scoped>
 .graph-list {
-  overflow-x: scroll;
+  overflow-x: auto;
   display: flex;
 }
 .graph-list > div {

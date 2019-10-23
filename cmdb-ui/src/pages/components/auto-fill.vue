@@ -154,8 +154,7 @@ export default {
           } else {
             this.$refs.textarea.value = this.inputVal;
             this.$Message.error({
-              content:
-                "连接符只支持英文字母大小写，数字0-9，符号[/, \, -, _] 的输入, { 触发规则填充"
+              content: this.$t("auto_fill_legitimate_character_tips")
             });
           }
         } else if (v.inputType === "deleteContentBackward") {
@@ -183,7 +182,7 @@ export default {
           if (!this.autoFillLastObjValue) {
             this.$refs.textarea.value = this.inputVal;
             this.$Message.error({
-              content: "请先选择一个ciType"
+              content: this.$t("please_select_ci_type")
             });
           } else {
             const objList = JSON.parse(this.autoFillLastObjValue);
@@ -206,7 +205,9 @@ export default {
               } else {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入正确的操作符 . 或 -"
+                  content: this.$t(
+                    "auto_fill_legitimate_operation_character_tips"
+                  )
                 });
               }
             } else if (
@@ -217,7 +218,7 @@ export default {
             ) {
               this.$refs.textarea.value = this.inputVal;
               this.$Message.error({
-                content: "请选择枚举值"
+                content: this.$t("please_select_enum")
               });
             } else {
               if (v.data === "}") {
@@ -228,7 +229,7 @@ export default {
               } else {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入操作符 } 闭合当前规则"
+                  content: this.$t("auto_fill_close_rule_tips")
                 });
               }
             }
@@ -405,47 +406,44 @@ export default {
       if (!this.allCiTypes.length || !this.value) {
         return;
       }
-      if (this.value) {
-        this.inputVal = "";
-        this.autoFillArray = JSON.parse(this.value);
-        if (
-          this.autoFillArray[this.autoFillArray.length - 1].type !== "delimiter"
-        ) {
-          this.autoFillArray.push({ type: "delimiter", value: "" });
-        }
-        this.autoFillArray.forEach(_ => {
-          if (_.type === "delimiter") {
-            this.inputVal += _.value;
-          } else {
-            let val = "{ ";
-            let data = JSON.parse(_.value);
-            data.forEach(item => {
-              const ciTypeName = this.ciTypesObj[item.ciTypeId].name;
-              if (item.parentRs) {
-                const refType =
-                  item.parentRs.isReferedFromParent === 1 ? "." : "-";
-                const attrName = this.ciTypeAttrsObj[item.parentRs.attrId].name;
-                if (
-                  this.ciTypeAttrsObj[item.parentRs.attrId].inputType === "ref"
-                ) {
-                  val += `${refType}(${attrName})${ciTypeName} `;
-                } else if (
-                  this.ciTypeAttrsObj[item.parentRs.attrId].inputType ===
-                  "select"
-                ) {
-                  val += `${refType}${attrName} .${item.enumCodeAttr} `;
-                } else {
-                  val += `${refType}${attrName} `;
-                }
-              } else {
-                val += ciTypeName + " ";
-              }
-            });
-            val += "}";
-            this.inputVal += val;
-          }
-        });
+      this.inputVal = "";
+      this.autoFillArray = JSON.parse(this.value);
+      if (
+        this.autoFillArray[this.autoFillArray.length - 1].type !== "delimiter"
+      ) {
+        this.autoFillArray.push({ type: "delimiter", value: "" });
       }
+      this.autoFillArray.forEach(_ => {
+        if (_.type === "delimiter") {
+          this.inputVal += _.value;
+        } else {
+          let val = "{ ";
+          let data = JSON.parse(_.value);
+          data.forEach(item => {
+            const ciTypeName = this.ciTypesObj[item.ciTypeId].name;
+            if (item.parentRs) {
+              const refType =
+                item.parentRs.isReferedFromParent === 1 ? "." : "-";
+              const attrName = this.ciTypeAttrsObj[item.parentRs.attrId].name;
+              if (
+                this.ciTypeAttrsObj[item.parentRs.attrId].inputType === "ref"
+              ) {
+                val += `${refType}(${attrName})${ciTypeName} `;
+              } else if (
+                this.ciTypeAttrsObj[item.parentRs.attrId].inputType === "select"
+              ) {
+                val += `${refType}${attrName} .${item.enumCodeAttr} `;
+              } else {
+                val += `${refType}${attrName} `;
+              }
+            } else {
+              val += ciTypeName + " ";
+            }
+          });
+          val += "}";
+          this.inputVal += val;
+        }
+      });
     }
   }
 };

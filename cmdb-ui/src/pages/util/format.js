@@ -19,3 +19,10 @@ export const formatData = data => {
   });
   return exportData.map(_ => _.weTableForm);
 };
+
+export const formatString = (str, ...v) => {
+  v.forEach((_, i) => {
+    str = str.replace(new RegExp(`\\{${i}\\}`, "g"), _);
+  });
+  return str;
+};

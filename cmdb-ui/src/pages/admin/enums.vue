@@ -45,7 +45,7 @@ export default {
       seachFilters: {},
       tableColumns: [
         {
-          title: "枚举名称",
+          title: this.$t("table_enum_name"),
           key: "catName",
           inputKey: "catId",
           searchSeqNo: 1,
@@ -58,7 +58,7 @@ export default {
           options: []
         },
         {
-          title: "枚举键",
+          title: this.$t("table_enum_key"),
           key: "code",
           inputKey: "code",
           searchSeqNo: 2,
@@ -68,7 +68,7 @@ export default {
           placeholder: "code"
         },
         {
-          title: "枚举值",
+          title: this.$t("table_enum_value"),
           key: "value",
           inputKey: "value",
           searchSeqNo: 3,
@@ -78,7 +78,7 @@ export default {
           placeholder: "value"
         },
         {
-          title: "枚举类型",
+          title: this.$t("form_enum_type"),
           key: "catTypeName",
           inputKey: "cat.catType.catTypeName",
           searchSeqNo: 0, // 不可作为搜索条件
@@ -89,7 +89,7 @@ export default {
           placeholder: "catTypeName"
         },
         {
-          title: "枚举组",
+          title: this.$t("table_enum_group"),
           key: "groupCodeId",
           inputKey: "groupCodeId",
           searchSeqNo: 5,
@@ -100,7 +100,7 @@ export default {
           optionKey: "catId"
         },
         {
-          title: "状态",
+          title: this.$t("state"),
           key: "status",
           inputKey: "status",
           searchSeqNo: 6,
@@ -226,10 +226,10 @@ export default {
             ..._.cat,
             catTypeName:
               _.cat.catType.catTypeName === "sys"
-                ? "系统枚举"
+                ? this.$t("system_enum")
                 : _.cat.catType.catTypeName === "common"
-                ? "公有枚举"
-                : "私有枚举-" + _.cat.catType.catTypeName
+                ? this.$t("common_enum")
+                : `${this.$t("private_enum")}-${_.cat.catType.catTypeName}`
           };
         });
       }
@@ -241,7 +241,6 @@ export default {
           : await getNonSystemCategories();
       if (status === "OK") {
         this.tableColumns[0].options = data.map(_ => {
-          // this.getGroupList(_.catId);
           return {
             value: _.catId,
             label: _.catName
@@ -337,14 +336,14 @@ export default {
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("delete_confirm"),
         "z-index": 1000000,
         onOk: async () => {
           const payload = deleteData.map(_ => _.codeId);
           const { status, message, data } = await deleteEnumCodes(payload);
           if (status === "OK") {
             this.$Notice.success({
-              title: "Delete Enum Success",
+              title: this.$t("delete_enum_success_message"),
               desc: message
             });
             this.outerActions.forEach(_ => {
@@ -392,7 +391,7 @@ export default {
         const { status, message, data } = await createEnumCode(payload);
         if (status === "OK") {
           this.$Notice.success({
-            title: "Add Enum Success",
+            title: this.$t("add_enum_success_message"),
             desc: message
           });
           setBtnsStatus();
@@ -414,7 +413,7 @@ export default {
         const { status, message, data } = await updateEnumCode(payload);
         if (status === "OK") {
           this.$Notice.success({
-            title: "Update Enum Success",
+            title: this.$t("update_enum_success_message"),
             desc: message
           });
           setBtnsStatus();

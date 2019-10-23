@@ -1,27 +1,29 @@
 <template>
   <div>
-    <Button @click="showSequence" size="small" type="info">选择调用时序</Button>
+    <Button @click="showSequence" size="small" type="info">{{
+      $t("select_invoking_sequential")
+    }}</Button>
     <Modal
       v-model="sequenceVisiable"
       @on-visible-change="visibleChangeHandler"
       width="90"
       :footer-hide="true"
       :mask-closable="false"
-      title="调用设计"
+      :title="$t('invoking_design')"
     >
       <Row>
         <Col span="17">
           <Card>
-            <p slot="title">时序图</p>
+            <p slot="title">{{ $t("sequential_graph") }}</p>
             <div :id="'abc' + guid"></div>
           </Card>
         </Col>
         <Col span="7" style="padding: 0 0 0 20px">
           <Card>
-            <p slot="title">调用关系</p>
+            <p slot="title">{{ $t("invoking_refrence") }}</p>
             <Row>
               <Col span="7">
-                <span>选择调用关系</span>
+                <span>{{ $t("select_invoking_refrence") }}</span>
               </Col>
               <Col span="16">
                 <Select
@@ -111,7 +113,7 @@ export default {
       if (!this.selectedSequenceData[currentIndex - 1]) {
         this.$Notice.warning({
           title: "Warning",
-          desc: "已经是第一层"
+          desc: this.$t("is_first_layer")
         });
         return;
       }
@@ -129,7 +131,7 @@ export default {
       if (!this.selectedSequenceData[currentIndex + 1]) {
         this.$Notice.warning({
           title: "Warning",
-          desc: "已经是最后一层"
+          desc: this.$t("is_last_layer")
         });
         return;
       }

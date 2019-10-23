@@ -3,12 +3,12 @@
     <Row>
       <Input
         class="input"
-        placeholder="输入用户名过滤用户"
+        :placeholder="$t('input_username_to_filter_user')"
         v-model="inputData"
         clearable
       />
     </Row>
-    <Alert style="margin: 5px;">点击用户名为其重置密码</Alert>
+    <Alert style="margin: 5px;">{{ $t("click_to_reset_password") }}</Alert>
     <Row>
       <Button
         class="user-button"
@@ -21,13 +21,11 @@
     <Modal v-model="modalVisible" width="360" @on-ok="handleReset">
       <p slot="header" style="color:#f60;text-align:center">
         <Icon type="ios-information-circle"></Icon>
-        <span>重置密码</span>
+        <span>{{ $t("reset_password") }}</span>
       </p>
       <div style="text-align:center">
         <p style="font-size: 14px;">
-          是否重置
-          <span style="font-weight: 600;">{{ targetUser.username }} </span
-          >的密码
+          {{ formatString($t("whether_reset_or_not"), targetUser.username) }}
         </p>
       </div>
     </Modal>
@@ -36,6 +34,7 @@
 
 <script>
 import { getAllUsers, resetPassword } from "@/api/server";
+import { formatString } from "../util/format.js";
 
 export default {
   data() {
@@ -58,6 +57,9 @@ export default {
     }
   },
   methods: {
+    formatString(...data) {
+      return formatString(...data);
+    },
     async getAllUsers() {
       const { status, data, message, user } = await getAllUsers();
       if (status === "OK") {
@@ -85,7 +87,11 @@ export default {
       if (status === "OK") {
         this.modalVisible = false;
         this.$Modal.info({
-          title: `请保存 ${this.targetUser.username}(${this.targetUser.description}) 的新密码`,
+          title: formatString(
+            this.$t("save_password_please"),
+            this.targetUser.username,
+            this.targetUser.description
+          ),
           content: data
         });
       }

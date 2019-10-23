@@ -210,19 +210,21 @@ export default {
               } else {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入 { 开启过滤规则填充"
+                  content: this.$t("filter_rule_input_tips_to_start_rule")
                 });
               }
             } else {
               if (val[val.length - 2] === "in") {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入 { 或者 [ 开启过滤规则填充"
+                  content: this.$t(
+                    "filter_rule_input_tips_to_start_rule_without_any_input"
+                  )
                 });
               } else {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入 { 开启过滤规则填充"
+                  content: this.$t("filter_rule_input_tips_to_start_rule")
                 });
               }
             }
@@ -237,7 +239,7 @@ export default {
             } else {
               this.$refs.textarea.value = this.inputVal;
               this.$Message.error({
-                content: "请输入 { 开启过滤规则填充"
+                content: this.$t("filter_rule_input_tips_to_start_rule")
               });
             }
           } else {
@@ -249,23 +251,25 @@ export default {
               ) {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请点击空格键触发过滤规则连接"
+                  content: this.$t("filter_rule_input_tips_to_link_rule")
                 });
               } else if (val[val.length - 2] === "in") {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入 { 或者 [ 开启过滤规则填充"
+                  content: this.$t(
+                    "filter_rule_input_tips_to_start_rule_without_any_input"
+                  )
                 });
               } else {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入 { 开启过滤规则填充"
+                  content: this.$t("filter_rule_input_tips_to_start_rule")
                 });
               }
             } else {
               this.$refs.textarea.value = this.inputVal;
               this.$Message.error({
-                content: "请输入 { 开启过滤规则填充"
+                content: this.$t("filter_rule_input_tips_to_start_rule")
               });
             }
           }
@@ -379,7 +383,9 @@ export default {
                 } else {
                   this.$refs.textarea.value = this.inputVal;
                   this.$Message.error({
-                    content: "请输入正确的操作符 . "
+                    content: this.$t(
+                      "filter_tule_please_input_legitimate_character"
+                    )
                   });
                 }
               } else {
@@ -397,7 +403,7 @@ export default {
                 } else {
                   this.$refs.textarea.value = this.inputVal;
                   this.$Message.error({
-                    content: "请输入正确的操作符 . 或 -"
+                    content: this.$t("please_input_legitimate_character")
                   });
                 }
               }
@@ -409,7 +415,7 @@ export default {
             ) {
               this.$refs.textarea.value = this.inputVal;
               this.$Message.error({
-                content: "请选择枚举值"
+                content: this.$t("please_select_enum")
               });
             } else {
               if (v.data === "}") {
@@ -438,7 +444,7 @@ export default {
               } else {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入操作符 } 闭合当前规则"
+                  content: this.$t("filter_rule_input_tips_to_end_rule")
                 });
               }
             }
@@ -697,9 +703,7 @@ export default {
                     this.ciTypeAttrsObj[item.parentRs.attrId].inputType ===
                     "ref"
                   ) {
-                    val += `${
-                      this.ciTypesObj[filterLeftRule[0].ciTypeId].name
-                    } .(${attrName})${this.ciTypesObj[item.ciTypeId].name} `;
+                    val += `${this.ciTypesObj[filterLeftRule[0].ciTypeId].name} .(${attrName})${this.ciTypesObj[item.ciTypeId].name} `;
                   } else if (
                     this.ciTypeAttrsObj[item.parentRs.attrId].inputType ===
                     "select"
@@ -709,14 +713,10 @@ export default {
                     ) {
                       val += `${attrName} .${item.enumCodeAttr} `;
                     } else {
-                      val += `${
-                        this.ciTypesObj[filterLeftRule[0].ciTypeId].name
-                      } .${attrName} .${item.enumCodeAttr} `;
+                      val += `${this.ciTypesObj[filterLeftRule[0].ciTypeId].name} .${attrName} .${item.enumCodeAttr} `;
                     }
                   } else {
-                    val += `${
-                      this.ciTypesObj[item.ciTypeId].name
-                    } .${attrName} `;
+                    val += `${this.ciTypesObj[item.ciTypeId].name} .${attrName} `;
                   }
                 } else {
                   if (

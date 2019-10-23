@@ -2,7 +2,7 @@
   <div>
     <Row class="artifact-management">
       <Col span="6">
-        <span style="margin-right: 10px">系统设计</span>
+        <span style="margin-right: 10px">{{ $t("system_design") }}</span>
         <Select
           filterable
           @on-change="onSystemDesignSelect"
@@ -19,7 +19,7 @@
         </Select>
       </Col>
       <Col span="6" offset="1">
-        <span style="margin-right: 10px">环境类型</span>
+        <span style="margin-right: 10px">{{ $t("environmental_type") }}</span>
         <Select
           @on-change="onEnvSelect"
           v-model="env"
@@ -32,7 +32,7 @@
         </Select>
       </Col>
       <Col span="3" offset="1">
-        <Button type="info" @click="querySysTree">查询</Button>
+        <Button type="info" @click="querySysTree">{{ $t("query") }}</Button>
       </Col>
     </Row>
     <hr style="margin: 10px 0" />
@@ -42,7 +42,11 @@
       :closable="false"
       @on-click="handleTabClick"
     >
-      <TabPane label="应用逻辑图" name="logic-graph" :index="1">
+      <TabPane
+        :label="$t('application_logic_diagram')"
+        name="logic-graph"
+        :index="1"
+      >
         <Alert show-icon closable v-if="isDataChanged">
           Data has beed changed, click Reload button to reload graph.
           <Button slot="desc" @click="reloadHandler">Reload</Button>
@@ -51,11 +55,16 @@
         <div class="graph-container" id="graph">
           <Spin size="large" fix v-if="spinShow">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-            <div>加载中...</div>
+            <div>{{ $t("loading") }}</div>
           </Spin>
+          <div v-else-if="!systemData.length" class="no-data">暂无数据</div>
         </div>
       </TabPane>
-      <TabPane label="应用树状逻辑图" name="logic-tree-graph" :index="2">
+      <TabPane
+        :label="$t('application_logic_tree_diagram')"
+        name="logic-tree-graph"
+        :index="2"
+      >
         <Alert show-icon closable v-if="isDataChanged">
           Data has beed changed, click Reload button to reload graph.
           <Button slot="desc" @click="reloadHandler">Reload</Button>
@@ -64,11 +73,15 @@
         <div class="graph-container" id="graphTree">
           <Spin size="large" fix v-if="treeSpinShow">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-            <div>加载中...</div>
+            <div>{{ $t("loading") }}</div>
           </Spin>
         </div>
       </TabPane>
-      <TabPane label="物理部署图" name="physicalGraph" :index="3">
+      <TabPane
+        :label="$t('physical_deployment_diagram')"
+        name="physicalGraph"
+        :index="3"
+      >
         <div id="physicalGraph">
           <PhysicalGraph
             v-if="physicalGraphData.length"
@@ -76,9 +89,10 @@
             :links="physicalGraphLinks"
             :callback="graphCallback"
           ></PhysicalGraph>
+          <div v-else class="no-data">暂无数据</div>
           <Spin size="large" fix v-if="physicalSpin">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-            <div>加载中...</div>
+            <div>{{ $t("loading") }}</div>
           </Spin>
         </div>
       </TabPane>
@@ -154,8 +168,8 @@ const serviceTask = require("../images/serviceTask.png");
 import { getExtraInnerActions } from "../util/state-operations.js";
 import PhysicalGraph from "./physical-graph";
 const stateColorMap = new Map([
-  ["new", "#47cb89"],
-  ["created", "#47cb89"],
+  ["new", "#19be6b"],
+  ["created", "#19be6b"],
   ["update", "#2d8cf0"],
   ["change", "#2d8cf0"],
   ["destroyed", "#ed4014"],
@@ -227,7 +241,7 @@ export default {
     }
   },
   methods: {
-    initADGraph(filters = {}) {
+    initADGraph() {
       this.spinShow = true;
       const initEvent = () => {
         let graph = d3.select("#graph");
@@ -310,9 +324,7 @@ export default {
             }
             dots.push("subgraph cluster_" + unit.guid + "{");
             dots.push(
-              `label="${unitLabel}"; style=filled; color="${color}";tooltip="${
-                unit.data.description
-              }"`
+              `label="${unitLabel}"; style=filled; color="${color}";tooltip="${unit.data.description}"`
             );
             dots.push(`"${unit.guid}"[shape="none",`);
             dots.push(
@@ -358,11 +370,7 @@ export default {
                   }
                   let ip = service.data.ip ? service.data.ip : "";
                   dots.push(
-                    `"${
-                      service.guid
-                    }" [shape="record", label="{{ ${serviceLabel}|{ ${domain} | ${
-                      service.data.service_port
-                    } }| ${ip} }}", tooltip="${service.data.description}"];`
+                    `"${service.guid}" [shape="record", label="{{ ${serviceLabel}|{ ${domain} | ${service.data.service_port} }| ${ip} }}", tooltip="${service.data.description}"];`
                   );
                   graphMap.set(service.guid, serviceLabel);
                   dots.push(
@@ -385,9 +393,7 @@ export default {
         }
 
         dots.push(
-          `"${invoke.data.unit.guid}"->"${invoke.data.service.guid}"[id="${
-            invoke.guid
-          }",color="${color}"];`
+          `"${invoke.data.unit.guid}"->"${invoke.data.service.guid}"[id="${invoke.guid}",color="${color}"];`
         );
         if (!graphMap.has(invoke.data.unit.guid)) {
           dots.push(
@@ -396,9 +402,7 @@ export default {
         }
         if (!graphMap.has(invoke.data.service.guid)) {
           dots.push(
-            `"${invoke.data.service.guid}"[label="${
-              invoke.data.service.key_name
-            }"];`
+            `"${invoke.data.service.guid}"[label="${invoke.data.service.key_name}"];`
           );
         }
       });
@@ -452,7 +456,7 @@ export default {
       if (!this.systemDesignVersion || !this.env) {
         this.$Notice.warning({
           title: "Warning",
-          desc: "请先选择系统设计和环境类型"
+          desc: this.$t("please_select_system_design_and_environmental_type")
         });
         return;
       }
@@ -583,7 +587,7 @@ export default {
       } = await startProcessInstancesWithCiDataInbatch(payload);
       if (status === "OK") {
         this.$Notice.success({
-          title: "开始执行",
+          title: this.$t("start_execution"),
           desc: message
         });
       }
@@ -639,9 +643,7 @@ export default {
       let addNodeAttr = node => {
         const color = "#273c75";
         let path = `${shapes[node.nodeTypeName] || shapes.startEvent}`;
-        return `"${node.id}" [image="${path}" label="${
-          node.name
-        }" labelloc="b", fontcolor="${color}"];`;
+        return `"${node.id}" [image="${path}" label="${node.name}" labelloc="b", fontcolor="${color}"];`;
       };
       const nodeMap = new Map();
       raw.forEach(node => {
@@ -976,7 +978,7 @@ export default {
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("delete_confirm"),
         "z-index": 1000000,
         onOk: async () => {
           const payload = {
@@ -1217,7 +1219,7 @@ export default {
       if (this.env === "" || this.systemDesignVersion === "") {
         this.$Notice.warning({
           title: "Warning",
-          desc: "请先选择系统设计和环境类型"
+          desc: this.$t("please_select_system_design_and_environmental_type")
         });
         return;
       }
@@ -1299,5 +1301,8 @@ export default {
 #graphTree {
   position: relative;
   min-height: calc(50% + 300px);
+}
+.no-data {
+  text-align: center;
 }
 </style>

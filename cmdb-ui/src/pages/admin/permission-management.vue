@@ -3,13 +3,13 @@
     <Col span="4">
       <Card>
         <p slot="title">
-          用户
+          {{ $t("user") }}
           <Button
             icon="ios-add"
             type="dashed"
             size="small"
             @click="openAddUserModal"
-            >添加用户</Button
+            >{{ $t("add_user") }}</Button
           >
         </p>
         <Tag
@@ -31,13 +31,13 @@
     <Col span="5" offset="0" style="margin-left: 20px">
       <Card>
         <p slot="title">
-          角色
+          {{ $t("role") }}
           <Button
             icon="ios-add"
             type="dashed"
             size="small"
             @click="openAddRoleModal"
-            >添加角色</Button
+            >{{ $t("add_role") }}</Button
           >
         </p>
         <div class="role-item" v-for="item in roles" :key="item.id">
@@ -56,14 +56,14 @@
             type="dashed"
             size="small"
             @click="openUserManageModal(item.id)"
-            >用户</Button
+            >{{ $t("user") }}</Button
           >
         </div>
       </Card>
     </Col>
     <Col span="4" offset="0" style="margin-left: 20px">
       <Card>
-        <p slot="title">菜单权限</p>
+        <p slot="title">{{ $t("menus_management") }}</p>
         <Tree
           :data="menus"
           show-checkbox
@@ -73,8 +73,7 @@
     </Col>
     <Col span="9" offset="0" style="margin-left: 20px">
       <Card>
-        <p slot="title">数据权限</p>
-        <!-- <Tree :data="permissionEntryPoints"></Tree> -->
+        <p slot="title">{{ $t("data_management") }}</p>
         <div
           class="data-permissions"
           v-for="ci in ciTypePermissions"
@@ -104,15 +103,18 @@
     </Col>
     <Modal
       v-model="addRoleModalVisible"
-      title="添加角色"
+      :title="$t('add_role')"
       @on-ok="addRole"
       @on-cancel="cancel"
     >
-      <Input v-model="addedRoleValue" placeholder="请输入用户名" />
+      <Input
+        v-model="addedRoleValue"
+        :placeholder="$t('username_input_placeholder')"
+      />
     </Modal>
     <Modal
       v-model="addUserModalVisible"
-      title="添加用户"
+      :title="$t('add_user')"
       @on-ok="addUser"
       @on-cancel="cancel"
     >
@@ -123,13 +125,13 @@
         label-position="left"
         :label-width="100"
       >
-        <FormItem label="用户名" prop="username">
+        <FormItem :label="$t('username')" prop="username">
           <Input v-model="addedUser.username" />
         </FormItem>
-        <FormItem label="全名" prop="fullName">
+        <FormItem :label="$t('fullname')" prop="fullName">
           <Input v-model="addedUser.fullName" />
         </FormItem>
-        <FormItem label="描述说明" prop="description">
+        <FormItem :label="$t('description')" prop="description">
           <Input v-model="addedUser.description" />
         </FormItem>
       </Form>
@@ -137,7 +139,7 @@
     <Modal
       v-model="userManageModal"
       width="700"
-      title="编辑用户"
+      :title="$t('edit_user')"
       @on-ok="confirmUser"
       @on-cancel="confirmUser"
     >
@@ -153,7 +155,7 @@
     </Modal>
     <Modal
       v-model="permissionManageModal"
-      title="编辑数据权限"
+      :title="$t('edit_data_authority')"
       @on-ok="cancelEdit"
       @on-cancel="cancelEdit"
       width="80"
@@ -215,27 +217,27 @@ export default {
         {
           actionCode: "creationPermission",
           type: "CREATION",
-          actionName: "增"
+          actionName: this.$t("permission_management_data_creation")
         },
         {
           actionCode: "removalPermission",
           type: "REMOVAL",
-          actionName: "删"
+          actionName: this.$t("permission_management_data_removal")
         },
         {
           actionCode: "modificationPermission",
           type: "MODIFICATION",
-          actionName: "改"
+          actionName: this.$t("permission_management_data_modification")
         },
         {
           actionCode: "enquiryPermission",
           type: "ENQUIRY",
-          actionName: "查"
+          actionName: this.$t("permission_management_data_enquiry")
         },
         {
           actionCode: "executionPermission",
           type: "EXECUTION",
-          actionName: "执"
+          actionName: this.$t("permission_management_data_execution")
         }
       ],
       users: [],
@@ -254,7 +256,10 @@ export default {
       usersKeyBySelectedRole: [],
       allUsersForTransfer: [],
       selectedRole: 0,
-      transferTitles: ["未选中用户", "选中用户"],
+      transferTitles: [
+        this.$t("permission_management_unselected_user"),
+        this.$t("permission_management_selected_user")
+      ],
       currentRoleId: 0,
       ciTypePermissions: [],
       allMenusOriginResponse: [],
@@ -269,91 +274,91 @@ export default {
       permissionsTableOptions: {},
       defaultColumns: [
         {
-          title: "查询",
+          title: this.$t("query"),
           key: "enquiryPermission",
           inputKey: "enquiryPermission",
           displaySeqNo: 1,
-          placeholder: "请选择",
+          placeholder: this.$t("select_placeholder"),
           component: "WeSelect",
           options: [
             {
-              label: "是",
+              label: this.$t("yes"),
               value: "Y"
             },
             {
-              label: "否",
+              label: this.$t("no"),
               value: "N"
             }
           ]
         },
         {
-          title: "新增",
+          title: this.$t("new"),
           key: "creationPermission",
           inputKey: "creationPermission",
           displaySeqNo: 2,
-          placeholder: "请选择",
+          placeholder: this.$t("select_placeholder"),
           component: "WeSelect",
           options: [
             {
-              label: "是",
+              label: this.$t("yes"),
               value: "Y"
             },
             {
-              label: "否",
+              label: this.$t("no"),
               value: "N"
             }
           ]
         },
         {
-          title: "修改",
+          title: this.$t("modify"),
           key: "modificationPermission",
           inputKey: "modificationPermission",
           displaySeqNo: 3,
-          placeholder: "请选择",
+          placeholder: this.$t("select_placeholder"),
           component: "WeSelect",
           options: [
             {
-              label: "是",
+              label: this.$t("yes"),
               value: "Y"
             },
             {
-              label: "否",
+              label: this.$t("no"),
               value: "N"
             }
           ]
         },
         {
-          title: "执行",
+          title: this.$t("execute"),
           key: "executionPermission",
           inputKey: "executionPermission",
           displaySeqNo: 4,
-          placeholder: "请选择",
+          placeholder: this.$t("select_placeholder"),
           component: "WeSelect",
           options: [
             {
-              label: "是",
+              label: this.$t("yes"),
               value: "Y"
             },
             {
-              label: "否",
+              label: this.$t("no"),
               value: "N"
             }
           ]
         },
         {
-          title: "删除",
+          title: this.$t("delete"),
           key: "removalPermission",
           inputKey: "removalPermission",
           displaySeqNo: 5,
-          placeholder: "请选择",
+          placeholder: this.$t("select_placeholder"),
           component: "WeSelect",
           options: [
             {
-              label: "是",
+              label: this.$t("yes"),
               value: "Y"
             },
             {
-              label: "否",
+              label: this.$t("no"),
               value: "N"
             }
           ]
@@ -402,7 +407,10 @@ export default {
                   []
               };
             } else {
-              obj[i] = { codeId: _[i], value: _[i] === "Y" ? "是" : "否" };
+              obj[i] = {
+                codeId: _[i],
+                value: _[i] === "Y" ? this.$t("yes") : this.$t("no")
+              };
             }
           }
           return obj;
@@ -536,7 +544,7 @@ export default {
         );
         if (status === "OK") {
           this.$Notice.success({
-            title: "Add permissions Success",
+            title: this.$t("add_permission_success"),
             desc: message
           });
 
@@ -571,7 +579,7 @@ export default {
         );
         if (status === "OK") {
           this.$Notice.success({
-            title: "Update permissions Success",
+            title: this.$t("update_permission_success"),
             desc: message
           });
           this.getAttrPermissions();
@@ -581,7 +589,7 @@ export default {
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("delete_confirm"),
         "z-index": 1000000,
         onOk: async () => {
           const payload = deleteData.map(_ => _.roleCiTypeCtrlAttrId);
@@ -595,7 +603,7 @@ export default {
           );
           if (status === "OK") {
             this.$Notice.success({
-              title: "Delete Permissions Success",
+              title: this.$t("delete_permission_success"),
               desc: message
             });
             this.outerActions.forEach(_ => {
@@ -709,7 +717,7 @@ export default {
       if (this.addedRoleValue === "") {
         this.$Notice.warning({
           title: "Warning",
-          desc: "角色名不能为空"
+          desc: this.$t("role_name_is_required")
         });
         return;
       }
@@ -729,7 +737,7 @@ export default {
       if (this.addedUser.username === "") {
         this.$Notice.warning({
           title: "Warning",
-          desc: "用户名不能为空"
+          desc: this.$t("role_name_is_required")
         });
         return;
       }
@@ -740,7 +748,7 @@ export default {
           desc: message
         });
         this.$Modal.info({
-          title: `请保存 ${data[0].username} 的初始密码`,
+          title: this.$t("copy_password"),
           content: data[0].password
         });
         this.addedUser = {};
