@@ -160,11 +160,11 @@ export default {
                 let imgFileSource =
                   i.imageFileId === 0 || i.imageFileId === undefined
                     ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
-                    : `/cmdb/ui/v2/files/${i.imageFileId}`;
+                    : `/wecmdb/ui/v2/files/${i.imageFileId}`;
                 this.$set(i, "form", {
                   ...i,
                   imgSource: imgFileSource,
-                  imgUploadURL: `/cmdb/ui/v2/ci-types/${i.ciTypeId}/icon`
+                  imgUploadURL: `/wecmdb/ui/v2/ci-types/${i.ciTypeId}/icon`
                 });
                 i.attributes &&
                   i.attributes.forEach(j => {
@@ -216,9 +216,7 @@ export default {
         nodes.forEach((node, nodeIndex) => {
           if (node.layerId === _.layerId) {
             tempClusterObjForGraph[index].push(
-              `"${node.name}"[id="${node.ciTypeId}", image="${
-                node.form.imgSource
-              }.png", labelloc="b"]`
+              `"${node.name}"[id="${node.ciTypeId}", image="${node.form.imgSource}.png", labelloc="b"]`
             );
           }
           if (nodeIndex === nodes.length - 1) {

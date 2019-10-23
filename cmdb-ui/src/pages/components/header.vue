@@ -25,8 +25,8 @@
           <span style="color: white">{{ user }}</span>
           <Icon :size="18" type="md-arrow-dropdown"></Icon>
           <DropdownMenu slot="list">
-            <DropdownItem name="logout" to="/cmdb/logout">
-              <a href="/cmdb/logout" style="width: 100%; display: block">{{
+            <DropdownItem name="logout" to="/wecmdb/logout">
+              <a href="/wecmdb/logout" style="width: 100%; display: block">{{
                 $t("logout")
               }}</a>
             </DropdownItem>

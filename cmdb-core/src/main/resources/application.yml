@@ -2,7 +2,7 @@ server:
   port: 9080
   address: localhost
   servlet:
-    context-path: /cmdb
+    context-path: /wecmdb
 
 spring:
   banner:
