@@ -79,6 +79,38 @@ CREATE TABLE IF NOT EXISTS `adm_basekey_cat_type` (
   CONSTRAINT `adm_basekey_cat_type_ci_type_1` FOREIGN KEY (`ci_type_id`) REFERENCES `adm_ci_type` (`id_adm_ci_type`)
 ) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_base` (
+  `id_adm_ci_type_attr` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type_attr',
+  `id_adm_ci_type` int(4) NOT NULL COMMENT 'id_adm_ci_type',
+  `name` varchar(64) NOT NULL COMMENT 'CI类型属性中文名',
+  `description` varchar(255) DEFAULT NULL COMMENT '描述',
+  `input_type` varchar(32) NOT NULL COMMENT '输入类型',
+  `property_name` varchar(64) NOT NULL COMMENT '属性真实列名',
+  `property_type` varchar(32) NOT NULL COMMENT '属性真实类型',
+  `length` int(32) DEFAULT '1' COMMENT '长度',
+  `reference_id` int(11) DEFAULT NULL COMMENT '引用ID',
+  `reference_name` varchar(64) DEFAULT NULL COMMENT '引用命名',
+  `reference_type` int(4) DEFAULT NULL COMMENT '引用类型',
+  `filter_rule` varchar(1000) DEFAULT NULL,
+  `search_seq_no` int(11) DEFAULT NULL COMMENT '搜索条件排序序号',
+  `display_type` int(1) DEFAULT NULL COMMENT '展示类型',
+  `display_seq_no` int(11) DEFAULT NULL COMMENT '展示排序',
+  `edit_is_null` int(1) DEFAULT NULL,
+  `edit_is_only` int(1) DEFAULT NULL COMMENT '是否唯一',
+  `edit_is_hiden` int(1) DEFAULT NULL COMMENT '是否隐藏',
+  `edit_is_editable` int(1) DEFAULT NULL COMMENT '是否可编辑',
+  `is_defunct` int(1) DEFAULT '0' COMMENT '是否丢弃',
+  `special_logic` varchar(32) DEFAULT NULL COMMENT '特殊逻辑',
+  `status` varchar(20) DEFAULT 'notCreated' COMMENT '属性状态',
+  `is_system` int(1) DEFAULT NULL COMMENT '是否系统字段',
+  `is_access_controlled` int(1) DEFAULT '0' COMMENT '是否权限控制',
+  `is_auto` int(1) DEFAULT NULL,
+  `auto_fill_rule` varchar(2000) DEFAULT NULL COMMENT '自动填充规则',
+  `regular_expression_rule` varchar(200) DEFAULT NULL COMMENT '正则规则',
+  `is_refreshable` int(1) DEFAULT NULL,
+  PRIMARY KEY (`id_adm_ci_type_attr`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
 CREATE TABLE IF NOT EXISTS `adm_ci_type_attr` (
   `id_adm_ci_type_attr` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type_attr',
   `id_adm_ci_type` int(4) NOT NULL COMMENT 'id_adm_ci_type',
