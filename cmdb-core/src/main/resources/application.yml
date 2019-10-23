@@ -8,6 +8,7 @@ spring:
   banner:
     location: classpath:/cmdb.txt
   profiles:
+    #en-local、ch-local
     active: dev
   cache:
     type: caffeine
