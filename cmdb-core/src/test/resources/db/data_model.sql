@@ -376,6 +376,55 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(216, 45, '15', '实例', NULL, NULL, 6, 'active'),
 	(217, 46, 'guid_of_instance', '[{"ciTypeId":15},{"ciTypeId":8,"parentRs":{"attrId":264,"isReferedFromParent":1}},{"ciTypeId":7,"parentRs":{"attrId":124,"isReferedFromParent":1}},{"ciTypeId":2,"parentRs":{"attrId":109,"isReferedFromParent":1}},{"ciTypeId":1,"parentRs":{"attrId":27,"isReferedFromParent":1}}]', 216, NULL, 7, 'active');
 
+CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_base` (
+  `id_adm_ci_type_attr` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type_attr',
+  `id_adm_ci_type` int(4) NOT NULL COMMENT 'id_adm_ci_type',
+  `name` varchar(64) NOT NULL COMMENT 'CI类型属性中文名',
+  `description` varchar(255) DEFAULT NULL COMMENT '描述',
+  `input_type` varchar(32) NOT NULL COMMENT '输入类型',
+  `property_name` varchar(64) NOT NULL COMMENT '属性真实列名',
+  `property_type` varchar(32) NOT NULL COMMENT '属性真实类型',
+  `length` int(32) DEFAULT '1' COMMENT '长度',
+  `reference_id` int(11) DEFAULT NULL COMMENT '引用ID',
+  `reference_name` varchar(64) DEFAULT NULL COMMENT '引用命名',
+  `reference_type` int(4) DEFAULT NULL COMMENT '引用类型',
+  `filter_rule` varchar(1000) DEFAULT NULL,
+  `search_seq_no` int(11) DEFAULT NULL COMMENT '搜索条件排序序号',
+  `display_type` int(1) DEFAULT NULL COMMENT '展示类型',
+  `display_seq_no` int(11) DEFAULT NULL COMMENT '展示排序',
+  `edit_is_null` int(1) DEFAULT NULL,
+  `edit_is_only` int(1) DEFAULT NULL COMMENT '是否唯一',
+  `edit_is_hiden` int(1) DEFAULT NULL COMMENT '是否隐藏',
+  `edit_is_editable` int(1) DEFAULT NULL COMMENT '是否可编辑',
+  `is_defunct` int(1) DEFAULT '0' COMMENT '是否丢弃',
+  `special_logic` varchar(32) DEFAULT NULL COMMENT '特殊逻辑',
+  `status` varchar(20) DEFAULT 'notCreated' COMMENT '属性状态',
+  `is_system` int(1) DEFAULT NULL COMMENT '是否系统字段',
+  `is_access_controlled` int(1) DEFAULT '0' COMMENT '是否权限控制',
+  `is_auto` int(1) DEFAULT NULL,
+  `auto_fill_rule` varchar(2000) DEFAULT NULL COMMENT '自动填充规则',
+  `regular_expression_rule` varchar(200) DEFAULT NULL COMMENT '正则规则',
+  `is_refreshable` int(1) DEFAULT NULL,
+  PRIMARY KEY (`id_adm_ci_type_attr`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+INSERT INTO `adm_ci_type_attr_base` (`id_adm_ci_type`, `name`, `description`, `input_type`, `property_name`, `property_type`, `length`, `reference_id`, `reference_name`, `reference_type`, `filter_rule`, `search_seq_no`, `display_type`, `display_seq_no`, `edit_is_null`, `edit_is_only`, `edit_is_hiden`, `edit_is_editable`, `is_defunct`, `special_logic`, `status`, `is_system`, `is_access_controlled`, `is_auto`, `auto_fill_rule`, `is_refreshable`) VALUES
+	(1, '全局唯一ID', '全局唯一ID', 'text', 'guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 'created', 1, 0, 0, NULL, 0),
+	(1, '唯一名称', '唯一名称', 'text', 'key_name', 'varchar', 200, NULL, NULL, NULL, NULL, 1, 1, 1, 0, 1, 0, 0, 0, NULL, 'created', 1, 0, 1, '[{"type":"delimiter","value":""},{"type":"rule","value":"[{\\"ciTypeId\\":1},{\\"ciTypeId\\":1,\\"parentRs\\":{\\"attrId\\":8,\\"isReferedFromParent\\":1}}]"},{"type":"delimiter","value":""}]', 0),
+	(1, '状态', '状态', 'select', 'state', 'int', 15, 7, NULL, NULL, NULL, 2, 1, 2, 0, 0, 0, 0, 0, NULL, 'created', 1, 0, 0, NULL, 0),
+	(1, '确认日期', '确认日期', 'text', 'fixed_date', 'varchar', 19, NULL, NULL, NULL, NULL, 3, 1, 3, 1, 0, 0, 0, 0, NULL, 'created', 1, 0, 0, NULL, 0),
+	(1, '前全局唯一ID', '前一版本数据的guid', 'text', 'p_guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 1, 0, 1, 0, 0, NULL, 'created', 1, 0, 0, NULL, 0),
+	(1, '根全局唯一ID', '原始数据guid', 'text', 'r_guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 'created', 1, 0, 0, NULL, 0),
+	(1, '描述说明', '描述说明', 'textArea', 'description', 'varchar', 1000, NULL, NULL, NULL, NULL, 4, 1, 4, 1, 0, 0, 1, 0, NULL, 'created', 1, 0, 0, NULL, 0),
+	(1, '编码', '编码', 'text', 'code', 'varchar', 50, NULL, NULL, NULL, NULL, 5, 1, 5, 0, 0, 0, 1, 0, NULL, 'created', 1, 0, 0, NULL, 0),
+	(1, '编排', '编排', 'select', 'orchestration', 'int', 15, 31, NULL, NULL, NULL, 0, 1, 6, 1, 0, 0, 1, 0, NULL, 'created', 0, 0, 0, NULL, 1),
+	(1, '编排实例ID', '编排实例ID', 'text', 'biz_key', 'varchar', 50, NULL, NULL, NULL, NULL, 0, 0, 0, 1, 0, 0, 1, 0, NULL, 'created', 0, 0, 0, NULL, 1),
+	(1, '更新用户', '更新用户', 'text', 'updated_by', 'varchar', 50, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'created', 1, 0, 0, NULL, 0),
+	(1, '更新日期', '更新日期', 'date', 'updated_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'created', 1, 0, 0, NULL, 0),
+	(1, '创建用户', '创建用户', 'text', 'created_by', 'varchar', 50, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'created', 1, 0, 0, NULL, 0),
+	(1, '创建日期', '创建日期', 'date', 'created_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'created', 1, 0, 0, NULL, 0);	
+
 CREATE TABLE IF NOT EXISTS `adm_ci_type_attr` (
   `id_adm_ci_type_attr` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type_attr',
   `id_adm_ci_type` int(4) NOT NULL COMMENT 'id_adm_ci_type',
