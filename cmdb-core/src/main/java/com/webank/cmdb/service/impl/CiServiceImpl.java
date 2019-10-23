@@ -45,12 +45,13 @@ import javax.transaction.Transactional;
 
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.CaseFormat;
@@ -124,6 +125,7 @@ import com.webank.cmdb.util.Sorting;
 
 @Service
 @SuppressWarnings({ "rawtypes", "unchecked" })
+@CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "ciServiceImpl")
 public class CiServiceImpl implements CiService {
     private static Logger logger = LoggerFactory.getLogger(CiServiceImpl.class);
 
@@ -344,7 +346,6 @@ public class CiServiceImpl implements CiService {
                 // DynamicEntityHolder.createDynamicEntityBean(entityMeta, x);
                 Map<String, Object> entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true);
                 Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
-
                 List<String> nextOperations = getNextOperations(entityBeanMap);
                 CiData ciData = new CiData(enhacedMap, nextOperations);
 
@@ -482,7 +483,7 @@ public class CiServiceImpl implements CiService {
                     JpaQueryUtils.applySorting(ciRequest.getSorting(), cb, query, selectionMap);
                 }
             }
-
+            
             TypedQuery<?> typedQuery = entityManager.createQuery(query);
 
             if (ciRequest != null && !isSelRowCount) {
@@ -541,8 +542,6 @@ public class CiServiceImpl implements CiService {
     }
 
     private Map<String, Object> enrichCiObject(DynamicEntityMeta entityMeta, Map<String, Object> ciObjMap, EntityManager entityManager) {
-        StopWatch watch = new StopWatch();
-        watch.start();
         Map<String, Object> ciMap = new HashMap<>();
         List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(entityMeta.getCiTypeId());
 
@@ -602,11 +601,6 @@ public class CiServiceImpl implements CiService {
                 logger.warn("Failed to get field node for field name [{}] in dynamic entity [{}].", fieldName, entityMeta.getEntityClazz().toString());
             }
         }
-        watch.stop();
-        if (logger.isDebugEnabled()) {
-            logger.debug("enrichCiObject function consumed: " + String.valueOf(watch.getTime()) + " ms.");
-        }
-
         return ciMap;
     }
 
@@ -638,7 +632,7 @@ public class CiServiceImpl implements CiService {
                 if (!StringUtils.isBlank(guid)) {
                     Object childCi = null;
                     try {
-                        childCi = getCi(ciTypeId, guid);
+                        childCi = getCacheableCi(ciTypeId, guid);
                     } catch (Exception ex) {
                         throw new ServiceException(String.format("Failed to get ci data [ciType:%d, guid:%s]", ciTypeId, guid), ex);
                     }
@@ -801,7 +795,6 @@ public class CiServiceImpl implements CiService {
     @Override
     public Map<String, Object> getCi(int ciTypeId, String guid) {
         validateCiType(ciTypeId);
-        validateCiType(ciTypeId);
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
         // Object entityBean = entityManager.find(entityMeta.getEntityClazz(), guid);
         PriorityEntityManager priEntityManager = getEntityManager();
@@ -831,6 +824,11 @@ public class CiServiceImpl implements CiService {
         } finally {
             priEntityManager.close();
         }
+    }
+    
+    @Cacheable("ciServiceImpl-getCacheableCi")
+    private Map<String, Object> getCacheableCi(int ciTypeId, String guid) {
+        return getCi(ciTypeId,guid);
     }
 
     @OperationLogPointcut(operation = Removal, objectClass = CiData.class, ciTypeIdArgumentIndex = 0, ciGuidArgumentIndex = 1)
@@ -1305,9 +1303,7 @@ public class CiServiceImpl implements CiService {
             // TODO, enable Bizkey & status logic should be removed
             enableBiz = checkBizEnable(intQueryReq);
             logger.info("enable biz:{}", enableBiz);
-
             buildIntQuery(null, null, intQueryDto, query, selFieldMap, enableBiz, null);
-
             validateIntQueryFilter(intQueryReq, selFieldMap, enableBiz);
             List<Expression> selections = new LinkedList<>();
 
@@ -1364,6 +1360,7 @@ public class CiServiceImpl implements CiService {
             }
 
             List resultList = typedQuery.getResultList();
+
             return resultList;
         } finally {
             priEntityManager.close();
@@ -1853,7 +1850,6 @@ public class CiServiceImpl implements CiService {
         if (logger.isDebugEnabled()) {
             logger.debug("Got adhoc integrate request:{}", JsonUtil.toJsonString(adhocQueryRequest));
         }
-
         IntegrationQueryDto intQueryDto = adhocQueryRequest.getCriteria();
         QueryRequest queryRequest = adhocQueryRequest.getQueryRequest();
         validateForQuery(intQueryDto);
