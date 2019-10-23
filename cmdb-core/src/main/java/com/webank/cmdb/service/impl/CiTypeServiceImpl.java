@@ -276,8 +276,8 @@ public class CiTypeServiceImpl implements CiTypeService {
                 sb.append(" UNIQUE KEY (`").append(attr.getPropertyName()).append("`),");
             }
         }
-        sb.append("guid varchar(13) NOT NULL COMMENT 'Globally unique ID',");
-        sb.append("key_name varchar(64) NOT NULL COMMENT 'unique name',");
+        sb.append("guid varchar(13) NOT NULL COMMENT 'Global unique ID',");
+        sb.append("key_name varchar(64) NOT NULL COMMENT 'Unique name',");
         sb.append("`updated_by` varchar(64) DEFAULT NULL COMMENT 'Update by',");
         sb.append("`updated_date` datetime DEFAULT NULL COMMENT 'Update date',");
         sb.append("`created_by` varchar(64) DEFAULT NULL COMMENT 'Create by',");
