@@ -548,7 +548,7 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
     public String genCreateCiTypeWithDefaultAttrSQL(AdmCiType admCiType) {
         StringBuffer sb = new StringBuffer("CREATE TABLE ");
         sb.append(admCiType.getTableName()).append(" (");
-        for (AdmCiTypeAttr attr : retrieveDefaultAdmCiTypeAttrs(null)) {
+        for (AdmCiTypeAttr attr : retrieveDefaultAdmCiTypeAttrs(admCiType)) {
             sb.append("`").append(attr.getPropertyName()).append("`").append(" ").append(attr.getPropertyType()).append(" ");
             if (!("datetime".equals(attr.getPropertyType()) || "date".equals(attr.getPropertyType()) || "text".equals(attr.getPropertyType()) || "longtext".equals(attr.getPropertyType()))) {
                 sb.append("(").append(attr.getLength()).append(")").append(" ");
@@ -570,21 +570,21 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
 
     public List<AdmCiTypeAttr> retrieveDefaultAdmCiTypeAttrs(AdmCiType admCiType) {
         Query createNativeQuery = entityManager.createNativeQuery("SELECT * FROM ADM_CI_TYPE_ATTR_BASE ");
-        List objects = createNativeQuery.getResultList();
-        List<AdmCiTypeAttr> citypes = objectArrToEos(objects, admCiType);
-        return citypes;
+        List baseAttrs = createNativeQuery.getResultList();
+        List<AdmCiTypeAttr> ciTypeAttrs = retrieveBaseAttrs(baseAttrs, admCiType);
+        return ciTypeAttrs;
     }
 
-    public List<AdmCiTypeAttr> objectArrToEos(List<Object[]> Objects, AdmCiType admCiType) {
-        List<AdmCiTypeAttr> ciTypes = new ArrayList<AdmCiTypeAttr>();
-        Objects.stream().forEach(arr -> {
-            AdmCiTypeAttr ciType = objectToEo(arr, admCiType);
-            ciTypes.add(ciType);
+    public List<AdmCiTypeAttr> retrieveBaseAttrs(List<Object[]> baseAttrs, AdmCiType admCiType) {
+        List<AdmCiTypeAttr> ciTypeAttrs = new ArrayList<AdmCiTypeAttr>();
+        baseAttrs.stream().forEach(arr -> {
+            AdmCiTypeAttr ciType = objectToCiTypeAttr(arr, admCiType);
+            ciTypeAttrs.add(ciType);
         });
-        return ciTypes;
+        return ciTypeAttrs;
     }
 
-    public AdmCiTypeAttr objectToEo(Object[] arr, AdmCiType admCiType) {
+    public AdmCiTypeAttr objectToCiTypeAttr(Object[] arr, AdmCiType admCiType) {
         AdmCiTypeAttr admCiTypeAttr = new AdmCiTypeAttr();
         admCiTypeAttr.setCiTypeId(admCiType.getIdAdmCiType());
         admCiTypeAttr.setName((String) arr[2]);
