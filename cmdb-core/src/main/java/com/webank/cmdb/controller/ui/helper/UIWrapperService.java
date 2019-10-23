@@ -48,6 +48,7 @@ import com.webank.cmdb.dto.RoleUserDto;
 import com.webank.cmdb.dto.UserDto;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.repository.StaticEntityRepository;
+import com.webank.cmdb.service.BaseKeyInfoService;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.service.CiTypeService;
 import com.webank.cmdb.service.IntegrationQueryService;
@@ -92,6 +93,8 @@ public class UIWrapperService {
     private IntegrationQueryService intQueryService;
     @Autowired
     private FilterRuleService filterRuleService;
+    @Autowired
+    private BaseKeyInfoService baseKeyInfoService;
 
     public void swapCiTypeLayerPosition(int layerId, int targetLayerId) {
         CatCodeDto enumCode = getEnumCodeById(layerId);
@@ -736,14 +739,14 @@ public class UIWrapperService {
             Map<String, Object> ciDataMap = ciData.getData();
             resourceTrees.add(buildNewResourceTreeDto(ciData, ciTypeId));
 
-            List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceNameOfBelong());
+            List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceCodeOfBelong());
 
             if (childrenCiTypeRelativeAttributes.size() != 0) {
                 recursiveGetChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, limitedCiTypes, ciDataMap.get("guid").toString(), resourceTrees.get(i).getChildren());
                 continue;
             }
 
-            List<CiTypeAttrDto> runningCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceNameOfRunning());
+            List<CiTypeAttrDto> runningCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceCodeOfRunning());
             if (runningCiTypeRelativeAttributes.size() != 0) {
                 recursiveGetChildrenDataByRelativeAttributes(runningCiTypeRelativeAttributes, limitedCiTypes, ciDataMap.get("guid").toString(), resourceTrees.get(i).getChildren());
             }
@@ -765,7 +768,7 @@ public class UIWrapperService {
             CiData ciData = ciDatas.get(i);
             resourceTrees.add(buildNewResourceTreeDto(ciData, ciTypeId));
             Map<String, Object> ciDataMap = ciData.getData();
-            List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceNameOfBelong());
+            List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceCodeOfBelong());
 
             if (childrenCiTypeRelativeAttributes.size() == 0) {
                 return resourceTrees;
@@ -811,11 +814,12 @@ public class UIWrapperService {
         return resourceTree;
     }
 
-    private List<CiTypeAttrDto> findChildrenCiTypeRelativeAttributes(Integer ciTypeId, String referenceName) {
+    private List<CiTypeAttrDto> findChildrenCiTypeRelativeAttributes(Integer ciTypeId, String referenceCode) {
         List<CiTypeAttrDto> ChildrenCiTypeRelativeAttributes = new ArrayList<>();
         List<CiTypeAttrDto> referenceByList = getCiTypeReferenceBy(ciTypeId);
         for (CiTypeAttrDto attrDto : referenceByList) {
-            if (attrDto.getReferenceName() != null && attrDto.getReferenceName().equals(referenceName)) {
+            if (attrDto.getReferenceType() != null && baseKeyInfoService.getCode(attrDto.getReferenceType()).getCode() != null
+                    && baseKeyInfoService.getCode(attrDto.getReferenceType()).getCode().equals(referenceCode)) {
                 ChildrenCiTypeRelativeAttributes.add(attrDto);
             }
         }
@@ -974,7 +978,7 @@ public class UIWrapperService {
             }
 
             resourceTrees.add(resourceTreeDto);
-            List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceNameOfBelong());
+            List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceCodeOfBelong());
             recursiveGetChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, stateEnumCode, ciDataMap.get("guid").toString(), resourceTrees.get(i).getChildren());
         }
     }
@@ -1260,7 +1264,7 @@ public class UIWrapperService {
                 systemDesignfilter,
                 subsystemfilter);
 
-        List<CiTypeAttrDto> relateCiAttrDtoList = getRefToAttrByCiTypeIdAndRefName(uiProperties.getCiTypeIdOfInstance(), uiProperties.getReferenceNameOfRunning());
+        List<CiTypeAttrDto> relateCiAttrDtoList = getRefToAttrByCiTypeIdAndRefName(uiProperties.getCiTypeIdOfInstance(), uiProperties.getReferenceCodeOfRunning());
         if (relateCiAttrDtoList.size() == 0 || relateCiAttrDtoList.get(0) == null) {
             return new ArrayList<>();
         }
@@ -1298,7 +1302,7 @@ public class UIWrapperService {
         boolean findBelongCi = false;
         for (CiData ciData : ciDatas) {
             Map<String, Object> ciDataMap = ciData.getData();
-            List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceNameOfBelong());
+            List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceCodeOfBelong());
             if (childrenCiTypeRelativeAttributes.size() != 0) {
                 findBelongCi = getBottomChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, limitedCiTypeIds, ciDataMap.get("guid").toString(), bottomChildrenData, bottomCiTypeId, subsystemFilters);
             }
@@ -1328,7 +1332,8 @@ public class UIWrapperService {
         List<CiTypeAttrDto> ChildrenCiTypeRelativeAttributes = new ArrayList<>();
         List<CiTypeAttrDto> referenceByList = getCiTypeReferenceBy(ciTypeId);
         for (CiTypeAttrDto attrDto : referenceByList) {
-            if (attrDto.getReferenceName().equals(uiProperties.getReferenceNameOfRealize())) {
+            if (attrDto.getReferenceType() != null && baseKeyInfoService.getCode(attrDto.getReferenceType()).getCode() != null
+                    && baseKeyInfoService.getCode(attrDto.getReferenceType()).getCode().equals(uiProperties.getReferenceCodeOfRealize())) {
                 ChildrenCiTypeRelativeAttributes.add(attrDto);
             }
         }
@@ -1353,11 +1358,12 @@ public class UIWrapperService {
         return false;
     }
 
-    private List<CiTypeAttrDto> getRefToAttrByCiTypeIdAndRefName(Integer ciTypeId, String refName) {
+    private List<CiTypeAttrDto> getRefToAttrByCiTypeIdAndRefName(Integer ciTypeId, String refCode) {
         List<CiTypeAttrDto> relateCiAttrs = new ArrayList<>();
         List<CiTypeAttrDto> referenceByList = getCiTypeReferenceTo(ciTypeId);
         for (CiTypeAttrDto attrDto : referenceByList) {
-            if (attrDto.getReferenceName().equals(refName)) {
+            if (attrDto.getReferenceType() != null && baseKeyInfoService.getCode(attrDto.getReferenceType()).getCode() != null
+                    && baseKeyInfoService.getCode(attrDto.getReferenceType()).getCode().equals(refCode)) {
                 relateCiAttrs.add(attrDto);
             }
         }
@@ -1492,7 +1498,7 @@ public class UIWrapperService {
         List<CiTypeAttrDto> relateCiAttrs = new ArrayList<>();
         List<CiTypeAttrDto> referenceByList = getCiTypeReferenceTo(ciTypeId);
         for (CiTypeAttrDto attrDto : referenceByList) {
-            if (attrDto.getReferenceName().equals(uiProperties.getReferenceNameOfRelate())) {
+            if (attrDto.getReferenceType().equals(uiProperties.getReferenceCodeOfRelate())) {
                 relateCiAttrs.add(attrDto);
             }
         }
