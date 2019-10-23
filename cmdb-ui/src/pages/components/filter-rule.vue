@@ -703,9 +703,7 @@ export default {
                     this.ciTypeAttrsObj[item.parentRs.attrId].inputType ===
                     "ref"
                   ) {
-                    val += `${
-                      this.ciTypesObj[filterLeftRule[0].ciTypeId].name
-                    } .(${attrName})${this.ciTypesObj[item.ciTypeId].name} `;
+                    val += `${this.ciTypesObj[filterLeftRule[0].ciTypeId].name} .(${attrName})${this.ciTypesObj[item.ciTypeId].name} `;
                   } else if (
                     this.ciTypeAttrsObj[item.parentRs.attrId].inputType ===
                     "select"
@@ -715,14 +713,10 @@ export default {
                     ) {
                       val += `${attrName} .${item.enumCodeAttr} `;
                     } else {
-                      val += `${
-                        this.ciTypesObj[filterLeftRule[0].ciTypeId].name
-                      } .${attrName} .${item.enumCodeAttr} `;
+                      val += `${this.ciTypesObj[filterLeftRule[0].ciTypeId].name} .${attrName} .${item.enumCodeAttr} `;
                     }
                   } else {
-                    val += `${
-                      this.ciTypesObj[item.ciTypeId].name
-                    } .${attrName} `;
+                    val += `${this.ciTypesObj[item.ciTypeId].name} .${attrName} `;
                   }
                 } else {
                   if (

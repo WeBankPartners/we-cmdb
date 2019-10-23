@@ -38,10 +38,10 @@ public class ApplicationProperties {
         private String enumCategoryCiTypeCatalog = "ci_catalog";
         private String enumCategoryCiTypeZoomLevels = "ci_zoom_level";
         private String statusAttributeName = "status";
-        private String referenceNameOfBelong = "属于";
-        private String referenceNameOfRunning = "运行在";
-        private String referenceNameOfRealize = "实现";
-        private String referenceNameOfRelate = "关联";
+        private String referenceCodeOfBelong = "belong";
+        private String referenceCodeOfRunning = "running";
+        private String referenceCodeOfRealize = "realize";
+        private String referenceCodeOfRelate = "relation";
         private String propertyNameOfState = "state";
         private String enumCodeOfStateDelete = "delete";
         private String propertyNameOfFixedDate = "fixed_date";

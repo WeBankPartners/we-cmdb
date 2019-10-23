@@ -238,9 +238,7 @@ export default {
               label = zone.data.key_name;
             }
             dots.push(
-              `g_${zone.guid}[id="g_${
-                zone.guid
-              }", label="${label}", width=${ll},height=${lg}];`
+              `g_${zone.guid}[id="g_${zone.guid}", label="${label}", width=${ll},height=${lg}];`
             );
           });
           dots.push("}");
