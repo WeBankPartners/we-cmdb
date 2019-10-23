@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class CmdbConstants {
+    
+    public static final String DEFAULT_SA = "admin";
     public static final String CI_TYPE_CATALOG = "ci_catalog";
     public static final String CI_TYPE_LAYER = "ci_layer";
     public static final String CI_TYPE_ZOOM_LEVEL = "ci_zoom_level";

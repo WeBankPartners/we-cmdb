@@ -3,6 +3,8 @@ package com.webank.cmdb.controller.ui;
 import java.security.Principal;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +18,8 @@ public class UIHomeController {
 
     @Autowired
     private UIUserManagerService userManagerService;
+    @Value("${cmdb.security.enabled}")
+    boolean securityEnabled;
 
     @GetMapping(value = { "/", "index.html" })
     public String index() {
@@ -42,8 +46,14 @@ public class UIHomeController {
     @GetMapping("/ui/v2/my-menus")
     @ResponseBody
     public Object retrieveRoleMenus(Principal principal) {
-        if (principal == null)
-            throw new CmdbException("Logon user not found.");
+        if (principal == null) {
+            if (!securityEnabled) {
+                principal = (Principal) new User("admin", null, false, false, false, false, null);
+            } else {
+                throw new CmdbException("Logon user not found.");
+            }
+
+        }
         return userManagerService.getMenuDtosByUsername(principal.getName(), true);
     }
 }
