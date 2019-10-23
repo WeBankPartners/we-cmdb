@@ -182,7 +182,7 @@
                   <Select v-model="item.form.imageFileId">
                     <img
                       v-if="item.form.imageFileId"
-                      :src="`/cmdb/ui/v2/files/${item.form.imageFileId}.png`"
+                      :src="`/wecmdb/ui/v2/files/${item.form.imageFileId}.png`"
                       slot="prefix"
                       height="24"
                       width="24"
@@ -195,7 +195,7 @@
                     >
                       <img
                         slot
-                        :src="`/cmdb/ui/v2/files/${i + 1}.png`"
+                        :src="`/wecmdb/ui/v2/files/${i + 1}.png`"
                         width="30"
                         height="30"
                       />
@@ -260,7 +260,9 @@
               <Select v-model="addNewCITypeForm.imageFileId">
                 <img
                   v-if="addNewCITypeForm.imageFileId"
-                  :src="`/cmdb/ui/v2/files/${addNewCITypeForm.imageFileId}.png`"
+                  :src="
+                    `/wecmdb/ui/v2/files/${addNewCITypeForm.imageFileId}.png`
+                  "
                   slot="prefix"
                   height="24"
                   width="24"
@@ -268,7 +270,7 @@
                 <Option v-for="(item, i) in imgs" :key="i + 1" :value="i + 1">
                   <img
                     slot
-                    :src="`/cmdb/ui/v2/files/${i + 1}.png`"
+                    :src="`/wecmdb/ui/v2/files/${i + 1}.png`"
                     width="30"
                     height="30"
                   />
@@ -1128,11 +1130,11 @@ export default {
                 let imgFileSource =
                   i.imageFileId === 0 || i.imageFileId === undefined
                     ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
-                    : `/cmdb/ui/v2/files/${i.imageFileId}`;
+                    : `/wecmdb/ui/v2/files/${i.imageFileId}`;
                 this.$set(i, "form", {
                   ...i,
                   imgSource: imgFileSource,
-                  imgUploadURL: `/cmdb/ui/v2/ci-types/${i.ciTypeId}/icon`
+                  imgUploadURL: `/wecmdb/ui/v2/ci-types/${i.ciTypeId}/icon`
                 });
                 i.attributes &&
                   i.attributes.forEach(j => {
