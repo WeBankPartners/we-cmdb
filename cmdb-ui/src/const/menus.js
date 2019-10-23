@@ -2,7 +2,7 @@ export const MENUS = [
   {
     code: "DATA_QUERY",
     cnName: "数据查询",
-    enName: "Data Query"
+    enName: "Data Enquiry"
   },
   {
     code: "DATA_MANAGEMENT",
@@ -12,7 +12,7 @@ export const MENUS = [
   {
     code: "ADMIN",
     cnName: "系统",
-    enName: "Admin"
+    enName: "Administration"
   },
   {
     code: "DESIGNING_CI_DATA_MANAGEMENT",
@@ -71,13 +71,13 @@ export const MENUS = [
   {
     code: "ADMIN_QUERY_LOG",
     cnName: "日志查询",
-    enName: "QUERY_LOG",
+    enName: "Query Log",
     link: "/admin/query-log"
   },
   {
     code: "ADMIN_USER_PASSWORD_MANAGEMENT",
     cnName: "用户密码管理",
-    enName: "USER_PASSWORD_MANAGEMENT",
+    enName: "User Password Management",
     link: "/admin/user-password-management"
   },
   // 视图查询
