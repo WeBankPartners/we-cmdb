@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 9080
   address: localhost
 
 spring:
@@ -15,10 +15,6 @@ spring:
       - classpath:/local/ch/03.cmdb.system.data.h2_ch.sql
       - classpath:/database/ch/04.cmdb.experience.data_ch.sql
     sql-script-encoding: utf-8
-    h2: 
-      console: 
-        enabled: true
-        path: /h2-console
 
     
 

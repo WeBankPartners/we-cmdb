@@ -15,11 +15,6 @@ spring:
       - classpath:/local/en/03.cmdb.system.data.h2_en.sql
       - classpath:/database/en/04.cmdb.experience.data_en.sql
     sql-script-encoding: utf-8
-    h2: 
-      console: 
-        enabled: true
-        path: /h2-console
-
     
 
   jpa:
