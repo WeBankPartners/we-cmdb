@@ -4,7 +4,6 @@
       <Menu mode="horizontal" theme="dark">
         <Submenu v-for="menu in menus" :name="menu.code" :key="menu.code">
           <template slot="title">
-            <!-- <Icon size="large" :type="menu.icon" /> -->
             {{ menu.title }}
           </template>
           <router-link
@@ -31,7 +30,9 @@
               }}</a>
             </DropdownItem>
             <DropdownItem name="changePassword">
-              <router-link to="/setting/change-password">修改密码</router-link>
+              <router-link to="/setting/change-password">{{
+                $t("password_edit")
+              }}</router-link>
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
@@ -51,7 +52,6 @@
             <DropdownItem
               v-for="(item, key) in language"
               :key="item.id"
-              :disabled="item === 'English'"
               @click.native="changeLanguage(key)"
               >{{ item }}</DropdownItem
             >
@@ -81,7 +81,6 @@ export default {
   },
   methods: {
     changeLanguage(key) {
-      if (key === "en-US") return;
       Vue.config.lang = key;
       this.currentLanguage = this.language[key];
       localStorage.setItem("lang", key);
