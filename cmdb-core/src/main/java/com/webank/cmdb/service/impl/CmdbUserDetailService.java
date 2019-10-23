@@ -22,7 +22,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
-import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.domain.AdmMenu;
 import com.webank.cmdb.domain.AdmUser;
 import com.webank.cmdb.exception.CmdbException;
@@ -45,9 +44,6 @@ public class CmdbUserDetailService implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        if (securityProperties.isEnabled()) {
-            if(StringUtils.isBlank(username))username=CmdbConstants.DEFAULT_SA;
-        }
         List<AdmMenu> admMenus = admMenusRepository.findMenusByUserName(username);
         String password = getPassword(username);
 
