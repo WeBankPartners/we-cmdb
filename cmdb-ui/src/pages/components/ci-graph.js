@@ -324,7 +324,7 @@ export default {
       ].to;
       let data = [
         {
-          title: "所有",
+          title: this.$t("all"),
           id: "all",
           expand: true,
           children: this.referTos.map(_ => {
@@ -357,7 +357,7 @@ export default {
       ].from;
       let data = [
         {
-          title: "所有",
+          title: this.$t("all"),
           id: "all",
           expand: true,
           children: this.referBys.map(_ => {
@@ -387,7 +387,7 @@ export default {
       ].node.attrs;
       let data = [
         {
-          title: "所有",
+          title: this.$t("all"),
           id: "all",
           expand: true,
           children: this.ciTypeAttrs
@@ -634,13 +634,13 @@ export default {
         >
           <div>
             <Tabs value="name1">
-              <TabPane label="属性" name="name1">
+              <TabPane label={this.$t("attribute")} name="name1">
                 {isSwitcherOpen && this.renderAttrs()}
               </TabPane>
-              <TabPane label="引用" name="name2">
+              <TabPane label={this.$t("refrence_to")} name="name2">
                 {isSwitcherOpen && this.renderTos()}
               </TabPane>
-              <TabPane label="被引用" name="name3">
+              <TabPane label={this.$t("refrence_by")} name="name3">
                 {isSwitcherOpen && this.renderBys()}
               </TabPane>
             </Tabs>
