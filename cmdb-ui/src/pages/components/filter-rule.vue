@@ -145,7 +145,10 @@ export default {
                   this.filterAttr.inputType === "multiRef"
                     ? this.filterAttr.referenceId
                     : this.filterAttr.ciTypeId;
-              } else if (this.filterAttr.inputType === "select") {
+              } else if (
+                this.filterAttr.inputType === "select" ||
+                this.filterAttr.inputType === "multiSelect"
+              ) {
                 this.isShowSelect = true;
                 this.optionsHide = true;
                 this.inputRuleStatus = 0;
@@ -403,8 +406,10 @@ export default {
               }
             } else if (
               !obj.parentRs ||
-              (this.ciTypeAttrsObj[obj.parentRs.attrId].inputType ===
-                "select" &&
+              ((this.ciTypeAttrsObj[obj.parentRs.attrId].inputType ===
+                "select" ||
+                this.ciTypeAttrsObj[obj.parentRs.attrId].inputType ===
+                  "multiSelect") &&
                 !obj.enumCodeAttr)
             ) {
               this.$refs.textarea.value = this.inputVal;
@@ -652,7 +657,7 @@ export default {
           : opt.ciTypeAttrName + " ";
       this.attrNameArray = [];
       this.$refs.textarea.focus();
-      if (opt.inputType === "select") {
+      if (opt.inputType === "select" || opt.inputType === "multiSelect") {
         this.isShowSelect = true;
         this.optionsHide = true;
         this.isShowSelectRules = false;
@@ -702,7 +707,9 @@ export default {
                     } .(${attrName})${this.ciTypesObj[item.ciTypeId].name} `;
                   } else if (
                     this.ciTypeAttrsObj[item.parentRs.attrId].inputType ===
-                    "select"
+                      "select" ||
+                    this.ciTypeAttrsObj[item.parentRs.attrId].inputType ===
+                      "multiSelect"
                   ) {
                     if (
                       filterLeftRule[0].ciTypeId === this.filterAttr.ciTypeId
@@ -721,7 +728,9 @@ export default {
                 } else {
                   if (
                     this.ciTypeAttrsObj[item.parentRs.attrId].inputType ===
-                    "select"
+                      "select" ||
+                    this.ciTypeAttrsObj[item.parentRs.attrId].inputType ===
+                      "multiSelect"
                   ) {
                     val += `.${attrName} .${item.enumCodeAttr} `;
                   } else {
@@ -758,7 +767,9 @@ export default {
                       val += `${refType}(${attrName})${ciTypeName} `;
                     } else if (
                       this.ciTypeAttrsObj[item.parentRs.attrId].inputType ===
-                      "select"
+                        "select" ||
+                      this.ciTypeAttrsObj[item.parentRs.attrId].inputType ===
+                        "multiSelect"
                     ) {
                       val += `${refType}${attrName} .${item.enumCodeAttr} `;
                     } else {

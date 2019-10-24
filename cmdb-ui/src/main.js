@@ -1,9 +1,10 @@
 import Vue from "vue";
+import Router from "vue-router";
 import VueHighlightJS from "vue-highlight.js";
 import "vue-highlight.js/lib/allLanguages";
 import "highlight.js/styles/default.css";
 import App from "./App.vue";
-import router from "./router";
+import { router, pluginRouter } from "./router";
 import iView from "iview";
 import "iview/dist/styles/iview.css";
 import VueI18n from "vue-i18n";
@@ -36,29 +37,36 @@ Vue.use(iView, {
 
 Vue.use(VueHighlightJS);
 
-router.beforeEach((to, from, next) => {
-  if (window.myMenus) {
-    let hasPermission = []
-      .concat(...window.myMenus.map(_ => _.submenus))
-      .find(_ => _.link === to.path);
-    if (
-      hasPermission ||
-      to.path === "/homepage" ||
-      to.path.startsWith("/setting") ||
-      to.path === "/404"
-    ) {
-      /* has permission*/
-      next();
+if (process.env.PLUGIN === "plugin") {
+  window.addRoutes && window.addRoutes(pluginRouter, "cmdb");
+  new Vue({
+    router: new Router({ routes: [] }),
+    render: h => h(App)
+  }).$mount("#cmdb");
+} else {
+  router.beforeEach((to, from, next) => {
+    if (window.myMenus) {
+      let hasPermission = []
+        .concat(...window.myMenus.map(_ => _.submenus))
+        .find(_ => _.link === to.path);
+      if (
+        hasPermission ||
+        to.path === "/homepage" ||
+        to.path.startsWith("/setting") ||
+        to.path === "/404"
+      ) {
+        /* has permission*/
+        next();
+      } else {
+        /* has no permission*/
+        next("/404");
+      }
     } else {
-      /* has no permission*/
-      next("/404");
+      next();
     }
-  } else {
-    next();
-  }
-});
-
-new Vue({
-  router,
-  render: h => h(App)
-}).$mount("#app");
+  });
+  new Vue({
+    router,
+    render: h => h(App)
+  }).$mount("#app");
+}

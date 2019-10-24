@@ -7,41 +7,58 @@ module.exports = {
     port: 3000,
     proxy: {
       "/process": {
-        target: " http://localhost:8080"
+        target: " http://localhost:9080"
       },
       "/admin": {
-        target: " http://localhost:8080"
+        target: " http://localhost:9080"
       },
-      "/cmdb": {
-        target: "http://localhost:8080"
+      "/wecmdb": {
+        target: "http://localhost:9080"
       },
       "/logout": {
-        target: "http://localhost:8080"
+        target: "http://localhost:9080"
       },
       "/plugin": {
-        target: "http://localhost:8080"
+        target: "http://localhost:9080"
       },
       "/artifact": {
-        target: "http://localhost:8080"
+        target: "http://localhost:9080"
       },
       "/batch-job": {
-        target: "http://localhost:8080"
+        target: "http://localhost:9080"
       }
     }
   },
   runtimeCompiler: true,
   publicPath: "/wecmdb/",
   chainWebpack: config => {
-    // remove the old loader
-    const img = config.module.rule("images");
-    img.uses.clear();
-    // add the new one
-    img
-      .use("file-loader")
-      .loader("file-loader")
-      .options({
-        outputPath: "img"
-      });
+    if (process.env.PLUGIN === "plugin") {
+      const img = config.module.rule("images");
+      img.uses.clear();
+      img
+        .use("url-loader")
+        .loader("url-loader")
+        .options({ limit: 1000000 });
+
+      const svg = config.module.rule("svg");
+      svg.uses.clear();
+      svg.uses.clear();
+      svg
+        .use("url-loader")
+        .loader("url-loader")
+        .options({ limit: 1000000 });
+    } else {
+      // remove the old loader
+      const img = config.module.rule("images");
+      img.uses.clear();
+      // add the new one
+      img
+        .use("file-loader")
+        .loader("file-loader")
+        .options({
+          outputPath: "img"
+        });
+    }
   },
   configureWebpack: config => {
     if (process.env.NODE_ENV === "production") {
