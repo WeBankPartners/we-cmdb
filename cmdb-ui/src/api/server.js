@@ -1,4 +1,20 @@
-import req from "./base";
+import request from "./base";
+let req = {};
+const baseURL = "/wecmdb/ui/v2";
+req = {
+  post: (url, ...params) => request.post(baseURL + url, ...params),
+  get: (url, ...params) => request.get(baseURL + url, ...params),
+  delete: (url, ...params) => request.delete(baseURL + url, ...params),
+  put: (url, ...params) => request.put(baseURL + url, ...params)
+};
+if (window.request) {
+  req = {
+    post: (url, ...params) => window.request.post(baseURL + url, ...params),
+    get: (url, ...params) => window.request.get(baseURL + url, ...params),
+    delete: (url, ...params) => window.request.delete(baseURL + url, ...params),
+    put: (url, ...params) => window.request.put(baseURL + url, ...params)
+  };
+}
 
 export const getMyMenus = () => req.get("/my-menus");
 // init page
