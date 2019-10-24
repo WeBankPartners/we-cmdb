@@ -1,45 +1,50 @@
 # WeCMDB Install Guide
 
 
-The WeCMDB runtime environment consists of three components: wecmdb-app, wecmdb-db (mysql), cas server. The installation packages for these three components are provided as docker images.
+The WeCMDB runtime environment consists of three components: 
 
-This installation guide starts the WeCMDB service by means of docker-compose. You do not need to install the mysql and cas server separately. You can modify some configuration files to use the existing mysql and cas server.
+1. wecmdb-app
+2. wecmdb-db (MySQL)
+3. cas server
+
+The installation packages for these three components are provided as docker images.
+
+This installation guide starts the WeCMDB service through docker-compose. You do not need to install the MySQL and CAS server separately. You can modify some configuration files to use the existing MySQL and CAS server.
 
 
 ## Before installation
-1. one Linux host, resource configuration is recommended 4 cores 8GB or more for speed up the compilation.
-2. The operating system version is recommended to be ubuntu16.04 or higher or centos7.3 or higher.
-3. The network needs to be able to access internet (need to download and install the software from internet.
-4. install docker and docker-compose.
+1. Linux host with the Internet connection, we recommend a server with 4 cores, 8GB or more memory for better compilation speed.
+2. Ubuntu 16.04+ or CentOS 7.3+ is preferred.
+3. Docker and docker-compose installed.
      - PLease refer to [docker install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/install/docker_install_guide_en.md) on how to install docker.
      - PLease refer to [docker-compose install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/install/docker-compose_install_guide_en.md) on how to install docker-compose.
 
 
 ## Load images
 
-   Load docker image from files , execute the command as following：
+   Load docker image from files, execute the command as following：
 
-   ```
+   ```shell script
    docker load --input wecmdb-app.tar
    docker load --input wecmdb-db.tar 
    ```
 
    Execute command 'docker images'
 
-   ```
+   ```shell script
 	docker images
    ```
 
-   Can see that the image has been imported：
+   You can see that the image has been imported：
 
    ![wecmdb_images](images/wecmdb_images.png)
 
-   Make a note of the image name and TAG in the mirror list, which is needed in the following configuration.
+   Take a note of the `image name` and `TAG` in the mirror list, which is useful in the following configuration.
 
 ## Configuration
 1. Create installation directory and files
 	
-	Create an installation directory on the deployment machine and create the following four files.:
+	On the deployment environment, create an installation directory and following four files within:
 
 	[cmdb.cfg](../../../build/cmdb.cfg)
 
@@ -49,9 +54,9 @@ This installation guide starts the WeCMDB service by means of docker-compose. Yo
 
 	[docker-compose-all.tpl](../../../build/docker-compose-all.tpl)
 
-2. Config cmdb.cfg as follows
+2. Config `cmdb.cfg` as follows
 
-	```	
+	```
 	#cmdb
 	cmdb_server_port=8080
 	cmdb_image_name=we-cmdb:dev
@@ -71,9 +76,9 @@ This installation guide starts the WeCMDB service by means of docker-compose. Yo
 	 database_init_password   |cmdb database password
 
 
-3. Config install.sh as follows
+3. Config `install.sh` as follows
 
-	```
+	```shell script
 	#!/bin/bash
 	set -ex
 	if ! docker --version &> /dev/null
@@ -100,14 +105,14 @@ This installation guide starts the WeCMDB service by means of docker-compose. Yo
 	docker-compose -f docker-compose.yml up -d
 	```
 
-4. Config uninstall.sh as follows
+4. Config `uninstall.sh` as follows
 
-	```
+	```shell script
 	#!/bin/bash
 	docker-compose -f docker-compose.yml down -v
 	```
 
-5. Config docker-compose-all.tpl as follows
+5. Config `docker-compose-all.tpl` as follows
 	
 	The service to be installed is configured in this file：wecmdb-cas、wecmdb-mysql、wecmdb-app。
 
@@ -157,9 +162,9 @@ This installation guide starts the WeCMDB service by means of docker-compose. Yo
 	```
 
 ## Installation
-1. Execute the following command to start the WeCMDB service through docker-compose
+1. Execute the following command to start the WeCMDB service through docker-compose.
 	
-	```
+	```shell script
 	/bin/bash ./install.sh
 	```
  
@@ -171,19 +176,19 @@ This installation guide starts the WeCMDB service by means of docker-compose. Yo
 ## Uninstall
 Execute the following command to stop the WeCMDB service through docker-compose.
 
-```
+```shell script
 /bin/bash ./uninstall.sh
 ```
 
 ## Restart
 Execute the following command to stop the WeCMDB service through docker-compose.
 
-```
+```shell script
 /bin/bash ./uninstall.sh
 ```
 
-Modify the cmdb.cfg configuration file as needed to restart the service
+Modify the cmdb.cfg configuration file as needed to restart the service.
 
-```
+```shell script
 /bin/bash ./install.sh
 ```

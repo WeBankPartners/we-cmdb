@@ -1,9 +1,11 @@
 # Docker Install Guide
 
 ## Before installation
-1. one Linux host, this installation guide uses the virtual machine on Tencent Cloud as an example.
-2. The operating system version is recommended to be centos7.2 or higher, the recommended kernel version is 3.10.517 or higher.
-3. The network needs to be able to access internet(need to download and install the software from internet).
+This installation guide uses the virtual machine on `Tencent Cloud` as an example.
+
+1. Linux host with the Internet connection.
+2. CentOS 7.2+ is preffered.
+3. Kernel version should be 3.10.517 or higher.
 
 The following installation and configuration operations are performed under the root user.
 
@@ -24,7 +26,7 @@ The following installation and configuration operations are performed under the 
 	mv docker/* /usr/bin
 	```
 
-3. create directory `/etc/docker`，create config file `/etc/docker/daemon.json`, detailed as follows
+3. Create directory `/etc/docker`，create config file `/etc/docker/daemon.json`, detailed as follows
 
 	```
 	{
@@ -62,7 +64,7 @@ The following installation and configuration operations are performed under the 
 	
 	```
 
-4. create docker service file `/lib/systemd/system/dockerd.service`, detailed as follows
+4. Create docker service file `/lib/systemd/system/dockerd.service`, detailed as follows
 
 	```
 	[Unit]
@@ -105,7 +107,7 @@ The following installation and configuration operations are performed under the 
 
 ## Set linux kernel parameters
 
-1. edit config file `/etc/sysctl.conf` as follows
+1. Edit config file `/etc/sysctl.conf` as follows
 
 	```
 	net.ipv4.ip_forward=1
@@ -113,7 +115,7 @@ The following installation and configuration operations are performed under the 
 	net.bridge.bridge-nf-call-iptables = 1
 	```
 
-2. execute the command as follows
+2. Execute the command as follows
 	
 	```
 	sysctl -p
