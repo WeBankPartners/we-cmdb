@@ -15,6 +15,10 @@ build:
 	mkdir -p repository
 	docker run --rm --name wecmdb-build -v /data/repository:/usr/src/mymaven/repository   -v $(current_dir)/build/maven_settings.xml:/usr/share/maven/ref/settings-docker.xml  -v $(current_dir):/usr/src/mymaven -w /usr/src/mymaven maven:3.3-jdk-8 mvn -U clean install -Dmaven.test.skip=true -s /usr/share/maven/ref/settings-docker.xml dependency:resolve
 
+build-plugin-ui:
+	mkdir -p repository
+	docker run --rm --name wecmdb-build -v /data/repository:/usr/src/mymaven/repository   -v $(current_dir)/build/maven_settings.xml:/usr/share/maven/ref/settings-docker.xml  -v $(current_dir):/usr/src/mymaven -w /usr/src/mymaven maven:3.3-jdk-8 mvn -U clean install -Dmaven.test.skip=true -DbuildType=plugin -s /usr/share/maven/ref/settings-docker.xml dependency:resolve
+
 image: 
 	docker build -t $(project_name):$(version) .
 
