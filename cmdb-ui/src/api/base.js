@@ -1,6 +1,6 @@
 import Vue from "vue";
 import axios from "axios";
-const baseURL = "/wecmdb/ui/v2";
+const baseURL = "";
 const req = axios.create({
   withCredentials: true,
   baseURL,
@@ -68,6 +68,7 @@ function setHeaders(obj) {
   });
 }
 
-export default req;
+const request = req;
+export default request;
 
 export { setHeaders };
