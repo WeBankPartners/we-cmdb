@@ -7,7 +7,7 @@
 English / [中文](README.md)
 
 ## Link for Trial
-[Click to try WeCMDB](http://106.53.80.138/cmdb/index.html#/)<br>
+[Click to try WeCMDB](http://106.53.80.138/wecmdb/index.html#/)<br>
 
 ## Demo
 <img src="./cmdb-wiki/docs/manual/images/ci-data-management.gif" />
