@@ -15,6 +15,29 @@
 		<nodejs.version>v10.16.0</nodejs.version>
 		<npm.version>6.9.0</npm.version>
 	</properties>
+	<profiles>
+		<profile>
+			<id>build</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<buildType>build</buildType>
+			</properties>
+		</profile>
+		<profile>
+			<id>plugin</id>
+			<activation>
+				<property>
+					<name>buildType</name>
+					<value>plugin</value>
+				</property>
+			</activation>
+			<properties>
+				<buildType>plugin</buildType>
+			</properties>
+		</profile>
+	</profiles>
 	<build>
 		<plugins>
 			<plugin>
@@ -68,7 +91,7 @@
 							<goal>npm</goal>
 						</goals>
 						<configuration>
-							<arguments>run build</arguments>
+							<arguments>run ${buildType}</arguments>
 						</configuration>
 					</execution>
 				</executions>
