@@ -1,28 +1,28 @@
 # WeCMDB Developer Guide
 
 ## Preparation
-1. install JDK
+1. Java SE Development Kit (JDK)
 	
 	PLease refer to [JDK install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/developer/jdk_install_guide_en.md) on how to install JDK.
 
-2. install Eclipse
+2. Eclipse
 	
 	PLease refer to [Eclipse install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/developer/eclipse_install_guide_en.md) on how to install Eclipse.
 
-3. install Mysql
+3. Mysql
 	
 	PLease refer to [Mysql install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/developer/mysql_install_guide_en.md) on how to install Mysql.
 
-4. install node.js
+4. Node.js
 	
 	Download node.js v10.16.3 from `http://nodejs.cn/download`. Double-click the downloaded installation file to install it by default configuration.
 
 
 
-## import project
+## Import the project
    You can pull the code directly from git, or you can pull the code project to the local and then import it into Eclipse. This article takes local import as an example.
 
-1. project import
+1. Import the project
 	
 	Choose to import an existing project
 	![wecmdb_import_1](images/wecmdb_import_1.png)
@@ -40,15 +40,15 @@
 	
 	After the project is imported, the dependencies and compilations are automatically downloaded. Make sure the network connection is normal.
 
-2. switch view
+2. Switch view
 	
 	After the project is imported, open the menu *Window > Show View*, choose *Project Explorer*
 	![wecmdb_import_6](images/wecmdb_import_6.png)
 
 
-3. initialize the database
+3. Initialize the database
 	
-	Users and databases need to be built on a local or remote database.
+	Users and databases need to be created on a local or remote database.
 	
 	sample sql as follows：
 	
@@ -63,16 +63,16 @@
 	Execute the following data initialization script on the database：
 		[data_model.sql](../../../cmdb-core/database/data_model.sql)
 
-4. config files
+4. Customize Spring configuration
 
 	In *Project Explorer* view，copy *application-uat.yml* and rename as *application-dev.yml*
 	![wecmdb_import_7](images/wecmdb_import_7.png)
 	
 	Edit *application-dev.yml* ，Modify the relevant configuration, without CAS in development mode, you can remove the CAS related configuration.
 	
-	application-dev.yml sample as follows：
+	*application-dev.yml* sample as follows：
 
-	```
+	```yaml
 	server:
 		port: 37000
 		address: localhost
@@ -90,7 +90,7 @@
 	
 	```
 
-5. start WeCMDB backend
+5. Start WeCMDB backend
 	
 	Open Window->Preferences， choose Java->Installed JREs，add new jdk config as follows:
 	![wecmdb_jdk_install](images/wecmdb_jdk_install.png)
@@ -99,7 +99,7 @@
 
 	![wecmdb_maven_install](images/wecmdb_maven_install.png)
 	
-	start service
+	Start service
 
 	![wecmdb_start](images/wecmdb_start.png)
 	
@@ -116,15 +116,15 @@
 	![wecmdb_swagger_ui](images/wecmdb_swagger_ui.png)
 
 
-6. start WeCMDB frontend
+6. Start WeCMDB frontend
 	
 	Run CMD (Win+R or the bottom right corner of the start menu entry), in the expanded command line window, enter the we-cmdb code subdirectory wecmdb-ui.
 
 	![wecmdb_ui_npm_install](images/wecmdb_ui_npm_install.png)
 	
-	install npm
+	Install npm
 	
-	```
+	```shell script
 	npm install
 	```
 	
@@ -132,8 +132,7 @@
 
 	After the installation is complete, execute the command
 
-	
-	```
+	```shell script
 	npm start
 	```
 
