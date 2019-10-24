@@ -5,7 +5,7 @@ Open the following link:
 	
 	http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
 
-to access JDK1.8 download page, download according to your needs
+To access JDK1.8 download page, download according to your needs.
 ![jdk_version_list](images/jdk_version_list.png)
 
 This guide takes the installation of jdk-8u201-windows-x64 as an example.
