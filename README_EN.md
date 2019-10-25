@@ -73,9 +73,9 @@ Here are the characteristics of WeCMDB:
 ## Quick Start
 Normal deployment with containers of WeCMDB:
 
-Please refer to the [WeCMDB Compiling Guide](cmdb-wiki/docs/install/wecmdb_compile_guide.md) on how to compile WeCMDB.
+Please refer to the [WeCMDB Compiling Guide](cmdb-wiki/docs/install/wecmdb_compile_guide_en.md) on how to compile WeCMDB.
 
-Please refer to the [WeCMDB Deployment Guide](cmdb-wiki/docs/install/wecmdb_install_guide.md) on how to install WeCMDB.
+Please refer to the [WeCMDB Deployment Guide](cmdb-wiki/docs/install/wecmdb_install_guide_en.md) on how to install WeCMDB.
 
 ## User Manuals
 Please refer to the [WeCMDB Model Guide](cmdb-wiki/docs/manual/wecmdb_model_guide.md) for guide on WeCMDB model.
@@ -84,12 +84,15 @@ Please refer to the [WeCMDB User Guide](cmdb-wiki/docs/manual/wecmdb_user_guide.
 
 ## Developer Guide
 #### Deploy WeCMDB in Standalone Mode
-Please refer to the [WeCMDB Quick Start in Standalone Mode](cmdb-wiki/docs/developer/wecmdb_local_standalone_guide.md) for setting up local environment quickly.
+Please refer to the [WeCMDB Quick Start in Standalone Mode](cmdb-wiki/docs/developer/wecmdb_local_standalone_guide_en.md) for setting up local environment quickly.
 
 #### Deploy WeCMDB in Normal Mode
 WeCMDB is developed with Java and Vue, uses MySQL for data persistence and relies on Tomcat as the web application container.
 
-Please refer to the [WeCMDB Developer Guide](cmdb-wiki/docs/developer/wecmdb_developer_guide.md) for setting up development environment.
+Please refer to the [WeCMDB Developer Guide](cmdb-wiki/docs/developer/wecmdb_developer_guide_en.md) for setting up development environment.
+
+#### WeCMDB Contributors Guide
+Please refer to the [WeCMDB Contributors Guide](cmdb-wiki/docs/developer/code_contributors_submit_guide_en.md) for Contributors how to submit code.
 
 ## API Reference
 Please refer to the [WeCMDB API Guide](cmdb-wiki/docs/api/wecmdb_api_guide.md).
