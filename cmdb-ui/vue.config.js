@@ -60,7 +60,11 @@ module.exports = {
         });
     }
   },
+  productionSourceMap: process.env.PLUGIN !== "plugin",
   configureWebpack: config => {
+    if (process.env.PLUGIN === "plugin") {
+      return;
+    }
     if (process.env.NODE_ENV === "production") {
       return {
         plugins: [
