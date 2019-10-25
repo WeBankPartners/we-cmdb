@@ -37,7 +37,7 @@ This guide takes the installation of eclipse-jee-2019-06-R-win32-x86_64 as an ex
 
 	![eclipse_install_3](images/eclipse_install_3.png)
 
-3. add lombok.jar plugin
+3. Add lombok.jar plugin
 	
 	Download `lombok.jar` from `https://projectlombok.org/download`.
 	
@@ -55,4 +55,4 @@ This guide takes the installation of eclipse-jee-2019-06-R-win32-x86_64 as an ex
 
 	![eclipse_lombok_2](images/eclipse_lombok_2.png)
 
-	restart eclipse.
+	Restart eclipse.
