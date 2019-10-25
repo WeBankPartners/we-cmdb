@@ -17,38 +17,35 @@ This guide takes the example of developing code locally.
 
 relevant commands as follows:
 ```shell script
-# create myRepositories directory
+# Create myRepositories directory
 mkdir myRepositories
 
-# switch to myRepositories directory
+# Switch to myRepositories directory
 cd myRepositories  
 
-# create and initialize the git repository
+# Create and initialize the git repository
 git init  
 
-# add the remote git repository
+# Add the remote git repository
 git remote add origin https://github.com/xuxuzhesi/we-cmdb.git
 
-# download remote git repository to the local directory
+# Download remote git repository to the local directory
 git pull origin master  
 ```
 
-   
-	
 ## Submit code
 #### Edit the code locally, then upload the modified code to github repository, relevant commands as follows:
 
 ```shell script
-#Will add all files under the current directory myRepositories to the local repository
+# Will add all files under the current directory myRepositories to the local repository
 git add .
 
-#Submit changes
+# Submit changes
 git commit -am 'Commit Explanation'
 
-#Upload the repository to github
+# Upload the repository to github
 git push -u origin master 	
 ```
-
 		
 After uploading, go back to the github website and you can see what you just submitted:
 
