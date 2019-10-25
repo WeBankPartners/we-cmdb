@@ -2,7 +2,7 @@ export const MENUS = [
   {
     code: "DATA_QUERY",
     cnName: "数据查询",
-    enName: "Data Enquiry"
+    enName: "Data Enquiry"
   },
   {
     code: "DATA_MANAGEMENT",
