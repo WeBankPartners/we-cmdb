@@ -24,7 +24,7 @@ This guide takes the installation of mysql-installer-community-8.0.17.0.msi as a
 3. Default, next step
 	![mysql_install_3](images/mysql_install_3.png)
 
-4. next step
+4. Next step
 	![mysql_install_4](images/mysql_install_4.png)
 
 5. Click `Execute`, wait for the installation to complete, next step
