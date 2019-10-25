@@ -12,7 +12,7 @@ module.exports = {
       "/admin": {
         target: " http://localhost:9080"
       },
-      "/cmdb": {
+      "/wecmdb": {
         target: "http://localhost:9080"
       },
       "/logout": {
