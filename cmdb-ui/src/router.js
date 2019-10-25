@@ -84,9 +84,9 @@ export default new Router({
             import("@/pages/designing/ci-integrated-query-management")
         },
         {
-          path: "/admin/query-log",
+          path: "/admin/log-enquiry",
           name: "queryLog",
-          component: () => import("@/pages/admin/query-log")
+          component: () => import("@/pages/admin/log-enquiry")
         },
         {
           path: "/admin/user-password-management",
