@@ -1,5 +1,12 @@
 import Vue from "vue";
 import Router from "vue-router";
+
+// appRouter
+import IndexPage from "@/pages/index";
+import homepage from "@/pages/home-page";
+import comingsoon from "@/pages/coming-soon";
+import notFoundPage from "@/pages/404";
+// pluginRouter
 import changePassword from "@/pages/change-password";
 import permissions from "@/pages/admin/permission-management";
 import ciDesign from "@/pages/admin/cmdb-model-management";
@@ -25,149 +32,151 @@ export const pluginRouter = [
   {
     path: "setting/change-password",
     name: "changePassword",
-    component: () =>
-      isPlugin ? changePassword : import("@/pages/change-password")
+    component: isPlugin
+      ? changePassword
+      : () => import("@/pages/change-password")
   },
   {
     path: "/admin/permission-management",
     name: "permissions",
-    component: () =>
-      isPlugin ? permissions : import("@/pages/admin/permission-management")
+    component: isPlugin
+      ? permissions
+      : () => import("@/pages/admin/permission-management")
   },
   {
     path: "/admin/cmdb-model-management",
     name: "ciDesign",
-    component: () =>
-      isPlugin ? ciDesign : import("@/pages/admin/cmdb-model-management")
+    component: isPlugin
+      ? ciDesign
+      : () => import("@/pages/admin/cmdb-model-management")
   },
   {
     path: "/admin/base-data-management",
     name: "baseData",
-    component: () => (isPlugin ? enums : import("@/pages/admin/enums"))
+    component: isPlugin ? enums : () => import("@/pages/admin/enums")
   },
   {
     path: "/designing/enum-management",
     name: "enumManage",
-    component: () => (isPlugin ? enums : import("@/pages/admin/enums"))
+    component: isPlugin ? enums : () => import("@/pages/admin/enums")
   },
   {
     path: "/designing/enum-enquiry",
     name: "enumEnquiry",
-    component: () => (isPlugin ? enums : import("@/pages/admin/enums"))
+    component: isPlugin ? enums : () => import("@/pages/admin/enums")
   },
   {
     path: "/designing/ci-data-management",
     name: "ciDataManage",
-    component: () => (isPlugin ? ciData : import("@/pages/designing/ci-data"))
+    component: isPlugin ? ciData : () => import("@/pages/designing/ci-data")
   },
   {
     path: "/designing/ci-data-enquiry",
     name: "ciDataEnquiry",
-    component: () => (isPlugin ? ciData : import("@/pages/designing/ci-data"))
+    component: isPlugin ? ciData : () => import("@/pages/designing/ci-data")
   },
   {
     path: "/designing/ci-integrated-query-execution",
     name: "integrateQuery",
-    component: () =>
-      isPlugin
-        ? integrateQuery
-        : import("@/pages/designing/ci-integrated-query-execution")
+    component: isPlugin
+      ? integrateQuery
+      : () => import("@/pages/designing/ci-integrated-query-execution")
   },
   {
     path: "/designing/ci-integrated-query-management",
     name: "integrateQueryMgmt",
-    component: () =>
-      isPlugin
-        ? integrateQueryMgmt
-        : import("@/pages/designing/ci-integrated-query-management")
+    component: isPlugin
+      ? integrateQueryMgmt
+      : () => import("@/pages/designing/ci-integrated-query-management")
   },
   {
     path: "/admin/query-log",
     name: "queryLog",
-    component: () => (isPlugin ? queryLog : import("@/pages/admin/query-log"))
+    component: isPlugin ? queryLog : () => import("@/pages/admin/query-log")
   },
   {
     path: "/admin/user-password-management",
     name: "resetPassword",
-    component: () =>
-      isPlugin ? resetPassword : import("@/pages/admin/resetPassword")
+    component: isPlugin
+      ? resetPassword
+      : () => import("@/pages/admin/resetPassword")
   },
   // 视图查询
   {
     path: "/view-query/idc-planning-query",
     name: "idcPlanningQuery",
-    component: () =>
-      isPlugin ? idcPlanningQuery : import("@/pages/coming-soon")
+    component: isPlugin ? idcPlanningQuery : () => import("@/pages/coming-soon")
   },
   {
     path: "/view-query/idc-resource-planning-query",
     name: "idcResourcePlanningQuery",
-    component: () =>
-      isPlugin ? idcResourcePlanningQuery : import("@/pages/coming-soon")
+    component: isPlugin
+      ? idcResourcePlanningQuery
+      : () => import("@/pages/coming-soon")
   },
   {
     path: "/view-query/application-architecture-query",
     name: "applicationArchitectureQuery",
-    component: () =>
-      isPlugin ? applicationArchitectureQuery : import("@/pages/coming-soon")
+    component: isPlugin
+      ? applicationArchitectureQuery
+      : () => import("@/pages/coming-soon")
   },
   {
     path: "/view-query/application-deployment-query",
     name: "applicationDeploymentQuery",
-    component: () =>
-      isPlugin ? applicationDeploymentQuery : import("@/pages/coming-soon")
+    component: isPlugin
+      ? applicationDeploymentQuery
+      : () => import("@/pages/coming-soon")
   },
   // 视图管理
   {
     path: "/view-management/idc-planning-design",
     name: "idcPlanningDesign",
-    component: () =>
-      isPlugin ? idcPlanningDesign : import("@/pages/designing/planning")
+    component: isPlugin
+      ? idcPlanningDesign
+      : () => import("@/pages/designing/planning")
   },
   {
     path: "/view-management/idc-resource-planning",
     name: "idcResourcePlanning",
-    component: () =>
-      isPlugin
-        ? idcResourcePlanning
-        : import("@/pages/designing/resource-planning")
+    component: isPlugin
+      ? idcResourcePlanning
+      : () => import("@/pages/designing/resource-planning")
   },
   {
     path: "/view-management/application-architecture-design",
     name: "applicationArchitectureDesign",
-    component: () =>
-      isPlugin
-        ? applicationArchitectureDesign
-        : import("@/pages/designing/application-architecture")
+    component: isPlugin
+      ? applicationArchitectureDesign
+      : () => import("@/pages/designing/application-architecture")
   },
   {
     path: "/view-management/application-deployment-design",
     name: "applicationDeploymentDesign",
-    component: () =>
-      isPlugin
-        ? applicationDeploymentDesign
-        : import("@/pages/designing/application-deployment")
+    component: isPlugin
+      ? applicationDeploymentDesign
+      : () => import("@/pages/designing/application-deployment")
   }
 ];
 const appRouter = [
   {
     path: "homepage",
     name: "homepage",
-    component: () => import("@/pages/home-page"),
+    component: isPlugin ? homepage : () => import("@/pages/home-page"),
     params: {},
     props: true
   },
   {
     path: "404",
     name: "404",
-    component: () => import("@/pages/404"),
+    component: isPlugin ? notFoundPage : () => import("@/pages/404"),
     params: {},
     props: true
   },
   {
     path: "coming-soon",
     name: "comingsoon",
-    component: () => import("@/pages/coming-soon"),
+    component: isPlugin ? comingsoon : () => import("@/pages/coming-soon"),
     params: {},
     props: true
   }
@@ -178,7 +187,7 @@ export const router = new Router({
       path: "/",
       name: "IndexPage",
       redirect: "/homepage",
-      component: () => import("@/pages/index"),
+      component: isPlugin ? IndexPage : () => import("@/pages/index"),
       children: appRouter.concat(pluginRouter)
     }
   ]
