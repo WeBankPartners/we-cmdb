@@ -25,7 +25,7 @@
       </p>
       <div style="text-align:center">
         <p style="font-size: 14px;">
-          {{ formatString($t("whether_reset_or_not"), targetUser.username) }}
+          {{ resetPasswordTips }}
         </p>
       </div>
     </Modal>
@@ -54,12 +54,12 @@ export default {
           _.username.toLowerCase().indexOf(text) >= 0 &&
           _.username !== this.username
       );
+    },
+    resetPasswordTips() {
+      return formatString($t("whether_reset_or_not"), targetUser.username);
     }
   },
   methods: {
-    formatString(...data) {
-      return formatString(...data);
-    },
     async getAllUsers() {
       const { status, data, message, user } = await getAllUsers();
       if (status === "OK") {
