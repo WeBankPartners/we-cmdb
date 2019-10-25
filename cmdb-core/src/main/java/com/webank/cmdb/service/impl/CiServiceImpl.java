@@ -1149,7 +1149,7 @@ public class CiServiceImpl implements CiService {
         ciDataInterceptorService.postCreate(entityHolder, ci, multRefMetaMap, entityManager);
         return entityHolder;
     }
-
+    @OperationLogPointcut(operation = Removal, objectClass = CiData.class, ciTypeIdArgumentIndex = 0)
     @Override
     public void delete(int ciTypeId, List<String> ids) {
         List<String> rtnIds = new LinkedList<String>();
