@@ -64,6 +64,7 @@ Here are the characteristics of WeCMDB:
   Support configuration data management, basic configuration query, integrated query management and interface configuration for integrated queries.
 
 - View Management
+
   Support configuration management from different aspects,IDC planning design， IDC resource planning, application architecture design, application deployment design, which include graphic display all the configuration items of the selected aspects and you can maintain the items there easily.
 
 - System Management
