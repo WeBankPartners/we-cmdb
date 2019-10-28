@@ -22,16 +22,6 @@ import applicationDeploymentDesign from "@/pages/designing/application-deploymen
 Vue.use(Router);
 const router = [
   {
-    path: "setting/change-password",
-    name: "changePassword",
-    component: changePassword
-  },
-  {
-    path: "/admin/permission-management",
-    name: "permissions",
-    component: permissions
-  },
-  {
     path: "/admin/cmdb-model-management",
     name: "ciDesign",
     component: ciDesign
@@ -75,11 +65,6 @@ const router = [
     path: "/admin/query-log",
     name: "queryLog",
     component: queryLog
-  },
-  {
-    path: "/admin/user-password-management",
-    name: "resetPassword",
-    component: resetPassword
   },
   // 视图查询
   {
