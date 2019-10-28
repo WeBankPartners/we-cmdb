@@ -1,4 +1,4 @@
-# WeCMDB Compile Guide
+# WeCMDB 编译指引
 
 ## 编译前准备
 1. 准备一台linux主机，为加快编译速度， 资源配置建议4核8GB或以上；
