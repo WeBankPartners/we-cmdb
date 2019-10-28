@@ -29,13 +29,13 @@ export const MENUS = [
   {
     code: "DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT",
     cnName: "CI综合查询管理",
-    enName: "CI Integrate Query Management",
+    enName: "CI Integrate Enquiry Management",
     link: "/designing/ci-integrated-query-management"
   },
   {
     code: "DESIGNING_CI_INTEGRATED_QUERY_EXECUTION",
     cnName: "CI数据综合查询",
-    enName: "CI Integrate Query",
+    enName: "CI Integrate Enquiry",
     link: "/designing/ci-integrated-query-execution"
   },
   {
