@@ -62,7 +62,7 @@
               <div>{{ $t("loading") }}</div>
             </Spin>
             <div v-else-if="!systemDesignData.length" class="no-data">
-              暂无数据
+              {{ $t("no_data") }}
             </div>
             <Row>
               <Col span="18">
@@ -182,7 +182,7 @@
                 :links="physicalGraphLinks"
                 :callback="graphCallback"
               ></PhysicalGraph>
-              <div v-else class="no-data">暂无数据</div>
+              <div v-else class="no-data">{{ $t("no_data") }}</div>
               <Spin size="large" fix v-if="physicalSpin">
                 <Icon
                   type="ios-loading"
@@ -659,7 +659,11 @@ export default {
             color = stateColorMap.get(line.data.state.code);
           }
           this.invokeLines.push(
-            `gn_${line.data.unit_design.guid} -> gn_${line.data.service_design.guid} [id="gl_${line.guid}",color="${color}",taillabel="${line.data.type.value}", labeldistance=3];`
+            `gn_${line.data.unit_design.guid} -> gn_${
+              line.data.service_design.guid
+            } [id="gl_${line.guid}",color="${color}",taillabel="${
+              line.data.type.value
+            }", labeldistance=3];`
           );
           this.physicalGraphLineNodes.serviceDesign[
             line.data.service_design.guid
