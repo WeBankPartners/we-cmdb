@@ -170,7 +170,7 @@ This installation guide starts the WeCMDB service through docker-compose. You do
  
 2. Check
 
-	Visit WeCMDB's url `http://cmdb_server_ip:cmdb_server_port/cmdb` to confirm that the page is accessed normally.
+	Visit WeCMDB's url `http://cmdb_server_ip:cmdb_server_port/wecmdb` to confirm that the page is accessed normally.
 	
 
 ## Uninstall
