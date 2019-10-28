@@ -159,7 +159,7 @@ WeCMDB运行环境需要3个组件： wecmdb-app、wecmdb-db（mysql）、cas se
 	```
  
 2. 安装完成后，访问WeCMDB的url，确认页面访问正常,如果正常请输入初始用户名admin进行登陆。
-	http://cmdb_server_ip:cmdb_server_port/cmdb
+	http://cmdb_server_ip:cmdb_server_port/wecmdb
 
 ## 卸载
 执行如下命令，通过docker-compose停止WeCmdb服务。
