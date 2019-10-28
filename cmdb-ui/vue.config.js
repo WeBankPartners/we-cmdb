@@ -77,5 +77,19 @@ module.exports = {
         ]
       };
     }
+  },
+  chainWebpack: config => {
+    config.when(process.env.PLUGIN === "plugin", config => {
+      config
+        .entry("app")
+        .clear()
+        .add("./src/main-plugin.js"); //插件用的main.js
+    });
+    config.when(!process.env.PLUGIN, config => {
+      config
+        .entry("app")
+        .clear()
+        .add("./src/main.js"); //插件用的main.js
+    });
   }
 };
