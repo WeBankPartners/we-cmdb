@@ -73,8 +73,8 @@ export default {
       user: "",
       currentLanguage: "",
       language: {
-        "zh-CN": "简体中文",
-        "en-US": "English"
+        zh: "简体中文",
+        en: "English"
       },
       menus: []
     };
@@ -87,7 +87,7 @@ export default {
     },
     getLocalLang() {
       let currentLangKey = localStorage.getItem("lang") || navigator.language;
-      this.currentLanguage = this.language[currentLangKey];
+      this.currentLanguage = this.language[currentLangKey] || "English";
     },
     async getMyMenus() {
       let { status, data, message, user } = await getMyMenus();
@@ -99,7 +99,7 @@ export default {
             let menuObj = MENUS.find(m => m.code === _.code);
             if (menuObj) {
               this.menus.push({
-                title: this.$lang === "zh-CN" ? menuObj.cnName : menuObj.enName,
+                title: this.$lang === "zh" ? menuObj.cnName : menuObj.enName,
                 id: _.id,
                 submenus: [],
                 ..._,
@@ -116,7 +116,7 @@ export default {
                 if (_.parentId === h.id) {
                   h.submenus.push({
                     title:
-                      this.$lang === "zh-CN" ? menuObj.cnName : menuObj.enName,
+                      this.$lang === "zh" ? menuObj.cnName : menuObj.enName,
                     id: _.id,
                     ..._,
                     ...menuObj
