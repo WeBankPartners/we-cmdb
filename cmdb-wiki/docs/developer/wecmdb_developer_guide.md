@@ -1,4 +1,4 @@
-# WeCMDB Developer Guide
+# WeCMDB 开发环境配置
 
 ## 准备工作
 1. 安装JDK
@@ -43,52 +43,79 @@
 	导入项目后，需要在 *Window > Show View* 中选择 *Project Explorer*
 	![wecmdb_import_6](images/wecmdb_import_6.png)
 
+3. 配置文件
 
-3. 初始化数据库
-	
-	需要在本地或者远程的数据库上建立用户和database。
-	
-	参考语句：
-	
-	```
-	create database wecmdb_dev DEFAULT CHARSET utf8 COLLATE utf8_general_ci; 
-
-	create USER 'wecmdb'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Abcd1234';
-
-	grant all privileges on `wecmdb_dev`.* to 'wecmdb'@'%' identified by 'Abcd1234';
-	```
-	
-	在database上执行数据初始化脚本：
-		[data_model.sql](../../../cmdb-core/database/data_model.sql)
-
-4. 配置文件
-
-	在 *Project Explorer* 视图中，将 *application-uat.yml* 复制一份，更名为 *application-dev.yml*
+	在 *Project Explorer* 视图中，将 *application-local.yml* 复制一份，更名为 *application-dev.yml*
 	![wecmdb_import_7](images/wecmdb_import_7.png)
 	
-	打开 *application-dev.yml* ，修改相关配置，开发模式下无需CAS， 可将CAS相关配置去掉。
-	
-	application-dev.yml配置示例：
+	打开 *application-dev.yml* ，默认使用的是H2内存数据库，内容如下：
 
 	```
-	server:
-		port: 37000
-		address: localhost
-
-	spring:
-	  datasource:
-	    driver-class-name: com.mysql.cj.jdbc.Driver
-	    url: jdbc:mysql://127.0.0.1:3306/wecmdb_dev?characterEncoding=utf8&serverTimezone=UTC
-	    username: wecmdb
-	    password: Abcd1234
-	
-	cmdb:
-	  datasource:
-	    schema: wecmdb_dev
+    server:
+      port: 9080
+      address: localhost
+    
+    spring:
+      datasource:
+        platform: H2
+        driver-class-name: org.h2.Driver
+        url: jdbc:h2:mem:cmdb;MODE=MYSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=true;MV_STORE=FALSE;INIT=CREATE SCHEMA IF NOT EXISTS wecmdb_dev\;SET SCHEMA wecmdb_dev
+        username: sa
+        password:
+        schema: classpath:/database/01.cmdb.schema.sql
+        data:
+          - classpath:/database/02.cmdb.system.data.sql
+          - classpath:/local/03.cmdb.system.data.h2.sql
+          - classpath:/database/04.cmdb.experience.data.sql
+        sql-script-encoding: utf-8
+    
+      jpa:
+        database: MySQL
+        database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+        show-sql: false
+        hibernate:
+          ddl-auto: none
+    
+    cmdb:
+      datasource:
+        schema: wecmdb_dev
+      security:
+        enabled: false
+        whitelist-ip-address: localhost
 	
 	```
 
-5. 启动WeCMDB后端
+	如需要使用已存在的MYSQL数据库，可修改配置如下：
+	```
+    server:
+      port: 9080
+      address: localhost
+    
+    spring:
+      datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/wecmdb_dev?characterEncoding=utf8&serverTimezone=Asia/Shanghai
+        username: root
+        password: 
+    
+      jpa:
+        database: MySQL
+        database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+        show-sql: false
+        hibernate:
+          ddl-auto: none
+    
+    cmdb:
+      datasource:
+        schema: wecmdb_dev
+      security:
+        enabled: false
+        whitelist-ip-address: localhost
+	```
+	如果你的数据库是空库，可以依次运行数据库初始化脚本：
+	![wecmdb_import_8](images/wecmdb_import_8.png)
+
+4. 启动WeCMDB后端
 	
 	打开Window->Preferences窗口， 选择Java->Installed JREs，新增jdk配置，如下图
 
@@ -102,20 +129,14 @@
 
 	![wecmdb_start](images/wecmdb_start.png)
 	
-	在浏览器输入 *http://localhost:37000/cmdb/swagger-ui.html* 会跳转到登录页面
+	在浏览器输入 *http://localhost:9080/wecmdb/swagger-ui.html* 会跳转到登录页面
 
 	![wecmdb_swagger_login](images/wecmdb_swagger_login.png)
-
-	输入用户后确认， 会重定向到首页index页面
-
-	![wecmdb_swagger_redirect](images/wecmdb_swagger_redirect.png)
-
-	需要重新输入 *http://localhost:37000/cmdb/swagger-ui.html* , 进入swagger页面
 
 	![wecmdb_swagger_ui](images/wecmdb_swagger_ui.png)
 
 
-6. 启动WeCMDB前端
+5. 启动WeCMDB前端
 	
 	运行CMD（Win+R或右下角点开始菜单的输入处），在展开的命令行窗口中,进入we-cmdb的代码子目录wecmdb-ui目录
 
