@@ -1,15 +1,12 @@
 import Vue from "vue";
 import Router from "vue-router";
 
-import changePassword from "@/pages/change-password";
-import permissions from "@/pages/admin/permission-management";
 import ciDesign from "@/pages/admin/cmdb-model-management";
 import enums from "@/pages/admin/enums";
 import ciData from "@/pages/designing/ci-data";
 import integrateQuery from "@/pages/designing/ci-integrated-query-execution";
 import integrateQueryMgmt from "@/pages/designing/ci-integrated-query-management";
 import queryLog from "@/pages/admin/query-log";
-import resetPassword from "@/pages/admin/resetPassword";
 import idcPlanningQuery from "@/pages/coming-soon";
 import idcResourcePlanningQuery from "@/pages/coming-soon";
 import applicationArchitectureQuery from "@/pages/coming-soon";
