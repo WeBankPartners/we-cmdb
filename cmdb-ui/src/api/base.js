@@ -1,7 +1,7 @@
 import Vue from "vue";
 import axios from "axios";
-const baseURL = "";
-const req = axios.create({
+export const baseURL = "/wecmdb/ui/v2";
+export const req = axios.create({
   withCredentials: true,
   baseURL,
   timeout: 50000
@@ -67,8 +67,5 @@ function setHeaders(obj) {
     req.defaults.headers.common[key] = obj[key];
   });
 }
-
-const request = req;
-export default request;
 
 export { setHeaders };
