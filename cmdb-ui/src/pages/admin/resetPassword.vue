@@ -56,7 +56,10 @@ export default {
       );
     },
     resetPasswordTips() {
-      return formatString($t("whether_reset_or_not"), targetUser.username);
+      return formatString(
+        this.$t("whether_reset_or_not"),
+        this.targetUser.username
+      );
     }
   },
   methods: {
