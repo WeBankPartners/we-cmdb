@@ -45,52 +45,82 @@
 	After the project is imported, open the menu *Window > Show View*, choose *Project Explorer*
 	![wecmdb_import_6](images/wecmdb_import_6.png)
 
+3. Customize Spring configuration
 
-3. Initialize the database
-	
-	Users and databases need to be created on a local or remote database.
-	
-	sample sql as follows：
-	
-	```
-	create database wecmdb_dev DEFAULT CHARSET utf8 COLLATE utf8_general_ci; 
-
-	create USER 'wecmdb'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Abcd1234';
-
-	grant all privileges on `wecmdb_dev`.* to 'wecmdb'@'%' identified by 'Abcd1234';
-	```
-	
-	Execute the following data initialization script on the database：
-		[data_model.sql](../../../cmdb-core/database/data_model.sql)
-
-4. Customize Spring configuration
-
-	In *Project Explorer* view，copy *application-uat.yml* and rename as *application-dev.yml*
+	In *Project Explorer* view，copy *application-local.yml* and rename as *application-dev.yml*
 	![wecmdb_import_7](images/wecmdb_import_7.png)
 	
 	Edit *application-dev.yml* ，Modify the relevant configuration, without CAS in development mode, you can remove the CAS related configuration.
 	
 	*application-dev.yml* sample as follows：
 
-	```yaml
-	server:
-		port: 37000
-		address: localhost
 
-	spring:
-	  datasource:
-	    driver-class-name: com.mysql.cj.jdbc.Driver
-	    url: jdbc:mysql://127.0.0.1:3306/wecmdb_dev?characterEncoding=utf8&serverTimezone=UTC
-	    username: wecmdb
-	    password: Abcd1234
-	
-	cmdb:
-	  datasource:
-	    schema: wecmdb_dev
+	```
+    server:
+      port: 9080
+      address: localhost
+    
+    spring:
+      datasource:
+        platform: H2
+        driver-class-name: org.h2.Driver
+        url: jdbc:h2:mem:cmdb;MODE=MYSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=true;MV_STORE=FALSE;INIT=CREATE SCHEMA IF NOT EXISTS wecmdb_dev\;SET SCHEMA wecmdb_dev
+        username: sa
+        password:
+        schema: classpath:/database/01.cmdb.schema.sql
+        data:
+          - classpath:/database/02.cmdb.system.data.sql
+          - classpath:/local/03.cmdb.system.data.h2.sql
+          - classpath:/database/04.cmdb.experience.data.sql
+        sql-script-encoding: utf-8
+    
+      jpa:
+        database: MySQL
+        database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+        show-sql: false
+        hibernate:
+          ddl-auto: none
+    
+    cmdb:
+      datasource:
+        schema: wecmdb_dev
+      security:
+        enabled: false
+        whitelist-ip-address: localhost
 	
 	```
 
-5. Start WeCMDB backend
+	If you want to use MYSQL database, sample as follows:
+	```
+    server:
+      port: 9080
+      address: localhost
+    
+    spring:
+      datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/wecmdb_dev?characterEncoding=utf8&serverTimezone=Asia/Shanghai
+        username: root
+        password: 
+    
+      jpa:
+        database: MySQL
+        database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+        show-sql: false
+        hibernate:
+          ddl-auto: none
+    
+    cmdb:
+      datasource:
+        schema: wecmdb_dev
+      security:
+        enabled: false
+        whitelist-ip-address: localhost
+	```
+	If your MYSQL database is empty, you can run the following SQLs to initialize your database: 
+	![wecmdb_import_8](images/wecmdb_import_8.png)
+
+4. Start WeCMDB backend
 	
 	Open Window->Preferences， choose Java->Installed JREs，add new jdk config as follows:
 	![wecmdb_jdk_install](images/wecmdb_jdk_install.png)
@@ -103,7 +133,7 @@
 
 	![wecmdb_start](images/wecmdb_start.png)
 	
-	Enter the following url in the browser  *http://localhost:37000/cmdb/swagger-ui.html* Will redirect to the login page
+	Enter the following url in the browser  *http://localhost:9080/wecmdb/swagger-ui.html* Will redirect to the login page
 
 	![wecmdb_swagger_login](images/wecmdb_swagger_login.png)
 
@@ -111,7 +141,7 @@
 
 	![wecmdb_swagger_redirect](images/wecmdb_swagger_redirect.png)
 
-	Enter the following url again in the browser  *http://localhost:37000/cmdb/swagger-ui.html* , Go to the swagger page
+	Enter the following url again in the browser  *http://localhost:9080/wecmdb/swagger-ui.html* , Go to the swagger page
 
 	![wecmdb_swagger_ui](images/wecmdb_swagger_ui.png)
 
