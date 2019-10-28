@@ -6,7 +6,7 @@ CMDB 运行环境: CPU (2 核 2.5G) 内存 (4G)
 
 ## 单一 CI 数据查询
 
-测试 API url: /cmdb/api/v2/ci/14/retrieve
+测试 API url: /wecmdb/api/v2/ci/14/retrieve
 
 |数据量|响应时间(秒)|
 |-----|--------|
@@ -17,7 +17,7 @@ CMDB 运行环境: CPU (2 核 2.5G) 内存 (4G)
 
 ## 综合查询
 
-测试 API url: /cmdb/api/v2/intQuery/adhoc/execute
+测试 API url: /wecmdb/api/v2/intQuery/adhoc/execute
 
 测试数据 (CI 记录数)
 
