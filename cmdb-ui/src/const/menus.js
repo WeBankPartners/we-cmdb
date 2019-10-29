@@ -71,7 +71,7 @@ export const MENUS = [
   {
     code: "ADMIN_QUERY_LOG",
     cnName: "日志查询",
-    enName: "Log Enquiry",
+    enName: "Logs Enquiry",
     link: "/admin/log-enquiry"
   },
   {
