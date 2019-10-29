@@ -7,7 +7,7 @@
 中文 / [English](README_EN.md)
 
 ## 试用链接
-[点此试用WeCMDB](http://106.53.80.138/wecmdb/index.html#/)<br>
+[点此试用WeCMDB](https://sandbox.webank.com/wecmdb/)<br>
 
 ## 功能演示
 <img src="./cmdb-wiki/docs/manual/images/ci-data-management.gif" />
