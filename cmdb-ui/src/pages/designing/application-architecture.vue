@@ -30,11 +30,9 @@
               <Tree :data="deployTree"></Tree>
             </div>
             <div slot="footer">
-              <Button @click="cancelFixVersion">{{
-                $t("cancel_fix_version")
-              }}</Button>
+              <Button @click="cancelFixVersion">{{ $t("cancel") }}</Button>
               <Button type="info" @click="onArchFixVersion">{{
-                $t("confirm_fix_version")
+                $t("confirm")
               }}</Button>
             </div>
           </Modal>
