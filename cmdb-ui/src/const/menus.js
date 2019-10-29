@@ -29,13 +29,13 @@ export const MENUS = [
   {
     code: "DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT",
     cnName: "CI综合查询管理",
-    enName: "CI Integrate Query Management",
+    enName: "CI Integrate Enquiry Management",
     link: "/designing/ci-integrated-query-management"
   },
   {
     code: "DESIGNING_CI_INTEGRATED_QUERY_EXECUTION",
     cnName: "CI数据综合查询",
-    enName: "CI Integrate Query",
+    enName: "CI Integrate Enquiry",
     link: "/designing/ci-integrated-query-execution"
   },
   {
@@ -71,7 +71,7 @@ export const MENUS = [
   {
     code: "ADMIN_QUERY_LOG",
     cnName: "日志查询",
-    enName: "Log Enquiry",
+    enName: "Logs Enquiry",
     link: "/admin/log-enquiry"
   },
   {
@@ -101,13 +101,13 @@ export const MENUS = [
   {
     code: "APPLICATION_ARCHITECTURE_QUERY",
     cnName: "应用架构设计查询",
-    enName: "Application Architecture Query",
+    enName: "App Arch Query",
     link: "/view-query/application-architecture-query"
   },
   {
     code: "APPLICATION_DEPLOYMENT_QUERY",
     cnName: "应用部署设计查询",
-    enName: "Application Deployment Query",
+    enName: "App Deployment Query",
     link: "/view-query/application-deployment-query"
   },
   // 视图管理
@@ -131,13 +131,13 @@ export const MENUS = [
   {
     code: "APPLICATION_ARCHITECTURE_DESIGN",
     cnName: "应用架构设计",
-    enName: "Application Architecture Design",
+    enName: "App Arch Design",
     link: "/view-management/application-architecture-design"
   },
   {
     code: "APPLICATION_DEPLOYMENT_DESIGN",
     cnName: "应用部署设计",
-    enName: "Application Deployment Design",
+    enName: "App Deployment Design",
     link: "/view-management/application-deployment-design"
   }
 ];

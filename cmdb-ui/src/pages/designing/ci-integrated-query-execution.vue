@@ -86,6 +86,7 @@
 </template>
 
 <script>
+import Vue from "vue";
 import {
   getAllCITypes,
   getQueryNames,
@@ -96,7 +97,7 @@ import {
 import { components } from "../../const/actions.js";
 const innerActions = [
   {
-    label: this.$t("basic_data"),
+    label: Vue.t("basic_data"),
     props: {
       type: "info",
       size: "small"
@@ -106,7 +107,7 @@ const innerActions = [
 ];
 const outerActions = [
   {
-    label: this.$t("show_message"),
+    label: Vue.t("show_message"),
     props: {
       type: "success",
       icon: "ios-eye",
