@@ -29,13 +29,13 @@ export const MENUS = [
   {
     code: "DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT",
     cnName: "CI综合查询管理",
-    enName: "CI Integrate Enquiry Management",
+    enName: "CI Integrated Enquiry Management",
     link: "/designing/ci-integrated-query-management"
   },
   {
     code: "DESIGNING_CI_INTEGRATED_QUERY_EXECUTION",
     cnName: "CI数据综合查询",
-    enName: "CI Integrate Enquiry",
+    enName: "CI Integrated Enquiry",
     link: "/designing/ci-integrated-query-execution"
   },
   {
@@ -101,7 +101,7 @@ export const MENUS = [
   {
     code: "APPLICATION_ARCHITECTURE_QUERY",
     cnName: "应用架构设计查询",
-    enName: "App Arch Query",
+    enName: "App Architecture Query",
     link: "/view-query/application-architecture-query"
   },
   {
@@ -131,7 +131,7 @@ export const MENUS = [
   {
     code: "APPLICATION_ARCHITECTURE_DESIGN",
     cnName: "应用架构设计",
-    enName: "App Arch Design",
+    enName: "App Architecture Design",
     link: "/view-management/application-architecture-design"
   },
   {
