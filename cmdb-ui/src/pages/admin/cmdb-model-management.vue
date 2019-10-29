@@ -360,11 +360,7 @@
                   icon="md-redo"
                 ></Button>
               </Tooltip>
-              <Tooltip
-                v-else
-                :content="$t('delete_ci_attribute')"
-                placement="top-start"
-              >
+              <Tooltip v-else :content="$t('delete')" placement="top-start">
                 <Button
                   size="small"
                   @click.stop.prevent="
@@ -1218,7 +1214,11 @@ export default {
               let fontcolor =
                 node.status === "notCreated" ? "#10a34e" : "black";
               tempClusterObjForGraph[index].push(
-                `"${node.name}"[id="${node.ciTypeId}",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`
+                `"${node.name}"[id="${
+                  node.ciTypeId
+                }",fontcolor="${fontcolor}", image="${
+                  node.form.imgSource
+                }.png", labelloc="b"]`
               );
             }
             if (nodeIndex === nodes.length - 1) {
