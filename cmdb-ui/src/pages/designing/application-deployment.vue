@@ -57,7 +57,9 @@
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
             <div>{{ $t("loading") }}</div>
           </Spin>
-          <div v-else-if="!systemData.length" class="no-data">暂无数据</div>
+          <div v-else-if="!systemData.length" class="no-data">
+            {{ $t("no_data") }}
+          </div>
         </div>
       </TabPane>
       <TabPane
@@ -89,7 +91,7 @@
             :links="physicalGraphLinks"
             :callback="graphCallback"
           ></PhysicalGraph>
-          <div v-else class="no-data">暂无数据</div>
+          <div v-else class="no-data">{{ $t("no_data") }}</div>
           <Spin size="large" fix v-if="physicalSpin">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
             <div>{{ $t("loading") }}</div>
@@ -324,7 +326,9 @@ export default {
             }
             dots.push("subgraph cluster_" + unit.guid + "{");
             dots.push(
-              `label="${unitLabel}"; style=filled; color="${color}";tooltip="${unit.data.description}"`
+              `label="${unitLabel}"; style=filled; color="${color}";tooltip="${
+                unit.data.description
+              }"`
             );
             dots.push(`"${unit.guid}"[shape="none",`);
             dots.push(
@@ -370,7 +374,11 @@ export default {
                   }
                   let ip = service.data.ip ? service.data.ip : "";
                   dots.push(
-                    `"${service.guid}" [shape="record", label="{{ ${serviceLabel}|{ ${domain} | ${service.data.service_port} }| ${ip} }}", tooltip="${service.data.description}"];`
+                    `"${
+                      service.guid
+                    }" [shape="record", label="{{ ${serviceLabel}|{ ${domain} | ${
+                      service.data.service_port
+                    } }| ${ip} }}", tooltip="${service.data.description}"];`
                   );
                   graphMap.set(service.guid, serviceLabel);
                   dots.push(
@@ -393,7 +401,9 @@ export default {
         }
 
         dots.push(
-          `"${invoke.data.unit.guid}"->"${invoke.data.service.guid}"[id="${invoke.guid}",color="${color}"];`
+          `"${invoke.data.unit.guid}"->"${invoke.data.service.guid}"[id="${
+            invoke.guid
+          }",color="${color}"];`
         );
         if (!graphMap.has(invoke.data.unit.guid)) {
           dots.push(
@@ -402,7 +412,9 @@ export default {
         }
         if (!graphMap.has(invoke.data.service.guid)) {
           dots.push(
-            `"${invoke.data.service.guid}"[label="${invoke.data.service.key_name}"];`
+            `"${invoke.data.service.guid}"[label="${
+              invoke.data.service.key_name
+            }"];`
           );
         }
       });
@@ -643,7 +655,9 @@ export default {
       let addNodeAttr = node => {
         const color = "#273c75";
         let path = `${shapes[node.nodeTypeName] || shapes.startEvent}`;
-        return `"${node.id}" [image="${path}" label="${node.name}" labelloc="b", fontcolor="${color}"];`;
+        return `"${node.id}" [image="${path}" label="${
+          node.name
+        }" labelloc="b", fontcolor="${color}"];`;
       };
       const nodeMap = new Map();
       raw.forEach(node => {
