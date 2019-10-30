@@ -17,13 +17,13 @@ import AttrInput from "../src/pages/components/attr-input";
 import sequenceDiagram from "../src/pages/components/sequence-diagram.vue";
 import orchestration from "../src/pages/components/orchestration.vue";
 
-Vue.component("WeSelect", WeSelect);
-Vue.component("RefSelect", RefSelect);
-Vue.component("WeTable", WeTable);
-Vue.component("SimpleTable", SimpleTable);
-Vue.component("AttrInput", AttrInput);
-Vue.component("sequenceDiagram", sequenceDiagram);
-Vue.component("orchestration", orchestration);
+window.component("WeSelect", WeSelect);
+window.component("RefSelect", RefSelect);
+window.component("WeTable", WeTable);
+window.component("SimpleTable", SimpleTable);
+window.component("AttrInput", AttrInput);
+window.component("sequenceDiagram", sequenceDiagram);
+window.component("orchestration", orchestration);
 Vue.config.productionTip = false;
 
 Vue.use(iView, {
