@@ -47,29 +47,30 @@ module.exports = {
         .use("url-loader")
         .loader("url-loader")
         .options({ limit: 1000000 });
+    } else {
+      // remove the old loader
+      const img = config.module.rule("images");
+      img.uses.clear();
+      // add the new one
+      img
+        .use("file-loader")
+        .loader("file-loader")
+        .options({
+          outputPath: "img"
+        });
     }
-    // remove the old loader
-    const img = config.module.rule("images");
-    img.uses.clear();
-    // add the new one
-    img
-      .use("file-loader")
-      .loader("file-loader")
-      .options({
-        outputPath: "img"
-      });
 
     config.when(process.env.PLUGIN === "plugin", config => {
       config
         .entry("app")
         .clear()
-        .add("./src/main-plugin.js"); //插件用的main.js
+        .add("./src/main-plugin.js"); //作为插件时
     });
     config.when(!process.env.PLUGIN, config => {
       config
         .entry("app")
         .clear()
-        .add("./src/main.js"); //插件用的main.js
+        .add("./src/main.js"); //独立运行时
     });
   },
   productionSourceMap: process.env.PLUGIN !== "plugin",
