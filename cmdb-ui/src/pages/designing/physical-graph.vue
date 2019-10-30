@@ -181,18 +181,14 @@ export default {
             this.idcs[guid].indexOf(_.data.zone_design1.guid) >= 0 &&
             this.idcs[guid].indexOf(_.data.zone_design2.guid) >= 0
           ) {
-            result += `g_${_.data.zone_design1.guid}->g_${
-              _.data.zone_design2.guid
-            }[arrowhead=none];`;
+            result += `g_${_.data.zone_design1.guid}->g_${_.data.zone_design2.guid}[arrowhead=none];`;
           }
         } else {
           if (
             this.idcs[guid].indexOf(_.data.zone1.guid) >= 0 &&
             this.idcs[guid].indexOf(_.data.zone2.guid) >= 0
           ) {
-            result += `g_${_.data.zone1.guid}->g_${
-              _.data.zone2.guid
-            }[arrowhead=none];`;
+            result += `g_${_.data.zone1.guid}->g_${_.data.zone2.guid}[arrowhead=none];`;
           }
         }
       });

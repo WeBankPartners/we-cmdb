@@ -1,9 +1,9 @@
 <template>
   <div>
     <Row class="resource-design-select-row">
-      <span>请选择IDC：</span>
+      <span>{{ $t("select_idc") }}：</span>
       <Select
-        placeholder="请选择IDC"
+        :placeholder="$t('select_idc')"
         v-model="selectedIdc"
         class="graph-select"
         @on-change="onIdcDataChange"
@@ -16,7 +16,7 @@
     <Row class="resource-design-tab-row">
       <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-        <div>加载中...</div>
+        <div>{{ $t("loading") }}</div>
       </Spin>
       <Tabs
         v-if="idcDesignData"
@@ -25,7 +25,7 @@
         :closable="false"
         @on-click="handleTabClick"
       >
-        <TabPane label="规划设计图" name="resource-design">
+        <TabPane :label="$t('planning_design_diagram')" name="resource-design">
           <Alert show-icon closable v-if="isDataChanged">
             Data has beed changed, click Reload button to reload graph.
             <Button slot="desc" @click="reloadHandler">Reload</Button>
@@ -220,9 +220,7 @@ export default {
               label = zone.data.key_name;
             }
             dots.push(
-              `g_${zone.guid}[id="g_${
-                zone.guid
-              }", label="${label}", width=${ll},height=${lg}];`
+              `g_${zone.guid}[id="g_${zone.guid}", label="${label}", width=${ll},height=${lg}];`
             );
           });
           dots.push("}");
@@ -544,7 +542,7 @@ export default {
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("delete_confirm"),
         "z-index": 1000000,
         onOk: async () => {
           const payload = {

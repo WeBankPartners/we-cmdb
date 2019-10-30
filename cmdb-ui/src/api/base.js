@@ -29,6 +29,9 @@ req.interceptors.response.use(
           duration: 0
         });
       }
+      if (!res.headers["username"]) {
+        window.location.href = "/wecmdb/logout";
+      }
       return {
         ...res.data,
         status: res.data.statusCode,

@@ -2,18 +2,18 @@
   <div>
     <Row class="graph-select-row">
       <div class="graph-select-col">
-        <Select multiple v-model="selectedIdcs" placeholder="请选择IDC">
+        <Select multiple v-model="selectedIdcs" :placeholder="$t('select_idc')">
           <Option v-for="item in allIdcs" :value="item.guid" :key="item.guid">{{
             item.name
           }}</Option>
         </Select>
       </div>
-      <Button @click="onIdcDataChange" type="primary">查询</Button>
+      <Button @click="onIdcDataChange" type="primary">{{ $t("query") }}</Button>
     </Row>
     <Row class="graph-tabs">
       <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-        <div>加载中...</div>
+        <div>{{ $t("loading") }}</div>
       </Spin>
       <Tabs
         v-if="idcData.length"
@@ -22,7 +22,10 @@
         :closable="false"
         @on-click="handleTabClick"
       >
-        <TabPane label="资源规划图" name="resource-design">
+        <TabPane
+          :label="$t('resource_planning_diagram')"
+          name="resource-design"
+        >
           <Alert show-icon closable v-if="isDataChanged">
             Data has beed changed, click Reload button to reload graph.
             <Button slot="desc" @click="reloadHandler">Reload</Button>
@@ -235,9 +238,7 @@ export default {
               label = zone.data.key_name;
             }
             dots.push(
-              `g_${zone.guid}[id="g_${
-                zone.guid
-              }", label="${label}", width=${ll},height=${lg}];`
+              `g_${zone.guid}[id="g_${zone.guid}", label="${label}", width=${ll},height=${lg}];`
             );
           });
           dots.push("}");
@@ -677,7 +678,7 @@ export default {
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("delete_confirm"),
         "z-index": 1000000,
         onOk: async () => {
           const payload = {
@@ -687,7 +688,7 @@ export default {
           const { status, message, data } = await deleteCiDatas(payload);
           if (status === "OK") {
             this.$Notice.success({
-              title: "Delete data Success",
+              title: this.$t("delete_data_success"),
               desc: message
             });
             this.isDataChanged = true;
@@ -778,7 +779,7 @@ export default {
         const { status, message, data } = await createCiDatas(payload);
         if (status === "OK") {
           this.$Notice.success({
-            title: "Add data Success",
+            title: this.$t("add_data_success"),
             desc: message
           });
           this.isDataChanged = true;
@@ -801,7 +802,7 @@ export default {
         const { status, message, data } = await updateCiDatas(payload);
         if (status === "OK") {
           this.$Notice.success({
-            title: "Update data Success",
+            title: this.$t("update_data_success"),
             desc: message
           });
           this.isDataChanged = true;

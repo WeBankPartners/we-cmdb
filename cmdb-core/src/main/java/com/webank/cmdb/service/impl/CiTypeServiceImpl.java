@@ -207,7 +207,7 @@ public class CiTypeServiceImpl implements CiTypeService {
      *
      * @param ciTypeId
      * @exception throw InvalidArgumentException if the corresponding CI type can
-     *            not be found
+     *                  not be found
      */
     private Optional<AdmCiType> validateCiType(int ciTypeId) {
         Optional<AdmCiType> optCiType = ciTypeRepository.findById(ciTypeId);
@@ -276,12 +276,12 @@ public class CiTypeServiceImpl implements CiTypeService {
                 sb.append(" UNIQUE KEY (`").append(attr.getPropertyName()).append("`),");
             }
         }
-        sb.append("guid varchar(13) NOT NULL COMMENT '全局唯一ID',");
-        sb.append("key_name varchar(64) NOT NULL COMMENT '唯一值',");
-        sb.append("`updated_by` varchar(64) DEFAULT NULL COMMENT '更新用户',");
-        sb.append("`updated_date` datetime DEFAULT NULL COMMENT '更新日期',");
-        sb.append("`created_by` varchar(64) DEFAULT NULL COMMENT '创建用户',");
-        sb.append("`created_date` datetime DEFAULT NULL COMMENT '创建日期',");
+        sb.append("guid varchar(13) NOT NULL COMMENT 'Global unique ID',");
+        sb.append("key_name varchar(64) NOT NULL COMMENT 'Unique name',");
+        sb.append("`updated_by` varchar(64) DEFAULT NULL COMMENT 'Update by',");
+        sb.append("`updated_date` datetime DEFAULT NULL COMMENT 'Update date',");
+        sb.append("`created_by` varchar(64) DEFAULT NULL COMMENT 'Create by',");
+        sb.append("`created_date` datetime DEFAULT NULL COMMENT 'Create date',");
         sb.append(" PRIMARY KEY (`guid`)");
         for (int i = 0; i < ciType.getAdmCiTypeAttrs().size(); i++) {
             AdmCiTypeAttr attr = ciType.getAdmCiTypeAttrs().get(i);
@@ -426,11 +426,11 @@ public class CiTypeServiceImpl implements CiTypeService {
                         headerDto.addEnumValue(c.getIdAdmBasekey(), c.getCode());
                     });
                 }
-            }else if ((InputType.Reference.equals(inputType) || InputType.MultRef.equals(inputType)) && attr.getReferenceId() != null) {
+            } else if ((InputType.Reference.equals(inputType) || InputType.MultRef.equals(inputType)) && attr.getReferenceId() != null) {
                 List<CiKeyPair> ciKeyPairs = ciService.retrieveKeyPairs(attr.getReferenceId());
                 if (ciKeyPairs != null && ciKeyPairs.size() > 0) {
                     headerDto.addValues(ciKeyPairs);
-                }                
+                }
             }
             headerDtos.add(headerDto);
         });
@@ -579,15 +579,14 @@ public class CiTypeServiceImpl implements CiTypeService {
 
     private void applySingleCiTypeAttr(AdmCiTypeAttr admCiTypeAttr) {
         AdmCiType admCiType = staticEntityRepository.findEntityById(AdmCiType.class, admCiTypeAttr.getCiTypeId());
-        if(admCiType == null) {
+        if (admCiType == null) {
             throw new ServiceException(String.format("Can not find out ci Type [%d]", admCiTypeAttr.getCiTypeId()));
         }
-        
+
         if (CiStatus.fromCode(admCiType.getStatus()) == CiStatus.NotCreated) {
             throw new DependencyException(String.format("Can not create ciTypeAttr [%s] due to it's ciType [%s] is not created yet", admCiTypeAttr.getPropertyName(), admCiType.getTableName()));
         }
-
-        List<String> defaultColumns = convertToPeropertyList(admCiType.retrieveDefaultAdmCiTypeAttrs());
+        List<String> defaultColumns = CmdbConstants.DEFAULT_FIELDS;
         CiStatus ciStatus = CiStatus.fromCode(admCiTypeAttr.getStatus());
         if (ciStatus == CiStatus.NotCreated || ciStatus == CiStatus.Dirty) {
             // system default columns should be created with table
@@ -600,13 +599,6 @@ public class CiTypeServiceImpl implements CiTypeService {
         }
 
         ciService.invalidate();
-    }
-
-    private List<String> convertToPeropertyList(List<AdmCiTypeAttr> defaultAttrs) {
-        List<String> defaultColumns = Lists.transform(defaultAttrs, (x) -> {
-            return x.getPropertyName();
-        });
-        return defaultColumns;
     }
 
     @OperationLogPointcut(operation = Implementation, objectClass = CiTypeDto.class)

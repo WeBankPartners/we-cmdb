@@ -48,7 +48,6 @@ export default {
   },
   mounted() {
     this.queryCiAttrs(this.ciType.id);
-    // this.queryCiData();
     this.getAllDataWithoutPaging();
   },
   methods: {

@@ -2,13 +2,13 @@
   <div class="container">
     <Input
       style="width:150px"
-      placeholder="请选择CI Type"
+      :placeholder="$t('please_select_ci_type')"
       v-if="allCmdbAttrs.length === 0"
     ></Input>
     <Input
       style="width:150px"
       v-else
-      placeholder="请选择CI Type"
+      :placeholder="$t('please_select_ci_type')"
       @on-change="rootChange"
       :value="allCmdbAttrs[0].val"
     ></Input>

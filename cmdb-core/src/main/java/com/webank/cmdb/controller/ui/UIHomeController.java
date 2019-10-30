@@ -42,8 +42,9 @@ public class UIHomeController {
     @GetMapping("/ui/v2/my-menus")
     @ResponseBody
     public Object retrieveRoleMenus(Principal principal) {
-        if (principal == null)
+        if (principal == null) {
             throw new CmdbException("Logon user not found.");
+        }
         return userManagerService.getMenuDtosByUsername(principal.getName(), true);
     }
 }

@@ -3,7 +3,7 @@
     <Row>
       <Col span="12">
         <Row>
-          <span style="margin-right: 10px">系统设计</span>
+          <span style="margin-right: 10px">{{ $t("system_design") }}</span>
           <Select
             filterable
             @on-change="onSystemDesignSelect"
@@ -17,17 +17,23 @@
               >{{ item.name }}</Option
             >
           </Select>
-          <Button style="margin: 0 10px;" @click="onArchChange"
-            >架构变更</Button
+          <Button style="margin: 0 10px;" @click="onArchChange">{{
+            $t("architecture_change")
+          }}</Button>
+          <Button @click="querySysTree">{{ $t("fix_version") }}</Button>
+          <Modal
+            v-model="fixVersionTreeModal"
+            width="500px"
+            :title="$t('fix_version')"
           >
-          <Button @click="querySysTree">去定版</Button>
-          <Modal v-model="fixVersionTreeModal" width="500px" title="去定版">
             <div style="max-height: 600px; overflow: auto;">
               <Tree :data="deployTree"></Tree>
             </div>
             <div slot="footer">
-              <Button @click="cancelFixVersion">取消定版</Button>
-              <Button type="info" @click="onArchFixVersion">确定定版</Button>
+              <Button @click="cancelFixVersion">{{ $t("cancel") }}</Button>
+              <Button type="info" @click="onArchFixVersion">{{
+                $t("confirm")
+              }}</Button>
             </div>
           </Modal>
         </Row>
@@ -41,17 +47,20 @@
           :closable="false"
           @on-click="handleTabClick"
         >
-          <TabPane label="应用逻辑图" name="architecture-design">
+          <TabPane
+            :label="$t('application_logic_diagram')"
+            name="architecture-design"
+          >
             <Alert show-icon closable v-if="isDataChanged">
               Data has beed changed, click Reload button to reload graph.
               <Button slot="desc" @click="reloadHandler">Reload</Button>
             </Alert>
             <Spin size="large" fix v-if="spinShow">
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-              <div>加载中...</div>
+              <div>{{ $t("loading") }}</div>
             </Spin>
             <div v-else-if="!systemDesignData.length" class="no-data">
-              暂无数据
+              {{ $t("no_data") }}
             </div>
             <Row>
               <Col span="18">
@@ -67,7 +76,7 @@
               >
                 <Collapse>
                   <Panel name="invokeDesignSequence">
-                    <b>调用时序设计</b>
+                    <b>{{ $t("invoking_sequential_design") }}</b>
                     <Form
                       slot="content"
                       ref="invokeSequenceForm"
@@ -75,10 +84,10 @@
                       label-position="left"
                       :label-width="110"
                     >
-                      <Form-item label="调用时序设计">
+                      <Form-item :label="$t('invoking_sequential_design')">
                         <Row>
                           <Select
-                            placeholder="请选择"
+                            :placeholder="$t('select_placeholder')"
                             v-model="invokeSequenceForm.selectedInvokeSequence"
                             style="width:calc(100% - 80px)"
                           >
@@ -92,12 +101,12 @@
                           <Button
                             style="float:right;width:70px;"
                             @click="onSearchInvokeSquence"
-                            >确定</Button
+                            >{{ $t("confirm") }}</Button
                           >
                         </Row>
                       </Form-item>
                       <Form-item
-                        label="调用时序设计序列"
+                        :label="$t('invoking_sequential_design_sequence')"
                         v-if="invokeSequenceForm.isShowInvokeSequenceDetial"
                       >
                         <span style="margin-right: 10px">{{
@@ -105,7 +114,7 @@
                         }}</span>
                       </Form-item>
                       <Form-Item
-                        label="当前调用"
+                        :label="$t('current_invoking')"
                         v-if="invokeSequenceForm.isShowInvokeSequenceDetial"
                       >
                         <Row>
@@ -116,7 +125,10 @@
                             class="header-buttons-container margin-right"
                             style="float:right"
                           >
-                            <Tooltip content="上一步" placement="top-start">
+                            <Tooltip
+                              :content="$t('prev_step')"
+                              placement="top-start"
+                            >
                               <Button
                                 size="small"
                                 @click="backInvokeSequence"
@@ -128,7 +140,10 @@
                                 invokeSequenceForm.totalNum
                               }}</span
                             >
-                            <Tooltip content="下一步" placement="top-start">
+                            <Tooltip
+                              :content="$t('next_step')"
+                              placement="top-start"
+                            >
                               <Button
                                 size="small"
                                 @click="nextInvokeSequence"
@@ -144,7 +159,7 @@
                         <Button
                           style="margin-right: calc(50% + 35px);width=70px;float: right"
                           @click="closeInvokeSquence"
-                          >返回</Button
+                          >{{ $t("back") }}</Button
                         >
                       </Form-Item>
                     </Form>
@@ -154,7 +169,10 @@
             </Row>
           </TabPane>
 
-          <TabPane label="物理部署图" name="physicalGraph">
+          <TabPane
+            :label="$t('physical_deployment_diagram')"
+            name="physicalGraph"
+          >
             <div id="physicalGraph">
               <PhysicalGraph
                 v-if="physicalGraphData.length"
@@ -162,14 +180,14 @@
                 :links="physicalGraphLinks"
                 :callback="graphCallback"
               ></PhysicalGraph>
-              <div v-else class="no-data">暂无数据</div>
+              <div v-else class="no-data">{{ $t("no_data") }}</div>
               <Spin size="large" fix v-if="physicalSpin">
                 <Icon
                   type="ios-loading"
                   size="44"
                   class="spin-icon-load"
                 ></Icon>
-                <div>加载中...</div>
+                <div>{{ $t("loading") }}</div>
               </Spin>
             </div>
           </TabPane>
@@ -903,7 +921,7 @@ export default {
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("delete_confirm"),
         "z-index": 1000000,
         onOk: async () => {
           let found = this.tabList.find(i => i.id === this.currentTab);

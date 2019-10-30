@@ -6,6 +6,7 @@
     :tableInnerActions="null"
     :showCheckbox="false"
     :pagination="pageInfo"
+    @sortHandler="sortHandler"
     @pageChange="pageChange"
     @pageSizeChange="pageSizeChange"
     @handleSubmit="handleSubmit"
@@ -26,7 +27,8 @@ export default {
         currentPage: 1,
         total: 0
       },
-      filters: []
+      filters: [],
+      sorting: null
     };
   },
   methods: {
@@ -58,10 +60,7 @@ export default {
     },
     async fetchTableData() {
       const { data, statusCode } = await queryLog({
-        sorting: {
-          asc: false,
-          field: "createdDate"
-        },
+        sorting: this.sorting,
         paging: true,
         pageable: {
           pageSize: this.pageInfo.pageSize,
@@ -81,6 +80,17 @@ export default {
     pageSizeChange(size) {
       this.pageInfo.pageSize = size;
       this.$refs.table.handleSubmit();
+    },
+    sortHandler(data) {
+      if (data.order === "normal") {
+        delete this.sorting;
+      } else {
+        this.sorting = {
+          asc: data.order === "asc",
+          field: data.key
+        };
+      }
+      this.fetchTableData();
     },
     handleSubmit(v) {
       this.filters = v;

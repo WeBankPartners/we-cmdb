@@ -20,9 +20,11 @@ import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.repository.StaticEntityRepository;
 import com.webank.cmdb.service.LogService;
 import com.webank.cmdb.service.StaticDtoService;
+import com.webank.cmdb.util.Sorting;
 
 @Service
 public class LogServiceImpl implements LogService {
+    private static final String CREATED_DATE = "createdDate";
     @Autowired
     private StaticDtoService staticDtoService;
     @Autowired
@@ -34,8 +36,13 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public QueryResponse<LogDto> query(QueryRequest ciRequest) {
-        QueryResponse<LogDto> domainResponse = staticDtoService.query(LogDto.class, ciRequest);
+    public QueryResponse<LogDto> query(QueryRequest request) {
+        if (request == null) {
+            request = QueryRequest.defaultQueryObject().descendingSortBy(CREATED_DATE);
+        } else if (request.getSorting() == null || request.getSorting().getField() == null) {
+            request.setSorting(new Sorting(false, CREATED_DATE));
+        }
+        QueryResponse<LogDto> domainResponse = staticDtoService.query(LogDto.class, request);
         return domainResponse;
     }
 
@@ -43,7 +50,7 @@ public class LogServiceImpl implements LogService {
     public List<QueryHeader> queryHeader() {
         List<QueryHeader> headers = new LinkedList<>();
         headers.add(new QueryHeader("Guid", "guid", InputType.Text.getCode()));
-        headers.add(new QueryHeader("Created Date", "createdDate", InputType.Date.getCode()));
+        headers.add(new QueryHeader("Created Date", CREATED_DATE, InputType.Date.getCode()));
         headers.add(new QueryHeader("User", "user", InputType.Text.getCode()));
         headers.add(new QueryHeader("Log Cat", "logCat", InputType.Droplist.getCode(), LogCategory.codes()));
         headers.add(new QueryHeader("Log Content", "logContent", InputType.Text.getCode()));
