@@ -1,7 +1,15 @@
-import req from "./base";
+import { req as request, baseURL } from "./base";
+let req = request;
+if (window.request) {
+  req = {
+    post: (url, ...params) => window.request.post(baseURL + url, ...params),
+    get: (url, ...params) => window.request.get(baseURL + url, ...params),
+    delete: (url, ...params) => window.request.delete(baseURL + url, ...params),
+    put: (url, ...params) => window.request.put(baseURL + url, ...params)
+  };
+}
 
 export const getMyMenus = () => req.get("/my-menus");
-// init page
 
 // admin
 export const getAllUsers = () => req.get("/admin/users");
