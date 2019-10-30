@@ -6,38 +6,38 @@
       :label-width="120"
       :rules="ruleValidate"
     >
-      <FormItem label="旧密码" prop="oldPassword">
+      <FormItem :label="$t('old_password')" prop="oldPassword">
         <Input
           v-model="formItem.oldPassword"
           ref="oldPassword"
           type="password"
           class="input"
-          placeholder="请输入原密码"
+          :placeholder="$t('old_password_input_placeholder')"
         />
       </FormItem>
-      <FormItem label="新密码" prop="newPassword">
+      <FormItem :label="$t('new_password')" prop="newPassword">
         <Input
           v-model="formItem.newPassword"
           type="password"
           class="input"
-          placeholder="请输入新密码"
+          :placeholder="$t('new_password_input_placeholder')"
         />
       </FormItem>
-      <FormItem label="确认密码" prop="confimPassword">
+      <FormItem :label="$t('confirm_password')" prop="confimPassword">
         <Input
           v-model="formItem.confimPassword"
           type="password"
           class="input"
-          placeholder="请确认新密码"
+          :placeholder="$t('confirm_new_password_placeholder')"
         />
       </FormItem>
       <FormItem>
-        <Button type="primary" @click="handleSubmit('formValidate')"
-          >确认</Button
-        >
-        <Button @click="handleReset('formValidate')" style="margin-left: 8px"
-          >取消</Button
-        >
+        <Button type="primary" @click="handleSubmit('formValidate')">{{
+          $t("confirm")
+        }}</Button>
+        <Button @click="handleReset('formValidate')" style="margin-left: 8px">{{
+          $t("cancel")
+        }}</Button>
       </FormItem>
     </Form>
   </div>
@@ -54,10 +54,17 @@ export default {
         confimPassword: ""
       },
       ruleValidate: {
-        oldPassword: [{ required: true, message: "请输入原密码" }],
-        newPassword: [{ required: true, message: "请输入新密码" }],
+        oldPassword: [
+          { required: true, message: this.$t("old_password_input_placeholder") }
+        ],
+        newPassword: [
+          { required: true, message: this.$t("new_password_input_placeholder") }
+        ],
         confimPassword: [
-          { required: true, message: "请再次输入新密码" },
+          {
+            required: true,
+            message: this.$t("please_input_new_password_again")
+          },
           { validator: this.checkNewPassword }
         ]
       }
@@ -66,7 +73,7 @@ export default {
   methods: {
     checkNewPassword(rule, value, callback) {
       if (value !== this.formItem.newPassword) {
-        callback(new Error("请输入与新密码相同的值"));
+        callback(new Error(this.$t("please_input_right_new_password")));
       } else {
         callback();
       }
@@ -87,7 +94,7 @@ export default {
         newPassword: this.formItem.newPassword
       });
       if (status === "OK") {
-        this.$Message.success("密码重设成功！");
+        this.$Message.success(this.$t("reset_password_success"));
         this.$router.push("/homepage");
       }
     },

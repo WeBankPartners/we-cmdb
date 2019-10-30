@@ -1,24 +1,38 @@
 <html>
-<head></head>
+<head>
+   <meta charset="UTF-8">
+</head>
 <body>
 <div class="wrapper fadeInDown">
    <div id="formContent">
-      <h2 class="active"> Sign In </h2>
+      <h2 class="active">登录</h2>
 
       <!-- Login Form -->
       <form name='f' action="login-privacy-free" method='POST'>
-         <input type="text" id="username" class="fadeIn second" name="username" placeholder="username" value="admin">
-         <input type="submit" class="fadeIn fourth" value="Login">
+         <input type="text" id="username" class="fadeIn second" name="username" placeholder="用户名" value="admin">
+         <input type="submit" class="fadeIn fourth" value="登录">
       </form>
 
       <div id="formFooter">
-         <p class="underlineHover">默认管理员用户为:  admin</p>
+         <p class="underlineHover">默认登录用户为:  admin</p>
          <p class="underlineHover">服务器以体验模式启动，用户登录无需密码</p>
       </div>
    </div>
 </div>
 
 </body>
+
+<script>
+   var language = navigator.language || navigator.userLanguage
+   if (language.substr(0, 2) !== "zh") {
+      document.getElementById("username").placeholder = "username"
+      document.getElementsByClassName("active")[0].textContent = "Sign In"
+      document.getElementsByClassName("fourth")[0].value = "Login"
+      document.getElementsByClassName("underlineHover")[0].textContent = "Default login username: admin"
+      document.getElementsByClassName("underlineHover")[1].textContent = "Experience mode, no password required"
+   }
+</script>
+
 <style>
    html {
       background-color: white;
