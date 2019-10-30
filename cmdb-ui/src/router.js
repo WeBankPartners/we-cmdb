@@ -85,7 +85,7 @@ export default new Router({
         },
         {
           path: "/admin/log-enquiry",
-          name: "queryLog",
+          name: "logEnQuiry",
           component: () => import("@/pages/admin/log-enquiry")
         },
         {

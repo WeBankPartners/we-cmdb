@@ -6,7 +6,7 @@ import enums from "@/pages/admin/enums";
 import ciData from "@/pages/designing/ci-data";
 import integrateQuery from "@/pages/designing/ci-integrated-query-execution";
 import integrateQueryMgmt from "@/pages/designing/ci-integrated-query-management";
-import queryLog from "@/pages/admin/query-log";
+import logEnQuiry from "@/pages/admin/log-enquiry";
 import idcPlanningQuery from "@/pages/coming-soon";
 import idcResourcePlanningQuery from "@/pages/coming-soon";
 import applicationArchitectureQuery from "@/pages/coming-soon";
@@ -60,8 +60,8 @@ const router = [
   },
   {
     path: "/admin/query-log",
-    name: "queryLog",
-    component: queryLog
+    name: "logEnQuiry",
+    component: logEnQuiry
   },
   // 视图查询
   {
