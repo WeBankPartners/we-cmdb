@@ -1,9 +1,7 @@
 import Vue from "vue";
-import Router from "vue-router";
 import VueHighlightJS from "vue-highlight.js";
 import "vue-highlight.js/lib/allLanguages";
 import "highlight.js/styles/default.css";
-import App from "./App.vue";
 import router from "./router-plugin";
 import iView from "iview";
 import "iview/dist/styles/iview.css";
@@ -38,7 +36,3 @@ Vue.use(iView, {
 Vue.use(VueHighlightJS);
 
 window.addRoutes && window.addRoutes(router, "cmdb");
-new Vue({
-  router: new Router({ routes: [] }),
-  render: h => h(App)
-}).$mount("#cmdb");
