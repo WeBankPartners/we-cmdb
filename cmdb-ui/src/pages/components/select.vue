@@ -71,8 +71,8 @@ export default {
   methods: {
     formatOptions() {},
     changeValue(val) {
-      this.$emit("input", val);
-      this.$emit("change", val);
+      this.$emit("input", val ? val : null);
+      this.$emit("change", val ? val : null);
     },
     async getFilterRulesOptions(val) {
       if (val && this.filterParams) {
