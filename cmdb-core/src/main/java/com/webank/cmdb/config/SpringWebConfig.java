@@ -106,7 +106,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
             configurePrivacyFreeAuthentication(registry);
         }
     }
-    
+     
     protected void configureLocalAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) throws Exception {
         registry.antMatchers("/login-with-password*").permitAll()
                 .antMatchers("/logout*").permitAll()

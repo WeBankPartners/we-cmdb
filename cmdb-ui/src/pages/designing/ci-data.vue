@@ -7,7 +7,7 @@
       @on-tab-remove="handleTabRemove"
       @on-click="handleTabClick"
     >
-      <TabPane :closable="false" name="CMDB" label="CMDB模型">
+      <TabPane :closable="false" name="CMDB" :label="$t('cmdb_model')">
         <div class="graph-container" id="graph"></div>
       </TabPane>
       <TabPane
@@ -216,7 +216,9 @@ export default {
         nodes.forEach((node, nodeIndex) => {
           if (node.layerId === _.layerId) {
             tempClusterObjForGraph[index].push(
-              `"${node.name}"[id="${node.ciTypeId}", image="${node.form.imgSource}.png", labelloc="b"]`
+              `"${node.name}"[id="${node.ciTypeId}", image="${
+                node.form.imgSource
+              }.png", labelloc="b"]`
             );
           }
           if (nodeIndex === nodes.length - 1) {
@@ -521,7 +523,7 @@ export default {
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("delete_confirm"),
         "z-index": 1000000,
         onOk: async () => {
           const payload = {
@@ -531,7 +533,7 @@ export default {
           const { status, message, data } = await deleteCiDatas(payload);
           if (status === "OK") {
             this.$Notice.success({
-              title: "Delete data Success",
+              title: "Delete successfully",
               desc: message
             });
             this.tabList.forEach(ci => {
@@ -620,7 +622,7 @@ export default {
         const { status, message, data } = await createCiDatas(payload);
         if (status === "OK") {
           this.$Notice.success({
-            title: "Add data Success",
+            title: "Add successfully",
             desc: message
           });
           setBtnsStatus();
@@ -642,7 +644,7 @@ export default {
         const { status, message, data } = await updateCiDatas(payload);
         if (status === "OK") {
           this.$Notice.success({
-            title: "Update data Success",
+            title: "Update successfully",
             desc: message
           });
           setBtnsStatus();

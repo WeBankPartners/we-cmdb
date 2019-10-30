@@ -18,5 +18,3 @@ const localLang = navLang === "zh-CN" || navLang === "en-US" ? navLang : false;
 
 const lang = window.localStorage.getItem("lang") || localLang || "en-US";
 Vue.config.lang = lang;
-
-export default {};
