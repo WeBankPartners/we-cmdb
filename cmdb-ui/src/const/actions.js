@@ -85,6 +85,16 @@ export const outerActions = [
       icon: "ios-download-outline"
     },
     actionType: "export"
+  },
+  {
+    label: Vue.t("column_filter"),
+    props: {
+      type: "primary",
+      icon: "ios-funnel",
+      shape: "circle",
+      disabled: false
+    },
+    actionType: "filterColumns"
   }
 ];
 export const innerActions = [

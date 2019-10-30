@@ -283,7 +283,7 @@ export default {
                 placement="bottom"
                 style="float: right;margin-right: 10px"
               >
-                <Tooltip content="过滤列" placement="top">
+                <Tooltip content={this.$t("column_filter")} placement="top">
                   <Button {..._} />
                 </Tooltip>
                 <CheckboxGroup
