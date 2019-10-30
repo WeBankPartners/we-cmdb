@@ -85,6 +85,7 @@ export default {
           displaySeqNo: 4,
           component: "Input",
           disEditor: true, // 枚举类型不可改
+          disAdded: true,
           inputType: "text",
           placeholder: "catTypeName"
         },
