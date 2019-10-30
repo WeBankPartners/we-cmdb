@@ -218,12 +218,15 @@ public class UIWrapperService {
     }
 
     public List<CatCodeDto> createEnumCodes(CatCodeDto catCode) {
-
         if (catCode == null || catCode.getCatId().equals(0)) {
             throw new CmdbException("Category Id is required");
         }
         if (catCode.getCatId().equals(getLayerCategoryId())) {
             catCode.setSeqNo(getMaxLayerSeqNumber() + 1);
+        }
+
+        if (catCode.getGroupCodeId() != null && !(catCode.getGroupCodeId() instanceof Integer)) {
+            catCode.setGroupCodeId(null);
         }
 
         return staticDtoService.create(CatCodeDto.class, Arrays.asList(catCode));
@@ -373,6 +376,10 @@ public class UIWrapperService {
     public List<CatCodeDto> updateEnumCodes(List<Map<String, Object>> catCodeDtos) {
         catCodeDtos.forEach(dto -> {
             dto.remove("ciTypes");
+            Object groupCodeId= dto.get("groupCodeId");
+            if (groupCodeId!=null && !(groupCodeId instanceof Integer)) {
+                dto.remove("groupCodeId");
+            }
         });
         return staticDtoService.update(CatCodeDto.class, catCodeDtos);
     }
