@@ -1,5 +1,4 @@
 import Vue from "vue";
-import Router from "vue-router";
 import VueHighlightJS from "vue-highlight.js";
 import "vue-highlight.js/lib/allLanguages";
 import "highlight.js/styles/default.css";
