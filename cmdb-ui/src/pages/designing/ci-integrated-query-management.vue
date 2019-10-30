@@ -212,9 +212,11 @@ export default {
             attrs: root.node.attrs
               ? root.node.attrs.map(_ => _ && _.ciTypeAttrId)
               : [],
-            attrAliases: root.node.attrs.map((_, index) =>
-              _.name ? _.name : root.node.attrAliases[index]
-            )
+            attrAliases: root.node.attrs
+              ? root.node.attrs.map((_, index) =>
+                  _.name ? _.name : root.node.attrAliases[index]
+                )
+              : []
           };
         const t = {
           children: [],
