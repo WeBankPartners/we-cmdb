@@ -2,7 +2,7 @@
   <div>
     <Row>
       <Col span="6">
-        <span style="margin-right: 10px">根CI类型</span>
+        <span style="margin-right: 10px">{{ $t("root_ci_type") }}</span>
         <Select
           v-model="selectedCI"
           filterable
@@ -18,7 +18,9 @@
         </Select>
       </Col>
       <Col span="17" offset="1">
-        <span style="margin-right: 10px">综合查询名称</span>
+        <span style="margin-right: 10px">{{
+          $t("integrated_query_name")
+        }}</span>
         <Select
           v-model="selectedQueryName"
           filterable
@@ -52,19 +54,19 @@
         ref="table"
       ></WeTable>
 
-      <Modal v-model="originDataModal" title="原始数据" footer-hide>
+      <Modal v-model="originDataModal" :title="$t('basic_data')" footer-hide>
         <highlight-code lang="json">{{ showRowOriginData }}</highlight-code>
       </Modal>
 
       <Modal
         v-model="filtersAndResultModal"
-        title="报文"
+        :title="$t('message')"
         footer-hide
         width="75"
       >
         <div style="max-height: 600px; overflow: auto;">
           <Row
-            >请求URL:
+            >{{ $t("request_url") }}
             <highlight-code lang="json">{{ requestURL }}</highlight-code>
           </Row>
           <Row>
@@ -84,6 +86,7 @@
 </template>
 
 <script>
+import Vue from "vue";
 import {
   getAllCITypes,
   getQueryNames,
@@ -94,7 +97,7 @@ import {
 import { components } from "../../const/actions.js";
 const innerActions = [
   {
-    label: "原始数据",
+    label: Vue.t("basic_data"),
     props: {
       type: "info",
       size: "small"
@@ -104,7 +107,7 @@ const innerActions = [
 ];
 const outerActions = [
   {
-    label: "显示报文",
+    label: Vue.t("show_message"),
     props: {
       type: "success",
       icon: "ios-eye",
