@@ -60,7 +60,9 @@ export default {
             ciType = this.ciTypesObj[_.ciTypeId].name;
             if (_.parentRs) {
               refType = _.parentRs.isReferedFromParent === 1 ? "." : "-";
-              ciTypeAttr = `(${this.ciTypeAttributeObj[_.parentRs.attrId].name})`;
+              ciTypeAttr = `(${
+                this.ciTypeAttributeObj[_.parentRs.attrId].name
+              })`;
               if (
                 this.ciTypeAttributeObj[_.parentRs.attrId].inputType !== "ref"
               ) {
@@ -106,6 +108,11 @@ export default {
     sourceData: {
       type: String,
       required: false
+    },
+    isEndWithCIType: {
+      type: Boolean,
+      default: false,
+      required: false
     }
   },
   watch: {
@@ -145,7 +152,8 @@ export default {
           this.ciTypeAttributeObj[attrId].inputType === "ref" ||
           this.ciTypeAttributeObj[attrId].inputType === "multiRef"
         ) {
-          this.$refs["wecube_cmdb_attr"].classList.add("wecube-error");
+          !this.isEndWithCIType &&
+            this.$refs["wecube_cmdb_attr"].classList.add("wecube-error");
         } else {
           this.$refs["wecube_cmdb_attr"].classList.remove("wecube-error");
         }
@@ -211,7 +219,11 @@ export default {
                 });
               }
             });
-            this.options = attr;
+            this.options = this.isEndWithCIType
+              ? attr.filter(
+                  _ => _.inputType === "ref" || _.inputType === "multiRef"
+                )
+              : attr;
           } else {
             this.$Message.error({
               content: message
@@ -243,7 +255,7 @@ export default {
     },
     formatAllCiType() {
       this.allCiTypes.forEach(_ => {
-        this.allCi = this.allCi.concat([..._.ciTypes]);
+        this.allCi = this.allCi.concat(_.ciTypes ? [..._.ciTypes] : []);
       });
     },
     inputHandler(v) {
@@ -300,6 +312,7 @@ export default {
         ciTypeName: this.allCi.find(i => i.ciTypeId === item.id).name
       });
       this.options = [];
+      this.$refs["textarea"].focus();
       this.$emit("input", this.getValue(this.routine));
       this.$emit("change", this.getValue(this.routine));
     },

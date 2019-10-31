@@ -73,14 +73,14 @@ import { queryCiData } from "@/api/server";
 import mermaid from "mermaid";
 
 export default {
-  name: "sequenceDiagram",
+  name: "WeCMDBSequenceDiagram",
   data() {
     return {
       sequenceData: [],
       selectedSequences: [],
       selectedSequenceData: [],
       sequenceVisiable: false,
-      graphString: "sequenceDiagram \n A->>B"
+      graphString: "WeCMDBSequenceDiagram \n A->>B"
     };
   },
   props: {
@@ -145,8 +145,8 @@ export default {
       this.$emit("input", this.selectedSequenceData.map(_ => _.guid));
     },
     initSequenceGraph() {
-      this.graphString = "sequenceDiagram \n";
-      const graphNode = ["sequenceDiagram"];
+      this.graphString = "WeCMDBSequenceDiagram \n";
+      const graphNode = ["WeCMDBSequenceDiagram"];
       if (this.selectedSequenceData.length > 0) {
         this.selectedSequenceData.forEach((_, index) => {
           graphNode.push(

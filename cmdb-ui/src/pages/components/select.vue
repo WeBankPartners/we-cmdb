@@ -42,7 +42,7 @@
 const DEFAULT_TAG_NUMBER = 2;
 import { queryReferenceEnumCodes } from "@/api/server";
 export default {
-  name: "WeSelect",
+  name: "WeCMDBSelect",
 
   props: {
     value: {},
@@ -71,8 +71,8 @@ export default {
   methods: {
     formatOptions() {},
     changeValue(val) {
-      this.$emit("input", val);
-      this.$emit("change", val);
+      this.$emit("input", val ? val : null);
+      this.$emit("change", val ? val : null);
     },
     async getFilterRulesOptions(val) {
       if (val && this.filterParams) {

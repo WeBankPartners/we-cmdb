@@ -226,5 +226,6 @@
   "please_input_new_password_again": "Please confirm new password again",
   "please_input_right_new_password": "Please input the correct new password",
   "reset_password_success": "Password reset successfully！",
-  "no_data": "No Data"
+  "no_data": "No Data",
+  "column_filter": "Columns Filter"
 }

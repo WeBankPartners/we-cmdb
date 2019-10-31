@@ -106,7 +106,7 @@
         v-if="isShowTabs"
         :index="index + 5"
       >
-        <WeTable
+        <WeCMDBTable
           :tableData="ci.tableData"
           :tableOuterActions="ci.outerActions"
           :tableInnerActions="ci.innerActions"
@@ -123,7 +123,7 @@
           @pageSizeChange="pageSizeChange"
           tableHeight="650"
           :ref="'table' + ci.id"
-        ></WeTable>
+        ></WeCMDBTable>
       </TabPane>
     </Tabs>
   </div>
@@ -556,7 +556,7 @@ export default {
             title: _.data.key_name,
             id: _.guid,
             expand: true,
-            disableCheckbox: !_.data.orchestration,
+            disableCheckbox: !_.data.WeCMDBOrchestration,
             children: this.formatTree(_.children)
           };
         } else {
@@ -565,7 +565,7 @@ export default {
             title: _.data.key_name,
             id: _.guid,
             expand: true,
-            disableCheckbox: !_.data.orchestration
+            disableCheckbox: !_.data.WeCMDBOrchestration
           };
         }
       });
@@ -588,7 +588,7 @@ export default {
           return {
             ciDataId: _.guid,
             ciTypeId: _.ciTypeId,
-            processDefinitionKey: _.data.orchestration.codeId
+            processDefinitionKey: _.data.WeCMDBOrchestration.codeId
           };
         })
       };
@@ -609,7 +609,7 @@ export default {
         return {
           ciGuid: _.guid,
           ciTypeId: _.ciTypeId,
-          definitionKey: _.data.orchestration.codeId
+          definitionKey: _.data.WeCMDBOrchestration.codeId
         };
       });
       const { status, data, message } = await previewDeployGraph(payload);

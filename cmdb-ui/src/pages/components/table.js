@@ -4,7 +4,7 @@ const DEFAULT_FILTER_NUMBER = 5;
 const DATE_FORMAT = "YYYY-MM-DD HH:mm:ss";
 
 export default {
-  name: "WeTable",
+  name: "WeCMDBTable",
   props: {
     tableColumns: { default: () => [], require: true },
     tableData: { default: () => [] },
@@ -16,18 +16,21 @@ export default {
     tableInnerActions: { default: () => [] },
     pagination: { type: Object },
     ascOptions: { type: Object },
-    isRefreshable: { default: () => false }
+    isRefreshable: { default: () => false },
+    isColumnsFilterOn: { default: () => true }
   },
   data() {
     return {
       form: {},
       selectedRows: [],
       data: [],
-      isShowHiddenFilters: false
+      isShowHiddenFilters: false,
+      showedColumns: []
     };
   },
   mounted() {
     this.formatTableData();
+    this.showedColumns = this.tableColumns.map(column => column.title);
   },
   watch: {
     tableData(val) {
@@ -50,6 +53,9 @@ export default {
             }
           }
         });
+        this.showedColumns = this.tableColumns
+          .filter(_ => _.isDisplayed || _.displaySeqNo)
+          .map(column => column.title);
       },
       deep: true,
       immediate: true
@@ -243,6 +249,9 @@ export default {
     },
     reset(ref) {
       this.tableColumns.forEach(_ => {
+        if (_.component === "WeCMDBRefSelect") {
+          _.component = "WeCMDBRefSelect";
+        }
         if (_.children) {
           _.children.forEach(j => {
             if (!j.isNotFilterable) {
@@ -257,22 +266,63 @@ export default {
       });
     },
     getTableOuterActions() {
-      return (
-        this.tableOuterActions &&
-        this.tableOuterActions.map(_ => {
-          return (
-            <Button
-              style="margin-right: 10px"
-              {..._}
-              onClick={() => {
-                this.$emit("actionFun", _.actionType, this.selectedRows);
-              }}
-            >
-              {_.label}
-            </Button>
-          );
-        })
-      );
+      if (this.tableOuterActions) {
+        if (this.isColumnsFilterOn) {
+          this.tableOuterActions.forEach(action => {
+            if (action.actionType === "filterColumns") {
+              action.props.disabled = false;
+            }
+          });
+        }
+
+        let columnsTitles = this.tableColumns
+          .filter(_ => _.isDisplayed || _.displaySeqNo)
+          .map(column => column.title);
+
+        return this.tableOuterActions.map(_ => {
+          if (_.actionType === "filterColumns") {
+            return (
+              <Poptip
+                placement="bottom"
+                style="float: right;margin-right: 10px"
+              >
+                <Tooltip content={this.$t("column_filter")} placement="top">
+                  <Button {..._} />
+                </Tooltip>
+                <CheckboxGroup
+                  slot="content"
+                  value={this.showedColumns}
+                  on-input={values => {
+                    this.showedColumns = values;
+                    this.calColumn();
+                  }}
+                  style="display: grid;"
+                >
+                  {columnsTitles.map(_ => {
+                    return (
+                      <Checkbox label={_}>
+                        <span>{_}</span>
+                      </Checkbox>
+                    );
+                  })}
+                </CheckboxGroup>
+              </Poptip>
+            );
+          } else {
+            return (
+              <Button
+                style="margin-right: 10px"
+                {..._}
+                onClick={() => {
+                  this.$emit("actionFun", _.actionType, this.selectedRows);
+                }}
+              >
+                {_.label}
+              </Button>
+            );
+          }
+        });
+      }
     },
     renderFormItem(item, index = 0) {
       if (item.isNotFilterable) return;
@@ -287,7 +337,7 @@ export default {
 
       let renders = item => {
         switch (item.component) {
-          case "WeSelect":
+          case "WeCMDBSelect":
             return (
               <item.component
                 onInput={v => (this.form[item.inputKey] = v)}
@@ -303,7 +353,7 @@ export default {
                 }
               />
             );
-          case "RefSelect":
+          case "WeCMDBRefSelect":
             return (
               <item.component
                 onInput={v => (this.form[item.inputKey] = v)}
@@ -521,29 +571,19 @@ export default {
             );
           }
         });
+
+      if (this.isColumnsFilterOn) {
+        this.columns = this.columns.filter(column => {
+          return (
+            column.type === "selection" ||
+            column.key === "actions" ||
+            !!this.showedColumns.find(_ => _ === column.title)
+          );
+        });
+      }
     },
     renderCol(col) {
       let setValueHandler = (_this, v, col, params) => {
-        if (
-          (col.inputType === "text" || col.inputType === "textArea") &&
-          col.regularExpressionRule
-        ) {
-          const regularExpressionRule = col.regularExpressionRule;
-          const pattern = regularExpressionRule.replace(
-            /^\/(.+)\/[g|i]?$/,
-            "$1"
-          );
-          const flags = /[g|i|m|u|y|s]$/.test(regularExpressionRule)
-            ? regularExpressionRule[regularExpressionRule.length - 1]
-            : "";
-          const r = new RegExp(pattern, flags);
-          if (!r.test(v)) {
-            this.$Message.warning(
-              this.$t("please_input_right_regular_rule_content") +
-                regularExpressionRule
-            );
-          }
-        }
         _this.selectedRows.forEach(_ => {
           if (_.weTableRowId === params.row.weTableRowId) {
             _[col.inputKey] = v;
@@ -554,8 +594,8 @@ export default {
 
       return {
         ...col,
-        maxWidth: 500,
-        minWidth: 200,
+        tooltip: true,
+        minWidth: 130,
         sortable: this.isSortable ? "custom" : false,
         render: (h, params) => {
           if (
@@ -603,7 +643,7 @@ export default {
                         }
                       : null,
                     ciType:
-                      params.column.component === "refSelect"
+                      params.column.component === "WeCMDBRefSelect"
                         ? params.column.ciType
                         : null,
                     ...params.column,
@@ -647,40 +687,34 @@ export default {
               content = params.row.weTableForm[col.key];
             }
 
+            const len = content ? content.toString().length : 0;
             const d = {
               props: {
+                disabled: len < 10,
                 content: content,
-                "max-width": "100px"
+                "min-width": "130px",
+                "max-width": "500px"
               }
             };
-            const len = content ? content.toString().length : 0;
-            // show tooltip when string length greater than 15
-            return len > 10 ? (
+
+            return (
               <Tooltip {...d}>
-                <span style="display: inline-block;max-width: 75%;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                  {content}
-                </span>
-                {params.column.propertyName === "orchestration" &&
-                  this.$route.name === "workflowExecution" && (
-                    <orchestration
-                      onHandleSubmit={this.handleSubmit}
-                      col={params.column}
-                      row={params.row}
-                    />
-                  )}
+                <div class="ivu-table-cell-tooltip ivu-tooltip">
+                  <div class="ivu-tooltip-rel">
+                    <span class="ivu-table-cell-tooltip-content">
+                      {content}{" "}
+                      {params.column.propertyName === "orchestration" &&
+                        this.$route.name === "workflowExecution" && (
+                          <WeCMDBOrchestration
+                            onHandleSubmit={this.handleSubmit}
+                            col={params.column}
+                            row={params.row}
+                          />
+                        )}
+                    </span>
+                  </div>
+                </div>
               </Tooltip>
-            ) : (
-              <span>
-                {content}{" "}
-                {params.column.propertyName === "orchestration" &&
-                  this.$route.name === "workflowExecution" && (
-                    <orchestration
-                      onHandleSubmit={this.handleSubmit}
-                      col={params.column}
-                      row={params.row}
-                    />
-                  )}
-              </span>
             );
           }
         }
