@@ -160,7 +160,7 @@
       @on-cancel="cancelEdit"
       width="80"
     >
-      <WeTable
+      <WeCMDBTable
         :tableData="ciTypeAttrsPermissions"
         :filtersHidden="true"
         :tableOuterActions="outerActions"
@@ -172,7 +172,7 @@
         @getSelectedRows="onSelectedRowsChange"
         tableHeight="650"
         ref="table"
-      ></WeTable>
+      ></WeCMDBTable>
     </Modal>
   </Row>
 </template>
@@ -265,7 +265,7 @@ export default {
       allMenusOriginResponse: [],
       transferStyle: { width: "300px" },
       currentRoleCiTypeId: "",
-      //for WeTable
+      //for WeCMDBTable
       outerActions,
       innerActions,
       ciTypeAttrsPermissions: [],
@@ -279,7 +279,7 @@ export default {
           inputKey: "enquiryPermission",
           displaySeqNo: 1,
           placeholder: this.$t("select_placeholder"),
-          component: "WeSelect",
+          component: "WeCMDBSelect",
           options: [
             {
               label: this.$t("yes"),
@@ -297,7 +297,7 @@ export default {
           inputKey: "creationPermission",
           displaySeqNo: 2,
           placeholder: this.$t("select_placeholder"),
-          component: "WeSelect",
+          component: "WeCMDBSelect",
           options: [
             {
               label: this.$t("yes"),
@@ -315,7 +315,7 @@ export default {
           inputKey: "modificationPermission",
           displaySeqNo: 3,
           placeholder: this.$t("select_placeholder"),
-          component: "WeSelect",
+          component: "WeCMDBSelect",
           options: [
             {
               label: this.$t("yes"),
@@ -333,7 +333,7 @@ export default {
           inputKey: "executionPermission",
           displaySeqNo: 4,
           placeholder: this.$t("select_placeholder"),
-          component: "WeSelect",
+          component: "WeCMDBSelect",
           options: [
             {
               label: this.$t("yes"),
@@ -351,7 +351,7 @@ export default {
           inputKey: "removalPermission",
           displaySeqNo: 5,
           placeholder: this.$t("select_placeholder"),
-          component: "WeSelect",
+          component: "WeCMDBSelect",
           options: [
             {
               label: this.$t("yes"),
