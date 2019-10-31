@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.webank.cmdb.config.ApplicationProperties.UIProperties;
 import com.webank.cmdb.constant.CmdbConstants;
@@ -95,7 +96,7 @@ public class UIWrapperService {
     private FilterRuleService filterRuleService;
     @Autowired
     private BaseKeyInfoService baseKeyInfoService;
-
+    
     public void swapCiTypeLayerPosition(int layerId, int targetLayerId) {
         CatCodeDto enumCode = getEnumCodeById(layerId);
         CatCodeDto targetEnumCode = getEnumCodeById(targetLayerId);
@@ -218,13 +219,14 @@ public class UIWrapperService {
     }
 
     public List<CatCodeDto> createEnumCodes(CatCodeDto catCode) {
+
         if (catCode == null || catCode.getCatId().equals(0)) {
             throw new CmdbException("Category Id is required");
         }
         if (catCode.getCatId().equals(getLayerCategoryId())) {
             catCode.setSeqNo(getMaxLayerSeqNumber() + 1);
         }
-
+        
         if (catCode.getGroupCodeId() != null && !(catCode.getGroupCodeId() instanceof Integer)) {
             catCode.setGroupCodeId(null);
         }
@@ -1087,7 +1089,26 @@ public class UIWrapperService {
         QueryRequest queryRequest = new QueryRequest();
         List<Filter> filters = new ArrayList<Filter>();
         String enumPorpertyNameOfEnv = getEnumPropertyNameByCiTypeId(rootCiTypeId, envEnumCat);
-        if (envEnumCode != null && enumPorpertyNameOfEnv != null) {
+        String enumPorpertyNameOfEnv2=null;
+        boolean flag=true;
+        Integer envCiType = null;
+        String key="";
+        for (CiRoutineItem ciRoutineItem : routineItems) {
+            AdmCiType ciType = staticEntityRepository.findEntityById(AdmCiType.class, ciRoutineItem.getCiTypeId());
+            String tableName=CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, ciType.getTableName());
+            key = key+"-"+tableName;
+            if("subsys".equals(ciType.getTableName())) {
+                if(key.startsWith("-"))key=key.substring(1);
+                envCiType=ciRoutineItem.getCiTypeId();
+                enumPorpertyNameOfEnv2 = getEnumPropertyNameByCiTypeId(ciRoutineItem.getCiTypeId(), envEnumCat);
+                Filter rootCifilter = new Filter(key+"." + enumPorpertyNameOfEnv2, "eq", getEnumCodeIdByCode(envEnumCat, envEnumCode));
+                filters.add(rootCifilter);
+                flag=false;
+                break;
+            }
+        }
+        
+        if (flag&&envEnumCode != null && enumPorpertyNameOfEnv != null) {
             Filter rootCifilter = new Filter("root$" + enumPorpertyNameOfEnv, "eq", getEnumCodeIdByCode(envEnumCat, envEnumCode));
             filters.add(rootCifilter);
         }
@@ -1106,9 +1127,13 @@ public class UIWrapperService {
         attrs.add(getAttrIdByCiTypeId(rootCiTypeId, "guid"));
         attrKeyNames.add(CONSTANT_GUID_PATH);
 
-        if (envEnumCode != null && enumPorpertyNameOfEnv != null) {
+        if (flag&&envEnumCode != null && enumPorpertyNameOfEnv != null) {
             attrs.add(getAttrIdByCiTypeId(rootCiTypeId, enumPorpertyNameOfEnv));
             attrKeyNames.add("root$" + enumPorpertyNameOfEnv);
+        }
+        if (envEnumCode != null && enumPorpertyNameOfEnv2 != null) {
+            attrs.add(getAttrIdByCiTypeId(envCiType, enumPorpertyNameOfEnv2));
+            attrKeyNames.add(key+"." + enumPorpertyNameOfEnv2);
         }
 
         rootNode.setAttrs(attrs);
@@ -1116,7 +1141,7 @@ public class UIWrapperService {
 
         rootDto.setCriteria(rootNode);
         rootDto.setQueryRequest(queryRequest);
-
+        
         IntegrationQueryDto childQueryDto = travelRoutine(routineItems, filterCiTypeId, rootDto, 1);
         if (childQueryDto != null) {
             rootDto.getCriteria().setChildren(Arrays.asList(childQueryDto));
@@ -1161,7 +1186,7 @@ public class UIWrapperService {
         if (position >= routines.size()) {
             return null;
         }
-
+        
         CiRoutineItem item = routines.get(position);
         IntegrationQueryDto dto = new IntegrationQueryDto();
         dto.setName("index-" + position);
@@ -1297,7 +1322,12 @@ public class UIWrapperService {
 
     private void getBottomChildrenDataByBottomCiTypeId(Integer ciTypeId, Integer bottomCiTypeId, List<ResourceTreeDto> bottomChildrenData, List<Integer> limitedCiTypeIds, Map<String, Object> inputFilters,
             Map<String, Object> subsystemFilters) {
-        List<CiData> ciDatas = queryCiData(ciTypeId, buildQueryObjectWithEqualsFilter(inputFilters)).getContents();
+        QueryRequest buildQueryObjectWithEqualsFilter = buildQueryObjectWithEqualsFilter(inputFilters);
+        AdmCiType admCiType = staticEntityRepository.findEntityById(AdmCiType.class, ciTypeId);
+        if("subsys".equals(admCiType.getTableName())) {
+            buildQueryObjectWithEqualsFilter = buildQueryObjectWithEqualsFilter.addEqualsFilters(subsystemFilters);
+        }
+        List<CiData> ciDatas = queryCiData(ciTypeId, buildQueryObjectWithEqualsFilter).getContents();
         if (ciTypeId.equals(bottomCiTypeId)) {
             for (CiData ciData : ciDatas) {
                 ResourceTreeDto ci = buildNewResourceTreeDto(ciData, ciTypeId);
