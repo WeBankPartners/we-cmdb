@@ -198,7 +198,7 @@
             :name="ci.id"
             :label="ci.name"
           >
-            <WeTable
+            <WeCMDBTable
               :tableData="ci.tableData"
               :tableOuterActions="ci.outerActions"
               :tableInnerActions="ci.innerActions"
@@ -215,7 +215,7 @@
               @pageSizeChange="pageSizeChange"
               tableHeight="650"
               :ref="'table' + ci.id"
-            ></WeTable>
+            ></WeCMDBTable>
           </TabPane>
         </Tabs>
       </div>
@@ -528,7 +528,7 @@ export default {
             title: _.data.key_name,
             id: _.guid,
             expand: true,
-            disableCheckbox: !_.data.orchestration,
+            disableCheckbox: !_.data.WeCMDBOrchestration,
             children: this.formatTree(_.children)
           };
         } else {
@@ -537,7 +537,7 @@ export default {
             title: _.data.key_name,
             id: _.guid,
             expand: true,
-            disableCheckbox: !_.data.orchestration
+            disableCheckbox: !_.data.WeCMDBOrchestration
           };
         }
       });
@@ -1142,7 +1142,7 @@ export default {
           if (_.status !== "decommissioned" && _.status !== "notCreated") {
             const com =
               _.propertyName === "invoke_design_sequence"
-                ? { component: "sequenceDiagram" }
+                ? { component: "WeCMDBSequenceDiagram" }
                 : { ...components[_.inputType] };
             columns.push({
               ..._,

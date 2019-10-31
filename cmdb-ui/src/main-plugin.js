@@ -9,21 +9,21 @@ import VueI18n from "vue-i18n";
 import locale from "iview/dist/locale/en-US";
 import "./locale/i18n";
 
-import WeSelect from "../src/pages/components/select.vue";
-import RefSelect from "./pages/components/ref-select.js";
-import WeTable from "./pages/components/table.js";
-import SimpleTable from "../src/pages/components/simple-table.vue";
-import AttrInput from "../src/pages/components/attr-input";
-import sequenceDiagram from "../src/pages/components/sequence-diagram.vue";
-import orchestration from "../src/pages/components/orchestration.vue";
+import WeCMDBSelect from "../src/pages/components/select.vue";
+import WeCMDBRefSelect from "./pages/components/ref-select.js";
+import WeCMDBTable from "./pages/components/table.js";
+import WeCMDBSimpleTable from "../src/pages/components/simple-table.vue";
+import WeCMDBAttrInput from "../src/pages/components/attr-input";
+import WeCMDBSequenceDiagram from "../src/pages/components/sequence-diagram.vue";
+import WeCMDBOrchestration from "../src/pages/components/WeCMDBOrchestration.vue";
 
-window.component("WeSelect", WeSelect);
-window.component("RefSelect", RefSelect);
-window.component("WeTable", WeTable);
-window.component("SimpleTable", SimpleTable);
-window.component("AttrInput", AttrInput);
-window.component("sequenceDiagram", sequenceDiagram);
-window.component("orchestration", orchestration);
+window.component("WeCMDBSelect", WeCMDBSelect);
+window.component("WeCMDBRefSelect", WeCMDBRefSelect);
+window.component("WeCMDBTable", WeCMDBTable);
+window.component("WeCMDBSimpleTable", WeCMDBSimpleTable);
+window.component("WeCMDBAttrInput", WeCMDBAttrInput);
+window.component("WeCMDBSequenceDiagram", WeCMDBSequenceDiagram);
+window.component("WeCMDBOrchestration", WeCMDBOrchestration);
 Vue.config.productionTip = false;
 
 Vue.use(iView, {
