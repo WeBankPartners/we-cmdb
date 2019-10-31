@@ -42,7 +42,7 @@
 const DEFAULT_TAG_NUMBER = 2;
 import { queryReferenceEnumCodes } from "@/api/server";
 export default {
-  name: "WeSelect",
+  name: "WeCMDBSelect",
 
   props: {
     value: {},

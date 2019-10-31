@@ -1,5 +1,5 @@
 <template>
-  <WeTable
+  <WeCMDBTable
     :tableData="tableData"
     :tableOuterActions="outerActions"
     :tableInnerActions="innerActions"
@@ -17,7 +17,7 @@
     @getGroupList="getGroupList"
     tableHeight="650"
     ref="table"
-  ></WeTable>
+  ></WeCMDBTable>
 </template>
 
 <script>
@@ -50,7 +50,7 @@ export default {
           inputKey: "catId",
           searchSeqNo: 1,
           displaySeqNo: 1,
-          component: "WeSelect",
+          component: "WeCMDBSelect",
           onChange: "getGroupList",
           disEditor: true, // 枚举名称不可改
           inputType: "select",
@@ -94,7 +94,7 @@ export default {
           inputKey: "groupCodeId",
           searchSeqNo: 5,
           displaySeqNo: 5,
-          component: "WeSelect",
+          component: "WeCMDBSelect",
           inputType: "select",
           placeholder: "groupCodeId",
           optionKey: "catId"
@@ -105,7 +105,7 @@ export default {
           inputKey: "status",
           searchSeqNo: 6,
           displaySeqNo: 6,
-          component: "WeSelect",
+          component: "WeCMDBSelect",
           inputType: "select",
           placeholder: "status",
           options: []

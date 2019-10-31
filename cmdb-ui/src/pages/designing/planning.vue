@@ -38,7 +38,7 @@
           :name="ci.id"
           :label="ci.name"
         >
-          <WeTable
+          <WeCMDBTable
             :tableData="ci.tableData"
             :tableOuterActions="ci.outerActions"
             :tableInnerActions="ci.innerActions"
@@ -55,7 +55,7 @@
             @pageSizeChange="pageSizeChange"
             tableHeight="650"
             :ref="'table' + ci.id"
-          ></WeTable>
+          ></WeCMDBTable>
         </TabPane>
       </Tabs>
     </Row>
@@ -220,7 +220,9 @@ export default {
               label = zone.data.key_name;
             }
             dots.push(
-              `g_${zone.guid}[id="g_${zone.guid}", label="${label}", width=${ll},height=${lg}];`
+              `g_${zone.guid}[id="g_${
+                zone.guid
+              }", label="${label}", width=${ll},height=${lg}];`
             );
           });
           dots.push("}");
