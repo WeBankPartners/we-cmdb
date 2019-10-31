@@ -13,19 +13,19 @@ export const components = {
     type: "text"
   },
   select: {
-    component: "WeSelect",
+    component: "WeCMDBSelect",
     options: []
   },
   ref: {
-    component: "refSelect",
+    component: "WeCMDBRefSelect",
     highlightRow: true
   },
   multiSelect: {
-    component: "WeSelect",
+    component: "WeCMDBSelect",
     options: []
   },
   multiRef: {
-    component: "refSelect"
+    component: "WeCMDBRefSelect"
   },
   textArea: {
     component: "Input",

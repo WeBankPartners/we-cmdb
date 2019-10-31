@@ -1,5 +1,5 @@
 <template>
-  <WeTable
+  <WeCMDBTable
     :tableData="tableData"
     :tableColumns="columns"
     :tableOuterActions="null"
@@ -11,7 +11,7 @@
     @pageSizeChange="pageSizeChange"
     @handleSubmit="handleSubmit"
     ref="table"
-  ></WeTable>
+  ></WeCMDBTable>
 </template>
 
 <script>

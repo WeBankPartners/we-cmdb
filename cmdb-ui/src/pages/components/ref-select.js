@@ -6,7 +6,7 @@ import {
 } from "@/api/server";
 import { components } from "@/const/actions.js";
 export default {
-  name: "RefSelect",
+  name: "WeCMDBRefSelect",
   props: {
     value: {},
     highlightRow: {},
@@ -271,7 +271,7 @@ export default {
         >
           <div class="modalTable" style="padding:20px;">
             {this.visibleSwap && (
-              <WeTable
+              <WeCMDBTable
                 tableData={this.tableData}
                 tableColumns={this.tableColumns}
                 tableHeight={650}

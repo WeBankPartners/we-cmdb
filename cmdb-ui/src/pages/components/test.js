@@ -20,7 +20,7 @@ export const SearchFilters = [
       {
         title: "Age",
         key: "age",
-        component: "WeSelect",
+        component: "WeCMDBSelect",
         type: "text",
         placeholder: "Age",
         options: [
@@ -52,7 +52,7 @@ export const SearchFilters = [
   {
     title: "Phone",
     key: "phone",
-    component: "WeSelect",
+    component: "WeCMDBSelect",
     placeholder: "Phone",
     options: [
       {
@@ -73,7 +73,7 @@ export const SearchFilters = [
   {
     title: "Email",
     key: "email",
-    component: "RefSelect",
+    component: "WeCMDBRefSelect",
     placeholder: "Email",
     isGroup: true,
     options: [
