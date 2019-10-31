@@ -227,5 +227,6 @@
   "please_input_right_new_password": "Please input the correct new password",
   "reset_password_success": "Password reset successfully！",
   "no_data": "No Data",
-  "column_filter": "Columns Filter"
+  "column_filter": "Columns Filter",
+  "header_title": "WeCMDB (Demo Version)"
 }

@@ -1,5 +1,6 @@
 <template>
   <Header>
+    <span class="header-title">{{ $t("header_title") }}</span>
     <div class="menus">
       <Menu mode="horizontal" theme="dark">
         <Submenu v-for="menu in menus" :name="menu.code" :key="menu.code">
@@ -151,10 +152,20 @@ export default {
 <style lang="scss" scoped>
 .header {
   display: flex;
+  justify-content: center;
+
+  .header-title {
+    font-size: 16px;
+    color: #fff;
+    font-weight: 600;
+    float: left;
+    margin-right: 10px;
+  }
 
   .ivu-layout-header {
     height: 50px;
     line-height: 50px;
+    padding: 0 17px;
   }
   a {
     color: white;
