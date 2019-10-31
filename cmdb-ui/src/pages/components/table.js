@@ -4,7 +4,7 @@ const DEFAULT_FILTER_NUMBER = 5;
 const DATE_FORMAT = "YYYY-MM-DD HH:mm:ss";
 
 export default {
-  name: "WeTable",
+  name: "WeCMDBTable",
   props: {
     tableColumns: { default: () => [], require: true },
     tableData: { default: () => [] },
@@ -249,6 +249,9 @@ export default {
     },
     reset(ref) {
       this.tableColumns.forEach(_ => {
+        if (_.component === "WeCMDBRefSelect") {
+          _.component = "WeCMDBRefSelect";
+        }
         if (_.children) {
           _.children.forEach(j => {
             if (!j.isNotFilterable) {
@@ -334,7 +337,7 @@ export default {
 
       let renders = item => {
         switch (item.component) {
-          case "WeSelect":
+          case "WeCMDBSelect":
             return (
               <item.component
                 onInput={v => (this.form[item.inputKey] = v)}
@@ -350,7 +353,7 @@ export default {
                 }
               />
             );
-          case "RefSelect":
+          case "WeCMDBRefSelect":
             return (
               <item.component
                 onInput={v => (this.form[item.inputKey] = v)}
@@ -640,7 +643,7 @@ export default {
                         }
                       : null,
                     ciType:
-                      params.column.component === "refSelect"
+                      params.column.component === "WeCMDBRefSelect"
                         ? params.column.ciType
                         : null,
                     ...params.column,
@@ -702,7 +705,7 @@ export default {
                       {content}{" "}
                       {params.column.propertyName === "orchestration" &&
                         this.$route.name === "workflowExecution" && (
-                          <orchestration
+                          <WeCMDBOrchestration
                             onHandleSubmit={this.handleSubmit}
                             col={params.column}
                             row={params.row}

@@ -16,7 +16,7 @@
         :name="ci.id"
         :label="ci.name"
       >
-        <WeTable
+        <WeCMDBTable
           :tableData="ci.tableData"
           :tableOuterActions="ci.outerActions"
           :tableInnerActions="ci.innerActions"
@@ -33,7 +33,7 @@
           @pageSizeChange="pageSizeChange"
           tableHeight="650"
           :ref="'table' + ci.id"
-        ></WeTable>
+        ></WeCMDBTable>
       </TabPane>
     </Tabs>
   </div>
