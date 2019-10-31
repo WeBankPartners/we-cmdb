@@ -1,7 +1,7 @@
 <template>
   <Row>
     <Col span="19">
-      <AttrInput
+      <WeCMDBAttrInput
         v-if="mappingType === 'CMDB_CI_TYPE'"
         :allCiTypes="allCiTypes"
         :cmdbColumnSource="paramData.cmdbColumnSource"
@@ -38,10 +38,10 @@
   </Row>
 </template>
 <script>
-import AttrInput from "./attr-input";
+import WeCMDBAttrInput from "./attr-input";
 export default {
   components: {
-    AttrInput
+    WeCMDBAttrInput
   },
   data() {
     return {
