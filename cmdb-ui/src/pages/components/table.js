@@ -39,7 +39,6 @@ export default {
     },
     tableColumns: {
       handler(val, oldval) {
-        this.calColumn();
         this.tableColumns.forEach(_ => {
           if (_.children) {
             _.children.forEach(j => {
@@ -56,6 +55,7 @@ export default {
         this.showedColumns = this.tableColumns
           .filter(_ => _.isDisplayed || _.displaySeqNo)
           .map(column => column.title);
+        this.calColumn();
       },
       deep: true,
       immediate: true
