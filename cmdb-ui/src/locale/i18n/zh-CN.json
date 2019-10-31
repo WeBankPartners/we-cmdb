@@ -227,5 +227,6 @@
   "please_input_right_new_password": "请输入与新密码相同的值",
   "reset_password_success": "密码重设成功！",
   "no_data": "暂无数据",
-  "column_filter": "过滤列"
+  "column_filter": "过滤列",
+  "header_title": "WeCMDB (功能演示版)"
 }
