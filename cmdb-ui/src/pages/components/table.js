@@ -54,7 +54,9 @@ export default {
           }
         });
         this.showedColumns = this.tableColumns
-          .filter(_ => _.isDisplayed || _.displaySeqNo)
+          .filter(
+            _ => !this.isColumnsFilterOn || _.isDisplayed || _.displaySeqNo
+          )
           .map(column => column.title);
       },
       deep: true,

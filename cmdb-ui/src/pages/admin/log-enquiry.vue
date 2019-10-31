@@ -4,6 +4,7 @@
     :tableColumns="columns"
     :tableOuterActions="null"
     :tableInnerActions="null"
+    :isColumnsFilterOn="false"
     :showCheckbox="false"
     :pagination="pageInfo"
     @sortHandler="sortHandler"

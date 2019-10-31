@@ -45,6 +45,7 @@
         :tableColumns="tableColumns"
         :pagination="pagination"
         :showCheckbox="false"
+        :isColumnsFilterOn="false"
         @actionFun="actionFun"
         @pageChange="pageChange"
         @pageSizeChange="pageSizeChange"
