@@ -473,7 +473,7 @@ export default {
       );
       if (status === "OK") {
         this.$Notice.success({
-          title: type,
+          title: "Success",
           desc: message
         });
         this.queryCiData();
@@ -533,7 +533,7 @@ export default {
           const { status, message, data } = await deleteCiDatas(payload);
           if (status === "OK") {
             this.$Notice.success({
-              title: "Delete successfully",
+              title: "Deleted successfully",
               desc: message
             });
             this.tabList.forEach(ci => {
@@ -622,7 +622,7 @@ export default {
         const { status, message, data } = await createCiDatas(payload);
         if (status === "OK") {
           this.$Notice.success({
-            title: "Add successfully",
+            title: "Added successfully",
             desc: message
           });
           setBtnsStatus();
@@ -644,7 +644,7 @@ export default {
         const { status, message, data } = await updateCiDatas(payload);
         if (status === "OK") {
           this.$Notice.success({
-            title: "Update successfully",
+            title: "Updated successfully",
             desc: message
           });
           setBtnsStatus();
