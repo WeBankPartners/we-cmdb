@@ -30,7 +30,7 @@
 <script>
 import { getEnumCodesByCategoryId, updateCiDatas } from "@/api/server";
 export default {
-  name: "orchestration",
+  name: "WeCMDBOrchestration",
   data() {
     return {
       orchestrationVisiable: false,
@@ -68,7 +68,7 @@ export default {
         updateData: [
           {
             guid: this.row.guid,
-            orchestration: this.selectedOrchestration
+            WeCMDBOrchestration: this.selectedOrchestration
           }
         ]
       };
@@ -86,7 +86,7 @@ export default {
     },
     showOrchestration() {
       this.orchestrationVisiable = true;
-      this.selectedOrchestration = this.row.orchestration || ""; // 回显
+      this.selectedOrchestration = this.row.WeCMDBOrchestration || ""; // 回显
     }
   }
 };
