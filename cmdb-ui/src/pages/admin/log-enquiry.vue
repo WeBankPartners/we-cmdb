@@ -2,9 +2,8 @@
   <WeCMDBTable
     :tableData="tableData"
     :tableColumns="columns"
-    :tableOuterActions="null"
+    :tableOuterActions="outerActions"
     :tableInnerActions="null"
-    :isColumnsFilterOn="false"
     :showCheckbox="false"
     :pagination="pageInfo"
     @sortHandler="sortHandler"
@@ -29,7 +28,19 @@ export default {
         total: 0
       },
       filters: [],
-      sorting: null
+      sorting: null,
+      outerActions: [
+        {
+          label: this.$t("column_filter"),
+          props: {
+            type: "primary",
+            icon: "ios-funnel",
+            shape: "circle",
+            disabled: false
+          },
+          actionType: "filterColumns"
+        }
+      ]
     };
   },
   methods: {
