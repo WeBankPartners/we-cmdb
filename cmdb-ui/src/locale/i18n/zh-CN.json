@@ -1,6 +1,7 @@
 {
   "logout": "注销",
   "password_edit": "修改密码",
+  "table_name": "名称",
   "table_number": "序号",
   "table_enum_name": "枚举名称",
   "table_enum_key": "枚举键",
@@ -92,7 +93,7 @@
   "input_placeholder": "请输入",
   "edit_ci_name": "编辑CI名称",
   "input_area": "编辑区",
-  "architecture_diagra,m_operation_tips": "请点击架构图进行操作",
+  "architecture_diagram_operation_tips": "请点击架构图进行操作",
   "delete_confirm": "确认删除？",
   "delete_enum_success_message": "删除枚举成功",
   "add_enum_success_message": "新增枚举成功",
