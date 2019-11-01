@@ -1319,8 +1319,9 @@ public class UIWrapperService {
     private void getBottomChildrenDataByBottomCiTypeId(Integer ciTypeId, Integer bottomCiTypeId, List<ResourceTreeDto> bottomChildrenData, List<Integer> limitedCiTypeIds, Map<String, Object> inputFilters,
             Map<String, Object> subsystemFilters) {
         QueryRequest buildQueryObjectWithEqualsFilter = buildQueryObjectWithEqualsFilter(inputFilters);
-        AdmCiType admCiType = staticEntityRepository.findEntityById(AdmCiType.class, ciTypeId);
-        if("subsys".equals(admCiType.getTableName())) {
+        AdmCiType admCiType = staticEntityRepository.findEntityById(AdmCiType.class,
+                ciTypeId);
+        if (uiProperties.getCiTypeCodeOfSubsys().equals(admCiType.getTableName())) {
             buildQueryObjectWithEqualsFilter = buildQueryObjectWithEqualsFilter.addEqualsFilters(subsystemFilters);
         }
         List<CiData> ciDatas = queryCiData(ciTypeId, buildQueryObjectWithEqualsFilter).getContents();
