@@ -84,7 +84,7 @@ export const MENUS = [
   {
     code: "VIEW_QUERY",
     cnName: "视图查询",
-    enName: "View Query"
+    enName: "Views Query"
   },
   {
     code: "IDC_PLANNING_QUERY",
@@ -114,7 +114,7 @@ export const MENUS = [
   {
     code: "VIEW_MANAGEMENT",
     cnName: "视图管理",
-    enName: "View Management"
+    enName: "Views Management"
   },
   {
     code: "IDC_PLANNING_DESIGN",
