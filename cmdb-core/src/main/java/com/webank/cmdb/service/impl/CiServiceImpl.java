@@ -1622,8 +1622,6 @@ public class CiServiceImpl implements CiService {
                 	//attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId,"guid");
                 }else if(InputType.MultRef.getCode().equals(attr.getInputType())){
                 	attrExpression = curFrom.get("guid");//need guid to fetch mult ref value
-                }else if("env".equals(attr.getPropertyName())&&curCiTypeId!=7) {
-                    continue;
                 }else {
                     attrExpression = curFrom.get(attr.getPropertyName());
                 }
@@ -1679,11 +1677,7 @@ public class CiServiceImpl implements CiService {
 
         attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "guid");
         attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "r_guid");
-        AdmCiType ciType = ciTypeRepository.findByIdAdmCiType(curCiTypeId);
-        if ("subsys".equals(ciType.getTableName())) {
-            attachAdditionalAttr(attrExprMap, path, curCiTypeId,curFrom, "env");
-        }
-
+     
         if (enableBiz) {
             attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "biz_key");
             attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "state");
