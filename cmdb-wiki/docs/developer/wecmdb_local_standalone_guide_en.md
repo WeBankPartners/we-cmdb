@@ -30,4 +30,4 @@
       
 
 >**Note**
-Specify the `spring.profiles.active=local` parameter to start the We-CMDB service. The system will start the in-memory database H2 and configure it as > the system database source, initialize the schema and insert test data.
+Specify the `spring.profiles.active=en-local` parameter to start the We-CMDB service. The system will start the in-memory database H2 and configure it as > the system database source, initialize the schema and insert test data.
