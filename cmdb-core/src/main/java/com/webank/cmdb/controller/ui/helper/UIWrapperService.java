@@ -1413,7 +1413,7 @@ public class UIWrapperService {
             boolean continueFlag = false;
             Map ciMap = (Map) singleData.getData();
             Object relateCiTypeDto = ciMap.get(relateCiAttrDto.getPropertyName());
-            if (relateCiTypeDto == null) {
+            if (relateCiTypeDto == null||"".equals(relateCiTypeDto)) {
                 continue;
             }
 
