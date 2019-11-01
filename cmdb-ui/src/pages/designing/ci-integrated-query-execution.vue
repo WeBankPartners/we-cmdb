@@ -1,14 +1,9 @@
 <template>
   <div>
     <Row>
-      <Col span="6">
-        <span style="margin-right: 10px">{{ $t("root_ci_type") }}</span>
-        <Select
-          v-model="selectedCI"
-          filterable
-          style="width: 75%;"
-          @on-change="onCITypeChange"
-        >
+      <Col span="7" class="header">
+        <span>{{ $t("root_ci_type") }}</span>
+        <Select v-model="selectedCI" filterable @on-change="onCITypeChange">
           <Option
             v-for="item in allCiTypes"
             :value="item.ciTypeId"
@@ -17,14 +12,11 @@
           >
         </Select>
       </Col>
-      <Col span="17" offset="1">
-        <span style="margin-right: 10px">{{
-          $t("integrated_query_name")
-        }}</span>
+      <Col span="16" offset="1" class="header">
+        <span>{{ $t("integrated_query_name") }}</span>
         <Select
           v-model="selectedQueryName"
           filterable
-          style="width: 75%;"
           :disabled="!selectedCI"
           @on-change="onQueryNameSelectChange"
         >
@@ -292,4 +284,17 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.header {
+  display: flex;
+  justify-content: center;
+  > span {
+    height: 32px;
+    line-height: 32px;
+    margin-right: 10px;
+  }
+  > div {
+    flex: 1;
+  }
+}
+</style>
