@@ -240,7 +240,7 @@
             label-position="left"
             :label-width="100"
           >
-            <FormItem :label="$t('name')" prop="name">
+            <FormItem :label="$t('table_name')" prop="name">
               <Input v-model="addNewCITypeForm.name"></Input>
             </FormItem>
             <FormItem :label="$t('ci_type_id')" prop="tableName">
@@ -1568,7 +1568,7 @@ export default {
     },
     async deleteCIAttr(id, status) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("delete_confirm"),
         "z-index": 1000000,
         onOk: async () => {
           let res =
