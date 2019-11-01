@@ -15,7 +15,7 @@ import WeCMDBTable from "./pages/components/table.js";
 import WeCMDBSimpleTable from "../src/pages/components/simple-table.vue";
 import WeCMDBAttrInput from "../src/pages/components/attr-input";
 import WeCMDBSequenceDiagram from "../src/pages/components/sequence-diagram.vue";
-import WeCMDBOrchestration from "../src/pages/components/WeCMDBOrchestration.vue";
+import WeCMDBOrchestration from "../src/pages/components/orchestration.vue";
 
 window.component("WeCMDBSelect", WeCMDBSelect);
 window.component("WeCMDBRefSelect", WeCMDBRefSelect);
