@@ -29,4 +29,4 @@
     
       
 > **说明**
-指定spring.profiles.active=local参数启动CMDB，系统会启动内存数据库H2并配置为系统数据库源，初始化schema以及插入体验数据。
+指定spring.profiles.active=ch-local参数启动CMDB，系统会启动内存数据库H2并配置为系统数据库源，初始化schema以及插入体验数据。
