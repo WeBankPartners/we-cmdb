@@ -1,5 +1,7 @@
 <template>
-  <div id="graph" class="home-page"></div>
+  <card style="height: calc(100vh - 60px);">
+    <div id="graph" class="home-page"></div>
+  </card>
 </template>
 
 <script>
@@ -36,8 +38,8 @@ export default {
           .graphviz()
           .zoom(true)
           .scale(1.2)
-          .width(window.innerWidth * 0.9)
-          .height(window.innerHeight * 0.9)
+          .width(window.innerWidth - 92)
+          .height(window.innerHeight - 92)
           .attributer(function(d) {
             if (d.attributes.class === "edge") {
               let keys = d.key.split("->");
@@ -301,7 +303,7 @@ export default {
   display: flex;
   font-size: 75px;
   font-weight: 600;
-  height: calc(100vh - 60px);
+  height: 100%;
   justify-content: center;
 }
 </style>
