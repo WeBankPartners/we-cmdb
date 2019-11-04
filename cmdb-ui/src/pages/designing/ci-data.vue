@@ -777,3 +777,8 @@ export default {
   }
 };
 </script>
+<style lang="scss" scoped>
+#graph {
+  background-color: #fff;
+}
+</style>
