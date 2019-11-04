@@ -80,7 +80,7 @@ export default {
       selectedSequences: [],
       selectedSequenceData: [],
       sequenceVisiable: false,
-      graphString: "WeCMDBSequenceDiagram \n A->>B"
+      graphString: "sequenceDiagram \n A->>B"
     };
   },
   props: {
@@ -145,8 +145,8 @@ export default {
       this.$emit("input", this.selectedSequenceData.map(_ => _.guid));
     },
     initSequenceGraph() {
-      this.graphString = "WeCMDBSequenceDiagram \n";
-      const graphNode = ["WeCMDBSequenceDiagram"];
+      this.graphString = "sequenceDiagram \n";
+      const graphNode = ["sequenceDiagram"];
       if (this.selectedSequenceData.length > 0) {
         this.selectedSequenceData.forEach((_, index) => {
           graphNode.push(
