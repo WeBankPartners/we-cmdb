@@ -8,7 +8,9 @@
       @on-click="handleTabClick"
     >
       <TabPane :closable="false" name="CMDB" :label="$t('cmdb_model')">
-        <div class="graph-container" id="graph"></div>
+        <card>
+          <div class="graph-container" id="graph"></div>
+        </card>
       </TabPane>
       <TabPane
         v-for="ci in tabList"
@@ -122,8 +124,8 @@ export default {
           .graphviz()
           .zoom(true)
           .scale(1.2)
-          .width(window.innerWidth * 0.96)
-          .height(window.innerHeight * 0.8)
+          .width(window.innerWidth - 92)
+          .height(window.innerHeight - 190)
           .attributer(function(d) {
             if (d.attributes.class === "edge") {
               var keys = d.key.split("->");
@@ -777,8 +779,3 @@ export default {
   }
 };
 </script>
-<style lang="scss" scoped>
-#graph {
-  background-color: #fff;
-}
-</style>
