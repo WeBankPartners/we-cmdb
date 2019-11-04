@@ -1034,14 +1034,14 @@ public class UIWrapperService {
     }
 
     public Object getArchitectureCiData(Integer codeId, String systemDesignGuid, QueryRequest queryObject) {
-        return getCiData(codeId, null, systemDesignGuid, queryObject);
+        Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfIdc();
+        return getCiData(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId);
     }
 
-    private Object getCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject) {
+    private Object getCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject,int systemDesignCiTypeId) {
         CatCodeDto code = getEnumCodeById(codeId);
         Integer ciTypeId = Integer.parseInt(code.getCode());
         Integer envEnumCat = getEnumCategoryByName(uiProperties.getEnumCategoryNameOfEnv()).getCatId();
-        int systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystemDesign();
         List<CatCodeDto> codeOfRoutines = getEnumCodesByGroupId(code.getCodeId());
         String routineForGetingSystemDesignGuid = null;
         if (codeOfRoutines.size() > 0) {
@@ -1091,8 +1091,8 @@ public class UIWrapperService {
             Filter rootCifilter = new Filter("root$" + enumPorpertyNameOfEnv, "eq", getEnumCodeIdByCode(envEnumCat, envEnumCode));
             filters.add(rootCifilter);
         }
-
-        Filter targetRifilter = new Filter("tail$r_guid", "eq", filterCiGuid);
+        List<String> filterCiGuids = Arrays.asList(filterCiGuid.split(","));
+        Filter targetRifilter = new Filter("tail$r_guid", "in", filterCiGuids);
         filters.add(targetRifilter);
         queryRequest.setFilters(filters);
 
@@ -1189,7 +1189,8 @@ public class UIWrapperService {
     }
 
     public Object getDeployCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject) {
-        return getCiData(codeId, envCode, systemDesignGuid, queryObject);
+        int systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystemDesign();
+        return getCiData(codeId, envCode, systemDesignGuid, queryObject, systemDesignCiTypeId);
     }
 
     public Object getDeployDesignTabs() {
@@ -1515,4 +1516,23 @@ public class UIWrapperService {
     public <T extends ResourceDto<T, D>, D> QueryResponse<T> query(Class<T> dtoClzz, QueryRequest request) {
         return staticDtoService.query(dtoClzz, request);
     }
+
+    public Object getPlanningDesignsCiData(int codeId, String systemDesignGuid, QueryRequest queryObject) {
+        Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfIdc();
+        return getCiData(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId);
+    }
+
+    public List<CiData> getIdcDataByGuid(List<String> idcGuids) {
+        QueryRequest defaultQueryObject = defaultQueryObject();
+        defaultQueryObject.addInFilter("guid", idcGuids);
+        QueryResponse<CiData> queryCiData = queryCiData(uiProperties.getCiTypeIdOfIdc(),defaultQueryObject);
+        return queryCiData.getContents();
+        
+    }
+
+    public Object getResourcePlanningCiData(int codeId, String systemDesignGuid, QueryRequest queryObject) {
+        Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfIdcDesign();
+        return getCiData(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId);
+    }
+
 }
