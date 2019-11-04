@@ -661,7 +661,9 @@
                   class="no-need-validation"
                   v-if="
                     item.form.inputType === 'ref' ||
-                      item.form.inputType === 'select'
+                      item.form.inputType === 'select' ||
+                      item.form.inputType === 'multiRef' ||
+                      item.form.inputType === 'multiSelect'
                   "
                   :label="$t('filter_rule')"
                 >
