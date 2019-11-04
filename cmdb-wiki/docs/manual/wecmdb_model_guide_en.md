@@ -1,6 +1,6 @@
-# WeCMDB 模型
+# WeCMDB Data Model
 
-There are 5 layers in CMDB data model: application architechure layer, application deployment layer, resource running layer, resource planning layer, and planning design layer.
+There are 5 layers in WeCMDB data model: application architechure layer, application deployment layer, resource running layer, resource planning layer, and planning design layer.
 
 ## Application architecture layer
 
