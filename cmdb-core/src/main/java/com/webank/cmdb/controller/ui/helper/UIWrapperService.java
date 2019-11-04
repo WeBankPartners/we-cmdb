@@ -1337,13 +1337,13 @@ public class UIWrapperService {
         for (CiData ciData : ciDatas) {
             Map<String, Object> ciDataMap = ciData.getData();
             List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceCodeOfBelong());
-            if (childrenCiTypeRelativeAttributes.size() != 0) {
+            if (childrenCiTypeRelativeAttributes.size() != 0 && ciDataMap.get("guid") != null) {
                 findBelongCi = getBottomChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, limitedCiTypeIds, ciDataMap.get("guid").toString(), bottomChildrenData, bottomCiTypeId, subsystemFilters);
             }
 
             if (!findBelongCi) {
                 List<CiTypeAttrDto> realizeCiTypeRelativeAttributes = findRealizeCiAttributesByCiTypeId(ciTypeId);
-                if (realizeCiTypeRelativeAttributes.size() != 0) {
+                if (realizeCiTypeRelativeAttributes.size() != 0 && ciDataMap.get("guid") != null) {
                     getBottomChildrenDataByRealizeAttributes(realizeCiTypeRelativeAttributes, limitedCiTypeIds, ciDataMap.get("guid").toString(), bottomChildrenData, bottomCiTypeId, subsystemFilters);
                 }
             }
