@@ -98,13 +98,11 @@ public class UICiDataManagementControllerTest extends AbstractBaseControllerTest
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(jsonPath("$.statusCode", is("OK")));
-               // .andExpect(jsonPath("$.data.contents", empty()));
 
         mvc.perform(post("/ui/v2/deploy-designs/tabs/ci-data?code-id=102&env-code=PRD&system-design-guid=0001_0000000004")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(jsonPath("$.statusCode", is("OK")));
-                //.andExpect(jsonPath("$.data.contents", hasSize(1)));
     } 
     
     @Test
@@ -117,14 +115,12 @@ public class UICiDataManagementControllerTest extends AbstractBaseControllerTest
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(jsonPath("$.statusCode", is("OK")));
-                //.andExpect(jsonPath("$.data.contents", empty()));
         
         mvc.perform(get("/ui/v2/data-tree/application-deployment-design?env-code={env-code}&system-design-guid={system-design-guid}"
                 , envCode_prd,systemDesignGuid)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(jsonPath("$.statusCode", is("OK")));
-                //.andExpect(jsonPath("$.data.contents",hasSize(1)));
     } 
     
     

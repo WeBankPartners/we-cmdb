@@ -1184,10 +1184,10 @@ public class UIWrapperService {
             List<String> attrKeyNames = new ArrayList<String>();
             if (key.startsWith("-"))
                 key = key.substring(1);
-            Filter rootCifilter = new Filter(key + "." + enumPorpertyNameOfEnv, "eq",
+            Filter cifilter = new Filter(key + "." + enumPorpertyNameOfEnv, "eq",
                     getEnumCodeIdByCode(envEnumCat, envEnumCode));
             
-            rootDto.getQueryRequest().getFilters().add(rootCifilter);
+            rootDto.getQueryRequest().getFilters().add(cifilter);
             attrs.add(getAttrIdByCiTypeId(item.getCiTypeId(), enumPorpertyNameOfEnv));
             attrKeyNames.add(key + "." + enumPorpertyNameOfEnv);
             dto.setAttrs(attrs);
