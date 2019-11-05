@@ -29,7 +29,7 @@ sed -i "s~{{MYSQL_ROOT_PASSWORD}}~$database_init_password~g" docker-compose.yml
 sed -i "s~{{CMDB_IP_WHITELISTS}}~$cmdb_ip_whitelists~g" docker-compose.yml
 sed -i "s~{{{CUSTOM_PARAM}}}~$custom_param~g" docker-compose.yml
 
-
+docker-compose pull
 docker-compose  -f docker-compose.yml  up -d
 
  
