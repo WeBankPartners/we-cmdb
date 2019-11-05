@@ -5,6 +5,8 @@
 	
 	需要在开发电脑上先安装JDK，请参考[JDK安装文档](jdk_install_guide.md)
 
+	需要在开发电脑上先安装Maven，请参考[Maven安装文档](maven_install_guide.md)
+
 2. 克隆CMDB代码
 	
 	```shell script
@@ -20,7 +22,7 @@
 
 4. 启动本地快速体验包
     ```shell script
-    java -jar -Dspring.profiles.active=local cmdb-core/target/cmdb-core-*.jar
+    java -jar -Dspring.profiles.active=ch-local cmdb-core/target/cmdb-core-*.jar
     ```
 
 5. 打开浏览器，输入下面的URL,即可体验WeCMDB功能  
