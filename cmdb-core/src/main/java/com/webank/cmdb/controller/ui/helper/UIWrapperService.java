@@ -1034,7 +1034,7 @@ public class UIWrapperService {
     }
 
     public Object getArchitectureCiData(Integer codeId, String systemDesignGuid, QueryRequest queryObject) {
-        Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfIdc();
+        Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystemDesign();
         return getCiData(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId);
     }
 
