@@ -1032,7 +1032,15 @@ public class UIWrapperService {
     public Object getArchitectureDesignTabs() {
         return getEnumCodesByCategoryName(uiProperties.getCatNameOfArchitectureDesign());
     }
-
+    
+    public Object getPlanningDesignTabs() {
+        return getEnumCodesByCategoryName(uiProperties.getCatNameOfPlanningDesign());
+    }
+    
+    public Object getResourcePlanningTabs() {
+        return getEnumCodesByCategoryName(uiProperties.getCatNameOfResoursePlanning());
+    }
+    
     public Object getArchitectureCiData(Integer codeId, String systemDesignGuid, QueryRequest queryObject) {
         Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystemDesign();
         return getCiData(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId);

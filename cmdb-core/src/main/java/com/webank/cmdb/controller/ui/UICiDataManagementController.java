@@ -273,16 +273,31 @@ public class UICiDataManagementController {
     @RolesAllowed({ MENU_IDC_PLANNING_DESIGN })
     @PostMapping("/planning-designs/ci-data")
     @ResponseBody
-    public Object getPlanningDesignsCiData(@RequestParam(value = "code-id") int codeId,@RequestParam(value = "system-design-guid") String systemDesignGuid,
+    public Object getPlanningDesignsCiData(@RequestParam(value = "code-id") int codeId,@RequestParam(value = "idc-guid") String idcGuid,
             @RequestBody QueryRequest queryObject) {
-        return wrapperService.getPlanningDesignsCiData(codeId,systemDesignGuid, queryObject);
+        return wrapperService.getPlanningDesignsCiData(codeId,idcGuid, queryObject);
     }
+    
+    @RolesAllowed({ MENU_IDC_PLANNING_DESIGN })
+    @GetMapping("/planning-designs/tabs")
+    @ResponseBody
+    public Object getPlanningDesignTabs() {
+        return wrapperService.getPlanningDesignTabs();
+    }
+    
     @RolesAllowed({ MENU_IDC_RESOURCE_PLANNING })
     @PostMapping("/resource-planning/ci-data")
     @ResponseBody
-    public Object getResourcePlanningCiData(@RequestParam(value = "code-id") int codeId,@RequestParam(value = "system-design-guid") String systemDesignGuid,
+    public Object getResourcePlanningCiData(@RequestParam(value = "code-id") int codeId,@RequestParam(value = "idc-guid") String idcGuid,
             @RequestBody QueryRequest queryObject) {
-        return wrapperService.getResourcePlanningCiData(codeId,systemDesignGuid, queryObject);
+        return wrapperService.getResourcePlanningCiData(codeId,idcGuid, queryObject);
+    }
+    
+    @RolesAllowed({ MENU_IDC_RESOURCE_PLANNING })
+    @GetMapping("/resource-planning/tabs")
+    @ResponseBody
+    public Object getResourcePlanningTabs() {
+        return wrapperService.getResourcePlanningTabs();
     }
 
     @RolesAllowed({ MENU_IDC_PLANNING_DESIGN })
