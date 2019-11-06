@@ -10,7 +10,7 @@ English / [中文](README_CN.md)
 [Click to try WeCMDB](https://sandbox.webank.com/wecmdb)<br>
 
 ## Demo
-<img src="./cmdb-wiki/docs/manual/images/ci-data-management.gif" />
+<img src="./cmdb-wiki/docs/manual/images/ci-data-management-en.gif" />
 
 ## Introduction
 To ensure the accuracy and the integrity of CMDB data is a widely recognized challenge in the domain of IT operation. In order to answer the questions such as "how to record with accuracy the IT information ranging from physical layer, logical layer to application layer as well as the relations between them", "how to accomplish complicated IT operation processes using those information" and "how to implement automation and intelligence", we realize that CMDB is becoming the foundation for carrying out IT operation properly. 
