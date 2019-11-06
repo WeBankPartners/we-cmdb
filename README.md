@@ -79,9 +79,9 @@ Please refer to the [WeCMDB Compiling Guide](cmdb-wiki/docs/install/wecmdb_compi
 Please refer to the [WeCMDB Deployment Guide](cmdb-wiki/docs/install/wecmdb_install_guide_en.md) on how to install WeCMDB.
 
 ## User Manuals
-Please refer to the [WeCMDB Model Guide](cmdb-wiki/docs/manual/wecmdb_model_guide.md) for guide on WeCMDB model.
+Please refer to the [WeCMDB Model Guide](cmdb-wiki/docs/manual/wecmdb_model_guide_en.md) for guide on WeCMDB model.
 
-Please refer to the [WeCMDB User Guide](cmdb-wiki/docs/manual/wecmdb_user_guide.md) for usage and operations.
+Please refer to the [WeCMDB User Guide](cmdb-wiki/docs/manual/wecmdb_user_guide_en.md) for usage and operations.
 
 ## Developer Guide
 #### Deploy WeCMDB in Standalone Mode
