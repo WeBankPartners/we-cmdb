@@ -17,7 +17,7 @@ Application architecture layer is composed of 6 CIs, listed in below table,
 
 ## Application implement layer
 
-Application implement layer is composed of 5 CIs, listed as below table:
+Application implement layer is composed of 5 CIs, listed as below table,
 
 | Name       | Description                                                                                           | Layer                       |
 | ---------- | ----------------------------------------------------------------------------------------------------- | --------------------------- |
@@ -46,8 +46,8 @@ Infrastructure implement layer is composed of 5 CIs, listed as below table,
 | Name      | Description          | Layer                          |
 | --------- | -------------------- | ------------------------------ |
 | IDC       | Internet Data Center | Infrastructure implement layer |
-| ZONE_LINK | Safe zone link       | Infrastructure implement layer |
-| ZONE      | Safe zone            | Infrastructure implement layer |
+| ZONE_LINK | Security zone link   | Infrastructure implement layer |
+| ZONE      | Security zone        | Infrastructure implement layer |
 | DCN       | Data center node     | Infrastructure implement layer |
 | SET       | Resource set         | Infrastructure implement layer |
 
@@ -55,13 +55,13 @@ Infrastructure implement layer is composed of 5 CIs, listed as below table,
 
 Infrastructure architecture layer is composed of 5 CIs, listed as below table,
 
-| Name             | Description                  | Layer                             |
-| ---------------- | ---------------------------- | --------------------------------- |
-| IDC_DESIGN       | IDC design planning          | Infrastructure architecture layer |
-| ZONE_LINK_DESIGN | Safe zone link design        | Infrastructure architecture layer |
-| ZONE_DESIGN      | Safe zone design planning    | Infrastructure architecture layer |
-| DCN_DESIGN       | DCN design planning          | Infrastructure architecture layer |
-| SET_DESIGN       | Resource set design planning | Infrastructure architecture layer |
+| Name             | Description                   | Layer                             |
+| ---------------- | ----------------------------- | --------------------------------- |
+| IDC_DESIGN       | IDC design planning           | Infrastructure architecture layer |
+| ZONE_LINK_DESIGN | Security zone link design     | Infrastructure architecture layer |
+| ZONE_DESIGN      | Security zone design planning | Infrastructure architecture layer |
+| DCN_DESIGN       | DCN design planning           | Infrastructure architecture layer |
+| SET_DESIGN       | Resource set design planning  | Infrastructure architecture layer |
 
 ## Appendix
 
