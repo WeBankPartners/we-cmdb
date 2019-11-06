@@ -1526,7 +1526,7 @@ public class UIWrapperService {
     }
 
     public Object getPlanningDesignsCiData(int codeId, String systemDesignGuid, QueryRequest queryObject) {
-        Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfIdc();
+        Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfIdcDesign();
         return getCiData(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId);
     }
 
@@ -1539,7 +1539,7 @@ public class UIWrapperService {
     }
 
     public Object getResourcePlanningCiData(int codeId, String systemDesignGuid, QueryRequest queryObject) {
-        Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfIdcDesign();
+        Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfIdc();
         return getCiData(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId);
     }
 
