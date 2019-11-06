@@ -49,6 +49,8 @@ public class ApplicationProperties {
         private String catNameOfArchitectureDesign = "tab_of_architecture_design";
         private String catNameOfDeployDesign = "tab_of_deploy_design";
         private String catNameOfQueryDeployDesign = "tab_query_of_deploy_design";
+        private String catNameOfPlanningDesign = "tab_of_planning_design";
+        private String catNameOfResoursePlanning = "tab_of_resourse_planning";
         private String codeOfDeployDetail = "guid_of_deploy_detail";
     }
 
