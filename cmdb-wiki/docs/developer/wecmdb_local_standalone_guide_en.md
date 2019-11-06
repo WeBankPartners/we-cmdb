@@ -5,6 +5,8 @@
 1. Install Java SE Development Kit (JDK)
 	
 	PLease refer to [JDK install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/developer/jdk_install_guide_en.md) on how to install JDK.
+	
+	PLease refer to [Maven install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/developer/Maven_install_guide_en.md) on how to install Maven.
 
 2. Pull We-CMDB source code from github
 	
@@ -22,7 +24,7 @@
 4. Start local standalone package
     
 	```shell script
-    java -jar -Dspring.profiles.active=local cmdb-core/target/cmdb-core-*.jar
+    java -jar -Dspring.profiles.active=en-local cmdb-core/target/cmdb-core-*.jar
     ```
 
 5. Enter the following url in the browser
