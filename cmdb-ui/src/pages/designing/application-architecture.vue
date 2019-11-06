@@ -449,6 +449,8 @@ export default {
     },
     async reloadHandler() {
       this.onArchChange();
+      this.invokeSequenceForm.selectedInvokeSequence = "";
+      this.invokeSequenceForm.isShowInvokeSequenceDetial = false;
       this.isDataChanged = false;
     },
     async onArchChange() {
