@@ -1,9 +1,15 @@
 package com.webank.cmdb.controller.ui;
 
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_MANAGEMENT;
+import static com.webank.cmdb.domain.AdmMenu.MENU_APPLICATION_DEPLOYMENT_DESIGN;
 import static com.webank.cmdb.domain.AdmMenu.ROLE_PREFIX;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.empty;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -19,11 +25,12 @@ import com.google.common.collect.ImmutableMap;
 import com.webank.cmdb.controller.AbstractBaseControllerTest;
 import com.webank.cmdb.util.JsonUtil;
 
-@WithMockUser(username = "test", authorities = { ROLE_PREFIX + MENU_DESIGNING_CI_DATA_MANAGEMENT })
+@WithMockUser(username = "test", authorities = { ROLE_PREFIX + MENU_DESIGNING_CI_DATA_MANAGEMENT ,ROLE_PREFIX + MENU_APPLICATION_DEPLOYMENT_DESIGN })
 public class UICiDataManagementControllerTest extends AbstractBaseControllerTest {
 
     private static final int SYSTEM_DESIGN = 1;
     private static final int SUB_SYSTEM_DESIGN = 2;
+    private static final int ciTypeId = 3;
 
     @Test
     public void whenDeleteCiWithDependencyCiAtFinalStateShouldSuccess() throws Exception {
@@ -83,4 +90,38 @@ public class UICiDataManagementControllerTest extends AbstractBaseControllerTest
                 .andExpect(jsonPath("$.statusCode", is("OK")));
 
     }
+
+    @Test
+    public void deploymentDesignQuery() throws Exception {
+       
+        mvc.perform(post("/ui/v2/deploy-designs/tabs/ci-data?code-id=102&env-code=STGk&system-design-guid=0001_0000000004")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(jsonPath("$.statusCode", is("OK")));
+
+        mvc.perform(post("/ui/v2/deploy-designs/tabs/ci-data?code-id=102&env-code=PRD&system-design-guid=0001_0000000004")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(jsonPath("$.statusCode", is("OK")));
+    } 
+    
+    @Test
+    public void physicalDeploymentDesignQuery() throws Exception {
+        Integer envCode_stgk=113;
+        Integer envCode_prd=111;
+        String systemDesignGuid="0001_0000000004";
+        mvc.perform(get("/ui/v2/data-tree/application-deployment-design?env-code={env-code}&system-design-guid={system-design-guid}"
+                , envCode_stgk,systemDesignGuid)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(jsonPath("$.statusCode", is("OK")));
+        
+        mvc.perform(get("/ui/v2/data-tree/application-deployment-design?env-code={env-code}&system-design-guid={system-design-guid}"
+                , envCode_prd,systemDesignGuid)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(jsonPath("$.statusCode", is("OK")));
+    } 
+    
+    
 }

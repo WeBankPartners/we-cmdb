@@ -26,6 +26,7 @@ public class ApplicationProperties {
         private Integer ciTypeIdOfUnitDesign = 3;
         private Integer ciTypeIdOfUnit = 8;
         private Integer ciTypeIdOfSubsys = 7;
+        private String ciTypeCodeOfSubsys = "subsys";
         private Integer ciTypeIdOfHost = 12;
         private Integer ciTypeIdOfInstance = 15;
         private Integer ciTypeIdOfIdc = 16;
