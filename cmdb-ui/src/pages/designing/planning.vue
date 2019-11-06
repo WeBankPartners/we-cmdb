@@ -66,13 +66,13 @@
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
 import {
-  queryCiData,
+  getPlanningDesignsCiData,
   getCiTypeAttributes,
   deleteCiDatas,
   createCiDatas,
   updateCiDatas,
   getEnumCodesByCategoryId,
-  getCiTypes,
+  getPlanningDesignTabs,
   getAllIdcDesignData,
   getIdcDesignTreeByGuid,
   getAllZoneLinkDesignGroupByIdcDesign,
@@ -114,7 +114,6 @@ export default {
       },
       graph: new Map(),
       graphBig: "",
-      layerId: 5,
       idcDesignData: null,
       zoneLinkDesignData: new Map(),
       currentTab: "resource-design",
@@ -133,6 +132,7 @@ export default {
   },
   methods: {
     async onIdcDataChange(guid) {
+      this.handleTabClick(this.currentTab);
       this.spinShow = true;
       const { data, message, status } = await getIdcDesignTreeByGuid([guid]);
       if (status === "OK") {
@@ -677,9 +677,11 @@ export default {
       }
     },
     async exportHandler() {
-      const { status, message, data } = await queryCiData({
-        id: this.currentTab,
-        queryObject: {}
+      const found = this.tabList.find(_ => _.code === this.currentTab);
+      const { status, message, data } = await getPlanningDesignsCiData({
+        idcGuid: this.selectedIdc,
+        id: found.codeId,
+        queryObject: this.payload
       });
       if (status === "OK") {
         this.$refs[this.tableRef][0].export({
@@ -715,11 +717,12 @@ export default {
             (ci.pagination.currentPage - 1) * ci.pagination.pageSize;
         }
       });
-      const query = {
-        id: this.currentTab,
+      const found = this.tabList.find(_ => _.code === this.currentTab);
+      const { status, message, data } = await getPlanningDesignsCiData({
+        idcGuid: this.selectedIdc,
+        id: found.codeId,
         queryObject: this.payload
-      };
-      const { status, message, data } = await queryCiData(query);
+      });
       if (status === "OK") {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
@@ -828,39 +831,26 @@ export default {
       }
       this.initGraph();
     },
-    async getAllCiTypeByLayer(layerId) {
-      if (layerId < 0) {
-        return;
-      }
-      let filter = {
-        key: "group-by",
-        value: "layer"
-      };
-      const { status, message, data } = await getCiTypes(filter);
+    async getTabLists() {
+      const { status, message, data } = await getPlanningDesignTabs();
       if (status === "OK") {
         let allInnerActions = await getExtraInnerActions();
-        data.forEach(item => {
-          if (item.codeId === layerId) {
-            this.tabList = item.ciTypes.map(_ => {
-              if (_.status === "created" || _.status === "dirty") {
-                return {
-                  ..._,
-                  name: _.name,
-                  id: _.ciTypeId + "",
-                  tableData: [],
-                  tableColumns: [],
-                  outerActions: JSON.parse(JSON.stringify(outerActions)),
-                  innerActions: JSON.parse(
-                    JSON.stringify(innerActions.concat(allInnerActions))
-                  ),
-                  pagination: JSON.parse(JSON.stringify(pagination)),
-                  ascOptions: {}
-                };
-              }
-            });
-            this.tabList = this.tabList.filter(tab => tab);
-          }
+        this.tabList = data.map(_ => {
+          return {
+            ..._,
+            name: _.value,
+            id: _.code,
+            tableData: [],
+            tableColumns: [],
+            outerActions: JSON.parse(JSON.stringify(outerActions)),
+            innerActions: JSON.parse(
+              JSON.stringify(innerActions.concat(allInnerActions))
+            ),
+            pagination: JSON.parse(JSON.stringify(pagination)),
+            ascOptions: {}
+          };
         });
+        this.tabList = this.tabList.filter(tab => tab);
       }
     },
     async getAllIdcDesignData() {
@@ -871,7 +861,7 @@ export default {
     }
   },
   mounted() {
-    this.getAllCiTypeByLayer(this.layerId);
+    this.getTabLists();
     this.getAllIdcDesignData();
   }
 };
