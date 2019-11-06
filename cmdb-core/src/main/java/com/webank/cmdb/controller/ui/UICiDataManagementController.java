@@ -273,7 +273,7 @@ public class UICiDataManagementController {
     @RolesAllowed({ MENU_IDC_PLANNING_DESIGN })
     @PostMapping("/planning-designs/ci-data")
     @ResponseBody
-    public Object getPlanningDesignsCiData(@RequestParam(value = "code-id") int codeId,@RequestParam(value = "idc-guid") String idcGuid,
+    public Object getPlanningDesignsCiData(@RequestParam(value = "code-id") int codeId,@RequestParam(value = "idcs-guid") String idcGuid,
             @RequestBody QueryRequest queryObject) {
         return wrapperService.getPlanningDesignsCiData(codeId,idcGuid, queryObject);
     }
@@ -288,7 +288,7 @@ public class UICiDataManagementController {
     @RolesAllowed({ MENU_IDC_RESOURCE_PLANNING })
     @PostMapping("/resource-planning/ci-data")
     @ResponseBody
-    public Object getResourcePlanningCiData(@RequestParam(value = "code-id") int codeId,@RequestParam(value = "idc-guid") String idcGuid,
+    public Object getResourcePlanningCiData(@RequestParam(value = "code-id") int codeId,@RequestParam(value = "idcs-guid") String idcGuid,
             @RequestBody QueryRequest queryObject) {
         return wrapperService.getResourcePlanningCiData(codeId,idcGuid, queryObject);
     }
