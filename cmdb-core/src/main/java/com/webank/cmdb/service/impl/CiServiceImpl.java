@@ -1623,7 +1623,7 @@ public class CiServiceImpl implements CiService {
                 }else if(InputType.MultRef.getCode().equals(attr.getInputType())){
                 	attrExpression = curFrom.get("guid");//need guid to fetch mult ref value
                 }else {
-                	attrExpression = curFrom.get(attr.getPropertyName());
+                    attrExpression = curFrom.get(attr.getPropertyName());
                 }
                 attrExpression.alias(keyName);
                 if (attrExprMap.containsKey(keyName)) {
@@ -1677,7 +1677,7 @@ public class CiServiceImpl implements CiService {
 
         attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "guid");
         attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "r_guid");
-
+     
         if (enableBiz) {
             attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "biz_key");
             attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "state");
