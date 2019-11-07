@@ -260,9 +260,9 @@ export default {
         '"->' +
         '"' +
         target.name.trim() +
-        '"[label="' +
+        '"[taillabel="' +
         labels +
-        '"];'
+        '", labeldistance=3];'
       );
     },
 
