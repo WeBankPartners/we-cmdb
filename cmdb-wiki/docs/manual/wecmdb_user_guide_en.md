@@ -1,4 +1,4 @@
-# WeCMDB user manual
+# WeCMDB User Guide
 
 # Function menu
 
