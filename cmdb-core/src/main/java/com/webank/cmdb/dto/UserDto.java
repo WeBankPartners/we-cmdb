@@ -7,6 +7,7 @@ import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.google.common.base.MoreObjects;
 import com.webank.cmdb.domain.AdmUser;
 import com.webank.cmdb.util.CollectionUtils;
 import com.webank.cmdb.util.DtoField;
@@ -123,5 +124,16 @@ public class UserDto extends BasicResourceDto<UserDto, AdmUser> {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("userId", userId)
+                .add("username", username)
+                .add("password", password)
+                .add("fullName", fullName)
+                .add("description", description)
+                .toString();
     }
 }
