@@ -34,7 +34,7 @@ System management is composed of CMDB data model management, log enquery, basic 
 
 ### <span id="cmdb_model_management"></span>CMDB model management
 
-CMDB data model management page illustrate the relationships between CIs, and provide funtionality to add ,edit and remove each CI or its attributes.
+CMDB data model management page illustrate the relationships between CIs, and provide functionality to add ,edit and remove each CI or its attributes.
 
 [Click here](wecmdb_model_guide.md) to learn CMDB data model in detail.
 
@@ -67,7 +67,7 @@ System permission management show the relationships among user,role, menu permis
 
 - Clicking a _role name_(e.g. super admin) can display all users belong to the role, and show all menus and data permissions which the role have.
   ![Role permission](images/permission_role.png)
-- Clicking _add role_ button aboved role list can add new role.
+- Clicking _add role_ button above role list can add new role.
   ![Add role](images/permission_role_add.png)
 - Clicking _user_ button following role name can add or remove users for the role.
   ![Edit users belong to the role](images/permission_role_user_mgmt.png)
@@ -85,7 +85,7 @@ System permission management show the relationships among user,role, menu permis
 
 ### <span id="base_data_management"></span>Basic data management
 
-1. Basic data management page provide CRUD funtionality for system enum data.
+1. Basic data management page provide CRUD functionality for system enum data.
    ![Basic data management](images/base_data_management.png)
    ![Basic data management](images/base_data_management_add.png)
    ![Basic data management](images/base_data_management_edit.png)
@@ -107,12 +107,12 @@ Data management is composed of CI data management, CI integrated enquiry managem
 
 1. After select a integrated enquiry, all CIs belong to the selected integrated enquiry and their relationships will be displayed.
    ![CI integrated inquiry management](images/ci_integrated_query_management.png)
-1. After click a CI node in the diagram, 3 tabs (_Attribute_, _Referenc_,_Being referenced_ ) will be displayed. The attributes which has been checked will be displayed at the bottom of the page, the referencing and being referenced CI will be diplayed as node in the diagram.
+1. After click a CI node in the diagram, 3 tabs (_Attribute_, _Reference_,_Being referenced_ ) will be displayed. The attributes which has been checked will be displayed at the bottom of the page, the referencing and being referenced CI will be displayed as node in the diagram.
    ![CI integrated inquiry management dialog](images/ci_integrated_query_management_dialog.png)
 
 ### <span id="enum_management"></span>Enum data management
 
-1. Enum data management page provide CRUD functionality for public and prive enum, [Basic data management](#base_data_management) page can be referenced for operation.
+1. Enum data management page provide CRUD functionality for public and private enum, [Basic data management](#base_data_management) page can be referenced for operation.
    ![Enum data management](images/enum_management.png)
 
 ## <span id="data_enquiry"></span>Data enquiry
@@ -123,7 +123,7 @@ Data enquiry is composed of CI data enquiry, CI data integrated enquiry, enum da
 
 1. After open CI data enquiry page, CMDB data model diagram is displayed, the diagram just displays CIs which status are created and dirty. By hovering the mouse over a CI node, all relationship of the CI will be highlighted.
    ![CI data enquiry page-data model diagram](images/ci_data_enquiry_graph.png)
-1. Click CI and open data enquiry page, CI data can be quiried.
+1. Click CI and open data enquiry page, CI data can be queried.
    ![CI data enquiry page-data model diagram](images/ci_data_enquiry_table.png)
 
 ### <span id="ci_integrated_enquiry"></span>CI data integrated enquiry
@@ -137,7 +137,7 @@ Data enquiry is composed of CI data enquiry, CI data integrated enquiry, enum da
 
 ### <span id="enum_enquiry"></span>Enum data enquiry
 
-1. Enum data enquiry page provide query functionaliry for public and private enum data.
+1. Enum data enquiry page provide query functionality for public and private enum data.
    ![Enum data enquiry](images/enum_enquiry.png)
 
 ## <span id="view_management"></span>View management
@@ -147,7 +147,7 @@ Data enquiry is composed of CI data enquiry, CI data integrated enquiry, enum da
 1. Select IDC, display the IDC planning design diagram, scrolling mouse wheel can zoom in or zoom out the design diagram.
    ![IDC planning design diagram](images/idc_planning_design_diagram.png)
 
-1. Select any other tab beside "IDC planning design diagram" tab, netx planning design item can be processed for the selected IDC.
+1. Select any other tab beside "IDC planning design diagram" tab, next planning design item can be processed for the selected IDC.
    ![IDC planning design items](images/idc_planning_design_items.png)
 
 ### <span id="idc_resource_planning"></span>IDC resource planning
@@ -162,8 +162,8 @@ Data enquiry is composed of CI data enquiry, CI data integrated enquiry, enum da
 
 1. Select system design, display the application architecture diagram of the system, scrolling mouse wheel can zoom in or zoom out diagram.
    ![App architecture design diagram](images/app_arch_design_diagram.png)
-1. Select the "Invocation sequence design" on the right side of diagram, click Ok, list the sequence invokcation steps, press left or right arrow, the according invocation of applications will be display.
-   ![App architecture design sequece](images/app_arch_design_invoke_seq.png)
+1. Select the "Invocation sequence design" on the right side of diagram, click Ok, list the sequence invocation steps, press left or right arrow, the according invocation of applications will be display.
+   ![App architecture design sequence](images/app_arch_design_invoke_seq.png)
 1. Select "Physical deployment diagram" tab beside "App architecture design diagram", the according physical deployment information can be explored
    ![Physical deployment diagram](images/app_phisical_deploy_diagram.png)
 
@@ -175,11 +175,11 @@ Data enquiry is composed of CI data enquiry, CI data integrated enquiry, enum da
 1. Select system design, the according app deployment diagram will be displayed, scrolling mouse wheel can zoom in or zoom out the diagram.
    ![App deployment design diagram](images/app_deploy_design_diagram.png)
 
-1. Select "App deployment design tree diagram" tab besign "App deploy design diagram", the app deployment design tree diagram will be displayed, scrolling mouse wheel can zoom in or zoom out the diagram.
-   ![App depoyment design tree diagram](images/app_deploy_design_tree.png)
+1. Select "App deployment design tree diagram" tab beside "App deploy design diagram", the app deployment design tree diagram will be displayed, scrolling mouse wheel can zoom in or zoom out the diagram.
+   ![App deployment design tree diagram](images/app_deploy_design_tree.png)
 
-1. Select "Phiial deployment diagram" tabel besign "App deployment design tree diagram", the app deployment diagram can be displayed, scrolling mouse wheel can zoom in or zoom out the diagram.
+1. Select "Physical deployment diagram" table beside "App deployment design tree diagram", the app deployment diagram can be displayed, scrolling mouse wheel can zoom in or zoom out the diagram.
    ![Physical deployment diagram](images/app_deploy_design_physical.png)
 
-1. Select any table besign "Physical deployment diagram", the according configure item can be processed .
-   ![App deloyment design items](images/app_deploy_design_items.png)
+1. Select any table beside "Physical deployment diagram", the according configure item can be processed.
+   ![App deployment design items](images/app_deploy_design_items.png)
