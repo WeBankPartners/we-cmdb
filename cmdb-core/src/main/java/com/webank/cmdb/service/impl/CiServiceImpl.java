@@ -1961,7 +1961,7 @@ public class CiServiceImpl implements CiService {
         });
         return resultList;
     }
-
+    @OperationLogPointcut(operation = Modification, objectClass = CiData.class, ciTypeIdArgumentIndex = 0)
     @Override
     public List<Map<String, Object>> operateState(List<CiIndentity> ciIds, String operation) {
         StateOperation stateOperation = StateOperation.fromCode(operation);

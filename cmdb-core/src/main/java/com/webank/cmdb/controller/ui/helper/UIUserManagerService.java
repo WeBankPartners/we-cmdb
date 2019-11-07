@@ -1,5 +1,6 @@
 package com.webank.cmdb.controller.ui.helper;
 
+import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Modification;
 import static com.webank.cmdb.controller.ui.helper.CollectionUtils.asMap;
 import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
 import static java.util.stream.Collectors.toList;
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.webank.cmdb.config.log.OperationLogPointcut;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.domain.AdmMenu;
@@ -390,7 +392,7 @@ public class UIUserManagerService {
             log.info("Nothing to delete because userIds is empty.");
         }
     }
-
+    @OperationLogPointcut(operation = Modification)
     @Transactional
     public void assignMenuPermissionForRoles(int roleId, List<String> menuCodes) {
         if (isNotEmpty(menuCodes)) {

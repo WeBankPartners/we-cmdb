@@ -1,5 +1,7 @@
 package com.webank.cmdb.service.impl;
 
+import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Modification;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.webank.cmdb.config.log.OperationLogPointcut;
 import com.webank.cmdb.constant.CiStatus;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.constant.IntQueryAggOperation;
@@ -306,7 +309,8 @@ public class IntegrationQueryServiceImpl implements IntegrationQueryService {
         intTemplAliasRepository.deleteAll(intTempl.getAdmIntegrateTemplateAlias());
         intTempRepository.deleteById(queryId);
     }
-
+    
+    @OperationLogPointcut(operation = Modification)
     @Transactional
     @Override
     public void updateIntegrationQuery(int queryId, IntegrationQueryDto intQueryDto) {

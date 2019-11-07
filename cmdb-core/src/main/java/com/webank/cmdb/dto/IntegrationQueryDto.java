@@ -7,6 +7,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.google.common.base.MoreObjects;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.domain.AdmIntegrateTemplate;
@@ -178,5 +179,15 @@ public class IntegrationQueryDto {
 
     public void setAggKeyNames(List<String> aggKeyNames) {
         this.aggKeyNames = aggKeyNames;
+    }
+  
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("ciTypeId", ciTypeId)
+                .add("attrs", attrs)
+                .add("attrAliases", attrAliases)
+                .add("parentRs", parentRs)
+                .toString();
     }
 }
