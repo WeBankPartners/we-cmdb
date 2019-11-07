@@ -269,6 +269,36 @@ public class UICiDataManagementController {
     public List<CiData> getAllIdcDesignData() {
         return wrapperService.getAllIdcDesignData();
     }
+    
+    @RolesAllowed({ MENU_IDC_PLANNING_DESIGN })
+    @PostMapping("/planning-designs/ci-data")
+    @ResponseBody
+    public Object getPlanningDesignsCiData(@RequestParam(value = "code-id") int codeId,@RequestParam(value = "idcs-guid") String idcGuid,
+            @RequestBody QueryRequest queryObject) {
+        return wrapperService.getPlanningDesignsCiData(codeId,idcGuid, queryObject);
+    }
+    
+    @RolesAllowed({ MENU_IDC_PLANNING_DESIGN })
+    @GetMapping("/planning-designs/tabs")
+    @ResponseBody
+    public Object getPlanningDesignTabs() {
+        return wrapperService.getPlanningDesignTabs();
+    }
+    
+    @RolesAllowed({ MENU_IDC_RESOURCE_PLANNING })
+    @PostMapping("/resource-planning/ci-data")
+    @ResponseBody
+    public Object getResourcePlanningCiData(@RequestParam(value = "code-id") int codeId,@RequestParam(value = "idcs-guid") String idcGuid,
+            @RequestBody QueryRequest queryObject) {
+        return wrapperService.getResourcePlanningCiData(codeId,idcGuid, queryObject);
+    }
+    
+    @RolesAllowed({ MENU_IDC_RESOURCE_PLANNING })
+    @GetMapping("/resource-planning/tabs")
+    @ResponseBody
+    public Object getResourcePlanningTabs() {
+        return wrapperService.getResourcePlanningTabs();
+    }
 
     @RolesAllowed({ MENU_IDC_PLANNING_DESIGN })
     @PostMapping("/data-tree/query-idc-design-tree")
@@ -289,6 +319,13 @@ public class UICiDataManagementController {
     @ResponseBody
     public List<CiData> getAllIdcData() {
         return wrapperService.getAllIdcData();
+    }
+    
+    @RolesAllowed({ MENU_IDC_PLANNING_DESIGN })
+    @PostMapping("/ci-data/idc")
+    @ResponseBody
+    public List<CiData> getIdcDataByGuid(@RequestBody List<String> idcGuids) {
+        return wrapperService.getIdcDataByGuid(idcGuids);
     }
 
     @RolesAllowed({ MENU_IDC_RESOURCE_PLANNING })
