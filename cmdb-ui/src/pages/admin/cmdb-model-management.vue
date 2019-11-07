@@ -2,7 +2,7 @@
   <Row>
     <Col span="18">
       <div style="padding-right: 20px">
-        <Card>
+        <Card style="height: calc(100vh - 108px);">
           <Row slot="title">
             <Col span="10">
               <p>
@@ -661,7 +661,9 @@
                   class="no-need-validation"
                   v-if="
                     item.form.inputType === 'ref' ||
-                      item.form.inputType === 'select'
+                      item.form.inputType === 'select' ||
+                      item.form.inputType === 'multiRef' ||
+                      item.form.inputType === 'multiSelect'
                   "
                   :label="$t('filter_rule')"
                 >
@@ -1110,7 +1112,8 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           .zoom(true)
-          .width(graphEl.offsetWidth * 1)
+          .height(window.innerHeight - 210)
+          .width(graphEl.offsetWidth - 16)
           .attributer(function(d) {
             if (d.attributes.class === "edge") {
               const keys = d.key.split("->");
