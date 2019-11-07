@@ -606,7 +606,7 @@ export default {
             const _this = this;
 
             const props =
-              params.column.component === "WeSelect"
+              params.column.component === "WeCMDBSelect"
                 ? {
                     value: params.column.isRefreshable
                       ? params.column.inputType === "multiSelect"
