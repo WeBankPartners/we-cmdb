@@ -79,14 +79,14 @@ import * as d3Graphviz from "d3-graphviz";
 import {
   getAllIdcData,
   getIdcImplementTreeByGuid,
-  queryCiData,
+  getResourcePlanningCiData,
   getCiTypeAttributes,
   deleteCiDatas,
   createCiDatas,
   updateCiDatas,
   getEnumCodesByCategoryId,
   getRefCiTypeFrom,
-  getCiTypes,
+  getResourcePlanningTabs,
   getAllZoneLinkGroupByIdc,
   operateCiState
 } from "@/api/server";
@@ -124,7 +124,6 @@ export default {
         paging: true
       },
       graph: new Map(),
-      layerId: 4,
       graphBig: "",
       idcData: [],
       zoneLinkData: new Map(),
@@ -156,6 +155,7 @@ export default {
     },
 
     async onIdcDataChange() {
+      this.handleTabClick(this.currentTab);
       if (this.selectedIdcs.length) {
         this.spinShow = true;
         const { data, message, status } = await getIdcImplementTreeByGuid(
@@ -544,11 +544,7 @@ export default {
       this.payload.filters = [];
       this.currentTab = name;
       if (this.currentTab != "resource-design") {
-        const found = this.clickedTab.find(_ => _ === name);
-        if (!found) {
-          this.getCurrentData();
-          this.clickedTab.push(this.currentTab);
-        }
+        this.getCurrentData();
       }
     },
     setCurrentGraph(name) {
@@ -814,9 +810,11 @@ export default {
       }
     },
     async exportHandler() {
-      const { status, message, data } = await queryCiData({
-        id: this.currentTab,
-        queryObject: {}
+      const found = this.tabList.find(_ => _.code === this.currentTab);
+      const { status, message, data } = await getResourcePlanningCiData({
+        idcGuid: this.selectedIdcs.join(","),
+        id: found.codeId,
+        queryObject: this.payload
       });
       if (status === "OK") {
         this.$refs[this.tableRef][0].export({
@@ -852,11 +850,12 @@ export default {
             (ci.pagination.currentPage - 1) * ci.pagination.pageSize;
         }
       });
-      const query = {
-        id: this.currentTab,
+      const found = this.tabList.find(_ => _.code === this.currentTab);
+      const { status, message, data } = await getResourcePlanningCiData({
+        idcGuid: this.selectedIdcs.join(","),
+        id: found.codeId,
         queryObject: this.payload
-      };
-      const { status, message, data } = await queryCiData(query);
+      });
       if (status === "OK") {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
@@ -966,44 +965,31 @@ export default {
         this.initGraph();
       });
     },
-    async getAllCiTypeByLayer(layerId) {
-      if (layerId < 0) {
-        return;
-      }
-      let filter = {
-        key: "group-by",
-        value: "layer"
-      };
-      const { status, message, data } = await getCiTypes(filter);
+    async getTabList() {
+      const { status, message, data } = await getResourcePlanningTabs();
       if (status === "OK") {
         let allInnerActions = await getExtraInnerActions();
-        data.forEach(item => {
-          if (item.codeId === layerId) {
-            this.tabList = item.ciTypes.map(_ => {
-              if (_.status === "created" || _.status === "dirty") {
-                return {
-                  ..._,
-                  name: _.name,
-                  id: _.ciTypeId + "",
-                  tableData: [],
-                  tableColumns: [],
-                  outerActions: JSON.parse(JSON.stringify(outerActions)),
-                  innerActions: JSON.parse(
-                    JSON.stringify(innerActions.concat(allInnerActions))
-                  ),
-                  pagination: JSON.parse(JSON.stringify(pagination)),
-                  ascOptions: {}
-                };
-              }
-            });
-          }
+        this.tabList = data.map(_ => {
+          return {
+            ..._,
+            name: _.value,
+            id: _.code,
+            tableData: [],
+            tableColumns: [],
+            outerActions: JSON.parse(JSON.stringify(outerActions)),
+            innerActions: JSON.parse(
+              JSON.stringify(innerActions.concat(allInnerActions))
+            ),
+            pagination: JSON.parse(JSON.stringify(pagination)),
+            ascOptions: {}
+          };
         });
       }
     }
   },
   created() {
     this.getAllIdcData();
-    this.getAllCiTypeByLayer(this.layerId);
+    this.getTabList();
   }
 };
 </script>

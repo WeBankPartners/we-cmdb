@@ -136,6 +136,18 @@ export const getAllZoneLinkDesignGroupByIdcDesign = () =>
 export const getAllIdcData = () => req.get(`/ci-data/all-idc`);
 export const getIdcImplementTreeByGuid = data =>
   req.post(`/data-tree/query-idc-tree`, data);
+export const getPlanningDesignTabs = () => req.get("/planning-designs/tabs");
+export const getResourcePlanningTabs = () => req.get("/resource-planning/tabs");
+export const getPlanningDesignsCiData = data =>
+  req.post(
+    `/planning-designs/ci-data?code-id=${data.id}&idcs-guid=${data.idcGuid}`,
+    data.queryObject
+  );
+export const getResourcePlanningCiData = data =>
+  req.post(
+    `/resource-planning/ci-data?code-id=${data.id}&idcs-guid=${data.idcGuid}`,
+    data.queryObject
+  );
 export const getAllZoneLinkGroupByIdc = () => req.get(`/all-zone-link`);
 export const getSystemDesigns = () => {
   return req.get(`/system-designs`);
