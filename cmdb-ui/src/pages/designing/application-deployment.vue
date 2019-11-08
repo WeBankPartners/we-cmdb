@@ -770,9 +770,9 @@ export default {
       layerDot.push("node [shape=plaintext, fontsize=16];");
       data.forEach((element, index) => {
         if (index === data.length - 1) {
-          layerDot.push(`${element.value}`);
+          layerDot.push(`"title_${index}"`);
         } else {
-          layerDot.push(`${element.value} -> `);
+          layerDot.push(`"title_${index}" -> `);
         }
         this.rankNodes[index + 1] = [];
         this.rankNodes[index + 1].push(element.value);
@@ -804,8 +804,16 @@ export default {
     },
     genRankNodeDot() {
       let dot = [];
-      Object.keys(this.rankNodes).forEach(key => {
-        dot = dot.concat([`{rank=same;`, this.rankNodes[key].join(";"), `;}`]);
+      Object.keys(this.rankNodes).forEach((key, index) => {
+        dot.push("{rank=same;");
+        this.rankNodes[key].forEach((_, i) => {
+          if (i === 0) {
+            dot.push(`"title_${index}"[label="${this.rankNodes[key][0]}"];`);
+          } else {
+            dot.push(`${this.rankNodes[key][i]};`);
+          }
+        });
+        dot.push("}");
       });
       return dot;
     },
