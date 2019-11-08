@@ -1,6 +1,6 @@
 package com.webank.cmdb.controller.ui;
 
-import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_BASE_DATA_MANAGEMENT;
+import static com.webank.cmdb.domain.AdmMenu.MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_CMDB_MODEL_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_PERMISSION_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_APPLICATION_DEPLOYMENT_DESIGN;
@@ -83,7 +83,7 @@ public class UIEnumManagementController {
         wrapperService.updateEnumCategories(Lists.newArrayList(categoryDto));
     }
 
-    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_ADMIN_BASE_DATA_MANAGEMENT })
+    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT })
     @PostMapping("/enum/category-types/{category-type-id}/categories/{category-id}/codes/create")
     @ResponseBody
     public Object createEnumCode(@PathVariable(value = "category-type-id", required = false) Integer categoryTypeId,
@@ -126,49 +126,49 @@ public class UIEnumManagementController {
         wrapperService.deleteEnumCodes(layerId);
     }
 
-    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_ADMIN_BASE_DATA_MANAGEMENT })
+    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT })
     @PostMapping("/enum/system/codes")
     @ResponseBody
     public Object querySystemEnumCodesWithRefResources(@RequestBody QueryRequest queryObject) {
         return wrapperService.querySystemEnumCodesWithRefResources(queryObject);
     }
 
-    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_ADMIN_BASE_DATA_MANAGEMENT })
+    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT })
     @PostMapping("/enum/non-system/codes")
     @ResponseBody
     public Object queryNonSystemEnumCodesWithRefResources(@RequestBody QueryRequest queryObject) {
         return wrapperService.queryNonSystemEnumCodesWithRefResources(queryObject);
     }
 
-    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_ADMIN_BASE_DATA_MANAGEMENT })
+    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT })
     @GetMapping("/enum/system-categories")
     @ResponseBody
     public Object getSystemCategories() {
         return wrapperService.getAllSystemEnumCategories().getContents();
     }
 
-    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_ADMIN_BASE_DATA_MANAGEMENT })
+    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT })
     @GetMapping("/enum/non-system-categories")
     @ResponseBody
     public Object getNonSystemCategories() {
         return wrapperService.getAllNonSystemEnumCategories().getContents();
     }
 
-    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_ADMIN_BASE_DATA_MANAGEMENT })
+    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT })
     @GetMapping("/enum/categories/{category-id}/group-list")
     @ResponseBody
     public Object getGroupListByCategoryId(@PathVariable(value = "category-id") int categoryId) {
         return wrapperService.getGroupListByCatId(categoryId);
     }
 
-    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_ADMIN_BASE_DATA_MANAGEMENT })
+    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT })
     @PostMapping("/enum/codes/update")
     @ResponseBody
     public Object updateEnumCodes(@RequestBody List<Map<String, Object>> catCodeDtos) {
         return wrapperService.updateEnumCodes(catCodeDtos);
     }
 
-    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_ADMIN_BASE_DATA_MANAGEMENT })
+    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT })
     @PostMapping("/enum/codes/delete")
     @ResponseBody
     public void deleteEnumCodes(@RequestBody List<Integer> codeIds) {
