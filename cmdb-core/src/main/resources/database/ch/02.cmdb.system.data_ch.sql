@@ -325,7 +325,7 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(241, 70, '1', '系统', 2, NULL, 1, 'active'),
 	(242, 70, '2', '子系统', 2, NULL, 2, 'active'),
 	(243, 70, '3', '单元', 2, NULL, 3, 'active'),
-	(244, 70, '4', '服务', 2, NULL, 4, 'active'),
+	(244, 70, '4', '运行实例 & 服务', 2, NULL, 4, 'active'),
 	(245, 16, '1', '系统设计', NULL, NULL, 1, 'active'),
 	(246, 17, 'guid_of_sys_design', NULL, 245, NULL, 1, 'active');
 
