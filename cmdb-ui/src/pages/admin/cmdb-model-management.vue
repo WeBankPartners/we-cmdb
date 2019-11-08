@@ -122,36 +122,47 @@
         </Row>
         <Collapse accordion>
           <Panel
+            class="collapse-row"
             v-for="(item, index) in currentSelectLayerChildren.ciTypes"
             :key="item.ciTypeId"
             :name="index.toString()"
           >
-            <span
-              :class="
-                item.status === 'decommissioned' ? 'decommissionedLabel' : ''
-              "
-              >{{ item.name }}</span
-            >
-            <span class="header-buttons-container margin-right">
-              <Tooltip
-                v-if="item.status === 'decommissioned'"
-                :content="$t('roll_back')"
-                placement="top-start"
+            <div class="collapse-row-title">
+              <span
+                :class="
+                  `${
+                    item.status === 'decommissioned'
+                      ? 'decommissionedLabel '
+                      : ''
+                  }ci-type-header-title`
+                "
+                >{{ item.name }}</span
               >
-                <Button
-                  size="small"
-                  @click.stop.prevent="revertCI(item.ciTypeId)"
-                  icon="md-redo"
-                ></Button>
-              </Tooltip>
-              <Tooltip v-else :content="$t('delete_ci')" placement="top-start">
-                <Button
-                  size="small"
-                  @click.stop.prevent="deleteCI(item.ciTypeId, item.status)"
-                  icon="ios-trash"
-                ></Button>
-              </Tooltip>
-            </span>
+              <span class="header-buttons-container margin-right">
+                <Tooltip
+                  v-if="item.status === 'decommissioned'"
+                  :content="$t('roll_back')"
+                  placement="top-start"
+                >
+                  <Button
+                    size="small"
+                    @click.stop.prevent="revertCI(item.ciTypeId)"
+                    icon="md-redo"
+                  ></Button>
+                </Tooltip>
+                <Tooltip
+                  v-else
+                  :content="$t('delete_ci')"
+                  placement="top-start"
+                >
+                  <Button
+                    size="small"
+                    @click.stop.prevent="deleteCI(item.ciTypeId, item.status)"
+                    icon="ios-trash"
+                  ></Button>
+                </Tooltip>
+              </span>
+            </div>
             <div slot="content">
               <Form
                 class="validation-form"
@@ -317,59 +328,66 @@
         </Row>
         <Collapse accordion @on-change="onCIAttrCollapeOpen">
           <Panel
+            class="collapse-row"
             v-for="(item, index) in currentSelectedCIChildren"
             :key="item.ciTypeAttrId"
             :name="item.ciTypeAttrId.toString()"
             v-if="!item.isHidden"
           >
-            <span
-              :class="
-                item.status === 'decommissioned' ? 'decommissionedLabel' : ''
-              "
-              >{{ item.name }}</span
-            >
-            <span class="header-buttons-container margin-right">
-              <Tooltip
-                :content="$t('move_up_ci_attribute')"
-                placement="top-start"
+            <div class="collapse-row-title">
+              <span
+                :class="
+                  `${
+                    item.status === 'decommissioned'
+                      ? 'decommissionedLabel '
+                      : ''
+                  }attr-header-title`
+                "
+                >{{ item.name }}</span
               >
-                <Button
-                  size="small"
-                  @click.stop.prevent="moveUpAttr(item.ciTypeAttrId)"
-                  icon="md-arrow-round-up"
-                ></Button>
-              </Tooltip>
-              <Tooltip
-                :content="$t('move_down_ci_attribute')"
-                placement="top-start"
-              >
-                <Button
-                  size="small"
-                  @click.stop.prevent="moveDownAttr(item.ciTypeAttrId)"
-                  icon="md-arrow-round-down"
-                ></Button>
-              </Tooltip>
-              <Tooltip
-                v-if="item.status === 'decommissioned'"
-                :content="$t('roll_back')"
-                placement="top-start"
-              >
-                <Button
-                  size="small"
-                  @click.stop.prevent="revertCIAttr(item.ciTypeAttrId)"
-                  icon="md-redo"
-                ></Button>
-              </Tooltip>
-              <Tooltip v-else :content="$t('delete')" placement="top-start">
-                <Button
-                  size="small"
-                  @click.stop.prevent="
-                    deleteCIAttr(item.ciTypeAttrId, item.status)
-                  "
-                  icon="ios-trash"
-                ></Button>
-              </Tooltip>
-            </span>
+              <span class="header-buttons-container margin-right">
+                <Tooltip
+                  :content="$t('move_up_ci_attribute')"
+                  placement="top-start"
+                >
+                  <Button
+                    size="small"
+                    @click.stop.prevent="moveUpAttr(item.ciTypeAttrId)"
+                    icon="md-arrow-round-up"
+                  ></Button>
+                </Tooltip>
+                <Tooltip
+                  :content="$t('move_down_ci_attribute')"
+                  placement="top-start"
+                >
+                  <Button
+                    size="small"
+                    @click.stop.prevent="moveDownAttr(item.ciTypeAttrId)"
+                    icon="md-arrow-round-down"
+                  ></Button>
+                </Tooltip>
+                <Tooltip
+                  v-if="item.status === 'decommissioned'"
+                  :content="$t('roll_back')"
+                  placement="top-start"
+                >
+                  <Button
+                    size="small"
+                    @click.stop.prevent="revertCIAttr(item.ciTypeAttrId)"
+                    icon="md-redo"
+                  ></Button>
+                </Tooltip>
+                <Tooltip v-else :content="$t('delete')" placement="top-start">
+                  <Button
+                    size="small"
+                    @click.stop.prevent="
+                      deleteCIAttr(item.ciTypeAttrId, item.status)
+                    "
+                    icon="ios-trash"
+                  ></Button>
+                </Tooltip>
+              </span>
+            </div>
             <div slot="content">
               <Form
                 class="validation-form"
@@ -1918,6 +1936,26 @@ export default {
 }
 .margin-right {
   margin-right: 20px;
+}
+.collapse-row-title {
+  float: right;
+  width: calc(100% - 30px);
+}
+.ci-type-header-title {
+  display: block;
+  float: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: calc(100% - 55px);
+}
+.attr-header-title {
+  display: block;
+  float: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: calc(100% - 120px);
 }
 .func-wrapper {
   .header-buttons-container {
