@@ -79,9 +79,9 @@
     >
       <Card v-if="isLayerSelected">
         <Row slot="title">
-          <Col span="6">
-            <p>{{ currentSelectedLayer.name }}</p>
-          </Col>
+          <p style="width: calc(100% - 165px);">
+            {{ currentSelectedLayer.name }}
+          </p>
           <span class="header-buttons-container">
             <Tooltip :content="$t('new_ci_type')" placement="top-start">
               <Button
@@ -1223,21 +1223,26 @@ export default {
       let tempClusterAryForGraph = [];
       this.layers.map((_, index) => {
         if (index !== this.layers.length - 1) {
-          layerTag += '"' + _.name + '"' + "->";
+          layerTag += `"layer_${_.layerId}"->`;
         } else {
-          layerTag += '"' + _.name + '"';
+          layerTag += `"layer_${_.layerId}"`;
         }
-
-        tempClusterObjForGraph[index] = [`{ rank=same; "${_.name}";`];
+        tempClusterObjForGraph[index] = [
+          `{ rank=same; "layer_${_.layerId}"[id="layerId_${
+            _.layerId
+          }",class="layer",label="${_.name}",tooltip="${_.name}"];`
+        ];
         nodes.length > 0 &&
           nodes.forEach((node, nodeIndex) => {
             if (node.layerId === _.layerId) {
               let fontcolor =
                 node.status === "notCreated" ? "#10a34e" : "black";
               tempClusterObjForGraph[index].push(
-                `"${node.name}"[id="${
-                  node.ciTypeId
-                }",fontcolor="${fontcolor}", image="${
+                `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${
+                  node.name
+                }",tooltip="${
+                  node.name
+                }",class="ci",fontcolor="${fontcolor}", image="${
                   node.form.imgSource
                 }.png", labelloc="b"]`
               );
@@ -1272,9 +1277,9 @@ export default {
     genEdge(nodes, from, to) {
       const target = nodes.find(_ => _.ciTypeId === to.referenceId);
       let labels = to.referenceName ? to.referenceName.trim() : "";
-      return `"${
-        from.name
-      }"->"${target.name.trim()}"[taillabel="${labels}",labeldistance=3];`;
+      return `"ci_${from.ciTypeId}"->"ci_${
+        target.ciTypeId
+      }"[taillabel="${labels}",labeldistance=3];`;
     },
     shadeAll() {
       d3.selectAll("g path")
@@ -1339,15 +1344,16 @@ export default {
         this.colorNode(this.nodeName);
       });
       addEvent(".node", "click", async e => {
-        this.isLayerSelected = this.layers.find(_ => _.name === this.nodeName);
+        this.isLayerSelected =
+          this.g.getAttribute("class").indexOf("layer") >= 0;
         this.renderRightPanels();
       });
     },
     renderRightPanels() {
       if (!this.nodeName) return;
-      if (!!this.isLayerSelected) {
+      if (this.isLayerSelected) {
         this.currentSelectedLayer = this.layers.find(
-          _ => _.layerId === this.isLayerSelected.layerId
+          _ => _.layerId === +this.g.id.split("_")[1]
         );
         this.updatedLayerNameValue = {
           codeId: this.currentSelectedLayer.layerId,
