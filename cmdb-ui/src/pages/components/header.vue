@@ -143,7 +143,7 @@ export default {
   },
   watch: {
     $lang: function(lang) {
-      location.reload();
+      window.location.reload();
     }
   }
 };
