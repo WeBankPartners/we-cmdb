@@ -449,11 +449,11 @@ export default {
     },
     async reloadHandler() {
       this.onArchChange();
-      this.invokeSequenceForm.selectedInvokeSequence = "";
-      this.invokeSequenceForm.isShowInvokeSequenceDetial = false;
       this.isDataChanged = false;
     },
     async onArchChange() {
+      this.invokeSequenceForm.selectedInvokeSequence = "";
+      this.invokeSequenceForm.isShowInvokeSequenceDetial = false;
       let { status, message, data } = await getAllCITypes();
       if (status === "OK") {
         data.forEach(ci => {
