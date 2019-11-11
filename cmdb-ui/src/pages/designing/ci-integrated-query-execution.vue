@@ -90,7 +90,7 @@ import {
 import { components } from "../../const/actions.js";
 const innerActions = [
   {
-    label: Vue.t("basic_data"),
+    label: window.vm ? window.vm.$t("basic_data") : Vue.t("basic_data"),
     props: {
       type: "info",
       size: "small"
@@ -100,7 +100,7 @@ const innerActions = [
 ];
 const outerActions = [
   {
-    label: Vue.t("show_message"),
+    label: window.vm ? window.vm.$t("show_message") : Vue.t("show_message"),
     props: {
       type: "success",
       icon: "ios-eye",
