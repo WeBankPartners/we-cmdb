@@ -5,7 +5,7 @@
     </div>
     <div class="content-container">
       <Breadcrumb style="margin: 10px 0;" v-if="isShowBreadcrum && !isSetting">
-        <BreadcrumbItem to="/">Home</BreadcrumbItem>
+        <BreadcrumbItem to="/">{{ $t("home") }}</BreadcrumbItem>
         <BreadcrumbItem>{{ parentBreadcrumb }}</BreadcrumbItem>
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
       </Breadcrumb>
