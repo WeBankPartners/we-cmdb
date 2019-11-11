@@ -19,89 +19,89 @@ import applicationDeploymentDesign from "@/pages/designing/application-deploymen
 Vue.use(Router);
 const router = [
   {
-    path: "/admin/cmdb-model-management",
+    path: "/wecmdb/admin/cmdb-model-management",
     name: "ciDesign",
     component: ciDesign
   },
   {
-    path: "/admin/base-data-management",
+    path: "/wecmdb/admin/base-data-management",
     name: "baseData",
     component: enums
   },
   {
-    path: "/designing/enum-management",
+    path: "/wecmdb/designing/enum-management",
     name: "enumManage",
     component: enums
   },
   {
-    path: "/designing/enum-enquiry",
+    path: "/wecmdb/designing/enum-enquiry",
     name: "enumEnquiry",
     component: enums
   },
   {
-    path: "/designing/ci-data-management",
+    path: "/wecmdb/designing/ci-data-management",
     name: "ciDataManage",
     component: ciData
   },
   {
-    path: "/designing/ci-data-enquiry",
+    path: "/wecmdb/designing/ci-data-enquiry",
     name: "ciDataEnquiry",
     component: ciData
   },
   {
-    path: "/designing/ci-integrated-query-execution",
+    path: "/wecmdb/designing/ci-integrated-query-execution",
     name: "integrateQuery",
     component: integrateQuery
   },
   {
-    path: "/designing/ci-integrated-query-management",
+    path: "/wecmdb/designing/ci-integrated-query-management",
     name: "integrateQueryMgmt",
     component: integrateQueryMgmt
   },
   {
-    path: "/admin/query-log",
+    path: "/wecmdb/admin/query-log",
     name: "logEnQuiry",
     component: logEnQuiry
   },
   // 视图查询
   {
-    path: "/view-query/idc-planning-query",
+    path: "/wecmdb/view-query/idc-planning-query",
     name: "idcPlanningQuery",
     component: idcPlanningQuery
   },
   {
-    path: "/view-query/idc-resource-planning-query",
+    path: "/wecmdb/view-query/idc-resource-planning-query",
     name: "idcResourcePlanningQuery",
     component: idcResourcePlanningQuery
   },
   {
-    path: "/view-query/application-architecture-query",
+    path: "/wecmdb/view-query/application-architecture-query",
     name: "applicationArchitectureQuery",
     component: applicationArchitectureQuery
   },
   {
-    path: "/view-query/application-deployment-query",
+    path: "/wecmdb/view-query/application-deployment-query",
     name: "applicationDeploymentQuery",
     component: applicationDeploymentQuery
   },
   // 视图管理
   {
-    path: "/view-management/idc-planning-design",
+    path: "/wecmdb/view-management/idc-planning-design",
     name: "idcPlanningDesign",
     component: idcPlanningDesign
   },
   {
-    path: "/view-management/idc-resource-planning",
+    path: "/wecmdb/view-management/idc-resource-planning",
     name: "idcResourcePlanning",
     component: idcResourcePlanning
   },
   {
-    path: "/view-management/application-architecture-design",
+    path: "/wecmdb/view-management/application-architecture-design",
     name: "applicationArchitectureDesign",
     component: applicationArchitectureDesign
   },
   {
-    path: "/view-management/application-deployment-design",
+    path: "/wecmdb/view-management/application-deployment-design",
     name: "applicationDeploymentDesign",
     component: applicationDeploymentDesign
   }
