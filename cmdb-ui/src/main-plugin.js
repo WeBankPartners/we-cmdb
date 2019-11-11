@@ -5,9 +5,10 @@ import "highlight.js/styles/default.css";
 import router from "./router-plugin";
 import iView from "iview";
 import "iview/dist/styles/iview.css";
-import VueI18n from "vue-i18n";
 import locale from "iview/dist/locale/en-US";
 import "./locale/i18n";
+import zh_CN from "./locale/i18n/zh-CN.json";
+import en_US from "./locale/i18n/en-US.json";
 
 import WeCMDBSelect from "../src/pages/components/select.vue";
 import WeCMDBRefSelect from "./pages/components/ref-select.js";
@@ -29,9 +30,11 @@ Vue.config.productionTip = false;
 Vue.use(iView, {
   transfer: true,
   size: "default",
-  VueI18n,
   locale
 });
+
+window.locale("zh-CN", zh_CN);
+window.locale("en_US", en_US);
 
 Vue.use(VueHighlightJS);
 
