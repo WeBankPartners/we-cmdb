@@ -34,7 +34,7 @@ export const components = {
 };
 export const outerActions = [
   {
-    label: Vue.t("new"),
+    label: window.vm ? window.vm.$t("new") : Vue.t("new"),
     props: {
       type: "success",
       icon: "md-add",
@@ -43,7 +43,7 @@ export const outerActions = [
     actionType: "add"
   },
   {
-    label: Vue.t("save"),
+    label: window.vm ? window.vm.$t("save") : Vue.t("save"),
     props: {
       type: "info",
       icon: "md-checkmark",
@@ -52,7 +52,7 @@ export const outerActions = [
     actionType: "save"
   },
   {
-    label: Vue.t("edit"),
+    label: window.vm ? window.vm.$t("edit") : Vue.t("edit"),
     props: {
       type: "info",
       icon: "ios-build",
@@ -61,7 +61,7 @@ export const outerActions = [
     actionType: "edit"
   },
   {
-    label: Vue.t("delete"),
+    label: window.vm ? window.vm.$t("delete") : Vue.t("delete"),
     props: {
       type: "error",
       icon: "ios-trash-outline",
@@ -70,7 +70,7 @@ export const outerActions = [
     actionType: "delete"
   },
   {
-    label: Vue.t("cancel"),
+    label: window.vm ? window.vm.$t("cancel") : Vue.t("cancel"),
     props: {
       type: "warning",
       icon: "md-undo"
@@ -79,7 +79,7 @@ export const outerActions = [
     actionType: "cancel"
   },
   {
-    label: Vue.t("export"),
+    label: window.vm ? window.vm.$t("export") : Vue.t("export"),
     props: {
       type: "primary",
       icon: "ios-download-outline"
@@ -87,7 +87,7 @@ export const outerActions = [
     actionType: "export"
   },
   {
-    label: Vue.t("column_filter"),
+    label: window.vm ? window.vm.$t("column_filter") : Vue.t("column_filter"),
     props: {
       type: "primary",
       icon: "ios-funnel",
@@ -99,7 +99,7 @@ export const outerActions = [
 ];
 export const innerActions = [
   {
-    label: Vue.t("cancel"),
+    label: window.vm ? window.vm.$t("cancel") : Vue.t("cancel"),
     props: {
       type: "warning",
       size: "small"
