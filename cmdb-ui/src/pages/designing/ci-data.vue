@@ -209,16 +209,21 @@ export default {
       let tempClusterAryForGraph = [];
       this.layers.map((_, index) => {
         if (index !== this.layers.length - 1) {
-          layerTag += '"' + _.name + '"' + "->";
+          layerTag += `"layer_${_.layerId}"->`;
         } else {
-          layerTag += '"' + _.name + '"';
+          layerTag += `"layer_${_.layerId}"`;
         }
-
-        tempClusterObjForGraph[index] = [`{ rank=same; "${_.name}";`];
+        tempClusterObjForGraph[index] = [
+          `{ rank=same; "layer_${_.layerId}"[id="layerId_${
+            _.layerId
+          }",class="layer",label="${_.name}",tooltip="${_.name}"];`
+        ];
         nodes.forEach((node, nodeIndex) => {
           if (node.layerId === _.layerId) {
             tempClusterObjForGraph[index].push(
-              `"${node.name}"[id="${node.ciTypeId}", image="${
+              `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${
+                node.name
+              }",tooltip="${node.name}",class="ci",image="${
                 node.form.imgSource
               }.png", labelloc="b"]`
             );
@@ -254,16 +259,9 @@ export default {
     genEdge(nodes, from, to) {
       const target = nodes.find(_ => _.ciTypeId === to.referenceId);
       let labels = to.referenceName ? to.referenceName.trim() : "";
-      return (
-        '"' +
-        from.name +
-        '"->' +
-        '"' +
-        target.name.trim() +
-        '"[taillabel="' +
-        labels +
-        '", labeldistance=3];'
-      );
+      return `"ci_${from.ciTypeId}"->"ci_${
+        target.ciTypeId
+      }"[taillabel="${labels}",labeldistance=3];`;
     },
 
     loadImage(nodesString) {
@@ -333,14 +331,14 @@ export default {
         e.stopPropagation();
         var g = e.currentTarget;
         var nodeName = g.children[0].innerHTML.trim();
-        let isLayerSelected = this.layers.find(_ => _.name === nodeName);
+        let isLayerSelected = g.getAttribute("class").indexOf("layer") >= 0;
         if (isLayerSelected) {
           return;
         }
         const found = this.tabList.find(_ => _.id === g.id);
         if (!found) {
           const ci = {
-            name: nodeName,
+            name: g.children[1].children[0].getAttribute("title"),
             id: g.id,
             tableData: [],
             outerActions:
