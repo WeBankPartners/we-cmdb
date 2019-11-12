@@ -15,7 +15,7 @@ INSERT INTO `adm_ci_type_attr_base` (`id_adm_ci_type`, `name`, `description`, `i
 	(1, '更新日期', '更新日期', 'date', 'updated_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, 0),
 	(1, '创建用户', '创建用户', 'text', 'created_by', 'varchar', 50, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, 0),
 	(1, '创建日期', '创建日期', 'date', 'created_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, 0);	
-	
+
 INSERT INTO `adm_basekey_cat` (`id_adm_basekey_cat`, `cat_name`, `description`, `id_adm_role`, `id_adm_basekey_cat_type`, `group_type_id`) VALUES
 	(1, 'ci_layer', '层级', NULL, 1, NULL),
 	(2, 'ci_catalog', '目录', NULL, 1, NULL),
@@ -323,11 +323,13 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(239, 31, 'wecube1564468847441', 'test\n', NULL, NULL, 1, 'active'),
 	(240, 69, 'seed123456', 'seed', NULL, NULL, 1, 'active'),
 	(241, 70, '1', '系统', 2, NULL, 1, 'active'),
-	(242, 70, '2', '子系统', 2, NULL, 2, 'active'),
-	(243, 70, '3', '单元', 2, NULL, 3, 'active'),
-	(244, 70, '4', '运行实例 & 服务', 2, NULL, 4, 'active'),
-	(245, 16, '1', '系统设计', NULL, NULL, 1, 'active'),
-	(246, 17, 'guid_of_sys_design', NULL, 245, NULL, 1, 'active');
+	(242, 70, '7', '子系统', 2, NULL, 2, 'active'),
+	(243, 70, '8', '单元', 2, NULL, 3, 'active'),
+	(244, 70, '15', '运行实例', 2, NULL, 4, 'active'),
+	(245, 70, '9', '服务', 2, NULL, 5, 'active'),
+	(246, 70, '10', '调用', 2, NULL, 6, 'active'),
+	(247, 16, '1', '系统设计', NULL, NULL, 1, 'active'),
+	(248, 17, 'guid_of_sys_design', NULL, 245, NULL, 1, 'active');
 
 INSERT INTO `adm_ci_type` (`id_adm_ci_type`, `name`, `description`, `id_adm_tenement`, `table_name`, `status`, `catalog_id`, `ci_global_unique_id`, `seq_no`, `layer_id`, `zoom_level_id`, `image_file_id`, `ci_state_type`) VALUES
 	(1, '系统设计', '系统设计', NULL, 'system_design', 'created', 6, NULL, 1, 1, NULL, 1, NULL),

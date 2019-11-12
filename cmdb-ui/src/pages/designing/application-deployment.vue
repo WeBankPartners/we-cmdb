@@ -326,9 +326,7 @@ export default {
             }
             dots.push("subgraph cluster_" + unit.guid + "{");
             dots.push(
-              `label="${unitLabel}"; style=filled; color="${color}";tooltip="${
-                unit.data.description
-              }"`
+              `label="${unitLabel}"; style=filled; color="${color}";tooltip="${unit.data.description}"`
             );
             dots.push(`"${unit.guid}"[shape="none",`);
             dots.push(
@@ -374,11 +372,7 @@ export default {
                   }
                   let ip = service.data.ip ? service.data.ip : "";
                   dots.push(
-                    `"${
-                      service.guid
-                    }" [shape="record", label="{{ ${serviceLabel}|{ ${domain} | ${
-                      service.data.service_port
-                    } }| ${ip} }}", tooltip="${service.data.description}"];`
+                    `"${service.guid}" [shape="record", label="{{ ${serviceLabel}|{ ${domain} | ${service.data.service_port} }| ${ip} }}", tooltip="${service.data.description}"];`
                   );
                   graphMap.set(service.guid, serviceLabel);
                   dots.push(
@@ -401,9 +395,7 @@ export default {
         }
 
         dots.push(
-          `"${invoke.data.unit.guid}"->"${invoke.data.service.guid}"[id="${
-            invoke.guid
-          }",color="${color}"];`
+          `"${invoke.data.unit.guid}"->"${invoke.data.service.guid}"[id="${invoke.guid}",color="${color}"];`
         );
         if (!graphMap.has(invoke.data.unit.guid)) {
           dots.push(
@@ -412,9 +404,7 @@ export default {
         }
         if (!graphMap.has(invoke.data.service.guid)) {
           dots.push(
-            `"${invoke.data.service.guid}"[label="${
-              invoke.data.service.key_name
-            }"];`
+            `"${invoke.data.service.guid}"[label="${invoke.data.service.key_name}"];`
           );
         }
       });
@@ -511,6 +501,7 @@ export default {
         if (found) {
           let systemTreeData = {
             guid: this.systemDesignVersion,
+            ciTypeId: this.layerData[0].code,
             children: data,
             data: {
               code: found.code
@@ -655,9 +646,7 @@ export default {
       let addNodeAttr = node => {
         const color = "#273c75";
         let path = `${shapes[node.nodeTypeName] || shapes.startEvent}`;
-        return `"${node.id}" [image="${path}" label="${
-          node.name
-        }" labelloc="b", fontcolor="${color}"];`;
+        return `"${node.id}" [image="${path}" label="${node.name}" labelloc="b", fontcolor="${color}"];`;
       };
       const nodeMap = new Map();
       raw.forEach(node => {
@@ -757,7 +746,7 @@ export default {
         `size="${width},${height}";`,
         ...this.genlayerDot(this.layerData),
         "Node [fontname=Arial, fontsize=12];",
-        'Edge [fontname=Arial, minlen="2",fontsize=10, arrowhead = "t"];',
+        'Edge [fontname=Arial, minlen="2", fontsize=10, arrowhead="t"];',
         ...this.genChildrenDot(data || [], 1),
         ...this.genRankNodeDot(),
         "}"
@@ -770,12 +759,12 @@ export default {
       layerDot.push("node [shape=plaintext, fontsize=16];");
       data.forEach((element, index) => {
         if (index === data.length - 1) {
-          layerDot.push(`"title_${index}"`);
+          layerDot.push(`"title_${element.code}"`);
         } else {
-          layerDot.push(`"title_${index}" -> `);
+          layerDot.push(`"title_${element.code}" -> `);
         }
-        this.rankNodes[index + 1] = [];
-        this.rankNodes[index + 1].push(element.value);
+        this.rankNodes[element.code] = [];
+        this.rankNodes[element.code].push(element.value);
       });
       layerDot.push(" [style=invis]");
       layerDot.push("}");
@@ -792,7 +781,7 @@ export default {
           `style="filled";color="${colors[level]}";`,
           `tooltip="${_.data.description || "-"}"];`
         ]);
-        this.rankNodes[level].push(`"${_.guid}"`);
+        this.rankNodes[_.ciTypeId].push(`"${_.guid}"`);
         if (_.children instanceof Array && _.children.length) {
           dots = dots.concat(this.genChildrenDot(_.children, level + 1));
           _.children.forEach(c => {
@@ -808,9 +797,9 @@ export default {
         dot.push("{rank=same;");
         this.rankNodes[key].forEach((_, i) => {
           if (i === 0) {
-            dot.push(`"title_${index}"[label="${this.rankNodes[key][0]}"];`);
+            dot.push(`"title_${key}"[label="${_}";tooltip="${_}"];`);
           } else {
-            dot.push(`${this.rankNodes[key][i]};`);
+            dot.push(`${_};`);
           }
         });
         dot.push("}");

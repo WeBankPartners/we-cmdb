@@ -306,11 +306,13 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(239, 31, 'wecube1564468847441', 'test\n', NULL, NULL, 1, 'active'),
 	(240, 69, 'seed123456', 'seed', NULL, NULL, 1, 'active'),
 	(241, 70, '1', 'System', 2, NULL, 1, 'active'),
-	(242, 70, '2', 'Subsystem', 2, NULL, 2, 'active'),
-	(243, 70, '3', 'Unit', 2, NULL, 3, 'active'),
-	(244, 70, '4', 'Running Instance & Service', 2, NULL, 4, 'active'),
-	(245, 16, '1', 'System Design', NULL, NULL, 1, 'active'),
-	(246, 17, 'guid_of_sys_design', NULL, 245, NULL, 1, 'active');
+	(242, 70, '7', 'Subsystem', 2, NULL, 2, 'active'),
+	(243, 70, '8', 'Unit', 2, NULL, 3, 'active'),
+	(244, 70, '15', 'Running Instance', 2, NULL, 4, 'active'),
+	(245, 70, '9', 'Service', 2, NULL, 5, 'active'),
+	(246, 70, '10', 'Invocation', 2, NULL, 6, 'active'),
+	(247, 16, '1', 'System Design', NULL, NULL, 1, 'active'),
+	(248, 17, 'guid_of_sys_design', NULL, 245, NULL, 1, 'active');
 
 INSERT INTO `adm_ci_type` (`id_adm_ci_type`, `name`, `description`, `id_adm_tenement`, `table_name`, `status`, `catalog_id`, `ci_global_unique_id`, `seq_no`, `layer_id`, `zoom_level_id`, `image_file_id`, `ci_state_type`) VALUES
 	(1, 'System Design', 'System Design', NULL, 'system_design', 'created', 6, NULL, 1, 1, NULL, 1, NULL),
