@@ -84,30 +84,30 @@ export const MENUS = [
   {
     code: "VIEW_QUERY",
     cnName: "视图查询",
-    enName: "Views Query"
+    enName: "Views Enquiry"
   },
   {
     code: "IDC_PLANNING_QUERY",
     cnName: "IDC规划查询",
-    enName: "IDC Planning Query",
+    enName: "IDC Planning Enquiry",
     link: "/wecmdb/view-query/idc-planning-query"
   },
   {
     code: "IDC_RESOURCE_PLANNING_QUERY",
     cnName: "IDC资源规划查询",
-    enName: "IDC Resource Planning Query",
+    enName: "IDC Resource Planning Enquiry",
     link: "/wecmdb/view-query/idc-resource-planning-query"
   },
   {
     code: "APPLICATION_ARCHITECTURE_QUERY",
     cnName: "应用架构设计查询",
-    enName: "App Architecture Query",
+    enName: "App Architecture Enquiry",
     link: "/wecmdb/view-query/application-architecture-query"
   },
   {
     code: "APPLICATION_DEPLOYMENT_QUERY",
     cnName: "应用部署设计查询",
-    enName: "App Deployment Query",
+    enName: "App Deployment Enquiry",
     link: "/wecmdb/view-query/application-deployment-query"
   },
   // 视图管理

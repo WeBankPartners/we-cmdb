@@ -1,8 +1,8 @@
 import Vue from "vue";
 import VueI18n from "vue-i18n";
 
-import zh from "iview/dist/locale/zh-CN";
-import en from "iview/dist/locale/en-US";
+import zh from "view-design/dist/locale/zh-CN";
+import en from "view-design/dist/locale/en-US";
 
 import ZH from "./zh-CN.json";
 import EN from "./en-US.json";

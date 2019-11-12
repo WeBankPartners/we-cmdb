@@ -30,15 +30,16 @@
         >
           <Option
             v-for="(item, index) in queryNameList"
+            style="overflow:hidden;line-height:24px;"
             :value="item.id"
             :key="item.id"
             >{{ item.name }}
             <span v-if="index === 0">
               <Button
                 @click.stop.prevent="createIntQuery(item)"
+                v-if="index === 0"
                 icon="md-add"
                 type="success"
-                size="small"
                 long
               ></Button>
             </span>
