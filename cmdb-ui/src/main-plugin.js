@@ -3,9 +3,9 @@ import VueHighlightJS from "vue-highlight.js";
 import "vue-highlight.js/lib/allLanguages";
 import "highlight.js/styles/default.css";
 import router from "./router-plugin";
-import iView from "iview";
-import "iview/dist/styles/iview.css";
-import locale from "iview/dist/locale/en-US";
+import ViewUI from "view-design";
+import "view-design/dist/styles/iview.css";
+import locale from "view-design/dist/locale/en-US";
 import "./locale/i18n";
 import zh_CN from "./locale/i18n/zh-CN.json";
 import en_US from "./locale/i18n/en-US.json";
@@ -27,7 +27,7 @@ window.component("WeCMDBSequenceDiagram", WeCMDBSequenceDiagram);
 window.component("WeCMDBOrchestration", WeCMDBOrchestration);
 Vue.config.productionTip = false;
 
-Vue.use(iView, {
+Vue.use(ViewUI, {
   transfer: true,
   size: "default",
   locale
