@@ -32,22 +32,7 @@ module.exports = {
   runtimeCompiler: true,
   publicPath: "/wecmdb/",
   chainWebpack: config => {
-    if (process.env.PLUGIN === "plugin") {
-      const img = config.module.rule("images");
-      img.uses.clear();
-      img
-        .use("url-loader")
-        .loader("url-loader")
-        .options({ limit: 1000000 });
-
-      const svg = config.module.rule("svg");
-      svg.uses.clear();
-      svg.uses.clear();
-      svg
-        .use("url-loader")
-        .loader("url-loader")
-        .options({ limit: 1000000 });
-    } else {
+    if (process.env.PLUGIN !== "plugin") {
       // remove the old loader
       const img = config.module.rule("images");
       img.uses.clear();
@@ -76,6 +61,7 @@ module.exports = {
   productionSourceMap: process.env.PLUGIN !== "plugin",
   configureWebpack: config => {
     if (process.env.PLUGIN === "plugin") {
+      config.optimization.splitChunks = {}
       return;
     }
     if (process.env.NODE_ENV === "production") {
