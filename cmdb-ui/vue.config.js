@@ -44,6 +44,7 @@ module.exports = {
           outputPath: "img"
         });
     }
+
     config.when(process.env.PLUGIN === "plugin", config => {
       config
         .entry("app")
