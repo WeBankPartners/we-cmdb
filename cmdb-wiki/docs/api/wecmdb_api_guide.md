@@ -554,16 +554,184 @@ data|string|成功信息"Success"
 statusMessage|string|异常信息，无异常则不返回该属性
 
 ### <span id="User">用户 - User</span>
-TO DO
+#### [GET] /ui/v2/admin/user
+查询所有用户
+##### 输入参数：无
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+contents|Array of [UserDto](#UserDto)|用户表
+
+#### [GET] /ui/v2/admin/user/retrieve
+根据条件查询用户
+##### 输入参数：
+参数名称|类型|必选|描述
+:--|:--|:--|:--
+request|[QueryRequest](#QueryRequest)|否|请求参数对象
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+data|[PageInfo](#PageInfo)|分页信息
+contents|Array of [UserDto](#UserDto)|配置项类型属性实体列表
+
+#### [POST] /ui/v2/admin/user/create
+新增用户
+##### 输入参数：
+参数名称|类型|必选|描述
+:--|:--|:--|:--
+userDtos|Array of [UserDto](#UserDto)|否|用户信息
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+userDtos|Array of [UserDto](#UserDto)|否|用户信息
+
+
+#### [POST] /ui/v2/admin/user/password/change
+修改用户密码(用户修改自己账号的密码)
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--|:--
+userDto|Array of Map<key,value>|用户信息
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+userDtos|Array of [UserDto](#UserDto)|用户信息
+
+#### [POST] /ui/v2/admin/user/password/reset
+密码重置(管理员重置用户密码)
+##### 输入参数：
+参数名称|类型|必选|描述
+:--|:--|:--|:--
+Array|Array of Map<key,value>|用户信息.
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+data|String|随机新密码
 
 ### <span id="Role">角色 - Role</span>
-TO DO
+#### [GET] /ui/v2/admin/roles
+查询所有权限
+##### 输入参数：无
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+contents|Array of [RoleDto](#RoleDto)|角色信息
+
+#### [GET] /ui/v2/admin/users/{username}/roles
+查询用户所拥有的角色
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:-- 
+username|string|用户名
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+contents|Array of [RoleDto](#RoleDto)|角色信息
+
+#### [GET] /ui/v2/admin/users/{role-id}/roles
+根据角色id查询角色信息
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:-- 
+role-id|int|角色id
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+contents|Array of [RoleDto](#RoleDto)|角色信息
+
+#### [POST] /ui/v2/admin/roles/create
+新建角色
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+role|[RoleDto](#RoleDto)|角色信息
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+contents|Array of [RoleDto](#RoleDto)|角色信息
+
+#### [DELETE] /ui/v2/admin/roles/{role-id}
+根据角色id删除角色
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+roleId|int|角色id
+
+##### 输出参数：无
 
 ### <span id="Role_User">用户授权 - Role_User</span>
-TO DO
+#### [POST] /ui/v2/admin/roles/{role-id}/users
+将角色授予用户
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+roleId|int|角色id
+userIds|Array of String|用户id
+
+##### 输出参数：无
+
+#### [DELETE] /ui/v2/admin/roles/{role-id}/users
+撤销用户角色
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+roleId|int|角色id
+usernames|Array of String|用户名称
+
+##### 输出参数：无
 
 ### <span id="Role_CiType">配置项授权 - Role_CiType</span>
-TO DO
+#### [POST] /ui/v2/admin/roles/{role-id}/menu-permissions
+给角色分配菜单权限
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+roleId|int|角色id
+menuCodes|Array of String|权限id
+
+##### 输出参数：无
+
+#### [DELETE] /ui/v2/admin/roles/{role-id}/menu-permissions
+删除角色的菜单权限
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+roleId|int|角色id
+menuCodes|Array of String|权限id
+
+##### 输出参数：无
+
+#### [POST] /ui/v2/admin/roles/{role-id}/citypes/{citype-id}/actions/{action-code}
+给角色分配CI操作权限
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+roleId|int|角色id
+citype-id|int|CI ID
+actionCode|String|操作类型code
+
+##### 输出参数：无
+
+#### [DELETE] /ui/v2/admin/roles/{role-id}/citypes/{citype-id}/actions/{action-code}
+删除角色的CI操作权限
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+roleId|String|角色id
+citype-id|int|CI ID
+actionCode|String|操作类型code
+
+##### 输出参数：无
 
 ### <span id="Role_CiTypeAttr">配置项属性授权 - Role_CiTypeAttr</span>
 TO DO
@@ -749,3 +917,21 @@ isUnique|boolean|否|是否唯一，即该属性值不允许保存重复值
 isAccessControlled|boolean|否|是否启用权限控制
 isAuto|boolean|否|是否自动填充该属性值，即根据autoFillRule属性所设定的规则进行填充
 description|string|否|配置项类型属性的描述
+
+#### <span id="UserDto">UserDto - 用户</span>
+名称|类型|必选|描述
+:--|:--|:--|:--
+userId|integer|否|实体ID, 新增时由系统产生,更新和删除时必选  
+username|String|是|用户名
+password|String|否|密码
+fullName|String|否|名称
+description|String|否|描述
+
+#### <span id="RoleDto">RoleDto - 角色</span>
+名称|类型|必选|描述
+:--|:--|:--|:--
+roleId|integer|否|实体ID, 新增时由系统产生,更新和删除时必选  
+roleName|String|是|角色名
+roleType|String|否|角色类型
+isSystem|String|否|是否系统角色
+description|String|否|描述
