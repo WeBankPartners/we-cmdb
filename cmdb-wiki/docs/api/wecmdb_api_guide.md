@@ -578,13 +578,14 @@ userDtos|Array of [UserDto](#UserDto)|否|用户信息
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-userDtos|Array of [UserDto](#UserDto)用户信息
+userDtos|Array of [UserDto](#UserDto)|用户信息
 
 ### <span id="Role">角色 - Role</span>
 #### [POST] /api/v2/roles/retrieve
 查询所有权限
 ##### 输入参数：
-:--|:--|:--   
+参数名称|类型|描述
+:--|:--|:--    
 request|[QueryRequest](#QueryRequest)|请求参数对象
 
 ##### 输出参数：
@@ -631,7 +632,8 @@ contents|Array of [RoleDto](#RoleDto)|角色信息
 #### [POST] /api/v2/role-users/retrieve
 查询用户角色
 ##### 输入参数：
-:--|:--|:--   
+参数名称|类型|描述
+:--|:--|:--    
 request|[QueryRequest](#QueryRequest)|请求参数对象
 
 ##### 输出参数：
@@ -666,7 +668,8 @@ requestIds|Array of Integer|用户角色id
 #### [POST] /api/v2/role-citypes/retrieve
 查询角色的配置项权限信息
 ##### 输入参数：
-:--|:--|:--   
+参数名称|类型|描述
+:--|:--|:--    
 request|[QueryRequest](#QueryRequest)|请求参数对象
 
 ##### 输出参数：
@@ -712,7 +715,8 @@ requestIds|Array of Integer|配置项权限id
 #### [POST] /api/v2/role-citype-ctrl-attrs/retrieve
 查询配置项属性权限信息
 ##### 输入参数：
-:--|:--|:--   
+参数名称|类型|描述
+:--|:--|:--    
 request|[QueryRequest](#QueryRequest)|请求参数对象
 
 ##### 输出参数：
@@ -758,7 +762,8 @@ requestIds|Array of Integer|配置项属性id
 #### [POST] /api/v2/role-citype-ctrl-attrs-conditions/retrieve
 查询配置项属性权限生效条件信息
 ##### 输入参数：
-:--|:--|:--   
+参数名称|类型|描述
+:--|:--|:--    
 request|[QueryRequest](#QueryRequest)|请求参数对象
 
 ##### 输出参数：
@@ -789,7 +794,7 @@ request|Array of Map<key,value>|配置项属性权限生效条件信息
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-Array|Array of [roleCiTypeCtrlAttrConditions](#roleCiTypeCtrlAttrConditions)|配置项属性权限信息
+Array|Array of [RoleCiTypeCtrlAttrConditionDto](#RoleCiTypeCtrlAttrConditionDto)|配置项属性权限信息
 
 #### [POST] /api/v2/role-citype-ctrl-attrs-conditions/delete
 删除配置项属性权限生效条件
@@ -812,7 +817,7 @@ queryId|Integer|综合查询id
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-response|IntegrationQueryDto(#IntegrationQueryDto)|综合查询
+response|[IntegrationQueryDto](#IntegrationQueryDto)|综合查询
 
 #### [POST] /api/v2/intQuery/ciType/{ciTypeId}/{queryName}/save
 保存综合查询
@@ -821,7 +826,7 @@ response|IntegrationQueryDto(#IntegrationQueryDto)|综合查询
 :--|:--|:--    
 ciTypeId|Integer|配置项id
 queryName|String|综合查询名称
-intQueryDto|IntegrationQueryDto|综合查询
+intQueryDto|[IntegrationQueryDto](#IntegrationQueryDto)|综合查询
 
 ##### 输出参数：
 参数名称|类型|描述
@@ -835,7 +840,7 @@ int|int|新增综合查询结果
 参数名称|类型|描述
 :--|:--|:--    
 queryId|int|综合查询id
-intQueryDto|IntegrationQueryDto|综合查询
+intQueryDto|[IntegrationQueryDto](#IntegrationQueryDto)|综合查询
 
 ##### 输出参数：无
 
@@ -965,7 +970,7 @@ Array|Array of String|输入类型常量
 
 ##### 输出参数：
 参数名称|类型|描述
-:--|:--|:--   
+:--|:--|:--    
 statusCode|String|查询结果
 data|Array of String|有效状态常量
 ##### 示例：
