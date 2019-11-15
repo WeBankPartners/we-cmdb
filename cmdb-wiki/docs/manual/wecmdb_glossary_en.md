@@ -14,13 +14,13 @@ An attribute of a CIT, which present a characteristic of a configuration item ty
 #### CI (Configuration Item)
 A physical, logical, or conceptual entity that is part of your IT environment and has configurable attributes. Examples include IDC (Internet Data Center), DCN(Data Center Note), hosts, etc. hardware, but also include computer systems, services, etc software and the relationships between each other.
 
-#### CITRT (Configuraiton Item Type Relation Type)
+#### CITR (Configuraiton Item Type Relationship)
 A type of relationship between CITs, such as a reference from one CIT 'host' to another CIT 'IP', it present as a host has an attribute 'intranet ip' which reference to 'IP', two relation types we have in WeCMDB - 'ref' and 'multiRef'
 
 #### IDT (Input Data Type)
 A data type that is used to allow user enter the valid data required by the system, such as 'text', 'number','date', etc.
 
-#### Integrated Query
+#### IntQ (Integrated Query)
 A query is integrated multiple CIT together for querying the data cross different CIT, such as an user want to find out all the instances running on a given host, a integrated query can be created cross CIA 'host' and 'running_instance', then given the IP address of the host to query out all the instances on it.
 
 #### ENUM Type
