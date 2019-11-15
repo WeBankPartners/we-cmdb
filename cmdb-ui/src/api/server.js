@@ -1,6 +1,7 @@
 import { req as request, baseURL } from "./base";
 let req = request;
 if (window.request) {
+  baseURL = "/wecmdb" + baseURL
   req = {
     post: (url, ...params) => window.request.post(baseURL + url, ...params),
     get: (url, ...params) => window.request.get(baseURL + url, ...params),
