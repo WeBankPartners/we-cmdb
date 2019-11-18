@@ -79,9 +79,9 @@
     >
       <Card v-if="isLayerSelected">
         <Row slot="title">
-          <Col span="6">
-            <p>{{ currentSelectedLayer.name }}</p>
-          </Col>
+          <p style="width: calc(100% - 165px);">
+            {{ currentSelectedLayer.name }}
+          </p>
           <span class="header-buttons-container">
             <Tooltip :content="$t('new_ci_type')" placement="top-start">
               <Button
@@ -122,36 +122,47 @@
         </Row>
         <Collapse accordion>
           <Panel
+            class="collapse-row"
             v-for="(item, index) in currentSelectLayerChildren.ciTypes"
             :key="item.ciTypeId"
             :name="index.toString()"
           >
-            <span
-              :class="
-                item.status === 'decommissioned' ? 'decommissionedLabel' : ''
-              "
-              >{{ item.name }}</span
-            >
-            <span class="header-buttons-container margin-right">
-              <Tooltip
-                v-if="item.status === 'decommissioned'"
-                :content="$t('roll_back')"
-                placement="top-start"
+            <div class="collapse-row-title">
+              <span
+                :class="
+                  `${
+                    item.status === 'decommissioned'
+                      ? 'decommissionedLabel '
+                      : ''
+                  }ci-type-header-title`
+                "
+                >{{ item.name }}</span
               >
-                <Button
-                  size="small"
-                  @click.stop.prevent="revertCI(item.ciTypeId)"
-                  icon="md-redo"
-                ></Button>
-              </Tooltip>
-              <Tooltip v-else :content="$t('delete_ci')" placement="top-start">
-                <Button
-                  size="small"
-                  @click.stop.prevent="deleteCI(item.ciTypeId, item.status)"
-                  icon="ios-trash"
-                ></Button>
-              </Tooltip>
-            </span>
+              <span class="header-buttons-container margin-right">
+                <Tooltip
+                  v-if="item.status === 'decommissioned'"
+                  :content="$t('roll_back')"
+                  placement="top-start"
+                >
+                  <Button
+                    size="small"
+                    @click.stop.prevent="revertCI(item.ciTypeId)"
+                    icon="md-redo"
+                  ></Button>
+                </Tooltip>
+                <Tooltip
+                  v-else
+                  :content="$t('delete_ci')"
+                  placement="top-start"
+                >
+                  <Button
+                    size="small"
+                    @click.stop.prevent="deleteCI(item.ciTypeId, item.status)"
+                    icon="ios-trash"
+                  ></Button>
+                </Tooltip>
+              </span>
+            </div>
             <div slot="content">
               <Form
                 class="validation-form"
@@ -317,59 +328,66 @@
         </Row>
         <Collapse accordion @on-change="onCIAttrCollapeOpen">
           <Panel
+            class="collapse-row"
             v-for="(item, index) in currentSelectedCIChildren"
             :key="item.ciTypeAttrId"
             :name="item.ciTypeAttrId.toString()"
             v-if="!item.isHidden"
           >
-            <span
-              :class="
-                item.status === 'decommissioned' ? 'decommissionedLabel' : ''
-              "
-              >{{ item.name }}</span
-            >
-            <span class="header-buttons-container margin-right">
-              <Tooltip
-                :content="$t('move_up_ci_attribute')"
-                placement="top-start"
+            <div class="collapse-row-title">
+              <span
+                :class="
+                  `${
+                    item.status === 'decommissioned'
+                      ? 'decommissionedLabel '
+                      : ''
+                  }attr-header-title`
+                "
+                >{{ item.name }}</span
               >
-                <Button
-                  size="small"
-                  @click.stop.prevent="moveUpAttr(item.ciTypeAttrId)"
-                  icon="md-arrow-round-up"
-                ></Button>
-              </Tooltip>
-              <Tooltip
-                :content="$t('move_down_ci_attribute')"
-                placement="top-start"
-              >
-                <Button
-                  size="small"
-                  @click.stop.prevent="moveDownAttr(item.ciTypeAttrId)"
-                  icon="md-arrow-round-down"
-                ></Button>
-              </Tooltip>
-              <Tooltip
-                v-if="item.status === 'decommissioned'"
-                :content="$t('roll_back')"
-                placement="top-start"
-              >
-                <Button
-                  size="small"
-                  @click.stop.prevent="revertCIAttr(item.ciTypeAttrId)"
-                  icon="md-redo"
-                ></Button>
-              </Tooltip>
-              <Tooltip v-else :content="$t('delete')" placement="top-start">
-                <Button
-                  size="small"
-                  @click.stop.prevent="
-                    deleteCIAttr(item.ciTypeAttrId, item.status)
-                  "
-                  icon="ios-trash"
-                ></Button>
-              </Tooltip>
-            </span>
+              <span class="header-buttons-container margin-right">
+                <Tooltip
+                  :content="$t('move_up_ci_attribute')"
+                  placement="top-start"
+                >
+                  <Button
+                    size="small"
+                    @click.stop.prevent="moveUpAttr(item.ciTypeAttrId)"
+                    icon="md-arrow-round-up"
+                  ></Button>
+                </Tooltip>
+                <Tooltip
+                  :content="$t('move_down_ci_attribute')"
+                  placement="top-start"
+                >
+                  <Button
+                    size="small"
+                    @click.stop.prevent="moveDownAttr(item.ciTypeAttrId)"
+                    icon="md-arrow-round-down"
+                  ></Button>
+                </Tooltip>
+                <Tooltip
+                  v-if="item.status === 'decommissioned'"
+                  :content="$t('roll_back')"
+                  placement="top-start"
+                >
+                  <Button
+                    size="small"
+                    @click.stop.prevent="revertCIAttr(item.ciTypeAttrId)"
+                    icon="md-redo"
+                  ></Button>
+                </Tooltip>
+                <Tooltip v-else :content="$t('delete')" placement="top-start">
+                  <Button
+                    size="small"
+                    @click.stop.prevent="
+                      deleteCIAttr(item.ciTypeAttrId, item.status)
+                    "
+                    icon="ios-trash"
+                  ></Button>
+                </Tooltip>
+              </span>
+            </div>
             <div slot="content">
               <Form
                 class="validation-form"
@@ -1205,21 +1223,26 @@ export default {
       let tempClusterAryForGraph = [];
       this.layers.map((_, index) => {
         if (index !== this.layers.length - 1) {
-          layerTag += '"' + _.name + '"' + "->";
+          layerTag += `"layer_${_.layerId}"->`;
         } else {
-          layerTag += '"' + _.name + '"';
+          layerTag += `"layer_${_.layerId}"`;
         }
-
-        tempClusterObjForGraph[index] = [`{ rank=same; "${_.name}";`];
+        tempClusterObjForGraph[index] = [
+          `{ rank=same; "layer_${_.layerId}"[id="layerId_${
+            _.layerId
+          }",class="layer",label="${_.name}",tooltip="${_.name}"];`
+        ];
         nodes.length > 0 &&
           nodes.forEach((node, nodeIndex) => {
             if (node.layerId === _.layerId) {
               let fontcolor =
                 node.status === "notCreated" ? "#10a34e" : "black";
               tempClusterObjForGraph[index].push(
-                `"${node.name}"[id="${
-                  node.ciTypeId
-                }",fontcolor="${fontcolor}", image="${
+                `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${
+                  node.name
+                }",tooltip="${
+                  node.name
+                }",class="ci",fontcolor="${fontcolor}", image="${
                   node.form.imgSource
                 }.png", labelloc="b"]`
               );
@@ -1254,9 +1277,9 @@ export default {
     genEdge(nodes, from, to) {
       const target = nodes.find(_ => _.ciTypeId === to.referenceId);
       let labels = to.referenceName ? to.referenceName.trim() : "";
-      return `"${
-        from.name
-      }"->"${target.name.trim()}"[taillabel="${labels}",labeldistance=3];`;
+      return `"ci_${from.ciTypeId}"->"ci_${
+        target.ciTypeId
+      }"[taillabel="${labels}",labeldistance=3];`;
     },
     shadeAll() {
       d3.selectAll("g path")
@@ -1321,15 +1344,16 @@ export default {
         this.colorNode(this.nodeName);
       });
       addEvent(".node", "click", async e => {
-        this.isLayerSelected = this.layers.find(_ => _.name === this.nodeName);
+        this.isLayerSelected =
+          this.g.getAttribute("class").indexOf("layer") >= 0;
         this.renderRightPanels();
       });
     },
     renderRightPanels() {
       if (!this.nodeName) return;
-      if (!!this.isLayerSelected) {
+      if (this.isLayerSelected) {
         this.currentSelectedLayer = this.layers.find(
-          _ => _.layerId === this.isLayerSelected.layerId
+          _ => _.layerId === +this.g.id.split("_")[1]
         );
         this.updatedLayerNameValue = {
           codeId: this.currentSelectedLayer.layerId,
@@ -1918,6 +1942,26 @@ export default {
 }
 .margin-right {
   margin-right: 20px;
+}
+.collapse-row-title {
+  float: right;
+  width: calc(100% - 30px);
+}
+.ci-type-header-title {
+  display: block;
+  float: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: calc(100% - 55px);
+}
+.attr-header-title {
+  display: block;
+  float: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: calc(100% - 120px);
 }
 .func-wrapper {
   .header-buttons-container {

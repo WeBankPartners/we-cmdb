@@ -81,7 +81,7 @@ Please refer to the [WeCMDB Deployment Guide](cmdb-wiki/docs/install/wecmdb_inst
 ## User Manuals
 Please refer to the [WeCMDB Model Guide](cmdb-wiki/docs/manual/wecmdb_model_guide_en.md) for guide on WeCMDB model.
 
-Please refer to the [WeCMDB User Guide](cmdb-wiki/docs/manual/wecmdb_user_guide.md) for usage and operations.
+Please refer to the [WeCMDB User Guide](cmdb-wiki/docs/manual/wecmdb_user_guide_en.md) for usage and operations.
 
 ## Developer Guide
 #### Deploy WeCMDB in Standalone Mode
@@ -93,10 +93,13 @@ WeCMDB is developed with Java and Vue, uses MySQL for data persistence and relie
 Please refer to the [WeCMDB Developer Guide](cmdb-wiki/docs/developer/wecmdb_developer_guide_en.md) for setting up development environment.
 
 #### WeCMDB Contributors Guide
-Please refer to the [WeCMDB Contributors Guide](cmdb-wiki/docs/developer/code_contributors_submit_guide_en.md) for Contributors how to submit code.
+Please refer to the [WeCMDB Contributors Guide](cmdb-wiki/docs/developer/code_contributors_submit_guide_en.md) for contributors how to submit code.
 
 ## API Reference
 Please refer to the [WeCMDB API Guide](cmdb-wiki/docs/api/wecmdb_api_guide.md).
+
+## Glossary
+Please refer to the [WeCMDB Glossary](cmdb-wiki/docs/manual/wecmdb_glossary_en.md) to understand the terms that used for WeCMDB.
 
 ## License
 WeCMDB is licensed under the Apache License Version 2.0 , please refer to the [license](LICENSE) for details.

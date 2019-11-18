@@ -1,11 +1,12 @@
 import { req as request, baseURL } from "./base";
 let req = request;
 if (window.request) {
+  const pluginURL = "/wecmdb"
   req = {
-    post: (url, ...params) => window.request.post(baseURL + url, ...params),
-    get: (url, ...params) => window.request.get(baseURL + url, ...params),
-    delete: (url, ...params) => window.request.delete(baseURL + url, ...params),
-    put: (url, ...params) => window.request.put(baseURL + url, ...params)
+    post: (url, ...params) => window.request.post(pluginURL + baseURL + url, ...params),
+    get: (url, ...params) => window.request.get(pluginURL + baseURL + url, ...params),
+    delete: (url, ...params) => window.request.delete(pluginURL + baseURL + url, ...params),
+    put: (url, ...params) => window.request.put(pluginURL + baseURL + url, ...params)
   };
 }
 
@@ -136,6 +137,18 @@ export const getAllZoneLinkDesignGroupByIdcDesign = () =>
 export const getAllIdcData = () => req.get(`/ci-data/all-idc`);
 export const getIdcImplementTreeByGuid = data =>
   req.post(`/data-tree/query-idc-tree`, data);
+export const getPlanningDesignTabs = () => req.get("/planning-designs/tabs");
+export const getResourcePlanningTabs = () => req.get("/resource-planning/tabs");
+export const getPlanningDesignsCiData = data =>
+  req.post(
+    `/planning-designs/ci-data?code-id=${data.id}&idcs-guid=${data.idcGuid}`,
+    data.queryObject
+  );
+export const getResourcePlanningCiData = data =>
+  req.post(
+    `/resource-planning/ci-data?code-id=${data.id}&idcs-guid=${data.idcGuid}`,
+    data.queryObject
+  );
 export const getAllZoneLinkGroupByIdc = () => req.get(`/all-zone-link`);
 export const getSystemDesigns = () => {
   return req.get(`/system-designs`);
