@@ -7,9 +7,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
@@ -102,5 +105,10 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     public void setSecurityEnabled(boolean securityEnabled) {
         securityProperties.setEnabled(securityEnabled);
+    }
+
+    @Override
+    public boolean isWhiteListAccessPermitted(HttpServletRequest request, Authentication auth, String whiteListIpAddress) {
+        return true;
     }
 }

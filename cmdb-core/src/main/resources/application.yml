@@ -31,10 +31,10 @@ cmdb:
     schema: db_user
 
   security:
-    enabled: false
+    enabled: true
 
-    #Authentication provider options: LOCAL or CAS. Effective ONLY when security-enabled set as true.
-    authentication-provider: LOCAL
+    #Authentication provider options: NONE, LOCAL-DB or CAS. Effective ONLY when security-enabled set as true.
+    authentication-provider: NONE
 
     #Effective ONLY when security-enabled set as true and authentication-provider turns to CAS
     cas-server-url: http://cas-server-ip:8080/cas

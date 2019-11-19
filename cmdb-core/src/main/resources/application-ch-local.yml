@@ -29,5 +29,5 @@ cmdb:
   datasource:
     schema: wecmdb_dev
   security:
-    enabled: false
+    enabled: true
     whitelist-ip-address: localhost

@@ -16,7 +16,7 @@ cmdb:
   security:
     enabled: true
 
-    #Authentication provider options: LOCAL or CAS. Effective ONLY when security-enabled set as true.
+    #Authentication provider options: NONE, LOCAL-DB or CAS. Effective ONLY when security-enabled set as true.
     authentication-provider: CAS
 
     #Effective ONLY when security-enabled set as true and authentication-provider turns to CAS

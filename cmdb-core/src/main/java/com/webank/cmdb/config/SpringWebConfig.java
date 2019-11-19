@@ -2,6 +2,7 @@ package com.webank.cmdb.config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -11,6 +12,7 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.cas.ServiceProperties;
 import org.springframework.security.cas.authentication.CasAuthenticationProvider;
 import org.springframework.security.cas.web.CasAuthenticationEntryPoint;
@@ -27,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -37,18 +40,21 @@ import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
 import com.webank.cmdb.controller.interceptor.HttpAccessUsernameInterceptor;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.mvc.CustomRolesPrefixPostProcessor;
+import com.webank.cmdb.security.WhiteListIpAddressAuthenticationFilter;
+import com.webank.cmdb.security.WhiteListIpAddressAuthenticationProvider;
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Configuration
 @EnableWebMvc
 @EnableSwagger2
-//@EnableWebSecurity
-//@EnableGlobalMethodSecurity(jsr250Enabled = true)
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(jsr250Enabled = true)
 @ComponentScan({ "com.webank.cmdb.controller", "com.webank.cmdb.mvc", "com.webank.cmdb.stateTransition" })
 public class SpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
-    private static final String AUTH_PROVIDER_LOCAL = "LOCAL";
+    private static final String AUTH_PROVIDER_PRIVACY_FREE = "NONE";
+    private static final String AUTH_PROVIDER_LOCAL_DB = "LOCAL-DB";
     private static final String AUTH_PROVIDER_CAS = "CAS";
 
     @Bean
@@ -70,6 +76,9 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     
     @Autowired
     private CacheHandlerInterceptor cacheHandlerInterceptor;
+
+    @Autowired
+    private WhiteListIpAddressAuthenticationProvider whiteListIpAddressAuthenticationProvider;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -94,8 +103,10 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
         ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry = http.authorizeRequests();
         if (securityProperties.isEnabled()) {
             registry = configureWhiteListAuthentication(registry, true);
-            if (AUTH_PROVIDER_LOCAL.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
-                configureLocalAuthentication(registry);
+            if (AUTH_PROVIDER_PRIVACY_FREE.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
+                configurePrivacyFreeAuthentication(registry);
+            } else if (AUTH_PROVIDER_LOCAL_DB.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
+                configureLocalDBAuthentication(registry);
             } else if (AUTH_PROVIDER_CAS.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
                 configureCasAuthentication(registry);
             } else {
@@ -106,8 +117,8 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
             configurePrivacyFreeAuthentication(registry);
         }
     }
-     
-    protected void configureLocalAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) throws Exception {
+
+    protected void configureLocalDBAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) throws Exception {
         registry.antMatchers("/login-with-password*").permitAll()
                 .antMatchers("/logout*").permitAll()
                 .antMatchers("/ui/v2/**").permitAll()
@@ -159,12 +170,18 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                     convertedList.add(String.format("hasIpAddress('%s')", ipAddress));
                 }
 
-                return registry.antMatchers("/api/v2/**")
-                        .access(StringUtils.join(convertedList, " or "));
+                return registry.antMatchers("/*/v2/**")
+                        .access(StringUtils.join(convertedList, " or "))
+                        .and()
+                        .addFilterBefore(whiteListIpAddressAuthenticationFilter(), WebAsyncManagerIntegrationFilter.class)
+                        .authorizeRequests();
             }
         } else {
-            return registry.antMatchers("/api/v2/**")
-                    .permitAll();
+            return registry.antMatchers("/*/v2/**")
+                    .permitAll()
+                    .and()
+                    .addFilterBefore(whiteListIpAddressAuthenticationFilter(), WebAsyncManagerIntegrationFilter.class)
+                    .authorizeRequests();
         }
         return registry;
     }
@@ -192,7 +209,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
         if (!securityProperties.isEnabled()) {
             auth.userDetailsService(userDetailsService).passwordEncoder(new BypassPasswordEncoder());
-        } else if (AUTH_PROVIDER_LOCAL.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
+        } else if (AUTH_PROVIDER_LOCAL_DB.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
             auth.userDetailsService(userDetailsService);
         } else {
             super.configure(auth);
@@ -229,6 +246,14 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     @Bean
     public static CustomRolesPrefixPostProcessor customRolesPrefixPostProcessor() {
         return new CustomRolesPrefixPostProcessor();
+    }
+
+    @Bean
+    public WhiteListIpAddressAuthenticationFilter whiteListIpAddressAuthenticationFilter() {
+        WhiteListIpAddressAuthenticationFilter whiteListIpAddressAuthenticationFilter = new WhiteListIpAddressAuthenticationFilter();
+        ProviderManager providerManager = new ProviderManager(Collections.singletonList(whiteListIpAddressAuthenticationProvider));
+        whiteListIpAddressAuthenticationFilter.setAuthenticationManager(providerManager);
+        return whiteListIpAddressAuthenticationFilter;
     }
 
     private ServiceProperties serviceProperties() {
