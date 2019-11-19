@@ -7,6 +7,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
@@ -31,6 +33,9 @@ public class WhiteListIpAddressAuthenticationFilter extends AbstractAuthenticati
         }
 
         String username = request.getHeader("username");
+        if (StringUtils.isBlank(username)) {
+            throw new AuthenticationServiceException("Can not create authentication as username not found");
+        }
         log.info("Access from user : {}", username);
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
                 username, username);
