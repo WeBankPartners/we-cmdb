@@ -520,10 +520,10 @@ export default {
       let attrArray = [];
       if (operator === ".") {
         if (this.lastCiTypeId !== 0) {
-          let { status, data, message } = await getCiTypeAttr(
+          let { statusCode, data, message } = await getCiTypeAttr(
             this.lastCiTypeId
           );
-          if (status === "OK") {
+          if (statusCode === "OK") {
             data.forEach(_ => {
               attrArray.push({
                 ..._,
@@ -544,8 +544,8 @@ export default {
           }
           this.lastCiTypeId = 0;
         } else {
-          let { status, data, message } = await getCiTypeAttr(obj.ciTypeId);
-          if (status === "OK") {
+          let { statusCode, data, message } = await getCiTypeAttr(obj.ciTypeId);
+          if (statusCode === "OK") {
             if (
               this.isLeftFilterRule === true &&
               objList.length === 2 &&
@@ -599,10 +599,10 @@ export default {
         }
       } else if (operator === "-") {
         if (this.lastCiTypeId !== 0) {
-          let { status, data, message } = await getRefCiTypeFrom(
+          let { statusCode, data, message } = await getRefCiTypeFrom(
             this.lastCiTypeId
           );
-          if (status === "OK") {
+          if (statusCode === "OK") {
             attrArray = data.map(_ => {
               return {
                 ..._,
@@ -617,8 +617,8 @@ export default {
           }
           this.lastCiTypeId = 0;
         } else {
-          let { status, data, message } = await getRefCiTypeFrom(obj.ciTypeId);
-          if (status === "OK") {
+          let { statusCode, data, message } = await getRefCiTypeFrom(obj.ciTypeId);
+          if (statusCode === "OK") {
             attrArray = data.map(_ => {
               return {
                 ..._,
