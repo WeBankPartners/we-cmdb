@@ -15,6 +15,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class WhiteListIpAddressAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     public WhiteListIpAddressAuthenticationFilter() {
@@ -28,6 +31,7 @@ public class WhiteListIpAddressAuthenticationFilter extends AbstractAuthenticati
         }
 
         String username = request.getHeader("username");
+        log.info("Access from user : {}", username);
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
                 username, username);
         setDetails(request, authRequest);
