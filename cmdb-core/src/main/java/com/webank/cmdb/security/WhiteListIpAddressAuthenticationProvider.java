@@ -33,7 +33,7 @@ public class WhiteListIpAddressAuthenticationProvider extends AbstractUserDetail
         String providedPassword = authentication.getCredentials().toString();
 
         if (!passwordEncoder.matches(providedPassword, userDetails.getPassword())) {
-            logger.debug("Authentication failed: password does not match the stored password");
+            logger.warn("Authentication failed: password does not match the stored password");
             throw new BadCredentialsException(messages.getMessage("WhiteListIpAddressAuthenticationProvider authentication checking failed", "Password incorrect"));
         }
     }
