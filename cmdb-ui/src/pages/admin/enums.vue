@@ -177,9 +177,9 @@ export default {
     },
     async getGroupList(catId) {
       if (catId) {
-        const { data, status, message } = await getGroupListByCodeId(catId);
+        const { data, statusCode, message } = await getGroupListByCodeId(catId);
         let opts = [];
-        if (status === "OK") {
+        if (statusCode === "OK") {
           opts = data.map(_ => {
             return {
               value: _.codeId,
@@ -215,11 +215,11 @@ export default {
           });
         }
       }
-      const { status, message, data } =
+      const { statusCode, message, data } =
         this.$route.name === "baseData"
           ? await getAllSystemEnumCodes(this.payload)
           : await getAllNonSystemEnumCodes(this.payload);
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.pagination.total = data.pageInfo.totalRows;
         this.tableData = data.contents.map(_ => {
           return {
@@ -236,11 +236,11 @@ export default {
       }
     },
     async getEnumNames() {
-      const { status, message, data } =
+      const { statusCode, message, data } =
         this.$route.name === "baseData"
           ? await getSystemCategories()
           : await getNonSystemCategories();
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.tableColumns[0].options = data.map(_ => {
           return {
             value: _.catId,
@@ -250,8 +250,8 @@ export default {
       }
     },
     async getEnumsStatus() {
-      const { status, message, data } = await getEffectiveStatus();
-      if (status === "OK") {
+      const { statusCode, message, data } = await getEffectiveStatus();
+      if (statusCode === "OK") {
         this.tableColumns[this.tableColumns.length - 1].options = data.map(
           _ => {
             return {
@@ -341,8 +341,8 @@ export default {
         "z-index": 1000000,
         onOk: async () => {
           const payload = deleteData.map(_ => _.codeId);
-          const { status, message, data } = await deleteEnumCodes(payload);
-          if (status === "OK") {
+          const { statusCode, message, data } = await deleteEnumCodes(payload);
+          if (statusCode === "OK") {
             this.$Notice.success({
               title: this.$t("delete_enum_success_message"),
               desc: message
@@ -389,8 +389,8 @@ export default {
           value: addObj.value,
           groupCodeId: addObj.groupCodeId
         };
-        const { status, message, data } = await createEnumCode(payload);
-        if (status === "OK") {
+        const { statusCode, message, data } = await createEnumCode(payload);
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: this.$t("add_enum_success_message"),
             desc: message
@@ -411,8 +411,8 @@ export default {
             value: _.value
           };
         });
-        const { status, message, data } = await updateEnumCode(payload);
-        if (status === "OK") {
+        const { statusCode, message, data } = await updateEnumCode(payload);
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: this.$t("update_enum_success_message"),
             desc: message
@@ -440,12 +440,12 @@ export default {
       this.getAsyncOptions(rows, checkoutBoxdisable);
     },
     async exportHandler() {
-      const { status, message, data } =
+      const { statusCode, message, data } =
         this.$route.name === "baseData"
           ? await getAllSystemEnumCodes({ ...this.payload, paging: false })
           : await getAllNonSystemEnumCodes({ ...this.payload, paging: false });
 
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$refs.table.export({
           filename:
             this.$route.name === "baseData" ? "Basic Enums Data" : "Enums Data",

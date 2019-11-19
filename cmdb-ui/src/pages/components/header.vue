@@ -95,8 +95,8 @@ export default {
       this.currentLanguage = this.language[currentLangKey];
     },
     async getMyMenus() {
-      let { status, data, message, user } = await getMyMenus();
-      if (status === "OK") {
+      let { statusCode, data, message, user } = await getMyMenus();
+      if (statusCode === "OK") {
         this.user = user;
         data.sort((a, b) => a.seqNo - b.seqNo);
         data.forEach(_ => {

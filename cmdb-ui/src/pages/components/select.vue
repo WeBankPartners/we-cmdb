@@ -90,10 +90,10 @@ export default {
             }
           }
         };
-        const { data, status, message } = await queryReferenceEnumCodes(
+        const { data, statusCode, message } = await queryReferenceEnumCodes(
           payload
         );
-        if (status === "OK") {
+        if (statusCode === "OK") {
           this.filterOpts = data.contents
             .filter(j => j.status === "active")
             .map(i => {

@@ -134,8 +134,8 @@ export default {
     async onIdcDataChange(guid) {
       this.handleTabClick(this.currentTab);
       this.spinShow = true;
-      const { data, message, status } = await getIdcDesignTreeByGuid([guid]);
-      if (status === "OK") {
+      const { data, message, statusCode } = await getIdcDesignTreeByGuid([guid]);
+      if (statusCode === "OK") {
         this.idcDesignData = data[0];
         this.getZoneLink();
       }
@@ -472,12 +472,12 @@ export default {
       }
     },
     async defaultHandler(type, row) {
-      const { data, status, message } = await operateCiState(
+      const { data, statusCode, message } = await operateCiState(
         this.currentTab,
         row.guid,
         type
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$Notice.success({
           title: type,
           desc: message
@@ -551,8 +551,8 @@ export default {
             id: this.currentTab,
             deleteData: deleteData.map(_ => _.guid)
           };
-          const { status, message, data } = await deleteCiDatas(payload);
-          if (status === "OK") {
+          const { statusCode, message, data } = await deleteCiDatas(payload);
+          if (statusCode === "OK") {
             this.$Notice.success({
               title: "Delete data Success",
               desc: message
@@ -641,8 +641,8 @@ export default {
           id: this.currentTab,
           createData: addAry
         };
-        const { status, message, data } = await createCiDatas(payload);
-        if (status === "OK") {
+        const { statusCode, message, data } = await createCiDatas(payload);
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: "Add data Success",
             desc: message
@@ -664,8 +664,8 @@ export default {
           id: this.currentTab,
           updateData: editAry
         };
-        const { status, message, data } = await updateCiDatas(payload);
-        if (status === "OK") {
+        const { statusCode, message, data } = await updateCiDatas(payload);
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: "Update data Success",
             desc: message
@@ -678,12 +678,12 @@ export default {
     },
     async exportHandler() {
       const found = this.tabList.find(_ => _.code === this.currentTab);
-      const { status, message, data } = await getPlanningDesignsCiData({
+      const { statusCode, message, data } = await getPlanningDesignsCiData({
         idcGuid: this.selectedIdc,
         id: found.codeId,
         queryObject: this.payload
       });
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$refs[this.tableRef][0].export({
           filename: "Ci Data",
           data: formatData(data.contents.map(_ => _.data))
@@ -718,12 +718,12 @@ export default {
         }
       });
       const found = this.tabList.find(_ => _.code === this.currentTab);
-      const { status, message, data } = await getPlanningDesignsCiData({
+      const { statusCode, message, data } = await getPlanningDesignsCiData({
         idcGuid: this.selectedIdc,
         id: found.codeId,
         queryObject: this.payload
       });
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.tableData = data.contents.map(_ => {
@@ -738,7 +738,7 @@ export default {
       }
     },
     async queryCiAttrs(id) {
-      const { status, message, data } = await getCiTypeAttributes(id);
+      const { statusCode, message, data } = await getCiTypeAttributes(id);
       let columns = [];
       const disabledCol = [
         "created_date",
@@ -748,7 +748,7 @@ export default {
         "key_name",
         "guid"
       ];
-      if (status === "OK") {
+      if (statusCode === "OK") {
         let columns = [];
         data.forEach(_ => {
           const disEditor = disabledCol.find(i => i === _.propertyName);
@@ -804,11 +804,11 @@ export default {
     async getZoneLink() {
       this.zoneLinkDesignData = new Map();
       const {
-        status,
+        statusCode,
         message,
         data
       } = await getAllZoneLinkDesignGroupByIdcDesign();
-      if (status === "OK") {
+      if (statusCode === "OK") {
         const idcLink = data.find(_ => _.idcGuid === this.selectedIdc);
         if (idcLink && idcLink.linkList) {
           idcLink.linkList.forEach(_ => {
@@ -832,8 +832,8 @@ export default {
       this.initGraph();
     },
     async getTabLists() {
-      const { status, message, data } = await getPlanningDesignTabs();
-      if (status === "OK") {
+      const { statusCode, message, data } = await getPlanningDesignTabs();
+      if (statusCode === "OK") {
         let allInnerActions = await getExtraInnerActions();
         this.tabList = data.map(_ => {
           return {
@@ -854,8 +854,8 @@ export default {
       }
     },
     async getAllIdcDesignData() {
-      const { status, message, data } = await getAllIdcDesignData();
-      if (status === "OK") {
+      const { statusCode, message, data } = await getAllIdcDesignData();
+      if (statusCode === "OK") {
         this.allIdcs = data.map(_ => _.data);
       }
     }

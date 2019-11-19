@@ -57,7 +57,7 @@ export default {
       };
 
       let layerResponse = await getAllLayers();
-      if (layerResponse.status === "OK") {
+      if (layerResponse.statusCode === "OK") {
         let tempLayer = layerResponse.data
           .filter(i => i.status === "active")
           .map(_ => {
@@ -69,7 +69,7 @@ export default {
         let ciResponse = await getAllCITypesByLayerWithAttr(
           this.selectedStatus
         );
-        if (ciResponse.status === "OK") {
+        if (ciResponse.statusCode === "OK") {
           this.source = [];
           this.source = ciResponse.data;
           this.source.forEach(_ => {

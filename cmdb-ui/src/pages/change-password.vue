@@ -89,11 +89,11 @@ export default {
       });
     },
     async editPassword() {
-      const { status, data, message } = await editPassword({
+      const { statusCode, data, message } = await editPassword({
         password: this.formItem.oldPassword,
         newPassword: this.formItem.newPassword
       });
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$Message.success(this.$t("reset_password_success"));
         this.$router.push("/homepage");
       }

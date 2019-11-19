@@ -70,7 +70,7 @@ export default {
             id: this.ciType.id,
             queryObject: { filters: [], paging: false }
           });
-      if (noPagingRes.status === "OK") {
+      if (noPagingRes.statusCode === "OK") {
         this.selectDisabled = false;
         this.allTableDataWithoutPaging = this.filterParams
           ? noPagingRes.data.contents
@@ -110,10 +110,10 @@ export default {
           ? { ...this.payload, dialect: { data: rows } }
           : this.payload
       };
-      const { status, message, data } = this.filterParams
+      const { statusCode, message, data } = this.filterParams
         ? await queryReferenceCiData(query)
         : await queryCiData(query);
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.tableData = this.filterParams
           ? data.contents
           : data.contents.map(_ => _.data);
@@ -121,9 +121,9 @@ export default {
       }
     },
     async queryCiAttrs(id) {
-      const { status, message, data } = await getCiTypeAttributes(id);
+      const { statusCode, message, data } = await getCiTypeAttributes(id);
       let columns = [];
-      if (status === "OK") {
+      if (statusCode === "OK") {
         columns = data
           .filter(
             _ =>
