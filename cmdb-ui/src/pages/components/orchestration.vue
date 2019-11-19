@@ -48,11 +48,11 @@ export default {
   },
   methods: {
     async getAllOrchestration() {
-      const { data, message, status } = await getEnumCodesByCategoryId(
+      const { data, message, statusCode } = await getEnumCodesByCategoryId(
         0,
         this.col.referenceId
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.allOrchestration = data.map(_ => {
           return {
             label: _.value,
@@ -72,8 +72,8 @@ export default {
           }
         ]
       };
-      let { status, data, message } = await updateCiDatas(payload);
-      if (status === "OK") {
+      let { statusCode, data, message } = await updateCiDatas(payload);
+      if (statusCode === "OK") {
         this.$Notice.success({
           title: "Success",
           desc: message
