@@ -370,12 +370,12 @@ export default {
     async getAllInvokeSequenceData() {
       this.invokeSequenceForm.invokeSequenceData = [];
       let found = this.tabList.find(i => i.code === this.invokeSequenceCode);
-      const { status, message, data } = await getArchitectureCiDatas(
+      const { statusCode, message, data } = await getArchitectureCiDatas(
         found.codeId,
         this.systemDesignVersion,
         {}
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.invokeSequenceForm.invokeSequenceData = data.contents;
       }
     },
@@ -432,10 +432,10 @@ export default {
     },
     async onArchFixVersion() {
       if (this.systemDesignVersion === "") return;
-      const { status, message, data } = await saveAllDesignTreeFromSystemDesign(
+      const { statusCode, message, data } = await saveAllDesignTreeFromSystemDesign(
         this.systemDesignVersion
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.queryCiData();
         this.$Notice.success({
           title: "Success",
@@ -454,8 +454,8 @@ export default {
     async onArchChange() {
       this.invokeSequenceForm.selectedInvokeSequence = "";
       this.invokeSequenceForm.isShowInvokeSequenceDetial = false;
-      let { status, message, data } = await getAllCITypes();
-      if (status === "OK") {
+      let { statusCode, message, data } = await getAllCITypes();
+      if (statusCode === "OK") {
         data.forEach(ci => {
           if (ci.tableName === "system_design") {
             this.systemDesignCiTypeId = ci.ciTypeId + "";
@@ -473,10 +473,10 @@ export default {
       this.getPhysicalGraphData();
     },
     async getAllDesignTreeFromSystemDesign() {
-      const { status, message, data } = await getAllDesignTreeFromSystemDesign(
+      const { statusCode, message, data } = await getAllDesignTreeFromSystemDesign(
         this.systemDesignVersion
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.getAllInvokeSequenceData();
         this.systemDesignData = data ? data : [];
         this.initGraph();
@@ -493,7 +493,7 @@ export default {
         getAllZoneLinkDesignGroupByIdcDesign()
       ];
       const [graphData, links] = await Promise.all(promiseArray);
-      if (graphData.status === "OK") {
+      if (graphData.statusCode === "OK") {
         if (graphData.data.length) {
           this.physicalGraphData = graphData.data;
         } else {
@@ -501,7 +501,7 @@ export default {
           this.physicalSpin = false;
         }
       }
-      if (links.status === "OK") {
+      if (links.statusCode === "OK") {
         this.physicalGraphLinks = links.data || [];
       }
     },
@@ -511,10 +511,10 @@ export default {
     async querySysTree() {
       if (this.systemDesignVersion === "") return;
       this.spinShow = true;
-      const { status, message, data } = await getAllDesignTreeFromSystemDesign(
+      const { statusCode, message, data } = await getAllDesignTreeFromSystemDesign(
         this.systemDesignVersion
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.spinShow = false;
         this.systemDesignData = data ? data : [];
         this.deployTree = this.formatTree(this.systemDesignData);
@@ -866,12 +866,12 @@ export default {
       this.queryCiData();
     },
     async defaultHandler(type, row) {
-      const { data, status, message } = await operateCiState(
+      const { data, statusCode, message } = await operateCiState(
         this.currentTab,
         row.guid,
         type
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$Notice.success({
           title: type,
           desc: message
@@ -931,8 +931,8 @@ export default {
             id: found && found.code,
             deleteData: deleteData.map(_ => _.guid)
           };
-          const { status, message, data } = await deleteCiDatas(payload);
-          if (status === "OK") {
+          const { statusCode, message, data } = await deleteCiDatas(payload);
+          if (statusCode === "OK") {
             this.$Notice.success({
               title: "Delete data Success",
               desc: message
@@ -1022,8 +1022,8 @@ export default {
           id: found && found.code,
           createData: addAry
         };
-        const { status, message, data } = await createCiDatas(payload);
-        if (status === "OK") {
+        const { statusCode, message, data } = await createCiDatas(payload);
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: "Add data Success",
             desc: message
@@ -1047,8 +1047,8 @@ export default {
           id: found && found.code,
           updateData: editAry
         };
-        const { status, message, data } = await updateCiDatas(payload);
-        if (status === "OK") {
+        const { statusCode, message, data } = await updateCiDatas(payload);
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: "Update data Success",
             desc: message
@@ -1064,12 +1064,12 @@ export default {
         ...this.payload,
         paging: false
       };
-      const { status, message, data } = await getArchitectureCiDatas(
+      const { statusCode, message, data } = await getArchitectureCiDatas(
         this.currentTab,
         this.systemDesignVersion,
         exportPayload
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$refs[this.tableRef][0].export({
           filename: "Ci Data",
           data: formatData(data.contents.map(_ => _.data))
@@ -1104,12 +1104,12 @@ export default {
       });
 
       let found = this.tabList.find(i => i.code === this.currentTab);
-      const { status, message, data } = await getArchitectureCiDatas(
+      const { statusCode, message, data } = await getArchitectureCiDatas(
         found.codeId,
         this.systemDesignVersion,
         this.payload
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.tableData = data
@@ -1126,7 +1126,7 @@ export default {
       }
     },
     async queryCiAttrs(id) {
-      const { status, message, data } = await getCiTypeAttributes(id);
+      const { statusCode, message, data } = await getCiTypeAttributes(id);
       let columns = [];
       const disabledCol = [
         "created_date",
@@ -1136,7 +1136,7 @@ export default {
         "key_name",
         "guid"
       ];
-      if (status === "OK") {
+      if (statusCode === "OK") {
         let columns = [];
         data.forEach(_ => {
           const disEditor = disabledCol.find(i => i === _.propertyName);
@@ -1194,9 +1194,9 @@ export default {
       this.queryCiData();
     },
     async getArchitectureDesignTabs() {
-      const { data, status, message } = await getArchitectureDesignTabs();
+      const { data, statusCode, message } = await getArchitectureDesignTabs();
       let allInnerActions = await getExtraInnerActions();
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.tabList = data.map(_ => {
           return {
             ..._,
@@ -1224,8 +1224,8 @@ export default {
       }
     },
     async getSystemDesigns() {
-      let { status, data, message } = await getSystemDesigns();
-      if (status === "OK") {
+      let { statusCode, data, message } = await getSystemDesigns();
+      if (statusCode === "OK") {
         this.systemDesigns = data.contents.map(_ => _.data);
       }
     }

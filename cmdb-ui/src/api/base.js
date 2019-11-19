@@ -7,18 +7,10 @@ export const req = axios.create({
   timeout: 50000
 });
 
-req.defaults.headers.common["Http-Client-Type"] = "Ajax";
-
 const throwError = res => new Error(res.message || "error");
 req.interceptors.response.use(
   res => {
     if (res.status === 200) {
-      if (res.headers["cas-redirect-flag"] === "true") {
-        const currentUrl = window.location.href;
-        if (currentUrl.indexOf("ticket=") !== -1) return;
-        window.location.href =
-          res.headers.location.split("?")[0] + "?service=" + currentUrl;
-      }
       if (res.data.statusCode.startsWith("ERR")) {
         const errorMes = Array.isArray(res.data.data)
           ? res.data.data.map(_ => _.errorMessage).join("<br/>")
@@ -34,7 +26,6 @@ req.interceptors.response.use(
       }
       return {
         ...res.data,
-        status: res.data.statusCode,
         user: res.headers["username"] || " - "
       };
     } else {

@@ -1,7 +1,7 @@
 import { getAllSystemEnumCodes } from "@/api/server.js";
 
 export const getExtraInnerActions = async () => {
-  const { data, status } = await getAllSystemEnumCodes({
+  const { data, statusCode } = await getAllSystemEnumCodes({
     filters: [
       {
         name: "cat.catName",
@@ -11,7 +11,7 @@ export const getExtraInnerActions = async () => {
     ],
     paging: false
   });
-  if (status === "OK") {
+  if (statusCode === "OK") {
     return data.contents
       .filter(
         _ => _.code !== "insert" && _.code !== "update" && _.code !== "delete"

@@ -144,8 +144,8 @@ export default {
   },
   methods: {
     async getAllIdcData() {
-      const { data, message, status } = await getAllIdcData();
-      if (status === "OK") {
+      const { data, message, statusCode } = await getAllIdcData();
+      if (statusCode === "OK") {
         this.allIdcs = data.map(_ => _.data);
       }
     },
@@ -158,10 +158,10 @@ export default {
       this.handleTabClick(this.currentTab);
       if (this.selectedIdcs.length) {
         this.spinShow = true;
-        const { data, message, status } = await getIdcImplementTreeByGuid(
+        const { data, message, statusCode } = await getIdcImplementTreeByGuid(
           this.selectedIdcs
         );
-        if (status === "OK") {
+        if (statusCode === "OK") {
           this.idcData = data;
           this.zoneLinkData = new Map();
           this.getZoneLink();
@@ -602,12 +602,12 @@ export default {
       }
     },
     async defaultHandler(type, row) {
-      const { data, status, message } = await operateCiState(
+      const { data, statusCode, message } = await operateCiState(
         this.currentTab,
         row.guid,
         type
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$Notice.success({
           title: type,
           desc: message
@@ -683,8 +683,8 @@ export default {
             id: this.currentTab,
             deleteData: deleteData.map(_ => _.guid)
           };
-          const { status, message, data } = await deleteCiDatas(payload);
-          if (status === "OK") {
+          const { statusCode, message, data } = await deleteCiDatas(payload);
+          if (statusCode === "OK") {
             this.$Notice.success({
               title: this.$t("delete_data_success"),
               desc: message
@@ -774,8 +774,8 @@ export default {
           id: this.currentTab,
           createData: addAry
         };
-        const { status, message, data } = await createCiDatas(payload);
-        if (status === "OK") {
+        const { statusCode, message, data } = await createCiDatas(payload);
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: this.$t("add_data_success"),
             desc: message
@@ -797,8 +797,8 @@ export default {
           id: this.currentTab,
           updateData: editAry
         };
-        const { status, message, data } = await updateCiDatas(payload);
-        if (status === "OK") {
+        const { statusCode, message, data } = await updateCiDatas(payload);
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: this.$t("update_data_success"),
             desc: message
@@ -811,12 +811,12 @@ export default {
     },
     async exportHandler() {
       const found = this.tabList.find(_ => _.code === this.currentTab);
-      const { status, message, data } = await getResourcePlanningCiData({
+      const { statusCode, message, data } = await getResourcePlanningCiData({
         idcGuid: this.selectedIdcs.join(","),
         id: found.codeId,
         queryObject: this.payload
       });
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$refs[this.tableRef][0].export({
           filename: "Ci Data",
           data: formatData(data.contents.map(_ => _.data))
@@ -851,12 +851,12 @@ export default {
         }
       });
       const found = this.tabList.find(_ => _.code === this.currentTab);
-      const { status, message, data } = await getResourcePlanningCiData({
+      const { statusCode, message, data } = await getResourcePlanningCiData({
         idcGuid: this.selectedIdcs.join(","),
         id: found.codeId,
         queryObject: this.payload
       });
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.tableData = data.contents.map(_ => {
@@ -871,7 +871,7 @@ export default {
       }
     },
     async queryCiAttrs(id) {
-      const { status, message, data } = await getCiTypeAttributes(id);
+      const { statusCode, message, data } = await getCiTypeAttributes(id);
       let columns = [];
       const disabledCol = [
         "created_date",
@@ -881,7 +881,7 @@ export default {
         "key_name",
         "guid"
       ];
-      if (status === "OK") {
+      if (statusCode === "OK") {
         let columns = [];
         data.forEach(_ => {
           const disEditor = disabledCol.find(i => i === _.propertyName);
@@ -935,8 +935,8 @@ export default {
       this.queryCiData();
     },
     async getZoneLink() {
-      const { status, message, data } = await getAllZoneLinkGroupByIdc();
-      if (status === "OK") {
+      const { statusCode, message, data } = await getAllZoneLinkGroupByIdc();
+      if (statusCode === "OK") {
         data.forEach(idc => {
           let idcGuid = idc.idcGuid;
           const found = this.idcData.find(idcItem => idcItem.guid === idcGuid);
@@ -966,8 +966,8 @@ export default {
       });
     },
     async getTabList() {
-      const { status, message, data } = await getResourcePlanningTabs();
-      if (status === "OK") {
+      const { statusCode, message, data } = await getResourcePlanningTabs();
+      if (statusCode === "OK") {
         let allInnerActions = await getExtraInnerActions();
         this.tabList = data.map(_ => {
           return {

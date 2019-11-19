@@ -143,7 +143,7 @@ export default {
       };
 
       let layerResponse = await getAllLayers();
-      if (layerResponse.status === "OK") {
+      if (layerResponse.statusCode === "OK") {
         let tempLayer = layerResponse.data
           .filter(i => i.status === "active")
           .map(_ => {
@@ -153,7 +153,7 @@ export default {
           return a.seqNo - b.seqNo;
         });
         let ciResponse = await getAllCITypesByLayerWithAttr(filters);
-        if (ciResponse.status === "OK") {
+        if (ciResponse.statusCode === "OK") {
           this.source = ciResponse.data;
           this.source.forEach(_ => {
             _.ciTypes &&
@@ -466,12 +466,12 @@ export default {
       this.queryCiData();
     },
     async defaultHandler(type, row) {
-      const { data, status, message } = await operateCiState(
+      const { data, statusCode, message } = await operateCiState(
         this.currentTab,
         row.guid,
         type
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$Notice.success({
           title: "Success",
           desc: message
@@ -530,8 +530,8 @@ export default {
             id: this.currentTab,
             deleteData: deleteData.map(_ => _.guid)
           };
-          const { status, message, data } = await deleteCiDatas(payload);
-          if (status === "OK") {
+          const { statusCode, message, data } = await deleteCiDatas(payload);
+          if (statusCode === "OK") {
             this.$Notice.success({
               title: "Deleted successfully",
               desc: message
@@ -619,8 +619,8 @@ export default {
           id: this.currentTab,
           createData: addAry
         };
-        const { status, message, data } = await createCiDatas(payload);
-        if (status === "OK") {
+        const { statusCode, message, data } = await createCiDatas(payload);
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: "Added successfully",
             desc: message
@@ -641,8 +641,8 @@ export default {
           id: this.currentTab,
           updateData: editAry
         };
-        const { status, message, data } = await updateCiDatas(payload);
-        if (status === "OK") {
+        const { statusCode, message, data } = await updateCiDatas(payload);
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: "Updated successfully",
             desc: message
@@ -653,11 +653,11 @@ export default {
       }
     },
     async exportHandler() {
-      const { status, message, data } = await queryCiData({
+      const { statusCode, message, data } = await queryCiData({
         id: this.currentTab,
         queryObject: {}
       });
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$refs[this.tableRef][0].export({
           filename: this.ciTypesName[this.currentTab],
           data: formatData(data.contents.map(_ => _.data))
@@ -694,8 +694,8 @@ export default {
         id: this.currentTab,
         queryObject: this.payload
       };
-      const { status, message, data } = await queryCiData(query);
-      if (status === "OK") {
+      const { statusCode, message, data } = await queryCiData(query);
+      if (statusCode === "OK") {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.tableData = data.contents.map(_ => {
@@ -710,7 +710,7 @@ export default {
       }
     },
     async queryCiAttrs(id) {
-      const { status, message, data } = await getCiTypeAttributes(id);
+      const { statusCode, message, data } = await getCiTypeAttributes(id);
       let columns = [];
       const disabledCol = [
         "created_date",
@@ -720,7 +720,7 @@ export default {
         "key_name",
         "guid"
       ];
-      if (status === "OK") {
+      if (statusCode === "OK") {
         let columns = [];
         data.forEach(_ => {
           const disEditor = disabledCol.find(i => i === _.propertyName);

@@ -379,13 +379,13 @@ export default {
     },
     async getAttrPermissions() {
       let {
-        status,
+        statusCode,
         data,
         message
       } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(
         this.currentRoleCiTypeId
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.ciTypeAttrsPermissionsBackUp = data.body;
         this.ciTypeAttrsPermissions = data.body.map(_ => {
           let obj = {};
@@ -440,7 +440,7 @@ export default {
               i.referenceId
             );
             let opts = [];
-            if (enumOptions.status === "OK") {
+            if (enumOptions.statusCode === "OK") {
               opts = enumOptions.data.map(_ => {
                 return {
                   value: _.codeId,
@@ -538,11 +538,11 @@ export default {
             }
           }
         });
-        const { status, message, data } = await createRoleCiTypeCtrlAttributes(
+        const { statusCode, message, data } = await createRoleCiTypeCtrlAttributes(
           this.currentRoleCiTypeId,
           addAry
         );
-        if (status === "OK") {
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: this.$t("add_permission_success"),
             desc: message
@@ -573,11 +573,11 @@ export default {
             }
           }
         });
-        const { status, message, data } = await updateRoleCiTypeCtrlAttributes(
+        const { statusCode, message, data } = await updateRoleCiTypeCtrlAttributes(
           this.currentRoleCiTypeId,
           editAry
         );
-        if (status === "OK") {
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: this.$t("update_permission_success"),
             desc: message
@@ -594,14 +594,14 @@ export default {
         onOk: async () => {
           const payload = deleteData.map(_ => _.roleCiTypeCtrlAttrId);
           const {
-            status,
+            statusCode,
             message,
             data
           } = await deleteRoleCiTypeCtrlAttributes(
             this.currentRoleCiTypeId,
             payload
           );
-          if (status === "OK") {
+          if (statusCode === "OK") {
             this.$Notice.success({
               title: this.$t("delete_permission_success"),
               desc: message
@@ -688,11 +688,11 @@ export default {
     },
     async handleUserTransferChange(newTargetKeys, direction, moveKeys) {
       if (direction === "right") {
-        let { status, data, message } = await addUsersToRole(
+        let { statusCode, data, message } = await addUsersToRole(
           moveKeys,
           this.selectedRole
         );
-        if (status === "OK") {
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: "success",
             desc: message
@@ -700,11 +700,11 @@ export default {
           this.usersKeyBySelectedRole = newTargetKeys;
         }
       } else {
-        let { status, data, message } = await romoveUsersFromRole(
+        let { statusCode, data, message } = await romoveUsersFromRole(
           moveKeys,
           this.selectedRole
         );
-        if (status === "OK") {
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: "success",
             desc: message
@@ -721,11 +721,11 @@ export default {
         });
         return;
       }
-      let { status, data, message } = await addRole({
+      let { statusCode, data, message } = await addRole({
         roleName: this.addedRoleValue,
         description: this.addedRoleValue
       });
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$Notice.success({
           title: "success",
           desc: message
@@ -741,8 +741,8 @@ export default {
         });
         return;
       }
-      let { status, data, message } = await addUser([this.addedUser]);
-      if (status === "OK") {
+      let { statusCode, data, message } = await addUser([this.addedUser]);
+      if (statusCode === "OK") {
         this.$Notice.success({
           title: "success",
           desc: message
@@ -798,9 +798,9 @@ export default {
           _.checked = checked;
         }
       });
-      let { status, data, message } = await getRolesByUser(name);
+      let { statusCode, data, message } = await getRolesByUser(name);
       this.getPermissions(false, checked, name, true);
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.roles.forEach(_ => {
           _.checked = false;
           const found = data.find(item => item.roleId === _.id);
@@ -812,8 +812,8 @@ export default {
       }
     },
     async getAllUsers() {
-      let { status, data, message } = await getAllUsers();
-      if (status === "OK") {
+      let { statusCode, data, message } = await getAllUsers();
+      if (statusCode === "OK") {
         this.users = data.map(_ => {
           return {
             id: _.userId,
@@ -857,9 +857,9 @@ export default {
           _.checked = checked;
         }
       });
-      let { status, data, message } = await getUsersByRole(id);
+      let { statusCode, data, message } = await getUsersByRole(id);
       this.getPermissions(false, checked, id);
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.users.forEach(_ => {
           _.checked = false;
           const found = data.find(item => item.username === _.username);
@@ -876,10 +876,10 @@ export default {
       } else {
         menuCodes.push(currentChecked.code);
       }
-      const { status, message, data } = currentChecked.checked
+      const { statusCode, message, data } = currentChecked.checked
         ? await addMenusToRole(menuCodes, this.currentRoleId)
         : await removeMenusFromRole(menuCodes, this.currentRoleId);
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$Notice.success({
           title: "success",
           desc: message
@@ -888,8 +888,8 @@ export default {
       this.getPermissions(true, true, this.currentRoleId);
     },
     async getAllRoles() {
-      let { status, data, message } = await getAllRoles();
-      if (status === "OK") {
+      let { statusCode, data, message } = await getAllRoles();
+      if (statusCode === "OK") {
         this.roles = data.map(_ => {
           return {
             id: _.roleId,
@@ -938,8 +938,8 @@ export default {
       return menus;
     },
     async getAllMenus() {
-      let { status, data, message } = await getAllMenus();
-      if (status === "OK") {
+      let { statusCode, data, message } = await getAllMenus();
+      if (statusCode === "OK") {
         this.allMenusOriginResponse = data;
         this.menus = this.menusResponseHandeler(data);
         this.menusForEdit = this.menusResponseHandeler(data, false);
@@ -975,8 +975,8 @@ export default {
       this.usersKeyBySelectedRole = [];
       this.allUsersForTransfer = [];
       this.selectedRole = id;
-      let { status, data, message } = await getUsersByRole(id);
-      if (status === "OK") {
+      let { statusCode, data, message } = await getUsersByRole(id);
+      if (statusCode === "OK") {
         this.usersKeyBySelectedRole = data.map(_ => _.userId);
       }
       this.allUsersForTransfer = this.users.map(_ => {

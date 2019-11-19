@@ -120,8 +120,8 @@ export default {
             ];
           }
           if (_.t === "ref") {
-            let { status, data, message } = await getRefCiTypeFrom(_.id);
-            if (status === "OK") {
+            let { statusCode, data, message } = await getRefCiTypeFrom(_.id);
+            if (statusCode === "OK") {
               opt = data.map(p => {
                 return {
                   ...p,
@@ -134,8 +134,8 @@ export default {
             }
           }
           if (_.t === "attr") {
-            let { status, data, message } = await getCiTypeAttr(_.id);
-            if (status === "OK") {
+            let { statusCode, data, message } = await getCiTypeAttr(_.id);
+            if (statusCode === "OK") {
               opt = data.map(p => {
                 return {
                   ...p,
@@ -182,7 +182,7 @@ export default {
         const id = isRef ? found.referenceId : found.ciTypeId;
         if (operator === ".") {
           let { status, data, message } = await getCiTypeAttr(id);
-          if (status === "OK") {
+          if (statusCode === "OK") {
             const opt = data.map(_ => {
               return {
                 ..._,
@@ -211,7 +211,7 @@ export default {
         }
         if (operator === "-") {
           let { status, data, message } = await getRefCiTypeFrom(id);
-          if (status === "OK") {
+          if (statusCode === "OK") {
             const opt = data.map(_ => {
               return {
                 ..._,

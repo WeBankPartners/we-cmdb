@@ -435,8 +435,8 @@ export default {
       this.initTreeGraph();
     },
     async getSystemDesigns() {
-      let { status, data, message } = await getSystemDesigns();
-      if (status === "OK") {
+      let { statusCode, data, message } = await getSystemDesigns();
+      if (statusCode === "OK") {
         this.systemDesigns = data.contents.map(_ => _.data);
       }
     },
@@ -445,9 +445,9 @@ export default {
         filters: [{ name: "cat.catName", operator: "eq", value: "env" }],
         paging: false
       };
-      const { status, data, message } = await getAllNonSystemEnumCodes(payload);
+      const { statusCode, data, message } = await getAllNonSystemEnumCodes(payload);
 
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.envs = data.contents;
       }
     },
@@ -467,8 +467,8 @@ export default {
       if (this.currentTab) {
         this.queryCiData();
       }
-      let { status, message, data } = await getAllCITypes();
-      if (status === "OK") {
+      let { statusCode, message, data } = await getAllCITypes();
+      if (statusCode === "OK") {
         data.forEach(ci => {
           if (ci.tableName === "service") {
             this.serviceCiTypeId = ci.ciTypeId;
@@ -486,11 +486,11 @@ export default {
       this.getPhysicalGraphData();
     },
     async getAllDeployTreesFromDesignCi() {
-      const { status, message, data } = await getAllDeployTreesFromDesignCi(
+      const { statusCode, message, data } = await getAllDeployTreesFromDesignCi(
         this.systemDesignVersion,
         this.env
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.isShowTabs = true;
         this.deployTree = this.formatTree(data);
         this.systemData = data;
@@ -523,7 +523,7 @@ export default {
         getAllZoneLinkGroupByIdc()
       ];
       const [graphData, links] = await Promise.all(promiseArray);
-      if (graphData.status === "OK") {
+      if (graphData.statusCode === "OK") {
         if (graphData.data.length) {
           this.physicalGraphData = graphData.data;
         } else {
@@ -531,7 +531,7 @@ export default {
           this.physicalSpin = false;
         }
       }
-      if (links.status === "OK") {
+      if (links.statusCode === "OK") {
         this.physicalGraphLinks = links.data || [];
       }
     },
@@ -584,11 +584,11 @@ export default {
         })
       };
       const {
-        status,
+        statusCode,
         data,
         message
       } = await startProcessInstancesWithCiDataInbatch(payload);
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$Notice.success({
           title: this.$t("start_execution"),
           desc: message
@@ -603,8 +603,8 @@ export default {
           definitionKey: _.data.WeCMDBOrchestration.codeId
         };
       });
-      const { status, data, message } = await previewDeployGraph(payload);
-      if (status === "OK") {
+      const { statusCode, data, message } = await previewDeployGraph(payload);
+      if (statusCode === "OK") {
         this.graphSource = data;
         data.forEach((_, index) => {
           this.$set(this.graphs, _.defintiionKey + "_" + index, {});
@@ -816,11 +816,11 @@ export default {
           }
         ]
       };
-      const { status, message, data } = await queryEnumCategories(request);
-      if (status === "OK") {
+      const { statusCode, message, data } = await queryEnumCategories(request);
+      if (statusCode === "OK") {
         let catId = data.contents[0].catId;
         const response = await queryEnumCodes(0, catId, {});
-        if (response.status === "OK") {
+        if (response.statusCode === "OK") {
           this.layerData = response.data.contents;
         }
       }
@@ -931,12 +931,12 @@ export default {
       this.getCurrentData();
     },
     async defaultHandler(type, row) {
-      const { data, status, message } = await operateCiState(
+      const { data, statusCode, message } = await operateCiState(
         this.currentTab,
         row.guid,
         type
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$Notice.success({
           title: type,
           desc: message
@@ -996,8 +996,8 @@ export default {
             id: this.currentTab,
             deleteData: deleteData.map(_ => _.guid)
           };
-          const { status, message, data } = await deleteCiDatas(payload);
-          if (status === "OK") {
+          const { statusCode, message, data } = await deleteCiDatas(payload);
+          if (statusCode === "OK") {
             this.$Notice.success({
               title: "Delete data Success",
               desc: message
@@ -1088,8 +1088,8 @@ export default {
           id: found && found.code,
           createData: addAry
         };
-        const { status, message, data } = await createCiDatas(payload);
-        if (status === "OK") {
+        const { statusCode, message, data } = await createCiDatas(payload);
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: "Add data Success",
             desc: message
@@ -1114,8 +1114,8 @@ export default {
           id: found && found.code,
           updateData: editAry
         };
-        const { status, message, data } = await updateCiDatas(payload);
-        if (status === "OK") {
+        const { statusCode, message, data } = await updateCiDatas(payload);
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: "Update data Success",
             desc: message
@@ -1138,11 +1138,11 @@ export default {
         ...this.payload,
         paging: false
       };
-      const { status, message, data } = await getDeployCiData(
+      const { statusCode, message, data } = await getDeployCiData(
         requst,
         exportPayload
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.$refs[this.tableRef][0].export({
           filename: "Ci Data",
           data: formatData(data.contents.map(_ => _.data))
@@ -1166,7 +1166,7 @@ export default {
       this.getCurrentData();
     },
     async queryCiAttrs(id) {
-      const { status, message, data } = await getCiTypeAttributes(id);
+      const { statusCode, message, data } = await getCiTypeAttributes(id);
       let columns = [];
       const disabledCol = [
         "created_date",
@@ -1176,7 +1176,7 @@ export default {
         "key_name",
         "guid"
       ];
-      if (status === "OK") {
+      if (statusCode === "OK") {
         let columns = [];
         data.forEach(_ => {
           const disEditor = disabledCol.find(i => i === _.propertyName);
@@ -1251,11 +1251,11 @@ export default {
         systemDesignGuid: this.systemDesignVersion
       };
 
-      const { status, message, data } = await getDeployCiData(
+      const { statusCode, message, data } = await getDeployCiData(
         requst,
         this.payload
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.tableData = data
@@ -1272,10 +1272,10 @@ export default {
       }
     },
     async getDeployDesignTabs() {
-      const { status, message, data } = await getDeployDesignTabs();
-      if (status === "OK") {
+      const { statusCode, message, data } = await getDeployDesignTabs();
+      if (statusCode === "OK") {
         let allInnerActions = await getExtraInnerActions();
-        if (status === "OK") {
+        if (statusCode === "OK") {
           this.tabList = data.map(_ => {
             return {
               ..._,

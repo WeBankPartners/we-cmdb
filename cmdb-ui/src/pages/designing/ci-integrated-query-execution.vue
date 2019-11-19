@@ -158,8 +158,8 @@ export default {
       this.getTableData();
     },
     async getAllCITypes() {
-      let { status, data, message } = await getAllCITypes();
-      if (status === "OK") {
+      let { statusCode, data, message } = await getAllCITypes();
+      if (statusCode === "OK") {
         this.allCiTypes = data;
       }
     },
@@ -174,9 +174,9 @@ export default {
     },
     async getTableHeader(id) {
       this.currentSelectQueryNameId = id;
-      let { status, data, message } = await queryIntHeader(id);
+      let { statusCode, data, message } = await queryIntHeader(id);
 
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.tableColumns = [];
         data.forEach(_ => {
           if (_.attrUnits) {
@@ -213,12 +213,12 @@ export default {
         if (_.children) {
           _.children.forEach(async child => {
             if (child.inputType === "select") {
-              const { data, status, message } = await getEnumCodesByCategoryId(
+              const { data, statusCode, message } = await getEnumCodesByCategoryId(
                 0,
                 child.referenceId
               );
               let opts = [];
-              if (status === "OK") {
+              if (statusCode === "OK") {
                 opts = data
                   .filter(i => i.status === "active")
                   .map(_ => {
@@ -238,11 +238,11 @@ export default {
       this.payload.pageable.pageSize = this.pagination.pageSize;
       this.payload.pageable.startIndex =
         (this.pagination.currentPage - 1) * this.pagination.pageSize;
-      let { status, data, message } = await excuteIntQuery(
+      let { statusCode, data, message } = await excuteIntQuery(
         this.currentSelectQueryNameId,
         this.payload
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.tableData = data.contents;
         this.pagination.total = data.pageInfo.totalRows;
       }
@@ -253,8 +253,8 @@ export default {
     },
     async getQueryNameList(ciTypeId) {
       this.reset();
-      let { status, data, message } = await getQueryNames(ciTypeId);
-      if (status === "OK") {
+      let { statusCode, data, message } = await getQueryNames(ciTypeId);
+      if (statusCode === "OK") {
         this.queryNameList = data;
       }
     },

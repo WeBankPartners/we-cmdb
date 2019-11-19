@@ -322,8 +322,8 @@ export default {
       const obj = objList[objList.length - 1];
       let attrArray = [];
       if (operator === ".") {
-        let { status, data, message } = await getCiTypeAttr(obj.ciTypeId);
-        if (status === "OK") {
+        let { statusCode, data, message } = await getCiTypeAttr(obj.ciTypeId);
+        if (statusCode === "OK") {
           data.forEach(_ => {
             attrArray.push({
               ..._,
@@ -339,8 +339,8 @@ export default {
           this.attrNameArray = attrArray;
         }
       } else if (operator === "-") {
-        let { status, data, message } = await getRefCiTypeFrom(obj.ciTypeId);
-        if (status === "OK") {
+        let { statusCode, data, message } = await getRefCiTypeFrom(obj.ciTypeId);
+        if (statusCode === "OK") {
           attrArray = data.map(_ => {
             return {
               ..._,

@@ -207,8 +207,8 @@ export default {
           sorting: {}
         }
       };
-      const { data, status, message } = await queryCiData(payload);
-      if (status === "OK") {
+      const { data, statusCode, message } = await queryCiData(payload);
+      if (statusCode === "OK") {
         this.sequenceData = data.contents.map(_ => {
           return { ..._.data };
         });
