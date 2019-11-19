@@ -131,8 +131,8 @@ export default {
           catTypeId: this.form.catTypeId,
           groupTypeId: this.form.catGroupId
         };
-        const { message, data, status } = await updateEnumCategory(payload);
-        if (status === "OK") {
+        const { message, data, statusCode } = await updateEnumCategory(payload);
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: this.$t("update_category_success_message"),
             desc: message
@@ -148,8 +148,8 @@ export default {
             this.form.catTypeId === 2 ? this.form.catTypeId : type.catTypeId,
           groupTypeId: this.form.catGroupId
         };
-        const { message, data, status } = await createEnumCategory(payload);
-        if (status === "OK") {
+        const { message, data, statusCode } = await createEnumCategory(payload);
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: this.$t("add_category_success_message"),
             desc: message
