@@ -202,8 +202,8 @@ export default {
         const id = this.routine[this.routine.length - 1].ciTypeId;
         if (operator === ".") {
           this.inputVal = this.inputVal + operator;
-          let { status, data, message } = await getCiTypeAttr(id);
-          if (status === "OK") {
+          let { statusCode, data, message } = await getCiTypeAttr(id);
+          if (statusCode === "OK") {
             let attr = [];
             data.forEach(_ => {
               if (_.status === "created") {
@@ -232,8 +232,8 @@ export default {
         }
         if (operator === "-") {
           this.inputVal = this.inputVal + operator;
-          let { status, data, message } = await getRefCiTypeFrom(id);
-          if (status === "OK") {
+          let { statusCode, data, message } = await getRefCiTypeFrom(id);
+          if (statusCode === "OK") {
             this.options = data.map(_ => {
               let found = this.allCi.find(i => i.ciTypeId === _.ciTypeId);
               return {
