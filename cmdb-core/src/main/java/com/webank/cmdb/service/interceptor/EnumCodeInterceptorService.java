@@ -123,7 +123,7 @@ public class EnumCodeInterceptorService extends BasicInterceptorService<CatCodeD
         validateIfCatIdExist(vals.get("catId"));
         validateGroupCodeId(vals.get("groupCodeId"));
         validateIfCodeUniqueByCatId(code, vals.get("code"), vals.get("catId"));
-        validateIfValueUniqueByCatId(code, vals.get("code"), vals.get("catId"));
+        validateIfValueUniqueByCatId(code, vals.get("value"), vals.get("catId"));
         validateStatus(vals);
     }
 
