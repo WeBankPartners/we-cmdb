@@ -1149,7 +1149,7 @@ export default {
       };
 
       let layerResponse = await getAllLayers();
-      if (layerResponse.status === "OK") {
+      if (layerResponse.statusCode === "OK") {
         let tempLayer = layerResponse.data
           .filter(i => i.status === "active")
           .map(_ => {
@@ -1161,7 +1161,7 @@ export default {
         let ciResponse = await getAllCITypesByLayerWithAttr(
           this.selectedStatus
         );
-        if (ciResponse.status === "OK") {
+        if (ciResponse.statusCode === "OK") {
           this.source = [];
           this.source = ciResponse.data;
           this.source.forEach(_ => {
@@ -1385,16 +1385,16 @@ export default {
     },
     async getAllEnumCategories() {
       if (this.allEnumCategories.length === 0) {
-        const { message, data, status } = await getAllEnumCategories();
-        if (status === "OK") {
+        const { message, data, statusCode } = await getAllEnumCategories();
+        if (statusCode === "OK") {
           this.allEnumCategories = data.contents;
         }
       }
     },
     async getAllEnumTypes() {
       if (this.allEnumCategoryTypes.length === 0) {
-        const { message, data, status } = await getAllEnumCategoryTypes();
-        if (status === "OK") {
+        const { message, data, statusCode } = await getAllEnumCategoryTypes();
+        if (statusCode === "OK") {
           this.allEnumCategoryTypes = data;
         }
       }
@@ -1425,7 +1425,7 @@ export default {
         this.selectedCIAttrIsSystem && !isNewAdd
           ? await getEnumCategoriesByTypeId(SYS_ENUM_TYPE_ID)
           : await getEnumByCIType(this.currentSelectedCI.ciTypeId);
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         let enumList = [];
         enumList =
           this.selectedCIAttrIsSystem && !isNewAdd
@@ -1451,7 +1451,7 @@ export default {
             value: this.newLayer.addNewLayerValue
           };
           let res = await createLayer(payload);
-          if (res.status === "OK") {
+          if (res.statusCode === "OK") {
             this.$Notice.success({
               title: this.$t("add_layer_success"),
               desc: res.message
@@ -1469,7 +1469,7 @@ export default {
           value: this.updatedLayerNameValue.code
         }
       ]);
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.$Notice.success({
           title: this.$t("edit_layer_name_success"),
           desc: res.message
@@ -1488,7 +1488,7 @@ export default {
       }
       let targetID = this.layers[currentIndex - 1].codeId;
       let res = await swapLayerPosition(id, targetID);
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.$Notice.success({
           title: this.$t("move_up_layer_success"),
           desc: res.message
@@ -1507,7 +1507,7 @@ export default {
       }
       let targetID = this.layers[currentIndex + 1].codeId;
       let res = await swapLayerPosition(id, targetID);
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.$Notice.success({
           title: this.$t("move_down_layer_success"),
           desc: res.message
@@ -1520,9 +1520,9 @@ export default {
         title: this.$t("delete_confirm"),
         "z-index": 1000000,
         onOk: async () => {
-          const { status, message, data } = await deleteLayer(id);
+          const { statusCode, message, data } = await deleteLayer(id);
 
-          if (status === "OK") {
+          if (statusCode === "OK") {
             this.$Notice.success({
               title: this.$t("delete_layer_success"),
               desc: message
@@ -1537,7 +1537,7 @@ export default {
 
     async revertCI(ciTypeId) {
       let res = await implementCiType(ciTypeId, "revert");
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.$Notice.success({
           title: this.$t("revert_ci_type_success"),
           desc: res.message
@@ -1551,7 +1551,7 @@ export default {
         attrId,
         "revert"
       );
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.$Notice.success({
           title: this.$t("revert_ci_attribute_success"),
           desc: res.message
@@ -1564,7 +1564,7 @@ export default {
         this.updatedCINameValue.ciTypeId,
         this.updatedCINameValue
       );
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.$Notice.success({
           title: this.$t("update_ci_name_success"),
           desc: res.message
@@ -1581,7 +1581,7 @@ export default {
             status === "notCreated"
               ? await deleteCITypeByID(id)
               : await implementCiType(id, "deco");
-          if (res.status === "OK") {
+          if (res.statusCode === "OK") {
             this.$Notice.success({
               title: status === "notCreated" ? "CI delete" : "CI decomission",
               desc: res.message
@@ -1606,7 +1606,7 @@ export default {
                   id,
                   "deco"
                 );
-          if (res.status === "OK") {
+          if (res.statusCode === "OK") {
             this.$Notice.success({
               title:
                 status === "notCreated"
@@ -1631,7 +1631,7 @@ export default {
         ...form,
         callbackId: "10000001"
       });
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.$Notice.success({
           title: this.$t("save_ci_success"),
           desc: res.message
@@ -1644,7 +1644,7 @@ export default {
         if (valid) {
           const payload = { ...this.addNewCITypeForm, callbackId: "10000001" };
           let res = await createNewCIType(payload);
-          if (res.status === "OK") {
+          if (res.statusCode === "OK") {
             this.$Notice.success({
               title: this.$t("add_ci_type_success"),
               desc: res.message
@@ -1678,7 +1678,7 @@ export default {
         : await updateCIType(id, {
             ...form
           });
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.$Notice.success({
           title: this.$t("apply_ci_success"),
           desc: res.message
@@ -1704,7 +1704,7 @@ export default {
         id,
         targetID
       );
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.$Notice.success({
           title: this.$t("move_up_ci_attr_success"),
           desc: res.message
@@ -1730,7 +1730,7 @@ export default {
         id,
         targetID
       );
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.$Notice.success({
           title: this.$t("move_down_ci_attr_success"),
           desc: res.message
@@ -1751,7 +1751,7 @@ export default {
         callbackId: "10000001"
       };
       let res = await createNewCIAttr(this.currentSelectedCI.ciTypeId, payload);
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.$Notice.success({
           title: this.$t("add_ci_attr_success"),
           desc: res.message
@@ -1787,7 +1787,7 @@ export default {
         ciTypeAttrId,
         payload
       );
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.$Notice.success({
           title: this.$t("save_ci_attr_success"),
           desc: res.message
@@ -1811,11 +1811,11 @@ export default {
           isEditable: form.isEditable === "yes"
         }
       );
-      if (updateRes.status === "OK") {
+      if (updateRes.statusCode === "OK") {
         let applyRes = await applyCIAttr(this.currentSelectedCI.ciTypeId, [
           ciTypeAttrId
         ]);
-        if (applyRes.status === "OK") {
+        if (applyRes.statusCode === "OK") {
           this.$Notice.success({
             title: this.$t("apply_ci_attr_success"),
             desc: applyRes.message
@@ -1868,13 +1868,13 @@ export default {
     },
     async getAllCITypesList() {
       const res = await getAllCITypes();
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.allCiTypes = res.data;
       }
     },
     async getAllInputTypesList() {
       const res = await getAllInputTypes();
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.allInputTypes = res.data;
       }
     },
@@ -1886,13 +1886,13 @@ export default {
         paging: false
       };
       const res = await getAllSystemEnumCodes(payload);
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.allReferenceTypes = res.data.contents;
       }
     },
     async getTableStatusList() {
       const res = await getTableStatus();
-      if (res.status === "OK") {
+      if (res.statusCode === "OK") {
         this.statusList = res.data;
       }
     }

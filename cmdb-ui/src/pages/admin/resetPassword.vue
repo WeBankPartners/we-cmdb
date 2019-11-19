@@ -64,8 +64,8 @@ export default {
   },
   methods: {
     async getAllUsers() {
-      const { status, data, message, user } = await getAllUsers();
-      if (status === "OK") {
+      const { statusCode, data, message, user } = await getAllUsers();
+      if (statusCode === "OK") {
         this.username = user;
         this.users = data.map(_ => {
           return {
@@ -84,10 +84,10 @@ export default {
       this.modalVisible = true;
     },
     async handleReset() {
-      const { status, data, message } = await resetPassword({
+      const { statusCode, data, message } = await resetPassword({
         username: this.targetUser.username
       });
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.modalVisible = false;
         this.$Modal.info({
           title: formatString(
