@@ -140,8 +140,8 @@ export default {
   },
   methods: {
     async getAllCITypes() {
-      let { status, data, message } = await getAllCITypes();
-      if (status === "OK") {
+      let { statusCode, data, message } = await getAllCITypes();
+      if (statusCode === "OK") {
         this.allCiTypes = data;
       }
     },
@@ -154,11 +154,11 @@ export default {
       if (!value) {
         return;
       }
-      const { status, data, message } = await fetchIntQueryById(
+      const { statusCode, data, message } = await fetchIntQueryById(
         this.selectedCI.id,
         value
       );
-      if (status === "OK") {
+      if (statusCode === "OK") {
         this.attrs = this.calCiTypeAttrs(data);
         this.ciGraphData = data;
       }
@@ -316,11 +316,11 @@ export default {
         "z-index": 1000000,
         content: `<p>${this.$t("delete_confirm")}</p>`,
         onOk: async () => {
-          const { status, data, message } = await deleteIntQuery(
+          const { statusCode, data, message } = await deleteIntQuery(
             this.selectedCI.id,
             item.id
           );
-          if (status === "OK") {
+          if (statusCode === "OK") {
             this.$Notice.success({
               title: "DeleteIntQuery Success",
               desc: "DeleteIntQuery Success"
@@ -355,10 +355,10 @@ export default {
         });
         return;
       } else {
-        const { status, data, message } = this.isNewIntQuery
+        const { statusCode, data, message } = this.isNewIntQuery
           ? await saveIntQuery(this.selectedCI.id, this.newGraphName, reqData)
           : await updateIntQuery(this.selectedQuery.id, reqData);
-        if (status === "OK") {
+        if (statusCode === "OK") {
           this.$Notice.success({
             title: "Success",
             desc: message
@@ -375,8 +375,8 @@ export default {
     },
     async getQueryNameList(ciTypeId) {
       this.reset();
-      const { status, data, message } = await getQueryNames(ciTypeId);
-      if (status === "OK") {
+      const { statusCode, data, message } = await getQueryNames(ciTypeId);
+      if (statusCode === "OK") {
         this.queryNameList = this.queryNameList.concat(data);
       }
     }
