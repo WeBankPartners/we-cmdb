@@ -294,7 +294,7 @@ export default {
     async getTosBysAttrs() {
       const id = this.savedClickedNode.node.ciTypeId;
       let tos = await getRefCiTypeTo(id);
-      if (tos.status === "OK") {
+      if (tos.statusCode === "OK") {
         this.referTos = tos.data.map(_ => {
           return {
             ..._,
@@ -304,7 +304,7 @@ export default {
         });
       }
       let bys = await getRefCiTypeFrom(id);
-      if (bys.status === "OK") {
+      if (bys.statusCode === "OK") {
         this.referBys = bys.data.map(_ => {
           return {
             ..._.ciType,
@@ -314,7 +314,7 @@ export default {
         });
       }
       let attrs = await getCiTypeAttr(id);
-      if (attrs.status === "OK") {
+      if (attrs.statusCode === "OK") {
         this.ciTypeAttrs = attrs.data;
       }
     },
