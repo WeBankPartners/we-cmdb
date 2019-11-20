@@ -55,7 +55,7 @@ import {
   getEnumCodesByCategoryId,
   operateCiState
 } from "@/api/server";
-import { setHeaders } from "@/api/base.js";
+import { setHeaders, baseURL } from "@/api/base.js";
 import {
   outerActions,
   innerActions,
@@ -68,6 +68,7 @@ const defaultCiTypePNG = require("@/assets/ci-type-default.png");
 export default {
   data() {
     return {
+      baseURL,
       tabList: [],
       currentTab: "CMDB",
       payload: {
@@ -162,11 +163,11 @@ export default {
                 let imgFileSource =
                   i.imageFileId === 0 || i.imageFileId === undefined
                     ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
-                    : `/wecmdb/ui/v2/files/${i.imageFileId}`;
+                    : `${baseURL}/files/${i.imageFileId}`;
                 this.$set(i, "form", {
                   ...i,
                   imgSource: imgFileSource,
-                  imgUploadURL: `/wecmdb/ui/v2/ci-types/${i.ciTypeId}/icon`
+                  imgUploadURL: `${baseURL}/ci-types/${i.ciTypeId}/icon`
                 });
                 i.attributes &&
                   i.attributes.forEach(j => {
