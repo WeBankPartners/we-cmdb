@@ -379,6 +379,7 @@ public class UIWrapperService {
         catCodeDtos.forEach(dto -> {
             dto.remove("ciTypes");
             Object groupCodeId= dto.get("groupCodeId");
+            dto.put("catId", getLayerCategoryId());
             if (groupCodeId!=null && !(groupCodeId instanceof Integer)) {
                 dto.remove("groupCodeId");
             }
