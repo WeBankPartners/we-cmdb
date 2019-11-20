@@ -196,7 +196,7 @@
                   <Select v-model="item.form.imageFileId">
                     <img
                       v-if="item.form.imageFileId"
-                      :src="`/wecmdb/ui/v2/files/${item.form.imageFileId}.png`"
+                      :src="`${baseURL}/files/${item.form.imageFileId}.png`"
                       slot="prefix"
                       height="24"
                       width="24"
@@ -209,7 +209,7 @@
                     >
                       <img
                         slot
-                        :src="`/wecmdb/ui/v2/files/${i + 1}.png`"
+                        :src="`${baseURL}/files/${i + 1}.png`"
                         width="30"
                         height="30"
                       />
@@ -275,7 +275,7 @@
                 <img
                   v-if="addNewCITypeForm.imageFileId"
                   :src="
-                    `/wecmdb/ui/v2/files/${addNewCITypeForm.imageFileId}.png`
+                    `${baseURL}/files/${addNewCITypeForm.imageFileId}.png`
                   "
                   slot="prefix"
                   height="24"
@@ -284,7 +284,7 @@
                 <Option v-for="(item, i) in imgs" :key="i + 1" :value="i + 1">
                   <img
                     slot
-                    :src="`/wecmdb/ui/v2/files/${i + 1}.png`"
+                    :src="`${baseURL}/files/${i + 1}.png`"
                     width="30"
                     height="30"
                   />
@@ -1009,7 +1009,7 @@ import {
 } from "@/api/server";
 import STATUS_LIST from "@/const/graph-status-list.js";
 import { INPUT_TYPES, PROPERTY_TYPE_MAP } from "@/const/data-types.js";
-import { setHeaders } from "@/api/base.js";
+import { setHeaders, baseURL } from "@/api/base.js";
 import enumGroupModal from "./components/enum-group-modal";
 import AutoFill from "../components/auto-fill";
 import FilterRule from "../components/filter-rule";
@@ -1025,6 +1025,7 @@ export default {
   },
   data() {
     return {
+      baseURL,
       imgs: new Array(26),
       source: {},
       layers: [],
@@ -1170,11 +1171,11 @@ export default {
                 let imgFileSource =
                   i.imageFileId === 0 || i.imageFileId === undefined
                     ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
-                    : `/wecmdb/ui/v2/files/${i.imageFileId}`;
+                    : `${baseURL}/files/${i.imageFileId}`;
                 this.$set(i, "form", {
                   ...i,
                   imgSource: imgFileSource,
-                  imgUploadURL: `/wecmdb/ui/v2/ci-types/${i.ciTypeId}/icon`
+                  imgUploadURL: `${baseURL}/ci-types/${i.ciTypeId}/icon`
                 });
                 i.attributes &&
                   i.attributes.forEach(j => {
