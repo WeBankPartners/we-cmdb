@@ -1,12 +1,11 @@
 import { req as request, baseURL } from "./base";
 let req = request;
 if (window.request) {
-  const pluginURL = "/wecmdb"
   req = {
-    post: (url, ...params) => window.request.post(pluginURL + baseURL + url, ...params),
-    get: (url, ...params) => window.request.get(pluginURL + baseURL + url, ...params),
-    delete: (url, ...params) => window.request.delete(pluginURL + baseURL + url, ...params),
-    put: (url, ...params) => window.request.put(pluginURL + baseURL + url, ...params)
+    post: (url, ...params) => window.request.post(baseURL + url, ...params),
+    get: (url, ...params) => window.request.get(baseURL + url, ...params),
+    delete: (url, ...params) => window.request.delete(baseURL + url, ...params),
+    put: (url, ...params) => window.request.put(baseURL + url, ...params)
   };
 }
 
