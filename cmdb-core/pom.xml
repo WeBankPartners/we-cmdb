@@ -6,7 +6,7 @@
 	<parent>
 		<artifactId>cmdb</artifactId>
 		<groupId>com.webank.cmdb</groupId>
-		<version>1.3.0</version>
+		<version>1.4.0-SNAPSHOT</version>
 	</parent>
 	<groupId>com.webank</groupId>
 	<artifactId>cmdb-core</artifactId>
