@@ -9,7 +9,7 @@
 ![process_model](images/process_model.png)
 
 
-> 如上图，发生事件(event)后，根据当前状态(cur_state)，决定执行的动作(action)，并设置下一个状态号(nxt_state)。
+> 如上图，执行操作(operation)后，根据当前状态(cur_state)，决定执行的动作(action)，并设置下一个状态号(nxt_state)。
 事件、当前状态、动作、下一个状态都在数据库配置，可更改
 
 ### 模型
