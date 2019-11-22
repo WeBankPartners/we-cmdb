@@ -176,19 +176,19 @@ export default {
         [];
       linkData.forEach(_ => {
         let zoneName = "";
-        if (_.data.zone_design1) {
+        if (_.data.network_zone_design_1) {
           if (
-            this.idcs[guid].indexOf(_.data.zone_design1.guid) >= 0 &&
-            this.idcs[guid].indexOf(_.data.zone_design2.guid) >= 0
+            this.idcs[guid].indexOf(_.data.network_zone_design_1.guid) >= 0 &&
+            this.idcs[guid].indexOf(_.data.network_zone_design_2.guid) >= 0
           ) {
-            result += `g_${_.data.zone_design1.guid}->g_${_.data.zone_design2.guid}[arrowhead=none];`;
+            result += `g_${_.data.network_zone_design_1.guid}->g_${_.data.network_zone_design_2.guid}[arrowhead=none];`;
           }
         } else {
           if (
-            this.idcs[guid].indexOf(_.data.zone1.guid) >= 0 &&
-            this.idcs[guid].indexOf(_.data.zone2.guid) >= 0
+            this.idcs[guid].indexOf(_.data.network_zone_1.guid) >= 0 &&
+            this.idcs[guid].indexOf(_.data.network_zone_2.guid) >= 0
           ) {
-            result += `g_${_.data.zone1.guid}->g_${_.data.zone2.guid}[arrowhead=none];`;
+            result += `g_${_.data.network_zone_1.guid}->g_${_.data.network_zone_2.guid}[arrowhead=none];`;
           }
         }
       });

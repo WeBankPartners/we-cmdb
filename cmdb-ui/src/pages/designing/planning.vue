@@ -134,7 +134,9 @@ export default {
     async onIdcDataChange(guid) {
       this.handleTabClick(this.currentTab);
       this.spinShow = true;
-      const { data, message, statusCode } = await getIdcDesignTreeByGuid([guid]);
+      const { data, message, statusCode } = await getIdcDesignTreeByGuid([
+        guid
+      ]);
       if (statusCode === "OK") {
         this.idcDesignData = data[0];
         this.getZoneLink();
@@ -194,12 +196,12 @@ export default {
       const children = idcData.children || [];
       let layers = new Map();
       children.forEach(zone => {
-        if (layers.has(zone.data.zone_layer.value)) {
-          layers.get(zone.data.zone_layer.value).push(zone);
+        if (layers.has(zone.data.network_zone_layer.value)) {
+          layers.get(zone.data.network_zone_layer.value).push(zone);
         } else {
           let layer = [];
           layer.push(zone);
-          layers.set(zone.data.zone_layer.value, layer);
+          layers.set(zone.data.network_zone_layer.value, layer);
         }
       });
       if (layers.size) {
@@ -220,9 +222,7 @@ export default {
               label = zone.data.key_name;
             }
             dots.push(
-              `g_${zone.guid}[id="g_${
-                zone.guid
-              }", label="${label}", width=${ll},height=${lg}];`
+              `g_${zone.guid}[id="g_${zone.guid}", label="${label}", width=${ll},height=${lg}];`
             );
           });
           dots.push("}");
@@ -814,11 +814,13 @@ export default {
           idcLink.linkList.forEach(_ => {
             let zoneLink = {};
             if (
-              _.data.zone_design1.idc_design === this.selectedIdc &&
-              _.data.zone_design2.idc_design === this.selectedIdc
+              _.data.network_zone_design_1.data_center_design ===
+                this.selectedIdc &&
+              _.data.network_zone_design_2.data_center_design ===
+                this.selectedIdc
             ) {
-              zoneLink.azone = `g_${_.data.zone_design1.guid}`;
-              zoneLink.bzone = `g_${_.data.zone_design2.guid}`;
+              zoneLink.azone = `g_${_.data.network_zone_design_1.guid}`;
+              zoneLink.bzone = `g_${_.data.network_zone_design_2.guid}`;
               const guid = this.idcDesignData.data.guid;
               if (this.zoneLinkDesignData.has(guid)) {
                 this.zoneLinkDesignData.get(guid).push(zoneLink);
