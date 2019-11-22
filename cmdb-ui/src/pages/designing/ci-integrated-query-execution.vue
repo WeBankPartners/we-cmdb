@@ -169,7 +169,7 @@ export default {
     onQueryNameSelectChange(value) {
       if (value) {
         this.getTableHeader(value);
-        this.requestURL = `/wecmdb/intQuery/${value}/execute`;
+        this.requestURL = window.request ? `/wecmdb/wecmdb/intQuery/${value}/execute` : `/wecmdb/intQuery/${value}/execute`;
       }
     },
     async getTableHeader(id) {
