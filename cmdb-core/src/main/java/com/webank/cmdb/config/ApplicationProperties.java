@@ -62,6 +62,5 @@ public class ApplicationProperties {
         private String authenticationProvider;
         private String casServerUrl;
         private String casRedirectAppAddr;
-        private String whitelistIpAddress;
     }
 }

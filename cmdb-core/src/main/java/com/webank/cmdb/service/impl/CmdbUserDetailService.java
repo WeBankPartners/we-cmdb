@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -24,7 +25,6 @@ import org.springframework.stereotype.Service;
 import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
 import com.webank.cmdb.domain.AdmMenu;
 import com.webank.cmdb.domain.AdmUser;
-import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.repository.AdmMenusRepository;
 import com.webank.cmdb.repository.AdmUserRepository;
 
@@ -62,17 +62,17 @@ public class CmdbUserDetailService implements UserDetailsService {
 
     private String getPassword(String username) {
         String password;
-        if (securityProperties.isEnabled()) {
+        if (securityProperties.isEnabled() && !"NONE".equals(securityProperties.getAuthenticationProvider())) {
             AdmUser user = admUserRepository.findByCode(username);
             if (user == null) {
-                throw new CmdbException(String.format("Username [%s] not found.", username));
+                throw new InternalAuthenticationServiceException(String.format("Username [%s] not found.", username));
             }
             if (StringUtils.isBlank(user.getEncryptedPassword())) {
-                throw new CmdbException(String.format("Can not authenticate the user [%s] as password not found.", username));
+                throw new InternalAuthenticationServiceException(String.format("Can not authenticate the user [%s] as password not found.", username));
             }
             password = user.getEncryptedPassword();
         } else {
-            password = "";
+            password = "$2a$10$Gh3WDwZ8kFpxbmo/h.oywuN.LuYwgrlx53ZeG.mz7P4eKgct7IYZm";
         }
         return password;
     }

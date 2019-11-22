@@ -29,4 +29,3 @@ cmdb:
     schema: wecmdb_dev
   security:
     enabled: true
-    whitelist-ip-address: localhost

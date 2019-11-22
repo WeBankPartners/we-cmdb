@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class WhiteListIpAddressAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider {
+public class ApiAccessAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider {
 
     @Autowired
     private PasswordEncoder passwordEncoder;

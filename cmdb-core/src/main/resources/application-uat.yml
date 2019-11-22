@@ -22,6 +22,3 @@ cmdb:
     #Effective ONLY when security-enabled set as true and authentication-provider turns to CAS
     cas-server-url: http://uat-cas-server-ip:8080/cas
     cas-redirect-app-addr: uat-host:8080
-
-    #Effective ONLY when security-enabled set as true
-    whitelist-ip-address:

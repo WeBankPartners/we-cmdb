@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
@@ -20,21 +20,24 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class WhiteListIpAddressAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
+public class ApiAccessAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    public WhiteListIpAddressAuthenticationFilter() {
+    public ApiAccessAuthenticationFilter() {
         super("/*/v2/**");
     }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
         if (request.getSession() != null && request.getSession().getAttribute("SPRING_SECURITY_CONTEXT") != null) {
-            return ((SecurityContextImpl)request.getSession().getAttribute("SPRING_SECURITY_CONTEXT")).getAuthentication();
+            return ((SecurityContextImpl) request.getSession().getAttribute("SPRING_SECURITY_CONTEXT")).getAuthentication();
         }
 
         String username = request.getHeader("username");
         if (StringUtils.isBlank(username)) {
-            throw new AuthenticationServiceException("Can not create authentication as username not found");
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("Authentication failed: username is required.");
+            return null;
         }
         log.info("Access from user : {}", username);
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
@@ -54,7 +57,6 @@ public class WhiteListIpAddressAuthenticationFilter extends AbstractAuthenticati
             throws IOException, ServletException {
         SecurityContextHolder.getContext().setAuthentication(authResult);
 
-        // Fire event
         if (this.eventPublisher != null) {
             eventPublisher.publishEvent(new InteractiveAuthenticationSuccessEvent(
                     authResult, this.getClass()));
@@ -62,4 +64,5 @@ public class WhiteListIpAddressAuthenticationFilter extends AbstractAuthenticati
 
         chain.doFilter(request, response);
     }
+
 }

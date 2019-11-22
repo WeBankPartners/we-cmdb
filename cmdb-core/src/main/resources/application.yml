@@ -40,9 +40,6 @@ cmdb:
     cas-server-url: http://cas-server-ip:8080/cas
     cas-redirect-app-addr: localhost:8080
 
-    #Effective ONLY when security-enabled set as true
-    whitelist-ip-address:
-
 logging:
   level:
     root: INFO

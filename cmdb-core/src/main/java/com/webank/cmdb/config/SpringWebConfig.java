@@ -1,11 +1,7 @@
 package com.webank.cmdb.config;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jasig.cas.client.validation.Cas20ServiceTicketValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -29,7 +25,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
-import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -40,8 +35,8 @@ import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
 import com.webank.cmdb.controller.interceptor.HttpAccessUsernameInterceptor;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.mvc.CustomRolesPrefixPostProcessor;
-import com.webank.cmdb.security.WhiteListIpAddressAuthenticationFilter;
-import com.webank.cmdb.security.WhiteListIpAddressAuthenticationProvider;
+import com.webank.cmdb.security.ApiAccessAuthenticationFilter;
+import com.webank.cmdb.security.ApiAccessAuthenticationProvider;
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
@@ -64,7 +59,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
 
     @Autowired
     private ServerProperties serverProperties;
-    
+
     @Autowired
     private SecurityProperties securityProperties;
 
@@ -73,12 +68,12 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
 
     @Autowired
     private HttpAccessUsernameInterceptor cookieHandlerInterceptor;
-    
+
     @Autowired
     private CacheHandlerInterceptor cacheHandlerInterceptor;
 
     @Autowired
-    private WhiteListIpAddressAuthenticationProvider whiteListIpAddressAuthenticationProvider;
+    private ApiAccessAuthenticationProvider apiAccessAuthenticationProvider;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -102,7 +97,6 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     protected void configure(HttpSecurity http) throws Exception {
         ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry = http.authorizeRequests();
         if (securityProperties.isEnabled()) {
-            registry = configureWhiteListAuthentication(registry, true);
             if (AUTH_PROVIDER_PRIVACY_FREE.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
                 configurePrivacyFreeAuthentication(registry);
             } else if (AUTH_PROVIDER_LOCAL_DB.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
@@ -112,78 +106,57 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
             } else {
                 throw new CmdbException("Unsupported authentication-provider: " + securityProperties.getAuthenticationProvider());
             }
-        } else {
-            registry = configureWhiteListAuthentication(registry, false);
-            configurePrivacyFreeAuthentication(registry);
         }
     }
 
     protected void configureLocalDBAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) throws Exception {
-        registry.antMatchers("/login-with-password*").permitAll()
-                .antMatchers("/logout*").permitAll()
-                .antMatchers("/ui/v2/**").permitAll()
-                .anyRequest().authenticated()
-            .and()
+        registry.antMatchers("/login-with-password*")
+                .permitAll()
+                .antMatchers("/logout*")
+                .permitAll()
+                .antMatchers("/ui/v2/**")
+                .permitAll()
+                .anyRequest()
+                .authenticated()
+                .and()
                 .formLogin()
                 .loginPage("/login-with-password.html")
                 .loginProcessingUrl("/login-with-password")
                 .defaultSuccessUrl("/index.html")
                 .failureUrl("/login-with-password.html?error=true")
-            .and()
+                .and()
                 .logout()
                 .logoutUrl("/logout")
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessUrl("/login-with-password.html")
-            .and()
+                .and()
                 .csrf()
                 .disable();
     }
-    
+
     protected void configurePrivacyFreeAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) throws Exception {
-        registry.antMatchers("/login-privacy-free*").permitAll()
-                .antMatchers("/logout*").permitAll()
-                .antMatchers("/ui/v2/**").permitAll()
-                .anyRequest().authenticated()
-            .and()
+        registry.antMatchers("/login-privacy-free*")
+                .permitAll()
+                .antMatchers("/logout*")
+                .permitAll()
+                .antMatchers("/ui/v2/**")
+                .permitAll()
+                .anyRequest()
+                .authenticated()
+                .and()
                 .formLogin()
                 .loginPage("/login-privacy-free.html")
                 .loginProcessingUrl("/login-privacy-free")
                 .defaultSuccessUrl("/index.html")
                 .failureUrl("/login-privacy-free.html?error=true")
-            .and()
+                .and()
                 .logout()
                 .logoutUrl("/logout")
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessUrl("/login-privacy-free.html")
-            .and()
+                .and()
                 .csrf()
                 .disable();
-    }
-
-    protected ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry configureWhiteListAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry,
-            boolean checkRequired) throws Exception {
-        List<String> convertedList = new ArrayList<String>();
-        if (checkRequired) {
-            if (StringUtils.isNotBlank(securityProperties.getWhitelistIpAddress())) {
-                List<String> whiteListIpAddress = Arrays.asList(securityProperties.getWhitelistIpAddress().split(","));
-                for (String ipAddress : whiteListIpAddress) {
-                    convertedList.add(String.format("hasIpAddress('%s')", ipAddress));
-                }
-
-                return registry.antMatchers("/*/v2/**")
-                        .access(StringUtils.join(convertedList, " or "))
-                        .and()
-                        .addFilterBefore(whiteListIpAddressAuthenticationFilter(), WebAsyncManagerIntegrationFilter.class)
-                        .authorizeRequests();
-            }
-        } else {
-            return registry.antMatchers("/*/v2/**")
-                    .permitAll()
-                    .and()
-                    .addFilterBefore(whiteListIpAddressAuthenticationFilter(), WebAsyncManagerIntegrationFilter.class)
-                    .authorizeRequests();
-        }
-        return registry;
     }
 
     protected void configureCasAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) throws Exception {
@@ -202,7 +175,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                 .and()
                 .csrf()
                 .disable();
-                //.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+        // .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
     }
 
     @Override
@@ -249,11 +222,11 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     }
 
     @Bean
-    public WhiteListIpAddressAuthenticationFilter whiteListIpAddressAuthenticationFilter() {
-        WhiteListIpAddressAuthenticationFilter whiteListIpAddressAuthenticationFilter = new WhiteListIpAddressAuthenticationFilter();
-        ProviderManager providerManager = new ProviderManager(Collections.singletonList(whiteListIpAddressAuthenticationProvider));
-        whiteListIpAddressAuthenticationFilter.setAuthenticationManager(providerManager);
-        return whiteListIpAddressAuthenticationFilter;
+    public ApiAccessAuthenticationFilter apiAccessAuthenticationFilter() {
+        ApiAccessAuthenticationFilter apiAccessAuthenticationFilter = new ApiAccessAuthenticationFilter();
+        ProviderManager providerManager = new ProviderManager(Collections.singletonList(apiAccessAuthenticationProvider));
+        apiAccessAuthenticationFilter.setAuthenticationManager(providerManager);
+        return apiAccessAuthenticationFilter;
     }
 
     private ServiceProperties serviceProperties() {
