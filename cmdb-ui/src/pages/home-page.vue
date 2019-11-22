@@ -8,11 +8,12 @@
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
 import { getAllLayers, getAllCITypesByLayerWithAttr } from "@/api/server";
-import { setHeaders } from "@/api/base.js";
+import { setHeaders, baseURL } from "@/api/base.js";
 import { addEvent } from "./util/event.js";
 export default {
   data() {
     return {
+      baseURL,
       layers: [],
       graph: {},
       g: null,
@@ -78,11 +79,11 @@ export default {
                 let imgFileSource =
                   i.imageFileId === 0 || i.imageFileId === undefined
                     ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
-                    : `/wecmdb/ui/v2/files/${i.imageFileId}`;
+                    : `${baseURL}/files/${i.imageFileId}`;
                 this.$set(i, "form", {
                   ...i,
                   imgSource: imgFileSource,
-                  imgUploadURL: `/wecmdb/ui/v2/ci-types/${i.ciTypeId}/icon`
+                  imgUploadURL: `${baseURL}/ci-types/${i.ciTypeId}/icon`
                 });
                 i.attributes &&
                   i.attributes.forEach(j => {
