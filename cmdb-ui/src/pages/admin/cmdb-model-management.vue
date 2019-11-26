@@ -1058,7 +1058,7 @@ export default {
       currentSelectLayerChildren: [],
       currentSelectedCIChildren: [],
       addNewCITypeForm: {
-        imageFileId: 0
+        imageFileId: 1
       },
       addNewAttrForm: {
         searchSeqNo: 0,
@@ -1089,7 +1089,7 @@ export default {
       if (!isShow) {
         this.addNewCITypeForm = {
           layerId: this.addNewCITypeForm.layerId,
-          imageFileId: 0
+          imageFileId: 1
         };
       }
     },
@@ -1528,14 +1528,13 @@ export default {
               title: this.$t("delete_layer_success"),
               desc: message
             });
-            this.initGraph();
+            this.reRenderGraph();
           }
         },
         onCancel: () => {}
       });
       document.querySelector(".ivu-modal-mask").click();
     },
-
     async revertCI(ciTypeId) {
       let res = await implementCiType(ciTypeId, "revert");
       if (res.statusCode === "OK") {
@@ -1664,7 +1663,7 @@ export default {
         tableName: "",
         layerId: "",
         description: "",
-        imageFileId: 0
+        imageFileId: 1
       };
     },
     async submitCiType(id, form) {
@@ -1896,6 +1895,13 @@ export default {
       if (res.statusCode === "OK") {
         this.statusList = res.data;
       }
+    },
+    reRenderGraph() {
+      this.nodeName = ""
+      this.currentSelectedLayer = {}
+      this.currentSelectedCI = {}
+      this.getAllCITypesList();
+      this.initGraph()
     }
   },
   mounted() {
