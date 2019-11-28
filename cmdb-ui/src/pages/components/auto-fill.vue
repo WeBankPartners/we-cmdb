@@ -18,7 +18,7 @@
           <ul v-for="opt in attrNameArray" :key="opt.attrId">
             <li @click="selectAttr(opt)">
               {{
-                opt.inputType === "ref"
+                (opt.inputType === "ref" || opt.inputType === "multiRef")
                   ? `( ${opt.ciTypeAttrName} ) ${opt.ciTypeName}`
                   : opt.ciTypeAttrName
               }}
@@ -189,7 +189,7 @@ export default {
             const obj = objList[objList.length - 1];
             if (
               !obj.parentRs ||
-              this.ciTypeAttrsObj[obj.parentRs.attrId].inputType === "ref"
+              this.ciTypeAttrsObj[obj.parentRs.attrId].inputType === "ref" || this.ciTypeAttrsObj[obj.parentRs.attrId].inputType === "multiRef"
             ) {
               if (v.data === "." || v.data === "-") {
                 if (
@@ -212,8 +212,7 @@ export default {
               }
             } else if (
               !obj.parentRs ||
-              (this.ciTypeAttrsObj[obj.parentRs.attrId].inputType ===
-                "select" &&
+              ((this.ciTypeAttrsObj[obj.parentRs.attrId].inputType === "select" || this.ciTypeAttrsObj[obj.parentRs.attrId].inputType === "multiSelect") &&
                 !obj.enumCodeAttr)
             ) {
               this.$refs.textarea.value = this.inputVal;
@@ -267,8 +266,7 @@ export default {
               lastAttrVal +=
                 lastAttrObj.parentRs.isReferedFromParent === 1 ? "." : "-";
               if (
-                this.ciTypeAttrsObj[lastAttrObj.parentRs.attrId].inputType ===
-                "ref"
+                this.ciTypeAttrsObj[lastAttrObj.parentRs.attrId].inputType === "ref" || this.ciTypeAttrsObj[lastAttrObj.parentRs.attrId].inputType === "multiRef"
               ) {
                 ciTypeAttrName = `(${attrName})${ciTypeName} `;
               } else {
@@ -328,12 +326,12 @@ export default {
             attrArray.push({
               ..._,
               ciTypeName:
-                _.inputType === "ref"
+                (_.inputType === "ref" || _.inputType === "multiRef")
                   ? this.allCiTypes.find(i => i.ciTypeId === _.referenceId).name
                   : this.allCiTypes.find(i => i.ciTypeId === _.ciTypeId).name,
               ciTypeAttrName: _.name,
               isReferedFromParent: 1,
-              id: _.inputType === "ref" ? _.referenceId : _.ciTypeId
+              id: (_.inputType === "ref" || _.inputType === "multiRef") ? _.referenceId : _.ciTypeId
             });
           });
           this.attrNameArray = attrArray;
@@ -381,12 +379,12 @@ export default {
         result
       );
       this.inputVal +=
-        opt.inputType === "ref"
+        (opt.inputType === "ref" || opt.inputType === "multiRef")
           ? `(${opt.ciTypeAttrName})${opt.ciTypeName} `
           : opt.ciTypeAttrName + " ";
       this.attrNameArray = [];
       this.$refs.textarea.focus();
-      if (opt.inputType === "select") {
+      if (opt.inputType === "select" || opt.inputType ===  "multiSelect") {
         this.isShowSelect = true;
         this.optionsHide = true;
       }
@@ -426,11 +424,11 @@ export default {
                 item.parentRs.isReferedFromParent === 1 ? "." : "-";
               const attrName = this.ciTypeAttrsObj[item.parentRs.attrId].name;
               if (
-                this.ciTypeAttrsObj[item.parentRs.attrId].inputType === "ref"
+                this.ciTypeAttrsObj[item.parentRs.attrId].inputType === "ref" || this.ciTypeAttrsObj[item.parentRs.attrId].inputType === "multiRef"
               ) {
                 val += `${refType}(${attrName})${ciTypeName} `;
               } else if (
-                this.ciTypeAttrsObj[item.parentRs.attrId].inputType === "select"
+                this.ciTypeAttrsObj[item.parentRs.attrId].inputType === "select" || this.ciTypeAttrsObj[item.parentRs.attrId].inputType === "multiSelect"
               ) {
                 val += `${refType}${attrName} .${item.enumCodeAttr} `;
               } else {
