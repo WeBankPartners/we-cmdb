@@ -204,6 +204,7 @@ public class EnumCodeInterceptorService extends BasicInterceptorService<CatCodeD
             	if (oldCode != null && codeRepository.existsByCatIdAndCodeAndIdAdmBasekeyNot((Integer) catId, (String) code, oldCode.getIdAdmBasekey())) {
             		throw new InvalidArgumentException(String.format("Code with catId [%s] and code [%s] already exists.", catId, code));
             	}
+            }
         }
     }
 
@@ -229,6 +230,7 @@ public class EnumCodeInterceptorService extends BasicInterceptorService<CatCodeD
             	if (oldValue != null && codeRepository.existsByCatIdAndValueAndIdAdmBasekeyNot((Integer) catId, (String) value, oldValue.getIdAdmBasekey())) {
             		throw new InvalidArgumentException(String.format("Code with catId [%s] and value [%s] already exists.", catId, value));
             	}
+            }
         }
     }
 
