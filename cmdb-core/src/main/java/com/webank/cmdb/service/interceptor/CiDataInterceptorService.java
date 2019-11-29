@@ -316,7 +316,7 @@ public class CiDataInterceptorService {
 
     private void queryValueFromRuleAndSave(DynamicEntityHolder entityHolder, EntityManager entityManager, String currentGuid, AdmCiTypeAttr attrWithRule) {
         Object value = null;
-        String rawValue = queryValueByRule(currentGuid, null, attrWithRule.getAutoFillRule());
+        String rawValue = queryValueByRule(currentGuid, null, attrWithRule.getAutoFillRule(),new StringBuilder());
         if (!StringUtils.isBlank(rawValue)) {
             switch (InputType.fromCode(attrWithRule.getInputType())) {
             case Droplist:
@@ -408,8 +408,7 @@ public class CiDataInterceptorService {
         return value;
     }
 
-    private String queryValueByRule(String rootGuid, AdmCiTypeAttr attrWithGuid, Object autoFillRuleValue) {
-        StringBuilder sb = new StringBuilder();
+    private String queryValueByRule(String rootGuid, AdmCiTypeAttr attrWithGuid, Object autoFillRuleValue, StringBuilder sb) {
         List<AutoFillItem> autoRuleItems = parserRule(autoFillRuleValue);
         for (AutoFillItem item : autoRuleItems) {
             if (AutoFillType.Rule.getCode().equals(item.getType())) {
@@ -418,16 +417,16 @@ public class CiDataInterceptorService {
                     QueryResponse response = queryIntegrateWithRoutines(rootGuid, attrWithGuid, routines);
                     List<String> targetValues = getValueFromResponse(response, routines);
                     for (int i = 0; i < targetValues.size(); i++) {
-                    	String value = targetValues.get(i);
-                    	if(checkExpression(value)) {
-                    		queryValueByRule(rootGuid,attrWithGuid,value);
-                		}else {
-                			sb.append(value);
-                			if(i<targetValues.size()-1) {
-                				sb.append(",");
-                			}
-                		}
-					}
+                        String value = targetValues.get(i);
+                        if (checkExpression(value)) {
+                            queryValueByRule(rootGuid, attrWithGuid, value, sb);
+                        } else {
+                            sb.append(value);
+                        }
+                        if (i < targetValues.size() - 1) {
+                            sb.append(",");
+                        }
+                    }
                 } catch (IOException e) {
                     throw new InvalidArgumentException(String.format("Failed to convert auto fill rule [%s]. ", item), e);
                 }
@@ -439,7 +438,7 @@ public class CiDataInterceptorService {
     }
 
     private boolean checkExpression(String targetValue) {
-		if(targetValue.contains("\"isReferedFromParent\"")) {
+		if(targetValue.contains("isReferedFromParent")) {
 			return true;
 		}
 		return false;
