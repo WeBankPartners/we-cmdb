@@ -61,7 +61,6 @@ CREATE TABLE IF NOT EXISTS `adm_basekey_code` (
   `seq_no` int(11) DEFAULT NULL COMMENT '排序序号',
   `status` varchar(20) DEFAULT 'active' COMMENT '枚举状态',
   PRIMARY KEY (`id_adm_basekey`),
-  UNIQUE KEY `id_adm_basekey_cat_code` (`id_adm_basekey_cat`,`code`),
   KEY `fk_adm_basekey_code_adm_basekey_cat_1` (`id_adm_basekey_cat`),
   KEY `fk_adm_basekey_code_group_code_id` (`group_code_id`),
   CONSTRAINT `fk_adm_basekey_code_adm_basekey_cat_1` FOREIGN KEY (`id_adm_basekey_cat`) REFERENCES `adm_basekey_cat` (`id_adm_basekey_cat`),
