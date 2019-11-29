@@ -554,31 +554,436 @@ data|string|成功信息"Success"
 statusMessage|string|异常信息，无异常则不返回该属性
 
 ### <span id="User">用户 - User</span>
-TO DO
+
+#### [GET] /api/v2/users/retrieve
+根据条件查询用户
+##### 输入参数：
+参数名称|类型|必选|描述
+:--|:--|:--|:--
+request|[QueryRequest](#QueryRequest)|否|请求参数对象
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+data|[PageInfo](#PageInfo)|分页信息
+contents|Array of [UserDto](#UserDto)|配置项类型属性实体列表
+
+#### [POST] /api/v2/users/create
+新增用户
+##### 输入参数：
+参数名称|类型|必选|描述
+:--|:--|:--|:--
+userDtos|Array of [UserDto](#UserDto)|否|用户信息
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+userDtos|Array of [UserDto](#UserDto)|用户信息
 
 ### <span id="Role">角色 - Role</span>
-TO DO
+#### [POST] /api/v2/roles/retrieve
+查询所有权限
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+request|[QueryRequest](#QueryRequest)|请求参数对象
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+data|[PageInfo](#PageInfo)|分页信息
+contents|Array of [RoleDto](#RoleDto)|角色信息
+
+#### [POST] /api/v2/roles/create
+新建角色
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+roleDtos|Array of [RoleDto](#RoleDto)|角色信息
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+contents|Array of [RoleDto](#RoleDto)|角色信息
+
+#### [POST] /api/v2/roles/delete
+根据角色id删除角色
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+requestIds|Array of Integer|角色id
+
+##### 输出参数：无
+
+#### [POST] /api/v2/roles/update
+修改角色信息
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+roleDtos|Array of Map<key,value>|角色信息
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+contents|Array of [RoleDto](#RoleDto)|角色信息
 
 ### <span id="Role_User">用户授权 - Role_User</span>
-TO DO
+
+#### [POST] /api/v2/role-users/retrieve
+查询用户角色
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+request|[QueryRequest](#QueryRequest)|请求参数对象
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+data|[PageInfo](#PageInfo)|分页信息
+contents|Array of [RoleUserDto](#RoleUserDto)|角色信息
+
+#### [POST] /api/v2/role-users/create
+将角色授予用户
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+roleUsers|Array of [RoleUserDto](#RoleUserDto)|角色信息
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+Array|Array of [RoleUserDto](#RoleUserDto)|角色信息
+
+#### [POST] /api/v2/role-users/delete
+删除角色
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+requestIds|Array of Integer|用户角色id
+
+##### 输出参数：无
 
 ### <span id="Role_CiType">配置项授权 - Role_CiType</span>
-TO DO
+
+#### [POST] /api/v2/role-citypes/retrieve
+查询角色的配置项权限信息
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+request|[QueryRequest](#QueryRequest)|请求参数对象
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+data|[PageInfo](#PageInfo)|分页信息
+contents|Array of [RoleCiTypeDto](#RoleCiTypeDto)|角色配置项权限信息
+
+#### [POST] /api/v2/role-citypes/create
+给角色授予配置项权限
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+roleCiTypes|Array of [RoleCiTypeDto](#RoleCiTypeDto)|角色配置项权限信息
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+Array|Array of [RoleCiTypeDto](#RoleCiTypeDto)|角色配置项权限信息
+
+#### [POST] /api/v2/role-citypes/update
+修改角色的授予配置项权限
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+request|Array of Map<key,value>|角色配置项权限信息
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+Array|Array of [RoleCiTypeDto](#RoleCiTypeDto)|角色配置项权限信息
+
+#### [POST] /api/v2/role-citypes/delete
+删除角色的配置项权限
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+requestIds|Array of Integer|配置项权限id
+
+##### 输出参数：无
 
 ### <span id="Role_CiTypeAttr">配置项属性授权 - Role_CiTypeAttr</span>
-TO DO
+#### [POST] /api/v2/role-citype-ctrl-attrs/retrieve
+查询配置项属性权限信息
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+request|[QueryRequest](#QueryRequest)|请求参数对象
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+data|[PageInfo](#PageInfo)|分页信息
+contents|Array of [RoleCiTypeCtrlAttrDto](#RoleCiTypeCtrlAttrDto)|角色配置项属性权限信息
+
+#### [POST] /api/v2/role-citype-ctrl-attrs/create
+新增配置项属性权限
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+roleCiTypeCtrlAttrs|Array of [RoleCiTypeCtrlAttrDto](#RoleCiTypeCtrlAttrDto)|配置项属性权限信息
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+Array|Array of [RoleCiTypeCtrlAttrDto](#RoleCiTypeCtrlAttrDto)|配置项属性权限信息
+
+#### [POST] /api/v2/role-citype-ctrl-attrs/update
+修改配置项属性权限
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+request|Array of Map<key,value>|配置项属性权限信息
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+Array|Array of [RoleCiTypeDto](#RoleCiTypeDto)|配置项属性权限信息
+
+#### [POST] /api/v2/role-citype-ctrl-attrs/delete
+删除角色的配置项权限
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+requestIds|Array of Integer|配置项属性id
+
+##### 输出参数：无
 
 ### <span id="Role_CiTypeAttr_Conditon">配置项属性权限生效条件 - Role_CiTypeAttr_Conditon</span>
-TO DO
+#### [POST] /api/v2/role-citype-ctrl-attrs-conditions/retrieve
+查询配置项属性权限生效条件信息
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+request|[QueryRequest](#QueryRequest)|请求参数对象
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+data|[PageInfo](#PageInfo)|分页信息
+contents|Array of [RoleCiTypeCtrlAttrConditionDto](#RoleCiTypeCtrlAttrConditionDto)|配置项属性权限生效条件信息
+
+#### [POST] /api/v2/role-citype-ctrl-attrs-conditions/create
+新增配置项属性权限生效条件
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+roleCiTypeCtrlAttrConditions|Array of [RoleCiTypeCtrlAttrConditionDto](#RoleCiTypeCtrlAttrConditionDto)|配置项属性权限生效条件
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+Array|Array of [RoleCiTypeCtrlAttrConditionDto](#RoleCiTypeCtrlAttrConditionDto)|配置项属性权限生效条件信息
+
+#### [POST] /api/v2/role-citype-ctrl-attrs-conditions/update
+修改配置项属性权限生效条件
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+request|Array of Map<key,value>|配置项属性权限生效条件信息
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+Array|Array of [RoleCiTypeCtrlAttrConditionDto](#RoleCiTypeCtrlAttrConditionDto)|配置项属性权限信息
+
+#### [POST] /api/v2/role-citype-ctrl-attrs-conditions/delete
+删除配置项属性权限生效条件
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+requestIds|Array of Integer|配置项属性生效条件id
+
+##### 输出参数：无
 
 ### <span id="IntQuery">综合查询 - IntQuery</span>
-TO DO
+
+#### [GET]/api/v2/intQuery/{queryId}
+根据查询id查询综合查询
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+queryId|Integer|综合查询id
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+response|[IntegrationQueryDto](#IntegrationQueryDto)|综合查询
+
+#### [POST] /api/v2/intQuery/ciType/{ciTypeId}/{queryName}/save
+保存综合查询
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+ciTypeId|Integer|配置项id
+queryName|String|综合查询名称
+intQueryDto|[IntegrationQueryDto](#IntegrationQueryDto)|综合查询
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+int|int|新增综合查询结果
+
+
+#### [POST] /api/v2/intQuery/{queryId}/update
+修改综合查询
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+queryId|int|综合查询id
+intQueryDto|[IntegrationQueryDto](#IntegrationQueryDto)|综合查询
+
+##### 输出参数：无
+
+
+#### [POST] /api/v2/intQuery/ciType/{ciTypeId}/{queryId}/delete
+删除综合查询
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+queryId|int|综合查询id
+ciTypeId|Integer|配置项id
+
+##### 输出参数：无
+
+
+
+#### [POST]/api/v2/intQuery/{queryId}/execute
+执行综合查询
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+queryId|Integer|综合查询id
+
+##### 输出参数：无
+参数名称|类型|描述
+:--|:--|:--    
+data|[PageInfo](#PageInfo)|分页信息
+contents|Array of Map<key,value>|综合查询的查询结果
 
 ### <span id="Image">图标 - Image</span>
-TO DO
+#### [GET] /api/v2/image/{imageId}
+根据图标id查询图标
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+imageId|int|图标id
+response|HttpServletResponse|输出流
+##### 输出参数：无
+
+#### [POST] /api/v2/image/upload
+上传图标
+##### 输入参数：
+参数名称|类型|描述
+:--|:--|:--    
+file|MultipartFile|图标文件
+##### 输出参数：无
 
 ### <span id="Constants">常量 - Constants</span>
-TO DO
+#### [POST] /api/v2/constants/ciStatus/retrieve
+查询配置项状态常量
+##### 输入参数：无
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+statusCode|String|查询结果
+Array|Array of String|配置项状态常量
+##### 示例：
+正常返回：
+```
+{
+  "statusCode": "OK",
+  -"data": [
+    "notCreated",
+    "created",
+    "dirty",
+    "decommissioned"
+  ]
+}
+```
+
+#### [POST] /api/v2/constants/referenceTypes/retrieve
+查询引用类型常量
+##### 输入参数：无
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+statusCode|String|查询结果
+Array|Array of String|引用类型常量
+##### 示例：
+正常返回：
+```
+{
+  "statusCode": "OK",
+  -"data": [
+    "association",
+    "composition",
+    "aggregation",
+    "dependence"
+  ]
+}
+```
+
+#### [POST] /api/v2/constants/inputTypes/retrieve
+查询输入类型常量
+##### 输入参数：无
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+statusCode|String|查询结果
+Array|Array of String|输入类型常量
+##### 示例：
+正常返回：
+```
+{
+  "statusCode": "OK",
+  -"data":[
+      "text",
+      "date",
+      "textArea",
+      "select",
+      "multiSelect",
+      "ref",
+      "multiRef",
+      "number",
+      "orchestration_multi_ref",
+      "orchestration_ref"
+    ]
+}
+```
+
+#### [POST] /api/v2/constants/effectiveStatus/retrieve
+获取有效状态常量
+##### 输入参数：无
+
+##### 输出参数：
+参数名称|类型|描述
+:--|:--|:--    
+statusCode|String|查询结果
+data|Array of String|有效状态常量
+##### 示例：
+正常返回：
+```
+{
+  "statusCode": "OK",
+  -"data": [
+    "active",
+    "inactive"
+  ]
+}
+```
 
 ### <span id="Apply">配置项类型及属性的状态变化操作 - Apply</span>
 #### [POST] /api/v2/ciTypes/applyAll
@@ -749,3 +1154,90 @@ isUnique|boolean|否|是否唯一，即该属性值不允许保存重复值
 isAccessControlled|boolean|否|是否启用权限控制
 isAuto|boolean|否|是否自动填充该属性值，即根据autoFillRule属性所设定的规则进行填充
 description|string|否|配置项类型属性的描述
+
+#### <span id="UserDto">UserDto - 用户</span>
+名称|类型|必选|描述
+:--|:--|:--|:--
+userId|integer|否|实体ID, 新增时由系统产生,更新和删除时必选  
+username|String|是|用户名
+password|String|否|密码
+fullName|String|否|名称
+description|String|否|描述
+
+#### <span id="RoleDto">RoleDto - 角色</span>
+名称|类型|必选|描述
+:--|:--|:--|:--
+roleId|integer|否|实体ID, 新增时由系统产生,更新和删除时必选  
+roleName|String|是|角色名
+roleType|String|否|角色类型
+isSystem|String|否|是否系统角色
+description|String|否|描述
+
+#### <span id="RoleUserDto">RoleUserDto - 用户角色</span>
+名称|类型|必选|描述
+:--|:--|:--|:--
+roleUserId|integer|否|实体ID, 新增时由系统产生,更新和删除时必选  
+roleId|integer|是|角色名
+userId|integer|否|角色类型
+isSystem|String|否|是否系统属性
+
+#### <span id="RoleCiTypeDto">RoleCiTypeDto - 角色配置项权限</span>
+名称|类型|必选|描述
+:--|:--|:--|:--
+roleCiTypeId|integer|否|实体ID, 新增时由系统产生,更新和删除时必选  
+ciTypeId|integer|是|配置项id
+roleId|integer|否|角色id
+ciTypeName|String|否|角色名称
+creationPermission|String|否|是否具有创建的权限
+removalPermission|String|否|是否具有删除的权限
+modificationPermission|String|否|是否具有修改的权限
+enquiryPermission|String|否|是否具有查询的权限
+executionPermission|String|否|是否具有执行的权限
+grantPermission|String|否|是否具有授权的权限
+
+
+#### <span id="RoleCiTypeCtrlAttrDto">RoleCiTypeCtrlAttrDto - 角色配置项属性权限</span>
+名称|类型|必选|描述
+:--|:--|:--|:--
+roleCiTypeCtrlAttrId|integer|否|实体ID, 新增时由系统产生,更新和删除时必选  
+roleCiTypeId|integer|是|角色配置项权限id
+creationPermission|String|否|是否具有创建的权限
+removalPermission|String|否|是否具有删除的权限
+modificationPermission|String|否|是否具有修改的权限
+enquiryPermission|String|否|是否具有查询的权限
+executionPermission|String|否|是否具有执行的权限
+grantPermission|String|否|是否具有授权的权限
+
+
+#### <span id="RoleCiTypeCtrlAttrConditionDto">RoleCiTypeCtrlAttrConditionDto - 角色配置项属性权限生效条件</span>
+名称|类型|必选|描述
+:--|:--|:--|:--
+conditionId|integer|否|实体ID, 新增时由系统产生,更新和删除时必选  
+roleCiTypeCtrlAttrId|integer|是|角色配置项属性权限id
+ciTypeAttrId|integer|否|配置项属性id
+ciTypeAttrName|String|否|配置项属性名称
+conditionValue|String|否|条件
+conditionValueType|String|否|条件类型
+conditionValueObject|Object|否|条件对象
+
+
+#### <span id="IntegrationQueryDto">IntegrationQueryDto - 综合查询</span>
+名称|类型|必选|描述
+:--|:--|:--|:--
+name|String|否|综合查询名称
+ciTypeId|integer|是|配置项id
+attrs|Array of Integer|否|配置项属性id
+attrAliases|String|否|配置项属性别名
+attrKeyNames|String|否|配置项属性名称
+conditionValueType|String|否|条件类型
+parentRs|Relationship(#Relationship)|否|父节点信息
+children|IntegrationQueryDto(#IntegrationQueryDto)|否|子节点
+
+
+#### <span id="Relationship">Relationship - 综合查询父节点信息</span>
+名称|类型|必选|描述
+:--|:--|:--|:--
+attrId|Integer|否|配置项属性id
+isReferedFromParent|Boolean|否|是否存在父节点
+
+
