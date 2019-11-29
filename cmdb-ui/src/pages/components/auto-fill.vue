@@ -115,7 +115,7 @@ export default {
   methods: {
     inputHandler(v) {
       if (this.inputRuleStatus === 1) {
-        const rule = /[\/\\\-_a-zA-Z0-9]{1}/;
+        const rule = /[\/\\\-_/=a-zA-Z0-9]{1}/;
         if (v.data) {
           if (rule.test(v.data)) {
             this.inputVal = this.$refs.textarea.value;
