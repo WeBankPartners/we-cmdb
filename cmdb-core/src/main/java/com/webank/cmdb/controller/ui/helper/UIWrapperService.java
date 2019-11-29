@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
+import com.webank.cmdb.config.ApplicationProperties.DatasourceProperties;
 import com.webank.cmdb.config.ApplicationProperties.UIProperties;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.FilterOperator;
@@ -36,6 +37,7 @@ import com.webank.cmdb.dto.CiData;
 import com.webank.cmdb.dto.CiIndentity;
 import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
+import com.webank.cmdb.dto.ColumnInfo;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dto.IntegrationQueryDto;
 import com.webank.cmdb.dto.QueryRequest;
@@ -52,10 +54,12 @@ import com.webank.cmdb.repository.StaticEntityRepository;
 import com.webank.cmdb.service.BaseKeyInfoService;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.service.CiTypeService;
+import com.webank.cmdb.service.DatabaseService;
 import com.webank.cmdb.service.IntegrationQueryService;
 import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.service.impl.FilterRuleService;
 import com.webank.cmdb.util.BeanMapUtils;
+import com.webank.cmdb.util.JsonUtil;
 import com.webank.cmdb.util.ResourceDto;
 import com.webank.cmdb.util.Sorting;
 
@@ -81,12 +85,16 @@ public class UIWrapperService {
     @Autowired
     private UIProperties uiProperties;
     @Autowired
+    private DatasourceProperties datasourceProperties;
+    @Autowired
     private CiService ciService;
     @Autowired
     private StaticDtoService staticDtoService;
 
     @Autowired
     private StaticEntityRepository staticEntityRepository;
+    @Autowired
+    private DatabaseService databaseService;
 
     @Autowired
     private CiTypeService ciTypeService;
@@ -1572,5 +1580,75 @@ public class UIWrapperService {
         Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfIdc();
         return getCiData(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId);
     }
+
+	public void exportModel() {
+		/**
+    	 * admCiType
+    	 * admCiTypeAttr
+    	 * adm_basekey_cat_type
+    	 * adm_basekey_cat
+    	 * adm_basekey_code
+    	 * {
+    	 * "adm_basekey_cat_type"：[{"field1":"xxx","field2":"yyy","adm_basekey_cat":{"field1":"aaa","field2":"bbb","adm_basekey_code":{"":"","":"","":""}}},{....}]
+    	 * "admCiType":[{"field1":"ooo","field2":"ppp"},{...}],
+    	 * "admCiTypeAttr":[{"field1":"ooo","field2":"ppp"},{...}],
+    	 * "ciData":{"tale1":{...},"table2":{...}}
+    	 * }
+    	 */
+    	QueryRequest queryRequestCatType = new QueryRequest();
+    	//获取枚举数据
+    	queryRequestCatType.addNotEqualsFilter("catTypeId", 1);
+    	queryRequestCatType.addNotEqualsFilter("catTypeId", 2);
+    	QueryResponse<CatTypeDto> catTypeResponse = staticDtoService.query(CatTypeDto.class,queryRequestCatType);
+    	ArrayList<Integer> catTypeIds = new ArrayList<Integer>();
+    	//获取adm_basekey_cat
+    	catTypeResponse.getContents().forEach(catTypeDto -> {
+    		catTypeIds.add(catTypeDto.getCatTypeId());
+    	});
+    	QueryRequest queryRequestCat = new QueryRequest();
+    	Map<String, Object> catTypeFilter = new HashMap<String, Object>();
+    	catTypeFilter.put("catTypeId", catTypeIds);
+    	queryRequestCat.addInFilters(catTypeFilter);
+    	QueryResponse<CategoryDto> categoryResponse = staticDtoService.query(CategoryDto.class,queryRequestCat);
+    	//获取adm_basekey_code
+    	ArrayList<Integer> catIds = new ArrayList<Integer>();
+    	categoryResponse.getContents().forEach(catDto -> {
+    		catIds.add(catDto.getCatTypeId());
+    	});
+    	QueryRequest queryRequestCode = new QueryRequest();
+    	Map<String, Object> catFilter = new HashMap<String, Object>();
+    	catFilter.put("catId", catIds);
+    	queryRequestCode.addInFilters(catFilter);
+    	QueryResponse<CatCodeDto> catCodeResponse = staticDtoService.query(CatCodeDto.class,queryRequestCode);
+    	
+    	//获取citype
+    	QueryRequest queryRequest = new QueryRequest();
+    	QueryResponse<CiTypeDto> ciTypeDto = staticDtoService.query(CiTypeDto.class,queryRequest);
+    	QueryResponse<CiTypeAttrDto> ciTypeAttrDto = staticDtoService.query(CiTypeAttrDto.class,queryRequest);
+    	
+    	//获取ci data
+    	Map<String, Object> ciData = new HashMap<String, Object>();
+
+    	ciTypeDto.getContents().forEach(citype -> {
+    		String tableName = citype.getTableName();
+    		String schema = datasourceProperties.getSchema();
+    		Map<String, Object> table = new HashMap<String, Object>();
+    		List<?> data = databaseService.getDataByTableName(tableName);
+    		List<ColumnInfo> info = databaseService.getColumnDetailByTableName(tableName,schema);
+    		table.put("info", info);
+    		table.put("data", data);
+    		ciData.put(tableName, table);
+    	});
+    	
+    	LinkedHashMap<String,Object> dataMap = new LinkedHashMap<String, Object>();
+    	dataMap.put("adm_basekey_cat_type", catTypeResponse.getContents());
+    	dataMap.put("adm_basekey_cat", categoryResponse.getContents());
+    	dataMap.put("adm_basekey_code", catCodeResponse.getContents());
+    	dataMap.put("admCiType", ciTypeDto.getContents());
+    	dataMap.put("admCiTypeAttr", ciTypeAttrDto.getContents());
+    	dataMap.put("ciData", ciData);
+    	String json = JsonUtil.toJson(dataMap);	
+    	System.out.println(json);
+	}
 
 }

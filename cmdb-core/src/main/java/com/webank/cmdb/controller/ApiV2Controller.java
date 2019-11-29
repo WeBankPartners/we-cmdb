@@ -1,6 +1,8 @@
 package com.webank.cmdb.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,6 +28,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.webank.cmdb.constant.ImplementOperation;
+import com.webank.cmdb.controller.ui.helper.UIWrapperService;
+import com.webank.cmdb.domain.AdmBasekeyCatType;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
@@ -58,6 +62,7 @@ import com.webank.cmdb.service.StateTransitionService;
 import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.service.impl.ConstantService;
 import com.webank.cmdb.service.impl.FilterRuleService;
+import com.webank.cmdb.util.DatabaseUtils;
 import com.webank.cmdb.util.JsonUtil;
 
 @RestController
@@ -83,6 +88,8 @@ public class ApiV2Controller {
     private ConstantService constantService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private UIWrapperService wrapperService;
 
     // Enum code
     @PostMapping("/enum/codes/retrieve")
@@ -505,4 +512,18 @@ public class ApiV2Controller {
     public void deleteRoleCiTypeCtrlAttrConditions(@Valid @RequestBody List<Integer> requestIds) {
         staticDtoService.delete(RoleCiTypeCtrlAttrConditionDto.class, requestIds);
     }
+    
+    @GetMapping("/model/export")
+    public void exportModel() {
+    	wrapperService.exportModel();
+    }
+    @GetMapping("/model/init")
+    public QueryResponse<RoleCiTypeCtrlAttrConditionDto> initModel(@RequestBody QueryRequest request) {
+    	return staticDtoService.query(RoleCiTypeCtrlAttrConditionDto.class, request);
+    }
+    @GetMapping("/model/import")
+    public QueryResponse<RoleCiTypeCtrlAttrConditionDto> importModel(@RequestBody QueryRequest request) {
+    	return staticDtoService.query(RoleCiTypeCtrlAttrConditionDto.class, request);
+    }
+    
 }
