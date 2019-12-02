@@ -267,6 +267,7 @@ export default {
     renderADGraph(data) {
       let nodesString = this.genADDOT(data);
       this.graph.graphviz.renderDot(nodesString);
+      // TODO
       let svg = d3.select("#graph").select("svg");
       let width = svg.attr("width");
       let height = svg.attr("height");
@@ -296,30 +297,12 @@ export default {
           '";'
       ];
       sysChildren.forEach(subsys => {
-        let label;
-        if (
-          subsys.data.code &&
-          subsys.data.code !== null &&
-          subsys.data.code !== ""
-        ) {
-          label = subsys.data.code;
-        } else {
-          label = subsys.data.key_name;
-        }
+        const label = subsys.data.code || subsys.data.key_name
         dots.push("subgraph cluster_" + subsys.guid + "{");
         dots.push(`label="${label}";tooltip="${subsys.data.description}";`);
         if (Array.isArray(subsys.children)) {
           subsys.children.forEach(unit => {
-            let unitLabel;
-            if (
-              unit.data.code &&
-              unit.data.code !== null &&
-              unit.data.code !== ""
-            ) {
-              unitLabel = unit.data.code;
-            } else {
-              unitLabel = unit.data.key_name;
-            }
+            const unitLabel = unit.data.code || unit.data.key_name
             let color = "grey";
             if (unit.data.state && stateColorMap.has(unit.data.state.code)) {
               color = stateColorMap.get(unit.data.state.code);
@@ -330,18 +313,19 @@ export default {
             );
             dots.push(`"${unit.guid}"[shape="none",`);
             dots.push(
-              `label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">\n<TR><TD COLSPAN="2"> ${unitLabel} </TD></TR>`
+              `label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">\n<TR><TD COLSPAN="3"> ${this.$t("runnint_instance")} </TD></TR>`
             );
             graphMap.set(unit.guid, unitLabel);
             if (Array.isArray(unit.children)) {
               unit.children.forEach(child => {
                 if (child.ciTypeId === this.instanceCiTypeId) {
-                  let hostIp = "";
+                  let hostIp = "-";
                   if (child.data.host && child.data.host.key_name) {
-                    hostIp = child.data.host.key_name;
+                    hostIp = child.data.host.key_name || "-";
                   }
+                  const port = child.data.port || "-"
                   dots.push(
-                    `<TR><TD> ${hostIp} </TD><TD>${child.data.port}</TD></TR>`
+                    `<TR><TD> ${child.data.code} </TD><TD> ${hostIp} </TD><TD> ${port} </TD></TR>`
                   );
                 }
               });
@@ -353,16 +337,7 @@ export default {
                   sysIvks.push(service);
                 }
                 if (service.ciTypeId === this.serviceCiTypeId) {
-                  let serviceLabel;
-                  if (
-                    service.data.code &&
-                    service.data.code !== null &&
-                    service.data.code !== ""
-                  ) {
-                    serviceLabel = service.data.code;
-                  } else {
-                    serviceLabel = service.data.key_name;
-                  }
+                  const serviceLabel = service.data.code || service.data.key_name;
                   let domain = "";
                   if (service.data.dns_domain) {
                     domain =
@@ -370,9 +345,9 @@ export default {
                   } else {
                     domain = service.data.dns_name;
                   }
-                  let ip = service.data.ip ? service.data.ip : "";
+                  const ip = service.data.service_ip.key_name || "";
                   dots.push(
-                    `"${service.guid}" [shape="record", label="{{ ${serviceLabel}|{ ${domain} | ${service.data.service_port} }| ${ip} }}", tooltip="${service.data.description}"];`
+                    `"${service.guid}" [shape="record", label="{{ ${this.$t("service")}: ${serviceLabel}|{ ${domain} | ${service.data.service_port} }| ${ip} }}", tooltip="${service.data.description}"];`
                   );
                   graphMap.set(service.guid, serviceLabel);
                   dots.push(
@@ -594,116 +569,6 @@ export default {
           desc: message
         });
       }
-    },
-    async previewDeploy() {
-      let payload = this.selectedDeployItems.map(_ => {
-        return {
-          ciGuid: _.guid,
-          ciTypeId: _.ciTypeId,
-          definitionKey: _.data.WeCMDBOrchestration.codeId
-        };
-      });
-      const { statusCode, data, message } = await previewDeployGraph(payload);
-      if (statusCode === "OK") {
-        this.graphSource = data;
-        data.forEach((_, index) => {
-          this.$set(this.graphs, _.defintiionKey + "_" + index, {});
-        });
-        this.$nextTick(() => {
-          this.initGraph();
-        });
-      }
-    },
-    loadImage(index, nodesString) {
-      (nodesString.match(/image=[^,]*(img\/\d*|png)/g) || [])
-        .filter((value, index, self) => {
-          return self.indexOf(value) === index;
-        })
-        .map(keyvaluepaire => keyvaluepaire.substr(7))
-        .forEach(image => {
-          this.graphs[index].graphviz.addImage(image, "48px", "48px");
-        });
-    },
-    genDOT(raw) {
-      const shapes = {
-        startEvent,
-        errEndEvent,
-        eventBasedGateway,
-        intermediateCatchEvent,
-        exclusiveGateway,
-        endEvent,
-        serviceTask
-      };
-      var dots = [
-        "digraph  {",
-        'bgcolor="transparent";',
-        'Node [fontname=Arial,shape="none",width="0.8", height="0.8", color="#273c75" ,fontsize=10];',
-        'Edge [fontname=Arial, minlen="1", color="#000", fontsize=10];'
-      ];
-      let drawConnection = (from, to) => {
-        return `"${from.id}" -> "${to.id}"[edgetooltip="${to.name}"];`;
-      };
-      let addNodeAttr = node => {
-        const color = "#273c75";
-        let path = `${shapes[node.nodeTypeName] || shapes.startEvent}`;
-        return `"${node.id}" [image="${path}" label="${node.name}" labelloc="b", fontcolor="${color}"];`;
-      };
-      const nodeMap = new Map();
-      raw.forEach(node => {
-        dots.push(addNodeAttr(node));
-        if (node.toNodeIds.length) {
-          node.toNodeIds.forEach(toId => {
-            let found = raw.find(_ => toId === _.id);
-            if (found) {
-              const dot = drawConnection(node, found);
-              if (!nodeMap.has(dot)) {
-                dots.push(dot);
-                nodeMap.set(dot, true);
-              }
-            }
-          });
-        }
-
-        if (node.fromNodeIds.length) {
-          node.fromNodeIds.forEach(fromId => {
-            let found = raw.find(_ => fromId === _.id);
-            if (found) {
-              const dot = drawConnection(found, node);
-              if (!nodeMap.has(dot)) {
-                dots.push(dot);
-                nodeMap.set(dot, true);
-              }
-            }
-          });
-        }
-      });
-
-      dots.push("}");
-      return dots.join("");
-    },
-    renderGraph(data, index) {
-      let nodesString = this.genDOT(data.flowNodes || []);
-      this.loadImage(data.defintiionKey + "_" + index, nodesString);
-      this.graphs[data.defintiionKey + "_" + index].graphviz.renderDot(
-        nodesString
-      );
-    },
-    initGraph() {
-      const initEvent = () => {
-        this.graphSource.forEach((item, index) => {
-          let graph;
-          graph = d3.select("#graph_" + item.defintiionKey + "_" + index);
-          graph.on("dblclick.zoom", null);
-          this.graphs[
-            item.defintiionKey + "_" + index
-          ].graphviz = graph.graphviz().zoom(false);
-        });
-      };
-
-      initEvent();
-      this.graphSource.forEach((_, index) => {
-        this.renderGraph(_, index);
-      });
     },
     initTreeGraph(filters = {}) {
       this.treeSpinShow = true;
