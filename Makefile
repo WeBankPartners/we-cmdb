@@ -1,7 +1,7 @@
-current_dir=$(shell pwd)
-version=$(shell bash ./build/version.sh)
-date=$(shell date +%Y%m%d%H%M%S)
-project_name=$(shell basename "${current_dir}")
+current_dir:=$(shell pwd)
+version:=$(shell bash ./build/version.sh)
+date:=$(shell date +%Y%m%d%H%M%S)
+project_name:=$(shell basename "${current_dir}")
 remote_docker_image_registry=ccr.ccs.tencentyun.com/webankpartners/wecmdb-app
 
 
