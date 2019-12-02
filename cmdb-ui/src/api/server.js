@@ -1,11 +1,12 @@
 import { req as request, baseURL } from "./base";
+import { pluginErrorMessage } from "./base-pulgin"
 let req = request;
 if (window.request) {
   req = {
-    post: (url, ...params) => window.request.post(baseURL + url, ...params),
-    get: (url, ...params) => window.request.get(baseURL + url, ...params),
-    delete: (url, ...params) => window.request.delete(baseURL + url, ...params),
-    put: (url, ...params) => window.request.put(baseURL + url, ...params)
+    post: (url, ...params) => pluginErrorMessage(window.request.post(baseURL + url, ...params)),
+    get: (url, ...params) => pluginErrorMessage(window.request.get(baseURL + url, ...params)),
+    delete: (url, ...params) => pluginErrorMessage(window.request.delete(baseURL + url, ...params)),
+    put: (url, ...params) => pluginErrorMessage(window.request.put(baseURL + url, ...params))
   };
 }
 
