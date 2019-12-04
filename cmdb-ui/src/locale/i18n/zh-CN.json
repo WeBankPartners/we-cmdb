@@ -160,7 +160,7 @@
   "please_input_legitimate_character": "请输入正确的操作符 . 或 -",
   "please_select_ci_type": "请选择CI类型",
   "please_select_enum": "请选择枚举值",
-  "auto_fill_legitimate_character_tips": "连接符只支持英文字母大小写，数字0-9，符号 / \\ - _ 的输入， { 触发规则填充",
+  "auto_fill_legitimate_character_tips": "连接符只支持英文字母大小写，数字0-9，符号 / \\ - _ = 的输入， { 触发规则填充",
   "auto_fill_legitimate_operation_character_tips": "请输入正确的操作符 . 或 -",
   "auto_fill_close_rule_tips": "请输入操作符 } 闭合当前规则",
   "all": "所有",
@@ -230,5 +230,7 @@
   "no_data": "暂无数据",
   "column_filter": "过滤列",
   "header_title": "WeCMDB (功能演示版)",
-  "home": "首页"
+  "home": "首页",
+  "runnint_instance": "运行实例",
+  "service": "服务"
 }

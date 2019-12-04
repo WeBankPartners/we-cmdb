@@ -160,7 +160,7 @@
   "please_input_legitimate_character": "Please input correct operator . or -",
   "please_select_ci_type": "Please selete CI type",
   "please_select_enum": "Please select enum value",
-  "auto_fill_legitimate_character_tips": "Delimiter only allow letters (A-Z,a-z,0-9,/,\\,-,_)，input '{' for listing CI types and it's attributes",
+  "auto_fill_legitimate_character_tips": "Delimiter only allow letters (A-Z,a-z,0-9,/,\\,-,_,=)，input '{' for listing CI types and it's attributes",
   "auto_fill_legitimate_operation_character_tips": "Please input correct operator . or -",
   "auto_fill_close_rule_tips": "Please input operator '}' to close current rule",
   "all": "All",
@@ -230,5 +230,7 @@
   "no_data": "No Data",
   "column_filter": "Columns Filter",
   "header_title": "WeCMDB (Demo Version)",
-  "home": "Home"
+  "home": "Home",
+  "runnint_instance": "Running Instance",
+  "service": "Service"
 }
