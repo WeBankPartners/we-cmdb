@@ -214,6 +214,13 @@ export default {
               value: this.form[i]
             });
             break;
+          case "number":
+            filters.push({
+              name: i,
+              operator: "eq",
+              value: +this.form[i]
+            })
+            break
 
           default:
             filters.push({
