@@ -2,8 +2,8 @@
   <Row>
     <Col span="4">
       <Card>
-        <p slot="title">
-          {{ $t("user") }}
+        <p slot="title" class="permission-management-p">
+          <span>{{ $t("user") }}</span>
           <Button
             icon="ios-add"
             type="dashed"
@@ -30,8 +30,8 @@
     </Col>
     <Col span="5" offset="0" style="margin-left: 20px">
       <Card>
-        <p slot="title">
-          {{ $t("role") }}
+        <p slot="title" class="permission-management-p">
+          <span>{{ $t("role") }}</span>
           <Button
             icon="ios-add"
             type="dashed"
@@ -82,7 +82,6 @@
           <span
             class="ciTypes"
             :title="ci.ciTypeName"
-            style="max-width: 100px;white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
             >{{ ci.ciTypeName }}</span
           >
           <div class="ciTypes-options">
@@ -1030,6 +1029,16 @@ export default {
   padding-right: 5px;
   border-radius: 5px;
   margin-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
+
+  &>span {
+    flex: 1;
+    margin-right: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 .ciTypes-options {
   float: right;
@@ -1045,6 +1054,14 @@ export default {
   }
   .ivu-checkbox-disabled.ivu-checkbox-checked .ivu-checkbox-inner {
     background-color: #2d8cf0;
+  }
+}
+.permission-management-p {
+  align-items: center;
+  display: flex;
+  height: 24px;
+  span {
+    margin-right: 5px;
   }
 }
 </style>
