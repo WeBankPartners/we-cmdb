@@ -1,3 +1,5 @@
+import Vue from "vue";
+
 export const pluginErrorMessage = async (r) => {
   const res = await r;
   if (res.statusCode.startsWith("ERR")) {
