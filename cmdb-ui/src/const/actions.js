@@ -97,6 +97,26 @@ export const outerActions = [
     actionType: "filterColumns"
   }
 ];
+export const exportOuterActions = [
+  {
+    label: window.vm ? window.vm.$t("export") : Vue.t("export"),
+    props: {
+      type: "primary",
+      icon: "ios-download-outline"
+    },
+    actionType: "export"
+  },
+  {
+    label: window.vm ? window.vm.$t("column_filter") : Vue.t("column_filter"),
+    props: {
+      type: "primary",
+      icon: "ios-funnel",
+      shape: "circle",
+      disabled: false
+    },
+    actionType: "filterColumns"
+  }
+]
 export const innerActions = [
   {
     label: window.vm ? window.vm.$t("cancel") : Vue.t("cancel"),
