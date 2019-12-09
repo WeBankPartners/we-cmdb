@@ -60,7 +60,8 @@ import {
   outerActions,
   innerActions,
   pagination,
-  components
+  components,
+  exportOuterActions
 } from "@/const/actions.js";
 import { formatData } from "../util/format.js";
 import { getExtraInnerActions } from "../util/state-operations.js";
@@ -344,7 +345,7 @@ export default {
             tableData: [],
             outerActions:
               this.$route.name === "ciDataEnquiry"
-                ? null
+                ? JSON.parse(JSON.stringify(exportOuterActions))
                 : JSON.parse(JSON.stringify(outerActions)),
             innerActions:
               this.$route.name === "ciDataEnquiry"
