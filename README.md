@@ -96,7 +96,7 @@ Please refer to the [WeCMDB Developer Guide](cmdb-wiki/docs/developer/wecmdb_dev
 Please refer to the [WeCMDB Contributors Guide](cmdb-wiki/docs/developer/code_contributors_submit_guide_en.md) for contributors how to submit code.
 
 ## API Reference
-Please refer to the [WeCMDB API Guide](cmdb-wiki/docs/api/wecmdb_api_guide.md).
+Please refer to the [WeCMDB API Guide](cmdb-wiki/docs/api/wecmdb_api_guide_en.md).
 
 ## Glossary
 Please refer to the [WeCMDB Glossary](cmdb-wiki/docs/manual/wecmdb_glossary_en.md) to understand the terms that used for WeCMDB.
