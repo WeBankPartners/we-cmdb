@@ -1,7 +1,6 @@
 package com.webank.cmdb.controller;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -29,7 +28,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.webank.cmdb.constant.ImplementOperation;
 import com.webank.cmdb.controller.ui.helper.UIWrapperService;
-import com.webank.cmdb.domain.AdmBasekeyCatType;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
@@ -46,6 +44,7 @@ import com.webank.cmdb.dto.IntQueryResponseHeader;
 import com.webank.cmdb.dto.IntegrationQueryDto;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
+import com.webank.cmdb.dto.ResponseDto;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrConditionDto;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrDto;
 import com.webank.cmdb.dto.RoleCiTypeDto;
@@ -62,7 +61,6 @@ import com.webank.cmdb.service.StateTransitionService;
 import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.service.impl.ConstantService;
 import com.webank.cmdb.service.impl.FilterRuleService;
-import com.webank.cmdb.util.DatabaseUtils;
 import com.webank.cmdb.util.JsonUtil;
 
 @RestController
@@ -513,17 +511,36 @@ public class ApiV2Controller {
         staticDtoService.delete(RoleCiTypeCtrlAttrConditionDto.class, requestIds);
     }
     
-    @GetMapping("/model/export")
-    public void exportModel() {
-    	wrapperService.exportModel();
+	@GetMapping("/model/export")
+    public QueryResponse<CiTypeDto> exportModel(HttpServletResponse response) {
+    	return wrapperService.exportModel();
     }
+    
     @GetMapping("/model/init")
-    public QueryResponse<RoleCiTypeCtrlAttrConditionDto> initModel(@RequestBody QueryRequest request) {
-    	return staticDtoService.query(RoleCiTypeCtrlAttrConditionDto.class, request);
+    public void initModel() {
+    	wrapperService.initModel();
     }
-    @GetMapping("/model/import")
-    public QueryResponse<RoleCiTypeCtrlAttrConditionDto> importModel(@RequestBody QueryRequest request) {
-    	return staticDtoService.query(RoleCiTypeCtrlAttrConditionDto.class, request);
+    
+    @PostMapping("/model/showDifferences")
+    public ResponseDto<Map<String,List<CiTypeDto>>> showDifferences(@RequestBody MultipartFile file) {
+    	QueryResponse<CiTypeDto> currentModel = wrapperService.exportModel();
+    	List<CiTypeDto> importModel = wrapperService.importModel(file);
+    	Map<String,List<CiTypeDto>> modelData = new HashMap<String, List<CiTypeDto>>();
+    	modelData.put("currentModel", currentModel.getContents());
+    	modelData.put("importModel", importModel);
+    	ResponseDto<Map<String,List<CiTypeDto>>> responseDto = new ResponseDto<>();
+    	responseDto.setStatusCode("200");
+    	responseDto.setData(modelData);
+    	return responseDto;
     }
+    
+    @PostMapping("/model/apply")
+    public void applyModel(@RequestBody MultipartFile file) {
+    	//wrapperService.importModel(file);
+    }
+    
+    
+    
+    
     
 }

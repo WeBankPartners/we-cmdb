@@ -35,6 +35,7 @@ public interface AdmCiTypeAttrRepository extends JpaRepository<AdmCiTypeAttr, In
      * @return
      */
     List<AdmCiTypeAttr> findByInputTypeAndReferenceId(String inputType, Integer referenceId);
+    List<AdmCiTypeAttr> findByInputTypeInAndReferenceId(List<String> inputType, Integer referenceId);
 
     List<AdmCiTypeAttr> findByInputTypeAndCiTypeId(String inputType, Integer ciTypeId);
 

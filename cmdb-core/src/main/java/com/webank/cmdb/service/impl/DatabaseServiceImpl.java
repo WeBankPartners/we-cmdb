@@ -1,18 +1,17 @@
 package com.webank.cmdb.service.impl;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.webank.cmdb.dto.ColumnInfo;
 import com.webank.cmdb.service.DatabaseService;
 
 @Service
@@ -40,45 +39,32 @@ public class DatabaseServiceImpl implements DatabaseService {
     @Override
     public void executeSQl(String ddlSql) {
         Query query = entityManager.createNativeQuery(ddlSql);
-        query.executeUpdate();
+        int executeUpdate = query.executeUpdate();
     }
-    
-
+    @Transactional
     @Override
-    public List getDataByTableName(String tableName) {
-        Query query = entityManager.createNativeQuery(String.format("select * from %s ", tableName));
-        try {
-        	return query.getResultList();
-        } catch (Exception ex) {
-            return null;
-        }
+    public List<Object> executeQuerySQl(String ddlSql) {
+        Query query = entityManager.createNativeQuery(ddlSql);
+        @SuppressWarnings("unchecked")
+		List<Object> resultList = query.getResultList();
+		return resultList;
     }
     
     @SuppressWarnings("unchecked")
-	@Override
-    public List<ColumnInfo> getColumnDetailByTableName(String tableName,String schema) {
-    	if (StringUtils.isBlank(tableName)||StringUtils.isBlank(schema))
-    	return null;
-    	String sql = formartSql(tableName,schema);
-    	Query query = entityManager.createNativeQuery(sql);
-		return query.getResultList();
+	@Transactional
+    @Override
+    public <T> List<T> queryProxyEntity(EntityManager entityManager,Class<T> t, String tableName) {
+		/*
+		 * CriteriaQuery<T> createQuery =
+		 * entityManager.getCriteriaBuilder().createQuery(t); Root<T> root =
+		 * createQuery.from(t); createQuery.select(root); TypedQuery<?> typedQuery =
+		 * entityManager.createQuery(createQuery);
+		 */
+
+    	//List<?> resultList = typedQuery.getResultList();
+    	Query createNativeQuery = entityManager.createNativeQuery("select * from  `"+tableName+"`", t);
+    	List resultList2 = createNativeQuery.getResultList();
+		return (List<T>) resultList2;
     }
     
-    
-
-    private String formartSql(String tableName,String schema) {
-    	if(StringUtils.isNoneBlank(tableName)&&StringUtils.isNoneBlank(schema)) {
-	    	StringBuilder sb = new StringBuilder();
-	    	sb.append("select COLUMN_NAME, COLUMN_TYPE, ")
-	    	  .append(" IF(EXTRA='auto_increment',CONCAT(COLUMN_KEY,'(', IF(EXTRA='auto_increment','auto_increment',EXTRA),')'),COLUMN_KEY), ")
-			  .append(" IS_NULLABLE, ")
-			  .append(" COLUMN_COMMENT ")
-			  .append(" FROM information_schema.COLUMNS  ")
-			  .append(" WHERE TABLE_SCHEMA = '").append(schema)
-			  .append("' AND TABLE_NAME = '").append(tableName).append("'");
-	    	return sb.toString();
-    	}
-    	return null;
-	}
-
 }

@@ -2,6 +2,7 @@ package com.webank.cmdb.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.MapType;
 import com.webank.cmdb.dto.ResponseDto;
 
 public class JsonUtil {
@@ -74,6 +76,11 @@ public class JsonUtil {
         ObjectMapper mapper = new ObjectMapper();
         JavaType javaType = mapper.getTypeFactory().constructType(clzz);
         return mapper.readValue(jsonContent.getBytes(), javaType);
+    }
+    static public <T> Map<String, Object> toMap(String jsonContent) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        MapType constructMapType = mapper.getTypeFactory().constructMapType(HashMap.class, String.class, Object.class);
+        return mapper.readValue(jsonContent.getBytes(), constructMapType);
     }
 
 }
