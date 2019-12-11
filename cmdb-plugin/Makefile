@@ -1,5 +1,5 @@
 current_dir=$(shell pwd)
-version=$(shell bash ./build/version.sh)
+version=$(shell bash ./scripts/version.sh)
 date=$(shell date +%Y%m%d%H%M%S)
 project_name=$(shell basename "${current_dir}")
 remote_docker_image_registry=ccr.ccs.tencentyun.com/webankpartners/wecube-plugins-wecmdb
@@ -12,7 +12,7 @@ clean:
 build: clean
 	mkdir -p repository
 	cd ..
-	docker run --rm --name plugin-build -v /data/repository:/usr/src/mymaven/repository   -v $(current_dir)/build/maven_settings.xml:/usr/share/maven/ref/settings-docker.xml  -v $(current_dir):/usr/src/mymaven -w /usr/src/mymaven maven:3.3-jdk-8 mvn -U clean install -Dmaven.test.skip=true -DbuildType=plugin -s /usr/share/maven/ref/settings-docker.xml dependency:resolve
+	docker run --rm --name plugin-build -v /data/repository:/usr/src/mymaven/repository   -v $(current_dir)/scripts/maven_settings.xml:/usr/share/maven/ref/settings-docker.xml  -v $(current_dir):/usr/src/mymaven -w /usr/src/mymaven maven:3.3-jdk-8 mvn -U clean install -Dmaven.test.skip=true -DbuildType=plugin -s /usr/share/maven/ref/settings-docker.xml dependency:resolve
 
 image: build
 	docker build -t $(project_name):$(version) .
@@ -20,7 +20,6 @@ image: build
 s3_server_url=http://10.10.10.1:9000
 s3_access_key=access_key
 s3_secret_key=secret_key
-branch_name=master
 cmdb_database_path=../cmdb-core/src/main/resources/database/ch/
 
 .PHONY:package
