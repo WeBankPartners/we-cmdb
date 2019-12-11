@@ -168,13 +168,13 @@ public class StaticDtoServiceImpl implements StaticDtoService {
 	@Transactional
 	@Override
 	public <T extends ResourceDto<T, D>, D> List<T> create(Class<T> dtoClzz, List<T> dtoObjs) {
-		return create(dtoClzz, dtoObjs, false);
+		return create(dtoClzz, dtoObjs, false, false);
 	}
 
 	@OperationLogPointcut(operation = Creation)
 	@Transactional
 	@Override
-	public <T extends ResourceDto<T, D>, D> List<T> create(Class<T> dtoClzz, List<T> dtoObjs, boolean isNotCreateAttr) {
+	public <T extends ResourceDto<T, D>, D> List<T> create(Class<T> dtoClzz, List<T> dtoObjs, boolean isNotCreateAttr, boolean isCustomGenerator) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Get create request, dtoClass:{}, objects:{}", dtoClzz, JsonUtil.toJson(dtoObjs));
 		}
@@ -204,7 +204,7 @@ public class StaticDtoServiceImpl implements StaticDtoService {
 						return;
 					}
 
-					if (dtoIdField != null && dtoIdField.equals(name) && !isNotCreateAttr) {
+					if (dtoIdField != null && dtoIdField.equals(name) && !isNotCreateAttr && !isCustomGenerator) {
 
 						return;
 					}

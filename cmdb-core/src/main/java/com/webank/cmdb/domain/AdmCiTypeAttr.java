@@ -3,6 +3,7 @@ package com.webank.cmdb.domain;
 import java.io.Serializable;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -16,6 +17,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.annotations.GenericGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,8 +83,9 @@ public class AdmCiTypeAttr implements Serializable {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_adm_ci_type_attr")
+    @GeneratedValue(generator = "CustomGenerator")
+    @GenericGenerator(name = "CustomGenerator", strategy = "com.webank.cmdb.util.CustomGenerator")
     public Integer getIdAdmCiTypeAttr() {
         return this.idAdmCiTypeAttr;
     }

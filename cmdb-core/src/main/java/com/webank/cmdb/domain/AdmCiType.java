@@ -17,6 +17,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.GenericGenerator;
+
 import com.webank.cmdb.constant.CiStatus;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.InputType;
@@ -53,7 +55,8 @@ public class AdmCiType implements Serializable {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO,generator = "CustomGenerator")
+    @GenericGenerator(name = "CustomGenerator", strategy = "com.webank.cmdb.util.CustomGenerator")
     @Column(name = "id_adm_ci_type")
     public Integer getIdAdmCiType() {
         return this.idAdmCiType;

@@ -17,5 +17,6 @@
 	<modules>
 	    <module>cmdb-ui</module>
 		<module>cmdb-core</module>
+		<module>artifacts-core</module>
 	</modules>
 </project>

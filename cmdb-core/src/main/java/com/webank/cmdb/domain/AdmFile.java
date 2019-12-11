@@ -11,6 +11,8 @@ import javax.persistence.Lob;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.GenericGenerator;
+
 /**
  * The persistent class for the adm_files database table.
  * 
@@ -29,7 +31,8 @@ public class AdmFile implements Serializable {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator = "CustomUUIDGenerator")
+    @GenericGenerator(name = "CustomUUIDGenerator", strategy = "com.webank.cmdb.util.CustomUUIDGenerator")
     @Column(name = "id_adm_file")
     public Integer getIdAdmFile() {
         return this.idAdmFile;

@@ -14,6 +14,7 @@ import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -85,7 +86,7 @@ public class UICiDataManagementController {
     @PostMapping("/ci-types/create")
     @ResponseBody
     public Object createCiType(@RequestBody CiTypeDto ciTypeDto) {
-        return wrapperService.createCiTypes(ciTypeDto);
+        return wrapperService.createCiTypes(Arrays.asList(ciTypeDto));
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })

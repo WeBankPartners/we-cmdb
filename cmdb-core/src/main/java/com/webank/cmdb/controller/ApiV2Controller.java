@@ -535,12 +535,7 @@ public class ApiV2Controller {
     }
     
     @PostMapping("/model/apply")
-    public void applyModel(@RequestBody MultipartFile file) {
-    	//wrapperService.importModel(file);
+    public void applyModel(@RequestBody Map<String,List<CiTypeDto>> ciModel) {
+    	wrapperService.applyModel(ciModel);
     }
-    
-    
-    
-    
-    
 }

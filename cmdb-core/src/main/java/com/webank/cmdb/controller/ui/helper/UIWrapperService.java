@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -68,6 +69,7 @@ import com.webank.cmdb.service.impl.FilterRuleService;
 import com.webank.cmdb.util.BeanMapUtils;
 import com.webank.cmdb.util.ClassUtils;
 import com.webank.cmdb.util.JsonUtil;
+import com.webank.cmdb.util.MyMap;
 import com.webank.cmdb.util.ResourceDto;
 import com.webank.cmdb.util.Sorting;
 
@@ -420,8 +422,15 @@ public class UIWrapperService {
 		staticDtoService.delete(CatCodeDto.class, Arrays.asList(ids));
 	}
 
-	public List<CiTypeDto> createCiTypes(CiTypeDto... ciTypes) {
-		return staticDtoService.create(CiTypeDto.class, Arrays.asList(ciTypes));
+	public List<CiTypeDto> createCiTypes(List<CiTypeDto> ciTypes) {
+		return staticDtoService.create(CiTypeDto.class, ciTypes,false,true);
+	}
+
+	public <T> Integer getNextId(Class<T> dtoClzz) {
+		QueryRequest queryRequest = new QueryRequest();
+		queryRequest.ascendingSortBy(CONSTANT_CI_TYPE_ID);
+		//staticDtoService.query(dtoClzz, queryRequest);
+		return null;
 	}
 
 	public List<CiTypeDto> updateCiTypes(List<Map<String, Object>> ciTypes) {
@@ -453,7 +462,7 @@ public class UIWrapperService {
 	}
 
 	public List<CiTypeAttrDto> createCiTypeAttribute(CiTypeAttrDto ciTypeAttribute) {
-		return staticDtoService.create(CiTypeAttrDto.class, Lists.newArrayList(ciTypeAttribute));
+		return staticDtoService.create(CiTypeAttrDto.class, Lists.newArrayList(ciTypeAttribute),false,true);
 	}
 
 	public List<CiTypeAttrDto> getCiTypeAttributesByCiTypeId(Integer ciTypeId) {
@@ -1662,36 +1671,53 @@ public class UIWrapperService {
 					String originBigData = line.trim();
 					sb.append(originBigData);
 				}
-			} finally {
-				System.out.println(sb);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 			return JsonUtil.toList(sb.toString(),CiTypeDto.class);
-			//applyModelData(map);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
-	private void applyModelData(Map<String, Object> map) throws Exception {
+	public void applyModel(Map<String,List<CiTypeDto>> ciModel) {
+		List<CiTypeDto> currentModel = ciModel.get("currentModel");
+		List<CiTypeDto> importModel = ciModel.get("importModel");
+		//获取差异对象
+		Map<String, List<CiTypeDto>> diffent = getDiffent(currentModel,importModel);
+		//新增ci
+		modelAddCi(diffent.get("addRs"));
+		//删除ci
+		diffent.get("deleteRs").forEach(ciType -> {
+			staticDtoService.delete(CiTypeDto.class, ciType.getCiTypeId());
+		});
+		//修改ci
+		modelModifyCi(diffent.get("modifyRs"));
+	}
 
-		List<CiTypeDto> adm_ci_type = ClassUtils.convertListMap2ListBean((List<Map<String, Object>>) map.get(ADM_CI_TYPE),CiTypeDto.class);
-		List<CiTypeDto> create = staticDtoService.create(CiTypeDto.class, adm_ci_type,true);
-	
-		QueryResponse<CiTypeDto> querySingleRes = staticDtoService.query(CiTypeDto.class, new QueryRequest());
+	private void modelModifyCi(List<CiTypeDto> importModel) {
+		importModel.forEach(ciType -> {
+			QueryRequest ciRequest = new QueryRequest();
+			ciRequest.addEqualsFilter("tableName", ciType.getTableName());
+			QueryResponse<CiTypeDto> query = staticDtoService.query(CiTypeDto.class, ciRequest);
+			CiTypeDto updateToDto = query.getContents().get(0);
+			ciTypeService.updateCiType(updateToDto.getCiTypeId(), ciType);
+		});
+	}
 
-		List<CiTypeAttrDto> adm_ci_type_attr = ClassUtils.convertListMap2ListBean((List<Map<String, Object>>) map.get(ADM_CI_TYPE_ATTR),CiTypeAttrDto.class);
-		QueryResponse<CiTypeAttrDto> attr = staticDtoService.query(CiTypeAttrDto.class, new QueryRequest());
-		staticDtoService.create(CiTypeAttrDto.class, adm_ci_type_attr,true);
-
-		Map<String, List<List>> adm_ci_data = (Map<String, List<List>>) map.get(ADM_CI_DATA);
-		adm_ci_data.forEach((ciTypeId, ciData) -> {
-			ArrayList map1 = (ArrayList)ciData;
-			map1.forEach(ci -> {
-				ciService.create(Integer.valueOf(ciTypeId), (Map)ci);
+	private void modelAddCi(List<CiTypeDto> importModel) {
+		List<CiTypeDto> create = staticDtoService.create(CiTypeDto.class, importModel, true,true);
+		Map<String, Integer> map = new HashMap<>();
+		create.forEach(ciType -> {
+			map.put(ciType.getTableName(), ciType.getCiTypeId());
+		});
+		importModel.forEach(ciType -> {
+			List<CiTypeAttrDto> attributes = ciType.getAttributes();
+			attributes.forEach(attr -> {
+				attr.setCiTypeId(map.get(ciType.getTableName()));
 			});
-
+			staticDtoService.create(CiTypeAttrDto.class, attributes);
 		});
 	}
 
@@ -1705,6 +1731,30 @@ public class UIWrapperService {
 		sb.append(tableName);
 		sb.append("  where   1=1 ");
 		databaseService.executeSQl(sb.toString());
+	}
+	
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public <T> Map<String, List<T>> getDiffent(List<T> currentModel, List<T> importModel) {
+		List<T> modifyRs = new LinkedList();
+		List<T> addRs = new LinkedList();
+		List<T> deleteRs = new LinkedList();
+		Map<String, List<T>> diffData = new HashMap<>();
+		diffData.put("addRs", addRs);
+		diffData.put("modifyRs", modifyRs);
+		diffData.put("deleteRs", deleteRs);
+		MyMap<T, Integer> map = new MyMap<T, Integer>();
+		for (T object : currentModel) {
+			map.put(object, 1);
+		}
+		for (T key : importModel) {
+			if (map.containsKey(key)) {
+				map.remove(key);
+			} else {
+				addRs.add(key);
+			}
+		}
+		return diffData;
 	}
 
 }
