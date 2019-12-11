@@ -1,6 +1,3 @@
-import Vue from "vue";
-import Router from "vue-router";
-
 import ciDesign from "@/pages/admin/cmdb-model-management";
 import enums from "@/pages/admin/enums";
 import ciData from "@/pages/designing/ci-data";
@@ -16,7 +13,6 @@ import idcResourcePlanning from "@/pages/designing/resource-planning";
 import applicationArchitectureDesign from "@/pages/designing/application-architecture";
 import applicationDeploymentDesign from "@/pages/designing/application-deployment";
 
-Vue.use(Router);
 const router = [
   {
     path: "/wecmdb/admin/cmdb-model-management",
