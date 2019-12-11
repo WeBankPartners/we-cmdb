@@ -1,8 +1,11 @@
 server:
-  port: 9080
+  port: 8081
   address: localhost
   servlet:
     context-path: /wecmdb
+
+plugins:
+  pacakge-name: wecmdb
 
 spring:
   banner:
@@ -41,7 +44,7 @@ cmdb:
     cas-redirect-app-addr: localhost:8080
 
     #Effective ONLY when security-enabled set as true
-    whitelist-ip-address:
+    whitelist-ip-address: localhost
 
 logging:
   level:
@@ -49,3 +52,4 @@ logging:
     com:
       webank:
         cmdb: INFO
+    
