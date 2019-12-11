@@ -159,11 +159,11 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                     convertedList.add(String.format("hasIpAddress('%s')", ipAddress));
                 }
 
-                return registry.antMatchers("/api/v2/**")
+                return registry.antMatchers("/**")
                         .access(StringUtils.join(convertedList, " or "));
             }
         } else {
-            return registry.antMatchers("/api/v2/**")
+            return registry.antMatchers("/**")
                     .permitAll();
         }
         return registry;
