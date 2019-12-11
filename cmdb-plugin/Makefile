@@ -20,7 +20,7 @@ image: build
 s3_server_url=http://10.10.10.1:9000
 s3_access_key=access_key
 s3_secret_key=secret_key
-cmdb_database_path=../cmdb-core/src/main/resources/database/ch/
+cmdb_database_path=$(mkfile_dir)/../cmdb-core/src/main/resources/database/ch/
 
 .PHONY:package
 package: image
