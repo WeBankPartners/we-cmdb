@@ -57,7 +57,6 @@
   </Modal>
 </template>
 <script>
-import Vue from "vue";
 import baseData from "../enums";
 import { createEnumCategory, updateEnumCategory } from "@/api/server";
 export default {
