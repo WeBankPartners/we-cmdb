@@ -1,5 +1,5 @@
 import { req as request, baseURL } from "./base";
-import { pluginErrorMessage } from "./base-pulgin"
+import { pluginErrorMessage } from "./base-plugin"
 let req = request;
 if (window.request) {
   req = {
