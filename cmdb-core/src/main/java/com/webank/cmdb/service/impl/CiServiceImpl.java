@@ -2058,7 +2058,8 @@ public class CiServiceImpl implements CiService {
     public List<Map<String, Object>> lookupReferenceByCis(int ciTypeId, String guid, boolean checkFinalState) {
         List<Map<String, Object>> dependentCis = Lists.newLinkedList();
         List<AdmCiTypeAttr> referredAttrs = ciTypeAttrRepository.findByInputTypeAndReferenceId(InputType.Reference.getCode(), ciTypeId);
-        referredAttrs.forEach(attr -> {
+        referredAttrs.addAll(ciTypeAttrRepository.findByInputTypeAndReferenceId(InputType.MultRef.getCode(), ciTypeId));
+	referredAttrs.forEach(attr -> {
             List<Map<String, Object>> ciData = queryWithFilters(attr.getCiTypeId(), Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), guid)), false);
             if (ciData != null && ciData.size() > 0) {
                 ciData.forEach(data -> {
