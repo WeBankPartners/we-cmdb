@@ -3,17 +3,14 @@ package com.webank.plugins.wecmdb.dto;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.webank.cmdb.dto.CustomResponseDto;
 
-public class OperateCiJsonResponse{
+public class OperateCiJsonResponse implements CustomResponseDto{
     public final static String STATUS_OK = "0";
     public final static String STATUS_ERROR = "1";
 
-    @JsonProperty(value = "result_code")
     private String resultCode;
-    @JsonProperty(value = "result_message")
     private String resultMessage;
-    @JsonProperty(value = "results")
     private OperateCiDtoOutputs results;
 
     public String getResultCode() {
