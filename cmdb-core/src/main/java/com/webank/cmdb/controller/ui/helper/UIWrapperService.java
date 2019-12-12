@@ -379,7 +379,6 @@ public class UIWrapperService {
         catCodeDtos.forEach(dto -> {
             dto.remove("ciTypes");
             Object groupCodeId= dto.get("groupCodeId");
-            dto.put("catId", getLayerCategoryId());
             if (groupCodeId!=null && !(groupCodeId instanceof Integer)) {
                 dto.remove("groupCodeId");
             }
@@ -888,7 +887,7 @@ public class UIWrapperService {
             ZoneLinkDto result = new ZoneLinkDto();
             result.setIdcGuid(idcDesignGuid);
 
-            List<CiData> zoneDesignData = queryCiData(uiProperties.getCiTypeIdOfZoneDesign(), defaultQueryObject().addEqualsFilter("idc_design", idcDesignGuid)).getContents();
+            List<CiData> zoneDesignData = queryCiData(uiProperties.getCiTypeIdOfZoneDesign(), defaultQueryObject().addEqualsFilter("data_center_design", idcDesignGuid)).getContents();
             List<String> zoneDesignList = new ArrayList<>();
             for (Object zoneDesign : zoneDesignData) {
                 zoneDesignList.add(idcDesign.getData().get("guid").toString());
@@ -897,8 +896,8 @@ public class UIWrapperService {
             if (zoneDesignList.size() != 0) {
                 List<CiData> zoneDesignLinkData = queryCiData(uiProperties.getCiTypeIdOfZoneLinkDesign(),
                         defaultQueryObject()
-                                .addInFilter("zone_design1", zoneDesignList)
-                                .addInFilter("zone_design2", zoneDesignList)
+                                .addInFilter("network_zone_design_1", zoneDesignList)
+                                .addInFilter("network_zone_design_2", zoneDesignList)
                                 .setFiltersRelationship("or")).getContents();
                 result.setLinkList(zoneDesignLinkData);
             }
@@ -925,7 +924,7 @@ public class UIWrapperService {
             ZoneLinkDto result = new ZoneLinkDto();
             result.setIdcGuid(idcGuid);
 
-            List<CiData> zoneData = queryCiData(uiProperties.getCiTypeIdOfZone(), defaultQueryObject().addEqualsFilter("idc", idcGuid)).getContents();
+            List<CiData> zoneData = queryCiData(uiProperties.getCiTypeIdOfZone(), defaultQueryObject().addEqualsFilter("data_center", idcGuid)).getContents();
             List<String> zoneList = new ArrayList<>();
             for (Object zone : zoneData) {
                 zoneList.add(idc.getData().get("guid").toString());
@@ -933,8 +932,8 @@ public class UIWrapperService {
             if (zoneList.size() != 0) {
                 List<CiData> zoneLinkData = queryCiData(uiProperties.getCiTypeIdOfZoneLink(),
                         defaultQueryObject()
-                                .addInFilter("zone1", zoneList)
-                                .addInFilter("zone2", zoneList)
+                                .addInFilter("network_zone_1", zoneList)
+                                .addInFilter("network_zone_2", zoneList)
                                 .setFiltersRelationship("or"))
                                         .getContents();
                 result.setLinkList(zoneLinkData);

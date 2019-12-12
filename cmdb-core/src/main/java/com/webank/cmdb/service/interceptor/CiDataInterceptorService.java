@@ -316,7 +316,7 @@ public class CiDataInterceptorService {
 
     private void queryValueFromRuleAndSave(DynamicEntityHolder entityHolder, EntityManager entityManager, String currentGuid, AdmCiTypeAttr attrWithRule) {
         Object value = null;
-        String rawValue = queryValueByRule(currentGuid, null, attrWithRule.getAutoFillRule());
+        String rawValue = queryValueByRule(currentGuid, null, attrWithRule.getAutoFillRule(),new StringBuilder());
         if (!StringUtils.isBlank(rawValue)) {
             switch (InputType.fromCode(attrWithRule.getInputType())) {
             case Droplist:
@@ -359,7 +359,11 @@ public class CiDataInterceptorService {
     }
 
     private String extractValueFromResponse(QueryResponse response, List<AutoFillIntegrationQueryDto> routines) {
-        List<Map<String, Object>> contents = response.getContents();
+       List<String> targetValues = getValueFromResponse(response, routines);
+        return StringUtils.join(targetValues, ",");
+    }
+    private List<String> getValueFromResponse(QueryResponse response, List<AutoFillIntegrationQueryDto> routines) {
+		List<Map<String, Object>> contents = response.getContents();
         List<String> targetValues = new ArrayList<>();
         contents.forEach(content -> {
             Object targetValue = content.get(TARGET_NAME) != null ? content.get(TARGET_NAME) : content.get("root$guid");
@@ -371,7 +375,7 @@ public class CiDataInterceptorService {
                 }
             }
         });
-        return StringUtils.join(targetValues, ",");
+        return targetValues;
     }
 
     private String getValueFromEnumCode(List<AutoFillIntegrationQueryDto> routines, Object targetValue) {
@@ -404,15 +408,25 @@ public class CiDataInterceptorService {
         return value;
     }
 
-    private String queryValueByRule(String rootGuid, AdmCiTypeAttr attrWithGuid, Object autoFillRuleValue) {
-        StringBuilder sb = new StringBuilder();
+    private String queryValueByRule(String rootGuid, AdmCiTypeAttr attrWithGuid, Object autoFillRuleValue, StringBuilder sb) {
         List<AutoFillItem> autoRuleItems = parserRule(autoFillRuleValue);
         for (AutoFillItem item : autoRuleItems) {
             if (AutoFillType.Rule.getCode().equals(item.getType())) {
                 try {
                     List<AutoFillIntegrationQueryDto> routines = JsonUtil.toList(item.getValue(), AutoFillIntegrationQueryDto.class);
                     QueryResponse response = queryIntegrateWithRoutines(rootGuid, attrWithGuid, routines);
-                    sb.append(extractValueFromResponse(response, routines));
+                    List<String> targetValues = getValueFromResponse(response, routines);
+                    for (int i = 0; i < targetValues.size(); i++) {
+                        String value = targetValues.get(i);
+                        if (checkExpression(value)) {
+                            queryValueByRule(rootGuid, attrWithGuid, value, sb);
+                        } else {
+                            sb.append(value);
+                        }
+                        if (i < targetValues.size() - 1) {
+                            sb.append(",");
+                        }
+                    }
                 } catch (IOException e) {
                     throw new InvalidArgumentException(String.format("Failed to convert auto fill rule [%s]. ", item), e);
                 }
@@ -423,6 +437,13 @@ public class CiDataInterceptorService {
         return sb.toString();
     }
 
+    private boolean checkExpression(String targetValue) {
+		if(targetValue.contains("isReferedFromParent")) {
+			return true;
+		}
+		return false;
+	}
+    
     private QueryResponse queryIntegrateWithRoutines(String guid, AdmCiTypeAttr attrWithGuid, List<AutoFillIntegrationQueryDto> routines) {
         AdhocIntegrationQueryDto adhocDto = buildRootDto(routines.get(0), guid, attrWithGuid);
         travelFillQueryDto(routines, adhocDto.getCriteria(), 1);

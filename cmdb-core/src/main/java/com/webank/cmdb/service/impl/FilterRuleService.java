@@ -125,6 +125,8 @@ public class FilterRuleService {
         switch (InputType.fromCode(attrWithFilterRule.getInputType())) {
         case Droplist:
             return querySelectDatas(leftAttr, ruleExpr, request, rightValues, leftRoutines);
+        case MultSelDroplist:
+            return querySelectDatas(leftAttr, ruleExpr, request, rightValues, leftRoutines);
         default:
             return queryCiDataDatas(leftAttr, ruleExpr, request, rightValues, leftRoutines);
         }
