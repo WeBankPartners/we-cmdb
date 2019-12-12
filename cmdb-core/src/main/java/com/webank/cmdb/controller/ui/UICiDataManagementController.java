@@ -13,13 +13,18 @@ import static com.webank.cmdb.domain.AdmMenu.MENU_IDC_RESOURCE_PLANNING;
 import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.security.RolesAllowed;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,11 +48,14 @@ import com.webank.cmdb.dto.CiData;
 import com.webank.cmdb.dto.CiIndentity;
 import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
+import com.webank.cmdb.dto.ImageInfoDto;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
+import com.webank.cmdb.dto.ResponseDto;
 import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.exception.ServiceException;
 import com.webank.cmdb.service.ImageService;
-import com.webank.cmdb.service.StaticDtoService;
+import com.webank.cmdb.util.JsonUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -425,5 +433,51 @@ public class UICiDataManagementController {
     public List<ResourceTreeDto> getApplicationFrameworkDesignDataTree(@RequestParam(value = "system-design-guid") String systemDesignGuid) {
         return wrapperService.getApplicationFrameworkDesignDataTreeBySystemDesignGuid(systemDesignGuid);
     }
-
+    
+	@GetMapping("/model/export")
+	@RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
+	@ResponseBody
+    public void exportModel(HttpServletResponse response) {
+		QueryResponse<CiTypeDto> exportModel = wrapperService.exportModel();
+		String json = JsonUtil.toJson(exportModel.getContents());
+		response.setContentType("application/x-download;charset=utf-8");
+	    response.addHeader("Content-Disposition","attachment;filename=CI_MODEL.JSON");
+	    try(ServletOutputStream outStr = response.getOutputStream();BufferedOutputStream buff = new BufferedOutputStream(outStr)) {
+	     
+	    	buff.write(json.getBytes("UTF-8"));
+	      buff.flush();
+	    } catch (Exception e) {
+	      //LOGGER.error("导出文件文件出错:{}",e);
+	    } 
+    }
+    
+	@RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
+    @DeleteMapping("/model/init")
+    @ResponseBody
+    public void initModel() {
+    	wrapperService.initModel();
+    }
+    
+    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
+    @PostMapping("/model/showDifferences")
+    @ResponseBody
+    public ResponseDto<Map<String,List<CiTypeDto>>> showDifferences(@RequestBody MultipartFile file) {
+    	QueryResponse<CiTypeDto> currentModel = wrapperService.exportModel();
+    	List<CiTypeDto> importModel = wrapperService.importModel(file);
+    	Map<String,List<CiTypeDto>> modelData = new HashMap<String, List<CiTypeDto>>();
+    	modelData.put("currentModel", currentModel.getContents());
+    	modelData.put("importModel", importModel);
+    	ResponseDto<Map<String,List<CiTypeDto>>> responseDto = new ResponseDto<>();
+    	responseDto.setStatusCode("200");
+    	responseDto.setData(modelData);
+    	return responseDto;
+    }
+    
+    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT })
+    @PostMapping("/model/apply")
+    @ResponseBody
+    public void applyModel(@RequestBody List<CiTypeDto> ciModel) {
+    	wrapperService.applyModel(ciModel);
+    }
+    
 }
