@@ -1,6 +1,8 @@
 package com.webank.plugins.wecmdb.dto;
 
-public class JsonResponse {
+import com.webank.cmdb.dto.CustomResponseDto;
+
+public class JsonResponse implements CustomResponseDto{
     public final static String STATUS_OK = "OK";
     public final static String STATUS_ERROR = "ERROR";
 

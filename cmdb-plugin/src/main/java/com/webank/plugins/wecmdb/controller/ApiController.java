@@ -19,7 +19,6 @@ import com.webank.plugins.wecmdb.dto.JsonResponse;
 import com.webank.plugins.wecmdb.dto.OperateCiDto;
 import com.webank.plugins.wecmdb.dto.OperateCiDtoInputs;
 import com.webank.plugins.wecmdb.dto.OperateCiJsonResponse;
-import com.webank.plugins.wecmdb.exception.OperationCiException;
 import com.webank.plugins.wecmdb.service.AdapterService;
 
 @RestController
@@ -34,23 +33,39 @@ public class ApiController {
             @RequestParam(value = "filter", required = false) String filter,
             @RequestParam(value = "sorting", required = false) String sorting,
             @RequestParam(value = "select", required = false) String select) {
-        return okayWithData(adapterService.getCiDataWithConditions(entityName, filter, sorting, select));
+        try {
+            return okayWithData(adapterService.getCiDataWithConditions(entityName, filter, sorting, select));
+        } catch (Exception e) {
+            return JsonResponse.error(e.getMessage());
+        }
     }
 
     @PostMapping("/entities/{entity-name}/create")
     public JsonResponse createCiData(@PathVariable("entity-name") String entityName, @RequestBody List<Map<String, Object>> request) {
-        return okayWithData(adapterService.createCiData(entityName, request));
+        try {
+            return okayWithData(adapterService.createCiData(entityName, request));
+        } catch (Exception e) {
+            return JsonResponse.error(e.getMessage());
+        }
     }
 
     @PostMapping("/entities/{entity-name}/update")
     public JsonResponse updateCiData(@PathVariable("entity-name") String entityName, @RequestBody List<Map<String, Object>> request) {
-        return okayWithData(adapterService.updateCiData(entityName, request));
+        try {
+            return okayWithData(adapterService.updateCiData(entityName, request));
+        } catch (Exception e) {
+            return JsonResponse.error(e.getMessage());
+        }
     }
 
     @PostMapping("/entities/{entity-name}/delete")
     public JsonResponse deleteCiData(@PathVariable("entity-name") String entityName, @RequestBody List<Map<String, Object>> request) {
-        adapterService.deleteCiData(entityName, request);
-        return okay();
+        try {
+            adapterService.deleteCiData(entityName, request);
+            return okay();
+        } catch (Exception e) {
+            return JsonResponse.error(e.getMessage());
+        }
     }
 
     @PostMapping("/data/confirm")
@@ -61,7 +76,7 @@ public class ApiController {
         try {
             response = OperateCiJsonResponse.okayWithData(adapterService.confirmBatchCiData(operateCiDtos));
         } catch (Exception e) {
-            throw new OperationCiException(String.format("Failed to confirm CI with request[%s], error [%s] ",inputs, e.getMessage()), e);
+            response = OperateCiJsonResponse.error(String.format("Failed to confirm CI with request[%s], error [%s] ", inputs, e.getMessage()));
         }
 
         return response;
@@ -70,6 +85,10 @@ public class ApiController {
     @GetMapping("/data-model")
     @ResponseBody
     public JsonResponse getDataModel() {
-        return okayWithData(adapterService.getDataModel());
+        try {
+            return okayWithData(adapterService.getDataModel());
+        } catch (Exception e) {
+            return JsonResponse.error(e.getMessage());
+        }
     }
 }

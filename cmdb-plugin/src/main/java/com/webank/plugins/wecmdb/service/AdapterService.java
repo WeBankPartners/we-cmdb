@@ -10,7 +10,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.webank.cmdb.config.ApplicationProperties;
 import com.webank.cmdb.constant.FieldType;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.dto.CatCodeDto;
@@ -51,9 +50,6 @@ public class AdapterService {
         dataTypeMapping.put(FieldType.Date.getCode(), DataType.Timestamp.getCode());
         dataTypeMapping.put(FieldType.DateTime.getCode(), DataType.Timestamp.getCode());
     }
-
-    @Autowired
-    private ApplicationProperties applicationProperties;
 
     private Integer retrieveCiTypeIdByTableName(String ciTypeTableName) {
         QueryRequest queryObject = QueryRequest.defaultQueryObject().addEqualsFilter("tableName", ciTypeTableName);
