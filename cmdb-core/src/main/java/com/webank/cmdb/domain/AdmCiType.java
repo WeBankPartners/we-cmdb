@@ -1,7 +1,6 @@
 package com.webank.cmdb.domain;
 
 import java.io.Serializable;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,7 +19,6 @@ import javax.persistence.Table;
 import org.hibernate.annotations.GenericGenerator;
 
 import com.webank.cmdb.constant.CiStatus;
-import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.InputType;
 
 /**

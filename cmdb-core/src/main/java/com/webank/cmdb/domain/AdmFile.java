@@ -31,8 +31,7 @@ public class AdmFile implements Serializable {
     }
 
     @Id
-    @GeneratedValue(generator = "CustomUUIDGenerator")
-    @GenericGenerator(name = "CustomUUIDGenerator", strategy = "com.webank.cmdb.util.CustomUUIDGenerator")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_adm_file")
     public Integer getIdAdmFile() {
         return this.idAdmFile;
