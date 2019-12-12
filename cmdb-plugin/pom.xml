@@ -62,6 +62,10 @@
 					<argLine>-Xmx2048m -XX:MaxPermSize=256m</argLine>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
 		</plugins>
 	</build>
 
