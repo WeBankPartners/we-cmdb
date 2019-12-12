@@ -284,3 +284,5 @@ export const queryReferenceCiData = data =>
 // log
 export const queryLogHeader = () => req.get("/log/queryHeader");
 export const queryLog = data => req.post("/log/query", data);
+// model
+export const exportModel = () => req.get("/model/export")

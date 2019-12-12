@@ -3,22 +3,20 @@
     <Col span="18">
       <div style="padding-right: 20px">
         <Card style="height: calc(100vh - 108px);">
-          <Row slot="title">
-            <Col span="10">
-              <p>
-                {{ $t("architecture_diagram") }}
-                <span class="header-buttons-container margin-left">
-                  <Tooltip :content="$t('add_layer')" placement="top-start">
-                    <Button
-                      size="small"
-                      @click="isAddNewLayerModalVisible = true"
-                      icon="md-add"
-                    ></Button>
-                  </Tooltip>
-                </span>
-              </p>
-            </Col>
-            <Col span="13" offset="1">
+          <Row slot="title" class="cmdb-model-management-title">
+            <div>
+              {{ $t("architecture_diagram") }}
+              <span class="header-buttons-container margin-left">
+                <Tooltip :content="$t('add_layer')" placement="top-start">
+                  <Button
+                    size="small"
+                    @click="isAddNewLayerModalVisible = true"
+                    icon="md-add"
+                  ></Button>
+                </Tooltip>
+              </span>
+            </div>
+            <div class="cmdb-model-management-title-status">
               <span class="filter-title">{{ $t("state") }}</span>
               <Select
                 multiple
@@ -31,7 +29,8 @@
                   {{ item }}
                 </Option>
               </Select>
-            </Col>
+            </div>
+            <Button type="primary" @click="exportModel">Exoport</Button>
           </Row>
           <div class="graph-container" id="graph"></div>
           <Modal
@@ -1005,7 +1004,8 @@ import {
   implementCiType,
   implementCiAttr,
   updateEnumCode,
-  getEnumCategoriesByTypeId
+  getEnumCategoriesByTypeId,
+  exportModel
 } from "@/api/server";
 import STATUS_LIST from "@/const/graph-status-list.js";
 import { INPUT_TYPES, PROPERTY_TYPE_MAP } from "@/const/data-types.js";
@@ -1904,6 +1904,12 @@ export default {
       this.currentSelectedCI = {}
       this.getAllCITypesList();
       this.initGraph()
+    },
+    async exportModel() {
+      const { statusCode, data, message } = await exportModel()
+      if (statusCode === "OK") {
+        console.log(data)
+      }
     }
   },
   mounted() {
@@ -1975,6 +1981,18 @@ export default {
 .func-wrapper {
   .header-buttons-container {
     float: right;
+  }
+}
+.cmdb-model-management-title {
+  display: flex;
+  justify-content: space-between;
+  &-status {
+    flex: 1;
+  }
+  >div {
+    align-items: center;
+    display: flex;
+    justify-content: center;
   }
 }
 </style>
