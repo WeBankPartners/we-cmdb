@@ -25,4 +25,6 @@ public interface StaticDtoService extends CmdbService {
     <T extends ResourceDto<T, D>, D> List<T> update(Class<T> dtoClazz, List<Map<String, Object>> updateRequest);
 
     void registerInterceptor(String name, StaticInterceptorService interceptor);
+
+    <T extends ResourceDto<T, D>, D> List<T> create(Class<T> dtoClzz, List<T> dtoObjs, boolean isNotCreateAttr, boolean isCustomGenerator);
 }

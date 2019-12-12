@@ -1,12 +1,21 @@
 package com.webank.cmdb.util;
 
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.beanutils.BeanMap;
+import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,5 +139,56 @@ public class ClassUtils {
 
         return ciMap;
 
+    }
+    public static <T> T convertMap2Bean(Map<String, Object> map, Class<T> T)
+            throws Exception
+    {
+        if (map == null || map.size() == 0)
+        {
+            return null;
+        }
+        Object mvalue = null;
+        Map<String, Object> newMap = new HashMap<>();
+        Iterator<Entry<String, Object>> it = map.entrySet().iterator();
+        while(it.hasNext()){
+            String key = it.next().getKey();
+            mvalue = map.get(key);
+        
+            newMap.put(key.toUpperCase(Locale.US), mvalue);
+        }
+ 
+        BeanInfo beanInfo = Introspector.getBeanInfo(T);
+        T bean = T.newInstance();
+        PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+        for (int i = 0, n = propertyDescriptors.length; i < n; i++)
+        {
+            PropertyDescriptor descriptor = propertyDescriptors[i];
+            String propertyName = descriptor.getName();
+            String upperPropertyName = propertyName.toUpperCase();
+ 
+            if (newMap.keySet().contains(upperPropertyName))
+            {
+                Object value = newMap.get(upperPropertyName);
+                BeanUtils.copyProperty(bean, propertyName, value);
+            }
+        }
+        return bean;
+    }
+    
+    public static <T> List<T> convertListMap2ListBean(List<Map<String, Object>> listMap, Class<T> T)
+            throws Exception
+    {
+        List<T> beanList = new ArrayList<>();
+        if (listMap != null && !listMap.isEmpty())
+        {
+            for (int i = 0, n = listMap.size(); i < n; i++)
+            {
+                Map<String, Object> map = listMap.get(i);
+                T bean = convertMap2Bean(map, T);
+                beanList.add(bean);
+            }
+            return beanList;
+        }
+        return beanList;
     }
 }

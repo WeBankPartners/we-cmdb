@@ -217,8 +217,155 @@ public class CiTypeAttrDto extends BasicResourceDto<CiTypeAttrDto, AdmCiTypeAttr
         return toUpdateAttr;
 
     }
+    
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CiTypeAttrDto other = (CiTypeAttrDto) obj;
+		if (autoFillRule == null) {
+			if (other.autoFillRule != null)
+				return false;
+		} else if (!autoFillRule.equals(other.autoFillRule))
+			return false;
+		if (ciTypeId == null) {
+			if (other.ciTypeId != null)
+				return false;
+		} else if (!ciTypeId.equals(other.ciTypeId))
+			return false;
+		if (description == null) {
+			if (other.description != null)
+				return false;
+		} else if (!description.equals(other.description))
+			return false;
+		if (displaySeqNo == null) {
+			if (other.displaySeqNo != null)
+				return false;
+		} else if (!displaySeqNo.equals(other.displaySeqNo))
+			return false;
+		if (filterRule == null) {
+			if (other.filterRule != null)
+				return false;
+		} else if (!filterRule.equals(other.filterRule))
+			return false;
+		if (inputType == null) {
+			if (other.inputType != null)
+				return false;
+		} else if (!inputType.equals(other.inputType))
+			return false;
+		if (isAccessControlled == null) {
+			if (other.isAccessControlled != null)
+				return false;
+		} else if (!isAccessControlled.equals(other.isAccessControlled))
+			return false;
+		if (isAuto == null) {
+			if (other.isAuto != null)
+				return false;
+		} else if (!isAuto.equals(other.isAuto))
+			return false;
+		if (isDefunct == null) {
+			if (other.isDefunct != null)
+				return false;
+		} else if (!isDefunct.equals(other.isDefunct))
+			return false;
+		if (isDisplayed == null) {
+			if (other.isDisplayed != null)
+				return false;
+		} else if (!isDisplayed.equals(other.isDisplayed))
+			return false;
+		if (isEditable == null) {
+			if (other.isEditable != null)
+				return false;
+		} else if (!isEditable.equals(other.isEditable))
+			return false;
+		if (isHidden == null) {
+			if (other.isHidden != null)
+				return false;
+		} else if (!isHidden.equals(other.isHidden))
+			return false;
+		if (isNullable == null) {
+			if (other.isNullable != null)
+				return false;
+		} else if (!isNullable.equals(other.isNullable))
+			return false;
+		if (isRefreshable == null) {
+			if (other.isRefreshable != null)
+				return false;
+		} else if (!isRefreshable.equals(other.isRefreshable))
+			return false;
+		if (isSystem == null) {
+			if (other.isSystem != null)
+				return false;
+		} else if (!isSystem.equals(other.isSystem))
+			return false;
+		if (isUnique == null) {
+			if (other.isUnique != null)
+				return false;
+		} else if (!isUnique.equals(other.isUnique))
+			return false;
+		if (length == null) {
+			if (other.length != null)
+				return false;
+		} else if (!length.equals(other.length))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (propertyName == null) {
+			if (other.propertyName != null)
+				return false;
+		} else if (!propertyName.equals(other.propertyName))
+			return false;
+		if (propertyType == null) {
+			if (other.propertyType != null)
+				return false;
+		} else if (!propertyType.equals(other.propertyType))
+			return false;
+		if (referenceId == null) {
+			if (other.referenceId != null)
+				return false;
+		} else if (!referenceId.equals(other.referenceId))
+			return false;
+		if (referenceName == null) {
+			if (other.referenceName != null)
+				return false;
+		} else if (!referenceName.equals(other.referenceName))
+			return false;
+		if (referenceType == null) {
+			if (other.referenceType != null)
+				return false;
+		} else if (!referenceType.equals(other.referenceType))
+			return false;
+		if (regularExpressionRule == null) {
+			if (other.regularExpressionRule != null)
+				return false;
+		} else if (!regularExpressionRule.equals(other.regularExpressionRule))
+			return false;
+		if (searchSeqNo == null) {
+			if (other.searchSeqNo != null)
+				return false;
+		} else if (!searchSeqNo.equals(other.searchSeqNo))
+			return false;
+		if (specialLogic == null) {
+			if (other.specialLogic != null)
+				return false;
+		} else if (!specialLogic.equals(other.specialLogic))
+			return false;
+		if (status == null) {
+			if (other.status != null)
+				return false;
+		} else if (!status.equals(other.status))
+			return false;
+		return true;
+	}
 
-    public Integer getCiTypeAttrId() {
+	public Integer getCiTypeAttrId() {
         return ciTypeAttrId;
     }
 
