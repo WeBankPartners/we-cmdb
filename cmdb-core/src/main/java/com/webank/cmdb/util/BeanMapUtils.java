@@ -22,7 +22,7 @@ public class BeanMapUtils {
         return map;
     }
 
-    public static List<Map<String, Object>> convertBeansToMaps(List<Object> beans) {
+    public static <T> List<Map<String, Object>> convertBeansToMaps(List<T> beans) {
         List<Map<String, Object>> maps = new ArrayList<>();
         beans.forEach(bean -> {
             maps.add(convertBeanToMap(bean));

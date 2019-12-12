@@ -218,7 +218,13 @@ public class StaticDtoServiceImpl implements StaticDtoService {
 					interceptor.preCreate(dtoObj, domainBean);
 				}
 				;
-				D rtnDomainBean = staticEntityRepository.create(domainBean);
+				D rtnDomainBean;
+				if(isCustomGenerator) {
+					rtnDomainBean = staticEntityRepository.update(domainBean);
+				}else {
+					
+					rtnDomainBean = staticEntityRepository.create(domainBean);
+				}
 				if (interceptor != null && !isNotCreateAttr) {
 					interceptor.postCreate(dtoObj, domainBean);
 				}

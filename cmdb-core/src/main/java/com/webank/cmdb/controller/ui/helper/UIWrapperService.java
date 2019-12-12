@@ -18,9 +18,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -1681,44 +1683,46 @@ public class UIWrapperService {
 		return null;
 	}
 
-	public void applyModel(Map<String,List<CiTypeDto>> ciModel) {
-		List<CiTypeDto> currentModel = ciModel.get("currentModel");
-		List<CiTypeDto> importModel = ciModel.get("importModel");
-		//获取差异对象
-		Map<String, List<CiTypeDto>> diffent = getDiffent(currentModel,importModel);
-		//新增ci
-		modelAddCi(diffent.get("addRs"));
-		//删除ci
-		diffent.get("deleteRs").forEach(ciType -> {
+	public void applyModel(List<CiTypeDto> importModel) {
+		List<CiTypeDto> currentModel = exportModel().getContents();
+		applyCiType(importModel, currentModel);
+		applyCiTypeAttrs(importModel, currentModel);
+	}
+
+	private void applyCiTypeAttrs(List<CiTypeDto> importModel, List<CiTypeDto> currentModel) {
+		List<CiTypeAttrDto>importAttrs = new LinkedList<>();
+		List<CiTypeAttrDto>currentAttrs = new LinkedList<>();
+		importModel.forEach(importCiType -> {
+			importAttrs.addAll(importCiType.getAttributes());
+		});
+		currentModel.forEach(currentCiType -> {
+			currentAttrs.addAll(currentCiType.getAttributes());
+		});
+		Map<String, List<CiTypeAttrDto>> diffCiTypeAttr = getDiffent(currentAttrs,importAttrs);
+		ciModelAddOrModify(CiTypeAttrDto.class, diffCiTypeAttr.get("addOrModifyRs"));
+		ciTypeAttrDelete(diffCiTypeAttr.get("deleteRs"));
+	}
+
+	private void applyCiType(List<CiTypeDto> importModel, List<CiTypeDto> currentModel) {
+		Map<String, List<CiTypeDto>> diffCiType = getDiffent(currentModel,importModel);
+		ciModelAddOrModify(CiTypeDto.class, diffCiType.get("addOrModifyRs"));
+		ciTypeDelete(diffCiType.get("deleteRs"));
+		
+	}
+	private void ciTypeDelete(List<CiTypeDto> ciTypes) {
+		ciTypes.forEach(ciType -> {
 			staticDtoService.delete(CiTypeDto.class, ciType.getCiTypeId());
 		});
-		//修改ci
-		modelModifyCi(diffent.get("modifyRs"));
 	}
-
-	private void modelModifyCi(List<CiTypeDto> importModel) {
-		importModel.forEach(ciType -> {
-			QueryRequest ciRequest = new QueryRequest();
-			ciRequest.addEqualsFilter("tableName", ciType.getTableName());
-			QueryResponse<CiTypeDto> query = staticDtoService.query(CiTypeDto.class, ciRequest);
-			CiTypeDto updateToDto = query.getContents().get(0);
-			ciTypeService.updateCiType(updateToDto.getCiTypeId(), ciType);
+	private void ciTypeAttrDelete(List<CiTypeAttrDto> attrs) {
+		attrs.forEach(ciType -> {
+			staticDtoService.delete(CiTypeDto.class, ciType.getCiTypeId());
 		});
 	}
-
-	private void modelAddCi(List<CiTypeDto> importModel) {
-		List<CiTypeDto> create = staticDtoService.create(CiTypeDto.class, importModel, true,true);
-		Map<String, Integer> map = new HashMap<>();
-		create.forEach(ciType -> {
-			map.put(ciType.getTableName(), ciType.getCiTypeId());
-		});
-		importModel.forEach(ciType -> {
-			List<CiTypeAttrDto> attributes = ciType.getAttributes();
-			attributes.forEach(attr -> {
-				attr.setCiTypeId(map.get(ciType.getTableName()));
-			});
-			staticDtoService.create(CiTypeAttrDto.class, attributes);
-		});
+	
+	private <T extends ResourceDto<T, D>,D>void ciModelAddOrModify(Class<T> dtoClzz, List<T> importModel) {
+		List<Map<String,Object>> convertBeansToMaps = BeanMapUtils.convertBeansToMaps(importModel);
+		staticDtoService.update(dtoClzz, convertBeansToMaps);
 	}
 
 	public void initModel() {
@@ -1733,15 +1737,12 @@ public class UIWrapperService {
 		databaseService.executeSQl(sb.toString());
 	}
 	
-
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public <T> Map<String, List<T>> getDiffent(List<T> currentModel, List<T> importModel) {
-		List<T> modifyRs = new LinkedList();
-		List<T> addRs = new LinkedList();
+		List<T> addOrModifyRs = new LinkedList();
 		List<T> deleteRs = new LinkedList();
 		Map<String, List<T>> diffData = new HashMap<>();
-		diffData.put("addRs", addRs);
-		diffData.put("modifyRs", modifyRs);
+		diffData.put("addOrModifyRs", addOrModifyRs);
 		diffData.put("deleteRs", deleteRs);
 		MyMap<T, Integer> map = new MyMap<T, Integer>();
 		for (T object : currentModel) {
@@ -1751,10 +1752,10 @@ public class UIWrapperService {
 			if (map.containsKey(key)) {
 				map.remove(key);
 			} else {
-				addRs.add(key);
+				addOrModifyRs.add(key);
 			}
 		}
+		deleteRs.addAll(map.keySet());
 		return diffData;
 	}
-
 }
