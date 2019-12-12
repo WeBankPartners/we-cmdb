@@ -297,12 +297,12 @@ export default {
           '";'
       ];
       sysChildren.forEach(subsys => {
-        const label = subsys.data.code || subsys.data.key_name
+        const label = subsys.data.code || subsys.data.key_name;
         dots.push("subgraph cluster_" + subsys.guid + "{");
         dots.push(`label="${label}";tooltip="${subsys.data.description}";`);
         if (Array.isArray(subsys.children)) {
           subsys.children.forEach(unit => {
-            const unitLabel = unit.data.code || unit.data.key_name
+            const unitLabel = unit.data.code || unit.data.key_name;
             let color = "grey";
             if (unit.data.state && stateColorMap.has(unit.data.state.code)) {
               color = stateColorMap.get(unit.data.state.code);
@@ -313,7 +313,9 @@ export default {
             );
             dots.push(`"${unit.guid}"[shape="none",`);
             dots.push(
-              `label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">\n<TR><TD COLSPAN="3"> ${this.$t("runnint_instance")} </TD></TR>`
+              `label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">\n<TR><TD COLSPAN="3"> ${this.$t(
+                "runnint_instance"
+              )} </TD></TR>`
             );
             graphMap.set(unit.guid, unitLabel);
             if (Array.isArray(unit.children)) {
@@ -323,7 +325,7 @@ export default {
                   if (child.data.host && child.data.host.key_name) {
                     hostIp = child.data.host.key_name || "-";
                   }
-                  const port = child.data.port || "-"
+                  const port = child.data.port || "-";
                   dots.push(
                     `<TR><TD> ${child.data.code} </TD><TD> ${hostIp} </TD><TD> ${port} </TD></TR>`
                   );
@@ -337,7 +339,8 @@ export default {
                   sysIvks.push(service);
                 }
                 if (service.ciTypeId === this.serviceCiTypeId) {
-                  const serviceLabel = service.data.code || service.data.key_name;
+                  const serviceLabel =
+                    service.data.code || service.data.key_name;
                   let domain = "";
                   if (service.data.dns_domain) {
                     domain =
@@ -347,7 +350,11 @@ export default {
                   }
                   const ip = service.data.service_ip.key_name || "";
                   dots.push(
-                    `"${service.guid}" [shape="record", label="{{ ${this.$t("service")}: ${serviceLabel}|{ ${domain} | ${service.data.service_port} }| ${ip} }}", tooltip="${service.data.description}"];`
+                    `"${service.guid}" [shape="record", label="{{ ${this.$t(
+                      "service"
+                    )}: ${serviceLabel}|{ ${domain} | ${
+                      service.data.service_port
+                    } }| ${ip} }}", tooltip="${service.data.description}"];`
                   );
                   graphMap.set(service.guid, serviceLabel);
                   dots.push(
@@ -417,10 +424,14 @@ export default {
     },
     async getAllEnvs() {
       const payload = {
-        filters: [{ name: "cat.catName", operator: "eq", value: "env" }],
+        filters: [
+          { name: "cat.catName", operator: "eq", value: "deploy_environment" }
+        ],
         paging: false
       };
-      const { statusCode, data, message } = await getAllNonSystemEnumCodes(payload);
+      const { statusCode, data, message } = await getAllNonSystemEnumCodes(
+        payload
+      );
 
       if (statusCode === "OK") {
         this.envs = data.contents;
