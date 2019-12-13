@@ -1,4 +1,4 @@
-# CMDB API V2  
+# WeCMDB API V2  
 提供统一接口定义，为使用者提供清晰明了的使用方法
 
 ## API 操作资源 （Resources）:  
@@ -47,7 +47,7 @@ Array|Array of [EnumCatTypeDto](#EnumCatTypeDto)|是|枚举类别实体列表,�
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 data|Array of [EnumCatTypeDto](#EnumCatTypeDto)|枚举类别实体列表,包含资源唯一ID
 
 ##### 示例：
@@ -184,7 +184,7 @@ Array|Array of [EnumCatTypeDto](#EnumCatTypeDto)|否|枚举类别实体列表，
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 data|Array of [EnumCatTypeDto](#EnumCatTypeDto)|枚举类别实体列表
 
 ##### 示例：
@@ -295,7 +295,7 @@ Array|Array of [EnumCatDto](#EnumCatDto)|是|枚举目录实体列表,不包含�
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 data|Array of [EnumCatDto](#EnumCatDto)|枚举目录实体列表,包含资源唯一ID
 
 #### /api/v2/enum/cats/retrieve
@@ -321,7 +321,7 @@ Array|Array of [EnumCatDto](#EnumCatDto)|否|枚举目录实体列表，必须�
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 data|Array of [EnumCatDto](#EnumCatDto)|枚举目录实体列表
 
 #### /api/v2/enum/cats/delete
@@ -348,7 +348,7 @@ Array|Array of [EnumCodeDto](#EnumCodeDto)|是|枚举名称/值实体列表,不�
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 data|Array of [EnumCodeDto](#EnumCodeDto)|枚举名称/值实体列表,包含资源唯一ID
 
 #### /api/v2/enum/codes/retrieve
@@ -374,7 +374,7 @@ Array|Array of [EnumCodeDto](#EnumCodeDto)|否|枚举名称/值实体列表，�
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 data|Array of [EnumCodeDto](#EnumCodeDto)|枚举名称/值实体列表
 
 #### /api/v2/enum/codes/delete
@@ -401,7 +401,7 @@ Array|Array of [CiTypeDto](#CiTypeDto)|是|配置项类型实体列表,不包含
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--  
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误  
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误  
 data|Array of [CiTypeDto](#CiTypeDto)|配置项类型实体列表,包含资源唯一ID
 
 #### [POST] /api/v2/ciTypes/retrieve
@@ -427,7 +427,7 @@ Array|Array of [CiTypeDto](#CiTypeDto)|否|配置项类型实体列表，必须�
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 data|Array of [CiTypeDto](#CiTypeDto)|配置项类型实体列表
 
 #### [POST] /api/v2/ciTypes/delete
@@ -454,7 +454,7 @@ Array|Array of [CiTypeAttrDto](#CiTypeAttrDto)|是|配置项类型属性实体�
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 data|Array of [CiTypeAttrDto](#CiTypeAttrDto)|配置项类型属性实体列表,包含资源唯一ID
 
 #### [POST] /api/v2/ciTypeAttrs/retrieve
@@ -480,7 +480,7 @@ Array|Array of [CiTypeAttrDto](#CiTypeAttrDto)|否|配置项类型属性实体�
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 data|Array of [CiTypeAttrDto](#CiTypeAttrDto)|配置项类型属性实体列表
 
 #### [POST] /api/v2/ciTypeAttrs/delete
@@ -508,7 +508,7 @@ Array|Array of Map<key,value>|是|配置项实体列表,不包含资源唯一ID.
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 data|Array of Map<key,value>|配置项实体列表,包含资源唯一ID
 
 #### [POST] /api/v2/ci/{ciTypeId}/retrieve
@@ -536,7 +536,7 @@ Array|Array of Map<key,value>|否|配置项实体列表，必须包含资源唯�
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 data|Array of Map<key,value>|配置项实体列表
 
 #### [POST] /api/v2/ci/{ciTypeId}/delete
@@ -992,7 +992,7 @@ data|Array of String|有效状态常量
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 statusMessage|string|异常信息，无异常则不返回该属性
 
 #### [POST] /api/v2/ciTypes/apply
@@ -1004,7 +1004,7 @@ Array|Array of integer|是|配置项类型ID列表，见[CiTypeDto](#CiTypeDto).
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 statusMessage|string|异常信息，无异常则不返回该属性
 
 #### [POST] /api/v2/ciTypeAttrs/apply
@@ -1016,7 +1016,7 @@ Array|Array of integer|是|配置项类型属性ID列表，见[CiTypeAttrDto](#C
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 statusMessage|string|异常信息，无异常则不返回该属性
 
 ### <span id="CI_State_Operate">配置项状态变化操作 - CI_State_Operate</span>
@@ -1031,7 +1031,7 @@ operation|string|是|操作名称 - insert: 插入， delete: 删除， update: 
 ##### 输出参数：
 参数名称|类型|描述
 :--|:--|:--    
-statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_INVALID_CHANGE: 批量处理错误
+statusCode|string|状态码 - OK: 成功， ERROR: 失败，ERR_INVALID_ARGUMENT: 无效参数错误，ERR_BATCH_CHANGE: 批量处理错误
 data|Array of Map<key,value>|配置项实体列表
 
 ## 数据结构：
