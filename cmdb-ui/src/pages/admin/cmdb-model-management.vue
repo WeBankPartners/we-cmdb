@@ -1039,6 +1039,7 @@ export default {
       isLayerSelected: false,
       nodeName: "",
       g: null,
+      n: null,
       statusList: [],
       selectedStatus: ["notCreated", "created"],
       allStatus: STATUS_LIST.map(_ => _.value),
@@ -1345,6 +1346,7 @@ export default {
         this.colorNode(this.nodeName);
       });
       addEvent(".node", "click", async e => {
+        this.n = e.currentTarget;
         this.isLayerSelected =
           this.g.getAttribute("class").indexOf("layer") >= 0;
         this.renderRightPanels();
@@ -1354,7 +1356,7 @@ export default {
       if (!this.nodeName) return;
       if (this.isLayerSelected) {
         this.currentSelectedLayer = this.layers.find(
-          _ => _.layerId === +this.g.id.split("_")[1]
+          _ => _.layerId === +this.n.id.split("_")[1]
         );
         this.updatedLayerNameValue = {
           codeId: this.currentSelectedLayer.layerId,
@@ -1365,7 +1367,7 @@ export default {
         this.source.forEach(_ => {
           _.ciTypes &&
             _.ciTypes.forEach(i => {
-              if (i.ciTypeId && i.ciTypeId === +this.g.id) {
+              if (i.ciTypeId && i.ciTypeId === +this.n.id) {
                 this.currentSelectedCI = i;
                 this.currentSelectedCIChildren =
                   (i.attributes &&
@@ -1377,7 +1379,7 @@ export default {
             });
         });
         this.updatedCINameValue = {
-          ciTypeId: parseInt(this.g.id),
+          ciTypeId: parseInt(this.n.id),
           name: this.currentSelectedCI.name
         };
         this.getAllEnumTypes();

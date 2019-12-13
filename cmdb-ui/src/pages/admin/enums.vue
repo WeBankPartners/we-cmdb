@@ -33,7 +33,7 @@ import {
   getNonSystemCategories
 } from "@/api/server.js";
 import { formatData } from "../util/format.js";
-import { outerActions, innerActions } from "@/const/actions.js";
+import { outerActions, innerActions, exportOuterActions } from "@/const/actions.js";
 
 export default {
   data() {
@@ -465,7 +465,7 @@ export default {
     },
     setActionsParams() {
       const routerFlag = this.$route.name === "enumEnquiry";
-      this.outerActions = routerFlag ? null : outerActions;
+      this.outerActions = routerFlag ? exportOuterActions : outerActions;
       this.innerActions = routerFlag ? null : innerActions;
       this.showCheckbox = routerFlag ? false : true;
     }

@@ -46,7 +46,7 @@ public class ApplicationProperties {
         private String propertyNameOfState = "state";
         private String enumCodeOfStateDelete = "delete";
         private String propertyNameOfFixedDate = "fixed_date";
-        private String enumCategoryNameOfEnv = "env";
+        private String enumCategoryNameOfEnv = "deploy_environment";
         private String catNameOfArchitectureDesign = "tab_of_architecture_design";
         private String catNameOfDeployDesign = "tab_of_deploy_design";
         private String catNameOfQueryDeployDesign = "tab_query_of_deploy_design";
