@@ -13,10 +13,8 @@ import static com.webank.cmdb.domain.AdmMenu.MENU_IDC_RESOURCE_PLANNING;
 import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -48,12 +46,10 @@ import com.webank.cmdb.dto.CiData;
 import com.webank.cmdb.dto.CiIndentity;
 import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
-import com.webank.cmdb.dto.ImageInfoDto;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.dto.ResponseDto;
 import com.webank.cmdb.exception.CmdbException;
-import com.webank.cmdb.exception.ServiceException;
 import com.webank.cmdb.service.ImageService;
 import com.webank.cmdb.util.JsonUtil;
 
@@ -443,7 +439,6 @@ public class UICiDataManagementController {
 		response.setContentType("application/x-download;charset=utf-8");
 	    response.addHeader("Content-Disposition","attachment;filename=CI_MODEL.JSON");
 	    try(ServletOutputStream outStr = response.getOutputStream();BufferedOutputStream buff = new BufferedOutputStream(outStr)) {
-	     
 	    	buff.write(json.getBytes("UTF-8"));
 	      buff.flush();
 	    } catch (Exception e) {

@@ -1,7 +1,6 @@
 package com.webank.cmdb.controller;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.webank.cmdb.constant.ImplementOperation;
-import com.webank.cmdb.controller.ui.helper.UIWrapperService;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
@@ -45,7 +42,6 @@ import com.webank.cmdb.dto.IntQueryResponseHeader;
 import com.webank.cmdb.dto.IntegrationQueryDto;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
-import com.webank.cmdb.dto.ResponseDto;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrConditionDto;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrDto;
 import com.webank.cmdb.dto.RoleCiTypeDto;
@@ -87,8 +83,6 @@ public class ApiV2Controller {
     private ConstantService constantService;
     @Autowired
     private PasswordEncoder passwordEncoder;
-    @Autowired
-    private UIWrapperService wrapperService;
 
     // Enum code
     @PostMapping("/enum/codes/retrieve")
@@ -511,5 +505,4 @@ public class ApiV2Controller {
     public void deleteRoleCiTypeCtrlAttrConditions(@Valid @RequestBody List<Integer> requestIds) {
         staticDtoService.delete(RoleCiTypeCtrlAttrConditionDto.class, requestIds);
     }
-    
 }

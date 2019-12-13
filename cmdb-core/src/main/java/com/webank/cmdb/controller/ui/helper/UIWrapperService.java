@@ -6,11 +6,9 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -18,11 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +28,6 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.webank.cmdb.config.ApplicationProperties.DatasourceProperties;
 import com.webank.cmdb.config.ApplicationProperties.UIProperties;
-import com.webank.cmdb.constant.CiStatus;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.ImplementOperation;
@@ -69,7 +62,6 @@ import com.webank.cmdb.service.IntegrationQueryService;
 import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.service.impl.FilterRuleService;
 import com.webank.cmdb.util.BeanMapUtils;
-import com.webank.cmdb.util.ClassUtils;
 import com.webank.cmdb.util.JsonUtil;
 import com.webank.cmdb.util.MyMap;
 import com.webank.cmdb.util.ResourceDto;
@@ -96,13 +88,8 @@ public class UIWrapperService {
 
 	private static final String ADM_CI_TYPE = "adm_ci_type";
 	private static final String ADM_CI_TYPE_ATTR = "adm_ci_type_attr";
-	private static final String ADM_CI_DATA = "adm_ci_data";
-	private static final String HAS_GROUP = "has_group";
-	private static final String NOT_HAS_GROUP = "not_has_group";
 	@Autowired
 	private UIProperties uiProperties;
-	@Autowired
-	private DatasourceProperties datasourceProperties;
 	@Autowired
 	private CiService ciService;
 	@Autowired
@@ -1722,7 +1709,7 @@ public class UIWrapperService {
 	
 	private <T extends ResourceDto<T, D>,D>void ciModelAddOrModify(Class<T> dtoClzz, List<T> importModel) {
 		List<Map<String,Object>> convertBeansToMaps = BeanMapUtils.convertBeansToMaps(importModel);
-		staticDtoService.update(dtoClzz, convertBeansToMaps);
+		staticDtoService.create(dtoClzz, importModel,true,true);
 	}
 
 	public void initModel() {

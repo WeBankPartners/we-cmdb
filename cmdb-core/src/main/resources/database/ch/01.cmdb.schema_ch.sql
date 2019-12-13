@@ -75,7 +75,6 @@ CREATE TABLE IF NOT EXISTS `adm_basekey_cat_type` (
   `type` int(4) DEFAULT NULL,
   PRIMARY KEY (`id_adm_basekey_cat_type`),
   KEY `adm_basekey_cat_type_ci_type_1` (`ci_type_id`),
-  CONSTRAINT `adm_basekey_cat_type_ci_type_1` FOREIGN KEY (`ci_type_id`) REFERENCES `adm_ci_type` (`id_adm_ci_type`)
 ) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_base` (

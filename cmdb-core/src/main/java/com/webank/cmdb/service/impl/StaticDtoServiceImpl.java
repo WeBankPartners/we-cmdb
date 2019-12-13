@@ -214,7 +214,7 @@ public class StaticDtoServiceImpl implements StaticDtoService {
 					}
 				});
 
-				if (interceptor != null) {
+				if (interceptor != null && !isCustomGenerator) {
 					interceptor.preCreate(dtoObj, domainBean);
 				}
 				;
