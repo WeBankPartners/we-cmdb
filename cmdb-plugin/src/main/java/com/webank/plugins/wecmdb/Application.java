@@ -17,7 +17,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
 @EnableSwagger2
-@ComponentScan({ "com.webank.plugins.wecmdb.service", "com.webank.plugins.wecmdb.controller", "com.webank.cmdb.config", "com.webank.cmdb.repository" })
+@ComponentScan({ "com.webank.plugins.wecmdb.service", "com.webank.plugins.wecmdb.controller", "com.webank.plugins.wecmdb.exception", "com.webank.cmdb.config", "com.webank.cmdb.repository" })
 @Import({ DatabaseConfig.class })
 public class Application extends AbstractAnnotationConfigDispatcherServletInitializer {
 
