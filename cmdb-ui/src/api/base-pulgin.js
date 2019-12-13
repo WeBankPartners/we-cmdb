@@ -4,11 +4,11 @@ export const pluginErrorMessage = async (r) => {
     const errorMes = Array.isArray(res.data)
       ? res.data.map(_ => _.errorMessage).join("<br/>")
       : res.statusMessage;
-    Vue.prototype.$Notice.error({
-      title: "Error",
-      desc: errorMes,
-      duration: 0
-    });
+      window.vm.$Notice.error({
+        title: "Error",
+        desc: errorMes,
+        duration: 0
+      });
   }
   return r;
 }
