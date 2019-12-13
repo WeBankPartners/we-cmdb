@@ -33,39 +33,23 @@ public class ApiController {
             @RequestParam(value = "filter", required = false) String filter,
             @RequestParam(value = "sorting", required = false) String sorting,
             @RequestParam(value = "select", required = false) String select) {
-        try {
-            return okayWithData(adapterService.getCiDataWithConditions(entityName, filter, sorting, select));
-        } catch (Exception e) {
-            return JsonResponse.error(e.getMessage());
-        }
+        return okayWithData(adapterService.getCiDataWithConditions(entityName, filter, sorting, select));
     }
 
     @PostMapping("/entities/{entity-name}/create")
     public JsonResponse createCiData(@PathVariable("entity-name") String entityName, @RequestBody List<Map<String, Object>> request) {
-        try {
-            return okayWithData(adapterService.createCiData(entityName, request));
-        } catch (Exception e) {
-            return JsonResponse.error(e.getMessage());
-        }
+        return okayWithData(adapterService.createCiData(entityName, request));
     }
 
     @PostMapping("/entities/{entity-name}/update")
     public JsonResponse updateCiData(@PathVariable("entity-name") String entityName, @RequestBody List<Map<String, Object>> request) {
-        try {
-            return okayWithData(adapterService.updateCiData(entityName, request));
-        } catch (Exception e) {
-            return JsonResponse.error(e.getMessage());
-        }
+        return okayWithData(adapterService.updateCiData(entityName, request));
     }
 
     @PostMapping("/entities/{entity-name}/delete")
     public JsonResponse deleteCiData(@PathVariable("entity-name") String entityName, @RequestBody List<Map<String, Object>> request) {
-        try {
-            adapterService.deleteCiData(entityName, request);
-            return okay();
-        } catch (Exception e) {
-            return JsonResponse.error(e.getMessage());
-        }
+        adapterService.deleteCiData(entityName, request);
+        return okay();
     }
 
     @PostMapping("/data/confirm")
@@ -85,10 +69,6 @@ public class ApiController {
     @GetMapping("/data-model")
     @ResponseBody
     public JsonResponse getDataModel() {
-        try {
-            return okayWithData(adapterService.getDataModel());
-        } catch (Exception e) {
-            return JsonResponse.error(e.getMessage());
-        }
+        return okayWithData(adapterService.getDataModel());
     }
 }
