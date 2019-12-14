@@ -200,6 +200,8 @@ public class FilterRuleService {
             items.forEach(item->{
                 values.add(extractedSingleEnumValue(item, leftEnumCodeAttr, ruleExpr));
             });
+        } else {
+            values.add(value);
         }
         return values;
     }
