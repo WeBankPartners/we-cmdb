@@ -1,8 +1,4 @@
-import "vue-highlight.js/lib/allLanguages";
-import "highlight.js/styles/default.css";
 import router from "./router-plugin";
-import "view-design/dist/styles/iview.css";
-import "./locale/i18n";
 import zh_CN from "./locale/i18n/zh-CN.json";
 import en_US from "./locale/i18n/en-US.json";
 
