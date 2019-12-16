@@ -1,6 +1,7 @@
 package com.webank.plugins.wecmdb.dto;
 
 public class OperateCiDto {
+    private String callbackParameter;
     private String guid;
 
     public String getGuid() {
@@ -11,8 +12,17 @@ public class OperateCiDto {
         this.guid = guid;
     }
 
+    public String getCallbackParameter() {
+        return callbackParameter;
+    }
+
+    public void setCallbackParameter(String callbackParameter) {
+        this.callbackParameter = callbackParameter;
+    }
+
     @Override
     public String toString() {
-        return "OperateCiDto [guid=" + guid + "]";
+        return "OperateCiDto [callbackParameter=" + callbackParameter + ", guid=" + guid + "]";
     }
+
 }

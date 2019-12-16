@@ -32,13 +32,9 @@ import com.webank.plugins.wecmdb.helper.ConfirmHelper;
 
 @Service
 public class AdapterService {
-
+    private static final String CONFIRM = "confirm";
+    private static final String CALLBACK_PARAMETER = "callbackParameter";
     private static final String PLUGIN_PACKAGE_NAME = "wecmdb";
-    @Autowired
-    private StaticDtoService staticDtoService;
-    @Autowired
-    private CiService ciService;
-
     private static final String SORTING_DESC = "desc";
     private static final String SORTING_ASC = "asc";
     private static final String ID = "id";
@@ -50,6 +46,11 @@ public class AdapterService {
         dataTypeMapping.put(FieldType.Date.getCode(), DataType.Timestamp.getCode());
         dataTypeMapping.put(FieldType.DateTime.getCode(), DataType.Timestamp.getCode());
     }
+
+    @Autowired
+    private StaticDtoService staticDtoService;
+    @Autowired
+    private CiService ciService;
 
     private Integer retrieveCiTypeIdByTableName(String ciTypeTableName) {
         QueryRequest queryObject = QueryRequest.defaultQueryObject().addEqualsFilter("tableName", ciTypeTableName);
@@ -71,15 +72,25 @@ public class AdapterService {
 
     public List<Map<String, Object>> confirmBatchCiData(List<OperateCiDto> operateCiDtos) {
         validateBeforeConfirm(operateCiDtos);
-        List<CiIndentity> ciIds = new ArrayList<>();
+
+        List<Map<String, Object>> results = new ArrayList<>();
         operateCiDtos.forEach(operateCiDto -> {
+            String callbackParameter = operateCiDto.getCallbackParameter();
+
             List<String> guids = ConfirmHelper.parseGuid(operateCiDto.getGuid());
+            List<CiIndentity> ciIds = new ArrayList<>();
             guids.forEach(guid -> {
                 ciIds.add(new CiIndentity(extractCiTypeIdFromGuid(guid), guid));
             });
+            List<Map<String, Object>> confirmedCis = ciService.operateState(ciIds, CONFIRM);
 
+            confirmedCis.forEach(confirmedCi -> {
+                confirmedCi.put(CALLBACK_PARAMETER, callbackParameter);
+            });
+
+            results.addAll(confirmedCis);
         });
-        return ciService.operateState(ciIds, "confirm");
+        return results;
     }
 
     private int extractCiTypeIdFromGuid(String guid) {
@@ -94,13 +105,6 @@ public class AdapterService {
             }
         });
 
-    }
-
-    private String formatString(String path, Object... pathVariables) {
-        if (pathVariables != null && pathVariables.length > 0) {
-            path = String.format(path, pathVariables);
-        }
-        return path;
     }
 
     public List<EntityDto> getDataModel() {
