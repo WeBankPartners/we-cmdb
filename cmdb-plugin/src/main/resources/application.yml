@@ -1,15 +1,18 @@
 server:
-  port: 9080
+  port: 8081
   address: localhost
   servlet:
     context-path: /wecmdb
+
+plugins:
+  pacakge-name: wecmdb
 
 spring:
   banner:
     location: classpath:/cmdb.txt
   profiles:
     #en-local、ch-local
-    active: ch-local
+    active: dev
   cache:
     type: caffeine
     caffeine:
@@ -42,9 +45,11 @@ cmdb:
 
     #Effective ONLY when security-enabled set as true
     whitelist-ip-address: 127.0.0.1
+
 logging:
   level:
     root: INFO
     com:
       webank:
         cmdb: INFO
+    

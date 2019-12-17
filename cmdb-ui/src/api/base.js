@@ -1,6 +1,6 @@
 import Vue from "vue";
 import axios from "axios";
-export const baseURL = window.request ? "/wecmdb/wecmdb/ui/v2" : "/wecmdb/ui/v2";
+export const baseURL = "/wecmdb/ui/v2";
 export const req = axios.create({
   withCredentials: true,
   baseURL,

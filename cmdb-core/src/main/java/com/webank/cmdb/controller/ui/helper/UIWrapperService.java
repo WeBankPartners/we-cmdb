@@ -1295,7 +1295,7 @@ public class UIWrapperService {
                 uiProperties.getCiTypeIdOfInstance());
 
         systemDesignfilter.put("guid", systemDesignGuid);
-        subsystemfilter.put("env", envCodeId);
+        subsystemfilter.put(uiProperties.getEnumCategoryNameOfEnv(), envCodeId);
         getBottomChildrenDataByBottomCiTypeId(uiProperties.getCiTypeIdOfSystemDesign(),
                 uiProperties.getCiTypeIdOfInstance(),
                 instanceData,
