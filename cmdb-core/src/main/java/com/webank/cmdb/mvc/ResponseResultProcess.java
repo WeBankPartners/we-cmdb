@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import com.google.common.collect.Lists;
+import com.webank.cmdb.dto.CustomResponseDto;
 import com.webank.cmdb.dto.ResponseDto;
 import com.webank.cmdb.exception.BatchChangeException;
 import com.webank.cmdb.exception.BatchChangeException.ExceptionHolder;
@@ -43,6 +44,10 @@ public class ResponseResultProcess implements ResponseBodyAdvice<Object> {
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
 
         if (request.getURI().getPath().contains("swagger-resources") || request.getURI().getPath().contains("api-docs")) {
+            return body;
+        }
+
+        if (body instanceof CustomResponseDto) {
             return body;
         }
 
