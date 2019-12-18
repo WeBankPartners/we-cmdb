@@ -644,8 +644,9 @@ public class CiDataInterceptorService {
         }
     }
 
-    public void postDelete(int ciTypeId, String guid, DynamicEntityMeta entityMeta) {
-
+    public void postDelete(DynamicEntityHolder entityHolder, EntityManager entityManager, int ciTypeId, String guid, DynamicEntityMeta entityMeta) {
+        //entityManager.flush();
+        //handleReferenceAutoFill(entityHolder, entityManager, entityHolder.getEntityBeanMap());
     }
 
 }
