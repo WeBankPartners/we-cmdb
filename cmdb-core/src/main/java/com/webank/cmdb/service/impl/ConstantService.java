@@ -1,12 +1,16 @@
 package com.webank.cmdb.service.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.webank.cmdb.constant.CiStatus;
 import com.webank.cmdb.constant.EffectiveStatus;
+import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.constant.ReferenceType;
 
@@ -56,5 +60,17 @@ public class ConstantService {
         return effectiveStatus;
     }
     
+    public List<Map<Object,Object>> getFilterOperator() {
+    	List<Map<Object,Object>> filterOperatorList = Lists.newLinkedList();
+    	for (FilterOperator status : FilterOperator.values()) {
+    		if (FilterOperator.None.equals(status))
+    			continue;
+    		HashMap<Object,Object> filterOperatorMap = Maps.newHashMap();
+    		filterOperatorMap.put("code",status.getCode());
+    		filterOperatorMap.put("value",status.getCode());
+    		filterOperatorList.add(filterOperatorMap);
+    	}
+    	return filterOperatorList;
+    }
     
 }
