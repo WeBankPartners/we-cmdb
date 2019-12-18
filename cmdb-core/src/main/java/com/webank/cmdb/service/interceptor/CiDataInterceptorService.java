@@ -271,7 +271,7 @@ public class CiDataInterceptorService {
     public void postCreate(DynamicEntityHolder entityHolder, Map<String, Object> updateCi, Map<Integer, DynamicEntityMeta> multRefMetaMap, EntityManager entityManager) {
         entityManager.flush();
         handleAutoFill(entityHolder, entityManager);
-
+        handleReferenceAutoFill(entityHolder, entityManager, updateCi);
         updateSeqNoForMultiReferenceFields(entityHolder, updateCi, entityManager);
     }
 
