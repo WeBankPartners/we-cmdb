@@ -492,7 +492,7 @@ public class CiDataInterceptorService {
         dto.setParentRs(parentRs);
         dto.setAttrs(Arrays.asList(getGuidAttrIdByCiTypeId(item.getCiTypeId())));
         dto.setAttrKeyNames(Arrays.asList(item.getCiTypeId() + "$guid"));
-
+        dto.setFilters(item.getFilters());
         IntegrationQueryDto childDto = travelFillQueryDto(routines, dto, ++position);
 
         if (childDto == null) {
