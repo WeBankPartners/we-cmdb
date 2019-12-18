@@ -238,9 +238,7 @@ export default {
               label = zone.data.key_name;
             }
             dots.push(
-              `g_${zone.guid}[id="g_${
-                zone.guid
-              }", label="${label}", width=${ll},height=${lg}];`
+              `g_${zone.guid}[id="g_${zone.guid}", label="${label}", width=${ll},height=${lg}];`
             );
           });
           dots.push("}");
@@ -913,7 +911,7 @@ export default {
     },
     getSelectOptions(columns) {
       columns.forEach(async _ => {
-        if (_.inputType === "select") {
+        if (_.inputType === "select" || _.inputType === "multiSelect") {
           const { status, message, data } = await getEnumCodesByCategoryId(
             0,
             _.referenceId

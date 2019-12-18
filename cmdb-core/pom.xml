@@ -4,19 +4,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<artifactId>cmdb</artifactId>
 		<groupId>com.webank.cmdb</groupId>
-		<version>1.4.0-SNAPSHOT</version>
+		<artifactId>cmdb</artifactId>
+		<version>${cmdb.version}</version>
 	</parent>
-	<groupId>com.webank</groupId>
-	<artifactId>cmdb-core</artifactId>
-	<name>cmdb-core</name>
-	<description>cmdb-core</description>
 
-	<properties>
-		<java.version>1.8</java.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
+	<artifactId>cmdb-core</artifactId>
+	<packaging>jar</packaging>
 
 	<dependencies>
 		<dependency>
@@ -169,10 +163,6 @@
 					<reuseForks>true</reuseForks>
 					<argLine>-Xmx2048m -XX:MaxPermSize=256m</argLine>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>

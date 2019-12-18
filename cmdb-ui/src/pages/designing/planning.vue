@@ -780,7 +780,7 @@ export default {
     },
     getSelectOptions(columns) {
       columns.forEach(async _ => {
-        if (_.inputType === "select") {
+        if (_.inputType === "select" || _.inputType === "multiSelect") {
           const { status, message, data } = await getEnumCodesByCategoryId(
             0,
             _.referenceId
