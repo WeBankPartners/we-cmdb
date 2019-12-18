@@ -31,5 +31,12 @@ public class UIStaticDataController {
     public Object getEffectiveStatus() {
         return constantService.getEffectiveStatus();
     }
+    
+	@GetMapping("/static-data/filter-operator")
+	@ResponseBody
+	public Object getFilterOperator() {
+		return constantService.getFilterOperator();
+	}
+
 
 }

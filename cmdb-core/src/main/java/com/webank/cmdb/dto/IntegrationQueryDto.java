@@ -33,6 +33,8 @@ public class IntegrationQueryDto {
     private Relationship parentRs;
     private List<IntegrationQueryDto> children = new LinkedList<>();
 
+	private List<Filter> filters = new LinkedList<Filter>();
+
     public IntegrationQueryDto() {
     }
 
@@ -180,8 +182,16 @@ public class IntegrationQueryDto {
     public void setAggKeyNames(List<String> aggKeyNames) {
         this.aggKeyNames = aggKeyNames;
     }
-  
-    @Override
+    
+    public List<Filter> getFilters() {
+		return filters;
+	}
+
+	public void setFilters(List<Filter> filters) {
+		this.filters = filters;
+	}
+
+	@Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("ciTypeId", ciTypeId)
