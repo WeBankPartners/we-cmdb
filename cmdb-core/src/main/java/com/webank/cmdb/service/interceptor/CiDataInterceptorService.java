@@ -271,7 +271,7 @@ public class CiDataInterceptorService {
     public void postCreate(DynamicEntityHolder entityHolder, Map<String, Object> updateCi, Map<Integer, DynamicEntityMeta> multRefMetaMap, EntityManager entityManager) {
         entityManager.flush();
         handleAutoFill(entityHolder, entityManager);
-
+        handleReferenceAutoFill(entityHolder, entityManager, updateCi);
         updateSeqNoForMultiReferenceFields(entityHolder, updateCi, entityManager);
     }
 
@@ -644,8 +644,9 @@ public class CiDataInterceptorService {
         }
     }
 
-    public void postDelete(int ciTypeId, String guid, DynamicEntityMeta entityMeta) {
-
+    public void postDelete(DynamicEntityHolder entityHolder, EntityManager entityManager, int ciTypeId, String guid, DynamicEntityMeta entityMeta) {
+        //entityManager.flush();
+        //handleReferenceAutoFill(entityHolder, entityManager, entityHolder.getEntityBeanMap());
     }
 
 }
