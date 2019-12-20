@@ -662,7 +662,7 @@ export default {
             `gn_${line.data.unit_design.guid} -> gn_${
               line.data.service_design.guid
             } [id="gl_${line.guid}",color="${color}",taillabel="${
-              line.data.invoke_type.value
+              line.data.type.value
             }", labeldistance=3];`
           );
           this.physicalGraphLineNodes.serviceDesign[
