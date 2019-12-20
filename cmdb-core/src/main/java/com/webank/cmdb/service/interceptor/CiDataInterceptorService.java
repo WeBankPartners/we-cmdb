@@ -57,6 +57,7 @@ import com.webank.cmdb.util.JsonUtil;
 @Service
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class CiDataInterceptorService {
+    private static final String TARGET_DEFAULT_VALUE = "";
     private static final String TARGET_NAME = "targetName";
 
     @Autowired
@@ -362,7 +363,7 @@ public class CiDataInterceptorService {
         List<Map<String, Object>> contents = response.getContents();
         List<String> targetValues = new ArrayList<>();
         contents.forEach(content -> {
-            Object targetValue = content.get(TARGET_NAME) != null ? content.get(TARGET_NAME) : content.get("root$guid");
+            Object targetValue = content.get(TARGET_NAME) != null ? content.get(TARGET_NAME) : TARGET_DEFAULT_VALUE;
             if (targetValue != null) {
                 if (targetValue instanceof CatCodeDto) {
                     targetValues.add(getValueFromEnumCode(routines, targetValue));
