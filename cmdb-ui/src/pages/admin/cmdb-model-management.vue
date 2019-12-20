@@ -669,7 +669,7 @@
                   :label="$t('auto_fill_rule')"
                 >
                   <AutoFill
-                    :allCiTypes="allCiTypesWithAttr"
+                    :allLayers="source"
                     :rootCiTypeId="item.ciTypeId"
                     v-model="item.form.autoFillRule"
                     :disabled="item.form.status === 'decommissioned'"
@@ -909,7 +909,7 @@
               :label="$t('auto_fill_rule')"
             >
               <AutoFill
-                :allCiTypes="allCiTypesWithAttr"
+                :allLayers="source"
                 :rootCiTypeId="currentSelectedCI.ciTypeId"
                 v-model="addNewAttrForm.autoFillRule"
               ></AutoFill>
@@ -1071,7 +1071,6 @@ export default {
         isEditable: "yes"
       },
       allCiTypes: [],
-      allCiTypesWithAttr: [],
       allInputTypes: [],
       allReferenceTypes: [],
       selectedCIAttrIsSystem: false
@@ -1875,18 +1874,6 @@ export default {
         this.allCiTypes = res.data;
       }
     },
-    async getAllCiTypeWithAttr() {
-      const res = await getAllCITypesByLayerWithAttr(["notCreated", "created", "decommissioned"])
-      if (res.statusCode === "OK") {
-        let allCiTypesWithAttr = []
-        res.data.forEach(layer => {
-          layer.ciTypes && layer.ciTypes.forEach(_ => {
-            allCiTypesWithAttr.push(_)
-          })
-        })
-        this.allCiTypesWithAttr = allCiTypesWithAttr
-      }
-    },
     async getAllInputTypesList() {
       const res = await getAllInputTypes();
       if (res.statusCode === "OK") {
@@ -1925,7 +1912,6 @@ export default {
     this.getAllInputTypesList();
     this.getAllReferenceTypesList();
     this.getTableStatusList();
-    this.getAllCiTypeWithAttr()
   },
   computed: {
     setUploadActionHeader() {
