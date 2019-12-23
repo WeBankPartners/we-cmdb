@@ -9,7 +9,7 @@ spring:
     location: classpath:/cmdb.txt
   profiles:
     #en-local、ch-local
-    active: dev
+    active: ch-local
   cache:
     type: caffeine
     caffeine:
