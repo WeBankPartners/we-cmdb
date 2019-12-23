@@ -66,7 +66,7 @@ public class ApiV2ControllerCiTypeTest extends LegacyAbstractBaseControllerTest 
         mvc.perform(post("/api/v2/ciTypeAttrs/retrieve").contentType(MediaType.APPLICATION_JSON)
                 .content(reqJson))
                 .andExpect(jsonPath("$.statusCode", is("OK")))
-                .andExpect(jsonPath("$.data.contents[0].displaySeqNo", is(5)));
+                .andExpect(jsonPath("$.data.contents[0].displaySeqNo", is(3)));
     }
 
     @Test
