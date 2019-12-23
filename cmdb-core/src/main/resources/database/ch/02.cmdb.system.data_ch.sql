@@ -257,18 +257,18 @@ INSERT INTO `adm_ci_type` (`id_adm_ci_type`, `name`, `description`, `id_adm_tene
 	(31, '路由规则设计', '路由规则设计', NULL, 'routing_rule_design', 'created', 10, NULL, 7, 5, 1, 66, NULL);
 
 INSERT INTO `adm_ci_type_attr_base` (`id_adm_ci_type_attr`, `id_adm_ci_type`, `name`, `description`, `input_type`, `property_name`, `property_type`, `length`, `reference_id`, `reference_name`, `reference_type`, `filter_rule`, `search_seq_no`, `display_type`, `display_seq_no`, `edit_is_null`, `edit_is_only`, `edit_is_hiden`, `edit_is_editable`, `is_defunct`, `special_logic`, `status`, `is_system`, `is_access_controlled`, `is_auto`, `auto_fill_rule`, `regular_expression_rule`, `is_refreshable`) VALUES
-	(1, 1, '全局唯一ID', '全局唯一ID', 'text', 'guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, '0', NULL),
-	(2, 1, '前全局唯一ID', '前一版本数据的guid', 'text', 'p_guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 1, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, '1', NULL),
-	(3, 1, '根全局唯一ID', '原始数据guid', 'text', 'r_guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, '0', NULL),
-	(4, 1, '更新用户', '更新用户', 'text', 'updated_by', 'varchar', 50, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, '1', NULL),
-	(5, 1, '更新日期', '更新日期', 'date', 'updated_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, '1', NULL),
-	(6, 1, '创建用户', '创建用户', 'text', 'created_by', 'varchar', 50, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, '0', NULL),
-	(7, 1, '创建日期', '创建日期', 'date', 'created_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, '0', NULL),
-	(8, 1, '唯一名称', '唯一名称', 'text', 'key_name', 'varchar', 200, NULL, NULL, NULL, NULL, 1, 1, 1, 0, 1, 0, 0, 0, NULL, 'notCreated', 1, 0, 1, NULL, '0', NULL),
-	(9, 1, '状态', '状态', 'select', 'state', 'int', 15, 7, NULL, NULL, NULL, 2, 1, 2, 0, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, '0', NULL),
-	(10, 1, '确认日期', '确认日期', 'text', 'fixed_date', 'varchar', 19, NULL, NULL, NULL, NULL, 99, 1, 99, 1, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, '0', NULL),
-	(11, 1, '描述说明', '描述说明', 'textArea', 'description', 'varchar', 1000, NULL, NULL, NULL, NULL, 100, 1, 100, 1, 0, 0, 1, 0, NULL, 'notCreated', 1, 0, 0, NULL, '0', NULL),
-	(12, 1, '编码', '编码', 'text', 'code', 'varchar', 50, NULL, NULL, NULL, NULL, 3, 1, 3, 0, 0, 0, 1, 0, NULL, 'notCreated', 1, 0, 0, NULL, '0', NULL);
+	(1, 1, '全局唯一ID', '全局唯一ID', 'text', 'guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, 0, NULL),
+	(2, 1, '前全局唯一ID', '前一版本数据的guid', 'text', 'p_guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 1, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, 1, NULL),
+	(3, 1, '根全局唯一ID', '原始数据guid', 'text', 'r_guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, 0, NULL),
+	(4, 1, '更新用户', '更新用户', 'text', 'updated_by', 'varchar', 50, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, 1, NULL),
+	(5, 1, '更新日期', '更新日期', 'date', 'updated_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, 1, NULL),
+	(6, 1, '创建用户', '创建用户', 'text', 'created_by', 'varchar', 50, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, 0, NULL),
+	(7, 1, '创建日期', '创建日期', 'date', 'created_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, 0, NULL),
+	(8, 1, '唯一名称', '唯一名称', 'text', 'key_name', 'varchar', 200, NULL, NULL, NULL, NULL, 1, 1, 1, 0, 1, 0, 0, 0, NULL, 'notCreated', 1, 0, 1, NULL, 0, NULL),
+	(9, 1, '状态', '状态', 'select', 'state', 'int', 15, 7, NULL, NULL, NULL, 2, 1, 2, 0, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, 0, NULL),
+	(10, 1, '确认日期', '确认日期', 'text', 'fixed_date', 'varchar', 19, NULL, NULL, NULL, NULL, 99, 1, 99, 1, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, 0, NULL),
+	(11, 1, '描述说明', '描述说明', 'textArea', 'description', 'varchar', 1000, NULL, NULL, NULL, NULL, 100, 1, 100, 1, 0, 0, 1, 0, NULL, 'notCreated', 1, 0, 0, NULL, 0, NULL),
+	(12, 1, '编码', '编码', 'text', 'code', 'varchar', 50, NULL, NULL, NULL, NULL, 3, 1, 3, 0, 0, 0, 1, 0, NULL, 'notCreated', 1, 0, 0, NULL, 0, NULL);
 
 INSERT INTO `adm_role_ci_type` (`id_adm_role_ci_type`, `id_adm_role`, `id_adm_ci_type`, `ci_type_name`, `creation_permission`, `removal_permission`, `modification_permission`, `enquiry_permission`, `execution_permission`, `grant_permission`) VALUES
 	(806, 1, 1, '系统设计', 'Y', 'Y', 'Y', 'Y', 'Y', 'N'),
