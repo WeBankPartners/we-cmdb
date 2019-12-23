@@ -495,6 +495,10 @@ public class CiDataInterceptorService {
         List<Integer> attrs = new ArrayList();
         attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(),"guid"));
         fileds.add(item.getCiTypeId() + "$guid");
+    	item.getAttrKeyNames().stream().forEach(keyName -> {
+    		attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(),keyName));
+    		fileds.add(keyName);
+    	});
         if(item.getFilters().size()>0) {
         	List<Filter> filters = new ArrayList<Filter>(queryRequest.getFilters());
         	item.getFilters().stream().forEach(filter -> {
