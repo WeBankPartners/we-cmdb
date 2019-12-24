@@ -69,6 +69,7 @@ export const updateCIRecord = (ciTypeId, data) =>
 export const getRefCiTypeFrom = id => req.get(`/ci-types/${id}/references/by`);
 export const getRefCiTypeTo = id => req.get(`/ci-types/${id}/references/to`);
 export const getCiTypeAttr = id => req.get(`/ci-types/${id}/attributes`);
+export const getSpecialConnector = () => req.get("/static-data/special-connector");
 
 // CI design
 
