@@ -20,7 +20,7 @@
         <menu code='IDC_PLANNING_DESIGN' cat='DESIGNING' displayName="IDC Planning Design" localDisplayName="机房规划设计">/wecmdb/view-management/idc-planning-design</menu>
         <menu code='IDC_RESOURCE_PLANNING' cat='DESIGNING' displayName="IDC Resource Plan" localDisplayName="机房资源规划">/wecmdb/view-management/idc-resource-planning</menu>
         <menu code='APPLICATION_ARCHITECTURE_DESIGN' cat='DESIGNING' displayName="App Architecture Design" localDisplayName="应用架构设计">/wecmdb/view-management/application-architecture-design</menu>
-        <menu code='APPLICATION_DEPLOYMENT_DESIGN' cat='DESIGNING' displayName="" localDisplayName="应用部署设计">/wecmdb/view-management/application-deployment-design</menu>
+        <menu code='APPLICATION_DEPLOYMENT_DESIGN' cat='DESIGNING' displayName="App Deployment Design" localDisplayName="应用部署设计">/wecmdb/view-management/application-deployment-design</menu>
 
         <menu code='ADMIN_CMDB_MODEL_MANAGEMENT' cat='ADMIN' displayName="CMDB Model Management" localDisplayName="CMDB模型管理">/wecmdb/admin/cmdb-model-management</menu>
         <menu code='CMDB_ADMIN_BASE_DATA_MANAGEMENT' cat='ADMIN' displayName="CMDB Base Data Management" localDisplayName="CMDB基础数据管理">/wecmdb/admin/base-data-management</menu>
