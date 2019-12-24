@@ -87,6 +87,7 @@
   "is_access_controlled": "Is Access Controlled",
   "is_nullable": "Is Nullable",
   "is_editable": "Is Editable",
+  "is_unique": "Is Unique",
   "is_auto": "Is Auto Fill",
   "auto_fill_rule": "Auto Fill Rule",
   "filter_rule": "Filter Rule",
