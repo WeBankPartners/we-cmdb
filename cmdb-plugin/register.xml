@@ -23,7 +23,7 @@
         <menu code='APPLICATION_DEPLOYMENT_DESIGN' cat='DESIGNING' displayName="" localDisplayName="应用部署设计">/wecmdb/view-management/application-deployment-design</menu>
 
         <menu code='ADMIN_CMDB_MODEL_MANAGEMENT' cat='ADMIN' displayName="CMDB Model Management" localDisplayName="CMDB模型管理">/wecmdb/admin/cmdb-model-management</menu>
-        <menu code='CMDB_ADMIN_BASE_DATA_MANAGEMENT' cat='ADMIN' displayName="CMDBBase Data Management" localDisplayName="CMDB基础数据管理">/wecmdb/admin/base-data-management</menu>
+        <menu code='CMDB_ADMIN_BASE_DATA_MANAGEMENT' cat='ADMIN' displayName="CMDB Base Data Management" localDisplayName="CMDB基础数据管理">/wecmdb/admin/base-data-management</menu>
         <menu code='ADMIN_QUERY_LOG' cat='ADMIN' displayName="CMDB Log Enquiry" localDisplayName="CMDB日志查询">/wecmdb/admin/query-log</menu>
     </menus>
 
