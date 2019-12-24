@@ -53,6 +53,7 @@ import com.webank.cmdb.util.CmdbThreadLocal;
 import com.webank.cmdb.util.DateUtils;
 import com.webank.cmdb.util.JpaQueryUtils;
 import com.webank.cmdb.util.JsonUtil;
+import static com.webank.cmdb.util.SpecialSymbolUtils.getAfterSpecialSymbol;
 
 @Service
 @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -424,7 +425,7 @@ public class CiDataInterceptorService {
                             sb.append(value);
                         }
                         if (i < targetValues.size() - 1) {
-                            sb.append(",");
+                            sb.append(getAfterSpecialSymbol(CmdbConstants.SYMBOL_COMMA));
                         }
                     }
                 } catch (IOException e) {
@@ -495,10 +496,6 @@ public class CiDataInterceptorService {
         List<Integer> attrs = new ArrayList();
         attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(),"guid"));
         fileds.add(item.getCiTypeId() + "$guid");
-    	item.getAttrKeyNames().stream().forEach(keyName -> {
-    		attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(),keyName));
-    		fileds.add(keyName);
-    	});
         if(item.getFilters().size()>0) {
         	List<Filter> filters = new ArrayList<Filter>(queryRequest.getFilters());
         	item.getFilters().stream().forEach(filter -> {

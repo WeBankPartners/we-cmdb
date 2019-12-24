@@ -9,10 +9,13 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.webank.cmdb.constant.CiStatus;
+import static com.webank.cmdb.constant.CmdbConstants.SYMBOL_AND;
+import static com.webank.cmdb.constant.CmdbConstants.SYMBOL_EQUALSIGN;
 import com.webank.cmdb.constant.EffectiveStatus;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.constant.ReferenceType;
+import com.webank.cmdb.util.SpecialSymbolUtils;
 
 @Service
 public class ConstantService {
@@ -67,10 +70,25 @@ public class ConstantService {
     			continue;
     		HashMap<Object,Object> filterOperatorMap = Maps.newHashMap();
     		filterOperatorMap.put("code",status.getCode());
-    		filterOperatorMap.put("value",status.getCode());
+    		filterOperatorMap.put("value",status.name());
     		filterOperatorList.add(filterOperatorMap);
     	}
     	return filterOperatorList;
     }
+
+	public Object getSpecialConnector() {
+		List<Map<Object,Object>> specialConnector = Lists.newLinkedList();
+    	
+    	Map<Object,Object> and = Maps.newHashMap();
+    	and.put("code",SYMBOL_AND);
+    	and.put("value",SpecialSymbolUtils.getAroundSpecialSymbol(SYMBOL_AND));
+    	Map<Object,Object> equal = Maps.newHashMap();
+    	equal.put("code",SYMBOL_EQUALSIGN);
+    	equal.put("value",SpecialSymbolUtils.getAroundSpecialSymbol(SYMBOL_EQUALSIGN));
+    	specialConnector.add(and);
+    	specialConnector.add(equal);
+    	
+    	return specialConnector;
+	}
     
 }
