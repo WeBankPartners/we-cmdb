@@ -6,7 +6,7 @@ export default {
   props: {
     allCiTypes: { default: () => [], required: true },
     isReadOnly: { default: () => false, required: false },
-    value: { default: () => [], required: true },
+    value: { default: () => "", required: true },
     rootCiTypeId: { type: Number, required: true },
     specialDelimiters: { default: () => [], required: true }
   },
@@ -735,7 +735,7 @@ export default {
           }
         })
         if (isLegal) {
-          this.$emit("artifacts_input", value)
+          this.$emit("input", value)
         }
       })
     }
