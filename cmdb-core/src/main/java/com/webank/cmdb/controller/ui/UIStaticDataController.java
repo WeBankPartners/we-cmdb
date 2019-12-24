@@ -37,6 +37,12 @@ public class UIStaticDataController {
 	public Object getFilterOperator() {
 		return constantService.getFilterOperator();
 	}
+	
+	@GetMapping("/static-data/special-connector")
+	@ResponseBody
+	public Object getSpecialConnector() {
+		return constantService.getSpecialConnector();
+	}
 
 
 }
