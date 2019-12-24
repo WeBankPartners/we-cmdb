@@ -87,6 +87,7 @@
   "is_access_controlled": "权限控制",
   "is_nullable": "允许为空",
   "is_editable": "是否可编辑",
+  "is_unique": "是否唯一",
   "is_auto": "自动填充",
   "auto_fill_rule": "填充规则",
   "filter_rule": "过滤规则",
