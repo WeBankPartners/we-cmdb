@@ -1,12 +1,16 @@
 import { req as request, baseURL } from "./base";
-import { pluginErrorMessage } from "./base-pulgin"
+import { pluginErrorMessage } from "./base-pulgin";
 let req = request;
 if (window.request) {
   req = {
-    post: (url, ...params) => pluginErrorMessage(window.request.post(baseURL + url, ...params)),
-    get: (url, ...params) => pluginErrorMessage(window.request.get(baseURL + url, ...params)),
-    delete: (url, ...params) => pluginErrorMessage(window.request.delete(baseURL + url, ...params)),
-    put: (url, ...params) => pluginErrorMessage(window.request.put(baseURL + url, ...params))
+    post: (url, ...params) =>
+      pluginErrorMessage(window.request.post(baseURL + url, ...params)),
+    get: (url, ...params) =>
+      pluginErrorMessage(window.request.get(baseURL + url, ...params)),
+    delete: (url, ...params) =>
+      pluginErrorMessage(window.request.delete(baseURL + url, ...params)),
+    put: (url, ...params) =>
+      pluginErrorMessage(window.request.put(baseURL + url, ...params))
   };
 }
 
@@ -172,9 +176,7 @@ export const getApplicationFrameworkDesignDataTree = guid =>
   req.get(`/data-tree/application-framework-design?system-design-guid=${guid}`);
 export const getDeployCiData = (data, payload) =>
   req.post(
-    `/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${
-      data.envCode
-    }&system-design-guid=${data.systemDesignGuid}`,
+    `/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${data.envCode}&system-design-guid=${data.systemDesignGuid}`,
     payload
   );
 export const getDeployDesignTabs = () => req.get(`/deploy-designs/tabs`);
@@ -234,6 +236,9 @@ export const deleteEnumCodes = data => {
 };
 export const queryCiData = data => {
   return req.post(`/ci-types/${data.id}/ci-data/query`, data.queryObject);
+};
+export const queryCiDataByType = data => {
+  return req.post(`/ci-types/${data.id}/ci-data/queryByType`, data.queryObject);
 };
 export const getCiTypeAttributes = id => {
   return req.get(`/ci-types/${id}/attributes`);
