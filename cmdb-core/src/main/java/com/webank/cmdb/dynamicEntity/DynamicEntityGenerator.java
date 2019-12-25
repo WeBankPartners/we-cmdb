@@ -172,11 +172,6 @@ public class DynamicEntityGenerator implements Opcodes {
                 {
                     annotationVisitor0 = methodVisitor.visitAnnotation("Ljavax/persistence/ManyToMany;", true);
                     annotationVisitor0.visitEnum("fetch", "Ljavax/persistence/FetchType;", "EAGER");
-                    {
-                        AnnotationVisitor annotationVisitor1 = annotationVisitor0.visitArray("cascade");
-                        annotationVisitor1.visitEnum(null, "Ljavax/persistence/CascadeType;", "ALL");
-                        annotationVisitor1.visitEnd();
-                    }
                     annotationVisitor0.visitEnd();
                 }
                 {
