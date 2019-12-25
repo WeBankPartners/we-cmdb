@@ -284,3 +284,6 @@ export const queryReferenceCiData = data =>
 // log
 export const queryLogHeader = () => req.get("/log/queryHeader");
 export const queryLog = data => req.post("/log/query", data);
+
+// wecube api
+export const getWecubeRoles = () => window.request.get("platform/v1/roles/retrieve")
