@@ -25,6 +25,8 @@
         <menu code='ADMIN_CMDB_MODEL_MANAGEMENT' cat='ADMIN' displayName="CMDB Modeling" localDisplayName="CMDB模型管理">/wecmdb/admin/cmdb-model-management</menu>
         <menu code='CMDB_ADMIN_BASE_DATA_MANAGEMENT' cat='ADMIN' displayName="CMDB Base Datas" localDisplayName="CMDB基础数据管理">/wecmdb/admin/base-data-management</menu>
         <menu code='ADMIN_QUERY_LOG' cat='ADMIN' displayName="CMDB Logs" localDisplayName="CMDB日志查询">/wecmdb/admin/query-log</menu>
+
+        <menu code='MENU_ADMIN_PERMISSION_MANAGEMENT' cat='ADMIN' displayName="CMDB Permissions" localDisplayName="CMDB权限管理">/wecmdb/admin/permission-management</menu>
     </menus>
 
     <!-- 3.数据模型 - 描述本插件包的数据模型,并且描述和Framework数据模型的关系 -->
