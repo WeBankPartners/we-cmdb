@@ -4,7 +4,8 @@ import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Map;
 
-import org.hibernate.annotations.CascadeType;
+import javax.persistence.CascadeType;
+
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -177,6 +178,8 @@ public class DynamicEntityGenerator implements Opcodes {
                         AnnotationVisitor annotationVisitor1 = annotationVisitor0.visitArray("cascade");
                         annotationVisitor1.visitEnum(null, "Ljavax/persistence/CascadeType;", CascadeType.PERSIST.toString());
                         annotationVisitor1.visitEnum(null, "Ljavax/persistence/CascadeType;", CascadeType.MERGE.toString());
+                        annotationVisitor1.visitEnum(null, "Ljavax/persistence/CascadeType;", CascadeType.REFRESH.toString());
+                        annotationVisitor1.visitEnum(null, "Ljavax/persistence/CascadeType;", CascadeType.DETACH.toString());
                         annotationVisitor1.visitEnd();
                     }
                     annotationVisitor0.visitEnd();
