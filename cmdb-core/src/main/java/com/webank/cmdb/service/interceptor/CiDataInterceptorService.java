@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -494,8 +495,10 @@ public class CiDataInterceptorService {
         dto.setParentRs(parentRs);
         List<String> fileds = new ArrayList();
         List<Integer> attrs = new ArrayList();
-        attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(),"guid"));
-        fileds.add(item.getCiTypeId() + "$guid");
+        if (position < routines.size()-1) {
+        	attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(),"guid"));
+        	fileds.add(item.getCiTypeId() + "$guid");
+		}
         if(item.getFilters().size()>0) {
         	List<Filter> filters = new ArrayList<Filter>(queryRequest.getFilters());
         	item.getFilters().stream().forEach(filter -> {
@@ -510,40 +513,25 @@ public class CiDataInterceptorService {
         IntegrationQueryDto childDto = travelFillQueryDto(routines, dto, queryRequest, ++position);
 
         if (childDto == null) {
-            if (parentDto.getAttrs().contains(parentRs.getAttrId())) {
-                replaceKeyNameWithTargetName(parentDto);
-            } else {
-                addTargetName(parentDto, parentRs);
-            }
+        	addTargetName(parentDto, dto);
         } else {
             parentDto.setChildren(Arrays.asList(childDto));
         }
-
         return parentDto;
     }
 
-    private void addTargetName(IntegrationQueryDto parentDto, Relationship parentRs) {
+    private void addTargetName(IntegrationQueryDto parentDto, IntegrationQueryDto dto) {
         List<Integer> attrs = new ArrayList<>();
-        attrs.add(parentRs.getAttrId());
+        attrs.addAll(dto.getAttrs());
         attrs.addAll(parentDto.getAttrs());
+        attrs.add(dto.getParentRs().getAttrId());
 
         List<String> attrKeyNames = new ArrayList<>();
-        attrKeyNames.add(TARGET_NAME);
+        attrKeyNames.addAll(dto.getAttrKeyNames());
         attrKeyNames.addAll(parentDto.getAttrKeyNames());
+        attrKeyNames.add(TARGET_NAME);
 
         parentDto.setAttrs(attrs);
-        parentDto.setAttrKeyNames(attrKeyNames);
-    }
-
-    private void replaceKeyNameWithTargetName(IntegrationQueryDto parentDto) {
-        List<String> attrKeyNames = new ArrayList<>();
-        parentDto.getAttrKeyNames().forEach(x -> {
-            if (x.equals(parentDto.getCiTypeId() + "$guid")) {
-                attrKeyNames.add(TARGET_NAME);
-            } else {
-                attrKeyNames.add(x);
-            }
-        });
         parentDto.setAttrKeyNames(attrKeyNames);
     }
 
