@@ -105,6 +105,7 @@
   "add_role": "添加角色",
   "menus_management": "菜单权限",
   "data_management": "数据权限",
+  "details": "详情",
   "username_input_placeholder": "请输入用户名",
   "username": "用户名",
   "fullname": "全名",
