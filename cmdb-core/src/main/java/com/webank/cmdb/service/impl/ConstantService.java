@@ -29,7 +29,7 @@ public class ConstantService {
         }
         return statuses;
     }
-    
+
     public List<String> getReferenceTypes() {
         List<String> referenceTypes = Lists.newLinkedList();
         for (ReferenceType referenceType : ReferenceType.values()) {
@@ -40,7 +40,7 @@ public class ConstantService {
         }
         return referenceTypes;
     }
-    
+
     public List<String> getInputTypes() {
         List<String> inputTypes = Lists.newLinkedList();
         for (InputType inputType : InputType.values()) {
@@ -51,7 +51,7 @@ public class ConstantService {
         }
         return inputTypes;
     }
-    
+
     public List<String> getEffectiveStatus() {
         List<String> effectiveStatus = Lists.newLinkedList();
         for (EffectiveStatus status : EffectiveStatus.values()) {
@@ -62,33 +62,34 @@ public class ConstantService {
         }
         return effectiveStatus;
     }
-    
-    public List<Map<Object,Object>> getFilterOperator() {
-    	List<Map<Object,Object>> filterOperatorList = Lists.newLinkedList();
-    	for (FilterOperator status : FilterOperator.values()) {
-    		if (FilterOperator.None.equals(status))
-    			continue;
-    		HashMap<Object,Object> filterOperatorMap = Maps.newHashMap();
-    		filterOperatorMap.put("code",status.getCode());
-    		filterOperatorMap.put("value",status.name());
-    		filterOperatorList.add(filterOperatorMap);
-    	}
-    	return filterOperatorList;
+
+    public List<Map<Object, Object>> getFilterOperator() {
+        List<Map<Object, Object>> filterOperatorList = Lists.newLinkedList();
+        for (FilterOperator status : FilterOperator.values()) {
+            if (FilterOperator.None.equals(status))
+                continue;
+            HashMap<Object, Object> filterOperatorMap = Maps.newHashMap();
+            filterOperatorMap.put("code", status.getCode());
+            filterOperatorMap.put("value", status.name());
+            filterOperatorList.add(filterOperatorMap);
+        }
+        return filterOperatorList;
     }
 
-	public Object getSpecialConnector() {
-		List<Map<Object,Object>> specialConnector = Lists.newLinkedList();
-    	
-    	Map<Object,Object> and = Maps.newHashMap();
-    	and.put("code",SYMBOL_AND);
-    	and.put("value",SpecialSymbolUtils.getAroundSpecialSymbol(SYMBOL_AND));
-    	Map<Object,Object> equal = Maps.newHashMap();
-    	equal.put("code",SYMBOL_EQUALSIGN);
-    	equal.put("value",SpecialSymbolUtils.getAroundSpecialSymbol(SYMBOL_EQUALSIGN));
-    	specialConnector.add(and);
-    	specialConnector.add(equal);
-    	
-    	return specialConnector;
-	}
-    
+    public Object getSpecialConnector() {
+        List<Map<Object, Object>> specialConnector = Lists.newLinkedList();
+
+        Map<Object, Object> and = Maps.newHashMap();
+        and.put("code", SpecialSymbolUtils.getAroundSpecialSymbol(SYMBOL_AND));
+        and.put("value", SYMBOL_AND);
+        specialConnector.add(and);
+
+        Map<Object, Object> equal = Maps.newHashMap();
+        equal.put("code", SpecialSymbolUtils.getAroundSpecialSymbol(SYMBOL_EQUALSIGN));
+        equal.put("value", SYMBOL_EQUALSIGN);
+        specialConnector.add(equal);
+
+        return specialConnector;
+    }
+
 }
