@@ -503,10 +503,10 @@ public class CiDataInterceptorService {
         if(item.getFilters().size()>0) {
         	List<Filter> filters = new ArrayList<Filter>(queryRequest.getFilters());
         	item.getFilters().stream().forEach(filter -> {
+        		attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(),filter.getName()));
         		filter.setName(item.getCiTypeId() + "$" + filter.getName());
         		filters.add(filter);
         		fileds.add(filter.getName());
-        		attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(),filter.getName()));
         	});
         	queryRequest.setFilters(filters);
         }
