@@ -36,6 +36,20 @@
           tableHeight="650"
           :ref="'table' + ci.id"
         ></WeCMDBTable>
+        <Modal
+          footer-hide
+          v-model="compareVisible"
+          width="90"
+          class-name="compare-modal"
+        >
+          <Table
+            :columns="
+              ci.tableColumns.filter(x => x.isDisplayed || x.displaySeqNo)
+            "
+            :data="compareData"
+            border
+          />
+        </Modal>
       </TabPane>
     </Tabs>
   </div>
@@ -65,6 +79,7 @@ import {
 } from "@/const/actions.js";
 import { formatData } from "../util/format.js";
 import { getExtraInnerActions } from "../util/state-operations.js";
+import { deepClone } from "../util/common-func.js";
 const defaultCiTypePNG = require("@/assets/ci-type-default.png");
 export default {
   data() {
@@ -83,7 +98,9 @@ export default {
       source: {},
       layers: [],
       graph: {},
-      ciTypesName: {}
+      ciTypesName: {},
+      compareVisible: false,
+      compareData: []
     };
   },
   computed: {
@@ -216,18 +233,12 @@ export default {
           layerTag += `"layer_${_.layerId}"`;
         }
         tempClusterObjForGraph[index] = [
-          `{ rank=same; "layer_${_.layerId}"[id="layerId_${
-            _.layerId
-          }",class="layer",label="${_.name}",tooltip="${_.name}"];`
+          `{ rank=same; "layer_${_.layerId}"[id="layerId_${_.layerId}",class="layer",label="${_.name}",tooltip="${_.name}"];`
         ];
         nodes.forEach((node, nodeIndex) => {
           if (node.layerId === _.layerId) {
             tempClusterObjForGraph[index].push(
-              `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${
-                node.name
-              }",tooltip="${node.name}",class="ci",image="${
-                node.form.imgSource
-              }.png", labelloc="b"]`
+              `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",image="${node.form.imgSource}.png", labelloc="b"]`
             );
           }
           if (nodeIndex === nodes.length - 1) {
@@ -261,9 +272,7 @@ export default {
     genEdge(nodes, from, to) {
       const target = nodes.find(_ => _.ciTypeId === to.referenceId);
       let labels = to.referenceName ? to.referenceName.trim() : "";
-      return `"ci_${from.ciTypeId}"->"ci_${
-        target.ciTypeId
-      }"[taillabel="${labels}",labeldistance=3];`;
+      return `"ci_${from.ciTypeId}"->"ci_${target.ciTypeId}"[taillabel="${labels}",labeldistance=3];`;
     },
 
     loadImage(nodesString) {
@@ -350,10 +359,18 @@ export default {
             innerActions:
               this.$route.name === "ciDataEnquiry"
                 ? null
-                : JSON.parse(
-                    JSON.stringify(
-                      innerActions.concat(await getExtraInnerActions())
-                    )
+                : deepClone(
+                    innerActions.concat(await getExtraInnerActions()).concat([
+                      {
+                        label: "对比",
+                        props: {
+                          type: "info",
+                          size: "small"
+                        },
+                        actionType: "compare",
+                        isDisabled: row => !row.weTableForm.p_guid
+                      }
+                    ])
                   ),
             tableColumns: [],
             pagination: JSON.parse(JSON.stringify(pagination)),
@@ -442,9 +459,54 @@ export default {
         case "innerCancel":
           this.$refs[this.tableRef][0].rowCancelHandler(data.weTableRowId);
           break;
+        case "compare":
+          this.compareHandler(data);
+          break;
         default:
           this.defaultHandler(type, data);
           break;
+      }
+    },
+    async compareHandler(row) {
+      this.compareVisible = true;
+      const query = {
+        id: this.currentTab,
+        queryObject: {
+          dialect: { showCiHistory: true },
+          filters: [
+            {
+              name: "guid",
+              operator: "in",
+              value: [row.weTableForm.guid, row.weTableForm.p_guid]
+            }
+          ]
+        }
+      };
+      const { statusCode, message, data } = await queryCiData(query);
+      if (statusCode === "OK") {
+        this.compareData =
+          data && data.contents && data.contents.map(x => x.data);
+        this.compareData = this.compareData
+          .map(x => {
+            for (let k in x) {
+              if (typeof x[k] === "object" && x[k] !== null) x[k] = x[k].value;
+            }
+            return x;
+          })
+          .map((x, idx) => {
+            if (x.guid === row.weTableForm.guid) {
+              x.cellClassName = {};
+              for (let k in x) {
+                if (
+                  this.compareData[1 - idx] &&
+                  x[k] !== this.compareData[1 - idx][k]
+                ) {
+                  x.cellClassName[k] = "highlight";
+                }
+              }
+            }
+            return x;
+          });
       }
     },
     sortHandler(data) {
@@ -779,3 +841,12 @@ export default {
   }
 };
 </script>
+
+<style lang="scss" scoped>
+/deep/ .compare-modal .ivu-modal-body {
+  padding-top: 40px;
+}
+/deep/ .ivu-table td.highlight {
+  color: rgba(#ff6600, 0.9);
+}
+</style>
