@@ -332,6 +332,51 @@ public class ApiV2ControllerMultReferenceTest extends AbstractBaseControllerTest
         queryMultiReferenceAndVerify(ciTypeId, "mul_reference", 1);
     }
 
+    @Test
+    public void deleteCiShouldNotDeleteItReferenceCis() throws Exception {
+        mvc.perform(post("/api/v2/ciTypes/apply").contentType(MediaType.APPLICATION_JSON)
+                .content("[51,50]"))
+                .andExpect(jsonPath("$.statusCode", is("OK")));
+
+        String reqJson;
+        int ciTypeIdA = 50;
+        int ciTypeIdB = 51;
+        MvcResult mvcResult;
+        List<String> ciBs = createCIDataB();
+        String guidB1 = ciBs.get(0);
+        String guidB2 = ciBs.get(1);
+
+        // create Ci A which refer to guidB
+        Map<?, ?> jsonMap = ImmutableMap.builder()
+                .put("description", "multi reference A ci data")
+                .put("mul_reference", Lists.newArrayList(guidB1, guidB2))
+                .build();
+        reqJson = JsonUtil.toJson(ImmutableList.of(jsonMap));
+        mvcResult = mvc.perform(post("/api/v2/ci/{ciTypeId}/create", ciTypeIdA).contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("OK")))
+                .andExpect(jsonPath("$.data[0].guid", notNullValue()))
+                .andReturn();
+        String retContent = mvcResult.getResponse()
+                .getContentAsString();
+        String guidA = JsonUtil.asNodeByPath(retContent, "/data/0/guid")
+                .asText();
+
+        // retrieve ci data for guid A
+        queryMultiReferenceAndVerify(ciTypeIdA, "mul_reference", 2);
+
+        // delete
+        String deleteJson = JsonUtil.toJson(ImmutableList.of(guidA));
+        mvc.perform(post("/api/v2/ci/{ciTypeId}/delete", ciTypeIdA).contentType(MediaType.APPLICATION_JSON)
+                .content(deleteJson))
+                .andExpect(jsonPath("$.statusCode", is("OK")));
+
+        mvc.perform(post("/api/v2/ci/{ciTypeId}/retrieve", ciTypeIdB).contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(jsonPath("$.statusCode", is("OK")))
+                .andExpect(jsonPath("$.data.contents", hasSize(2)));
+    }
+
     private void operateState(int ciTypeId, String guid, StateOperation operation) throws Exception {
         String url = "/api/v2/ci/state/operate?operation=" + operation.getCode();
         mvc.perform(post(url).contentType(MediaType.APPLICATION_JSON)

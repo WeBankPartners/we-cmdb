@@ -87,6 +87,7 @@
   "is_access_controlled": "Is Access Controlled",
   "is_nullable": "Is Nullable",
   "is_editable": "Is Editable",
+  "is_unique": "Is Unique",
   "is_auto": "Is Auto Fill",
   "auto_fill_rule": "Auto Fill Rule",
   "filter_rule": "Filter Rule",
@@ -232,5 +233,15 @@
   "header_title": "WeCMDB (Demo Version)",
   "home": "Home",
   "runnint_instance": "Running Instance",
-  "service": "Service"
+  "service": "Service",
+  "auto_fill_delete_node": "删除此节点",
+  "auto_fill_add_filter": "添加过滤条件",
+  "auto_fill_add_rule": "添加属性表达式",
+  "auto_fill_add_delimiter": "添加连接符",
+  "auto_fill_edit_delimiter": "编辑连接符",
+  "auto_fill_special_delimiter": "特殊连接符",
+  "auto_fill_change_special_delimiter": "更换特殊连接符",
+  "auto_fill_filter_modal_title": "过滤条件",
+  "auto_fill_filter_modal_button": "添加过滤条件",
+  "auto_fill_filter_placeholder": " <-- 点此开始编辑填充规则"
 }

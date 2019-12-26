@@ -59,6 +59,7 @@ import static com.webank.cmdb.util.SpecialSymbolUtils.getAfterSpecialSymbol;
 @Service
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class CiDataInterceptorService {
+    private static final String TARGET_DEFAULT_VALUE = "";
     private static final String TARGET_NAME = "targetName";
 
     @Autowired
@@ -273,7 +274,7 @@ public class CiDataInterceptorService {
     public void postCreate(DynamicEntityHolder entityHolder, Map<String, Object> updateCi, Map<Integer, DynamicEntityMeta> multRefMetaMap, EntityManager entityManager) {
         entityManager.flush();
         handleAutoFill(entityHolder, entityManager);
-
+        handleReferenceAutoFill(entityHolder, entityManager, updateCi);
         updateSeqNoForMultiReferenceFields(entityHolder, updateCi, entityManager);
     }
 
@@ -368,7 +369,7 @@ public class CiDataInterceptorService {
 		List<Map<String, Object>> contents = response.getContents();
         List<String> targetValues = new ArrayList<>();
         contents.forEach(content -> {
-            Object targetValue = content.get(TARGET_NAME) != null ? content.get(TARGET_NAME) : content.get("root$guid");
+            Object targetValue = content.get(TARGET_NAME) != null ? content.get(TARGET_NAME) : TARGET_DEFAULT_VALUE;
             if (targetValue != null) {
                 if (targetValue instanceof CatCodeDto) {
                     targetValues.add(getValueFromEnumCode(routines, targetValue));
@@ -667,8 +668,9 @@ public class CiDataInterceptorService {
         }
     }
 
-    public void postDelete(int ciTypeId, String guid, DynamicEntityMeta entityMeta) {
-
+    public void postDelete(DynamicEntityHolder entityHolder, EntityManager entityManager, int ciTypeId, String guid, DynamicEntityMeta entityMeta) {
+        //entityManager.flush();
+        //handleReferenceAutoFill(entityHolder, entityManager, entityHolder.getEntityBeanMap());
     }
 
 }
