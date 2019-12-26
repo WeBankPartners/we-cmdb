@@ -510,11 +510,12 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
     public void whenCreateCiDataWithGuidAsAutoFillLeaveThenShouldFillValueAsExpected() throws Exception {
         List<AutoFillItem> autoFillItems = new ArrayList<AutoFillItem>();
         autoFillItems.add(new AutoFillItem(AutoFillType.Rule.getCode(), "[{\"ciTypeId\":3},{\"ciTypeId\":3,\"parentRs\":{\"attrId\":27,\"isReferedFromParent\":1}}]"));
+        autoFillItems.add(new AutoFillItem(AutoFillType.Delimiter.getCode(), "_blank"));
 
         Integer attrIdOfKeyName = 28;
         updateCiAttrWithAutoFillRule(attrIdOfKeyName, JsonUtil.toJson(autoFillItems));
 
-        String expectedKeyName = "0003_0000000013";
+        String expectedKeyName = "_blank";
         Map<?, ?> jsonMap = ImmutableMap.builder()
                 .put("description", "test desc")
                 .put("name_en", "Test Sub System")
