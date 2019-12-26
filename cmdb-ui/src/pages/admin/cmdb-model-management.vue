@@ -683,6 +683,7 @@
                   <AutoFill
                     :allCiTypes="allCiTypesWithAttr"
                     :rootCiTypeId="item.ciTypeId"
+                    :specialDelimiters="specialDelimiters"
                     v-model="item.form.autoFillRule"
                     :disabled="item.form.status === 'decommissioned'"
                   ></AutoFill>
@@ -929,6 +930,7 @@
               <AutoFill
                 :allCiTypes="allCiTypesWithAttr"
                 :rootCiTypeId="currentSelectedCI.ciTypeId"
+                :specialDelimiters="specialDelimiters"
                 v-model="addNewAttrForm.autoFillRule"
               ></AutoFill>
             </FormItem>
@@ -1023,7 +1025,8 @@ import {
   implementCiType,
   implementCiAttr,
   updateEnumCode,
-  getEnumCategoriesByTypeId
+  getEnumCategoriesByTypeId,
+  getSpecialConnector
 } from "@/api/server";
 import STATUS_LIST from "@/const/graph-status-list.js";
 import { INPUT_TYPES, PROPERTY_TYPE_MAP } from "@/const/data-types.js";
@@ -1091,6 +1094,7 @@ export default {
       },
       allCiTypes: [],
       allCiTypesWithAttr: [],
+      specialDelimiters: [],
       allInputTypes: [],
       allReferenceTypes: [],
       selectedCIAttrIsSystem: false
@@ -1907,6 +1911,12 @@ export default {
         this.allCiTypesWithAttr = allCiTypesWithAttr;
       }
     },
+    async getSpecialConnector() {
+      const res = await getSpecialConnector();
+      if (res.statusCode === "OK") {
+        this.specialDelimiters = res.data
+      }
+    },
     async getAllInputTypesList() {
       const res = await getAllInputTypes();
       if (res.statusCode === "OK") {
@@ -1946,6 +1956,7 @@ export default {
     this.getAllReferenceTypesList();
     this.getTableStatusList();
     this.getAllCiTypeWithAttr();
+    this.getSpecialConnector();
   },
   computed: {
     setUploadActionHeader() {
