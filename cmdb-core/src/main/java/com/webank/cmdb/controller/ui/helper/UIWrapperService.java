@@ -474,6 +474,30 @@ public class UIWrapperService {
         }
         return ciService.query(ciTypeId, queryObject);
     }
+    
+    public QueryResponse<CiData> queryCiDataByType(Integer ciTypeId, QueryRequest queryObject) {
+    	if (queryObject == null) {
+    		queryObject = QueryRequest.defaultQueryObject().descendingSortBy(CmdbConstants.DEFAULT_FIELD_CREATED_DATE);
+    	} else if (queryObject.getSorting() == null || queryObject.getSorting().getField() == null) {
+        	queryObject.getDialect().setShowCiHistory(false);
+    		queryObject.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_CREATED_DATE));
+    	}
+    	queryObject.addNotEqualsFilter("state", uiProperties.getEnumIdOfStateDelete());
+    	QueryResponse<CiData> query = ciService.query(ciTypeId, queryObject);
+    	List<String> ciDataIds = new ArrayList<>();
+    	if(query.getContents()==null||query.getContents().size()<=0) {
+    		return query;
+    	}
+    	query.getContents().forEach(cidata -> {
+    		if(cidata.getData().get("fixed_date")==null) {
+    			ciDataIds.add((String)cidata.getData().get("p_guid"));
+    		}else {
+    			ciDataIds.add((String)cidata.getData().get("guid"));
+    		}
+    	});
+    	queryObject.addInFilter("guid", ciDataIds);
+    	return ciService.query(ciTypeId, queryObject);
+    }
 
     public List<Map<String, Object>> updateCiData(Integer ciTypeId, List<Map<String, Object>> ciData) {
         return ciService.update(ciTypeId, ciData);
