@@ -515,7 +515,7 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
         Integer attrIdOfKeyName = 28;
         updateCiAttrWithAutoFillRule(attrIdOfKeyName, JsonUtil.toJson(autoFillItems));
 
-        String expectedKeyName = "_blank";
+        String expectedKeyName = "0003_0000000013_blank";
         Map<?, ?> jsonMap = ImmutableMap.builder()
                 .put("description", "test desc")
                 .put("name_en", "Test Sub System")
