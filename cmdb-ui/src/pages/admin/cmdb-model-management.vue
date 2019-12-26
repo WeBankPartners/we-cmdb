@@ -1757,6 +1757,7 @@ export default {
       }
     },
     async addNewAttr(id) {
+      const isSelectOrRef = this.addNewAttrForm.inputType
       const payload = {
         ...this.addNewAttrForm,
         length: this.addNewAttrForm.length || 1,
@@ -1788,13 +1789,13 @@ export default {
       this.addNewAttrForm = {};
     },
     async saveAttr(ciTypeAttrId, form) {
+      const isSelectOrRef = form.inputType === "select" || form.inputType === "ref" || form.inputType === "multiSelect" || form.inputType === "multiRef"
       let payload = {
         ...form,
         length: form.length || 1,
         isRefreshable: form.isRefreshable === "yes",
         isDisplayed: form.isDisplayed === "yes",
-        isAccessControlled:
-          form.inputType === "text" && form.isAccessControlled === "yes",
+        isAccessControlled: isSelectOrRef && form.isAccessControlled === "yes",
         isNullable: form.isNullable === "yes",
         isAuto: form.isAuto === "yes",
         isEditable: form.isEditable === "yes",
@@ -1816,6 +1817,7 @@ export default {
       }
     },
     async applyAttr(ciTypeAttrId, form) {
+      const isSelectOrRef = form.inputType === "select" || form.inputType === "ref" || form.inputType === "multiSelect" || form.inputType === "multiRef"
       let updateRes = await updateCIAttr(
         this.currentSelectedCI.ciTypeId,
         ciTypeAttrId,
@@ -1824,8 +1826,7 @@ export default {
           length: form.length || 1,
           isRefreshable: form.isRefreshable === "yes",
           isDisplayed: form.isDisplayed === "yes",
-          isAccessControlled:
-            form.inputType === "text" && form.isAccessControlled === "yes",
+          isAccessControlled: isSelectOrRef && form.isAccessControlled === "yes",
           isNullable: form.isNullable === "yes",
           isAuto: form.isAuto === "yes",
           isEditable: form.isEditable === "yes",
