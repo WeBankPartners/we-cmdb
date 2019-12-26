@@ -2023,12 +2023,12 @@ public class CiServiceImpl implements CiService {
         MultiValueFeildOperationUtils.processMultValueFieldsForCloneCi(entityManager, entityMeta, newGuid, fromBeanMap, toEntityHolder, this);
 
         toEntityHolder.put(CmdbConstants.DEFAULT_FIELD_GUID, newGuid);
-        fromBeanMap.put(CmdbConstants.DEFAULT_FIELD_PARENT_GUID, newGuid);
 
         List<AdmCiTypeAttr> refreshableAttrs = ciTypeAttrRepository.findByCiTypeIdAndIsRefreshable(ciTypeId, 1);
         refreshableAttrs.forEach(attr -> {
             fromBeanMap.put(attr.getPropertyName(), null);
         });
+        fromBeanMap.put(CmdbConstants.DEFAULT_FIELD_PARENT_GUID, newGuid);
 
         entityManager.merge(fromBean);
         entityManager.persist(toEntityHolder.getEntityObj());
