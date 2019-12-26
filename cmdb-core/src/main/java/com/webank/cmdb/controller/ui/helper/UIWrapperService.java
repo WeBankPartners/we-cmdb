@@ -496,6 +496,7 @@ public class UIWrapperService {
     		}
     	});
     	queryObject.addInFilter("guid", ciDataIds);
+    	queryObject.getDialect().setShowCiHistory(true);
     	return ciService.query(ciTypeId, queryObject);
     }
 
