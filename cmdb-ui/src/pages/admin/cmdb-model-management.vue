@@ -274,9 +274,7 @@
               <Select v-model="addNewCITypeForm.imageFileId">
                 <img
                   v-if="addNewCITypeForm.imageFileId"
-                  :src="
-                    `${baseURL}/files/${addNewCITypeForm.imageFileId}.png`
-                  "
+                  :src="`${baseURL}/files/${addNewCITypeForm.imageFileId}.png`"
                   slot="prefix"
                   height="24"
                   width="24"
@@ -649,6 +647,20 @@
                     >
                   </RadioGroup>
                 </FormItem>
+                <FormItem prop="isUnique" :label="$t('is_unique')">
+                  <RadioGroup v-model="item.form.isUnique">
+                    <Radio
+                      :disabled="item.form.status === 'decommissioned'"
+                      label="yes"
+                      >Yes</Radio
+                    >
+                    <Radio
+                      :disabled="item.form.status === 'decommissioned'"
+                      label="no"
+                      >No</Radio
+                    >
+                  </RadioGroup>
+                </FormItem>
                 <FormItem prop="isAuto" :label="$t('is_auto')">
                   <RadioGroup v-model="item.form.isAuto">
                     <Radio
@@ -669,8 +681,9 @@
                   :label="$t('auto_fill_rule')"
                 >
                   <AutoFill
-                    :allLayers="source"
+                    :allCiTypes="allCiTypesWithAttr"
                     :rootCiTypeId="item.ciTypeId"
+                    :specialDelimiters="specialDelimiters"
                     v-model="item.form.autoFillRule"
                     :disabled="item.form.status === 'decommissioned'"
                   ></AutoFill>
@@ -897,6 +910,12 @@
                 <Radio label="no">No</Radio>
               </RadioGroup>
             </FormItem>
+            <FormItem prop="isUnique" :label="$t('is_unique')">
+              <RadioGroup v-model="addNewAttrForm.isUnique">
+                <Radio label="yes">Yes</Radio>
+                <Radio label="no">No</Radio>
+              </RadioGroup>
+            </FormItem>
             <FormItem prop="isAuto" :label="$t('is_auto')">
               <RadioGroup v-model="addNewAttrForm.isAuto">
                 <Radio label="yes">Yes</Radio>
@@ -909,8 +928,9 @@
               :label="$t('auto_fill_rule')"
             >
               <AutoFill
-                :allLayers="source"
+                :allCiTypes="allCiTypesWithAttr"
                 :rootCiTypeId="currentSelectedCI.ciTypeId"
+                :specialDelimiters="specialDelimiters"
                 v-model="addNewAttrForm.autoFillRule"
               ></AutoFill>
             </FormItem>
@@ -1005,7 +1025,8 @@ import {
   implementCiType,
   implementCiAttr,
   updateEnumCode,
-  getEnumCategoriesByTypeId
+  getEnumCategoriesByTypeId,
+  getSpecialConnector
 } from "@/api/server";
 import STATUS_LIST from "@/const/graph-status-list.js";
 import { INPUT_TYPES, PROPERTY_TYPE_MAP } from "@/const/data-types.js";
@@ -1068,9 +1089,12 @@ export default {
         isDisplayed: "no",
         isNullable: "no",
         isAuto: "no",
-        isEditable: "yes"
+        isEditable: "yes",
+        isUnique: "no"
       },
       allCiTypes: [],
+      allCiTypesWithAttr: [],
+      specialDelimiters: [],
       allInputTypes: [],
       allReferenceTypes: [],
       selectedCIAttrIsSystem: false
@@ -1101,6 +1125,7 @@ export default {
           isAuto: "no",
           isDisplayed: "no",
           isEditable: "yes",
+          isUnique: "no",
           isNullable: "no",
           isRefreshable: "no",
           searchSeqNo: 0
@@ -1188,6 +1213,7 @@ export default {
                       isNullable: j.isNullable ? "yes" : "no",
                       isAuto: j.isAuto ? "yes" : "no",
                       isEditable: j.isEditable ? "yes" : "no",
+                      isUnique: j.isUnique ? "yes" : "no",
                       searchSeqNo: j.searchSeqNo || 0
                     });
                   });
@@ -1230,9 +1256,7 @@ export default {
           layerTag += `"layer_${_.layerId}"`;
         }
         tempClusterObjForGraph[index] = [
-          `{ rank=same; "layer_${_.layerId}"[id="layerId_${
-            _.layerId
-          }",class="layer",label="${_.name}",tooltip="${_.name}"];`
+          `{ rank=same; "layer_${_.layerId}"[id="layerId_${_.layerId}",class="layer",label="${_.name}",tooltip="${_.name}"];`
         ];
         nodes.length > 0 &&
           nodes.forEach((node, nodeIndex) => {
@@ -1240,13 +1264,7 @@ export default {
               let fontcolor =
                 node.status === "notCreated" ? "#10a34e" : "black";
               tempClusterObjForGraph[index].push(
-                `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${
-                  node.name
-                }",tooltip="${
-                  node.name
-                }",class="ci",fontcolor="${fontcolor}", image="${
-                  node.form.imgSource
-                }.png", labelloc="b"]`
+                `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`
               );
             }
             if (nodeIndex === nodes.length - 1) {
@@ -1279,9 +1297,7 @@ export default {
     genEdge(nodes, from, to) {
       const target = nodes.find(_ => _.ciTypeId === to.referenceId);
       let labels = to.referenceName ? to.referenceName.trim() : "";
-      return `"ci_${from.ciTypeId}"->"ci_${
-        target.ciTypeId
-      }"[taillabel="${labels}",labeldistance=3];`;
+      return `"ci_${from.ciTypeId}"->"ci_${target.ciTypeId}"[taillabel="${labels}",labeldistance=3];`;
     },
     shadeAll() {
       d3.selectAll("g path")
@@ -1750,6 +1766,7 @@ export default {
         isNullable: this.addNewAttrForm.isNullable === "yes",
         isAuto: this.addNewAttrForm.isAuto === "yes",
         isEditable: this.addNewAttrForm.isEditable === "yes",
+        isUnique: this.addNewAttrForm.isUnique === "yes",
         callbackId: "10000001"
       };
       let res = await createNewCIAttr(this.currentSelectedCI.ciTypeId, payload);
@@ -1780,7 +1797,8 @@ export default {
           form.inputType === "text" && form.isAccessControlled === "yes",
         isNullable: form.isNullable === "yes",
         isAuto: form.isAuto === "yes",
-        isEditable: form.isEditable === "yes"
+        isEditable: form.isEditable === "yes",
+        isUnique: form.isUnique === "yes"
       };
       delete payload.status;
       delete payload.ciType;
@@ -1810,7 +1828,8 @@ export default {
             form.inputType === "text" && form.isAccessControlled === "yes",
           isNullable: form.isNullable === "yes",
           isAuto: form.isAuto === "yes",
-          isEditable: form.isEditable === "yes"
+          isEditable: form.isEditable === "yes",
+          isUnique: form.isUnique === "yes"
         }
       );
       if (updateRes.statusCode === "OK") {
@@ -1874,6 +1893,29 @@ export default {
         this.allCiTypes = res.data;
       }
     },
+    async getAllCiTypeWithAttr() {
+      const res = await getAllCITypesByLayerWithAttr([
+        "notCreated",
+        "created",
+        "decommissioned"
+      ]);
+      if (res.statusCode === "OK") {
+        let allCiTypesWithAttr = [];
+        res.data.forEach(layer => {
+          layer.ciTypes &&
+            layer.ciTypes.forEach(_ => {
+              allCiTypesWithAttr.push(_);
+            });
+        });
+        this.allCiTypesWithAttr = allCiTypesWithAttr;
+      }
+    },
+    async getSpecialConnector() {
+      const res = await getSpecialConnector();
+      if (res.statusCode === "OK") {
+        this.specialDelimiters = res.data
+      }
+    },
     async getAllInputTypesList() {
       const res = await getAllInputTypes();
       if (res.statusCode === "OK") {
@@ -1899,11 +1941,11 @@ export default {
       }
     },
     reRenderGraph() {
-      this.nodeName = ""
-      this.currentSelectedLayer = {}
-      this.currentSelectedCI = {}
+      this.nodeName = "";
+      this.currentSelectedLayer = {};
+      this.currentSelectedCI = {};
       this.getAllCITypesList();
-      this.initGraph()
+      this.initGraph();
     }
   },
   mounted() {
@@ -1912,6 +1954,8 @@ export default {
     this.getAllInputTypesList();
     this.getAllReferenceTypesList();
     this.getTableStatusList();
+    this.getAllCiTypeWithAttr();
+    this.getSpecialConnector();
   },
   computed: {
     setUploadActionHeader() {
