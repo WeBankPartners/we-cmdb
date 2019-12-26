@@ -1,13 +1,14 @@
 import "./auto-fill.scss";
-import { getRefCiTypeFrom, getCiTypeAttr } from "@/api/server.js";
+import { getRefCiTypeFrom, getCiTypeAttr, getSpecialConnector } from "@/api/server.js";
 
 export default {
   name: "autoFill",
   props: {
     allCiTypes: { default: () => [], required: true },
     isReadOnly: { default: () => false, required: false },
-    value: { default: () => [], required: true },
-    rootCiTypeId: { type: Number, required: true }
+    value: { default: () => "", required: true },
+    rootCiTypeId: { type: Number, required: true },
+    specialDelimiters: { default: () => [], required: true }
   },
   data() {
     return {
@@ -73,10 +74,12 @@ export default {
         !this.isReadOnly && this.renderOptions(),
         this.autoFillArray.map((_, i) => {
           switch (_.type) {
-            case 'rule':
+            case "rule":
               return this.renderExpression(_, i)
-            case 'delimiter':
+            case "delimiter":
               return this.renderDelimiter(_.value, i)
+            case "specialDelimiter":
+              return this.renderSpecialDelimiter(_.value, i)
             default:
               break;
           }
@@ -115,6 +118,10 @@ export default {
       }
       if (e.target.className.indexOf("auto-fill-span") >= 0) {
         const ruleIndex = e.target.getAttribute("index")
+        if (e.target.className.indexOf("auto-fill-special-delimiter") >= 0) {
+          this.showSpecialOptions(ruleIndex)
+          return
+        }
         let attrIndex = null
         if (e.target.hasAttribute("attr-index")) {
           attrIndex = e.target.getAttribute("attr-index")
@@ -140,16 +147,56 @@ export default {
         class: "auto-fill-li",
         nodeName: this.$t("auto_fill_add_delimiter"),
         fn: () => this.addRule("delimiter")
+      }, {
+        type: "option",
+        class: "auto-fill-li",
+        nodeName: this.$t("auto_fill_special_delimiter"),
+        fn: () => this.addRule("specialDelimiter")
       })
     },
     addRule(type) {
       this.options = []
-      this.autoFillArray.push({
-        type,
-        value: type === "rule" ? JSON.stringify([{ciTypeId: this.rootCiTypeId}]) : ""
+      switch (type) {
+        case "rule":
+          this.autoFillArray.push({
+            type,
+            value: JSON.stringify([{ciTypeId: this.rootCiTypeId}])
+          })
+          this.optionsDisplay = false
+          break;
+        case "delimiter":
+          this.autoFillArray.push({
+            type,
+            value: ""
+          })
+          this.activeDelimiterIndex = (this.autoFillArray.length - 1) + ""
+          this.optionsDisplay = false
+          break;
+        case "specialDelimiter":
+          this.getSpecialConnector()
+          break;
+        default:
+          break;
+      }
+    },
+    // 特殊连接符
+    getSpecialConnector() {
+      this.specialDelimiters.forEach(_ => {
+        this.options.push({
+          type: "option",
+          class: "auto-fill-li auto-fill-li-special-delimiter",
+          nodeName: _.value,
+          fn: () => {
+            this.autoFillArray.push({
+              type: "specialDelimiter",
+              value: _.code
+            })
+            this.options = []
+            this.optionsDisplay = false
+            this.handleInput()
+          }
+        })
       })
-      this.activeDelimiterIndex = (this.autoFillArray.length - 1) + ""
-      this.optionsDisplay = false
     },
     showRuleOptions(ruleIndex, attrIndex) {
       this.options = []
@@ -190,6 +237,20 @@ export default {
       } else if (node.parentRs && this.ciTypeAttrsObj[node.parentRs.attrId].inputType === "select" || this.ciTypeAttrsObj[node.parentRs.attrId].inputType === "multiSelect") {
         this.showEnumOptions(ruleIndex, attrIndex)
       }
+    },
+    showSpecialOptions(ruleIndex) {
+      this.options = [{
+        type: "option",
+        class: "auto-fill-li auto-fill-li-delete",
+        nodeName: this.$t("auto_fill_delete_node"),
+        fn: () => this.deleteNode(ruleIndex)
+      }, {
+        type: "option",
+        class: "auto-fill-li auto-fill-li-change-special-delimiter",
+        nodeName: this.$t("auto_fill_change_special_delimiter"),
+        fn: () => this.changeSpecialDelimiterNode(ruleIndex)
+      }]
+      this.optionsDisplay = true
     },
     async getRefData(ruleIndex, attrIndex, ciTypeId) {
       this.currentRule = ruleIndex
@@ -274,7 +335,7 @@ export default {
         if (attrIndex === "0") {
           // 删除该属性表达式（即该花括号内的内容）
           this.autoFillArray.splice(ruleIndex, 1)
-          if (ruleIndex !== "0" && this.autoFillArray[+ruleIndex - 1].type === "delimiter" && this.autoFillArray[ruleIndex].type === "delimiter") {
+          if (ruleIndex !== "0" && this.autoFillArray[+ruleIndex - 1].type === "delimiter" && this.autoFillArray[ruleIndex] && this.autoFillArray[ruleIndex].type === "delimiter") {
             this.autoFillArray[+ruleIndex - 1].value += this.autoFillArray[ruleIndex].value
             this.autoFillArray.splice(ruleIndex, 1)
           }
@@ -287,6 +348,26 @@ export default {
         }
       }
       this.optionsDisplay = false
+    },
+    // 点击更换特殊连接符节点
+    changeSpecialDelimiterNode(ruleIndex) {
+      this.options = []
+      this.specialDelimiters.forEach(_ => {
+        this.options.push({
+          type: "option",
+          class: "auto-fill-li auto-fill-li-special-delimiter",
+          nodeName: _.value,
+          fn: () => {
+            this.autoFillArray.splice(+ruleIndex, 1, {
+              type: "specialDelimiter",
+              value: _.code
+            })
+            this.options = []
+            this.optionsDisplay = false
+            this.handleInput()
+          }
+        })
+      })
     },
     editDelimiter(ruleIndex) {
       this.activeDelimiterIndex = ruleIndex
@@ -436,6 +517,7 @@ export default {
       // type === delimiter 时，连接符
       let result = null
       if (this.activeDelimiterIndex === i + "") {
+        this.activeDelimiterValue = val
         result = (
           <Input
             ref="delimiterInput"
@@ -460,6 +542,20 @@ export default {
         ]
       }
       return result
+    },
+    renderSpecialDelimiter(value, i) {
+      return [
+        <span style="margin-left:5px;"></span>,
+        value.split("").map(_ => {
+          return (
+            <span
+              class={`auto-fill-span auto-fill-special-delimiter${this.hoverSpan === i + "" ? " hover" : ""}`}
+              index={i}
+            >{ this.specialDelimiters.find(item => item.code === value).value }</span>
+          )
+        }),
+        <span style="margin-right:5px;"></span>
+      ]
     },
     // 连接符输入框失焦或按回车时，需要更新 this.autoFillArray
     confirmDelimiter(i) {
@@ -621,7 +717,24 @@ export default {
     handleInput() {
       this.$nextTick(() => {
         const value = this.autoFillArray.length ? JSON.stringify(this.autoFillArray) : ""
-        if (!document.getElementsByClassName("auto-fill-error").length) {
+        let isLegal = true
+        this.autoFillArray.forEach(_ => {
+          if (_.type === "rule") {
+            const ruleArray = JSON.parse(_.value)
+            const lastNode = ruleArray[ruleArray.length - 1]
+            const lastAttrId = ruleArray[ruleArray.length - 1].parentRs ? ruleArray[ruleArray.length - 1].parentRs.attrId : 0
+            if (lastNode.parentRs) {
+              if (this.ciTypeAttrsObj[lastAttrId].inputType === "ref" || this.ciTypeAttrsObj[lastAttrId].inputType === "multiRef") {
+                isLegal = false
+              } else if (this.ciTypeAttrsObj[lastAttrId].inputType === "select" || this.ciTypeAttrsObj[lastAttrId].inputType === "multiSelect") {
+                if (!lastNode.enumCodeAttr) {
+                  isLegal = false
+                }
+              }
+            }
+          }
+        })
+        if (isLegal) {
           this.$emit("input", value)
         }
       })
