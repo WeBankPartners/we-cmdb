@@ -432,9 +432,11 @@ export default {
     },
     async onArchFixVersion() {
       if (this.systemDesignVersion === "") return;
-      const { statusCode, message, data } = await saveAllDesignTreeFromSystemDesign(
-        this.systemDesignVersion
-      );
+      const {
+        statusCode,
+        message,
+        data
+      } = await saveAllDesignTreeFromSystemDesign(this.systemDesignVersion);
       if (statusCode === "OK") {
         this.queryCiData();
         this.$Notice.success({
@@ -473,9 +475,11 @@ export default {
       this.getPhysicalGraphData();
     },
     async getAllDesignTreeFromSystemDesign() {
-      const { statusCode, message, data } = await getAllDesignTreeFromSystemDesign(
-        this.systemDesignVersion
-      );
+      const {
+        statusCode,
+        message,
+        data
+      } = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion);
       if (statusCode === "OK") {
         this.getAllInvokeSequenceData();
         this.systemDesignData = data ? data : [];
@@ -511,9 +515,11 @@ export default {
     async querySysTree() {
       if (this.systemDesignVersion === "") return;
       this.spinShow = true;
-      const { statusCode, message, data } = await getAllDesignTreeFromSystemDesign(
-        this.systemDesignVersion
-      );
+      const {
+        statusCode,
+        message,
+        data
+      } = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion);
       if (statusCode === "OK") {
         this.spinShow = false;
         this.systemDesignData = data ? data : [];
@@ -659,11 +665,7 @@ export default {
             color = stateColorMap.get(line.data.state.code);
           }
           this.invokeLines.push(
-            `gn_${line.data.unit_design.guid} -> gn_${
-              line.data.service_design.guid
-            } [id="gl_${line.guid}",color="${color}",taillabel="${
-              line.data.type.value
-            }", labeldistance=3];`
+            `gn_${line.data.unit_design.guid} -> gn_${line.data.service_design.guid} [id="gl_${line.guid}",color="${color}",taillabel="${line.data.type.value}", labeldistance=3];`
           );
           this.physicalGraphLineNodes.serviceDesign[
             line.data.service_design.guid
