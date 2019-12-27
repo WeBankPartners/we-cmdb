@@ -683,6 +683,7 @@
                   <AutoFill
                     :allCiTypes="allCiTypesWithAttr"
                     :rootCiTypeId="item.ciTypeId"
+                    :specialDelimiters="specialDelimiters"
                     v-model="item.form.autoFillRule"
                     :disabled="item.form.status === 'decommissioned'"
                   ></AutoFill>
@@ -929,6 +930,7 @@
               <AutoFill
                 :allCiTypes="allCiTypesWithAttr"
                 :rootCiTypeId="currentSelectedCI.ciTypeId"
+                :specialDelimiters="specialDelimiters"
                 v-model="addNewAttrForm.autoFillRule"
               ></AutoFill>
             </FormItem>
@@ -1023,7 +1025,8 @@ import {
   implementCiType,
   implementCiAttr,
   updateEnumCode,
-  getEnumCategoriesByTypeId
+  getEnumCategoriesByTypeId,
+  getSpecialConnector
 } from "@/api/server";
 import STATUS_LIST from "@/const/graph-status-list.js";
 import { INPUT_TYPES, PROPERTY_TYPE_MAP } from "@/const/data-types.js";
@@ -1091,6 +1094,7 @@ export default {
       },
       allCiTypes: [],
       allCiTypesWithAttr: [],
+      specialDelimiters: [],
       allInputTypes: [],
       allReferenceTypes: [],
       selectedCIAttrIsSystem: false
@@ -1753,6 +1757,7 @@ export default {
       }
     },
     async addNewAttr(id) {
+      const isSelectOrRef = this.addNewAttrForm.inputType;
       const payload = {
         ...this.addNewAttrForm,
         length: this.addNewAttrForm.length || 1,
@@ -1784,13 +1789,17 @@ export default {
       this.addNewAttrForm = {};
     },
     async saveAttr(ciTypeAttrId, form) {
+      const isSelectOrRef =
+        form.inputType === "select" ||
+        form.inputType === "ref" ||
+        form.inputType === "multiSelect" ||
+        form.inputType === "multiRef";
       let payload = {
         ...form,
         length: form.length || 1,
         isRefreshable: form.isRefreshable === "yes",
         isDisplayed: form.isDisplayed === "yes",
-        isAccessControlled:
-          form.inputType === "text" && form.isAccessControlled === "yes",
+        isAccessControlled: isSelectOrRef && form.isAccessControlled === "yes",
         isNullable: form.isNullable === "yes",
         isAuto: form.isAuto === "yes",
         isEditable: form.isEditable === "yes",
@@ -1812,6 +1821,11 @@ export default {
       }
     },
     async applyAttr(ciTypeAttrId, form) {
+      const isSelectOrRef =
+        form.inputType === "select" ||
+        form.inputType === "ref" ||
+        form.inputType === "multiSelect" ||
+        form.inputType === "multiRef";
       let updateRes = await updateCIAttr(
         this.currentSelectedCI.ciTypeId,
         ciTypeAttrId,
@@ -1821,7 +1835,7 @@ export default {
           isRefreshable: form.isRefreshable === "yes",
           isDisplayed: form.isDisplayed === "yes",
           isAccessControlled:
-            form.inputType === "text" && form.isAccessControlled === "yes",
+            isSelectOrRef && form.isAccessControlled === "yes",
           isNullable: form.isNullable === "yes",
           isAuto: form.isAuto === "yes",
           isEditable: form.isEditable === "yes",
@@ -1906,6 +1920,12 @@ export default {
         this.allCiTypesWithAttr = allCiTypesWithAttr;
       }
     },
+    async getSpecialConnector() {
+      const res = await getSpecialConnector();
+      if (res.statusCode === "OK") {
+        this.specialDelimiters = res.data;
+      }
+    },
     async getAllInputTypesList() {
       const res = await getAllInputTypes();
       if (res.statusCode === "OK") {
@@ -1945,6 +1965,7 @@ export default {
     this.getAllReferenceTypesList();
     this.getTableStatusList();
     this.getAllCiTypeWithAttr();
+    this.getSpecialConnector();
   },
   computed: {
     setUploadActionHeader() {

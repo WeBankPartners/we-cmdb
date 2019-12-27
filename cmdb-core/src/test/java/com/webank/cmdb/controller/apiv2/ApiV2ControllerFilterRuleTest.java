@@ -6,13 +6,10 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 
 import com.google.common.collect.ImmutableList;
@@ -229,11 +226,4 @@ public class ApiV2ControllerFilterRuleTest extends AbstractBaseControllerTest {
                 .andExpect(jsonPath("$.data[0].filterRule", is(referenceFilterRule)));
     }
 
-    private String readJsonFromFile(String filePath) throws IOException {
-        ClassPathResource resource = new ClassPathResource(filePath);
-        if (resource.exists()) {
-            return new String(IOUtils.toString(resource.getInputStream()));
-        }
-        return null;
-    }
 }
