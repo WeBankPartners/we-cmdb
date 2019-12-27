@@ -490,7 +490,10 @@ public class UIWrapperService {
     	}
     	query.getContents().forEach(cidata -> {
     		if(cidata.getData().get("fixed_date")==null) {
-    			ciDataIds.add((String)cidata.getData().get("p_guid"));
+                String p_guid = (String)cidata.getData().get("p_guid");
+    		    if(StringUtils.isNotBlank(p_guid)) {
+    		        ciDataIds.add(p_guid);
+    		    }
     		}else {
     			ciDataIds.add((String)cidata.getData().get("guid"));
     		}
