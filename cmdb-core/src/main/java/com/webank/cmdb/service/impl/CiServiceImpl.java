@@ -46,6 +46,8 @@ import javax.transaction.Transactional;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
+import org.hibernate.proxy.HibernateProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -588,8 +590,12 @@ public class CiServiceImpl implements CiService {
                     }
                     ciMap.put(fieldName, enrichMulSels);
                 } else if (fieldNode.isJoinNode() && DynamicEntityType.MultiReference.equals(fieldNode.getEntityType()) && Strings.isNullOrEmpty(fieldNode.getMappedBy())) {
-                    Set<Map> referCis = (Set<Map>) value;
+                    Set<Object> referCis = (Set<Object>) value;
                     attr = attrMap.get(attrId);
+                    if(InputType.MultRef.getCode().equals(attr.getInputType())) {
+                        referCis = fetchCiDomainObjForMultRef(attr, referCis);
+                    }
+                    
                     DynamicEntityMeta multRefMeta = multRefMetaMap.get(attrId);
                     Map<String, Integer> sortMap = JpaQueryUtils.getSortedMapForMultiRef(entityManager, attr, multRefMeta);
     
@@ -604,7 +610,26 @@ public class CiServiceImpl implements CiService {
         return ciMap;
     }
 
-    private List getSortedMultRefList(Set<Map> referCis, Map<String, Integer> sortMap) {
+    private Set<Object> fetchCiDomainObjForMultRef(AdmCiTypeAttr attr, Set<Object> referCis) {
+        Integer refCiTypeId = attr.getReferenceId();
+        DynamicEntityMeta refEntityMeta = dynamicEntityMetaMap.get(refCiTypeId);
+        Class refEntityClzz = refEntityMeta.getEntityClazz();
+        if(refEntityClzz != null) {
+            Set<Object> realReferCis = new HashSet<Object>();
+            referCis.forEach(elem -> {
+                if(elem instanceof HibernateProxy) {
+                    Object domainObj = ((HibernateProxy) elem).getHibernateLazyInitializer().getImplementation();
+                    realReferCis.add(domainObj);
+                }else {
+                    realReferCis.add(elem);
+                }
+            });
+            referCis = realReferCis;
+        }
+        return referCis;
+    }
+
+    private List getSortedMultRefList(Set<Object> referCis, Map<String, Integer> sortMap) {
         List ciList = Lists.newLinkedList();
         for (Object ci : referCis) {
             ciList.add(ci);
@@ -1198,15 +1223,15 @@ public class CiServiceImpl implements CiService {
     public void doDelete(EntityManager entityManager, int ciTypeId, String guid, boolean enableStateTransition) {
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
         Object entityBean = validateCi(ciTypeId, guid, entityMeta, entityManager, ACTION_REMOVAL);
+        DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
         if (enableStateTransition) {
             ciDataInterceptorService.preDelete(ciTypeId, guid, true, entityMeta);
-            DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
             this.stateTransEngine.process(entityManager, ciTypeId, guid, StateOperation.Delete.getCode(), null, entityHolder);
         } else {
             ciDataInterceptorService.preDelete(ciTypeId, guid, false, entityMeta);
             entityManager.remove(entityBean);
         }
-        ciDataInterceptorService.postDelete(ciTypeId, guid, entityMeta);
+        ciDataInterceptorService.postDelete(entityHolder, entityManager, ciTypeId, guid, entityMeta);
     }
 
     @Override

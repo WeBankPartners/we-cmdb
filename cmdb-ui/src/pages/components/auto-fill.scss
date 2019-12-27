@@ -14,6 +14,10 @@
     }
   }
 
+  &-special-delimiter {
+    font-weight: 600;
+  }
+
   &-placeholder {
     color: #aaa;
   }
@@ -47,10 +51,10 @@
     width: 100%;
 
     &-ref-from {
-      background-color: #b5d8b5;
+      color: rgb(22, 206, 22);
     }
     &-ref-to {
-      background-color: #d88383;
+      color: rgb(206, 13, 13);
     }
 
     &:hover {
