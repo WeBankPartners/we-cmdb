@@ -238,7 +238,10 @@ export const queryCiData = data => {
   return req.post(`/ci-types/${data.id}/ci-data/query`, data.queryObject);
 };
 export const queryCiDataByType = data => {
-  return req.post(`/ci-types/${data.id}/ci-data/queryByType`, data.queryObject);
+  return req.post(
+    `/ci-types/${data.id}/ci-data/query-by-type`,
+    data.queryObject
+  );
 };
 export const getCiTypeAttributes = id => {
   return req.get(`/ci-types/${id}/attributes`);
