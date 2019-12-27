@@ -944,7 +944,9 @@ public class UIWrapperService {
     }
 
     public Object getSystemDesigns() {
-        return queryCiData(uiProperties.getCiTypeIdOfSystemDesign(), defaultQueryObject());
+        QueryRequest defaultQueryObject = defaultQueryObject();
+        defaultQueryObject.getDialect().setShowCiHistory(true);
+        return queryCiData(uiProperties.getCiTypeIdOfSystemDesign(), defaultQueryObject);
     }
 
     public List<ResourceTreeDto> getAllDesignTreesFromSystemDesign(String systemDesignGuid) {
