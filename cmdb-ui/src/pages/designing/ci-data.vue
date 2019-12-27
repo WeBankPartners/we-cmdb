@@ -57,8 +57,8 @@
           type="datetime"
           format="yyyy-MM-dd HH:mm"
           :options="options"
-          v-model="queryDate"
-          @on-change="handleQueryEmit"
+          :value="queryDate"
+          @on-change="handleDateChange"
         />
         <div class="label">{{ $t("query_type") }}</div>
         <Select v-model="queryType" @on-change="handleQueryEmit">
@@ -140,6 +140,30 @@ export default {
     }
   },
   methods: {
+    handleDateChange(date) {
+      if (date !== "") {
+        if (
+          moment(date).isSame(moment(), "day") &&
+          (this.queryDate === null ||
+            !moment(date).isSame(moment(this.queryDate), "day"))
+        ) {
+          this.queryDate = moment().format("YYYY-MM-DD HH:mm");
+        } else if (
+          moment(date).isBefore(moment(), "day") &&
+          (this.queryDate === null ||
+            !moment(date).isSame(moment(this.queryDate), "day"))
+        ) {
+          this.queryDate = moment(date)
+            .endOf("day")
+            .format("YYYY-MM-DD HH:mm");
+        } else {
+          this.queryDate = date;
+        }
+      } else {
+        this.queryDate = date;
+      }
+      this.handleQueryEmit();
+    },
     handleQueryEmit() {
       let dateObjIdx = this.payload.filters.findIndex(
         x => x.name === "updated_date"
