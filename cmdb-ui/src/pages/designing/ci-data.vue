@@ -362,7 +362,7 @@ export default {
                 : deepClone(
                     innerActions.concat(await getExtraInnerActions()).concat([
                       {
-                        label: "对比",
+                        label: this.$t("compare"),
                         props: {
                           type: "info",
                           size: "small"
