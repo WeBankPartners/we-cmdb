@@ -36,6 +36,20 @@
           tableHeight="650"
           :ref="'table' + ci.id"
         ></WeCMDBTable>
+        <Modal
+          footer-hide
+          v-model="compareVisible"
+          width="90"
+          class-name="compare-modal"
+        >
+          <Table
+            :columns="
+              ci.tableColumns.filter(x => x.isDisplayed || x.displaySeqNo)
+            "
+            :data="compareData"
+            border
+          />
+        </Modal>
       </TabPane>
       <div slot="extra" class="history-query">
         <div class="label">{{ $t("updated_time") }}</div>
@@ -83,6 +97,7 @@ import {
 } from "@/const/actions.js";
 import { formatData } from "../util/format.js";
 import { getExtraInnerActions } from "../util/state-operations.js";
+import { deepClone } from "../util/common-func.js";
 const defaultCiTypePNG = require("@/assets/ci-type-default.png");
 export default {
   data() {
@@ -105,6 +120,8 @@ export default {
       layers: [],
       graph: {},
       ciTypesName: {},
+      compareVisible: false,
+      compareData: [],
       options: {
         disabledDate(date) {
           return date && date.valueOf() > Date.now();
@@ -396,10 +413,18 @@ export default {
             innerActions:
               this.$route.name === "ciDataEnquiry"
                 ? null
-                : JSON.parse(
-                    JSON.stringify(
-                      innerActions.concat(await getExtraInnerActions())
-                    )
+                : deepClone(
+                    innerActions.concat(await getExtraInnerActions()).concat([
+                      {
+                        label: this.$t("compare"),
+                        props: {
+                          type: "info",
+                          size: "small"
+                        },
+                        actionType: "compare",
+                        isDisabled: row => !row.weTableForm.p_guid
+                      }
+                    ])
                   ),
             tableColumns: [],
             pagination: JSON.parse(JSON.stringify(pagination)),
@@ -488,9 +513,54 @@ export default {
         case "innerCancel":
           this.$refs[this.tableRef][0].rowCancelHandler(data.weTableRowId);
           break;
+        case "compare":
+          this.compareHandler(data);
+          break;
         default:
           this.defaultHandler(type, data);
           break;
+      }
+    },
+    async compareHandler(row) {
+      this.compareVisible = true;
+      const query = {
+        id: this.currentTab,
+        queryObject: {
+          dialect: { showCiHistory: true },
+          filters: [
+            {
+              name: "guid",
+              operator: "in",
+              value: [row.weTableForm.guid, row.weTableForm.p_guid]
+            }
+          ]
+        }
+      };
+      const { statusCode, message, data } = await queryCiData(query);
+      if (statusCode === "OK") {
+        this.compareData =
+          data && data.contents && data.contents.map(x => x.data);
+        this.compareData = this.compareData
+          .map(x => {
+            for (let k in x) {
+              if (typeof x[k] === "object" && x[k] !== null) x[k] = x[k].value;
+            }
+            return x;
+          })
+          .map((x, idx) => {
+            if (x.guid === row.weTableForm.guid) {
+              x.cellClassName = {};
+              for (let k in x) {
+                if (
+                  this.compareData[1 - idx] &&
+                  x[k] !== this.compareData[1 - idx][k]
+                ) {
+                  x.cellClassName[k] = "highlight";
+                }
+              }
+            }
+            return x;
+          });
       }
     },
     sortHandler(data) {
@@ -828,6 +898,13 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+/deep/ .compare-modal .ivu-modal-body {
+  padding-top: 40px;
+}
+/deep/ .ivu-table td.highlight {
+  color: rgba(#ff6600, 0.9);
+}
+
 .history-query {
   display: flex;
   flex-flow: row nowrap;

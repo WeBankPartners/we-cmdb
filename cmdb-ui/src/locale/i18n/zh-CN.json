@@ -123,6 +123,7 @@
   "select_placeholder": "请选择",
   "new": "新增",
   "execute": "执行",
+  "compare": "对比",
   "add_permission_success": "新增权限成功",
   "update_permission_success": "更新权限成功",
   "delete_permission_success": "删除权限成功",
