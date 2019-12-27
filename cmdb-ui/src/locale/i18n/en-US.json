@@ -123,6 +123,7 @@
   "select_placeholder": "Please select",
   "new": "New",
   "execute": "Execute",
+  "compare": "Compare",
   "add_permission_success": "Permission added successfully",
   "update_permission_success": "Permission updated successfully",
   "delete_permission_success": "Permission deleted successfully",
