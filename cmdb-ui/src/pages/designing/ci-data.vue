@@ -41,7 +41,7 @@
         <div class="label">更新时间</div>
         <DatePicker
           type="datetime"
-          format="yyyy/MM/dd HH:mm"
+          format="yyyy-MM-dd HH:mm"
           :options="options"
           v-model="queryDate"
           @on-change="handleQueryEmit"
@@ -125,7 +125,7 @@ export default {
   methods: {
     handleQueryEmit() {
       let dateObjIdx = this.payload.filters.findIndex(
-        x => x.name === "update_date"
+        x => x.name === "updated_date"
       );
       if (!this.queryDate) {
         if (~dateObjIdx) this.payload.filters.splice(dateObjIdx, 1);
@@ -136,9 +136,9 @@ export default {
           this.payload.filters = filters;
         } else {
           this.payload.filters.push({
-            name: "update_date",
-            operator: "eq",
-            value: moment(this.queryDate).valueOf()
+            name: "updated_date",
+            operator: "lt",
+            value: moment(this.queryDate).format("YYYY-MM-DD HH:mm:ss")
           });
         }
       }
