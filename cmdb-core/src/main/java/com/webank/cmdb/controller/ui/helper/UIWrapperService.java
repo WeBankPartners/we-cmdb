@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,7 +97,7 @@ public class UIWrapperService {
     private FilterRuleService filterRuleService;
     @Autowired
     private BaseKeyInfoService baseKeyInfoService;
-    
+
     public void swapCiTypeLayerPosition(int layerId, int targetLayerId) {
         CatCodeDto enumCode = getEnumCodeById(layerId);
         CatCodeDto targetEnumCode = getEnumCodeById(targetLayerId);
@@ -226,7 +227,7 @@ public class UIWrapperService {
         if (catCode.getCatId().equals(getLayerCategoryId())) {
             catCode.setSeqNo(getMaxLayerSeqNumber() + 1);
         }
-        
+
         if (catCode.getGroupCodeId() != null && !(catCode.getGroupCodeId() instanceof Integer)) {
             catCode.setGroupCodeId(null);
         }
@@ -378,8 +379,8 @@ public class UIWrapperService {
     public List<CatCodeDto> updateEnumCodes(List<Map<String, Object>> catCodeDtos) {
         catCodeDtos.forEach(dto -> {
             dto.remove("ciTypes");
-            Object groupCodeId= dto.get("groupCodeId");
-            if (groupCodeId!=null && !(groupCodeId instanceof Integer)) {
+            Object groupCodeId = dto.get("groupCodeId");
+            if (groupCodeId != null && !(groupCodeId instanceof Integer)) {
                 dto.remove("groupCodeId");
             }
         });
@@ -474,33 +475,33 @@ public class UIWrapperService {
         }
         return ciService.query(ciTypeId, queryObject);
     }
-    
+
     public QueryResponse<CiData> queryCiDataByType(Integer ciTypeId, QueryRequest queryObject) {
-    	if (queryObject == null) {
-    		queryObject = QueryRequest.defaultQueryObject().descendingSortBy(CmdbConstants.DEFAULT_FIELD_CREATED_DATE);
-    	} else if (queryObject.getSorting() == null || queryObject.getSorting().getField() == null) {
-        	queryObject.getDialect().setShowCiHistory(false);
-    		queryObject.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_CREATED_DATE));
-    	}
-    	queryObject.addNotEqualsFilter("state", uiProperties.getEnumIdOfStateDelete());
-    	QueryResponse<CiData> query = ciService.query(ciTypeId, queryObject);
-    	List<String> ciDataIds = new ArrayList<>();
-    	if(query.getContents()==null||query.getContents().size()<=0) {
-    		return query;
-    	}
-    	query.getContents().forEach(cidata -> {
-    		if(cidata.getData().get("fixed_date")==null) {
-                String p_guid = (String)cidata.getData().get("p_guid");
-    		    if(StringUtils.isNotBlank(p_guid)) {
-    		        ciDataIds.add(p_guid);
-    		    }
-    		}else {
-    			ciDataIds.add((String)cidata.getData().get("guid"));
-    		}
-    	});
-    	queryObject.addInFilter("guid", ciDataIds);
-    	queryObject.getDialect().setShowCiHistory(true);
-    	return ciService.query(ciTypeId, queryObject);
+        if (queryObject == null) {
+            queryObject = QueryRequest.defaultQueryObject().descendingSortBy(CmdbConstants.DEFAULT_FIELD_CREATED_DATE);
+        } else if (queryObject.getSorting() == null || queryObject.getSorting().getField() == null) {
+            queryObject.getDialect().setShowCiHistory(false);
+            queryObject.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_CREATED_DATE));
+        }
+        queryObject.addNotEqualsFilter("state", uiProperties.getEnumIdOfStateDelete());
+        QueryResponse<CiData> query = ciService.query(ciTypeId, queryObject);
+        List<String> ciDataIds = new ArrayList<>();
+        if (query.getContents() == null || query.getContents().size() <= 0) {
+            return query;
+        }
+        query.getContents().forEach(cidata -> {
+            if (cidata.getData().get("fixed_date") == null) {
+                String p_guid = (String) cidata.getData().get("p_guid");
+                if (StringUtils.isNotBlank(p_guid)) {
+                    ciDataIds.add(p_guid);
+                }
+            } else {
+                ciDataIds.add((String) cidata.getData().get("guid"));
+            }
+        });
+        queryObject.addInFilter("guid", ciDataIds);
+        queryObject.getDialect().setShowCiHistory(true);
+        return ciService.query(ciTypeId, queryObject);
     }
 
     public List<Map<String, Object>> updateCiData(Integer ciTypeId, List<Map<String, Object>> ciData) {
@@ -1062,21 +1063,21 @@ public class UIWrapperService {
     public Object getArchitectureDesignTabs() {
         return getEnumCodesByCategoryName(uiProperties.getCatNameOfArchitectureDesign());
     }
-    
+
     public Object getPlanningDesignTabs() {
         return getEnumCodesByCategoryName(uiProperties.getCatNameOfPlanningDesign());
     }
-    
+
     public Object getResourcePlanningTabs() {
         return getEnumCodesByCategoryName(uiProperties.getCatNameOfResoursePlanning());
     }
-    
+
     public Object getArchitectureCiData(Integer codeId, String systemDesignGuid, QueryRequest queryObject) {
         Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystemDesign();
         return getCiData(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId);
     }
 
-    private Object getCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject,int systemDesignCiTypeId) {
+    private Object getCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject, int systemDesignCiTypeId) {
         List<String> guid = Arrays.asList(systemDesignGuid.split(","));
         CatCodeDto code = getEnumCodeById(codeId);
         Integer ciTypeId = Integer.parseInt(code.getCode());
@@ -1127,7 +1128,7 @@ public class UIWrapperService {
         QueryRequest queryRequest = new QueryRequest();
         List<Filter> filters = new ArrayList<Filter>();
         String enumPorpertyNameOfEnv = getEnumPropertyNameByCiTypeId(rootCiTypeId, envEnumCat);
-        
+
         if (envEnumCode != null && enumPorpertyNameOfEnv != null) {
             Filter rootCifilter = new Filter("root$" + enumPorpertyNameOfEnv, "eq", getEnumCodeIdByCode(envEnumCat, envEnumCode));
             filters.add(rootCifilter);
@@ -1156,7 +1157,7 @@ public class UIWrapperService {
 
         rootDto.setCriteria(rootNode);
         rootDto.setQueryRequest(queryRequest);
-        
+
         IntegrationQueryDto childQueryDto = travelRoutine(routineItems, filterCiTypeId, rootDto, 1, "", envEnumCat, envEnumCode);
         if (childQueryDto != null) {
             rootDto.getCriteria().setChildren(Arrays.asList(childQueryDto));
@@ -1202,7 +1203,7 @@ public class UIWrapperService {
             return null;
         }
         CiRoutineItem item = routines.get(position);
-        
+
         IntegrationQueryDto dto = new IntegrationQueryDto();
         dto.setName("index-" + position);
         dto.setCiTypeId(item.getCiTypeId());
@@ -1213,8 +1214,8 @@ public class UIWrapperService {
         dto.setParentRs(parentRs);
 
         AdmCiType ciType = staticEntityRepository.findEntityById(AdmCiType.class, item.getCiTypeId());
-        String tableName=CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, ciType.getTableName());
-        key = key+"-"+tableName;
+        String tableName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, ciType.getTableName());
+        key = key + "-" + tableName;
         String enumPorpertyNameOfEnv = getEnumPropertyNameByCiTypeId(item.getCiTypeId(), envEnumCat);
         if (envEnumCode != null && enumPorpertyNameOfEnv != null) {
             List<Integer> attrs = new ArrayList<Integer>();
@@ -1223,14 +1224,14 @@ public class UIWrapperService {
                 key = key.substring(1);
             Filter cifilter = new Filter(key + "." + enumPorpertyNameOfEnv, "eq",
                     getEnumCodeIdByCode(envEnumCat, envEnumCode));
-            
+
             rootDto.getQueryRequest().getFilters().add(cifilter);
             attrs.add(getAttrIdByCiTypeId(item.getCiTypeId(), enumPorpertyNameOfEnv));
             attrKeyNames.add(key + "." + enumPorpertyNameOfEnv);
             dto.setAttrs(attrs);
             dto.setAttrKeyNames(attrKeyNames);
         }
-        IntegrationQueryDto childDto = travelRoutine(routines, filterCiTypeId, rootDto, ++position, "",envEnumCat,envEnumCode);
+        IntegrationQueryDto childDto = travelRoutine(routines, filterCiTypeId, rootDto, ++position, "", envEnumCat, envEnumCode);
         if (childDto == null) {
             if (filterCiTypeId != item.getCiTypeId()) {
                 log.error("routine tail ciType not right!!!");
@@ -1449,7 +1450,7 @@ public class UIWrapperService {
             boolean continueFlag = false;
             Map ciMap = (Map) singleData.getData();
             Object relateCiTypeDto = ciMap.get(relateCiAttrDto.getPropertyName());
-            if (relateCiTypeDto == null||"".equals(relateCiTypeDto)) {
+            if (relateCiTypeDto == null || "".equals(relateCiTypeDto)) {
                 continue;
             }
 
@@ -1590,9 +1591,9 @@ public class UIWrapperService {
     public List<CiData> getIdcDataByGuid(List<String> idcGuids) {
         QueryRequest defaultQueryObject = defaultQueryObject();
         defaultQueryObject.addInFilter("guid", idcGuids);
-        QueryResponse<CiData> queryCiData = queryCiData(uiProperties.getCiTypeIdOfIdc(),defaultQueryObject);
+        QueryResponse<CiData> queryCiData = queryCiData(uiProperties.getCiTypeIdOfIdc(), defaultQueryObject);
         return queryCiData.getContents();
-        
+
     }
 
     public Object getResourcePlanningCiData(int codeId, String systemDesignGuid, QueryRequest queryObject) {
