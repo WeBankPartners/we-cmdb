@@ -38,7 +38,7 @@
         ></WeCMDBTable>
       </TabPane>
       <div slot="extra" class="history-query">
-        <div class="label">更新时间</div>
+        <div class="label">{{ $t("updated_time") }}</div>
         <DatePicker
           type="datetime"
           format="yyyy-MM-dd HH:mm"
@@ -46,11 +46,11 @@
           v-model="queryDate"
           @on-change="handleQueryEmit"
         />
-        <div class="label">查询类型</div>
+        <div class="label">{{ $t("query_type") }}</div>
         <Select v-model="queryType" @on-change="handleQueryEmit">
-          <Option value="1">最新</Option>
-          <Option value="2">现实</Option>
-          <Option value="3">所有</Option>
+          <Option value="1">{{ $t("type_latest") }}</Option>
+          <Option value="2">{{ $t("type_reality") }}</Option>
+          <Option value="3">{{ $t("type_all") }}</Option>
         </Select>
       </div>
     </Tabs>
