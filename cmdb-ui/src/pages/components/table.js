@@ -219,8 +219,8 @@ export default {
               name: i,
               operator: "eq",
               value: +this.form[i]
-            })
-            break
+            });
+            break;
 
           default:
             filters.push({
@@ -564,6 +564,7 @@ export default {
                     return (
                       <Button
                         {...{ props: { ..._.props } }}
+                        disabled={_.isDisabled && _.isDisabled(params.row)}
                         style="marginRight: 5px"
                         onClick={() => {
                           this.$emit("actionFun", _.actionType, params.row);
