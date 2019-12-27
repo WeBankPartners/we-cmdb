@@ -244,5 +244,10 @@
   "auto_fill_change_special_delimiter": "更换特殊连接符",
   "auto_fill_filter_modal_title": "过滤条件",
   "auto_fill_filter_modal_button": "添加过滤条件",
-  "auto_fill_filter_placeholder": " <-- 点此开始编辑填充规则"
+  "auto_fill_filter_placeholder": " <-- 点此开始编辑填充规则",
+  "updated_time": "Updated Time",
+  "query_type": "Query Type",
+  "type_latest": "Latest",
+  "type_all": "All",
+  "type_reality": "现实"
 }
