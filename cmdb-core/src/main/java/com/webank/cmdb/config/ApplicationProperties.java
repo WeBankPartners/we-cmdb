@@ -45,6 +45,7 @@ public class ApplicationProperties {
         private String referenceCodeOfRelate = "relation";
         private String propertyNameOfState = "state";
         private String enumCodeOfStateDelete = "delete";
+        private Integer enumIdOfStateDelete = 36;
         private String propertyNameOfFixedDate = "fixed_date";
         private String enumCategoryNameOfEnv = "deploy_environment";
         private String catNameOfArchitectureDesign = "tab_of_architecture_design";
