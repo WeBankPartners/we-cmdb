@@ -12,6 +12,7 @@ import idcPlanningDesign from "@/pages/designing/planning";
 import idcResourcePlanning from "@/pages/designing/resource-planning";
 import applicationArchitectureDesign from "@/pages/designing/application-architecture";
 import applicationDeploymentDesign from "@/pages/designing/application-deployment";
+import wecmdbPermissions from "@/pages/admin/plugin-permission-management";
 
 const router = [
   {
@@ -100,6 +101,12 @@ const router = [
     path: "/wecmdb/view-management/application-deployment-design",
     name: "applicationDeploymentDesign",
     component: applicationDeploymentDesign
+  },
+  // cmdb权限控制
+  {
+    path: "/wecmdb/admin/permission-management",
+    name: "wecmdbPermissions",
+    component: wecmdbPermissions
   }
 ];
 export default router;

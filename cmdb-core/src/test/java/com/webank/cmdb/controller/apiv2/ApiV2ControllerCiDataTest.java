@@ -11,7 +11,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-
+import static com.webank.cmdb.util.SpecialSymbolUtils.getAfterSpecialSymbol;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -482,8 +482,11 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
 
         Integer attrIdOfKeyName = 14;
         updateCiAttrWithAutoFillRule(attrIdOfKeyName, JsonUtil.toJson(autoFillItems));
-
-        String expectedUpdateKeyName = "Subsys Desc update,Subsystem1,Subsystem2,Subsystem3,Subsystem4,Subsystem5,Subsystem6,Subsystem7,Subsystem8,Subsystem9,Subsystem10,Subsystem11";
+        String separator = getAfterSpecialSymbol(",");
+        
+        String expectedUpdateKeyNameold = "Subsys Desc update,Subsystem1,Subsystem2,Subsystem3,Subsystem4,Subsystem5,Subsystem6,Subsystem7,Subsystem8,Subsystem9,Subsystem10,Subsystem11";
+        String expectedUpdateKeyName = expectedUpdateKeyNameold.replace(",", separator);
+        
         Map<?, ?> jsonMap = ImmutableMap.builder()
                 .put("guid", "0003_0000000001")
                 .put("description", "Subsys Desc update")
@@ -507,11 +510,12 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
     public void whenCreateCiDataWithGuidAsAutoFillLeaveThenShouldFillValueAsExpected() throws Exception {
         List<AutoFillItem> autoFillItems = new ArrayList<AutoFillItem>();
         autoFillItems.add(new AutoFillItem(AutoFillType.Rule.getCode(), "[{\"ciTypeId\":3},{\"ciTypeId\":3,\"parentRs\":{\"attrId\":27,\"isReferedFromParent\":1}}]"));
+        autoFillItems.add(new AutoFillItem(AutoFillType.Delimiter.getCode(), "_blank"));
 
         Integer attrIdOfKeyName = 28;
         updateCiAttrWithAutoFillRule(attrIdOfKeyName, JsonUtil.toJson(autoFillItems));
 
-        String expectedKeyName = "0003_0000000013";
+        String expectedKeyName = "0003_0000000013_blank";
         Map<?, ?> jsonMap = ImmutableMap.builder()
                 .put("description", "test desc")
                 .put("name_en", "Test Sub System")

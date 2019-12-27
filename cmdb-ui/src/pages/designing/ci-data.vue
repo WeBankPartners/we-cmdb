@@ -51,17 +51,35 @@
           />
         </Modal>
       </TabPane>
+      <div slot="extra" class="history-query">
+        <div class="label">{{ $t("updated_time") }}</div>
+        <DatePicker
+          type="datetime"
+          format="yyyy-MM-dd HH:mm"
+          :options="options"
+          v-model="queryDate"
+          @on-change="handleQueryEmit"
+        />
+        <div class="label">{{ $t("query_type") }}</div>
+        <Select v-model="queryType" @on-change="handleQueryEmit">
+          <Option value="1">{{ $t("type_latest") }}</Option>
+          <Option value="2">{{ $t("type_reality") }}</Option>
+          <Option value="3">{{ $t("type_all") }}</Option>
+        </Select>
+      </div>
     </Tabs>
   </div>
 </template>
 <script>
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
+import moment from "moment";
 import { addEvent } from "../util/event.js";
 import {
   getAllCITypesByLayerWithAttr,
   getAllLayers,
   queryCiData,
+  queryCiDataByType,
   getCiTypeAttributes,
   deleteCiDatas,
   createCiDatas,
@@ -88,6 +106,9 @@ export default {
       tabList: [],
       currentTab: "CMDB",
       payload: {
+        dialect: {
+          showCiHistory: false
+        },
         filters: [],
         pageable: {
           pageSize: 10,
@@ -100,7 +121,14 @@ export default {
       graph: {},
       ciTypesName: {},
       compareVisible: false,
-      compareData: []
+      compareData: [],
+      options: {
+        disabledDate(date) {
+          return date && date.valueOf() > Date.now();
+        }
+      },
+      queryType: "1", // 1 - 最新； 2 - 现实； 3 - 所有；
+      queryDate: null
     };
   },
   computed: {
@@ -112,17 +140,43 @@ export default {
     }
   },
   methods: {
+    handleQueryEmit() {
+      let dateObjIdx = this.payload.filters.findIndex(
+        x => x.name === "updated_date"
+      );
+      if (!this.queryDate) {
+        if (~dateObjIdx) this.payload.filters.splice(dateObjIdx, 1);
+      } else {
+        if (~dateObjIdx) {
+          let filters = this.payload.filters;
+          filters[dateObjIdx].value = moment(this.queryDate).valueOf();
+          this.payload.filters = filters;
+        } else {
+          this.payload.filters.push({
+            name: "updated_date",
+            operator: "lt",
+            value: moment(this.queryDate).format("YYYY-MM-DD HH:mm:ss")
+          });
+        }
+      }
+      this.payload.dialect.showCiHistory = this.queryType === "3";
+      if (this.currentTab !== "CMDB") this.queryCiData();
+    },
     handleTabRemove(name) {
       this.tabList.forEach((_, index) => {
         if (_.id === name) {
           this.tabList.splice(index, 1);
-          this.payload.filters = [];
+          this.payload.filters = this.payload.filters.filter(
+            x => x.name === "update_date"
+          );
         }
       });
       this.currentTab = "CMDB";
     },
     handleTabClick(name) {
-      this.payload.filters = [];
+      this.payload.filters = this.payload.filters.filter(
+        x => x.name === "update_date"
+      );
       this.currentTab = name;
     },
     async initGraph(filters = ["created", "dirty"]) {
@@ -521,7 +575,7 @@ export default {
       this.queryCiData();
     },
     handleSubmit(data) {
-      this.payload.filters = data;
+      this.payload.filters = this.payload.filters.concat(data);
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
           ci.pagination.currentPage = 1;
@@ -758,7 +812,8 @@ export default {
         id: this.currentTab,
         queryObject: this.payload
       };
-      const { statusCode, message, data } = await queryCiData(query);
+      const method = this.queryType === "2" ? queryCiDataByType : queryCiData;
+      const { statusCode, message, data } = await method(query);
       if (statusCode === "OK") {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
@@ -848,5 +903,40 @@ export default {
 }
 /deep/ .ivu-table td.highlight {
   color: rgba(#ff6600, 0.9);
+}
+
+.history-query {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-end;
+  align-items: center;
+
+  .label {
+    white-space: nowrap;
+    margin: 0 5px 0 20px;
+  }
+
+  /deep/ .ivu-input,
+  /deep/ .ivu-select-selection {
+    height: 28px;
+
+    .ivu-select-placeholder,
+    .ivu-select-selected-value {
+      height: 28px;
+      line-height: 28px;
+    }
+  }
+
+  /deep/ .ivu-input-suffix i {
+    line-height: 28px;
+  }
+
+  .ivu-date-picker {
+    width: 160px;
+  }
+
+  .ivu-select {
+    width: 100px;
+  }
 }
 </style>

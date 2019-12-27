@@ -105,6 +105,7 @@
   "add_role": "添加角色",
   "menus_management": "菜单权限",
   "data_management": "数据权限",
+  "details": "详情",
   "username_input_placeholder": "请输入用户名",
   "username": "用户名",
   "fullname": "全名",
@@ -240,7 +241,14 @@
   "auto_fill_add_rule": "添加属性表达式",
   "auto_fill_add_delimiter": "添加连接符",
   "auto_fill_edit_delimiter": "编辑连接符",
+  "auto_fill_special_delimiter": "特殊连接符",
+  "auto_fill_change_special_delimiter": "更换特殊连接符",
   "auto_fill_filter_modal_title": "过滤条件",
   "auto_fill_filter_modal_button": "添加过滤条件",
-  "auto_fill_filter_placeholder": " <-- 点此开始编辑填充规则"
+  "auto_fill_filter_placeholder": " <-- 点此开始编辑填充规则",
+  "updated_time": "更新时间",
+  "query_type": "查询类型",
+  "type_latest": "最新",
+  "type_all": "所有",
+  "type_reality": "现实"
 }
