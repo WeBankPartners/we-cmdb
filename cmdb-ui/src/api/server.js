@@ -1,12 +1,16 @@
 import { req as request, baseURL } from "./base";
-import { pluginErrorMessage } from "./base-pulgin"
+import { pluginErrorMessage } from "./base-plugin";
 let req = request;
 if (window.request) {
   req = {
-    post: (url, ...params) => pluginErrorMessage(window.request.post(baseURL + url, ...params)),
-    get: (url, ...params) => pluginErrorMessage(window.request.get(baseURL + url, ...params)),
-    delete: (url, ...params) => pluginErrorMessage(window.request.delete(baseURL + url, ...params)),
-    put: (url, ...params) => pluginErrorMessage(window.request.put(baseURL + url, ...params))
+    post: (url, ...params) =>
+      pluginErrorMessage(window.request.post(baseURL + url, ...params)),
+    get: (url, ...params) =>
+      pluginErrorMessage(window.request.get(baseURL + url, ...params)),
+    delete: (url, ...params) =>
+      pluginErrorMessage(window.request.delete(baseURL + url, ...params)),
+    put: (url, ...params) =>
+      pluginErrorMessage(window.request.put(baseURL + url, ...params))
   };
 }
 
@@ -69,6 +73,8 @@ export const updateCIRecord = (ciTypeId, data) =>
 export const getRefCiTypeFrom = id => req.get(`/ci-types/${id}/references/by`);
 export const getRefCiTypeTo = id => req.get(`/ci-types/${id}/references/to`);
 export const getCiTypeAttr = id => req.get(`/ci-types/${id}/attributes`);
+export const getSpecialConnector = () =>
+  req.get("/static-data/special-connector");
 
 // CI design
 
@@ -172,9 +178,7 @@ export const getApplicationFrameworkDesignDataTree = guid =>
   req.get(`/data-tree/application-framework-design?system-design-guid=${guid}`);
 export const getDeployCiData = (data, payload) =>
   req.post(
-    `/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${
-      data.envCode
-    }&system-design-guid=${data.systemDesignGuid}`,
+    `/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${data.envCode}&system-design-guid=${data.systemDesignGuid}`,
     payload
   );
 export const getDeployDesignTabs = () => req.get(`/deploy-designs/tabs`);
@@ -235,6 +239,12 @@ export const deleteEnumCodes = data => {
 export const queryCiData = data => {
   return req.post(`/ci-types/${data.id}/ci-data/query`, data.queryObject);
 };
+export const queryCiDataByType = data => {
+  return req.post(
+    `/ci-types/${data.id}/ci-data/query-by-type`,
+    data.queryObject
+  );
+};
 export const getCiTypeAttributes = id => {
   return req.get(`/ci-types/${id}/attributes`);
 };
@@ -284,3 +294,7 @@ export const queryReferenceCiData = data =>
 // log
 export const queryLogHeader = () => req.get("/log/queryHeader");
 export const queryLog = data => req.post("/log/query", data);
+
+// wecube api
+export const getWecubeRoles = () =>
+  window.request.get("platform/v1/roles/retrieve");
