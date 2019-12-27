@@ -1,5 +1,5 @@
 import { req as request, baseURL } from "./base";
-import { pluginErrorMessage } from "./base-pulgin";
+import { pluginErrorMessage } from "./base-plugin";
 let req = request;
 if (window.request) {
   req = {
@@ -73,6 +73,8 @@ export const updateCIRecord = (ciTypeId, data) =>
 export const getRefCiTypeFrom = id => req.get(`/ci-types/${id}/references/by`);
 export const getRefCiTypeTo = id => req.get(`/ci-types/${id}/references/to`);
 export const getCiTypeAttr = id => req.get(`/ci-types/${id}/attributes`);
+export const getSpecialConnector = () =>
+  req.get("/static-data/special-connector");
 
 // CI design
 
@@ -292,3 +294,7 @@ export const queryReferenceCiData = data =>
 // log
 export const queryLogHeader = () => req.get("/log/queryHeader");
 export const queryLog = data => req.post("/log/query", data);
+
+// wecube api
+export const getWecubeRoles = () =>
+  window.request.get("platform/v1/roles/retrieve");

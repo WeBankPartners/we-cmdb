@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,10 +54,12 @@ import com.webank.cmdb.util.CmdbThreadLocal;
 import com.webank.cmdb.util.DateUtils;
 import com.webank.cmdb.util.JpaQueryUtils;
 import com.webank.cmdb.util.JsonUtil;
+import static com.webank.cmdb.util.SpecialSymbolUtils.getAfterSpecialSymbol;
 
 @Service
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class CiDataInterceptorService {
+    private static final String TARGET_DEFAULT_VALUE = "";
     private static final String TARGET_NAME = "targetName";
 
     @Autowired
@@ -271,7 +274,7 @@ public class CiDataInterceptorService {
     public void postCreate(DynamicEntityHolder entityHolder, Map<String, Object> updateCi, Map<Integer, DynamicEntityMeta> multRefMetaMap, EntityManager entityManager) {
         entityManager.flush();
         handleAutoFill(entityHolder, entityManager);
-
+        handleReferenceAutoFill(entityHolder, entityManager, updateCi);
         updateSeqNoForMultiReferenceFields(entityHolder, updateCi, entityManager);
     }
 
@@ -366,7 +369,7 @@ public class CiDataInterceptorService {
 		List<Map<String, Object>> contents = response.getContents();
         List<String> targetValues = new ArrayList<>();
         contents.forEach(content -> {
-            Object targetValue = content.get(TARGET_NAME) != null ? content.get(TARGET_NAME) : content.get("root$guid");
+            Object targetValue = content.get(TARGET_NAME) != null ? content.get(TARGET_NAME) : TARGET_DEFAULT_VALUE;
             if (targetValue != null) {
                 if (targetValue instanceof CatCodeDto) {
                     targetValues.add(getValueFromEnumCode(routines, targetValue));
@@ -424,7 +427,7 @@ public class CiDataInterceptorService {
                             sb.append(value);
                         }
                         if (i < targetValues.size() - 1) {
-                            sb.append(",");
+                            sb.append(getAfterSpecialSymbol(CmdbConstants.SYMBOL_COMMA));
                         }
                     }
                 } catch (IOException e) {
@@ -446,10 +449,11 @@ public class CiDataInterceptorService {
     
     private QueryResponse queryIntegrateWithRoutines(String guid, AdmCiTypeAttr attrWithGuid, List<AutoFillIntegrationQueryDto> routines) {
         AdhocIntegrationQueryDto adhocDto = buildRootDto(routines.get(0), guid, attrWithGuid);
-        travelFillQueryDto(routines, adhocDto.getCriteria(), 1);
+        travelFillQueryDto(routines, adhocDto.getCriteria(), adhocDto.getQueryRequest(),1);
+        
         return ciService.adhocIntegrateQuery(adhocDto);
     }
-
+    
     private List<String> getRootGuids(String guid, AdmCiTypeAttr attrWithGuid, Object autoFillRuleValue) {
         List<String> guids = new ArrayList<>();
         List<AutoFillItem> autoRuleItems = parserRule(autoFillRuleValue);
@@ -476,7 +480,7 @@ public class CiDataInterceptorService {
         return guids;
     }
 
-    private IntegrationQueryDto travelFillQueryDto(List<AutoFillIntegrationQueryDto> routines, IntegrationQueryDto parentDto, int position) {
+    private IntegrationQueryDto travelFillQueryDto(List<AutoFillIntegrationQueryDto> routines, IntegrationQueryDto parentDto,QueryRequest queryRequest, int position) {
         if (position >= routines.size()) {
             return null;
         }
@@ -490,46 +494,46 @@ public class CiDataInterceptorService {
         dto.setName("index" + position);
         dto.setCiTypeId(item.getCiTypeId());
         dto.setParentRs(parentRs);
-        dto.setAttrs(Arrays.asList(getGuidAttrIdByCiTypeId(item.getCiTypeId())));
-        dto.setAttrKeyNames(Arrays.asList(item.getCiTypeId() + "$guid"));
-
-        IntegrationQueryDto childDto = travelFillQueryDto(routines, dto, ++position);
+        List<String> fileds = new ArrayList();
+        List<Integer> attrs = new ArrayList();
+        if (position < routines.size()-1) {
+        	attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(),"guid"));
+        	fileds.add(item.getCiTypeId() + "$guid");
+		}
+        if(item.getFilters().size()>0) {
+        	List<Filter> filters = new ArrayList<Filter>(queryRequest.getFilters());
+        	item.getFilters().stream().forEach(filter -> {
+        		attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(),filter.getName()));
+        		filter.setName(item.getCiTypeId() + "$" + filter.getName());
+        		filters.add(filter);
+        		fileds.add(filter.getName());
+        	});
+        	queryRequest.setFilters(filters);
+        }
+        dto.setAttrs(attrs);
+        dto.setAttrKeyNames(fileds);
+        IntegrationQueryDto childDto = travelFillQueryDto(routines, dto, queryRequest, ++position);
 
         if (childDto == null) {
-            if (parentDto.getAttrs().contains(parentRs.getAttrId())) {
-                replaceKeyNameWithTargetName(parentDto);
-            } else {
-                addTargetName(parentDto, parentRs);
-            }
+        	addTargetName(parentDto, dto);
         } else {
             parentDto.setChildren(Arrays.asList(childDto));
         }
-
         return parentDto;
     }
 
-    private void addTargetName(IntegrationQueryDto parentDto, Relationship parentRs) {
+    private void addTargetName(IntegrationQueryDto parentDto, IntegrationQueryDto dto) {
         List<Integer> attrs = new ArrayList<>();
-        attrs.add(parentRs.getAttrId());
+        attrs.addAll(dto.getAttrs());
         attrs.addAll(parentDto.getAttrs());
+        attrs.add(dto.getParentRs().getAttrId());
 
         List<String> attrKeyNames = new ArrayList<>();
-        attrKeyNames.add(TARGET_NAME);
+        attrKeyNames.addAll(dto.getAttrKeyNames());
         attrKeyNames.addAll(parentDto.getAttrKeyNames());
+        attrKeyNames.add(TARGET_NAME);
 
         parentDto.setAttrs(attrs);
-        parentDto.setAttrKeyNames(attrKeyNames);
-    }
-
-    private void replaceKeyNameWithTargetName(IntegrationQueryDto parentDto) {
-        List<String> attrKeyNames = new ArrayList<>();
-        parentDto.getAttrKeyNames().forEach(x -> {
-            if (x.equals(parentDto.getCiTypeId() + "$guid")) {
-                attrKeyNames.add(TARGET_NAME);
-            } else {
-                attrKeyNames.add(x);
-            }
-        });
         parentDto.setAttrKeyNames(attrKeyNames);
     }
 
@@ -548,7 +552,7 @@ public class CiDataInterceptorService {
         IntegrationQueryDto rootDto = new IntegrationQueryDto();
         rootDto.setName("root");
         rootDto.setCiTypeId(routineDto.getCiTypeId());
-        rootDto.setAttrs(Arrays.asList(getGuidAttrIdByCiTypeId(routineDto.getCiTypeId())));
+        rootDto.setAttrs(Arrays.asList(getAttrIdByPropertyNameAndCiTypeId(routineDto.getCiTypeId(),"guid")));
         rootDto.setAttrKeyNames(Arrays.asList("root$guid"));
 
         adhocDto.setCriteria(rootDto);
@@ -557,10 +561,10 @@ public class CiDataInterceptorService {
         return adhocDto;
     }
 
-    private Integer getGuidAttrIdByCiTypeId(int ciTypeId) {
+    private Integer getAttrIdByPropertyNameAndCiTypeId(int ciTypeId, String propertyName) {
         List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(ciTypeId);
         for (AdmCiTypeAttr attr : attrs) {
-            if ("guid".equalsIgnoreCase(attr.getPropertyName())) {
+            if (propertyName.equalsIgnoreCase(attr.getPropertyName())) {
                 return attr.getIdAdmCiTypeAttr();
             }
         }
@@ -665,8 +669,9 @@ public class CiDataInterceptorService {
         }
     }
 
-    public void postDelete(int ciTypeId, String guid, DynamicEntityMeta entityMeta) {
-
+    public void postDelete(DynamicEntityHolder entityHolder, EntityManager entityManager, int ciTypeId, String guid, DynamicEntityMeta entityMeta) {
+        //entityManager.flush();
+        //handleReferenceAutoFill(entityHolder, entityManager, entityHolder.getEntityBeanMap());
     }
 
 }

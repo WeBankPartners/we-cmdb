@@ -23,7 +23,7 @@ public class DatabaseServiceImpl implements DatabaseService {
 
     @Override
     public boolean isTableExisted(String tableName) {
-        Query tableQuery = entityManager.createNativeQuery(String.format("show tables like '%s'", tableName));
+        Query tableQuery = entityManager.createNativeQuery(String.format("select 1 from information_schema.tables where table_name = '%s' limit 1", tableName));
         List<?> results = tableQuery.getResultList();
         return results.size() > 0;
     }
