@@ -149,7 +149,9 @@ export default {
       } else {
         if (~dateObjIdx) {
           let filters = this.payload.filters;
-          filters[dateObjIdx].value = moment(this.queryDate).valueOf();
+          filters[dateObjIdx].value = moment(this.queryDate).format(
+            "YYYY-MM-DD HH:mm:ss"
+          );
           this.payload.filters = filters;
         } else {
           this.payload.filters.push({
