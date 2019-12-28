@@ -39,7 +39,9 @@ public class AdapterService {
     private static final String SORTING_ASC = "asc";
     private static final String ID = "id";
     private static final String GUID = "guid";
+    private static final String CODE = "code";
     private static final Map<String, String> dataTypeMapping = new HashMap<>();
+    private static final String DISPLAY_NAME = "display_name";
     static {
         dataTypeMapping.put(FieldType.Varchar.getCode(), DataType.String.getCode());
         dataTypeMapping.put(FieldType.Int.getCode(), DataType.Integer.getCode());
@@ -126,32 +128,55 @@ public class AdapterService {
                 if (ciTypeAttrResponse != null && ciTypeAttrResponse.getContents() != null && !ciTypeAttrResponse.getContents().isEmpty()) {
                     List<CiTypeAttrDto> ciTypeAttrDtos = ciTypeAttrResponse.getContents();
                     List<AttributeDto> attributeDtos = new ArrayList<>();
-                    ciTypeAttrDtos.forEach(ciTypeAttrDto -> {
-                        AttributeDto attributeDto = new AttributeDto();
-                        attributeDto.setEntityName(ciTypeDto.getTableName());
-                        attributeDto.setDescription(ciTypeAttrDto.getDescription());
-                        attributeDto.setName(GUID.equals(ciTypeAttrDto.getPropertyName()) ? ID : ciTypeAttrDto.getPropertyName());
-                        switch (InputType.fromCode(ciTypeAttrDto.getInputType())) {
-                        case Reference:
-                        case MultRef: {
-                            attributeDto.setDataType(DataType.Ref.getCode());
-                            attributeDto.setRefPackageName(PLUGIN_PACKAGE_NAME);
-                            attributeDto.setRefEntityName(getCiTypeNameById(ciTypeAttrDto.getReferenceId()));
-                            attributeDto.setRefAttributeName(ID);
-                            break;
-                        }
-                        default:
-                            attributeDto.setDataType(mapToWecubeDataType(ciTypeAttrDto));
-                            break;
-                        }
-                        attributeDtos.add(attributeDto);
-                    });
+
+                    populateOriginCiTypeAttrs(ciTypeDto, ciTypeAttrDtos, attributeDtos);
+                    populateRequiredAttrs(ciTypeDto, attributeDtos);
+
                     entityDto.setAttributes(attributeDtos);
                 }
                 entityDtos.add(entityDto);
             });
         }
         return entityDtos;
+    }
+
+    private void populateOriginCiTypeAttrs(CiTypeDto ciTypeDto, List<CiTypeAttrDto> ciTypeAttrDtos, List<AttributeDto> attributeDtos) {
+        ciTypeAttrDtos.forEach(ciTypeAttrDto -> {
+            AttributeDto attributeDto = new AttributeDto();
+            attributeDto.setEntityName(ciTypeDto.getTableName());
+            attributeDto.setDescription(ciTypeAttrDto.getDescription());
+            attributeDto.setName(ciTypeAttrDto.getPropertyName());
+            switch (InputType.fromCode(ciTypeAttrDto.getInputType())) {
+            case Reference:
+            case MultRef: {
+                attributeDto.setDataType(DataType.Ref.getCode());
+                attributeDto.setRefPackageName(PLUGIN_PACKAGE_NAME);
+                attributeDto.setRefEntityName(getCiTypeNameById(ciTypeAttrDto.getReferenceId()));
+                attributeDto.setRefAttributeName(ID);
+                break;
+            }
+            default:
+                attributeDto.setDataType(mapToWecubeDataType(ciTypeAttrDto));
+                break;
+            }
+            attributeDtos.add(attributeDto);
+        });
+    }
+
+    private void populateRequiredAttrs(CiTypeDto ciTypeDto, List<AttributeDto> attributeDtos) {
+        AttributeDto attrId = new AttributeDto();
+        attrId.setEntityName(ciTypeDto.getTableName());
+        attrId.setDescription("ID");
+        attrId.setName(ID);
+        attrId.setDataType(DataType.String.getCode());
+        attributeDtos.add(attrId);
+
+        AttributeDto attrDisplayName = new AttributeDto();
+        attrDisplayName.setEntityName(ciTypeDto.getTableName());
+        attrDisplayName.setDescription("Display Name");
+        attrDisplayName.setName(DISPLAY_NAME);
+        attrDisplayName.setDataType(DataType.String.getCode());
+        attributeDtos.add(attrDisplayName);
     }
 
     private String getCiTypeNameById(Integer ciTypeId) {
@@ -241,26 +266,30 @@ public class AdapterService {
 
     private void populateSelectedAttrs(List<CiTypeAttrDto> ciTypeAttrDtos, Map<String, Object> convertedMap, String dataAttrName, Object value) {
         ciTypeAttrDtos.forEach(attr -> {
-            String convertedAttrName = GUID.equals(attr.getPropertyName()) ? ID : attr.getPropertyName();
-            String convertedDataAttrName = GUID.equals(dataAttrName) ? ID : dataAttrName;
-            if (convertedAttrName.equals(convertedDataAttrName)) {
+            if (attr.getPropertyName().equals(dataAttrName)) {
                 if (value == null || (value instanceof String && "".equals(value))) {
-                    convertedMap.put(convertedDataAttrName, value);
+                    convertedMap.put(dataAttrName, value);
                 } else if (InputType.fromCode(attr.getInputType()) == InputType.Droplist && value instanceof CatCodeDto) {
                     CatCodeDto singleSelect = (CatCodeDto) value;
-                    convertedMap.put(convertedDataAttrName, singleSelect.getCode());
+                    convertedMap.put(dataAttrName, singleSelect.getCode());
                 } else if (InputType.fromCode(attr.getInputType()) == InputType.MultSelDroplist && value instanceof List) {
                     List<CatCodeDto> multiSelect = (List) value;
-                    convertedMap.put(convertedDataAttrName, multiSelect.stream().map(item -> item.getCode()).collect(Collectors.toList()));
-                } else if (convertedAttrName.equals(dataAttrName) && (InputType.fromCode(attr.getInputType()) == InputType.Reference)) {
+                    convertedMap.put(dataAttrName, multiSelect.stream().map(item -> item.getCode()).collect(Collectors.toList()));
+                } else if (attr.getPropertyName().equals(dataAttrName) && (InputType.fromCode(attr.getInputType()) == InputType.Reference)) {
                     Map singleRefObject = (Map) value;
-                    convertedMap.put(convertedDataAttrName, value != null ? singleRefObject.get(GUID) : value);
-                } else if (convertedAttrName.equals(convertedDataAttrName) && (InputType.fromCode(attr.getInputType()) == InputType.MultRef)) {
+                    convertedMap.put(dataAttrName, value != null ? singleRefObject.get(GUID) : value);
+                } else if (attr.getPropertyName().equals(dataAttrName) && (InputType.fromCode(attr.getInputType()) == InputType.MultRef)) {
                     List<Object> originList = (List) value;
                     List<Map<String, Object>> multRefObjects = BeanMapUtils.convertBeansToMaps(originList);
-                    convertedMap.put(convertedDataAttrName, multRefObjects.stream().map(item -> item.get(GUID)).collect(Collectors.toList()));
+                    convertedMap.put(dataAttrName, multRefObjects.stream().map(item -> item.get(GUID)).collect(Collectors.toList()));
+                } else if (GUID.equals(attr.getPropertyName())) {
+                    convertedMap.put(attr.getPropertyName(), value);
+                    convertedMap.put(ID, value);
+                } else if (CODE.equals(attr.getPropertyName())) {
+                    convertedMap.put(attr.getPropertyName(), value);
+                    convertedMap.put(DISPLAY_NAME, value);
                 } else {
-                    convertedMap.put(convertedDataAttrName, value);
+                    convertedMap.put(attr.getPropertyName(), value);
                 }
             }
         });
