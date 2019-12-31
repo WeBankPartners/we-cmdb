@@ -1,7 +1,7 @@
 <template>
   <div>
     <Row>
-      <Col span="7" class="header">
+      <Col span="7" class="header-query">
         <span>{{ $t("root_ci_type") }}</span>
         <Select v-model="selectedCI" filterable @on-change="onCITypeChange">
           <Option
@@ -12,7 +12,7 @@
           >
         </Select>
       </Col>
-      <Col span="16" offset="1" class="header">
+      <Col span="16" offset="1" class="header-query">
         <span>{{ $t("integrated_query_name") }}</span>
         <Select
           v-model="selectedQueryName"
@@ -169,7 +169,9 @@ export default {
     onQueryNameSelectChange(value) {
       if (value) {
         this.getTableHeader(value);
-        this.requestURL = window.request ? `/wecmdb/wecmdb/intQuery/${value}/execute` : `/wecmdb/intQuery/${value}/execute`;
+        this.requestURL = window.request
+          ? `/wecmdb/wecmdb/intQuery/${value}/execute`
+          : `/wecmdb/intQuery/${value}/execute`;
       }
     },
     async getTableHeader(id) {
@@ -213,10 +215,11 @@ export default {
         if (_.children) {
           _.children.forEach(async child => {
             if (child.inputType === "select") {
-              const { data, statusCode, message } = await getEnumCodesByCategoryId(
-                0,
-                child.referenceId
-              );
+              const {
+                data,
+                statusCode,
+                message
+              } = await getEnumCodesByCategoryId(0, child.referenceId);
               let opts = [];
               if (statusCode === "OK") {
                 opts = data
@@ -285,7 +288,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.header {
+.header-query {
   display: flex;
   justify-content: center;
   > span {
