@@ -979,12 +979,10 @@ public class UIWrapperService {
 
     private Filter getFixDateFilter(int systemDesignCiTypeId, QueryRequest defaultQueryRequest) {
         List<CiData> ciDatas = queryCiData(systemDesignCiTypeId, defaultQueryRequest).getContents();
-        String fixDate = ciDatas.get(0).getData().get(CONSTANT_FIXED_DATE).toString();
+        String fixDate = (String)ciDatas.get(0).getData().get(CONSTANT_FIXED_DATE);
         
         Filter fixDateFilter = null;
-        if(StringUtils.isBlank(fixDate)) {
-            fixDateFilter = new Filter(CONSTANT_FIXED_DATE,FilterOperator.Null.getCode(),null);
-        }else {
+        if(StringUtils.isNotBlank(fixDate)) {
             fixDateFilter = new Filter(CONSTANT_FIXED_DATE, FilterOperator.LessEqual.getCode(), fixDate);
         }
         return fixDateFilter;
@@ -1019,6 +1017,9 @@ public class UIWrapperService {
     }
 
     private void setQueryRequest(QueryRequest inputFilters, Filter fixDate) {
+        if(fixDate == null ) {
+            return;
+        }
         inputFilters.getDialect().setShowCiHistory(true);
         inputFilters.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
         Map<String, String> aggregation = Maps.newHashMap();
