@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,8 @@ import com.webank.plugins.wecmdb.helper.ConfirmHelper;
 
 @Service
 public class AdapterService {
+    private static final String ERROR_MESSAGE = "errorMessage";
+    private static final String ERROR_CODE = "errorCode";
     private static final String CONFIRM = "confirm";
     private static final String CALLBACK_PARAMETER = "callbackParameter";
     private static final String PLUGIN_PACKAGE_NAME = "wecmdb";
@@ -72,25 +76,37 @@ public class AdapterService {
         return staticDtoService.query(CiTypeAttrDto.class, queryObject);
     }
 
+    @Transactional
     public List<Map<String, Object>> confirmBatchCiData(List<OperateCiDto> operateCiDtos) {
-        validateBeforeConfirm(operateCiDtos);
-
         List<Map<String, Object>> results = new ArrayList<>();
         operateCiDtos.forEach(operateCiDto -> {
-            String callbackParameter = operateCiDto.getCallbackParameter();
+            Map<String, Object> resultItem = new HashMap<>();
+            resultItem.put(CALLBACK_PARAMETER, operateCiDto.getCallbackParameter());
+            resultItem.put(ERROR_CODE, 0);
+            resultItem.put(ERROR_MESSAGE, "");
+
+            if (StringUtils.isBlank(operateCiDto.getGuid())) {
+                resultItem.put(ERROR_CODE, 1);
+                resultItem.put(ERROR_MESSAGE, "Field 'guid' is required for ci data confirmation.");
+                results.add(resultItem);
+                return;
+            }
 
             List<String> guids = ConfirmHelper.parseGuid(operateCiDto.getGuid());
             List<CiIndentity> ciIds = new ArrayList<>();
             guids.forEach(guid -> {
-                ciIds.add(new CiIndentity(extractCiTypeIdFromGuid(guid), guid));
+                try {
+                    ciIds.add(new CiIndentity(extractCiTypeIdFromGuid(guid), guid));
+                    List<Map<String, Object>> confirmedCis = ciService.operateState(ciIds, CONFIRM);
+                    resultItem.putAll(confirmedCis.get(0));
+                    results.add(resultItem);
+                } catch (Exception e) {
+                    resultItem.put(ERROR_CODE, 1);
+                    resultItem.put(ERROR_MESSAGE, "Field 'guid' is required for ci data confirmation.");
+                    results.add(resultItem);
+                    return;
+                }
             });
-            List<Map<String, Object>> confirmedCis = ciService.operateState(ciIds, CONFIRM);
-
-            confirmedCis.forEach(confirmedCi -> {
-                confirmedCi.put(CALLBACK_PARAMETER, callbackParameter);
-            });
-
-            results.addAll(confirmedCis);
         });
         return results;
     }
@@ -98,15 +114,6 @@ public class AdapterService {
     private int extractCiTypeIdFromGuid(String guid) {
         String ciTypeId = guid.split("_")[0].replaceAll("^(0+)", "");
         return Integer.valueOf(ciTypeId).intValue();
-    }
-
-    private void validateBeforeConfirm(List<OperateCiDto> operateCiDtos) {
-        operateCiDtos.forEach(operateCiDto -> {
-            if (StringUtils.isBlank(operateCiDto.getGuid())) {
-                throw new PluginException("Field 'guid' is required for ci data confirmation.");
-            }
-        });
-
     }
 
     public List<EntityDto> getDataModel() {
