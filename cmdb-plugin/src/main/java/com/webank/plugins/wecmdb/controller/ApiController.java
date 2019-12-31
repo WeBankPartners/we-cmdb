@@ -1,5 +1,6 @@
 package com.webank.plugins.wecmdb.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.webank.cmdb.exception.BatchChangeException.ExceptionHolder;
 import com.webank.plugins.wecmdb.dto.EntityDto;
 import com.webank.plugins.wecmdb.dto.OperateCiDto;
 import com.webank.plugins.wecmdb.dto.OperateCiDtoInputs;
@@ -52,14 +54,18 @@ public class ApiController {
     @ResponseBody
     public OperateCiJsonResponse confirmBatchCiData(@RequestBody OperateCiDtoInputs inputs) {
         List<OperateCiDto> operateCiDtos = inputs.getInputs();
-        OperateCiJsonResponse response = null;
-        try {
-            response = OperateCiJsonResponse.okayWithData(adapterService.confirmBatchCiData(operateCiDtos));
-        } catch (Exception e) {
-            response = OperateCiJsonResponse.error(String.format("Failed to confirm CI with request[%s], error [%s] ", inputs, e.getMessage()));
+        OperateCiJsonResponse response = new OperateCiJsonResponse();
+        List<ExceptionHolder> ExceptionHolders = new ArrayList<ExceptionHolder>();
+        List<Map<String, Object>> results = adapterService.confirmBatchCiData(operateCiDtos, ExceptionHolders);
+
+        if (ExceptionHolders.size() > 0) {
+            response = OperateCiJsonResponse.errorWithData(String.format("Fail to confirm [%s] CIs, detail error in the data block", inputs), results);
+        } else {
+            response = OperateCiJsonResponse.okayWithData(results);
         }
 
         return response;
+
     }
 
     @GetMapping("/data-model")
