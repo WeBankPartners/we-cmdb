@@ -1,26 +1,52 @@
 <template>
   <Row>
     <Row>
-      <Col span="12">
+      <Col span="16">
         <Row>
           <span style="margin-right: 10px">{{ $t("system_design") }}</span>
           <Select
-            filterable
             @on-change="onSystemDesignSelect"
             label-in-name
             style="width: 35%;"
           >
-            <Option
-              v-for="item in systemDesigns"
-              :value="item.guid"
-              :key="item.guid"
-              >{{ item.name }}</Option
+            <OptionGroup
+              v-for="(data, idx) in systemDesigns"
+              :key="idx"
+              :label="data[0].name"
             >
+              <Option
+                v-for="item in data"
+                :value="item.guid"
+                :key="item.guid"
+                style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
+              >
+                <div>{{ item.name }}</div>
+                <div
+                  v-if="item.fixed_date"
+                  style="color:#ccc; flex-shrink:1; margin-left:10px"
+                >
+                  {{ item.fixed_date }}
+                </div>
+              </Option>
+            </OptionGroup>
           </Select>
-          <Button style="margin: 0 10px;" @click="onArchChange">{{
-            $t("architecture_change")
-          }}</Button>
-          <Button @click="querySysTree">{{ $t("fix_version") }}</Button>
+          <Button
+            style="margin: 0 10px;"
+            @click="onArchChange(false)"
+            :disabled="!allowArch"
+            >{{ $t("architecture_change") }}</Button
+          >
+          <Button
+            style="margin-right: 10px;"
+            @click="querySysTree"
+            :disabled="!allowFixVersion"
+            >{{ $t("fix_version") }}</Button
+          >
+          <Button
+            @click="onArchChange(true)"
+            :disabled="!systemDesignVersion || allowFixVersion"
+            >{{ $t("query") }}</Button
+          >
           <Modal
             v-model="fixVersionTreeModal"
             width="500px"
@@ -200,12 +226,12 @@
           >
             <WeCMDBTable
               :tableData="ci.tableData"
-              :tableOuterActions="ci.outerActions"
-              :tableInnerActions="ci.innerActions"
+              :tableOuterActions="isTableViewOnly ? null : ci.outerActions"
+              :tableInnerActions="isTableViewOnly ? null : ci.innerActions"
               :tableColumns="ci.tableColumns"
               :pagination="ci.pagination"
               :ascOptions="ci.ascOptions"
-              :showCheckbox="needCheckout"
+              :showCheckbox="isTableViewOnly ? false : needCheckout"
               :isRefreshable="true"
               @actionFun="actionFun"
               @handleSubmit="handleSubmit"
@@ -253,6 +279,7 @@ import {
 import { formatData } from "../util/format.js";
 import { getExtraInnerActions } from "../util/state-operations.js";
 import PhysicalGraph from "./physical-graph";
+import moment from "moment";
 
 const stateColorMap = new Map([
   ["new", "#19be6b"],
@@ -279,6 +306,7 @@ export default {
     return {
       tabList: [],
       systemDesigns: [],
+      systemDesignsOrigin: [],
       systemDesignVersion: "",
       deployTree: [],
       fixVersionTreeModal: false,
@@ -317,7 +345,10 @@ export default {
         currentInvokeSequenceTag: "",
         currentInvokeSequence: [],
         selectedInvokeSequence: ""
-      }
+      },
+      allowArch: false,
+      allowFixVersion: false,
+      isTableViewOnly: true
     };
   },
   computed: {
@@ -432,9 +463,11 @@ export default {
     },
     async onArchFixVersion() {
       if (this.systemDesignVersion === "") return;
-      const { statusCode, message, data } = await saveAllDesignTreeFromSystemDesign(
-        this.systemDesignVersion
-      );
+      const {
+        statusCode,
+        message,
+        data
+      } = await saveAllDesignTreeFromSystemDesign(this.systemDesignVersion);
       if (statusCode === "OK") {
         this.queryCiData();
         this.$Notice.success({
@@ -451,7 +484,7 @@ export default {
       this.onArchChange();
       this.isDataChanged = false;
     },
-    async onArchChange() {
+    async onArchChange(isTableViewOnly = false) {
       this.invokeSequenceForm.selectedInvokeSequence = "";
       this.invokeSequenceForm.isShowInvokeSequenceDetial = false;
       let { statusCode, message, data } = await getAllCITypes();
@@ -469,13 +502,24 @@ export default {
       if (this.systemDesignVersion === "") return;
       this.spinShow = true;
       this.physicalSpin = true;
-      this.getAllDesignTreeFromSystemDesign();
-      this.getPhysicalGraphData();
+      this.allowFixVersion = !isTableViewOnly;
+      this.isTableViewOnly = isTableViewOnly;
+      if (
+        this.currentTab === "architecture-design" ||
+        this.currentTab === "physicalGraph"
+      ) {
+        this.getAllDesignTreeFromSystemDesign();
+        this.getPhysicalGraphData();
+      } else {
+        this.getCurrentData();
+      }
     },
     async getAllDesignTreeFromSystemDesign() {
-      const { statusCode, message, data } = await getAllDesignTreeFromSystemDesign(
-        this.systemDesignVersion
-      );
+      const {
+        statusCode,
+        message,
+        data
+      } = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion);
       if (statusCode === "OK") {
         this.getAllInvokeSequenceData();
         this.systemDesignData = data ? data : [];
@@ -511,9 +555,11 @@ export default {
     async querySysTree() {
       if (this.systemDesignVersion === "") return;
       this.spinShow = true;
-      const { statusCode, message, data } = await getAllDesignTreeFromSystemDesign(
-        this.systemDesignVersion
-      );
+      const {
+        statusCode,
+        message,
+        data
+      } = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion);
       if (statusCode === "OK") {
         this.spinShow = false;
         this.systemDesignData = data ? data : [];
@@ -659,11 +705,7 @@ export default {
             color = stateColorMap.get(line.data.state.code);
           }
           this.invokeLines.push(
-            `gn_${line.data.unit_design.guid} -> gn_${
-              line.data.service_design.guid
-            } [id="gl_${line.guid}",color="${color}",taillabel="${
-              line.data.type.value
-            }", labeldistance=3];`
+            `gn_${line.data.unit_design.guid} -> gn_${line.data.service_design.guid} [id="gl_${line.guid}",color="${color}",taillabel="${line.data.type.value}", labeldistance=3];`
           );
           this.physicalGraphLineNodes.serviceDesign[
             line.data.service_design.guid
@@ -1216,17 +1258,39 @@ export default {
     },
     onSystemDesignSelect(key) {
       this.systemDesignVersion = key;
+      this.allowArch = this.systemDesignsOrigin.some(x => x.r_guid === key); // 是否允许架构变更，当guid等于r_guid时允许
+      this.allowFixVersion = false;
+      this.isTableViewOnly = true;
       if (
         this.currentTab !== "architecture-design" &&
         this.currentTab !== "physicalGraph"
       ) {
-        this.getCurrentData();
+        this.tabList.forEach(ci => {
+          ci.tableData = [];
+        });
       }
     },
     async getSystemDesigns() {
       let { statusCode, data, message } = await getSystemDesigns();
       if (statusCode === "OK") {
-        this.systemDesigns = data.contents.map(_ => _.data);
+        this.systemDesignsOrigin = data.contents.map(_ => _.data);
+        // 进行分组排序
+        const resultObj = this.systemDesignsOrigin
+          .sort((a, b) => {
+            if (!b.fixed_date) return 1;
+            if (!a.fixed_date) return -1;
+            if (moment(a.fixed_date).isSameOrAfter(moment(b.fixed_date)))
+              return -1;
+            return 1;
+          })
+          .reduce((obj, x) => {
+            if (!obj[x.r_guid]) obj[x.r_guid] = [];
+            x.guid === x.r_guid
+              ? obj[x.r_guid].unshift(x)
+              : obj[x.r_guid].push(x);
+            return obj;
+          }, {});
+        this.systemDesigns = Object.values(resultObj);
       }
     }
   },
