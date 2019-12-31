@@ -36,18 +36,50 @@
           tableHeight="650"
           :ref="'table' + ci.id"
         ></WeCMDBTable>
+        <Modal
+          footer-hide
+          v-model="compareVisible"
+          width="90"
+          class-name="compare-modal"
+        >
+          <Table
+            :columns="
+              ci.tableColumns.filter(x => x.isDisplayed || x.displaySeqNo)
+            "
+            :data="compareData"
+            border
+          />
+        </Modal>
       </TabPane>
+      <div slot="extra" class="history-query">
+        <div class="label">{{ $t("updated_time") }}</div>
+        <DatePicker
+          type="datetime"
+          format="yyyy-MM-dd HH:mm"
+          :options="options"
+          :value="queryDate"
+          @on-change="handleDateChange"
+        />
+        <div class="label">{{ $t("query_type") }}</div>
+        <Select v-model="queryType" @on-change="handleQueryEmit">
+          <Option value="1">{{ $t("type_latest") }}</Option>
+          <Option value="2">{{ $t("type_reality") }}</Option>
+          <Option value="3">{{ $t("type_all") }}</Option>
+        </Select>
+      </div>
     </Tabs>
   </div>
 </template>
 <script>
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
+import moment from "moment";
 import { addEvent } from "../util/event.js";
 import {
   getAllCITypesByLayerWithAttr,
   getAllLayers,
   queryCiData,
+  queryCiDataByType,
   getCiTypeAttributes,
   deleteCiDatas,
   createCiDatas,
@@ -65,6 +97,7 @@ import {
 } from "@/const/actions.js";
 import { formatData } from "../util/format.js";
 import { getExtraInnerActions } from "../util/state-operations.js";
+import { deepClone } from "../util/common-func.js";
 const defaultCiTypePNG = require("@/assets/ci-type-default.png");
 export default {
   data() {
@@ -73,6 +106,9 @@ export default {
       tabList: [],
       currentTab: "CMDB",
       payload: {
+        dialect: {
+          showCiHistory: false
+        },
         filters: [],
         pageable: {
           pageSize: 10,
@@ -83,7 +119,16 @@ export default {
       source: {},
       layers: [],
       graph: {},
-      ciTypesName: {}
+      ciTypesName: {},
+      compareVisible: false,
+      compareData: [],
+      options: {
+        disabledDate(date) {
+          return date && date.valueOf() > Date.now();
+        }
+      },
+      queryType: "1", // 1 - 最新； 2 - 现实； 3 - 所有；
+      queryDate: null
     };
   },
   computed: {
@@ -95,17 +140,69 @@ export default {
     }
   },
   methods: {
+    handleDateChange(date) {
+      if (date !== "") {
+        if (
+          moment(date).isSame(moment(), "day") &&
+          (this.queryDate === null ||
+            !moment(date).isSame(moment(this.queryDate), "day"))
+        ) {
+          this.queryDate = moment().format("YYYY-MM-DD HH:mm");
+        } else if (
+          moment(date).isBefore(moment(), "day") &&
+          (this.queryDate === null ||
+            !moment(date).isSame(moment(this.queryDate), "day"))
+        ) {
+          this.queryDate = moment(date)
+            .endOf("day")
+            .format("YYYY-MM-DD HH:mm");
+        } else {
+          this.queryDate = date;
+        }
+      } else {
+        this.queryDate = date;
+      }
+      this.handleQueryEmit();
+    },
+    handleQueryEmit() {
+      let dateObjIdx = this.payload.filters.findIndex(
+        x => x.name === "updated_date"
+      );
+      if (!this.queryDate) {
+        if (~dateObjIdx) this.payload.filters.splice(dateObjIdx, 1);
+      } else {
+        if (~dateObjIdx) {
+          let filters = this.payload.filters;
+          filters[dateObjIdx].value = moment(this.queryDate).format(
+            "YYYY-MM-DD HH:mm:ss"
+          );
+          this.payload.filters = filters;
+        } else {
+          this.payload.filters.push({
+            name: "updated_date",
+            operator: "lt",
+            value: moment(this.queryDate).format("YYYY-MM-DD HH:mm:ss")
+          });
+        }
+      }
+      this.payload.dialect.showCiHistory = this.queryType === "3";
+      if (this.currentTab !== "CMDB") this.queryCiData();
+    },
     handleTabRemove(name) {
       this.tabList.forEach((_, index) => {
         if (_.id === name) {
           this.tabList.splice(index, 1);
-          this.payload.filters = [];
+          this.payload.filters = this.payload.filters.filter(
+            x => x.name === "update_date"
+          );
         }
       });
       this.currentTab = "CMDB";
     },
     handleTabClick(name) {
-      this.payload.filters = [];
+      this.payload.filters = this.payload.filters.filter(
+        x => x.name === "update_date"
+      );
       this.currentTab = name;
     },
     async initGraph(filters = ["created", "dirty"]) {
@@ -216,18 +313,12 @@ export default {
           layerTag += `"layer_${_.layerId}"`;
         }
         tempClusterObjForGraph[index] = [
-          `{ rank=same; "layer_${_.layerId}"[id="layerId_${
-            _.layerId
-          }",class="layer",label="${_.name}",tooltip="${_.name}"];`
+          `{ rank=same; "layer_${_.layerId}"[id="layerId_${_.layerId}",class="layer",label="${_.name}",tooltip="${_.name}"];`
         ];
         nodes.forEach((node, nodeIndex) => {
           if (node.layerId === _.layerId) {
             tempClusterObjForGraph[index].push(
-              `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${
-                node.name
-              }",tooltip="${node.name}",class="ci",image="${
-                node.form.imgSource
-              }.png", labelloc="b"]`
+              `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",image="${node.form.imgSource}.png", labelloc="b"]`
             );
           }
           if (nodeIndex === nodes.length - 1) {
@@ -261,9 +352,7 @@ export default {
     genEdge(nodes, from, to) {
       const target = nodes.find(_ => _.ciTypeId === to.referenceId);
       let labels = to.referenceName ? to.referenceName.trim() : "";
-      return `"ci_${from.ciTypeId}"->"ci_${
-        target.ciTypeId
-      }"[taillabel="${labels}",labeldistance=3];`;
+      return `"ci_${from.ciTypeId}"->"ci_${target.ciTypeId}"[taillabel="${labels}",labeldistance=3];`;
     },
 
     loadImage(nodesString) {
@@ -350,10 +439,18 @@ export default {
             innerActions:
               this.$route.name === "ciDataEnquiry"
                 ? null
-                : JSON.parse(
-                    JSON.stringify(
-                      innerActions.concat(await getExtraInnerActions())
-                    )
+                : deepClone(
+                    innerActions.concat(await getExtraInnerActions()).concat([
+                      {
+                        label: this.$t("compare"),
+                        props: {
+                          type: "info",
+                          size: "small"
+                        },
+                        actionType: "compare",
+                        isDisabled: row => !row.weTableForm.p_guid
+                      }
+                    ])
                   ),
             tableColumns: [],
             pagination: JSON.parse(JSON.stringify(pagination)),
@@ -442,9 +539,54 @@ export default {
         case "innerCancel":
           this.$refs[this.tableRef][0].rowCancelHandler(data.weTableRowId);
           break;
+        case "compare":
+          this.compareHandler(data);
+          break;
         default:
           this.defaultHandler(type, data);
           break;
+      }
+    },
+    async compareHandler(row) {
+      this.compareVisible = true;
+      const query = {
+        id: this.currentTab,
+        queryObject: {
+          dialect: { showCiHistory: true },
+          filters: [
+            {
+              name: "guid",
+              operator: "in",
+              value: [row.weTableForm.guid, row.weTableForm.p_guid]
+            }
+          ]
+        }
+      };
+      const { statusCode, message, data } = await queryCiData(query);
+      if (statusCode === "OK") {
+        this.compareData =
+          data && data.contents && data.contents.map(x => x.data);
+        this.compareData = this.compareData
+          .map(x => {
+            for (let k in x) {
+              if (typeof x[k] === "object" && x[k] !== null) x[k] = x[k].value;
+            }
+            return x;
+          })
+          .map((x, idx) => {
+            if (x.guid === row.weTableForm.guid) {
+              x.cellClassName = {};
+              for (let k in x) {
+                if (
+                  this.compareData[1 - idx] &&
+                  x[k] !== this.compareData[1 - idx][k]
+                ) {
+                  x.cellClassName[k] = "highlight";
+                }
+              }
+            }
+            return x;
+          });
       }
     },
     sortHandler(data) {
@@ -459,7 +601,7 @@ export default {
       this.queryCiData();
     },
     handleSubmit(data) {
-      this.payload.filters = data;
+      this.payload.filters = this.payload.filters.concat(data);
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
           ci.pagination.currentPage = 1;
@@ -696,7 +838,8 @@ export default {
         id: this.currentTab,
         queryObject: this.payload
       };
-      const { statusCode, message, data } = await queryCiData(query);
+      const method = this.queryType === "2" ? queryCiDataByType : queryCiData;
+      const { statusCode, message, data } = await method(query);
       if (statusCode === "OK") {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
@@ -779,3 +922,47 @@ export default {
   }
 };
 </script>
+
+<style lang="scss" scoped>
+/deep/ .compare-modal .ivu-modal-body {
+  padding-top: 40px;
+}
+/deep/ .ivu-table td.highlight {
+  color: rgba(#ff6600, 0.9);
+}
+
+.history-query {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-end;
+  align-items: center;
+
+  .label {
+    white-space: nowrap;
+    margin: 0 5px 0 20px;
+  }
+
+  /deep/ .ivu-input,
+  /deep/ .ivu-select-selection {
+    height: 28px;
+
+    .ivu-select-placeholder,
+    .ivu-select-selected-value {
+      height: 28px;
+      line-height: 28px;
+    }
+  }
+
+  /deep/ .ivu-input-suffix i {
+    line-height: 28px;
+  }
+
+  .ivu-date-picker {
+    width: 160px;
+  }
+
+  .ivu-select {
+    width: 100px;
+  }
+}
+</style>
