@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.webank.cmdb.dto.CustomResponseDto;
 
-public class OperateCiJsonResponse implements CustomResponseDto{
+public class OperateCiJsonResponse implements CustomResponseDto {
     public final static String STATUS_OK = "0";
     public final static String STATUS_ERROR = "1";
 
@@ -33,13 +33,13 @@ public class OperateCiJsonResponse implements CustomResponseDto{
         return results;
     }
 
-    public void setResults(List<Map<String,Object>> data) {
+    public void setResults(List<Map<String, Object>> data) {
         OperateCiDtoOutputs outputs = new OperateCiDtoOutputs();
         outputs.setOutputs(data);
         this.results = outputs;
     }
 
-    public OperateCiJsonResponse withData(List<Map<String,Object>> data) {
+    public OperateCiJsonResponse withData(List<Map<String, Object>> data) {
         setResults(data);
         return this;
     }
@@ -51,7 +51,7 @@ public class OperateCiJsonResponse implements CustomResponseDto{
         return result;
     }
 
-    public static OperateCiJsonResponse okayWithData(List<Map<String,Object>> data) {
+    public static OperateCiJsonResponse okayWithData(List<Map<String, Object>> data) {
         return okay().withData(data);
     }
 
@@ -59,6 +59,14 @@ public class OperateCiJsonResponse implements CustomResponseDto{
         OperateCiJsonResponse result = new OperateCiJsonResponse();
         result.setResultCode(STATUS_ERROR);
         result.setResultMessage(errorMessage);
+        return result;
+    }
+
+    public static OperateCiJsonResponse errorWithData(String errorMessage, List<Map<String, Object>> data) {
+        OperateCiJsonResponse result = new OperateCiJsonResponse();
+        result.setResultCode(STATUS_ERROR);
+        result.setResultMessage(errorMessage);
+        result.setResults(data);
         return result;
     }
 }

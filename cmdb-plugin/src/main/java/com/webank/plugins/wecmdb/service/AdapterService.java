@@ -2,9 +2,12 @@ package com.webank.plugins.wecmdb.service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +22,7 @@ import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
+import com.webank.cmdb.exception.BatchChangeException.ExceptionHolder;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.util.BeanMapUtils;
@@ -32,6 +36,8 @@ import com.webank.plugins.wecmdb.helper.ConfirmHelper;
 
 @Service
 public class AdapterService {
+    private static final String ERROR_MESSAGE = "errorMessage";
+    private static final String ERROR_CODE = "errorCode";
     private static final String CONFIRM = "confirm";
     private static final String CALLBACK_PARAMETER = "callbackParameter";
     private static final String PLUGIN_PACKAGE_NAME = "wecmdb";
@@ -39,7 +45,9 @@ public class AdapterService {
     private static final String SORTING_ASC = "asc";
     private static final String ID = "id";
     private static final String GUID = "guid";
+    private static final String CODE = "code";
     private static final Map<String, String> dataTypeMapping = new HashMap<>();
+    private static final String DISPLAY_NAME = "display_name";
     static {
         dataTypeMapping.put(FieldType.Varchar.getCode(), DataType.String.getCode());
         dataTypeMapping.put(FieldType.Int.getCode(), DataType.Integer.getCode());
@@ -70,41 +78,49 @@ public class AdapterService {
         return staticDtoService.query(CiTypeAttrDto.class, queryObject);
     }
 
-    public List<Map<String, Object>> confirmBatchCiData(List<OperateCiDto> operateCiDtos) {
-        validateBeforeConfirm(operateCiDtos);
-
+    @Transactional
+    public List<Map<String, Object>> confirmBatchCiData(List<OperateCiDto> operateCiDtos, List<ExceptionHolder> ExceptionHolders) {
         List<Map<String, Object>> results = new ArrayList<>();
         operateCiDtos.forEach(operateCiDto -> {
-            String callbackParameter = operateCiDto.getCallbackParameter();
+            Map<String, Object> resultItem = new HashMap<>();
+            resultItem.put(CALLBACK_PARAMETER, operateCiDto.getCallbackParameter());
+            resultItem.put(ERROR_CODE, 0);
+            resultItem.put(ERROR_MESSAGE, "");
+
+            if (StringUtils.isBlank(operateCiDto.getGuid())) {
+                String errorMessage = "Field 'guid' is required for CI data confirmation.";
+                resultItem.put(ERROR_CODE, 1);
+                resultItem.put(ERROR_MESSAGE, errorMessage);
+                ExceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
+                results.add(resultItem);
+                return;
+            }
 
             List<String> guids = ConfirmHelper.parseGuid(operateCiDto.getGuid());
             List<CiIndentity> ciIds = new ArrayList<>();
             guids.forEach(guid -> {
-                ciIds.add(new CiIndentity(extractCiTypeIdFromGuid(guid), guid));
+                try {
+                    ciIds.add(new CiIndentity(extractCiTypeIdFromGuid(guid), guid));
+                    List<Map<String, Object>> confirmedCis = ciService.operateState(ciIds, CONFIRM);
+                    resultItem.putAll(confirmedCis.get(0));
+                    results.add(resultItem);
+                } catch (Exception e) {
+                    String errorMessage = String.format("Failed to confirm CI [guid = %s], error = %s", guid, e.getMessage());
+                    resultItem.put(ERROR_CODE, 1);
+                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                    ExceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
+                    results.add(resultItem);
+                    return;
+                }
             });
-            List<Map<String, Object>> confirmedCis = ciService.operateState(ciIds, CONFIRM);
-
-            confirmedCis.forEach(confirmedCi -> {
-                confirmedCi.put(CALLBACK_PARAMETER, callbackParameter);
-            });
-
-            results.addAll(confirmedCis);
         });
+
         return results;
     }
 
     private int extractCiTypeIdFromGuid(String guid) {
         String ciTypeId = guid.split("_")[0].replaceAll("^(0+)", "");
         return Integer.valueOf(ciTypeId).intValue();
-    }
-
-    private void validateBeforeConfirm(List<OperateCiDto> operateCiDtos) {
-        operateCiDtos.forEach(operateCiDto -> {
-            if (StringUtils.isBlank(operateCiDto.getGuid())) {
-                throw new PluginException("Field 'guid' is required for ci data confirmation.");
-            }
-        });
-
     }
 
     public List<EntityDto> getDataModel() {
@@ -126,32 +142,55 @@ public class AdapterService {
                 if (ciTypeAttrResponse != null && ciTypeAttrResponse.getContents() != null && !ciTypeAttrResponse.getContents().isEmpty()) {
                     List<CiTypeAttrDto> ciTypeAttrDtos = ciTypeAttrResponse.getContents();
                     List<AttributeDto> attributeDtos = new ArrayList<>();
-                    ciTypeAttrDtos.forEach(ciTypeAttrDto -> {
-                        AttributeDto attributeDto = new AttributeDto();
-                        attributeDto.setEntityName(ciTypeDto.getTableName());
-                        attributeDto.setDescription(ciTypeAttrDto.getDescription());
-                        attributeDto.setName(GUID.equals(ciTypeAttrDto.getPropertyName()) ? ID : ciTypeAttrDto.getPropertyName());
-                        switch (InputType.fromCode(ciTypeAttrDto.getInputType())) {
-                        case Reference:
-                        case MultRef: {
-                            attributeDto.setDataType(DataType.Ref.getCode());
-                            attributeDto.setRefPackageName(PLUGIN_PACKAGE_NAME);
-                            attributeDto.setRefEntityName(getCiTypeNameById(ciTypeAttrDto.getReferenceId()));
-                            attributeDto.setRefAttributeName(ID);
-                            break;
-                        }
-                        default:
-                            attributeDto.setDataType(mapToWecubeDataType(ciTypeAttrDto));
-                            break;
-                        }
-                        attributeDtos.add(attributeDto);
-                    });
+
+                    populateOriginCiTypeAttrs(ciTypeDto, ciTypeAttrDtos, attributeDtos);
+                    populateRequiredAttrs(ciTypeDto, attributeDtos);
+
                     entityDto.setAttributes(attributeDtos);
                 }
                 entityDtos.add(entityDto);
             });
         }
         return entityDtos;
+    }
+
+    private void populateOriginCiTypeAttrs(CiTypeDto ciTypeDto, List<CiTypeAttrDto> ciTypeAttrDtos, List<AttributeDto> attributeDtos) {
+        ciTypeAttrDtos.forEach(ciTypeAttrDto -> {
+            AttributeDto attributeDto = new AttributeDto();
+            attributeDto.setEntityName(ciTypeDto.getTableName());
+            attributeDto.setDescription(ciTypeAttrDto.getDescription());
+            attributeDto.setName(ciTypeAttrDto.getPropertyName());
+            switch (InputType.fromCode(ciTypeAttrDto.getInputType())) {
+            case Reference:
+            case MultRef: {
+                attributeDto.setDataType(DataType.Ref.getCode());
+                attributeDto.setRefPackageName(PLUGIN_PACKAGE_NAME);
+                attributeDto.setRefEntityName(getCiTypeNameById(ciTypeAttrDto.getReferenceId()));
+                attributeDto.setRefAttributeName(ID);
+                break;
+            }
+            default:
+                attributeDto.setDataType(mapToWecubeDataType(ciTypeAttrDto));
+                break;
+            }
+            attributeDtos.add(attributeDto);
+        });
+    }
+
+    private void populateRequiredAttrs(CiTypeDto ciTypeDto, List<AttributeDto> attributeDtos) {
+        AttributeDto attrId = new AttributeDto();
+        attrId.setEntityName(ciTypeDto.getTableName());
+        attrId.setDescription("ID");
+        attrId.setName(ID);
+        attrId.setDataType(DataType.String.getCode());
+        attributeDtos.add(attrId);
+
+        AttributeDto attrDisplayName = new AttributeDto();
+        attrDisplayName.setEntityName(ciTypeDto.getTableName());
+        attrDisplayName.setDescription("Display Name");
+        attrDisplayName.setName(DISPLAY_NAME);
+        attrDisplayName.setDataType(DataType.String.getCode());
+        attributeDtos.add(attrDisplayName);
     }
 
     private String getCiTypeNameById(Integer ciTypeId) {
@@ -241,26 +280,30 @@ public class AdapterService {
 
     private void populateSelectedAttrs(List<CiTypeAttrDto> ciTypeAttrDtos, Map<String, Object> convertedMap, String dataAttrName, Object value) {
         ciTypeAttrDtos.forEach(attr -> {
-            String convertedAttrName = GUID.equals(attr.getPropertyName()) ? ID : attr.getPropertyName();
-            String convertedDataAttrName = GUID.equals(dataAttrName) ? ID : dataAttrName;
-            if (convertedAttrName.equals(convertedDataAttrName)) {
+            if (attr.getPropertyName().equals(dataAttrName)) {
                 if (value == null || (value instanceof String && "".equals(value))) {
-                    convertedMap.put(convertedDataAttrName, value);
+                    convertedMap.put(dataAttrName, value);
                 } else if (InputType.fromCode(attr.getInputType()) == InputType.Droplist && value instanceof CatCodeDto) {
                     CatCodeDto singleSelect = (CatCodeDto) value;
-                    convertedMap.put(convertedDataAttrName, singleSelect.getCode());
+                    convertedMap.put(dataAttrName, singleSelect.getCode());
                 } else if (InputType.fromCode(attr.getInputType()) == InputType.MultSelDroplist && value instanceof List) {
                     List<CatCodeDto> multiSelect = (List) value;
-                    convertedMap.put(convertedDataAttrName, multiSelect.stream().map(item -> item.getCode()).collect(Collectors.toList()));
-                } else if (convertedAttrName.equals(dataAttrName) && (InputType.fromCode(attr.getInputType()) == InputType.Reference)) {
+                    convertedMap.put(dataAttrName, multiSelect.stream().map(item -> item.getCode()).collect(Collectors.toList()));
+                } else if (attr.getPropertyName().equals(dataAttrName) && (InputType.fromCode(attr.getInputType()) == InputType.Reference)) {
                     Map singleRefObject = (Map) value;
-                    convertedMap.put(convertedDataAttrName, value != null ? singleRefObject.get(GUID) : value);
-                } else if (convertedAttrName.equals(convertedDataAttrName) && (InputType.fromCode(attr.getInputType()) == InputType.MultRef)) {
+                    convertedMap.put(dataAttrName, value != null ? singleRefObject.get(GUID) : value);
+                } else if (attr.getPropertyName().equals(dataAttrName) && (InputType.fromCode(attr.getInputType()) == InputType.MultRef)) {
                     List<Object> originList = (List) value;
                     List<Map<String, Object>> multRefObjects = BeanMapUtils.convertBeansToMaps(originList);
-                    convertedMap.put(convertedDataAttrName, multRefObjects.stream().map(item -> item.get(GUID)).collect(Collectors.toList()));
+                    convertedMap.put(dataAttrName, multRefObjects.stream().map(item -> item.get(GUID)).collect(Collectors.toList()));
+                } else if (GUID.equals(attr.getPropertyName())) {
+                    convertedMap.put(attr.getPropertyName(), value);
+                    convertedMap.put(ID, value);
+                } else if (CODE.equals(attr.getPropertyName())) {
+                    convertedMap.put(attr.getPropertyName(), value);
+                    convertedMap.put(DISPLAY_NAME, value);
                 } else {
-                    convertedMap.put(convertedDataAttrName, value);
+                    convertedMap.put(attr.getPropertyName(), value);
                 }
             }
         });
