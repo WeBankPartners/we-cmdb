@@ -304,10 +304,10 @@ import PhysicalGraph from "./physical-graph";
 import moment from "moment";
 
 const stateColorMap = new Map([
-  ["new", "#19be6b"],
-  ["created", "#19be6b"],
-  ["update", "#2d8cf0"],
-  ["change", "#2d8cf0"],
+  ["new", "#008000"],
+  ["created", "#008000"],
+  ["update", "blue"],
+  ["change", "blue"],
   ["destroyed", "#ed4014"],
   ["delete", "#ed4014"]
 ]);
@@ -375,7 +375,8 @@ export default {
       appServiceInvokeLines: {},
       allowArch: false,
       allowFixVersion: false,
-      isTableViewOnly: true
+      isTableViewOnly: true,
+      systemDesignFixedDate: 0
     };
   },
   computed: {
@@ -550,6 +551,7 @@ export default {
       } = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion);
       if (statusCode === "OK") {
         this.getAllInvokeSequenceData();
+        this.systemDesignFixedDate = +new Date(data[0].data.fixed_date)
         const formatAppLogicTree = array => array.map(_ => {
           let result = {
             ciTypeId: _.ciTypeId,
@@ -569,7 +571,7 @@ export default {
               id: _.guid,
               label: _.data.invoke_type.value,
               state: _.data.state.code,
-              fixedDate: _.data.fixed_date
+              fixedDate: +new Date(_.data.fixed_date)
             }
           }
           if (_.children instanceof Array && _.children.length) {
@@ -587,7 +589,7 @@ export default {
               id: _.guid,
               label: _.data.service_design.name,
               state: _.data.state.code,
-              fixedDate: _.data.fixed_date
+              fixedDate: +new Date(_.data.fixed_date)
             }
           }
           if (_.children instanceof Array && _.children.length) {
@@ -609,7 +611,6 @@ export default {
         formatAppLogicLine(data)
         formatServiceInvokeLine(data)
         this.serviceInvokeData = formatServiceInvokeTree(data)
-        console.log(JSON.parse(JSON.stringify(this.appInvokeLines)))
         this.initGraph();
       }
 
@@ -731,12 +732,12 @@ export default {
         "}"
       ];
 
-      // console.log(
-      //   dots
-      //     .join("")
-      //     .replace(/;/g, ";\n")
-      //     .replace(/]/g, "]\n")
-      // );
+      console.log(
+        dots
+          .join("")
+          .replace(/;/g, ";\n")
+          .replace(/]/g, "]\n")
+      );
 
       return dots.join("");
     },
@@ -746,11 +747,20 @@ export default {
       let dots = [];
       if (data.length) {
         data.forEach(_ => {
+          let color = ""
+          if (this.isTableViewOnly && this.systemDesignFixedDate) {
+            if (this.systemDesignFixedDate <= _.data.fixed_date) {
+              color = stateColorMap.get(_.data.state.code)
+            }
+          } else if (!_.data.fixed_date) {
+            color = stateColorMap.get(_.data.state.code)
+          }
           if (_.children instanceof Array && _.children.length) {
             dots = dots.concat([
               `subgraph cluster_${_.guid}{`,
               `id="g_${_.guid}";`,
-              `style="filled";color="${colors[level]}";`,
+              `color="${color ? color : colors[level]}";`,
+              `style="filled";fillcolor="${colors[level]}";`,
               `label="${_.data.code || _.data.key_name}";`,
               `tooltip="${_.data.description || _.data.name}"`,
               this.genChildrenDot(id, _.children, level + 1),
@@ -763,7 +773,8 @@ export default {
               `[id="n_${_.guid}";`,
               `label="${_.data.code || _.data.key_name}";`,
               "shape=box;",
-              `style="filled";color="${id !== "#serviceInvokeGraph" ? colors[level] : "#c77b2a"}";`,
+              `color="${color ? color : colors[level]}";`,
+              `style="filled";fillcolor="${id === "#serviceInvokeGraph" && _.ciTypeId === LAST_LEVEL_CI_TYPE_ID ? "#c77b2a" : colors[level]}";`,
               `tooltip="${_.data.description || _.data.name}"];`
             ]);
           }
@@ -780,7 +791,14 @@ export default {
       let otherNodes = []
       const result = Object.keys(linesData).map(guid => {
         const node = linesData[guid]
-        const color = stateColorMap.get(node.state)
+        let color = "#000"
+        if (this.isTableViewOnly && this.systemDesignFixedDate) {
+          if (this.systemDesignFixedDate <= node.fixedDate) {
+            color = stateColorMap.get(node.state)
+          }
+        } else if (!node.fixedDate) {
+          color = stateColorMap.get(node.state)
+        }
         if (!this.graphNodes[id][node.from.guid]) {
           otherNodes.push(node.from)
         }

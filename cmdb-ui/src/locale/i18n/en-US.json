@@ -191,7 +191,7 @@
   "cancel_fix_version": "Cancel Fixed",
   "confirm_fix_version": "Confirm Fixed",
   "application_logic_diagram": "App Logical Diagram",
-  "service_invoke_diagram": "服务调用图",
+  "service_invoke_diagram": "Service Invoke Diagram",
   "loading": "Loading...",
   "invoking_sequential_design": "Invocation Sequence Design",
   "invoking_sequential_design_sequence": "Invocation Sequence Design Series",
