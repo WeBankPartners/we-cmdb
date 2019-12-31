@@ -79,8 +79,14 @@ public class JpaQueryUtils {
             case Greater:
                 processGreaterOperator(cb, predicates, filter, filterExpr);
                 break;
+            case GreaterEqual:
+                processGreaterEqualOperator(cb, predicates, filter, filterExpr);
+                break;
             case Less:
                 processLessOperator(cb, predicates, filter, filterExpr);
+                break;
+            case LessEqual:
+                processLessEqualOperator(cb, predicates, filter, filterExpr);
                 break;
             case NotEqual:
                 processNotEqualsOperator(cb, predicates, filter, filterExpr);
@@ -152,6 +158,30 @@ public class JpaQueryUtils {
                 predicates.add(cb.lessThan(filterExpr, (Double) value));
         }
     }
+    
+    public static void processLessEqualOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter, Expression filterExpr) {
+        Object value = filter.getValue();
+        if (value instanceof Date) {
+            Timestamp timestamp = new Timestamp(((Date) value).getTime());
+            predicates.add(cb.lessThanOrEqualTo(filterExpr, timestamp));
+        } else if (value instanceof String) {
+            if (filterExpr.getJavaType().equals(Timestamp.class)) {
+                java.util.Date date = DateUtils.convertToTimestamp(String.valueOf(value));
+                predicates.add(cb.lessThanOrEqualTo(filterExpr, new Timestamp(date.getTime())));
+            } else {
+                predicates.add(cb.lessThanOrEqualTo(filterExpr, (String) value));
+            }
+        } else if (value instanceof Number) {
+            if (value instanceof Integer)
+                predicates.add(cb.lessThanOrEqualTo(filterExpr, (Integer) value));
+            if (value instanceof Long)
+                predicates.add(cb.lessThanOrEqualTo(filterExpr, (Long) value));
+            if (value instanceof Float)
+                predicates.add(cb.lessThanOrEqualTo(filterExpr, (Float) value));
+            if (value instanceof Double)
+                predicates.add(cb.lessThanOrEqualTo(filterExpr, (Double) value));
+        }
+    }
 
     public static void processGreaterOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter, Expression filterExpr) {
         Object value = filter.getValue();
@@ -174,6 +204,30 @@ public class JpaQueryUtils {
                 predicates.add(cb.greaterThan(filterExpr, (Float) value));
             if (value instanceof Double)
                 predicates.add(cb.greaterThan(filterExpr, (Double) value));
+        }
+    }
+    
+    public static void processGreaterEqualOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter, Expression filterExpr) {
+        Object value = filter.getValue();
+        if (value instanceof Date) {
+            Timestamp timestamp = new Timestamp(((Date) value).getTime());
+            predicates.add(cb.greaterThanOrEqualTo(filterExpr, timestamp));
+        } else if (value instanceof String) {
+            if (filterExpr.getJavaType().equals(Timestamp.class)) {
+                java.util.Date date = DateUtils.convertToTimestamp((String) value);
+                predicates.add(cb.greaterThanOrEqualTo(filterExpr, new Timestamp(date.getTime())));
+            } else {
+                predicates.add(cb.greaterThanOrEqualTo(filterExpr, (String) value));
+            }
+        } else if (value instanceof Number) {
+            if (value instanceof Integer)
+                predicates.add(cb.greaterThanOrEqualTo(filterExpr, (Integer) value));
+            if (value instanceof Long)
+                predicates.add(cb.greaterThanOrEqualTo(filterExpr, (Long) value));
+            if (value instanceof Float)
+                predicates.add(cb.greaterThanOrEqualTo(filterExpr, (Float) value));
+            if (value instanceof Double)
+                predicates.add(cb.greaterThanOrEqualTo(filterExpr, (Double) value));
         }
     }
 
