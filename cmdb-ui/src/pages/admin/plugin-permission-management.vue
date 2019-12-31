@@ -27,10 +27,9 @@
           v-for="ci in ciTypePermissions"
           :key="ci.ciTypeId"
         >
-          <span
-            class="ciTypes"
-            :title="ci.ciTypeName"
-          >{{ ci.ciTypeName }}</span>
+          <span class="ciTypes" :title="ci.ciTypeName">{{
+            ci.ciTypeName
+          }}</span>
           <div class="ciTypes-options">
             <Checkbox
               v-for="act in actionsType"
@@ -38,7 +37,9 @@
               :indeterminate="ci[act.actionCode] === 'P'"
               :value="ci[act.actionCode] === 'Y'"
               :key="act.actionCode"
-              @click.prevent.native="ciTypesPermissionsHandler(ci, act.actionCode, act.type)"
+              @click.prevent.native="
+                ciTypesPermissionsHandler(ci, act.actionCode, act.type)
+              "
             >
               {{ act.actionName }}
             </Checkbox>
@@ -232,8 +233,8 @@ export default {
             }
           ]
         }
-      ],
-    }
+      ]
+    };
   },
   methods: {
     openPermissionManageModal(roleCiTypeId) {
@@ -242,7 +243,13 @@ export default {
       this.getAttrPermissions();
     },
     async getAttrPermissions() {
-      const { statusCode, data, message } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(this.currentRoleCiTypeId)
+      const {
+        statusCode,
+        data,
+        message
+      } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(
+        this.currentRoleCiTypeId
+      );
       if (statusCode === "OK") {
         this.ciTypeAttrsPermissionsBackUp = data.body;
         this.ciTypeAttrsPermissions = data.body.map(_ => {
@@ -395,7 +402,11 @@ export default {
             }
           }
         });
-        const { statusCode, message, data } = await createRoleCiTypeCtrlAttributes(
+        const {
+          statusCode,
+          message,
+          data
+        } = await createRoleCiTypeCtrlAttributes(
           this.currentRoleCiTypeId,
           addAry
         );
@@ -430,7 +441,11 @@ export default {
             }
           }
         });
-        const { statusCode, message, data } = await updateRoleCiTypeCtrlAttributes(
+        const {
+          statusCode,
+          message,
+          data
+        } = await updateRoleCiTypeCtrlAttributes(
           this.currentRoleCiTypeId,
           editAry
         );
@@ -609,12 +624,12 @@ export default {
         );
         this.permissionResponseHandeler(delRes);
       }
-    },
+    }
   },
   created() {
     this.getAllRoles();
   }
-}
+};
 </script>
 
 <style lang="scss" scoped>
@@ -646,7 +661,7 @@ export default {
   display: flex;
   justify-content: space-between;
 
-  &>span {
+  & > span {
     flex: 1;
     margin-right: 10px;
     overflow: hidden;
