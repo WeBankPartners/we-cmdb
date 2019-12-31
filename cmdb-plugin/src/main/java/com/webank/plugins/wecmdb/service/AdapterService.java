@@ -2,6 +2,7 @@ package com.webank.plugins.wecmdb.service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
+import com.webank.cmdb.exception.BatchChangeException.ExceptionHolder;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.util.BeanMapUtils;
@@ -77,7 +79,7 @@ public class AdapterService {
     }
 
     @Transactional
-    public List<Map<String, Object>> confirmBatchCiData(List<OperateCiDto> operateCiDtos) {
+    public List<Map<String, Object>> confirmBatchCiData(List<OperateCiDto> operateCiDtos, List<ExceptionHolder> ExceptionHolders) {
         List<Map<String, Object>> results = new ArrayList<>();
         operateCiDtos.forEach(operateCiDto -> {
             Map<String, Object> resultItem = new HashMap<>();
@@ -86,8 +88,10 @@ public class AdapterService {
             resultItem.put(ERROR_MESSAGE, "");
 
             if (StringUtils.isBlank(operateCiDto.getGuid())) {
+                String errorMessage = "Field 'guid' is required for CI data confirmation.";
                 resultItem.put(ERROR_CODE, 1);
-                resultItem.put(ERROR_MESSAGE, "Field 'guid' is required for ci data confirmation.");
+                resultItem.put(ERROR_MESSAGE, errorMessage);
+                ExceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
                 results.add(resultItem);
                 return;
             }
@@ -101,13 +105,16 @@ public class AdapterService {
                     resultItem.putAll(confirmedCis.get(0));
                     results.add(resultItem);
                 } catch (Exception e) {
+                    String errorMessage = String.format("Failed to confirm CI [guid = %s], error = %s", guid, e.getMessage());
                     resultItem.put(ERROR_CODE, 1);
-                    resultItem.put(ERROR_MESSAGE, "Field 'guid' is required for ci data confirmation.");
+                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                    ExceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
                     results.add(resultItem);
                     return;
                 }
             });
         });
+
         return results;
     }
 
