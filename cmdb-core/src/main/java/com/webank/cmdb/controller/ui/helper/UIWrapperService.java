@@ -1026,6 +1026,7 @@ public class UIWrapperService {
         aggregation.put(AggregationFuction.MAX.getCode(), CONSTANT_FIXED_DATE);
         inputFilters.setAggregationFuction(aggregation);
         inputFilters.getFilters().add(fixDate);
+        inputFilters.addNotNullFilter(CONSTANT_FIXED_DATE);
     }
 
     private boolean checkCiTypeAttributes(List<CiTypeAttrDto> ciTypeAttributes, int stateEnumCat, String stateEnumCode, Map ciDataMap) {
