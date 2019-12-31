@@ -191,6 +191,7 @@
   "cancel_fix_version": "取消定版",
   "confirm_fix_version": "确定定版",
   "application_logic_diagram": "应用逻辑图",
+  "service_invoke_diagram": "服务调用图",
   "loading": "加载中...",
   "invoking_sequential_design": "调用时序设计",
   "invoking_sequential_design_sequence": "调用时序设计序列",
