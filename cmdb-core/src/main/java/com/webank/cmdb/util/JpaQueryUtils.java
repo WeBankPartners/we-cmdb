@@ -97,6 +97,15 @@ public class JpaQueryUtils {
             case Null:
                 predicates.add(cb.isNull(filterExpr));
                 break;
+            case NotEmpty:
+                filter.setValue("");
+                processNotEqualsOperator(cb, predicates, filter, filterExpr);
+                predicates.add(cb.isNotNull(filterExpr));
+                break;
+            case Empty:
+                filter.setValue("");
+                processNotEqualsOperator(cb, predicates, filter, filterExpr);
+                break;
             default:
                 throw new InvalidArgumentException(String.format("Filter operator [%s] is unsupportted.", filter.getOperator()));
             }
