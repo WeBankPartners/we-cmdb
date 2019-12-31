@@ -212,7 +212,15 @@ public class UICiDataManagementController {
             @RequestBody QueryRequest queryObject) {
         return wrapperService.queryCiData(ciTypeId, queryObject);
     }
-
+    
+    @RolesAllowed({ MENU_DESIGNING_CI_DATA_MANAGEMENT, MENU_DESIGNING_CI_DATA_ENQUIRY })
+    @PostMapping("/ci-types/{ci-type-id}/ci-data/query-by-type")
+    @ResponseBody
+    public Object queryCiDataByType(@PathVariable(value = "ci-type-id") int ciTypeId,
+    		@RequestBody QueryRequest queryObject) {
+    	return wrapperService.queryCiDataByType(ciTypeId, queryObject);
+    }
+    
     @PostMapping("/referenceCiData/{reference-attr-id}/query")
     @ResponseBody
     public Object queryReferenceCiData(@PathVariable(value = "reference-attr-id") int referenceAttrId,
