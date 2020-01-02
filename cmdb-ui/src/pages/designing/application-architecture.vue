@@ -320,10 +320,13 @@ const colors = [
   "#1e88e5",
   "#1976d2"
 ];
-const LAST_LEVEL_CI_TYPE_ID = 3
-const APP_INVOKE_LINES_CI_YTPE_ID = 5
-const SERVICE_INVOKE_LINES_CI_TYPE_ID = 35
-const SERVICE_INVOKE_SEQ_DESIGN = "service_invoke_design_sequence"
+const LAST_LEVEL_CI_TYPE_ID = 3 // 单元设计的ciTypeId，也是两张图最小节点的ciTypeId
+const APP_INVOKE_LINES_CI_YTPE_ID = 5 // 调用设计的ciTypeId
+const SERVICE_INVOKE_LINES_CI_TYPE_ID = 35 // 服务调用设计的ciTypeId
+const LINK_TYPE_ENUM_ID = 28 // 链接类型的枚举ID
+const SERVICE_DESIGN = "service_design" // 服务设计ci的code
+const SERVICE_TYPE = "service_type" // 服务类型
+const SERVICE_INVOKE_SEQ_DESIGN = "service_invoke_design_sequence" // 服务调用时序设计ci的code
 
 export default {
   components: {
@@ -376,7 +379,8 @@ export default {
       allowArch: false,
       allowFixVersion: false,
       isTableViewOnly: true,
-      systemDesignFixedDate: 0
+      systemDesignFixedDate: 0,
+      linkTypes: []
     };
   },
   computed: {
@@ -475,19 +479,19 @@ export default {
         this.reColorCurrentInvokeSequenceNode(
           _.service_design,
           "ellipse",
-          "green"
+          "black"
         );
         this.reColorCurrentInvokeSequenceNode(
           _.unit_design,
           "polygon",
-          "green"
+          "black"
         );
-        this.reColorCurrentInvokeSequenceLine(_, "green");
+        this.reColorCurrentInvokeSequenceLine(_, "black");
       });
 
       let index = this.invokeSequenceForm.currentNum;
       let current = this.invokeSequenceForm.currentInvokeSequence[index - 1];
-      this.reColorCurrentInvokeSequenceLine(current, "red");
+      this.reColorCurrentInvokeSequenceLine(current, "green");
     },
     async onArchFixVersion() {
       if (this.systemDesignVersion === "") return;
@@ -544,14 +548,16 @@ export default {
       }
     },
     async getAllDesignTreeFromSystemDesign() {
-      const {
-        statusCode,
-        message,
-        data
-      } = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion);
-      if (statusCode === "OK") {
+      const promiseArray = [getAllDesignTreeFromSystemDesign(this.systemDesignVersion), getEnumCodesByCategoryId(0, LINK_TYPE_ENUM_ID)]
+      const [treeData, enumData] = await Promise.all(promiseArray);
+      if (enumData.statusCode === "OK") {
+        this.linkTypes = enumData.data
+      }
+      if (treeData.statusCode === "OK") {
         this.getAllInvokeSequenceData();
-        this.systemDesignFixedDate = +new Date(data[0].data.fixed_date)
+        this.appInvokeLines = {}
+        this.appServiceInvokeLines = {}
+        this.systemDesignFixedDate = +new Date(treeData.data[0].data.fixed_date)
         const formatAppLogicTree = array => array.map(_ => {
           let result = {
             ciTypeId: _.ciTypeId,
@@ -581,13 +587,14 @@ export default {
         let serviceDesignNodes = {}
         const formatServiceInvokeLine = array => array.forEach(_ => {
           if (_.ciTypeId === SERVICE_INVOKE_LINES_CI_TYPE_ID) {
+          const linkTypeName = this.linkTypes.find(item => item.codeId === _.data[SERVICE_DESIGN][SERVICE_TYPE]).value
             serviceDesignNodes[_.data.invoke_unit_design.guid] = true
             serviceDesignNodes[_.data.invoked_unit_design.guid] = true
             this.appServiceInvokeLines[_.guid] = {
               from: _.data.invoke_unit_design,
               to: _.data.invoked_unit_design,
               id: _.guid,
-              label: _.data.service_design.name,
+              label: `${_.data[SERVICE_DESIGN].name}:${linkTypeName}`,
               state: _.data.state.code,
               fixedDate: +new Date(_.data.fixed_date)
             }
@@ -607,10 +614,10 @@ export default {
           }
           return result
         })
-        this.appLogicData = formatAppLogicTree(data)
-        formatAppLogicLine(data)
-        formatServiceInvokeLine(data)
-        this.serviceInvokeData = formatServiceInvokeTree(data)
+        this.appLogicData = formatAppLogicTree(treeData.data)
+        formatAppLogicLine(treeData.data)
+        formatServiceInvokeLine(treeData.data)
+        this.serviceInvokeData = formatServiceInvokeTree(treeData.data)
         this.initGraph();
       }
 
@@ -650,38 +657,53 @@ export default {
       } = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion);
       if (statusCode === "OK") {
         this.spinShow = false;
-        this.deployTree = this.formatTree(this.systemDesignData);
+        this.deployTree = this.formatTree(data).array;
         this.fixVersionTreeModal = true;
       }
     },
     formatTree(data) {
-      return data.map(_ => {
-        if (_.children && _.children.length > 0) {
-          return {
-            ..._,
-
-            title: _.data.key_name,
-            id: _.guid,
-            expand: true,
-            disableCheckbox: !_.data.WeCMDBOrchestration,
-            children: this.formatTree(_.children)
-          };
-        } else {
-          return {
-            ..._,
-            title: _.data.key_name,
-            id: _.guid,
-            expand: true,
-            disableCheckbox: !_.data.WeCMDBOrchestration
-          };
+      let array = []
+      let isShow = false
+      data.forEach(_ => {
+        let _isShow = false
+        if (!_.data.fixed_date) {
+          isShow = true
+          _isShow = true
         }
-      });
+        const color = stateColorMap.get(_.data.state.code)
+        let result = {
+          fixed_date: _.data.fixed_date,
+          state: _.data.state.code,
+          expand: true,
+          render: (h, params) => (
+            <span style={"color:" + color + ";"}>{_.data.key_name}</span>
+          )
+        }
+        if (_.children instanceof Array && _.children.length && this.formatTree(_.children).isShow) {
+          isShow = true
+          _isShow = true
+          result.children = this.formatTree(_.children).array
+        }
+        if (_isShow) {
+          array.push(result)
+        }
+      })
+      if (array.length && isShow) {
+        return {
+          isShow: isShow,
+          array: array
+        }
+      } else {
+        return {
+          isShow: isShow,
+          array: null
+        }
+      }
     },
     initGraph() {
       this.isShowInvokeSequence = true;
       this.spinShow = true;
       let graph;
-
       const initEvent = id => {
         graph = d3.select(id);
         graph
@@ -690,10 +712,11 @@ export default {
           .on("mousewheel.zoom", null);
         this.graph.graphviz = graph
           .graphviz()
+          .fit(true)
+          .zoom(true)
           .scale(1.2)
           .width(window.innerWidth * 0.96)
-          .height(window.innerHeight * 0.8)
-          .zoom(true);
+          .height(window.innerHeight * 0.8);
       };
       // 应用逻辑图
       initEvent("#appLogicGraph");
@@ -718,9 +741,9 @@ export default {
       const height = 12;
       let dots = [
         "digraph G{",
-        "rankdir=LR nodesep=0.5;",
-        "Node [fontname=Arial, fontsize=12];",
-        'Edge [fontname=Arial, minlen="2",fontsize=10];',
+        "rankdir=LR;nodesep=0.5;",
+        "Node[fontname=Arial,fontsize=12];",
+        'Edge[fontname=Arial,minlen="2",fontsize=10];',
         `size="${width},${height}";`,
         `subgraph cluster_${sysData[0].guid} {`,
         `style="filled";color="${colors[0]}";`,
@@ -805,7 +828,7 @@ export default {
         if (!this.graphNodes[id][node.to.guid]) {
           otherNodes.push(node.to)
         }
-        return `n_${node.from.guid} -> n_${node.to.guid}[id="gl_${node.id}",color="${color}",taillabel="${node.label || ""}",title="${node.label || ""}",labeldistance=3];`
+        return `n_${node.from.guid} -> n_${node.to.guid}[id="gl_${node.id}",color="${color}",taillabel="${node.label || ""}",title="${node.label || ""}",${id === "#serviceInvokeGraph" ? "minlen=3," : ""}labeldistance=3.5];`
       })
       let nodes = []
       otherNodes.forEach(_ => {
