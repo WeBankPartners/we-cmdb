@@ -1,7 +1,6 @@
 package com.webank.cmdb.service.impl;
 
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
-
+import static org.apache.commons.collections.CollectionUtils.isEmpty;import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,6 +15,7 @@ import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
 import com.webank.cmdb.domain.AdmRole;
 import com.webank.cmdb.domain.AdmRoleCiType;
 import com.webank.cmdb.exception.CmdbAccessDeniedException;
+import com.webank.cmdb.repository.AdmRoleRepository;
 import com.webank.cmdb.repository.RoleCiTypeRepository;
 import com.webank.cmdb.repository.UserRepository;
 import com.webank.cmdb.security.Authority;
@@ -37,6 +37,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     private UserRepository userRepository;
     @Autowired
     private RoleCiTypeRepository roleCiTypeRepository;
+    @Autowired
+    private AdmRoleRepository admRoleRepository;
 
     @Override
     public void authorizeCiData(int ciTypeId, Object ciData, String action) {
@@ -85,7 +87,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     @Cacheable("authorizationService-getUserAuthority")
     private UserCiTypeAuthority getUserAuthority(int ciTypeId) {
         String username = getCurrentUsername();
-        List<AdmRole> roles = userRepository.findRolesByUserName(username);
+        List<AdmRole> roles = getRoles();
         if (isEmpty(roles))
             throw new CmdbAccessDeniedException("No role found for user: " + username);
 
@@ -93,6 +95,14 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         List<AdmRoleCiType> roleCiTypes = roleCiTypeRepository.findAdmRoleCiTypesByCiTypeIdAndRoleIds(ciTypeId, roleIds);
 
         return new UserCiTypeAuthority(username, ciTypeId, roleCiTypes);
+    }
+
+    private List<AdmRole> getRoles() {
+        if ("PLATFORM-AUTH".equals(securityProperties.getAuthenticationProvider())) {
+            return admRoleRepository.findByRoleNames(CmdbThreadLocal.getIntance().getAuthorities().toArray(new String[CmdbThreadLocal.getIntance().getAuthorities().size()]));
+        } else {
+            return userRepository.findRolesByUserName(getCurrentUsername());
+        }
     }
 
     private String getCurrentUsername() {

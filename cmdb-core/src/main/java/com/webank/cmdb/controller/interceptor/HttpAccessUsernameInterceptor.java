@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -22,9 +24,16 @@ public class HttpAccessUsernameInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String username = request.getHeader(KEY_USERNAME);
+        String[] authorities = new String[0];
         Principal userPrincipal = request.getUserPrincipal();
         if (userPrincipal != null) {
             username = userPrincipal.getName();
+            if (userPrincipal instanceof UsernamePasswordAuthenticationToken) {
+                authorities = ((UsernamePasswordAuthenticationToken) userPrincipal).getAuthorities()
+                        .stream()
+                        .map(GrantedAuthority::toString)
+                        .toArray(String[]::new);
+            }
         }
 
         if (StringUtils.isNotBlank(username)) {
@@ -35,6 +44,8 @@ public class HttpAccessUsernameInterceptor implements HandlerInterceptor {
                 logger.warn(String.format(("The username [%s] contains invalid character, can not set to response header."), username));
             }
         }
+
+        CmdbThreadLocal.getIntance().withAuthorities(authorities);
         return true;
     }
 
