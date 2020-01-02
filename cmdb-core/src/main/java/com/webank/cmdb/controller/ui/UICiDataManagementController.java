@@ -46,7 +46,6 @@ import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.service.ImageService;
-import com.webank.cmdb.service.StaticDtoService;
 
 import lombok.extern.slf4j.Slf4j;
 

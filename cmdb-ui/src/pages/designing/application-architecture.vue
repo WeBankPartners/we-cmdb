@@ -1,26 +1,52 @@
 <template>
   <Row>
     <Row>
-      <Col span="12">
+      <Col span="16">
         <Row>
           <span style="margin-right: 10px">{{ $t("system_design") }}</span>
           <Select
-            filterable
             @on-change="onSystemDesignSelect"
             label-in-name
             style="width: 35%;"
           >
-            <Option
-              v-for="item in systemDesigns"
-              :value="item.guid"
-              :key="item.guid"
-              >{{ item.name }}</Option
+            <OptionGroup
+              v-for="(data, idx) in systemDesigns"
+              :key="idx"
+              :label="data[0].name"
             >
+              <Option
+                v-for="item in data"
+                :value="item.guid"
+                :key="item.guid"
+                style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
+              >
+                <div>{{ item.name }}</div>
+                <div
+                  v-if="item.fixed_date"
+                  style="color:#ccc; flex-shrink:1; margin-left:10px"
+                >
+                  {{ item.fixed_date }}
+                </div>
+              </Option>
+            </OptionGroup>
           </Select>
-          <Button style="margin: 0 10px;" @click="onArchChange">{{
-            $t("architecture_change")
-          }}</Button>
-          <Button @click="querySysTree">{{ $t("fix_version") }}</Button>
+          <Button
+            style="margin: 0 10px;"
+            @click="onArchChange(false)"
+            :disabled="!allowArch"
+            >{{ $t("architecture_change") }}</Button
+          >
+          <Button
+            style="margin-right: 10px;"
+            @click="querySysTree"
+            :disabled="!allowFixVersion"
+            >{{ $t("fix_version") }}</Button
+          >
+          <Button
+            @click="onArchChange(true)"
+            :disabled="!systemDesignVersion || allowFixVersion"
+            >{{ $t("query") }}</Button
+          >
           <Modal
             v-model="fixVersionTreeModal"
             width="500px"
@@ -49,7 +75,8 @@
         >
           <TabPane
             :label="$t('application_logic_diagram')"
-            name="architecture-design"
+            name="architectureDesign"
+            class="app-tab"
           >
             <Alert show-icon closable v-if="isDataChanged">
               Data has beed changed, click Reload button to reload graph.
@@ -59,13 +86,33 @@
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
               <div>{{ $t("loading") }}</div>
             </Spin>
-            <div v-else-if="!systemDesignData.length" class="no-data">
+            <div v-else-if="!appLogicData.length" class="no-data">
+              {{ $t("no_data") }}
+            </div>
+            <div style="padding-right: 20px">
+              <div class="graph-container" id="appLogicGraph"></div>
+            </div>
+          </TabPane>
+          <TabPane
+            :label="$t('service_invoke_diagram')"
+            name="serviceInvoke"
+            class="app-tab"
+          >
+            <Alert show-icon closable v-if="isDataChanged">
+              Data has beed changed, click Reload button to reload graph.
+              <Button slot="desc" @click="reloadHandler">Reload</Button>
+            </Alert>
+            <Spin size="large" fix v-if="spinShow">
+              <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+              <div>{{ $t("loading") }}</div>
+            </Spin>
+            <div v-else-if="!serviceInvokeData.length" class="no-data">
               {{ $t("no_data") }}
             </div>
             <Row>
-              <Col span="18">
-                <div style="padding-right: 20px">
-                  <div class="graph-container" id="graph"></div>
+              <Col span="18" style="min-height:40px;">
+                <div>
+                  <div class="graph-container" id="serviceInvokeGraph"></div>
                 </div>
               </Col>
               <Col
@@ -172,6 +219,7 @@
           <TabPane
             :label="$t('physical_deployment_diagram')"
             name="physicalGraph"
+            class="app-tab"
           >
             <div id="physicalGraph">
               <PhysicalGraph
@@ -200,12 +248,12 @@
           >
             <WeCMDBTable
               :tableData="ci.tableData"
-              :tableOuterActions="ci.outerActions"
-              :tableInnerActions="ci.innerActions"
+              :tableOuterActions="isTableViewOnly ? null : ci.outerActions"
+              :tableInnerActions="isTableViewOnly ? null : ci.innerActions"
               :tableColumns="ci.tableColumns"
               :pagination="ci.pagination"
               :ascOptions="ci.ascOptions"
-              :showCheckbox="needCheckout"
+              :showCheckbox="isTableViewOnly ? false : needCheckout"
               :isRefreshable="true"
               @actionFun="actionFun"
               @handleSubmit="handleSubmit"
@@ -253,12 +301,13 @@ import {
 import { formatData } from "../util/format.js";
 import { getExtraInnerActions } from "../util/state-operations.js";
 import PhysicalGraph from "./physical-graph";
+import moment from "moment";
 
 const stateColorMap = new Map([
-  ["new", "#19be6b"],
-  ["created", "#19be6b"],
-  ["update", "#2d8cf0"],
-  ["change", "#2d8cf0"],
+  ["new", "#008000"],
+  ["created", "#008000"],
+  ["update", "blue"],
+  ["change", "blue"],
   ["destroyed", "#ed4014"],
   ["delete", "#ed4014"]
 ]);
@@ -271,6 +320,11 @@ const colors = [
   "#1e88e5",
   "#1976d2"
 ];
+const LAST_LEVEL_CI_TYPE_ID = 3
+const APP_INVOKE_LINES_CI_YTPE_ID = 5
+const SERVICE_INVOKE_LINES_CI_TYPE_ID = 35
+const SERVICE_INVOKE_SEQ_DESIGN = "service_invoke_design_sequence"
+
 export default {
   components: {
     PhysicalGraph
@@ -279,6 +333,7 @@ export default {
     return {
       tabList: [],
       systemDesigns: [],
+      systemDesignsOrigin: [],
       systemDesignVersion: "",
       deployTree: [],
       fixVersionTreeModal: false,
@@ -294,14 +349,12 @@ export default {
       invokeDesignCiTypeId: "",
       graph: {},
       systemDesignData: [],
+      appLogicData: [],
+      serviceInvokeData: [],
       physicalGraphData: [],
       physicalGraphLinks: [],
-      physicalGraphNodes: {},
-      physicalGraphLineNodes: {
-        serviceDesign: {},
-        unitDesign: {}
-      },
-      currentTab: "architecture-design",
+      graphNodes: {},
+      currentTab: "architectureDesign",
       spinShow: false,
       isDataChanged: false,
       physicalSpin: false,
@@ -317,7 +370,13 @@ export default {
         currentInvokeSequenceTag: "",
         currentInvokeSequence: [],
         selectedInvokeSequence: ""
-      }
+      },
+      appInvokeLines: {},
+      appServiceInvokeLines: {},
+      allowArch: false,
+      allowFixVersion: false,
+      isTableViewOnly: true,
+      systemDesignFixedDate: 0
     };
   },
   computed: {
@@ -386,7 +445,7 @@ export default {
       );
       if (found) {
         this.invokeSequenceForm.currentInvokeSequence =
-          found.data.invoke_design_sequence;
+          found.data[SERVICE_INVOKE_SEQ_DESIGN];
         this.handleInvokeSquence(true);
       }
     },
@@ -453,7 +512,7 @@ export default {
       this.onArchChange();
       this.isDataChanged = false;
     },
-    async onArchChange() {
+    async onArchChange(isTableViewOnly = false) {
       this.invokeSequenceForm.selectedInvokeSequence = "";
       this.invokeSequenceForm.isShowInvokeSequenceDetial = false;
       let { statusCode, message, data } = await getAllCITypes();
@@ -471,8 +530,18 @@ export default {
       if (this.systemDesignVersion === "") return;
       this.spinShow = true;
       this.physicalSpin = true;
-      this.getAllDesignTreeFromSystemDesign();
-      this.getPhysicalGraphData();
+      this.allowFixVersion = !isTableViewOnly;
+      this.isTableViewOnly = isTableViewOnly;
+      if (
+        this.currentTab === "architectureDesign" ||
+        this.currentTab === "physicalGraph" ||
+        this.currentTab === "serviceInvoke"
+      ) {
+        this.getAllDesignTreeFromSystemDesign();
+        this.getPhysicalGraphData();
+      } else {
+        this.getCurrentData();
+      }
     },
     async getAllDesignTreeFromSystemDesign() {
       const {
@@ -482,7 +551,66 @@ export default {
       } = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion);
       if (statusCode === "OK") {
         this.getAllInvokeSequenceData();
-        this.systemDesignData = data ? data : [];
+        this.systemDesignFixedDate = +new Date(data[0].data.fixed_date)
+        const formatAppLogicTree = array => array.map(_ => {
+          let result = {
+            ciTypeId: _.ciTypeId,
+            guid: _.guid,
+            data: _.data
+          }
+          if (_.children instanceof Array && _.children.length && _.ciTypeId !== LAST_LEVEL_CI_TYPE_ID) {
+            result.children = formatAppLogicTree(_.children)
+          }
+          return result
+        })
+        const formatAppLogicLine = array => array.forEach(_ => {
+          if (_.ciTypeId === APP_INVOKE_LINES_CI_YTPE_ID) {
+            this.appInvokeLines[_.guid] = {
+              from: _.data.invoke_unit_design,
+              to: _.data.invoked_unit_design,
+              id: _.guid,
+              label: _.data.invoke_type.value,
+              state: _.data.state.code,
+              fixedDate: +new Date(_.data.fixed_date)
+            }
+          }
+          if (_.children instanceof Array && _.children.length) {
+            formatAppLogicLine(_.children)
+          }
+        })
+        let serviceDesignNodes = {}
+        const formatServiceInvokeLine = array => array.forEach(_ => {
+          if (_.ciTypeId === SERVICE_INVOKE_LINES_CI_TYPE_ID) {
+            serviceDesignNodes[_.data.invoke_unit_design.guid] = true
+            serviceDesignNodes[_.data.invoked_unit_design.guid] = true
+            this.appServiceInvokeLines[_.guid] = {
+              from: _.data.invoke_unit_design,
+              to: _.data.invoked_unit_design,
+              id: _.guid,
+              label: _.data.service_design.name,
+              state: _.data.state.code,
+              fixedDate: +new Date(_.data.fixed_date)
+            }
+          }
+          if (_.children instanceof Array && _.children.length) {
+            formatServiceInvokeLine(_.children)
+          }
+        })
+        const formatServiceInvokeTree = array => array.filter(_ => _.ciTypeId !== LAST_LEVEL_CI_TYPE_ID || serviceDesignNodes[_.guid]).map(_ => {
+          let result = {
+            ciTypeId: _.ciTypeId,
+            guid: _.guid,
+            data: _.data
+          }
+          if (_.ciTypeId !== LAST_LEVEL_CI_TYPE_ID && _.children instanceof Array && _.children.length) {
+            result.children = formatServiceInvokeTree(_.children)
+          }
+          return result
+        })
+        this.appLogicData = formatAppLogicTree(data)
+        formatAppLogicLine(data)
+        formatServiceInvokeLine(data)
+        this.serviceInvokeData = formatServiceInvokeTree(data)
         this.initGraph();
       }
 
@@ -522,7 +650,6 @@ export default {
       } = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion);
       if (statusCode === "OK") {
         this.spinShow = false;
-        this.systemDesignData = data ? data : [];
         this.deployTree = this.formatTree(this.systemDesignData);
         this.fixVersionTreeModal = true;
       }
@@ -555,9 +682,8 @@ export default {
       this.spinShow = true;
       let graph;
 
-      const initEvent = () => {
-        graph = d3.select("#graph");
-
+      const initEvent = id => {
+        graph = d3.select(id);
         graph
           .on("dblclick.zoom", null)
           .on("wheel.zoom", null)
@@ -569,17 +695,24 @@ export default {
           .height(window.innerHeight * 0.8)
           .zoom(true);
       };
-
-      initEvent();
-      this.renderGraph(this.systemDesignData);
+      // 应用逻辑图
+      initEvent("#appLogicGraph");
+      this.renderGraph("#appLogicGraph", this.appLogicData, this.appInvokeLines);
+      // 服务调用图
+      initEvent("#serviceInvokeGraph")
+      this.renderGraph("#serviceInvokeGraph", this.serviceInvokeData, this.appServiceInvokeLines);
       this.spinShow = false;
     },
-    genDOT(sysData) {
-      this.physicalGraphNodes = {};
-      this.physicalGraphLineNodes = {
-        serviceDesign: {},
-        unitDesign: {}
-      };
+    renderGraph(id, data, linesData) {
+      let nodesString = this.genDOT(id, data, linesData);
+      this.graph.graphviz.renderDot(nodesString);
+      let svg = d3.select(id).select("svg");
+      let width = svg.attr("width");
+      let height = svg.attr("height");
+      svg.attr("viewBox", "0 0 " + width + " " + height);
+    },
+    genDOT(id, sysData, linesData) {
+      this.graphNodes[id] = {};
       this.invokeLines = [];
       const width = 16;
       const height = 12;
@@ -593,10 +726,9 @@ export default {
         `style="filled";color="${colors[0]}";`,
         `tooltip="${sysData[0].data.description}";`,
         `label="${sysData[0].data.name}";`,
-        this.genChildrenDot(sysData[0].children || [], 1),
+        this.genChildrenDot(id, sysData[0].children || [], 1),
         "}",
-        ...this.invokeLines,
-        this.renderOtherNodes(),
+        this.genLines(id, linesData),
         "}"
       ];
 
@@ -609,32 +741,40 @@ export default {
 
       return dots.join("");
     },
-    genChildrenDot(data, level) {
+    genChildrenDot(id, data, level) {
       const width = 12;
       const height = 9;
       let dots = [];
       if (data.length) {
         data.forEach(_ => {
+          let color = ""
+          if (this.isTableViewOnly && this.systemDesignFixedDate) {
+            if (this.systemDesignFixedDate <= _.data.fixed_date) {
+              color = stateColorMap.get(_.data.state.code)
+            }
+          } else if (!_.data.fixed_date) {
+            color = stateColorMap.get(_.data.state.code)
+          }
           if (_.children instanceof Array && _.children.length) {
             dots = dots.concat([
               `subgraph cluster_${_.guid}{`,
               `id="g_${_.guid}";`,
-              `style="filled";color="${colors[level]}";`,
+              `color="${color ? color : colors[level]}";`,
+              `style="filled";fillcolor="${colors[level]}";`,
               `label="${_.data.code || _.data.key_name}";`,
               `tooltip="${_.data.description || _.data.name}"`,
-              _.ciTypeId === 3
-                ? this.genServiceInvokeLine(_)
-                : this.genChildrenDot(_.children, level + 1),
+              this.genChildrenDot(id, _.children, level + 1),
               "}"
             ]);
           } else {
-            this.physicalGraphNodes[_.guid] = _;
+            this.graphNodes[id][_.guid] = _;
             dots = dots.concat([
-              `"${_.guid}"`,
+              `"n_${_.guid}"`,
               `[id="n_${_.guid}";`,
               `label="${_.data.code || _.data.key_name}";`,
               "shape=box;",
-              `style="filled";color="${colors[level]}";`,
+              `color="${color ? color : colors[level]}";`,
+              `style="filled";fillcolor="${id === "#serviceInvokeGraph" && _.ciTypeId === LAST_LEVEL_CI_TYPE_ID ? "#c77b2a" : colors[level]}";`,
               `tooltip="${_.data.description || _.data.name}"];`
             ]);
           }
@@ -647,99 +787,49 @@ export default {
       }
       return dots.join("");
     },
-    genServiceInvokeLine(unitNode) {
-      const unitLabel = unitNode.data.code || unitNode.data.key_name;
-      let serviceData = [];
-      let InvokeLine = [];
-      unitNode.children.forEach(_ => {
-        if (_.ciTypeId === 4) {
-          serviceData.push(_);
-        } else if (_.ciTypeId === 5) {
-          InvokeLine.push(_);
-        }
-      });
-      if (InvokeLine.length) {
-        InvokeLine.forEach(line => {
-          let color = "grey";
-          if (line.data.state && stateColorMap.has(line.data.state.code)) {
-            color = stateColorMap.get(line.data.state.code);
+    genLines(id, linesData) {
+      let otherNodes = []
+      const result = Object.keys(linesData).map(guid => {
+        const node = linesData[guid]
+        let color = "#000"
+        if (this.isTableViewOnly && this.systemDesignFixedDate) {
+          if (this.systemDesignFixedDate <= node.fixedDate) {
+            color = stateColorMap.get(node.state)
           }
-          this.invokeLines.push(
-            `gn_${line.data.unit_design.guid} -> gn_${line.data.service_design.guid} [id="gl_${line.guid}",color="${color}",taillabel="${line.data.type.value}", labeldistance=3];`
-          );
-          this.physicalGraphLineNodes.serviceDesign[
-            line.data.service_design.guid
-          ] = line.data.service_design;
-          this.physicalGraphLineNodes.unitDesign[line.data.unit_design.guid] =
-            line.data.unit_design;
-        });
-      }
-      return [
-        this.renderNode(unitNode, "doubleoctagon"),
-        ...this.renderServiceNode(serviceData, unitNode)
-      ].join("");
-    },
-    renderNode(node, nodeType) {
-      this.physicalGraphNodes[node.guid] = node;
-      return `"gn_${node.guid}" [label="${node.data.code}", id="gn_${
-        node.guid
-      }", shape=${nodeType ||
-        "ellipse"},style="filled", color="${stateColorMap.get(
-        node.data.state.code
-      )}", tooltip="${node.data.description || node.data.name}"]`;
-    },
-    renderServiceNode(serviceData, unitNode) {
-      let result = [];
-      if (serviceData.length) {
-        serviceData.forEach(_ => {
-          result = result.concat([
-            this.renderNode(_),
-            `"gn_${_.guid}" -> "gn_${unitNode.guid}" [arrowhead = "t"]`
-          ]);
-        });
-      }
-      return result;
-    },
-    renderOtherNodes() {
-      let result = "";
-      Object.keys(this.physicalGraphLineNodes.serviceDesign).forEach(
-        serviceGuid => {
-          if (!this.physicalGraphNodes[serviceGuid]) {
-            const node = this.physicalGraphLineNodes.serviceDesign[serviceGuid];
-            result += `"gn_${node.guid}" [label="${node.code}",id="gn_${
-              node.guid
-            }",shape="ellipse",tooltip="${node.description || node.name}"]`;
-          }
+        } else if (!node.fixedDate) {
+          color = stateColorMap.get(node.state)
         }
-      );
-      Object.keys(this.physicalGraphLineNodes.unitDesign).forEach(unitGuid => {
-        if (!this.physicalGraphNodes[unitGuid]) {
-          const node = this.physicalGraphLineNodes.unitDesign[unitGuid];
-          result += `"gn_${node.guid}" [label="${node.code}",id="gn_${
-            node.guid
-          }",shape="doubleoctagon",tooltip="${node.description || node.name}"]`;
+        if (!this.graphNodes[id][node.from.guid]) {
+          otherNodes.push(node.from)
         }
-      });
-      return result;
-    },
-    renderGraph(data) {
-      let nodesString = this.genDOT(data);
-      this.graph.graphviz.renderDot(nodesString);
-      let svg = d3.select("#graph").select("svg");
-      let width = svg.attr("width");
-      let height = svg.attr("height");
-      svg.attr("viewBox", "0 0 " + width + " " + height);
+        if (!this.graphNodes[id][node.to.guid]) {
+          otherNodes.push(node.to)
+        }
+        return `n_${node.from.guid} -> n_${node.to.guid}[id="gl_${node.id}",color="${color}",taillabel="${node.label || ""}",title="${node.label || ""}",labeldistance=3];`
+      })
+      let nodes = []
+      otherNodes.forEach(_ => {
+        nodes = nodes.concat([
+          `"n_${_.guid}"`,
+          `[id="n_${_.guid}";`,
+          `label="${_.code || _.key_name}";`,
+          "shape=box;",
+          `style="filled";`,
+          `tooltip="${_.description || _.name}"];`
+        ])
+      })
+      return result.join("") + nodes.join("")
     },
     shadeAll() {
-      d3.selectAll("g path")
+      d3.selectAll("#serviceInvokeGraph g path")
         .attr("stroke", "#7f8fa6")
         .attr("stroke-opacity", ".2");
-      d3.selectAll("g polygon")
+      d3.selectAll("#serviceInvokeGraph g polygon")
         .attr("stroke", "#7f8fa6")
         .attr("stroke-opacity", ".2")
         .attr("fill", "#7f8fa6")
         .attr("fill-opacity", ".2");
-      d3.selectAll("g ellipse")
+      d3.selectAll("#serviceInvokeGraph g ellipse")
         .attr("stroke", "#7f8fa6")
         .attr("stroke-opacity", ".2")
         .attr("fill", "#7f8fa6")
@@ -774,7 +864,7 @@ export default {
     handleTabClick(name) {
       this.payload.filters = [];
       this.currentTab = name;
-      if (name !== "architecture-design" && name !== "physicalGraph") {
+      if (name !== "architectureDesign" && name !== "physicalGraph" && name !== "serviceInvoke") {
         this.getCurrentData();
       }
     },
@@ -1145,7 +1235,7 @@ export default {
           let renderKey = _.propertyName;
           if (_.status !== "decommissioned" && _.status !== "notCreated") {
             const com =
-              _.propertyName === "invoke_design_sequence"
+              _.propertyName === SERVICE_INVOKE_SEQ_DESIGN
                 ? { component: "WeCMDBSequenceDiagram" }
                 : { ...components[_.inputType] };
             columns.push({
@@ -1218,17 +1308,40 @@ export default {
     },
     onSystemDesignSelect(key) {
       this.systemDesignVersion = key;
+      this.allowArch = this.systemDesignsOrigin.some(x => x.r_guid === key); // 是否允许架构变更，当guid等于r_guid时允许
+      this.allowFixVersion = false;
+      this.isTableViewOnly = true;
       if (
         this.currentTab !== "architecture-design" &&
-        this.currentTab !== "physicalGraph"
+        this.currentTab !== "physicalGraph" &&
+        this.currentTab === "serviceInvoke"
       ) {
-        this.getCurrentData();
+        this.tabList.forEach(ci => {
+          ci.tableData = [];
+        });
       }
     },
     async getSystemDesigns() {
       let { statusCode, data, message } = await getSystemDesigns();
       if (statusCode === "OK") {
-        this.systemDesigns = data.contents.map(_ => _.data);
+        this.systemDesignsOrigin = data.contents.map(_ => _.data);
+        // 进行分组排序
+        const resultObj = this.systemDesignsOrigin
+          .sort((a, b) => {
+            if (!b.fixed_date) return 1;
+            if (!a.fixed_date) return -1;
+            if (moment(a.fixed_date).isSameOrAfter(moment(b.fixed_date)))
+              return -1;
+            return 1;
+          })
+          .reduce((obj, x) => {
+            if (!obj[x.r_guid]) obj[x.r_guid] = [];
+            x.guid === x.r_guid
+              ? obj[x.r_guid].unshift(x)
+              : obj[x.r_guid].push(x);
+            return obj;
+          }, {});
+        this.systemDesigns = Object.values(resultObj);
       }
     }
   },
@@ -1253,5 +1366,8 @@ export default {
 }
 .no-data {
   text-align: center;
+}
+.app-tab {
+  height: calc(100vh - 240px);
 }
 </style>

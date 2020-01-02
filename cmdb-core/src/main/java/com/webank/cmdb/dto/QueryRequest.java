@@ -1,5 +1,6 @@
 package com.webank.cmdb.dto;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,15 @@ public class QueryRequest {
     protected List<String> refResources = new LinkedList<>();
     protected List<String> resultColumns;
     protected Dialect dialect = new Dialect();
+    protected Map<String, String> aggregationFuction = new HashMap<>();
+    
+    public Map<String, String> getAggregationFuction() {
+        return aggregationFuction;
+    }
+
+    public void setAggregationFuction(Map<String, String> aggregationFuction) {
+        this.aggregationFuction = aggregationFuction;
+    }
 
     public static class Dialect {
         private boolean showCiHistory = false;
@@ -159,6 +169,16 @@ public class QueryRequest {
 
     public QueryRequest addNullFilter(String name) {
         filters.add(new Filter(name, "null", null));
+        return this;
+    }
+    
+    public QueryRequest addNotEmptyFilter(String name) {
+        filters.add(new Filter(name, "notEmpty", null));
+        return this;
+    }
+    
+    public QueryRequest addEmptyFilter(String name) {
+        filters.add(new Filter(name, "empty", null));
         return this;
     }
 
