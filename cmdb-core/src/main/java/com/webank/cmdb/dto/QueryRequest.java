@@ -171,6 +171,16 @@ public class QueryRequest {
         filters.add(new Filter(name, "null", null));
         return this;
     }
+    
+    public QueryRequest addNotEmptyFilter(String name) {
+        filters.add(new Filter(name, "notEmpty", null));
+        return this;
+    }
+    
+    public QueryRequest addEmptyFilter(String name) {
+        filters.add(new Filter(name, "empty", null));
+        return this;
+    }
 
     public QueryRequest ascendingSortBy(String field) {
         sorting = new Sorting(true, field);
