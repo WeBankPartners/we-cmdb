@@ -72,6 +72,7 @@
 import { queryCiData } from "@/api/server";
 import mermaid from "mermaid";
 
+const SERVICE_INVOKE_DESIGN_SEQUENCE_CI_TYPE_ID = 35
 const INVOKE_UNIT_DESIGN = "invoke_unit_design"
 const INVOKED_UNIT_DESIGN = "invoked_unit_design"
 
@@ -201,7 +202,7 @@ export default {
     },
     async getSequenceData() {
       const payload = {
-        id: 5,
+        id: SERVICE_INVOKE_DESIGN_SEQUENCE_CI_TYPE_ID,
         queryObject: {
           filters: [],
           pageable: { pageSize: 10, startIndex: 0 },
