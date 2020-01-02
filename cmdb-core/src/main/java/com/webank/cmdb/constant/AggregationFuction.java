@@ -1,11 +1,11 @@
 package com.webank.cmdb.constant;
 
-public enum FilterOperator {
-    None("none"), In("in"), Contains("contains"), Equal("eq"), Greater("gt"), Less("lt"), NotEqual("ne"), NotNull("notNull"), Null("null"), GreaterEqual("gteq"), LessEqual("lteq"), NotEmpty("notEmpty"), Empty("empty");
+public enum AggregationFuction {
+    None("none"), MAX("max"), MIN("min"), AVG("avg"), SUM("sum"), COUNT("count");
 
     private String code;
 
-    private FilterOperator(String code) {
+    private AggregationFuction(String code) {
         this.code = code;
     }
 
@@ -19,8 +19,8 @@ public enum FilterOperator {
      * @param code The input FilterOperator code
      * @return The matching enum value. None if there is not matching enum value
      */
-    static public FilterOperator fromCode(String code) {
-        for (FilterOperator operator : values()) {
+    static public AggregationFuction fromCode(String code) {
+        for (AggregationFuction operator : values()) {
             if (None.equals(operator))
                 continue;
 
