@@ -11,9 +11,11 @@ import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_REMOV
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
+import java.lang.reflect.Array;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -30,7 +32,9 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CompoundSelection;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
@@ -40,6 +44,7 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
 import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
@@ -346,7 +351,13 @@ public class CiServiceImpl implements CiService {
             results.forEach(x -> {
                 // DynamicEntityHolder entityBean =
                 // DynamicEntityHolder.createDynamicEntityBean(entityMeta, x);
-                Map<String, Object> entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true);
+                Map<String, Object> entityBeanMap = null;
+                if(ciRequest.getAggregationFuction()!=null && ciRequest.getAggregationFuction().size()>0) {
+                    Object object = Array.get(x, 0);
+                    entityBeanMap = ClassUtils.convertBeanToMap(object, entityMeta, true);
+                }else {
+                    entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true);
+                }
                 Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
                 List<String> nextOperations = getNextOperations(entityBeanMap);
                 CiData ciData = new CiData(enhacedMap, nextOperations);
@@ -483,6 +494,12 @@ public class CiServiceImpl implements CiService {
 
                 if (!isSelRowCount) {
                     JpaQueryUtils.applySorting(ciRequest.getSorting(), cb, query, selectionMap);
+                    if(ciRequest.getGroupBys()!=null && ciRequest.getGroupBys().size()>0) {
+                        JpaQueryUtils.applyGroupBy(ciRequest.getGroupBys(),query,selectionMap);
+                    }
+                    if(ciRequest.getAggregationFuction()!=null &&ciRequest.getAggregationFuction().size()>0) {
+                        JpaQueryUtils.applyAggregation(ciRequest.getAggregationFuction(), cb, query, selectionMap, root);
+                    }
                 }
             }
             
