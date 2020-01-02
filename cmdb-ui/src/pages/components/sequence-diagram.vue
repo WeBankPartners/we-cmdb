@@ -72,6 +72,9 @@
 import { queryCiData } from "@/api/server";
 import mermaid from "mermaid";
 
+const INVOKE_UNIT_DESIGN = "invoke_unit_design"
+const INVOKED_UNIT_DESIGN = "invoked_unit_design"
+
 export default {
   name: "WeCMDBSequenceDiagram",
   data() {
@@ -150,11 +153,10 @@ export default {
       if (this.selectedSequenceData.length > 0) {
         this.selectedSequenceData.forEach((_, index) => {
           graphNode.push(
-            `${_.unit_design.key_name.replace(
+            `${_[INVOKE_UNIT_DESIGN].key_name.replace(
               /-/g,
               "&"
-            )}->>${_.service_design.key_name
-              .replace(`-${_.service_design.code}`, "")
+            )}->>${_[INVOKED_UNIT_DESIGN].key_name
               .replace(/-/g, "&")}:${index + 1} : ${
               _.description.length === 0 ? "" : _.description
             }`

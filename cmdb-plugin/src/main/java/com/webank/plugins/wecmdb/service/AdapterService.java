@@ -47,7 +47,7 @@ public class AdapterService {
     private static final String GUID = "guid";
     private static final String CODE = "code";
     private static final Map<String, String> dataTypeMapping = new HashMap<>();
-    private static final String DISPLAY_NAME = "display_name";
+    private static final String DISPLAY_NAME = "displayName";
     static {
         dataTypeMapping.put(FieldType.Varchar.getCode(), DataType.String.getCode());
         dataTypeMapping.put(FieldType.Int.getCode(), DataType.Integer.getCode());
