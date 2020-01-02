@@ -797,7 +797,7 @@ export default {
               `label="${_.data.code || _.data.key_name}";`,
               "shape=box;",
               `color="${color ? color : colors[level]}";`,
-              `style="filled";fillcolor="${id === "#serviceInvokeGraph" && _.ciTypeId === LAST_LEVEL_CI_TYPE_ID ? "#c77b2a" : colors[level]}";`,
+              `style="filled";fillcolor="${colors[level]}";`,
               `tooltip="${_.data.description || _.data.name}"];`
             ]);
           }
