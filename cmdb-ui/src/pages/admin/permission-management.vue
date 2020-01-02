@@ -40,9 +40,9 @@
             >{{ $t("add_role") }}</Button
           >
         </p>
-        <div class="role-item" v-for="item in roles" :key="item.id">
+        <div class="role-item" v-for="item in roles" :key="item.rolename">
           <Tag
-            :name="item.id"
+            :name="item.rolename"
             :color="item.color"
             :checked="item.checked"
             checkable
@@ -55,7 +55,7 @@
             icon="ios-build"
             type="dashed"
             size="small"
-            @click="openUserManageModal(item.id)"
+            @click="openUserManageModal(item.rolename)"
             >{{ $t("user") }}</Button
           >
         </div>
@@ -79,11 +79,9 @@
           v-for="ci in ciTypePermissions"
           :key="ci.ciTypeId"
         >
-          <span
-            class="ciTypes"
-            :title="ci.ciTypeName"
-            >{{ ci.ciTypeName }}</span
-          >
+          <span class="ciTypes" :title="ci.ciTypeName">{{
+            ci.ciTypeName
+          }}</span>
           <div class="ciTypes-options">
             <Checkbox
               v-for="act in actionsType"
@@ -254,12 +252,13 @@ export default {
       permissionManageModal: false,
       usersKeyBySelectedRole: [],
       allUsersForTransfer: [],
-      selectedRole: 0,
+      selectedRole: null,
       transferTitles: [
         this.$t("permission_management_unselected_user"),
         this.$t("permission_management_selected_user")
       ],
-      currentRoleId: 0,
+      // currentRoleId: 0,
+      currentRoleName: null,
       ciTypePermissions: [],
       allMenusOriginResponse: [],
       transferStyle: { width: "300px" },
@@ -537,7 +536,11 @@ export default {
             }
           }
         });
-        const { statusCode, message, data } = await createRoleCiTypeCtrlAttributes(
+        const {
+          statusCode,
+          message,
+          data
+        } = await createRoleCiTypeCtrlAttributes(
           this.currentRoleCiTypeId,
           addAry
         );
@@ -548,7 +551,7 @@ export default {
           });
 
           this.getAttrPermissions();
-          this.getPermissions(false, true, this.currentRoleId);
+          this.getPermissions(false, true, this.currentRoleName);
           setBtnsStatus();
         }
       }
@@ -572,7 +575,11 @@ export default {
             }
           }
         });
-        const { statusCode, message, data } = await updateRoleCiTypeCtrlAttributes(
+        const {
+          statusCode,
+          message,
+          data
+        } = await updateRoleCiTypeCtrlAttributes(
           this.currentRoleCiTypeId,
           editAry
         );
@@ -582,7 +589,7 @@ export default {
             desc: message
           });
           this.getAttrPermissions();
-          this.getPermissions(false, true, this.currentRoleId);
+          this.getPermissions(false, true, this.currentRoleName);
         }
       }
     },
@@ -789,7 +796,7 @@ export default {
       }
     },
     async handleUserClick(checked, name) {
-      this.currentRoleId = 0;
+      this.currentRoleName = null;
       this.dataPermissionDisabled = true;
       this.users.forEach(_ => {
         _.checked = false;
@@ -843,8 +850,9 @@ export default {
       });
     },
 
-    async handleRoleClick(checked, id) {
-      this.currentRoleId = id;
+    async handleRoleClick(checked, rolename) {
+      // this.currentRoleId = id;
+      this.currentRoleName = rolename;
       this.dataPermissionDisabled = false;
       this.menus = this.menusResponseHandeler(
         this.allMenusOriginResponse,
@@ -852,12 +860,12 @@ export default {
       );
       this.roles.forEach(_ => {
         _.checked = false;
-        if (id === _.id) {
+        if (rolename === _.rolename) {
           _.checked = checked;
         }
       });
-      let { statusCode, data, message } = await getUsersByRole(id);
-      this.getPermissions(false, checked, id);
+      let { statusCode, data, message } = await getUsersByRole(rolename);
+      this.getPermissions(false, checked, rolename);
       if (statusCode === "OK") {
         this.users.forEach(_ => {
           _.checked = false;
@@ -876,15 +884,15 @@ export default {
         menuCodes.push(currentChecked.code);
       }
       const { statusCode, message, data } = currentChecked.checked
-        ? await addMenusToRole(menuCodes, this.currentRoleId)
-        : await removeMenusFromRole(menuCodes, this.currentRoleId);
+        ? await addMenusToRole(menuCodes, this.currentRoleName)
+        : await removeMenusFromRole(menuCodes, this.currentRoleName);
       if (statusCode === "OK") {
         this.$Notice.success({
           title: "success",
           desc: message
         });
       }
-      this.getPermissions(true, true, this.currentRoleId);
+      this.getPermissions(true, true, this.currentRoleName);
     },
     async getAllRoles() {
       let { statusCode, data, message } = await getAllRoles();
@@ -945,20 +953,20 @@ export default {
       }
     },
     permissionResponseHandeler(res) {
-      this.getPermissions(true, true, this.currentRoleId);
+      this.getPermissions(true, true, this.currentRoleName);
     },
     async setPermissionAction(checked, name, id) {
-      if (this.currentRoleId === 0) return;
+      if (!this.currentRoleName) return;
       if (checked) {
         const addRes = await addDataPermissionAction(
-          this.currentRoleId,
+          this.currentRoleName,
           id,
           name
         );
         this.permissionResponseHandeler(addRes);
       } else {
         const delRes = await removeDataPermissionAction(
-          this.currentRoleId,
+          this.currentRoleName,
           id,
           name
         );
@@ -970,11 +978,11 @@ export default {
         return arr.indexOf(v) === arr.lastIndexOf(v);
       });
     },
-    async openUserManageModal(id) {
+    async openUserManageModal(rolename) {
       this.usersKeyBySelectedRole = [];
       this.allUsersForTransfer = [];
-      this.selectedRole = id;
-      let { statusCode, data, message } = await getUsersByRole(id);
+      this.selectedRole = rolename;
+      let { statusCode, data, message } = await getUsersByRole(rolename);
       if (statusCode === "OK") {
         this.usersKeyBySelectedRole = data.map(_ => _.userId);
       }
@@ -989,8 +997,8 @@ export default {
     },
     cancel() {},
     confirmUser() {
-      if (this.currentRoleId !== 0) {
-        this.handleRoleClick(true, this.currentRoleId);
+      if (this.currentRoleName) {
+        this.handleRoleClick(true, this.currentRoleName);
       }
     }
   },
@@ -1032,7 +1040,7 @@ export default {
   display: flex;
   justify-content: space-between;
 
-  &>span {
+  & > span {
     flex: 1;
     margin-right: 10px;
     overflow: hidden;
