@@ -450,7 +450,8 @@
                   :label="$t('length')"
                   v-if="
                     item.form.inputType === 'text' ||
-                      item.form.inputType === 'textArea'
+                      item.form.inputType === 'textArea' ||
+                      item.form.inputType === 'number'
                   "
                 >
                   <InputNumber
@@ -784,7 +785,8 @@
               :label="$t('length')"
               v-if="
                 addNewAttrForm.inputType === 'text' ||
-                  addNewAttrForm.inputType === 'textArea'
+                  addNewAttrForm.inputType === 'textArea' ||
+                  addNewAttrForm.inputType === 'number'
               "
             >
               <InputNumber
