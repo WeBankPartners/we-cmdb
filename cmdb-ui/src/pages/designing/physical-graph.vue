@@ -47,7 +47,6 @@ export default {
       this.renderGraph(this.graphData);
     },
     renderGraph(idcData) {
-      console.log(JSON.parse(JSON.stringify(idcData)))
       const children = idcData[0].children || [];
       const DOTs = this.genDOT(idcData[0]);
       this.graph.renderDot(DOTs);
@@ -100,7 +99,6 @@ export default {
         this.genLink(),
         "}}"
       ];
-      // console.log(dots.join("").replace(/(;)/g, ";\n").replace(/];/g, "];\n"))
       return dots.join("");
     },
     genChildren(idcData) {
