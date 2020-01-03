@@ -221,7 +221,7 @@
             name="physicalGraph"
             class="app-tab"
           >
-            <div id="physicalGraph">
+            <div>
               <PhysicalGraph
                 v-if="physicalGraphData.length"
                 :graphData="physicalGraphData"
@@ -289,6 +289,7 @@ import {
   getArchitectureCiDatas,
   getAllCITypes,
   operateCiState,
+  getIdcDesignTreeByGuid,
   getApplicationFrameworkDesignDataTree,
   getAllZoneLinkDesignGroupByIdcDesign
 } from "@/api/server";
@@ -627,21 +628,45 @@ export default {
     },
     async getPhysicalGraphData() {
       this.physicalGraphData = [];
+      const foundIdcGuid = this.systemDesignsOrigin.find(_ => _.guid === this.systemDesignVersion).data_center_design.guid
+      if (!foundIdcGuid) {
+        return
+      }
       const promiseArray = [
+        getIdcDesignTreeByGuid([foundIdcGuid]),
         getApplicationFrameworkDesignDataTree(this.systemDesignVersion),
         getAllZoneLinkDesignGroupByIdcDesign()
       ];
-      const [graphData, links] = await Promise.all(promiseArray);
-      if (graphData.statusCode === "OK") {
-        if (graphData.data.length) {
-          this.physicalGraphData = graphData.data;
-        } else {
-          this.physicalGraphData = [];
-          this.physicalSpin = false;
+      const [idcData, unitsData, links] = await Promise.all(promiseArray);
+      if (unitsData.statusCode === "OK" && idcData.statusCode === "OK") {
+        let setDesigns = {}
+        unitsData.data.forEach(_ => {
+          if (setDesigns[_.data.resource_set_design.guid]) {
+            setDesigns[_.data.resource_set_design.guid].push(_)
+          } else {
+            setDesigns[_.data.resource_set_design.guid] = [_]
+          }
+        })
+        const formatTree = data => {
+          return data.map(_ => {
+            let result = {
+              ..._,
+            }
+            if (setDesigns[_.guid]) {
+              result.children = setDesigns[_.guid]
+            }
+            if (_.children instanceof Array && _.children.length) {
+              result.children = formatTree(_.children)
+            }
+            return result
+          })
         }
+        this.physicalGraphData = formatTree(idcData.data)
+        this.physicalSpin = false;
       }
       if (links.statusCode === "OK") {
-        this.physicalGraphLinks = links.data || [];
+        const found = links.data.find(_ => _.idcGuid === foundIdcGuid)
+        this.physicalGraphLinks = found ? found.linkList : []
       }
     },
     graphCallback() {
