@@ -3,6 +3,8 @@ package com.webank.cmdb.service.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -397,7 +399,12 @@ public class FilterRuleService {
                     rootDto.setAttrKeyNames(Arrays.asList(TARGET_NAME));
                 }
             }
-            Filter filter = new Filter(aliasName, "eq", valueOfFilter);
+            Filter filter = null;
+            if(valueOfFilter instanceof Collection) {
+                filter = new Filter(aliasName, "in", valueOfFilter);
+            }else {
+                filter = new Filter(aliasName, "eq", valueOfFilter);
+            }
             queryRequest.setFilters(Arrays.asList(filter));
         }
 
