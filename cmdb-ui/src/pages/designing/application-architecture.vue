@@ -779,14 +779,6 @@ export default {
         this.genLines(id, linesData),
         "}"
       ];
-
-      console.log(
-        dots
-          .join("")
-          .replace(/;/g, ";\n")
-          .replace(/]/g, "]\n")
-      );
-
       return dots.join("");
     },
     genChildrenDot(id, data, level) {
