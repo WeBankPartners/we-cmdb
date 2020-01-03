@@ -498,17 +498,20 @@ public class UIWrapperService {
             return query;
         }
         query.getContents().forEach(cidata -> {
-            String fixDate = (String) cidata.getData().get("fixed_date");
-            if (StringUtils.isBlank(fixDate)) {
-                String pGuid = (String) cidata.getData().get("p_guid");
+            String fixedDate = (String) cidata.getData().get(CONSTANT_FIXED_DATE);
+            if (StringUtils.isBlank(fixedDate)) {
+                String pGuid = (String) cidata.getData().get(CmdbConstants.DEFAULT_FIELD_PARENT_GUID);
                 if (StringUtils.isNotBlank(pGuid)) {
                     ciDataIds.add(pGuid);
                 }
             } else {
-                ciDataIds.add((String) cidata.getData().get("guid"));
+                ciDataIds.add((String) cidata.getData().get(CmdbConstants.DEFAULT_FIELD_GUID));
             }
         });
-        queryObject.addInFilter("guid", ciDataIds);
+        if(ciDataIds.size() <= 0) {
+            return new QueryResponse<CiData>();
+        }
+        queryObject.addInFilter(CmdbConstants.DEFAULT_FIELD_GUID, ciDataIds);
         queryObject.getDialect().setShowCiHistory(true);
         return ciService.query(ciTypeId, queryObject);
     }
