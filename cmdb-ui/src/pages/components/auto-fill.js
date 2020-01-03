@@ -1,8 +1,7 @@
 import "./auto-fill.scss";
 import {
   getRefCiTypeFrom,
-  getCiTypeAttr,
-  getSpecialConnector
+  getCiTypeAttr
 } from "@/api/server.js";
 
 export default {
