@@ -45,7 +45,6 @@ cmdb:
 
     #Effective ONLY when security-enabled set as true
     whitelist-ip-address: 127.0.0.1
-
 platform:
    auth:
       jwt-sso-authentication-uri: http://localhost:19090/auth/v1/api/login
