@@ -449,7 +449,7 @@ public class CiDataInterceptorService {
     
     private QueryResponse queryIntegrateWithRoutines(String guid, AdmCiTypeAttr attrWithGuid, List<AutoFillIntegrationQueryDto> routines) {
         AdhocIntegrationQueryDto adhocDto = buildRootDto(routines.get(0), guid, attrWithGuid);
-        travelFillQueryDto(routines, adhocDto.getCriteria(), adhocDto.getQueryRequest(),1);
+        travelFillQueryDto(routines, adhocDto.getCriteria(), adhocDto.getQueryRequest(),1, attrWithGuid);
         
         return ciService.adhocIntegrateQuery(adhocDto);
     }
@@ -480,7 +480,7 @@ public class CiDataInterceptorService {
         return guids;
     }
 
-    private IntegrationQueryDto travelFillQueryDto(List<AutoFillIntegrationQueryDto> routines, IntegrationQueryDto parentDto,QueryRequest queryRequest, int position) {
+    private IntegrationQueryDto travelFillQueryDto(List<AutoFillIntegrationQueryDto> routines, IntegrationQueryDto parentDto, QueryRequest queryRequest, int position, AdmCiTypeAttr attrWithGuid) {
         if (position >= routines.size()) {
             return null;
         }
@@ -496,26 +496,30 @@ public class CiDataInterceptorService {
         dto.setParentRs(parentRs);
         List<String> fileds = new ArrayList();
         List<Integer> attrs = new ArrayList();
-        if (position < routines.size()-1) {
-        	attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(),"guid"));
-        	fileds.add(item.getCiTypeId() + "$guid");
-		}
-        if(item.getFilters().size()>0) {
-        	List<Filter> filters = new ArrayList<Filter>(queryRequest.getFilters());
-        	item.getFilters().stream().forEach(filter -> {
-        		attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(),filter.getName()));
-        		filter.setName(item.getCiTypeId() + "$" + filter.getName());
-        		filters.add(filter);
-        		fileds.add(filter.getName());
-        	});
-        	queryRequest.setFilters(filters);
+        if (position < routines.size() - 1) {
+            attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(), "guid"));
+            if (attrWithGuid!=null && attrWithGuid.getCiTypeId() == item.getCiTypeId()) {
+                fileds.add(item.getCiTypeId() + "$guid");
+            } else {
+                fileds.add(item.getCiTypeId() + "$guid_" + position);
+            }
+        }
+        if (item.getFilters().size() > 0) {
+            List<Filter> filters = new ArrayList<Filter>(queryRequest.getFilters());
+            item.getFilters().stream().forEach(filter -> {
+                attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(), filter.getName()));
+                filter.setName(item.getCiTypeId() + "$" + filter.getName());
+                filters.add(filter);
+                fileds.add(filter.getName());
+            });
+            queryRequest.setFilters(filters);
         }
         dto.setAttrs(attrs);
         dto.setAttrKeyNames(fileds);
-        IntegrationQueryDto childDto = travelFillQueryDto(routines, dto, queryRequest, ++position);
+        IntegrationQueryDto childDto = travelFillQueryDto(routines, dto, queryRequest, ++position, attrWithGuid);
 
         if (childDto == null) {
-        	addTargetName(parentDto, dto);
+            addTargetName(parentDto, dto);
         } else {
             parentDto.setChildren(Arrays.asList(childDto));
         }
