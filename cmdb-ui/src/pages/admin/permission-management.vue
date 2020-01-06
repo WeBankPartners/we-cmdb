@@ -94,6 +94,15 @@
               "
               >{{ act.actionName }}</Checkbox
             >
+            <Button
+              icon="ios-build"
+              type="dashed"
+              size="small"
+              :disabled="dataPermissionDisabled"
+              @click="openPermissionManageModal(ci.roleCiTypeId)"
+            >
+              {{ $t("details") }}
+            </Button>
           </div>
         </div>
       </Card>

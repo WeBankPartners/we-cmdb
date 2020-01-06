@@ -758,7 +758,7 @@ public class UIWrapperService {
     }
 
     public List<RoleCiTypeCtrlAttrConditionDto> updateRoleCiTypeCtrlAttrConditions(RoleCiTypeCtrlAttrConditionDto... roleCiTypeCtrlAttrConditions) {
-        return staticDtoService.update(RoleCiTypeCtrlAttrConditionDto.class, Lists.newArrayList(BeanMapUtils.convertBeanToMap(roleCiTypeCtrlAttrConditions)));
+        return staticDtoService.update(RoleCiTypeCtrlAttrConditionDto.class, BeanMapUtils.convertBeansToMaps(Arrays.asList(roleCiTypeCtrlAttrConditions)));
     }
 
     public List<RoleCiTypeDto> updateRoleCiTypes(RoleCiTypeDto... roleCiTypes) {
