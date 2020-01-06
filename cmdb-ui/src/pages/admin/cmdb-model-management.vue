@@ -274,9 +274,7 @@
               <Select v-model="addNewCITypeForm.imageFileId">
                 <img
                   v-if="addNewCITypeForm.imageFileId"
-                  :src="
-                    `${baseURL}/files/${addNewCITypeForm.imageFileId}.png`
-                  "
+                  :src="`${baseURL}/files/${addNewCITypeForm.imageFileId}.png`"
                   slot="prefix"
                   height="24"
                   width="24"
@@ -444,23 +442,6 @@
                 >
                   <Input v-model="item.form.regularExpressionRule"></Input>
                 </FormItem>
-                <FormItem :label="$t('real_type')">
-                  <Input v-model="item.form.propertyType" disabled></Input>
-                </FormItem>
-                <FormItem
-                  prop="length"
-                  :label="$t('length')"
-                  v-if="
-                    item.form.inputType === 'text' ||
-                      item.form.inputType === 'textArea'
-                  "
-                >
-                  <InputNumber
-                    :min="1"
-                    :disabled="item.form.status !== 'notCreated'"
-                    v-model="item.form.length"
-                  ></InputNumber>
-                </FormItem>
                 <FormItem
                   prop="referenceId"
                   v-if="
@@ -478,39 +459,6 @@
                       :value="item.ciTypeId"
                       :key="item.ciTypeId"
                       >{{ item.name }}</Option
-                    >
-                  </Select>
-                </FormItem>
-                <FormItem
-                  prop="referenceName"
-                  v-if="
-                    item.form.inputType === 'ref' ||
-                      item.form.inputType === 'multiRef'
-                  "
-                  :label="$t('reference_name')"
-                >
-                  <Input
-                    v-model="item.form.referenceName"
-                    :disabled="item.form.status === 'decommissioned'"
-                  ></Input>
-                </FormItem>
-                <FormItem
-                  prop="referenceType"
-                  v-if="
-                    item.form.inputType === 'ref' ||
-                      item.form.inputType === 'multiRef'
-                  "
-                  :label="$t('reference_type')"
-                >
-                  <Select
-                    v-model="item.form.referenceType"
-                    :disabled="item.form.status === 'decommissioned'"
-                  >
-                    <Option
-                      v-for="item in allReferenceTypes"
-                      :value="item.codeId"
-                      :key="item.codeId"
-                      >{{ item.value }}</Option
                     >
                   </Select>
                 </FormItem>
@@ -568,6 +516,56 @@
                         ></Button>
                       </span>
                     </Option>
+                  </Select>
+                </FormItem>
+                <FormItem :label="$t('real_type')">
+                  <Input v-model="item.form.propertyType" disabled></Input>
+                </FormItem>
+                <FormItem
+                  prop="length"
+                  :label="$t('length')"
+                  v-if="
+                    item.form.inputType === 'text' ||
+                      item.form.inputType === 'textArea'
+                  "
+                >
+                  <InputNumber
+                    :min="1"
+                    :disabled="item.form.status !== 'notCreated'"
+                    v-model="item.form.length"
+                  ></InputNumber>
+                </FormItem>
+                <FormItem
+                  prop="referenceName"
+                  v-if="
+                    item.form.inputType === 'ref' ||
+                      item.form.inputType === 'multiRef'
+                  "
+                  :label="$t('reference_name')"
+                >
+                  <Input
+                    v-model="item.form.referenceName"
+                    :disabled="item.form.status === 'decommissioned'"
+                  ></Input>
+                </FormItem>
+                <FormItem
+                  prop="referenceType"
+                  v-if="
+                    item.form.inputType === 'ref' ||
+                      item.form.inputType === 'multiRef'
+                  "
+                  :label="$t('reference_type')"
+                >
+                  <Select
+                    v-model="item.form.referenceType"
+                    :disabled="item.form.status === 'decommissioned'"
+                  >
+                    <Option
+                      v-for="item in allReferenceTypes"
+                      :value="item.codeId"
+                      :key="item.codeId"
+                      >{{ item.value }}</Option
+                    >
                   </Select>
                 </FormItem>
                 <FormItem prop="isRefreshable" :label="$t('is_refreshable')">
@@ -763,22 +761,6 @@
             >
               <Input v-model="addNewAttrForm.regularExpressionRule"></Input>
             </FormItem>
-            <FormItem prop="propertyType" :label="$t('real_type')">
-              <Input v-model="addNewAttrForm.propertyType" disabled></Input>
-            </FormItem>
-            <FormItem
-              prop="length"
-              :label="$t('length')"
-              v-if="
-                addNewAttrForm.inputType === 'text' ||
-                  addNewAttrForm.inputType === 'textArea'
-              "
-            >
-              <InputNumber
-                :min="1"
-                v-model="addNewAttrForm.length"
-              ></InputNumber>
-            </FormItem>
             <FormItem
               prop="referenceId"
               v-if="
@@ -793,33 +775,6 @@
                   :value="item.ciTypeId"
                   :key="item.ciTypeId"
                   >{{ item.name }}</Option
-                >
-              </Select>
-            </FormItem>
-            <FormItem
-              prop="referenceName"
-              v-if="
-                addNewAttrForm.inputType === 'ref' ||
-                  addNewAttrForm.inputType === 'multiRef'
-              "
-              :label="$t('reference_name')"
-            >
-              <Input v-model="addNewAttrForm.referenceName"></Input>
-            </FormItem>
-            <FormItem
-              prop="referenceType"
-              v-if="
-                addNewAttrForm.inputType === 'ref' ||
-                  addNewAttrForm.inputType === 'multiRef'
-              "
-              :label="$t('reference_type')"
-            >
-              <Select v-model="addNewAttrForm.referenceType">
-                <Option
-                  v-for="item in allReferenceTypes"
-                  :value="item.codeId"
-                  :key="item.codeId"
-                  >{{ item.value }}</Option
                 >
               </Select>
             </FormItem>
@@ -856,6 +811,49 @@
                     ></Button>
                   </span>
                 </Option>
+              </Select>
+            </FormItem>
+            <FormItem prop="propertyType" :label="$t('real_type')">
+              <Input v-model="addNewAttrForm.propertyType" disabled></Input>
+            </FormItem>
+            <FormItem
+              prop="length"
+              :label="$t('length')"
+              v-if="
+                addNewAttrForm.inputType === 'text' ||
+                  addNewAttrForm.inputType === 'textArea'
+              "
+            >
+              <InputNumber
+                :min="1"
+                v-model="addNewAttrForm.length"
+              ></InputNumber>
+            </FormItem>
+            <FormItem
+              prop="referenceName"
+              v-if="
+                addNewAttrForm.inputType === 'ref' ||
+                  addNewAttrForm.inputType === 'multiRef'
+              "
+              :label="$t('reference_name')"
+            >
+              <Input v-model="addNewAttrForm.referenceName"></Input>
+            </FormItem>
+            <FormItem
+              prop="referenceType"
+              v-if="
+                addNewAttrForm.inputType === 'ref' ||
+                  addNewAttrForm.inputType === 'multiRef'
+              "
+              :label="$t('reference_type')"
+            >
+              <Select v-model="addNewAttrForm.referenceType">
+                <Option
+                  v-for="item in allReferenceTypes"
+                  :value="item.codeId"
+                  :key="item.codeId"
+                  >{{ item.value }}</Option
+                >
               </Select>
             </FormItem>
             <FormItem prop="isRefreshable" :label="$t('is_refreshable')">
@@ -1230,9 +1228,7 @@ export default {
           layerTag += `"layer_${_.layerId}"`;
         }
         tempClusterObjForGraph[index] = [
-          `{ rank=same; "layer_${_.layerId}"[id="layerId_${
-            _.layerId
-          }",class="layer",label="${_.name}",tooltip="${_.name}"];`
+          `{ rank=same; "layer_${_.layerId}"[id="layerId_${_.layerId}",class="layer",label="${_.name}",tooltip="${_.name}"];`
         ];
         nodes.length > 0 &&
           nodes.forEach((node, nodeIndex) => {
@@ -1240,13 +1236,7 @@ export default {
               let fontcolor =
                 node.status === "notCreated" ? "#10a34e" : "black";
               tempClusterObjForGraph[index].push(
-                `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${
-                  node.name
-                }",tooltip="${
-                  node.name
-                }",class="ci",fontcolor="${fontcolor}", image="${
-                  node.form.imgSource
-                }.png", labelloc="b"]`
+                `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`
               );
             }
             if (nodeIndex === nodes.length - 1) {
@@ -1279,9 +1269,7 @@ export default {
     genEdge(nodes, from, to) {
       const target = nodes.find(_ => _.ciTypeId === to.referenceId);
       let labels = to.referenceName ? to.referenceName.trim() : "";
-      return `"ci_${from.ciTypeId}"->"ci_${
-        target.ciTypeId
-      }"[taillabel="${labels}",labeldistance=3];`;
+      return `"ci_${from.ciTypeId}"->"ci_${target.ciTypeId}"[taillabel="${labels}",labeldistance=3];`;
     },
     shadeAll() {
       d3.selectAll("g path")
@@ -1899,11 +1887,11 @@ export default {
       }
     },
     reRenderGraph() {
-      this.nodeName = ""
-      this.currentSelectedLayer = {}
-      this.currentSelectedCI = {}
+      this.nodeName = "";
+      this.currentSelectedLayer = {};
+      this.currentSelectedCI = {};
       this.getAllCITypesList();
-      this.initGraph()
+      this.initGraph();
     }
   },
   mounted() {
