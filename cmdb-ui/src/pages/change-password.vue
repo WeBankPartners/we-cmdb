@@ -3,7 +3,7 @@
     <Form
       ref="formValidate"
       :model="formItem"
-      :label-width="120"
+      :label-width="200"
       :rules="ruleValidate"
     >
       <FormItem :label="$t('old_password')" prop="oldPassword">
