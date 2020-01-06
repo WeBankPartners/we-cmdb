@@ -1,6 +1,7 @@
 package com.webank.cmdb.service.impl;
 
-import static org.apache.commons.collections.CollectionUtils.isEmpty;import java.util.Arrays;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,6 +13,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
+import com.webank.cmdb.constant.AuthenticationType;
 import com.webank.cmdb.domain.AdmRole;
 import com.webank.cmdb.domain.AdmRoleCiType;
 import com.webank.cmdb.exception.CmdbAccessDeniedException;
@@ -98,7 +100,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     private List<AdmRole> getRoles() {
-        if ("PLATFORM-AUTH".equals(securityProperties.getAuthenticationProvider())) {
+        if (AuthenticationType.PLATFORM_AUTH.getCode().equals(securityProperties.getAuthenticationProvider())) {
             return admRoleRepository.findByRoleNames(CmdbThreadLocal.getIntance().getAuthorities().toArray(new String[CmdbThreadLocal.getIntance().getAuthorities().size()]));
         } else {
             return userRepository.findRolesByUserName(getCurrentUsername());
