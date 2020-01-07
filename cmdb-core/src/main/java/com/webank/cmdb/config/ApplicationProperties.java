@@ -44,6 +44,7 @@ public class ApplicationProperties {
         private String referenceCodeOfRunning = "running";
         private String referenceCodeOfRealize = "realize";
         private String referenceCodeOfRelate = "relation";
+        private String referenceCodeOfUse = "use";
         private String propertyNameOfState = "state";
         private String enumCodeOfStateDelete = "delete";
         private Integer enumIdOfStateDelete = 36;
