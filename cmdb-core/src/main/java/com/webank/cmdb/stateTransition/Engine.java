@@ -49,7 +49,7 @@ public class Engine {
     @Autowired
     private CiService ciService;
     public Map<String, Object> process(EntityManager entityManager, int ciTypeId, String guid, String operation, Map<String, Object> ciData, DynamicEntityHolder entityHolder) {
-        return process(entityManager, ciTypeId, operation, operation, ciData, entityHolder, null);
+        return process(entityManager, ciTypeId, guid, operation, ciData, entityHolder, null);
         
     }
     public Map<String, Object> process(EntityManager entityManager, int ciTypeId, String guid, String operation, Map<String, Object> ciData, DynamicEntityHolder entityHolder, Date date) {
