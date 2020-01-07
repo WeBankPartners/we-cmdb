@@ -767,8 +767,8 @@ export default {
       let dots = [
         "digraph G{",
         "rankdir=LR;nodesep=0.5;",
-        "Node[fontname=Arial,fontsize=12];",
-        'Edge[fontname=Arial,minlen="2",fontsize=10];',
+        "Node[fontname=Arial,fontsize=12,shape=box,style=filled];",
+        'Edge[fontname=Arial,minlen="2",fontsize=6,labeldistance=1.5];',
         `size="${width},${height}";`,
         `subgraph cluster_${sysData[0].guid} {`,
         `style="filled";color="${colors[0]}";`,
@@ -812,9 +812,8 @@ export default {
               `"n_${_.guid}"`,
               `[id="n_${_.guid}";`,
               `label="${_.data.code || _.data.key_name}";`,
-              "shape=box;",
               `color="${color ? color : colors[level]}";`,
-              `style="filled";fillcolor="${colors[level]}";`,
+              `fillcolor="${colors[level]}";`,
               `tooltip="${_.data.description || _.data.name}"];`
             ]);
           }
@@ -845,7 +844,7 @@ export default {
         if (!this.graphNodes[id][node.to.guid]) {
           otherNodes.push(node.to)
         }
-        return `n_${node.from.guid} -> n_${node.to.guid}[id="gl_${node.id}",color="${color}",taillabel="${node.label || ""}",title="${node.label || ""}",${id === "#serviceInvokeGraph" ? "minlen=3," : ""}labeldistance=3.5];`
+        return `n_${node.from.guid} -> n_${node.to.guid}[id="gl_${node.id}",color="${color}",tooltip="${node.label || ""}",taillabel="${node.label || ""}"];`
       })
       let nodes = []
       otherNodes.forEach(_ => {
