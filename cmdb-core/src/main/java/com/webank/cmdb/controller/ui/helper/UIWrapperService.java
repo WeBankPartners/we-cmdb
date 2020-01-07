@@ -1305,9 +1305,9 @@ public class UIWrapperService {
         return dto;
     }
 
-    public Object getDeployCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject) {
-        int systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystemDesign();
-        return getCiData(codeId, envCode, systemDesignGuid, queryObject, systemDesignCiTypeId);
+    public Object getDeployCiData(Integer codeId, String envCode, String systemGuid, QueryRequest queryObject) {
+        int systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystem();
+        return getCiData(codeId, envCode, systemGuid, queryObject, systemDesignCiTypeId);
     }
 
     public Object getDeployDesignTabs() {
