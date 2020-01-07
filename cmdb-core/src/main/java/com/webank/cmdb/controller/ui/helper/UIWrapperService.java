@@ -857,8 +857,6 @@ public class UIWrapperService {
         Map<String, Object> data = ciData.getData();
         resourceTree.setGuid(data.get(CmdbConstants.GUID).toString());
         resourceTree.setCiTypeId(ciTypeId);
-        List<CiTypeAttrDto> ciTypeAttributes = getCiTypeAttributesByCiTypeId(ciTypeId);
-        resourceTree.setAttrs(ciTypeAttributes);
         resourceTree.setData(data);
 
         return resourceTree;
@@ -1058,7 +1056,7 @@ public class UIWrapperService {
 
     private QueryRequest setQueryRequest(QueryRequest inputFilters, Filter fixDate, Integer ciTypeId) {
         if(fixDate == null ) {
-            return null;
+            return inputFilters;
         }
         inputFilters.getDialect().setShowCiHistory(true);
         inputFilters.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
@@ -1334,29 +1332,23 @@ public class UIWrapperService {
             return null;
         }
         
-        List<Map<String, Object>> ciDatas = getAllCiDataOfRootCi(subsysCiTypeId, envEnumCat, null, systemDesignCiTypeId, guid, routine);
-        
+        Map<String, Object> ciData = ciService.getCi(uiProperties.getCiTypeIdOfSystem(), systemGuid);
         List<CiTypeAttrDto> attrOfSubsys = getCiTypeAttributesByCiTypeIdAndPropertyName(subsysCiTypeId, uiProperties.getPropertyNameOfState());
         if (attrOfSubsys.size() == 0) {
             return null;
         }
         
         int stateEnumCatOfSubsys = attrOfSubsys.get(0).getReferenceId();
-        
-        for (int i = 0; i < ciDatas.size(); i++) {
-            Object ciData = ciDatas.get(i);
-            Map ciDataMap = (Map) ciData;
-            
-            QueryRequest defaultQueryRequest = QueryRequest.defaultQueryObject();
-            defaultQueryRequest.addEqualsFilter(CmdbConstants.GUID, ciDataMap.get(CONSTANT_GUID_PATH).toString());
-            
-            //Filter fixDateFilter = getFixDateFilter(systemDesignCiTypeId, defaultQueryRequest);
-            
-            List<ResourceTreeDto> resourceTrees = new ArrayList<>();
-            recursiveGetChildrenDataFilterState(subsysCiTypeId, stateEnumCatOfSubsys, stateEnumCode, resourceTrees, defaultQueryRequest, null);
-            deployTrees.addAll(resourceTrees);
-        }
-        
+
+        Map ciDataMap = (Map) ciData;
+
+        QueryRequest defaultQueryRequest = QueryRequest.defaultQueryObject();
+        defaultQueryRequest.addEqualsFilter(CmdbConstants.GUID, ciDataMap.get(CmdbConstants.DEFAULT_FIELD_GUID).toString());
+
+        List<ResourceTreeDto> resourceTrees = new ArrayList<>();
+        recursiveGetChildrenDataFilterState(uiProperties.getCiTypeIdOfSystem(), stateEnumCatOfSubsys, stateEnumCode, resourceTrees, defaultQueryRequest, null);
+        deployTrees.addAll(resourceTrees);
+
         return deployTrees;
     }
 
@@ -1378,21 +1370,21 @@ public class UIWrapperService {
         
         QueryRequest systemDesignfilter = QueryRequest.defaultQueryObject();
         
-        List<Integer> limitedCiTypeIdsOfGetInstanceData = Lists.newArrayList(uiProperties.getCiTypeIdOfSystemDesign(),
+        List<Integer> limitedCiTypeIdsOfGetInstanceData = Lists.newArrayList(uiProperties.getCiTypeIdOfSystem(),
                 uiProperties.getCiTypeIdOfSubsystemDesign(),
                 uiProperties.getCiTypeIdOfSubsys(),
                 uiProperties.getCiTypeIdOfUnit(),
                 uiProperties.getCiTypeIdOfInstance());
 
         systemDesignfilter.addEqualsFilter(CmdbConstants.GUID, systemGuid);
-        getBottomChildrenDataByBottomCiTypeId(uiProperties.getCiTypeIdOfSystemDesign(),
+        getBottomChildrenDataByBottomCiTypeId(uiProperties.getCiTypeIdOfSystem(),
                 uiProperties.getCiTypeIdOfInstance(),
                 instanceData,
                 limitedCiTypeIdsOfGetInstanceData,
                 systemDesignfilter,
                 null);
 
-        List<CiTypeAttrDto> relateCiAttrDtoList = getRefToAttrByCiTypeIdAndRefName(uiProperties.getCiTypeIdOfInstance(), uiProperties.getReferenceCodeOfRunning());
+        List<CiTypeAttrDto> relateCiAttrDtoList = getRefToAttrByCiTypeIdAndRefName(uiProperties.getCiTypeIdOfInstance(), uiProperties.getReferenceCodeOfUse());
         if (relateCiAttrDtoList.size() == 0 || relateCiAttrDtoList.get(0) == null) {
             return new ArrayList<>();
         }
