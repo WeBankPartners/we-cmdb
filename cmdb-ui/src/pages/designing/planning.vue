@@ -113,7 +113,6 @@ export default {
         paging: true
       },
       graph: new Map(),
-      graphBig: "",
       idcDesignData: null,
       zoneLinkDesignData: new Map(),
       currentTab: "resource-design",
@@ -138,7 +137,21 @@ export default {
         guid
       ]);
       if (statusCode === "OK") {
-        this.idcDesignData = data[0];
+        const formatTree = array => array.map(_ => {
+          let result = {
+            ..._
+          }
+          if (_.data.network_segment_design) {
+            result.text = [_.data.code, _.data.network_segment_design.code]
+          } else {
+            result.text = [_.data.code]
+          }
+          if (_.children instanceof Array && _.children.length) {
+            result.children = formatTree(_.children)
+          }
+          return result
+        })
+        this.idcDesignData = formatTree(data)[0]
         this.getZoneLink();
       }
     },
@@ -278,12 +291,7 @@ export default {
       });
     },
     setChildren(node, p1, pw, ph, tfsize, deep, idcName) {
-      let graph;
-      if (idcName === "graphBig") {
-        graph = d3.select("#graphBig").select("#g_" + node.guid);
-      } else {
-        graph = d3.select("#graph").select("#g_" + node.guid);
-      }
+      let graph = d3.select("#graph").select("#g_" + node.guid);
       let n = node.children.length;
       let w, h, mgap, fontsize, strokewidth;
       let rx, ry, tx, ty, g;
@@ -304,38 +312,46 @@ export default {
         }
         w = (pw - mgap) / n - mgap;
         h = ph - tfsize - 2 * mgap;
-        for (var i = 0; i < n; i++) {
+        for (let i = 0; i < n; i++) {
           rx = p1.x + (w + mgap) * i + mgap;
           ry = p1.y + tfsize + mgap;
           tx = p1.x + (w + mgap) * i + w * 0.5 + mgap;
-          if (Array.isArray(node.children[i].children)) {
-            ty = p1.y + tfsize + mgap + fontsize;
-          } else {
-            ty = p1.y + tfsize + mgap + h * 0.5;
-          }
-
           g = graph
             .append("g")
             .attr("class", "node")
             .attr("id", "g_" + node.children[i].guid);
+          let _ry = ry
+          let _h = h
+          let _ty = ty
+          if (Array.isArray(node.children[i].children)) {
+            _ty = p1.y + tfsize + mgap + fontsize;
+          } else {
+            _ry = ry + tfsize
+            _h = h - tfsize
+            _ty = p1.y + tfsize + mgap + _h * 0.5;
+          }
           g.append("rect")
             .attr("x", rx)
-            .attr("y", ry)
+            .attr("y", _ry)
             .attr("width", w)
-            .attr("height", h)
+            .attr("height", _h)
             .attr("stroke", "black")
             .attr("fill", color)
             .attr("stroke-width", strokewidth);
           g.append("text")
             .attr("x", tx)
-            .attr("y", ty)
-            .text(
-              node.children[i].data.code
-                ? node.children[i].data.code
-                : node.children[i].data.key_name
-            )
+            .attr("y", _ty)
             .attr("style", "text-anchor:middle")
-            .attr("font-size", fontsize);
+          node.children[i].text.forEach((_, index) => {
+            const _fontsize = 2 * w / _.length < fontsize ? 2 * w / _.length : fontsize
+            g.select("text")
+              .append("tspan")
+              .attr("font-size", _fontsize)
+              .attr("x", tx)
+              .attr("y", _ty + fontsize * index)
+              .attr("title", _)
+              .text(_)
+          })
           if (Array.isArray(node.children[i].children)) {
             this.setChildren(
               node.children[i],
@@ -364,38 +380,45 @@ export default {
 
         w = pw - 2 * mgap;
         h = (ph - tfsize - mgap) / n - mgap;
-        for (var i = 0; i < n; i++) {
+        for (let i = 0; i < n; i++) {
           rx = p1.x + mgap;
           ry = p1.y + tfsize + (h + mgap) * i + mgap;
           tx = p1.x + w * 0.5 + mgap;
+          let _h = h
+          let _ry = ry
+          let _ty
           if (Array.isArray(node.children[i].children)) {
-            ty = p1.y + tfsize + (h + mgap) * i + fontsize + mgap;
+            _ty = p1.y + tfsize + (h + mgap) * i + fontsize + mgap;
           } else {
-            ty = p1.y + tfsize + (h + mgap) * i + h * 0.5 + mgap;
+            _ry = ry + tfsize / n * (n - i)
+            _h = h - tfsize / n
+            _ty = p1.y + tfsize + (h + mgap) * i + h * 0.5 + mgap;
           }
-
           g = graph
             .append("g")
             .attr("class", "node")
             .attr("id", "g_" + node.children[i].guid);
           g.append("rect")
             .attr("x", rx)
-            .attr("y", ry)
+            .attr("y", _ry)
             .attr("width", w)
-            .attr("height", h)
+            .attr("height", _h)
             .attr("stroke", "black")
             .attr("fill", color)
             .attr("stroke-width", strokewidth);
           g.append("text")
             .attr("x", tx)
-            .attr("y", ty)
-            .text(
-              node.children[i].data.code
-                ? node.children[i].data.code
-                : node.children[i].data.key_name
-            )
+            .attr("y", _ty)
             .attr("style", "text-anchor:middle")
-            .attr("font-size", fontsize);
+          node.children[i].text.forEach((_, index) => {
+            const _fontsize = 2 * w / _.length < fontsize ? 2 * w / _.length : fontsize
+            g.select("text")
+              .append("tspan")
+              .attr("font-size", _fontsize)
+              .attr("x", tx)
+              .attr("y", _ty + fontsize * index)
+              .text(_)
+          })
           if (Array.isArray(node.children[i].children)) {
             this.setChildren(
               node.children[i],
