@@ -405,10 +405,9 @@ public class UICiDataManagementController {
     @PostMapping("/deploy-designs/tabs/ci-data")
     @ResponseBody
     public Object getDeployCiData(@RequestParam(value = "code-id") Integer codeId,
-            @RequestParam(value = "env-code") String envCode,
-            @RequestParam(value = "system-design-guid") String systemDesignGuid,
+            @RequestParam(value = "system-guid") String systemGuid,
             @RequestBody QueryRequest queryObject) {
-        return wrapperService.getDeployCiData(codeId, envCode, systemDesignGuid, queryObject);
+        return wrapperService.getDeployCiData(codeId, null, systemGuid, queryObject);
     }
 
     @RolesAllowed({ MENU_APPLICATION_DEPLOYMENT_DESIGN })
