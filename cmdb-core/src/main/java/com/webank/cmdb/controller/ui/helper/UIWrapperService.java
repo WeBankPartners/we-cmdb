@@ -1042,11 +1042,13 @@ public class UIWrapperService {
             Map<String, Object> ciDataMap = ciData.getData();
             ResourceTreeDto resourceTreeDto = buildNewResourceTreeDto(ciData, ciTypeId);
 
-            List<CiTypeAttrDto> ciTypeAttributes = (List<CiTypeAttrDto>) resourceTreeDto.getAttrs();
-
-            if (checkCiTypeAttributes(ciTypeAttributes, stateEnumCat, stateEnumCode, ciDataMap)) {
-                continue;
-            }
+            /*
+             * List<CiTypeAttrDto> ciTypeAttributes = (List<CiTypeAttrDto>)
+             * resourceTreeDto.getAttrs();
+             * 
+             * if (checkCiTypeAttributes(ciTypeAttributes, stateEnumCat, stateEnumCode,
+             * ciDataMap)) { continue; }
+             */
 
             resourceTrees.add(resourceTreeDto);
             List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceCodeOfBelong());
