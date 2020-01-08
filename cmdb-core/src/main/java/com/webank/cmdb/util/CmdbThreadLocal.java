@@ -1,11 +1,15 @@
 package com.webank.cmdb.util;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.collect.Maps;
 
 public class CmdbThreadLocal extends ThreadLocal<Map<String, Object>> {
     private static final String CURRENT_USER = "current_user";
+    private Set<String> grantedAuthorities = new HashSet<String>();
 
     private static CmdbThreadLocal instance = new CmdbThreadLocal();
 
@@ -33,5 +37,19 @@ public class CmdbThreadLocal extends ThreadLocal<Map<String, Object>> {
             set(Maps.newHashMap());
         }
         return get();
+    }
+
+    public Set<String> getAuthorities() {
+        return Collections.unmodifiableSet(this.grantedAuthorities);
+    }
+
+    public CmdbThreadLocal withAuthorities(String... authorities) {
+        for (String authority : authorities) {
+            if (!grantedAuthorities.contains(authority)) {
+                grantedAuthorities.add(authority);
+            }
+        }
+
+        return this;
     }
 }
