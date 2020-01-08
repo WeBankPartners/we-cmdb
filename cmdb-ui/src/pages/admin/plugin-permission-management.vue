@@ -5,9 +5,9 @@
         <p slot="title" class="margin-left:20px;">
           {{ $t("role") }}
         </p>
-        <div class="role-item" v-for="item in roles" :key="item.id">
+        <div class="role-item" v-for="item in roles" :key="item.rolename">
           <Tag
-            :name="item.id"
+            :name="item.rolename"
             :color="item.color"
             :checked="item.checked"
             checkable
@@ -417,7 +417,7 @@ export default {
           });
 
           this.getAttrPermissions();
-          this.getPermissions(false, true, this.currentRoleId);
+          this.getPermissions(false, true, this.currentRoleName);
           setBtnsStatus();
         }
       }
@@ -455,7 +455,7 @@ export default {
             desc: message
           });
           this.getAttrPermissions();
-          this.getPermissions(false, true, this.currentRoleId);
+          this.getPermissions(false, true, this.currentRoleName);
         }
       }
     },
@@ -579,16 +579,17 @@ export default {
         }
       }
     },
-    async handleRoleClick(checked, id) {
-      this.currentRoleId = id;
+    async handleRoleClick(checked, rolename) {
+      // this.currentRoleId = id;
+      this.currentRoleName = rolename;
       this.dataPermissionDisabled = false;
       this.roles.forEach(_ => {
         _.checked = false;
-        if (id === _.id) {
+        if (rolename === _.rolename) {
           _.checked = checked;
         }
       });
-      this.getPermissions(false, checked, id);
+      this.getPermissions(false, checked, rolename);
     },
     async getAllRoles() {
       let { status, data, message } = await getWecubeRoles();
@@ -605,20 +606,20 @@ export default {
       }
     },
     permissionResponseHandeler(res) {
-      this.getPermissions(true, true, this.currentRoleId);
+      this.getPermissions(true, true, this.currentRoleName);
     },
     async setPermissionAction(checked, name, id) {
-      if (this.currentRoleId === 0) return;
+      if (!this.currentRoleName) return;
       if (checked) {
         const addRes = await addDataPermissionAction(
-          this.currentRoleId,
+          this.currentRoleName,
           id,
           name
         );
         this.permissionResponseHandeler(addRes);
       } else {
         const delRes = await removeDataPermissionAction(
-          this.currentRoleId,
+          this.currentRoleName,
           id,
           name
         );
