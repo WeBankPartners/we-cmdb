@@ -94,12 +94,12 @@ public class UICiDataManagementControllerTest extends AbstractBaseControllerTest
     @Test
     public void deploymentDesignQuery() throws Exception {
        
-        mvc.perform(post("/ui/v2/deploy-designs/tabs/ci-data?code-id=102&env-code=STGk&system-design-guid=0001_0000000004")
+        mvc.perform(post("/ui/v2/deploy-designs/tabs/ci-data?code-id=102&system-guid=0007_0000000004")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(jsonPath("$.statusCode", is("OK")));
 
-        mvc.perform(post("/ui/v2/deploy-designs/tabs/ci-data?code-id=102&env-code=PRD&system-design-guid=0001_0000000004")
+        mvc.perform(post("/ui/v2/deploy-designs/tabs/ci-data?code-id=102&system-guid=0007_0000000004")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(jsonPath("$.statusCode", is("OK")));
@@ -107,21 +107,17 @@ public class UICiDataManagementControllerTest extends AbstractBaseControllerTest
     
     @Test
     public void physicalDeploymentDesignQuery() throws Exception {
-        Integer envCode_stgk=113;
-        Integer envCode_prd=111;
-        String systemDesignGuid="0001_0000000004";
-        mvc.perform(get("/ui/v2/data-tree/application-deployment-design?env-code={env-code}&system-design-guid={system-design-guid}"
-                , envCode_stgk,systemDesignGuid)
+        String systemDesignGuid="0007_0000000004";
+        mvc.perform(get("/ui/v2/data-tree/application-deployment?system-guid={system-guid}"
+                ,systemDesignGuid)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(jsonPath("$.statusCode", is("OK")));
         
-        mvc.perform(get("/ui/v2/data-tree/application-deployment-design?env-code={env-code}&system-design-guid={system-design-guid}"
-                , envCode_prd,systemDesignGuid)
+        mvc.perform(get("/ui/v2/data-tree/application-deployment?system-guid={system-guid}"
+                ,systemDesignGuid)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(jsonPath("$.statusCode", is("OK")));
     } 
-    
-    
 }
