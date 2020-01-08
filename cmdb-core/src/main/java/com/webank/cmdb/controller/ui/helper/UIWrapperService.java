@@ -5,11 +5,8 @@ import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,6 +31,7 @@ import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.ImplementOperation;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
+import com.webank.cmdb.domain.AdmRole;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
@@ -54,6 +52,7 @@ import com.webank.cmdb.dto.RoleDto;
 import com.webank.cmdb.dto.RoleUserDto;
 import com.webank.cmdb.dto.UserDto;
 import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.repository.AdmRoleRepository;
 import com.webank.cmdb.repository.StaticEntityRepository;
 import com.webank.cmdb.service.BaseKeyInfoService;
 import com.webank.cmdb.service.CiService;
@@ -105,6 +104,8 @@ public class UIWrapperService {
     private FilterRuleService filterRuleService;
     @Autowired
     private BaseKeyInfoService baseKeyInfoService;
+    @Autowired
+    private AdmRoleRepository admRoleRepository;
 
     public void swapCiTypeLayerPosition(int layerId, int targetLayerId) {
         CatCodeDto enumCode = getEnumCodeById(layerId);
@@ -758,7 +759,7 @@ public class UIWrapperService {
     }
 
     public List<RoleCiTypeCtrlAttrConditionDto> updateRoleCiTypeCtrlAttrConditions(RoleCiTypeCtrlAttrConditionDto... roleCiTypeCtrlAttrConditions) {
-        return staticDtoService.update(RoleCiTypeCtrlAttrConditionDto.class, Lists.newArrayList(BeanMapUtils.convertBeanToMap(roleCiTypeCtrlAttrConditions)));
+        return staticDtoService.update(RoleCiTypeCtrlAttrConditionDto.class, BeanMapUtils.convertBeansToMaps(Arrays.asList(roleCiTypeCtrlAttrConditions)));
     }
 
     public List<RoleCiTypeDto> updateRoleCiTypes(RoleCiTypeDto... roleCiTypes) {
@@ -1647,6 +1648,14 @@ public class UIWrapperService {
     public Object getResourcePlanningCiData(int codeId, String systemDesignGuid, QueryRequest queryObject) {
         Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfIdc();
         return getCiData(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId);
+    }
+
+    public int getRoleIdByRoleName(String roleName) {
+        AdmRole role = admRoleRepository.findByRoleName(roleName);
+        if (role == null) {
+            throw new CmdbException(String.format("Can not found Role by name (%s)", roleName));
+        }
+        return role.getIdAdmRole();
     }
 
 }

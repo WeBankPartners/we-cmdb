@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.servlet.Filter;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jasig.cas.client.validation.Cas20ServiceTicketValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,22 +36,22 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.webank.cmdb.cache.CacheHandlerInterceptor;
 import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
+import com.webank.cmdb.constant.AuthenticationType;
 import com.webank.cmdb.controller.interceptor.HttpAccessUsernameInterceptor;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.mvc.CustomRolesPrefixPostProcessor;
+import com.webank.wecube.platform.auth.client.filter.Http401AuthenticationEntryPoint;
+import com.webank.wecube.platform.auth.client.filter.JwtSsoBasedAuthenticationFilter;
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Configuration
 @EnableWebMvc
 @EnableSwagger2
-//@EnableWebSecurity
-//@EnableGlobalMethodSecurity(jsr250Enabled = true)
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(jsr250Enabled = true)
 @ComponentScan({ "com.webank.cmdb.controller", "com.webank.cmdb.mvc", "com.webank.cmdb.stateTransition" })
 public class SpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
-
-    private static final String AUTH_PROVIDER_LOCAL = "LOCAL";
-    private static final String AUTH_PROVIDER_CAS = "CAS";
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -94,10 +96,12 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
         ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry = http.authorizeRequests();
         if (securityProperties.isEnabled()) {
             registry = configureWhiteListAuthentication(registry, true);
-            if (AUTH_PROVIDER_LOCAL.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
+            if (AuthenticationType.lOCAL.getCode().equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
                 configureLocalAuthentication(registry);
-            } else if (AUTH_PROVIDER_CAS.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
+            } else if (AuthenticationType.CAS.getCode().equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
                 configureCasAuthentication(registry);
+            } else if (AuthenticationType.PLATFORM_AUTH.getCode().equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
+                configurePlatformAuthentication(registry);
             } else {
                 throw new CmdbException("Unsupported authentication-provider: " + securityProperties.getAuthenticationProvider());
             }
@@ -163,10 +167,32 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                         .access(StringUtils.join(convertedList, " or "));
             }
         } else {
-            return registry.antMatchers("/**")
-                    .permitAll();
+            return registry.antMatchers("/**").permitAll();
         }
         return registry;
+    }
+
+    protected ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry configurePlatformAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) throws Exception {
+        registry.antMatchers("/index.html").permitAll()
+                .antMatchers("/swagger-ui.html/**", "/swagger-resources/**").permitAll()
+                .antMatchers("/webjars/**").permitAll()
+                .antMatchers("/v2/api-docs").permitAll()
+                .antMatchers("/csrf").permitAll()
+                .antMatchers("/**/*.png").permitAll()
+                .anyRequest()
+                .authenticated()
+                .and()
+                .addFilter(jwtSsoBasedAuthenticationFilter())
+                .csrf()
+                .disable()
+                .exceptionHandling()
+                .authenticationEntryPoint(new Http401AuthenticationEntryPoint());
+        return registry;
+    }
+
+    protected Filter jwtSsoBasedAuthenticationFilter() throws Exception {
+        JwtSsoBasedAuthenticationFilter filter = new JwtSsoBasedAuthenticationFilter(authenticationManager());
+        return (Filter) filter;
     }
 
     protected void configureCasAuthentication(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) throws Exception {
@@ -192,7 +218,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
         if (!securityProperties.isEnabled()) {
             auth.userDetailsService(userDetailsService).passwordEncoder(new BypassPasswordEncoder());
-        } else if (AUTH_PROVIDER_LOCAL.equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
+        } else if (AuthenticationType.lOCAL.getCode().equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
             auth.userDetailsService(userDetailsService);
         } else {
             super.configure(auth);
