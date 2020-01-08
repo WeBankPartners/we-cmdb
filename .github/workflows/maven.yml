@@ -11,6 +11,12 @@ jobs:
       with:
         repository: WeBankPartners/wecube-platform.git
         ref: refs/heads/master
+    - uses: actions/cache@v1
+      with:
+      path: ~/.m2/repository
+      key: ${{ runner.os }}-maven-cmdb
+      restore-keys: |
+        ${{ runner.os }}-maven-cmdb
     - name: Set up JDK 1.8
       uses: actions/setup-java@v1
       with:
@@ -25,6 +31,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    - uses: actions/cache@v1
+      with:
+      path: ~/.m2/repository
+      key: ${{ runner.os }}-maven-cmdb
+      restore-keys: |
+        ${{ runner.os }}-maven-cmdb
     - name: Set up JDK 1.8
       uses: actions/setup-java@v1
       with:
