@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - users: actions/checkout@v1
+    - uses: actions/checkout@v1
       with:
         repository: WeBankPartners/wecube-platform.git
         ref: refs/heads/master
