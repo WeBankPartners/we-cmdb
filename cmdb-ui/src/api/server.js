@@ -24,28 +24,31 @@ export const getAllPermissionEntryPoints = () =>
   req.get("/admin/permission-entry-points");
 export const getRolesByUser = username =>
   req.get(`/admin/users/${username}/roles`);
-export const getUsersByRole = roleId => req.get(`/admin/roles/${roleId}/users`);
-export const getPermissionsByRole = roleId =>
-  req.get(`/admin/roles/${roleId}/permissions`);
+export const getUsersByRole = roleName =>
+  req.get(`/admin/roles/${roleName}/users`);
+export const getPermissionsByRole = roleName =>
+  req.get(`/admin/roles/${roleName}/permissions`);
 export const getPermissionsByUser = username =>
   req.get(`/admin/users/${username}/permissions`);
 export const addRole = data => req.post(`/admin/roles/create`, data);
 export const addUser = data => req.post(`/admin/users/create`, data);
-export const addUsersToRole = (users, roleId) =>
-  req.post(`/admin/roles/${roleId}/users`, users);
-export const romoveUsersFromRole = (users, roleId) =>
-  req.delete(`/admin/roles/${roleId}/users`, { data: users });
-export const addMenusToRole = (menuCodes, roleId) =>
-  req.post(`/admin/roles/${roleId}/menu-permissions`, menuCodes);
-export const removeMenusFromRole = (menuCodes, roleId) =>
-  req.delete(`/admin/roles/${roleId}/menu-permissions`, {
+export const addUsersToRole = (users, roleName) =>
+  req.post(`/admin/roles/${roleName}/users`, users);
+export const romoveUsersFromRole = (users, roleName) =>
+  req.delete(`/admin/roles/${roleName}/users`, { data: users });
+export const addMenusToRole = (menuCodes, roleName) =>
+  req.post(`/admin/roles/${roleName}/menu-permissions`, menuCodes);
+export const removeMenusFromRole = (menuCodes, roleName) =>
+  req.delete(`/admin/roles/${roleName}/menu-permissions`, {
     data: menuCodes
   });
-export const addDataPermissionAction = (roleId, ciTypeId, actionCode) =>
-  req.post(`/admin/roles/${roleId}/citypes/${ciTypeId}/actions/${actionCode}`);
-export const removeDataPermissionAction = (roleId, ciTypeId, actionCode) =>
+export const addDataPermissionAction = (roleName, ciTypeId, actionCode) =>
+  req.post(
+    `/admin/roles/${roleName}/citypes/${ciTypeId}/actions/${actionCode}`
+  );
+export const removeDataPermissionAction = (roleName, ciTypeId, actionCode) =>
   req.delete(
-    `/admin/roles/${roleId}/citypes/${ciTypeId}/actions/${actionCode}`
+    `/admin/roles/${roleName}/citypes/${ciTypeId}/actions/${actionCode}`
   );
 export const getRoleCiTypeCtrlAttributesByRoleCiTypeId = roleCitypeId =>
   req.get(`/admin/role-citypes/${roleCitypeId}/ctrl-attributes`);
