@@ -1,6 +1,7 @@
 package com.webank.cmdb.stateTransition;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
@@ -43,7 +44,7 @@ public class UpdateDeleteAction implements Action {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    public Map<String, Object> perform(EntityManager entityManager, int ciTypeId, String guid, AdmStateTransition transition, Map<String, Object> ciData, DynamicEntityHolder ciHolder) {
+    public Map<String, Object> perform(EntityManager entityManager, int ciTypeId, String guid, AdmStateTransition transition, Map<String, Object> ciData, DynamicEntityHolder ciHolder, Date date) {
         if (ciHolder == null) {
             ciHolder = ciService.getCiHolder(ciTypeId, guid);
         }

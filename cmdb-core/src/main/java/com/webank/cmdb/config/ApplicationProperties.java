@@ -26,6 +26,7 @@ public class ApplicationProperties {
         private Integer ciTypeIdOfUnitDesign = 3;
         private Integer ciTypeIdOfUnit = 9;
         private Integer ciTypeIdOfSubsys = 8;
+        private Integer ciTypeIdOfSystem = 7;
         private String ciTypeCodeOfSubsys = "subsys";
         private Integer ciTypeIdOfHost = 15;
         private Integer ciTypeIdOfInstance = 14;
@@ -43,6 +44,7 @@ public class ApplicationProperties {
         private String referenceCodeOfRunning = "running";
         private String referenceCodeOfRealize = "realize";
         private String referenceCodeOfRelate = "relation";
+        private String referenceCodeOfUse = "use";
         private String propertyNameOfState = "state";
         private String enumCodeOfStateDelete = "delete";
         private Integer enumIdOfStateDelete = 36;
