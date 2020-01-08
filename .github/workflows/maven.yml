@@ -16,7 +16,7 @@ jobs:
       with:
         java-version: 1.8
     - name: Build with Maven
-      run: mvn --file wecube-platform/platform-auth-client/pom.xml clean install
+      run: mvn --file wecube-platform.git/platform-auth-client/pom.xml clean install
 
 
   build:
