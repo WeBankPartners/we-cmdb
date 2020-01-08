@@ -22,7 +22,7 @@ jobs:
       with:
         java-version: 1.8
     - name: Build with Maven
-      run: mvn --file /home/runner/work/we-cmdb/wecube-platform.git/platform-auth-client/pom.xml clean install
+      run: mvn --file /home/runner/work/we-cmdb/wecube-platform.git/pom.xml clean install -Dmaven.test.skip=true
 
 
   build:
