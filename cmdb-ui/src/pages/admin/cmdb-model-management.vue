@@ -1670,6 +1670,7 @@ export default {
               desc: res.message
             });
             this.resetAddNewCITypeForm();
+            this.getAllReferenceTypesList();
             this.isAddNewCITypeModalVisible = false;
             this.initGraph();
             this.getAllEnumTypes();
@@ -1909,7 +1910,8 @@ export default {
       const res = await getAllCITypesByLayerWithAttr([
         "notCreated",
         "created",
-        "decommissioned"
+        "decommissioned",
+        "dirty"
       ]);
       if (res.statusCode === "OK") {
         let allCiTypesWithAttr = [];
