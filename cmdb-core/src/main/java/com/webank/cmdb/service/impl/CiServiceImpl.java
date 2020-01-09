@@ -15,7 +15,7 @@ import java.lang.reflect.Array;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,9 +32,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
-import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CompoundSelection;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
@@ -44,14 +42,12 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Selection;
 import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.hibernate.proxy.HibernateProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -341,29 +337,30 @@ public class CiServiceImpl implements CiService {
         int totalCount = 0;
         QueryResponse<CiData> ciInfoResp = new QueryResponse<>();
         try {
-            // ciRequest.setFilters(convertFilterForMultiValueField(entityManager,
-            // ciRequest.getFilters()));
             results = doQuery(ciRequest, entityMeta, true);
             totalCount = convertResultToInteger(results);
 
             results = doQuery(ciRequest, entityMeta, false);
-
-            results.forEach(x -> {
-                // DynamicEntityHolder entityBean =
-                // DynamicEntityHolder.createDynamicEntityBean(entityMeta, x);
-                Map<String, Object> entityBeanMap = null;
-                if(ciRequest.getAggregationFuction()!=null && ciRequest.getAggregationFuction().size()>0) {
-                    Object object = Array.get(x, 0);
-                    entityBeanMap = ClassUtils.convertBeanToMap(object, entityMeta, true, ciRequest.getResultColumns());
-                }else {
-                    entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true, ciRequest.getResultColumns());
+            if (ciRequest.getAggregationFuction() != null &&
+                    ciRequest.getAggregationFuction().size() > 0) {
+                if (results != null && results.size() > 0) {
+                    Map<String, Object> enhacedMap = Maps.newHashMap();
+                    enhacedMap.put("fixed_date", results);
+                    ciInfoResp.addContent(new CiData(enhacedMap, null));
                 }
-                Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
-                List<String> nextOperations = getNextOperations(entityBeanMap);
-                CiData ciData = new CiData(enhacedMap, nextOperations);
+            } else {
+                results.forEach(x -> {
+                    Map<String, Object> entityBeanMap = null;
 
-                ciInfoResp.addContent(ciData);
-            });
+                    entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true, ciRequest.getResultColumns());
+
+                    Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
+                    List<String> nextOperations = getNextOperations(entityBeanMap);
+                    CiData ciData = new CiData(enhacedMap, nextOperations);
+
+                    ciInfoResp.addContent(ciData);
+                });
+            }
         } finally {
             priEntityManager.close();
         }
@@ -2022,12 +2019,13 @@ public class CiServiceImpl implements CiService {
             EntityTransaction transaction = entityManager.getTransaction();
             transaction.begin();
             try {
+                Date date = new Date();
                 for (CiIndentity ciId : ciIds) {
                     DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciId.getCiTypeId());
                     Object entityBean = validateCi(ciId.getCiTypeId(), ciId.getGuid(), entityMeta, entityManager, ACTION_MODIFICATION);
                     DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
 
-                    Map<String, Object> result = stateTransEngine.process(entityManager, ciId.getCiTypeId(), ciId.getGuid(), operation, null, entityHolder);
+                    Map<String, Object> result = stateTransEngine.process(entityManager, ciId.getCiTypeId(), ciId.getGuid(), operation, null, entityHolder, date);
                     Map<String, Object> enhacedMap = enrichCiObject(entityMeta, result, entityManager);
                     results.add(enhacedMap);
                 }
