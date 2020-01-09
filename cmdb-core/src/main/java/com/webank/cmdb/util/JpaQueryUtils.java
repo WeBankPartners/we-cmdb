@@ -9,9 +9,7 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CompoundSelection;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
@@ -23,9 +21,9 @@ import org.apache.commons.beanutils.BeanMap;
 import org.hibernate.proxy.HibernateProxy;
 
 import com.google.common.base.Strings;
+import com.webank.cmdb.constant.AggregationFuction;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.FilterRelationship;
-import com.webank.cmdb.constant.AggregationFuction;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dynamicEntity.DynamicEntityMeta;
@@ -358,7 +356,8 @@ public class JpaQueryUtils {
             Expression expression = selectionMap.get(aggregationFuction.get(key));
             switch (AggregationFuction.fromCode(key)) {
             case MAX:
-                selection = cb.tuple(root,cb.max(expression));
+                //selection = cb.tuple(root,cb.max(expression));
+                selection = cb.max(expression);
                 break;
             case MIN:
                 selection = cb.tuple(root,cb.min(expression));
@@ -375,7 +374,7 @@ public class JpaQueryUtils {
             default:
                 throw new InvalidArgumentException(String.format("Aggregation Fuction [%s] is unsupportted.", key));
             }
-        }    
+        }
         query.select(selection);
     }
 }
