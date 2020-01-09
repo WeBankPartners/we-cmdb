@@ -1,4 +1,4 @@
-package com.webank.plugins.wecmdb.dto;
+package com.webank.plugins.wecmdb.dto.wecube;
 
 public enum DataType {
     None("none"), Ref("ref"), String("str"), Integer("int"), Timestamp("timestamp");

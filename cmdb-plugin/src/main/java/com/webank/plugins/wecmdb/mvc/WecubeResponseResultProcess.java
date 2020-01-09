@@ -13,18 +13,18 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import com.webank.cmdb.dto.CustomResponseDto;
-import com.webank.plugins.wecmdb.dto.JsonResponse;
+import com.webank.plugins.wecmdb.dto.wecube.WecubeResponse;
 
-@ControllerAdvice(basePackages = {"com.webank.plugins.wecmdb.controller"})
-public class PluginResponseResultProcess implements ResponseBodyAdvice<Object> {
-    private final static Logger logger = LoggerFactory.getLogger(PluginResponseResultProcess.class);
+@ControllerAdvice(assignableTypes = com.webank.plugins.wecmdb.controller.WecubeAdapterController.class)
+public class WecubeResponseResultProcess implements ResponseBodyAdvice<Object> {
+    private final static Logger logger = LoggerFactory.getLogger(WecubeResponseResultProcess.class);
     private static final String SUCCESS = "Success";
 
     @ResponseBody
     @ExceptionHandler(Exception.class)
-    public JsonResponse handleException(Exception ex) {
+    public WecubeResponse handleException(Exception ex) {
         logger.warn("Get exception:", ex);
-        return JsonResponse.error(ex.getMessage());
+        return WecubeResponse.error(ex.getMessage());
     }
 
     @Override
@@ -40,7 +40,7 @@ public class PluginResponseResultProcess implements ResponseBodyAdvice<Object> {
             if (body == null) {
                 body = SUCCESS;
             }
-            return JsonResponse.okayWithData(body);
+            return WecubeResponse.okayWithData(body);
         }
     }
 }

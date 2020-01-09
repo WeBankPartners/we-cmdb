@@ -2,8 +2,10 @@ package com.webank.cmdb.util;
 
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.beanutils.BeanMap;
@@ -113,22 +115,30 @@ public class ClassUtils {
     }
 
     public static Map<String, Object> convertBeanToMap(Object ciObj, DynamicEntityMeta entityMeta, boolean includeNullVal) {
+        return convertBeanToMap(ciObj, entityMeta, includeNullVal, new ArrayList<>());
+    }
+
+    public static Map<String, Object> convertBeanToMap(Object ciObj, DynamicEntityMeta entityMeta, boolean includeNullVal, List<String> requestFields) {
         Map<String, Object> ciMap = new HashMap<>();
         BeanMap ciObjMap = new BeanMap(ciObj);
         Collection<FieldNode> nodes = entityMeta.getAllFieldNodes(false);
         for (FieldNode node : nodes) {
             String name = node.getName();
-            Object val = ciObjMap.get(name);
-            if (includeNullVal) {
-                ciMap.put(name, val);
-            } else {
-                if (val != null) {
+            if (isRequestField(requestFields, name)) {
+                Object val = ciObjMap.get(name);
+                if (includeNullVal) {
                     ciMap.put(name, val);
+                } else {
+                    if (val != null) {
+                        ciMap.put(name, val);
+                    }
                 }
             }
         }
-
         return ciMap;
+    }
 
+    private static boolean isRequestField(List<String> includeFields, String name) {
+        return includeFields == null || includeFields.isEmpty() || includeFields.contains(name);
     }
 }

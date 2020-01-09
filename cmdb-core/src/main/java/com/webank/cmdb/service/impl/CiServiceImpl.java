@@ -354,9 +354,9 @@ public class CiServiceImpl implements CiService {
                 Map<String, Object> entityBeanMap = null;
                 if(ciRequest.getAggregationFuction()!=null && ciRequest.getAggregationFuction().size()>0) {
                     Object object = Array.get(x, 0);
-                    entityBeanMap = ClassUtils.convertBeanToMap(object, entityMeta, true);
+                    entityBeanMap = ClassUtils.convertBeanToMap(object, entityMeta, true, ciRequest.getResultColumns());
                 }else {
-                    entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true);
+                    entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true, ciRequest.getResultColumns());
                 }
                 Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
                 List<String> nextOperations = getNextOperations(entityBeanMap);
@@ -1355,20 +1355,22 @@ public class CiServiceImpl implements CiService {
             } else {
                 selFieldMap.remove("root");
                 for (Map.Entry<String, FieldInfo> kv : selFieldMap.entrySet()) {
-                    if (enableBiz) {
-                        if (kv.getKey().endsWith(".biz_key") || kv.getKey().endsWith(".state")) {
+                    if (isRequestField(intQueryReq, kv)) {
+                        if (enableBiz) {
+                            if (kv.getKey().endsWith(".biz_key") || kv.getKey().endsWith(".state")) {
+                                continue;
+                            }
+                        }
+                        if (kv.getKey().startsWith(ACCESS_CONTROL_ATTRIBUTE_PREFIX)) {
                             continue;
                         }
-                    }
-                    if (kv.getKey().startsWith(ACCESS_CONTROL_ATTRIBUTE_PREFIX)) {
-                        continue;
-                    }
-                    if (kv.getKey().endsWith(".guid") || kv.getKey().endsWith(".r_guid")) {
-                        continue;
-                    }
-                    selectedFields.add(kv.getValue());
-                    if(!selections.contains(kv.getValue().getExpression())) {
-                    	selections.add(kv.getValue().getExpression());
+                        if (kv.getKey().endsWith(".guid") || kv.getKey().endsWith(".r_guid")) {
+                            continue;
+                        }
+                        selectedFields.add(kv.getValue());
+                        if (!selections.contains(kv.getValue().getExpression())) {
+                            selections.add(kv.getValue().getExpression());
+                        }
                     }
                 }
                 query.multiselect(selections);
@@ -1407,6 +1409,10 @@ public class CiServiceImpl implements CiService {
         } finally {
             priEntityManager.close();
         }
+    }
+
+    private boolean isRequestField(QueryRequest intQueryReq, Map.Entry<String, FieldInfo> kv) {
+        return intQueryReq.getResultColumns() == null || intQueryReq.getResultColumns().isEmpty() || intQueryReq.getResultColumns().contains(kv.getKey());
     }
 
     private List<Predicate> buildHistoryDataControlPredicate(QueryRequest intQueryReq, CriteriaBuilder cb, Map<String, Expression> selectionMap) {
