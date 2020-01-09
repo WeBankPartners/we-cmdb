@@ -1,5 +1,6 @@
 package com.webank.cmdb.stateTransition;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 
@@ -39,7 +40,7 @@ public class InsertUpdateAction implements Action {
     private CiService ciService;
 
     @Override
-    public Map<String, Object> perform(EntityManager entityManager, int ciTypeId, String guid, AdmStateTransition transition, Map<String, Object> ciData, DynamicEntityHolder entityHolder) {
+    public Map<String, Object> perform(EntityManager entityManager, int ciTypeId, String guid, AdmStateTransition transition, Map<String, Object> ciData, DynamicEntityHolder entityHolder, Date date) {
         Object ciBean = ciService.cloneCiAsParent(entityManager, ciTypeId, guid);
         entityHolder = new DynamicEntityHolder(entityHolder.getEntityMeta(), ciBean);
 

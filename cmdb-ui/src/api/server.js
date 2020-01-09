@@ -159,9 +159,8 @@ export const getResourcePlanningCiData = data =>
     data.queryObject
   );
 export const getAllZoneLinkGroupByIdc = () => req.get(`/all-zone-link`);
-export const getSystemDesigns = () => {
-  return req.get(`/system-designs`);
-};
+export const getSystemDesigns = () => req.get("/system-designs");
+export const getSystems = () => req.get("/system");
 export const getAllDesignTreeFromSystemDesign = id =>
   req.get(
     `/trees/all-design-trees/from-system-design?system-design-guid=${id}`
@@ -181,25 +180,20 @@ export const getApplicationFrameworkDesignDataTree = guid =>
   req.get(`/data-tree/application-framework-design?system-design-guid=${guid}`);
 export const getDeployCiData = (data, payload) =>
   req.post(
-    `/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${data.envCode}&system-design-guid=${data.systemDesignGuid}`,
+    `/deploy-designs/tabs/ci-data?code-id=${data.codeId}&system-guid=${data.systemGuid}`,
     payload
   );
 export const getDeployDesignTabs = () => req.get(`/deploy-designs/tabs`);
 export const previewDeployGraph = data => {
   return req.post(`/process/definitions/preview`, data);
 };
-export const getAllDeployTreesFromDesignCi = (id, env) => {
-  return req.get(
-    `/trees/all-deploy-trees/from-subsys?env-code=${env}&system-design-guid=${id}`
-  );
-};
+export const getAllDeployTreesFromSystemCi = guid =>
+  req.get(`/trees/all-deploy-trees/from-system?system-guid=${guid}`);
 export const startProcessInstancesWithCiDataInbatch = data => {
   return req.post(`/process/inbatch/instances`, data);
 };
-export const getApplicationDeploymentDesignDataTree = (guid, codeId) =>
-  req.get(
-    `/data-tree/application-deployment-design?env-code=${codeId}&system-design-guid=${guid}`
-  );
+export const getApplicationDeploymentDataTree = guid =>
+  req.get(`/data-tree/application-deployment?system-guid=${guid}`);
 export const queryEnumCategories = data =>
   req.post(`/enum/categories/query`, data);
 export const queryEnumCodes = (catTypeId, catId, data) =>
