@@ -337,34 +337,27 @@ public class CiServiceImpl implements CiService {
         int totalCount = 0;
         QueryResponse<CiData> ciInfoResp = new QueryResponse<>();
         try {
-            // ciRequest.setFilters(convertFilterForMultiValueField(entityManager,
-            // ciRequest.getFilters()));
             results = doQuery(ciRequest, entityMeta, true);
             totalCount = convertResultToInteger(results);
 
             results = doQuery(ciRequest, entityMeta, false);
-            if(ciRequest.getAggregationFuction()!=null &&
-                    ciRequest.getAggregationFuction().size()>0) { 
-                //Object object = Array.get(x,0); 
-                //entityBeanMap = ClassUtils.convertBeanToMap(object, entityMeta, true);
-                if(results!=null && results.size()>0) {
+            if (ciRequest.getAggregationFuction() != null &&
+                    ciRequest.getAggregationFuction().size() > 0) {
+                if (results != null && results.size() > 0) {
                     Map<String, Object> enhacedMap = Maps.newHashMap();
                     enhacedMap.put("fixed_date", results);
-                    ciInfoResp.addContent(new CiData(enhacedMap,null)); 
+                    ciInfoResp.addContent(new CiData(enhacedMap, null));
                 }
-            }else { 
+            } else {
                 results.forEach(x -> {
-                    // DynamicEntityHolder entityBean =
-                    // DynamicEntityHolder.createDynamicEntityBean(entityMeta, x);
                     Map<String, Object> entityBeanMap = null;
-                   
-                          entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true);
-                          
-                     
+
+                    entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true, ciRequest.getResultColumns());
+
                     Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
                     List<String> nextOperations = getNextOperations(entityBeanMap);
                     CiData ciData = new CiData(enhacedMap, nextOperations);
-    
+
                     ciInfoResp.addContent(ciData);
                 });
             }
@@ -1359,20 +1352,22 @@ public class CiServiceImpl implements CiService {
             } else {
                 selFieldMap.remove("root");
                 for (Map.Entry<String, FieldInfo> kv : selFieldMap.entrySet()) {
-                    if (enableBiz) {
-                        if (kv.getKey().endsWith(".biz_key") || kv.getKey().endsWith(".state")) {
+                    if (isRequestField(intQueryReq, kv)) {
+                        if (enableBiz) {
+                            if (kv.getKey().endsWith(".biz_key") || kv.getKey().endsWith(".state")) {
+                                continue;
+                            }
+                        }
+                        if (kv.getKey().startsWith(ACCESS_CONTROL_ATTRIBUTE_PREFIX)) {
                             continue;
                         }
-                    }
-                    if (kv.getKey().startsWith(ACCESS_CONTROL_ATTRIBUTE_PREFIX)) {
-                        continue;
-                    }
-                    if (kv.getKey().endsWith(".guid") || kv.getKey().endsWith(".r_guid")) {
-                        continue;
-                    }
-                    selectedFields.add(kv.getValue());
-                    if(!selections.contains(kv.getValue().getExpression())) {
-                    	selections.add(kv.getValue().getExpression());
+                        if (kv.getKey().endsWith(".guid") || kv.getKey().endsWith(".r_guid")) {
+                            continue;
+                        }
+                        selectedFields.add(kv.getValue());
+                        if (!selections.contains(kv.getValue().getExpression())) {
+                            selections.add(kv.getValue().getExpression());
+                        }
                     }
                 }
                 query.multiselect(selections);
@@ -1411,6 +1406,10 @@ public class CiServiceImpl implements CiService {
         } finally {
             priEntityManager.close();
         }
+    }
+
+    private boolean isRequestField(QueryRequest intQueryReq, Map.Entry<String, FieldInfo> kv) {
+        return intQueryReq.getResultColumns() == null || intQueryReq.getResultColumns().isEmpty() || intQueryReq.getResultColumns().contains(kv.getKey());
     }
 
     private List<Predicate> buildHistoryDataControlPredicate(QueryRequest intQueryReq, CriteriaBuilder cb, Map<String, Expression> selectionMap) {
