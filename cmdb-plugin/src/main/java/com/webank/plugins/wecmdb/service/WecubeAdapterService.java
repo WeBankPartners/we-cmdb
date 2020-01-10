@@ -27,15 +27,15 @@ import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.util.BeanMapUtils;
 import com.webank.cmdb.util.Sorting;
-import com.webank.plugins.wecmdb.dto.AttributeDto;
-import com.webank.plugins.wecmdb.dto.DataType;
-import com.webank.plugins.wecmdb.dto.EntityDto;
-import com.webank.plugins.wecmdb.dto.OperateCiDto;
+import com.webank.plugins.wecmdb.dto.wecube.AttributeDto;
+import com.webank.plugins.wecmdb.dto.wecube.DataType;
+import com.webank.plugins.wecmdb.dto.wecube.EntityDto;
+import com.webank.plugins.wecmdb.dto.wecube.OperateCiDto;
 import com.webank.plugins.wecmdb.exception.PluginException;
 import com.webank.plugins.wecmdb.helper.ConfirmHelper;
 
 @Service
-public class AdapterService {
+public class WecubeAdapterService {
     private static final String ERROR_MESSAGE = "errorMessage";
     private static final String ERROR_CODE = "errorCode";
     private static final String CONFIRM = "confirm";
@@ -137,6 +137,7 @@ public class AdapterService {
                 entityDto.setName(ciTypeDto.getTableName());
                 entityDto.setDisplayName(ciTypeDto.getName());
                 entityDto.setDescription(ciTypeDto.getDescription());
+                entityDto.setStatus(ciTypeDto.getStatus());
 
                 QueryResponse<CiTypeAttrDto> ciTypeAttrResponse = queryCiTypeAttrs(QueryRequest.defaultQueryObject().addEqualsFilter("ciTypeId", ciTypeDto.getCiTypeId()));
                 if (ciTypeAttrResponse != null && ciTypeAttrResponse.getContents() != null && !ciTypeAttrResponse.getContents().isEmpty()) {
@@ -160,6 +161,7 @@ public class AdapterService {
             attributeDto.setEntityName(ciTypeDto.getTableName());
             attributeDto.setDescription(ciTypeAttrDto.getDescription());
             attributeDto.setName(ciTypeAttrDto.getPropertyName());
+            attributeDto.setStatus(ciTypeAttrDto.getStatus());
             switch (InputType.fromCode(ciTypeAttrDto.getInputType())) {
             case Reference:
             case MultRef: {
