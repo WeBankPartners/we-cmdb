@@ -138,7 +138,7 @@ public class ClassUtils {
         return ciMap;
     }
 
-    private static boolean isRequestField(List<String> includeFields, String name) {
-        return includeFields == null || includeFields.isEmpty() || includeFields.contains(name);
+    private static boolean isRequestField(List<String> requestFields, String name) {
+        return requestFields == null || requestFields.isEmpty() || requestFields.contains(name);
     }
 }
