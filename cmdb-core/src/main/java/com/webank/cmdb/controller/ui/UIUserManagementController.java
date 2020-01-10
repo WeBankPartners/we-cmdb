@@ -1,6 +1,7 @@
 package com.webank.cmdb.controller.ui;
 
-import static com.webank.cmdb.domain.AdmMenu.*;
+import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_PERMISSION_MANAGEMENT;
+import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_USER_PASSWORD_MANAGEMENT;
 
 import java.util.List;
 import java.util.Map;
@@ -128,7 +129,7 @@ public class UIUserManagementController {
     @GetMapping("/roles/{role-name}/permissions")
     @ResponseBody
     public Object getPermissionsByRoleId(@PathVariable(value = "role-name") String roleName) {
-        int roleId = wrapperService.getRoleIdByRoleName(roleName);
+        int roleId = wrapperService.getRoleIdByRoleName(roleName, true);
         List<String> menuPermissions = userManagerService.getMenuDtosByRoleId(roleId);
         List<RoleCiTypeDto> ciTypePermissions = userManagerService.getRoleCiTypesByRoleId(roleId);
         return new Permissions(menuPermissions, ciTypePermissions);
