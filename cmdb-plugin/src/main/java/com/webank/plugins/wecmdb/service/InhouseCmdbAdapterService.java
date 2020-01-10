@@ -19,6 +19,7 @@ import com.webank.cmdb.repository.AdmIntegrateTemplateRepository;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.util.Pageable;
 import com.webank.cmdb.util.Sorting;
+import com.webank.plugins.wecmdb.dto.inhouse.Action;
 import com.webank.plugins.wecmdb.dto.inhouse.InhouseCmdbRequest;
 import com.webank.plugins.wecmdb.dto.inhouse.InhouseCmdbResponse;
 import com.webank.plugins.wecmdb.dto.inhouse.InhouseCmdbResponse.Data;
@@ -27,13 +28,14 @@ import com.webank.plugins.wecmdb.exception.PluginException;
 
 @Service
 public class InhouseCmdbAdapterService {
+    private static final String SORTING_ASC = "asc";
     @Autowired
     private AdmIntegrateTemplateRepository intTempRepository;
     @Autowired
     private CiService ciService;
 
     public InhouseCmdbResponse queryCustomizationReport(InhouseCmdbRequest inhouseCmdbQueryRequest) {
-        if (!"select".equals(inhouseCmdbQueryRequest.getAction())) {
+        if (!Action.SELECT.getCode().equals(inhouseCmdbQueryRequest.getAction())) {
             throw new PluginException(String.format("Not support action [%s], only support 'select' action for customization report query.", inhouseCmdbQueryRequest.getAction()));
         }
 
@@ -62,7 +64,7 @@ public class InhouseCmdbAdapterService {
         if (orderby != null) {
             orderby.forEach((key, value) -> {
                 sorting.setField(key);
-                sorting.setAsc("asc".equals(value));
+                sorting.setAsc(SORTING_ASC.equals(value));
             });
         }
         return sorting;
