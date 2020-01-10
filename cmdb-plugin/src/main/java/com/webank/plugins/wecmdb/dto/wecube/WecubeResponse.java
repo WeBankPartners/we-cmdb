@@ -1,8 +1,8 @@
-package com.webank.plugins.wecmdb.dto;
+package com.webank.plugins.wecmdb.dto.wecube;
 
 import com.webank.cmdb.dto.CustomResponseDto;
 
-public class JsonResponse implements CustomResponseDto{
+public class WecubeResponse implements CustomResponseDto{
     public final static String STATUS_OK = "OK";
     public final static String STATUS_ERROR = "ERROR";
 
@@ -34,24 +34,24 @@ public class JsonResponse implements CustomResponseDto{
         this.data = data;
     }
 
-    public JsonResponse withData(Object data) {
+    public WecubeResponse withData(Object data) {
         this.data = data;
         return this;
     }
 
-    public static JsonResponse okay() {
-        JsonResponse result = new JsonResponse();
+    public static WecubeResponse okay() {
+        WecubeResponse result = new WecubeResponse();
         result.setStatus(STATUS_OK);
         result.setMessage("Success");
         return result;
     }
 
-    public static JsonResponse okayWithData(Object data) {
+    public static WecubeResponse okayWithData(Object data) {
         return okay().withData(data);
     }
 
-    public static JsonResponse error(String errorMessage) {
-        JsonResponse result = new JsonResponse();
+    public static WecubeResponse error(String errorMessage) {
+        WecubeResponse result = new WecubeResponse();
         result.setStatus(STATUS_ERROR);
         result.setMessage(errorMessage);
         return result;

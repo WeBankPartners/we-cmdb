@@ -1,4 +1,4 @@
-package com.webank.plugins.wecmdb.dto;
+package com.webank.plugins.wecmdb.dto.wecube;
 
 import java.util.List;
 import java.util.Map;

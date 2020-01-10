@@ -10,12 +10,9 @@
           label-in-name
           style="width: 70%;"
         >
-          <Option
-            v-for="item in systems"
-            :value="item.guid"
-            :key="item.guid"
-            >{{ item.key_name }}</Option
-          >
+          <Option v-for="item in systems" :value="item.guid" :key="item.guid">{{
+            item.key_name
+          }}</Option>
         </Select>
       </Col>
       <Col span="3">
@@ -148,12 +145,12 @@ import { formatData } from "../util/format.js";
 import { getExtraInnerActions } from "../util/state-operations.js";
 import PhysicalGraph from "./physical-graph";
 
-const LAST_LEVEL_CI_TYPE_ID = 9
-const BUSINESS_APP_INSTANCE = 14
-const URL_ATTR_NAME = "resource_instance"
-const LINE_CI_TYPE_ID = 11
-const LINE_FROM_ATTR = "invoke_unit"
-const LINE_TO_ATTR = "invoked_unit"
+const LAST_LEVEL_CI_TYPE_ID = 9;
+const BUSINESS_APP_INSTANCE = 14;
+const URL_ATTR_NAME = "resource_instance";
+const LINE_CI_TYPE_ID = 11;
+const LINE_FROM_ATTR = "invoke_unit";
+const LINE_TO_ATTR = "invoked_unit";
 const stateColor = {
   new: "#19be6b",
   created: "#19be6b",
@@ -161,7 +158,7 @@ const stateColor = {
   change: "#2d8cf0",
   destroyed: "#ed4014",
   delete: "#ed4014"
-}
+};
 const colors = [
   "#bbdefb",
   "#90caf9",
@@ -253,9 +250,9 @@ export default {
       svg.attr("viewBox", "0 0 " + width + " " + height);
     },
     genADDOT(data) {
-      this.graphNodes = {}
+      this.graphNodes = {};
       if (!data.length) {
-        return "digraph G{}"
+        return "digraph G{}";
       }
       let width = 16;
       let height = 12;
@@ -280,12 +277,12 @@ export default {
     genADChildrenDot(data, level) {
       const width = 12;
       const height = 9;
-      let dots = []
+      let dots = [];
       if (data.length) {
         data.forEach(_ => {
-          let color = ""
+          let color = "";
           if (!_.fixedDate) {
-            color = stateColor[_.data.state.code]
+            color = stateColor[_.data.state.code];
           }
           if (_.children instanceof Array && _.children.length) {
             dots.push(
@@ -297,34 +294,35 @@ export default {
               `tooltip="${_.tooltip}";`,
               this.genADChildrenDot(_.children, level + 1),
               "}"
-            )
+            );
           } else {
-            this.graphNodes[_.guid] = _
+            this.graphNodes[_.guid] = _;
             dots.push(
               `"n_${_.guid}"`,
               `[id="n_${_.guid}",shape="none",`,
               `fillcolor="${color ? color : colors[level]}";`,
               `label=${_.label}`,
               "];"
-            )
+            );
           }
-        })
+        });
       } else {
         dots.push(
-          `g[label=" ",color="${colors[level - 1]}";width="${width}";height="${height -
-            3}"];`
+          `g[label=" ",color="${
+            colors[level - 1]
+          }";width="${width}";height="${height - 3}"];`
         );
       }
       return dots.join("");
     },
     genADLines() {
-      const result = []
+      const result = [];
       Object.keys(this.systemLines).forEach(guid => {
-        const node = this.systemLines[guid]
+        const node = this.systemLines[guid];
         if (this.graphNodes[node.from] && this.graphNodes[node.to]) {
-          let color = "#000"
+          let color = "#000";
           if (!_.fixedDate) {
-            color = stateColor[node.state]
+            color = stateColor[node.state];
           }
           result.push(
             `n_${node.from}->n_${node.to}`,
@@ -332,10 +330,10 @@ export default {
             `color="${color}"`,
             `tooltip="${node.label || ""}",`,
             `taillabel="${node.label || ""}"];`
-          )
+          );
         }
-      })
-      return result.join("")
+      });
+      return result.join("");
     },
     async reloadHandler() {
       this.querySysTree();
@@ -346,8 +344,8 @@ export default {
       this.isShowTabs = false;
       this.systemData = [];
       this.systemTreeData = [];
-      this.systemLines = {}
-      this.graphNodes = {}
+      this.systemLines = {};
+      this.graphNodes = {};
       this.initADGraph();
       this.initTreeGraph();
     },
@@ -383,8 +381,8 @@ export default {
       );
       if (statusCode === "OK") {
         this.isShowTabs = true;
-        this.systemTreeData = data
-        this.systemLines = {}
+        this.systemTreeData = data;
+        this.systemLines = {};
 
         const formatADData = array => {
           return array.map(_ => {
@@ -395,49 +393,59 @@ export default {
               label: `"${_.data.code}"`,
               tooltip: _.data.description || "",
               fixedDate: +new Date(_.data.fixed_date)
-            }
-            if (_.children instanceof Array && _.children.length && _.ciTypeId !== LAST_LEVEL_CI_TYPE_ID) {
-              result.children = formatADData(_.children)
+            };
+            if (
+              _.children instanceof Array &&
+              _.children.length &&
+              _.ciTypeId !== LAST_LEVEL_CI_TYPE_ID
+            ) {
+              result.children = formatADData(_.children);
             }
             if (_.ciTypeId === LAST_LEVEL_CI_TYPE_ID) {
               const label = [
                 '<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">',
                 `<TR><TD COLSPAN="3">${_.data.code}</TD></TR>`
-              ]
+              ];
               if (_.children instanceof Array && _.children.length) {
                 _.children.forEach(item => {
                   if (item.ciTypeId === BUSINESS_APP_INSTANCE) {
-                    const code = item.data.code
-                    const url = item.data[URL_ATTR_NAME] && item.data[URL_ATTR_NAME].code ? item.data[URL_ATTR_NAME].code : "-"
-                    const ip = item.data.port || "-"
-                    label.push(`<TR><TD>${code}</TD><TD>${url}</TD><TD>${ip}</TD></TR>`)
+                    const code = item.data.code;
+                    const url =
+                      item.data[URL_ATTR_NAME] && item.data[URL_ATTR_NAME].code
+                        ? item.data[URL_ATTR_NAME].code
+                        : "-";
+                    const ip = item.data.port || "-";
+                    label.push(
+                      `<TR><TD>${code}</TD><TD>${url}</TD><TD>${ip}</TD></TR>`
+                    );
                   }
-                })
+                });
               }
-              label.push("</TABLE>>")
-              result.label = label.join("")
+              label.push("</TABLE>>");
+              result.label = label.join("");
             }
-            return result
-          })
-        }
-        const formatADLine = array => array.forEach(_ => {
-          if (_.ciTypeId === LINE_CI_TYPE_ID) {
-            this.systemLines[_.guid] = {
-              from: _.data[LINE_FROM_ATTR].guid,
-              to: _.data[LINE_TO_ATTR].guid,
-              id: _.guid,
-              label: _.data.invoke_type.value,
-              state: _.data.state.code,
-              fixedDate: +new Date(_.data.fixed_date)
+            return result;
+          });
+        };
+        const formatADLine = array =>
+          array.forEach(_ => {
+            if (_.ciTypeId === LINE_CI_TYPE_ID) {
+              this.systemLines[_.guid] = {
+                from: _.data[LINE_FROM_ATTR].guid,
+                to: _.data[LINE_TO_ATTR].guid,
+                id: _.guid,
+                label: _.data.invoke_type.value,
+                state: _.data.state.code,
+                fixedDate: +new Date(_.data.fixed_date)
+              };
             }
-          }
-          if (_.children instanceof Array && _.children.length) {
-            formatADLine(_.children)
-          }
-        })
-        
-        this.systemData = formatADData(data)
-        formatADLine(data)
+            if (_.children instanceof Array && _.children.length) {
+              formatADLine(_.children);
+            }
+          });
+
+        this.systemData = formatADData(data);
+        formatADLine(data);
 
         this.initADGraph();
         this.initTreeGraph();
@@ -1095,11 +1103,11 @@ export default {
       }
     },
     async queryTreeLayerData() {
-      const req = await getAllCITypes()
+      const req = await getAllCITypes();
       if (req.statusCode) {
         req.data.forEach(_ => {
-          this.allCiTypes[_.ciTypeId] = _
-        })
+          this.allCiTypes[_.ciTypeId] = _;
+        });
       }
     }
   },
