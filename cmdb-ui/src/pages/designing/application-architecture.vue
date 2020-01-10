@@ -304,14 +304,14 @@ import { getExtraInnerActions } from "../util/state-operations.js";
 import PhysicalGraph from "./physical-graph";
 import moment from "moment";
 
-const stateColorMap = new Map([
-  ["new", "#008000"],
-  ["created", "#008000"],
-  ["update", "blue"],
-  ["change", "blue"],
-  ["destroyed", "#ed4014"],
-  ["delete", "#ed4014"]
-]);
+const stateColor = {
+  new: "#19be6b",
+  created: "#19be6b",
+  update: "#2d8cf0",
+  change: "#2d8cf0",
+  destroyed: "#ed4014",
+  delete: "#ed4014"
+}
 const colors = [
   "#bbdefb",
   "#90caf9",
@@ -695,7 +695,7 @@ export default {
           isShow = true
           _isShow = true
         }
-        const color = stateColorMap.get(_.data.state.code)
+        const color = stateColor[_.data.state.code]
         let result = {
           fixed_date: _.data.fixed_date,
           state: _.data.state.code,
@@ -790,10 +790,10 @@ export default {
           let color = ""
           if (this.isTableViewOnly && this.systemDesignFixedDate) {
             if (this.systemDesignFixedDate <= _.data.fixed_date) {
-              color = stateColorMap.get(_.data.state.code)
+              color = stateColor[_.data.state.code]
             }
           } else if (!_.data.fixed_date) {
-            color = stateColorMap.get(_.data.state.code)
+            color = stateColor[_.data.state.code]
           }
           if (_.children instanceof Array && _.children.length) {
             dots = dots.concat([
@@ -833,10 +833,10 @@ export default {
         let color = "#000"
         if (this.isTableViewOnly && this.systemDesignFixedDate) {
           if (this.systemDesignFixedDate <= node.fixedDate) {
-            color = stateColorMap.get(node.state)
+            color = stateColor[node.state]
           }
         } else if (!node.fixedDate) {
-          color = stateColorMap.get(node.state)
+          color = stateColor[node.state]
         }
         if (!this.graphNodes[id][node.from.guid]) {
           otherNodes.push(node.from)

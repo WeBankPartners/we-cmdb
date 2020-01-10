@@ -147,19 +147,18 @@ import PhysicalGraph from "./physical-graph";
 
 const LAST_LEVEL_CI_TYPE_ID = 9;
 const BUSINESS_APP_INSTANCE = 14;
-const TREE_LAYER_ENUM_NAME = "deploy_tree_layer";
 const URL_ATTR_NAME = "resource_instance";
 const LINE_CI_TYPE_ID = 11;
 const LINE_FROM_ATTR = "invoke_unit";
 const LINE_TO_ATTR = "invoked_unit";
-const stateColorMap = new Map([
-  ["new", "#19be6b"],
-  ["created", "#19be6b"],
-  ["update", "#2d8cf0"],
-  ["change", "#2d8cf0"],
-  ["destroyed", "#ed4014"],
-  ["delete", "#ed4014"]
-]);
+const stateColor = {
+  new: "#19be6b",
+  created: "#19be6b",
+  update: "#2d8cf0",
+  change: "#2d8cf0",
+  destroyed: "#ed4014",
+  delete: "#ed4014"
+};
 const colors = [
   "#bbdefb",
   "#90caf9",
@@ -206,7 +205,7 @@ export default {
       isDataChanged: false,
       physicalSpin: false,
       graphTree: {},
-      layerData: [],
+      allCiTypes: {},
       systemTreeData: [],
       rankNodes: {},
       treeSpinShow: true
@@ -272,7 +271,7 @@ export default {
         this.genADLines(),
         "}"
       ];
-      // console.log(dots.join("").replace(/\}/g, "}\n").replace(/;/g, ";\n").replace(/,/g, ",\n"))
+      console.log(dots.join("").replace(/\}/g, "}\n").replace(/;/g, ";\n").replace(/,/g, ",\n"))
       return dots.join("");
     },
     genADChildrenDot(data, level) {
@@ -283,7 +282,7 @@ export default {
         data.forEach(_ => {
           let color = "";
           if (!_.fixedDate) {
-            color = stateColorMap.get(_.data.state.code);
+            color = stateColor[_.data.state.code];
           }
           if (_.children instanceof Array && _.children.length) {
             dots.push(
@@ -323,7 +322,7 @@ export default {
         if (this.graphNodes[node.from] && this.graphNodes[node.to]) {
           let color = "#000";
           if (!_.fixedDate) {
-            color = stateColorMap.get(node.state);
+            color = stateColor[node.state];
           }
           result.push(
             `n_${node.from}->n_${node.to}`,
@@ -354,7 +353,6 @@ export default {
       let { statusCode, data, message } = await getSystems();
       if (statusCode === "OK") {
         this.systems = data.contents.map(_ => _.data);
-        console.log(this.systems);
       }
     },
     onTreeCheck(all, current) {
@@ -372,20 +370,6 @@ export default {
       this.treeSpinShow = true;
       if (this.currentTab) {
         this.queryCiData();
-      }
-      let { statusCode, message, data } = await getAllCITypes();
-      if (statusCode === "OK") {
-        data.forEach(ci => {
-          if (ci.tableName === "service") {
-            this.serviceCiTypeId = ci.ciTypeId;
-          }
-          if (ci.tableName === "invoke") {
-            this.invokeCiTypeId = ci.ciTypeId;
-          }
-          if (ci.tableName === "running_instance") {
-            this.instanceCiTypeId = ci.ciTypeId;
-          }
-        });
       }
       this.physicalSpin = true;
       this.getAllDeployTreesFromSystemCi();
@@ -559,7 +543,7 @@ export default {
         "digraph G{",
         "rankdir=TB nodesep=0.5;",
         `size="${width},${height}";`,
-        ...this.genlayerDot(this.layerData),
+        this.genlayerDot(data),
         "Node [fontname=Arial, fontsize=12];",
         'Edge [fontname=Arial, minlen="2", fontsize=10, arrowhead="t"];',
         ...this.genChildrenDot(data || [], 1),
@@ -569,21 +553,51 @@ export default {
       return dots.join(" ");
     },
     genlayerDot(data) {
-      let layerDot = [];
-      layerDot.push("{");
-      layerDot.push("node [shape=plaintext, fontsize=16];");
-      data.forEach((element, index) => {
-        if (index === data.length - 1) {
-          layerDot.push(`"title_${element.code}"`);
-        } else {
-          layerDot.push(`"title_${element.code}" -> `);
+      let layerData = []
+      let childrenLayer = {}
+      const findLayerCi = array => array.forEach(_ => {
+        const found = layerData.find(layer => layer.code === _.ciTypeId)
+        if (!found) {
+          layerData.push({
+            code: _.ciTypeId,
+            value: this.allCiTypes[_.ciTypeId].name
+          })
         }
-        this.rankNodes[element.code] = [];
-        this.rankNodes[element.code].push(element.value);
+        if (_.children instanceof Array && _.children.length) {
+          if (_.ciTypeId !== LAST_LEVEL_CI_TYPE_ID) {
+            findLayerCi(_.children)
+          } else {
+            _.children.forEach(item => {
+              childrenLayer[item.ciTypeId] = {
+                code: item.ciTypeId,
+                value: this.allCiTypes[item.ciTypeId].name
+              }
+            })
+          }
+        }
+      })
+      findLayerCi(data)
+      Object.keys(childrenLayer).forEach(key => {
+        layerData.push(childrenLayer[key]);
       });
-      layerDot.push(" [style=invis]");
-      layerDot.push("}");
-      return layerDot;
+      let result = [
+        "{",
+        "node[shape=plaintext,fontsize=16];",
+      ];
+      layerData.forEach((_, i) => {
+        if (i === layerData.length - 1) {
+          result.push(`"title_${_.code}"`);
+        } else {
+          result.push(`"title_${_.code}"->`)
+        }
+        this.rankNodes[_.code] = []
+        this.rankNodes[_.code].push(_.value)
+      })
+      result.push(
+        "[style=invis]",
+        "}"
+      );
+      return result.join("")
     },
     genChildrenDot(data, level) {
       let dots = [];
@@ -1089,22 +1103,11 @@ export default {
       }
     },
     async queryTreeLayerData() {
-      const request = {
-        filters: [
-          {
-            name: "catName",
-            operator: "eq",
-            value: TREE_LAYER_ENUM_NAME
-          }
-        ]
-      };
-      const { statusCode, data } = await queryEnumCategories(request);
-      if (statusCode === "OK") {
-        let catId = data.contents[0].catId;
-        const response = await getEnumCodesByCategoryId(0, catId);
-        if (response.statusCode === "OK") {
-          this.layerData = response.data;
-        }
+      const req = await getAllCITypes();
+      if (req.statusCode) {
+        req.data.forEach(_ => {
+          this.allCiTypes[_.ciTypeId] = _;
+        });
       }
     }
   },
