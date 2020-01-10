@@ -14,17 +14,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.cmdb.exception.BatchChangeException.ExceptionHolder;
-import com.webank.plugins.wecmdb.dto.EntityDto;
-import com.webank.plugins.wecmdb.dto.OperateCiDto;
-import com.webank.plugins.wecmdb.dto.OperateCiDtoInputs;
-import com.webank.plugins.wecmdb.dto.OperateCiJsonResponse;
-import com.webank.plugins.wecmdb.service.AdapterService;
+import com.webank.plugins.wecmdb.dto.wecube.EntityDto;
+import com.webank.plugins.wecmdb.dto.wecube.OperateCiDto;
+import com.webank.plugins.wecmdb.dto.wecube.OperateCiDtoInputs;
+import com.webank.plugins.wecmdb.dto.wecube.OperateCiJsonResponse;
+import com.webank.plugins.wecmdb.service.WecubeAdapterService;
 
 @RestController
-public class ApiController {
+public class WecubeAdapterController {
 
     @Autowired
-    private AdapterService adapterService;
+    private WecubeAdapterService wecubeAdapterService;
 
     @GetMapping("/entities/{entity-name}")
     @ResponseBody
@@ -32,22 +32,22 @@ public class ApiController {
             @RequestParam(value = "filter", required = false) String filter,
             @RequestParam(value = "sorting", required = false) String sorting,
             @RequestParam(value = "select", required = false) String select) {
-        return adapterService.getCiDataWithConditions(entityName, filter, sorting, select);
+        return wecubeAdapterService.getCiDataWithConditions(entityName, filter, sorting, select);
     }
 
     @PostMapping("/entities/{entity-name}/create")
     public List<Map<String, Object>> createCiData(@PathVariable("entity-name") String entityName, @RequestBody List<Map<String, Object>> request) {
-        return adapterService.createCiData(entityName, request);
+        return wecubeAdapterService.createCiData(entityName, request);
     }
 
     @PostMapping("/entities/{entity-name}/update")
     public List<Map<String, Object>> updateCiData(@PathVariable("entity-name") String entityName, @RequestBody List<Map<String, Object>> request) {
-        return adapterService.updateCiData(entityName, request);
+        return wecubeAdapterService.updateCiData(entityName, request);
     }
 
     @PostMapping("/entities/{entity-name}/delete")
     public void deleteCiData(@PathVariable("entity-name") String entityName, @RequestBody List<Map<String, Object>> request) {
-        adapterService.deleteCiData(entityName, request);
+        wecubeAdapterService.deleteCiData(entityName, request);
     }
 
     @PostMapping("/data/confirm")
@@ -56,7 +56,7 @@ public class ApiController {
         List<OperateCiDto> operateCiDtos = inputs.getInputs();
         OperateCiJsonResponse response = new OperateCiJsonResponse();
         List<ExceptionHolder> ExceptionHolders = new ArrayList<ExceptionHolder>();
-        List<Map<String, Object>> results = adapterService.confirmBatchCiData(operateCiDtos, ExceptionHolders);
+        List<Map<String, Object>> results = wecubeAdapterService.confirmBatchCiData(operateCiDtos, ExceptionHolders);
 
         if (ExceptionHolders.size() > 0) {
             response = OperateCiJsonResponse.errorWithData(String.format("Fail to confirm [%s] CIs, detail error in the data block", inputs), results);
@@ -71,6 +71,6 @@ public class ApiController {
     @GetMapping("/data-model")
     @ResponseBody
     public List<EntityDto> getDataModel() {
-        return adapterService.getDataModel();
+        return wecubeAdapterService.getDataModel();
     }
 }
