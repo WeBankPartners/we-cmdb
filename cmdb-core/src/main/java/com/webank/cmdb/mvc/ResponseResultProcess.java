@@ -1,7 +1,6 @@
 package com.webank.cmdb.mvc;
 
 import java.rmi.ServerException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +53,7 @@ public class ResponseResultProcess implements ResponseBodyAdvice<Object> {
 
         if (!(body instanceof ResponseDto)) {
             if (body == null) {
-                body = new ArrayList<>();
+                return new ResponseDto();
             }
             return new ResponseDto(ResponseDto.STATUS_OK, body);
         } else {
