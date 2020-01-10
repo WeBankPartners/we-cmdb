@@ -187,11 +187,13 @@ export const getDeployDesignTabs = () => req.get(`/deploy-designs/tabs`);
 export const previewDeployGraph = data => {
   return req.post(`/process/definitions/preview`, data);
 };
-export const getAllDeployTreesFromSystemCi = guid => req.get(`/trees/all-deploy-trees/from-system?system-guid=${guid}`)
+export const getAllDeployTreesFromSystemCi = guid =>
+  req.get(`/trees/all-deploy-trees/from-system?system-guid=${guid}`);
 export const startProcessInstancesWithCiDataInbatch = data => {
   return req.post(`/process/inbatch/instances`, data);
 };
-export const getApplicationDeploymentDataTree = guid => req.get(`/data-tree/application-deployment?system-guid=${guid}`)
+export const getApplicationDeploymentDataTree = guid =>
+  req.get(`/data-tree/application-deployment?system-guid=${guid}`);
 export const queryEnumCategories = data =>
   req.post(`/enum/categories/query`, data);
 export const queryEnumCodes = (catTypeId, catId, data) =>
