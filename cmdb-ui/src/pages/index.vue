@@ -5,7 +5,7 @@
     </div>
     <div class="content-container">
       <Breadcrumb style="margin: 10px 0;" v-if="isShowBreadcrum && !isSetting">
-        <BreadcrumbItem to="/">{{ $t("home") }}</BreadcrumbItem>
+        <BreadcrumbItem to="/">{{ $t('home') }}</BreadcrumbItem>
         <BreadcrumbItem>{{ parentBreadcrumb }}</BreadcrumbItem>
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
       </Breadcrumb>
@@ -17,64 +17,62 @@
 </template>
 
 <script>
-import Header from "./components/header";
-import { MENUS } from "../const/menus.js";
+import Header from './components/header'
+import { MENUS } from '../const/menus.js'
 export default {
   components: {
     Header
   },
-  data() {
+  data () {
     return {
       isShowBreadcrum: true,
       allMenusAry: [],
-      parentBreadcrumb: "",
-      childBreadcrumb: "",
-      isSetting: this.$route.path.startsWith("/setting")
-    };
+      parentBreadcrumb: '',
+      childBreadcrumb: '',
+      isSetting: this.$route.path.startsWith('/setting')
+    }
   },
   methods: {
-    allMenus(data) {
-      this.allMenusAry = data;
+    allMenus (data) {
+      this.allMenusAry = data
     },
-    setBreadcrumb() {
-      if (this.$route.path === "/homepage" || this.$route.path === "/404") {
-        this.isShowBreadcrum = false;
-        return;
+    setBreadcrumb () {
+      if (this.$route.path === '/homepage' || this.$route.path === '/404') {
+        this.isShowBreadcrum = false
+        return
       }
-      if (this.$route.path === "/comingsoon") {
-        this.parentBreadcrumb = "-";
-        this.childBreadcrumb = "Coming Soon";
-        return;
+      if (this.$route.path === '/comingsoon') {
+        this.parentBreadcrumb = '-'
+        this.childBreadcrumb = 'Coming Soon'
+        return
       }
-      let currentLangKey = localStorage.getItem("lang") || navigator.language;
-      const menuObj = MENUS.find(m => m.link === this.$route.path);
+      let currentLangKey = localStorage.getItem('lang') || navigator.language
+      const menuObj = MENUS.find(m => m.link === this.$route.path)
       if (menuObj) {
         this.allMenusAry.forEach(_ => {
           _.submenus.forEach(sub => {
             if (menuObj.code === sub.code) {
-              this.parentBreadcrumb =
-                currentLangKey === "zh-CN" ? _.cnName : _.enName;
+              this.parentBreadcrumb = currentLangKey === 'zh-CN' ? _.cnName : _.enName
             }
-          });
-        });
-        this.childBreadcrumb =
-          currentLangKey === "zh-CN" ? menuObj.cnName : menuObj.enName;
+          })
+        })
+        this.childBreadcrumb = currentLangKey === 'zh-CN' ? menuObj.cnName : menuObj.enName
       } else {
-        this.parentBreadcrumb = "-";
-        this.childBreadcrumb = this.$route.path.substr(1);
+        this.parentBreadcrumb = '-'
+        this.childBreadcrumb = this.$route.path.substr(1)
       }
     }
   },
-  mounted() {},
+  mounted () {},
   watch: {
     allMenusAry: {
-      handler(val) {
-        this.setBreadcrumb();
+      handler (val) {
+        this.setBreadcrumb()
       },
       immediate: true
     }
   }
-};
+}
 </script>
 
 <style lang="scss" scoped>
