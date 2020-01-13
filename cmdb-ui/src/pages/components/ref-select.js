@@ -42,7 +42,6 @@ export default {
     }
   },
   mounted () {
-    this.queryCiAttrs(this.ciType.id)
     // this.queryCiData();
     this.getAllDataWithoutPaging()
   },
@@ -147,6 +146,7 @@ export default {
       e.preventDefault()
       e.stopPropagation()
       this.visibleSwap = true
+      this.queryCiAttrs(this.ciType.id)
       this.queryCiData()
       this.$nextTick(() => {
         this.highlightRowHandler()
