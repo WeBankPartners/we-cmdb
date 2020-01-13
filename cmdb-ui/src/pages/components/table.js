@@ -78,18 +78,18 @@ export default {
       this.selectedRows = []
     },
     setTableData (disable) {
-      const keys = Object.keys(this.data[0])
-      this.selectedRows.forEach(_ => {
-        this.data.forEach(i => {
-          if (i.weTableRowId === _.weTableRowId) {
-            keys.forEach(k => {
-              if (k !== 'isRowEditable') {
-                i[k] = _[k]
-              }
-            })
-          }
-        })
-      })
+      // const keys = Object.keys(this.data[0])
+      // this.selectedRows.forEach(_ => {
+      //   this.data.forEach(i => {
+      //     if (i.weTableRowId === _.weTableRowId) {
+      //       keys.forEach(k => {
+      //         if (k !== 'isRowEditable') {
+      //           i[k] = _[k]
+      //         }
+      //       })
+      //     }
+      //   })
+      // })
       this.$nextTick(() => {
         this.setCheckoutStatus(disable)
       })
