@@ -5,7 +5,7 @@
     </div>
     <div class="content-container">
       <Breadcrumb style="margin: 10px 0;" v-if="isShowBreadcrum && !isSetting">
-        <BreadcrumbItem to="/">{{ $t("home") }}</BreadcrumbItem>
+        <BreadcrumbItem to="/">{{ $t('home') }}</BreadcrumbItem>
         <BreadcrumbItem>{{ parentBreadcrumb }}</BreadcrumbItem>
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
       </Breadcrumb>
@@ -52,13 +52,11 @@ export default {
         this.allMenusAry.forEach(_ => {
           _.submenus.forEach(sub => {
             if (menuObj.code === sub.code) {
-              this.parentBreadcrumb =
-                currentLangKey === 'zh-CN' ? _.cnName : _.enName
+              this.parentBreadcrumb = currentLangKey === 'zh-CN' ? _.cnName : _.enName
             }
           })
         })
-        this.childBreadcrumb =
-          currentLangKey === 'zh-CN' ? menuObj.cnName : menuObj.enName
+        this.childBreadcrumb = currentLangKey === 'zh-CN' ? menuObj.cnName : menuObj.enName
       } else {
         this.parentBreadcrumb = '-'
         this.childBreadcrumb = this.$route.path.substr(1)

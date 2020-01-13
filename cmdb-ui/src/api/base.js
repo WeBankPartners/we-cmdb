@@ -12,9 +12,7 @@ req.interceptors.response.use(
   res => {
     if (res.status === 200) {
       if (res.data.statusCode.startsWith('ERR')) {
-        const errorMes = Array.isArray(res.data.data)
-          ? res.data.data.map(_ => _.errorMessage).join('<br/>')
-          : res.data.statusMessage
+        const errorMes = Array.isArray(res.data.data) ? res.data.data.map(_ => _.errorMessage).join('<br/>') : res.data.statusMessage
         Vue.prototype.$Notice.error({
           title: 'Error',
           desc: errorMes,
@@ -38,15 +36,7 @@ req.interceptors.response.use(
     const { response } = error
     Vue.prototype.$Notice.error({
       title: 'error',
-      desc:
-        (response.data &&
-          'status:' +
-            response.data.status +
-            '<br/> error:' +
-            response.data.error +
-            '<br/> message:' +
-            response.data.message) ||
-        'error'
+      desc: (response.data && 'status:' + response.data.status + '<br/> error:' + response.data.error + '<br/> message:' + response.data.message) || 'error'
     })
     return new Promise((resolve, reject) => {
       resolve({
