@@ -203,14 +203,6 @@ export default {
         // this.queryCiData();
         this.getAllDataWithoutPaging()
       }
-    },
-    renderModalTable () {
-      if (this.visibleSwap) {
-        // eslint-disable-next-line
-        return <WeCMDBTable tableData={this.tableData} tableColumns={this.tableColumns} tableHeight={650} onGetSelectedRows={this.getTableValue} onHandleSubmit={this.handleSubmit} onPageChange={this.pageChange} onPageSizeChange={this.pageSizeChange} pagination={this.pagination} showCheckbox={true} highlightRow={this.highlightRow} tableOuterActions={null} tableInnerActions={null} ascOptions={{}} ref="refTable"></WeCMDBTable>
-      } else {
-        return null
-      }
     }
   },
   render (h) {
@@ -232,7 +224,7 @@ export default {
         </Select>
         <Modal title={this.ciType.name} value={this.visibleSwap} footer-hide={true} mask-closable={false} scrollable={true} width={1300} on-on-visible-change={status => this.hideRefModal(status)}>
           <div class="modalTable" style="padding:20px;">
-            {this.renderModalTable()}
+            {this.visibleSwap && <WeCMDBTable tableData={this.tableData} tableColumns={this.tableColumns} tableHeight={650} onGetSelectedRows={this.getTableValue} onHandleSubmit={this.handleSubmit} onPageChange={this.pageChange} onPageSizeChange={this.pageSizeChange} pagination={this.pagination} showCheckbox={true} highlightRow={this.highlightRow} tableOuterActions={null} tableInnerActions={null} ascOptions={{}} ref="refTable" />}
           </div>
           <div style="text-align:right;margin-top:40px">
             <span style="margin-right:20px">
