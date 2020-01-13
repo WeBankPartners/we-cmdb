@@ -208,7 +208,7 @@ export default {
   render (h) {
     let renderOptions = this.allTableDataWithoutPaging.map(_ => {
       return (
-        <Option value={_.guid} key={_.guid}>
+        <Option value={_.guid || ''} key={_.guid}>
           {_.key_name}
         </Option>
       )
