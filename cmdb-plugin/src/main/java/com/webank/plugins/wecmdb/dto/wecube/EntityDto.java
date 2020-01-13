@@ -7,7 +7,6 @@ public class EntityDto {
     private String name;
     private String displayName;
     private String description;
-    private String status;
     private List<AttributeDto> attributes = new ArrayList<>();
 
     public String getName() {
@@ -40,13 +39,5 @@ public class EntityDto {
 
     public void setAttributes(List<AttributeDto> attributes) {
         this.attributes = attributes;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 }

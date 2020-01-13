@@ -8,7 +8,6 @@ public class AttributeDto {
     private String refPackageName;
     private String refEntityName;
     private String refAttributeName;
-    private String status;
 
     public String getEntityName() {
         return entityName;
@@ -64,14 +63,6 @@ public class AttributeDto {
 
     public void setRefAttributeName(String refAttributeName) {
         this.refAttributeName = refAttributeName;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
 }
