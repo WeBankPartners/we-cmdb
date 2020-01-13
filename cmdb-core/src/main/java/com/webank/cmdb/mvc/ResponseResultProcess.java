@@ -53,7 +53,7 @@ public class ResponseResultProcess implements ResponseBodyAdvice<Object> {
 
         if (!(body instanceof ResponseDto)) {
             if (body == null) {
-                return new ResponseDto();
+                body = new Object[0];
             }
             return new ResponseDto(ResponseDto.STATUS_OK, body);
         } else {
