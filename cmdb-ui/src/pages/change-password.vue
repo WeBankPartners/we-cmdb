@@ -1,43 +1,18 @@
 <template>
   <div id="changePassword">
-    <Form
-      ref="formValidate"
-      :model="formItem"
-      :label-width="120"
-      :rules="ruleValidate"
-    >
+    <Form ref="formValidate" :model="formItem" :label-width="120" :rules="ruleValidate">
       <FormItem :label="$t('old_password')" prop="oldPassword">
-        <Input
-          v-model="formItem.oldPassword"
-          ref="oldPassword"
-          type="password"
-          class="input"
-          :placeholder="$t('old_password_input_placeholder')"
-        />
+        <Input v-model="formItem.oldPassword" ref="oldPassword" type="password" class="input" :placeholder="$t('old_password_input_placeholder')" />
       </FormItem>
       <FormItem :label="$t('new_password')" prop="newPassword">
-        <Input
-          v-model="formItem.newPassword"
-          type="password"
-          class="input"
-          :placeholder="$t('new_password_input_placeholder')"
-        />
+        <Input v-model="formItem.newPassword" type="password" class="input" :placeholder="$t('new_password_input_placeholder')" />
       </FormItem>
       <FormItem :label="$t('confirm_password')" prop="confimPassword">
-        <Input
-          v-model="formItem.confimPassword"
-          type="password"
-          class="input"
-          :placeholder="$t('confirm_new_password_placeholder')"
-        />
+        <Input v-model="formItem.confimPassword" type="password" class="input" :placeholder="$t('confirm_new_password_placeholder')" />
       </FormItem>
       <FormItem>
-        <Button type="primary" @click="handleSubmit('formValidate')">{{
-          $t("confirm")
-        }}</Button>
-        <Button @click="handleReset('formValidate')" style="margin-left: 8px">{{
-          $t("cancel")
-        }}</Button>
+        <Button type="primary" @click="handleSubmit('formValidate')">{{ $t('confirm') }}</Button>
+        <Button @click="handleReset('formValidate')" style="margin-left: 8px">{{ $t('cancel') }}</Button>
       </FormItem>
     </Form>
   </div>
@@ -54,12 +29,8 @@ export default {
         confimPassword: ''
       },
       ruleValidate: {
-        oldPassword: [
-          { required: true, message: this.$t('old_password_input_placeholder') }
-        ],
-        newPassword: [
-          { required: true, message: this.$t('new_password_input_placeholder') }
-        ],
+        oldPassword: [{ required: true, message: this.$t('old_password_input_placeholder') }],
+        newPassword: [{ required: true, message: this.$t('new_password_input_placeholder') }],
         confimPassword: [
           {
             required: true,
