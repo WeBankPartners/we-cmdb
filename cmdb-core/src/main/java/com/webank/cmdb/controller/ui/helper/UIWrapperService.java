@@ -1072,7 +1072,7 @@ public class UIWrapperService {
         inputFilters.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID));
         List<CiData> fixed_date = queryCiData(ciTypeId, inputFilters).getContents();
         if (fixed_date == null || fixed_date.size() <= 0) {
-            return null;
+            return inputFilters;
         }
         inputFilters = defaultQueryObject();
         List object = (List) fixed_date.get(0).getData().get(CONSTANT_FIXED_DATE);
@@ -1317,13 +1317,10 @@ public class UIWrapperService {
     }
 
     public List<ResourceTreeDto> getAllDeployTreesFromSystem(String systemGuid) {
-        List<String> guid = Arrays.asList(systemGuid.split(","));
         List<ResourceTreeDto> deployTrees = new ArrayList<>();
-        int systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystem();
         int subsysCiTypeId = uiProperties.getCiTypeIdOfSubsys();
 
         String stateEnumCode = uiProperties.getEnumCodeOfStateDelete();
-        int envEnumCat = getEnumCategoryByName(uiProperties.getEnumCategoryNameOfEnv()).getCatId();
 
         String routine = null;
         List<CatCodeDto> codeOfRoutines = getEnumCodeByCodeAndCategoryName(
