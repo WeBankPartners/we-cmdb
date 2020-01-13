@@ -46,6 +46,8 @@ public class WecubeAdapterService {
     private static final String ID = "id";
     private static final String GUID = "guid";
     private static final String CODE = "code";
+    private static final String STATUS = "status";
+    private static final String DECOMMISSIONED = "decommissioned";
     private static final Map<String, String> dataTypeMapping = new HashMap<>();
     private static final String DISPLAY_NAME = "displayName";
     static {
@@ -124,7 +126,9 @@ public class WecubeAdapterService {
     }
 
     public List<EntityDto> getDataModel() {
-        QueryResponse<CiTypeDto> result = queryCiTypes(QueryRequest.defaultQueryObject());
+        QueryRequest queryByStatus = QueryRequest.defaultQueryObject();
+        queryByStatus.addNotEqualsFilter(STATUS, DECOMMISSIONED);
+        QueryResponse<CiTypeDto> result = queryCiTypes(queryByStatus);
         return convertDataModel(result);
     }
 
@@ -137,7 +141,6 @@ public class WecubeAdapterService {
                 entityDto.setName(ciTypeDto.getTableName());
                 entityDto.setDisplayName(ciTypeDto.getName());
                 entityDto.setDescription(ciTypeDto.getDescription());
-                entityDto.setStatus(ciTypeDto.getStatus());
 
                 QueryResponse<CiTypeAttrDto> ciTypeAttrResponse = queryCiTypeAttrs(QueryRequest.defaultQueryObject().addEqualsFilter("ciTypeId", ciTypeDto.getCiTypeId()));
                 if (ciTypeAttrResponse != null && ciTypeAttrResponse.getContents() != null && !ciTypeAttrResponse.getContents().isEmpty()) {
@@ -161,7 +164,6 @@ public class WecubeAdapterService {
             attributeDto.setEntityName(ciTypeDto.getTableName());
             attributeDto.setDescription(ciTypeAttrDto.getDescription());
             attributeDto.setName(ciTypeAttrDto.getPropertyName());
-            attributeDto.setStatus(ciTypeAttrDto.getStatus());
             switch (InputType.fromCode(ciTypeAttrDto.getInputType())) {
             case Reference:
             case MultRef: {
