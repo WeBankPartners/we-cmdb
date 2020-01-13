@@ -29,7 +29,6 @@ export default {
     }
   },
   mounted () {
-    console.log(1111)
     this.formatTableData()
     this.showedColumns = this.tableColumns.map(column => column.title)
   },
