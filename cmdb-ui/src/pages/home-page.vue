@@ -64,9 +64,7 @@ export default {
         this.layers = tempLayer.sort((a, b) => {
           return a.seqNo - b.seqNo
         })
-        let ciResponse = await getAllCITypesByLayerWithAttr(
-          this.selectedStatus
-        )
+        let ciResponse = await getAllCITypesByLayerWithAttr(this.selectedStatus)
         if (ciResponse.statusCode === 'OK') {
           this.source = []
           this.source = ciResponse.data
@@ -96,9 +94,7 @@ export default {
                 this.renderRightPanels()
               })
           })
-          let uploadToken = document.cookie
-            .split(';')
-            .find(i => i.indexOf('XSRF-TOKEN') !== -1)
+          let uploadToken = document.cookie.split(';').find(i => i.indexOf('XSRF-TOKEN') !== -1)
           setHeaders({
             'X-XSRF-TOKEN': uploadToken && uploadToken.split('=')[1]
           })
@@ -164,9 +160,7 @@ export default {
     renderRightPanels () {
       if (!this.nodeName) return
       if (this.isLayerSelected) {
-        this.currentSelectedLayer = this.layers.find(
-          _ => _.name === this.nodeName
-        )
+        this.currentSelectedLayer = this.layers.find(_ => _.name === this.nodeName)
         this.updatedLayerNameValue = {
           codeId: this.currentSelectedLayer.layerId,
           code: this.currentSelectedLayer.name
@@ -200,13 +194,7 @@ export default {
       data.forEach(_ => {
         if (_.ciTypes) nodes = nodes.concat(_.ciTypes)
       })
-      var dots = [
-        'digraph  {',
-        'bgcolor="transparent";',
-        'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.1", height="1.1", color="transparent" ,fontsize=12];',
-        'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];',
-        'ranksep = 1.1; nodesep=.7; size = "11,8"; rankdir=TB'
-      ]
+      var dots = ['digraph  {', 'bgcolor="transparent";', 'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.1", height="1.1", color="transparent" ,fontsize=12];', 'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];', 'ranksep = 1.1; nodesep=.7; size = "11,8"; rankdir=TB']
       let layerTag = `node [];`
 
       // generate group
@@ -218,25 +206,12 @@ export default {
         } else {
           layerTag += `"layer_${_.layerId}"`
         }
-        tempClusterObjForGraph[index] = [
-          `{ rank=same; "layer_${_.layerId}"[id="layerId_${
-            _.layerId
-          }",class="layer",label="${_.name}",tooltip="${_.name}"];`
-        ]
+        tempClusterObjForGraph[index] = [`{ rank=same; "layer_${_.layerId}"[id="layerId_${_.layerId}",class="layer",label="${_.name}",tooltip="${_.name}"];`]
         nodes.length > 0 &&
           nodes.forEach((node, nodeIndex) => {
             if (node.layerId === _.layerId) {
-              let fontcolor =
-                node.status === 'notCreated' ? '#10a34e' : 'black'
-              tempClusterObjForGraph[index].push(
-                `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${
-                  node.name
-                }",tooltip="${
-                  node.name
-                }",class="ci",fontcolor="${fontcolor}", image="${
-                  node.form.imgSource
-                }.png", labelloc="b"]`
-              )
+              let fontcolor = node.status === 'notCreated' ? '#10a34e' : 'black'
+              tempClusterObjForGraph[index].push(`"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`)
             }
             if (nodeIndex === nodes.length - 1) {
               tempClusterObjForGraph[index].push('} ')
@@ -268,12 +243,10 @@ export default {
     genEdge (nodes, from, to) {
       const target = nodes.find(_ => _.ciTypeId === to.referenceId)
       let labels = to.referenceName ? to.referenceName.trim() : ''
-      return `"ci_${from.ciTypeId}"->"ci_${
-        target.ciTypeId
-      }"[taillabel="${labels}",labeldistance=3];`
+      return `"ci_${from.ciTypeId}"->"ci_${target.ciTypeId}"[taillabel="${labels}",labeldistance=3];`
     },
     loadImage (nodesString) {
-      (nodesString.match(/image=[^,]*(files\/\d*|png)/g) || [])
+      ;(nodesString.match(/image=[^,]*(files\/\d*|png)/g) || [])
         .filter((value, index, self) => {
           return self.indexOf(value) === index
         })
