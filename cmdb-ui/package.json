@@ -15,7 +15,7 @@
   "lint-staged": {
     "*.{js,json,css,md,vue}": [
       "prettier --write",
-      "eslint --fix", 
+      "eslint --fix",
       "git add"
     ]
   },
