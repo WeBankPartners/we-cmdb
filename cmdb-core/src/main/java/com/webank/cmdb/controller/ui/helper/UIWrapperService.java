@@ -1054,13 +1054,18 @@ public class UIWrapperService {
 
             resourceTrees.add(resourceTreeDto);
             List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceCodeOfBelong());
-            recursiveGetChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, stateEnumCode, ciDataMap.get(CmdbConstants.GUID).toString(), resourceTrees.get(i).getChildren(), fixDate);
+            recursiveGetChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, stateEnumCode, ciDataMap.get(CmdbConstants.DEFAULT_FIELD_ROOT_GUID).toString(), resourceTrees.get(i).getChildren(), fixDate);
         }
     }
 
     private QueryRequest setQueryRequest(QueryRequest inputFilters, Filter fixDate, Integer ciTypeId) {
         if (fixDate == null) {
             return inputFilters;
+        }
+        QueryRequest queryData = defaultQueryObject();
+        
+        if (inputFilters.getFilters().size() == 1) {
+            queryData.getFilters().add(inputFilters.getFilters().get(0));
         }
         inputFilters.getDialect().setShowCiHistory(true);
         inputFilters.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
@@ -1074,11 +1079,10 @@ public class UIWrapperService {
         if (fixed_date == null || fixed_date.size() <= 0) {
             return inputFilters;
         }
-        inputFilters = defaultQueryObject();
-        List object = (List) fixed_date.get(0).getData().get(CONSTANT_FIXED_DATE);
-        inputFilters.addInFilter(CONSTANT_FIXED_DATE, object);
-        inputFilters.getDialect().setShowCiHistory(true);
-        return inputFilters;
+        List date = (List) fixed_date.get(0).getData().get(CONSTANT_FIXED_DATE);
+        queryData.addInFilter(CONSTANT_FIXED_DATE, date);
+        queryData.getDialect().setShowCiHistory(true);
+        return queryData;
     }
 
     private boolean checkCiTypeAttributes(List<CiTypeAttrDto> ciTypeAttributes, int stateEnumCat, String stateEnumCode, Map ciDataMap) {
