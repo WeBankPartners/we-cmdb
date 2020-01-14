@@ -11,7 +11,7 @@
       <Form>
         <Row>
           <Col span="5">
-            <FormItem :label-width="50" :label="$t('form_name')">
+            <FormItem :label-width="70" :label="$t('form_name')">
               <Input v-model="form.catName"></Input>
             </FormItem>
           </Col>
