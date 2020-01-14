@@ -15,10 +15,10 @@
 </template>
 
 <script>
-import { queryLogHeader, queryLog } from "@/api/server";
-import { components } from "@/const/actions";
+import { queryLogHeader, queryLog } from '@/api/server'
+import { components } from '@/const/actions'
 export default {
-  data() {
+  data () {
     return {
       columns: [],
       tableData: [],
@@ -31,22 +31,22 @@ export default {
       sorting: null,
       outerActions: [
         {
-          label: this.$t("column_filter"),
+          label: this.$t('column_filter'),
           props: {
-            type: "primary",
-            icon: "ios-funnel",
-            shape: "circle",
+            type: 'primary',
+            icon: 'ios-funnel',
+            shape: 'circle',
             disabled: false
           },
-          actionType: "filterColumns"
+          actionType: 'filterColumns'
         }
       ]
-    };
+    }
   },
   methods: {
-    async fetchColumns() {
-      const { data, statusCode } = await queryLogHeader();
-      if (statusCode === "OK") {
+    async fetchColumns () {
+      const { data, statusCode } = await queryLogHeader()
+      if (statusCode === 'OK') {
         this.columns = data.map(_ => {
           let result = {
             inputType: _.inputType,
@@ -56,21 +56,21 @@ export default {
             disEditor: true,
             displaySeqNo: 1,
             searchSeqNo: 1
-          };
+          }
           if (_.vals) {
             result.options = _.vals.map(opt => {
               return {
                 value: opt,
                 label: opt
-              };
-            });
+              }
+            })
           }
-          return { ...components[_.inputType], ...result };
-        });
+          return { ...components[_.inputType], ...result }
+        })
       }
-      this.fetchTableData();
+      this.fetchTableData()
     },
-    async fetchTableData() {
+    async fetchTableData () {
       const { data, statusCode } = await queryLog({
         sorting: this.sorting,
         paging: true,
@@ -79,40 +79,40 @@ export default {
           startIndex: (this.pageInfo.currentPage - 1) * this.pageInfo.pageSize
         },
         filters: this.filters
-      });
-      if (statusCode === "OK") {
-        this.tableData = data.contents;
-        this.pageInfo.total = data.pageInfo.totalRows;
+      })
+      if (statusCode === 'OK') {
+        this.tableData = data.contents
+        this.pageInfo.total = data.pageInfo.totalRows
       }
     },
-    pageChange(currentPage) {
-      this.pageInfo.currentPage = currentPage;
-      this.$refs.table.handleSubmit();
+    pageChange (currentPage) {
+      this.pageInfo.currentPage = currentPage
+      this.$refs.table.handleSubmit()
     },
-    pageSizeChange(size) {
-      this.pageInfo.pageSize = size;
-      this.$refs.table.handleSubmit();
+    pageSizeChange (size) {
+      this.pageInfo.pageSize = size
+      this.$refs.table.handleSubmit()
     },
-    sortHandler(data) {
-      if (data.order === "normal") {
-        delete this.sorting;
+    sortHandler (data) {
+      if (data.order === 'normal') {
+        delete this.sorting
       } else {
         this.sorting = {
-          asc: data.order === "asc",
+          asc: data.order === 'asc',
           field: data.key
-        };
+        }
       }
-      this.fetchTableData();
+      this.fetchTableData()
     },
-    handleSubmit(v) {
-      this.filters = v;
-      this.fetchTableData();
+    handleSubmit (v) {
+      this.filters = v
+      this.fetchTableData()
     }
   },
-  mounted() {
-    this.fetchColumns();
+  mounted () {
+    this.fetchColumns()
   }
-};
+}
 </script>
 
 <style lang="scss" scoped></style>
