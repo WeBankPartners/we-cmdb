@@ -227,6 +227,56 @@
                     </Option>
                   </Select>
                 </FormItem>
+                <FormItem :label="$t('real_type')">
+                  <Input v-model="item.form.propertyType" disabled></Input>
+                </FormItem>
+                <FormItem
+                  prop="length"
+                  :label="$t('length')"
+                  v-if="
+                    item.form.inputType === 'text' ||
+                      item.form.inputType === 'textArea'
+                  "
+                >
+                  <InputNumber
+                    :min="1"
+                    :disabled="item.form.status !== 'notCreated'"
+                    v-model="item.form.length"
+                  ></InputNumber>
+                </FormItem>
+                <FormItem
+                  prop="referenceName"
+                  v-if="
+                    item.form.inputType === 'ref' ||
+                      item.form.inputType === 'multiRef'
+                  "
+                  :label="$t('reference_name')"
+                >
+                  <Input
+                    v-model="item.form.referenceName"
+                    :disabled="item.form.status === 'decommissioned'"
+                  ></Input>
+                </FormItem>
+                <FormItem
+                  prop="referenceType"
+                  v-if="
+                    item.form.inputType === 'ref' ||
+                      item.form.inputType === 'multiRef'
+                  "
+                  :label="$t('reference_type')"
+                >
+                  <Select
+                    v-model="item.form.referenceType"
+                    :disabled="item.form.status === 'decommissioned'"
+                  >
+                    <Option
+                      v-for="item in allReferenceTypes"
+                      :value="item.codeId"
+                      :key="item.codeId"
+                      >{{ item.value }}</Option
+                    >
+                  </Select>
+                </FormItem>
                 <FormItem prop="isRefreshable" :label="$t('is_refreshable')">
                   <RadioGroup v-model="item.form.isRefreshable">
                     <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
@@ -330,6 +380,49 @@
                     <Button @click.stop.prevent="openEnumGroupModal(item)" icon="ios-build" type="primary" size="small"></Button>
                   </span>
                 </Option>
+              </Select>
+            </FormItem>
+            <FormItem prop="propertyType" :label="$t('real_type')">
+              <Input v-model="addNewAttrForm.propertyType" disabled></Input>
+            </FormItem>
+            <FormItem
+              prop="length"
+              :label="$t('length')"
+              v-if="
+                addNewAttrForm.inputType === 'text' ||
+                  addNewAttrForm.inputType === 'textArea'
+              "
+            >
+              <InputNumber
+                :min="1"
+                v-model="addNewAttrForm.length"
+              ></InputNumber>
+            </FormItem>
+            <FormItem
+              prop="referenceName"
+              v-if="
+                addNewAttrForm.inputType === 'ref' ||
+                  addNewAttrForm.inputType === 'multiRef'
+              "
+              :label="$t('reference_name')"
+            >
+              <Input v-model="addNewAttrForm.referenceName"></Input>
+            </FormItem>
+            <FormItem
+              prop="referenceType"
+              v-if="
+                addNewAttrForm.inputType === 'ref' ||
+                  addNewAttrForm.inputType === 'multiRef'
+              "
+              :label="$t('reference_type')"
+            >
+              <Select v-model="addNewAttrForm.referenceType">
+                <Option
+                  v-for="item in allReferenceTypes"
+                  :value="item.codeId"
+                  :key="item.codeId"
+                  >{{ item.value }}</Option
+                >
               </Select>
             </FormItem>
             <FormItem prop="isRefreshable" :label="$t('is_refreshable')">
