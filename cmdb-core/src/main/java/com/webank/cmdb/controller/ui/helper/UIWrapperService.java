@@ -966,15 +966,16 @@ public class UIWrapperService {
 
             List<CiData> zoneData = queryCiData(uiProperties.getCiTypeIdOfZone(), defaultQueryObject().addEqualsFilter("data_center", idcGuid)).getContents();
             List<String> zoneList = new ArrayList<>();
-            for (Object zone : zoneData) {
-                zoneList.add(idc.getData().get(CmdbConstants.GUID).toString());
+            for (CiData zone : zoneData) {
+                zoneList.add(zone.getData().get(CmdbConstants.GUID).toString());
             }
             if (zoneList.size() != 0) {
-                List<CiData> zoneLinkData = queryCiData(uiProperties.getCiTypeIdOfZoneLink(),
-                        defaultQueryObject()
-                                .addInFilter("network_zone_1", zoneList)
-                                .addInFilter("network_zone_2", zoneList)
-                                .setFiltersRelationship("or"))
+                QueryRequest setFiltersRelationship = defaultQueryObject()
+                .addInFilter("network_zone_1", zoneList)
+                .addInFilter("network_zone_2", zoneList)
+                .setFiltersRelationship("or");
+                setFiltersRelationship.getDialect().setShowCiHistory(true);
+                List<CiData> zoneLinkData = queryCiData(uiProperties.getCiTypeIdOfZoneLink(),setFiltersRelationship)
                                         .getContents();
                 result.setLinkList(zoneLinkData);
             }
