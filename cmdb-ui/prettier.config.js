@@ -1,3 +1,4 @@
+// --no-ignore
 module.exports = {
   // tab缩进大小,默认为2
   tabWidth: 2,
@@ -16,5 +17,5 @@ module.exports = {
   // false: {foo: bar}
   bracketSpacing: true,
   arrowParens: 'avoid',
-  printWidth: 100000
+  printWidth: 120
 }
