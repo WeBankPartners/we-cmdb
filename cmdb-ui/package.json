@@ -5,8 +5,12 @@
   "scripts": {
     "start": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "plugin": "vue-cli-service build --mode plugin",
-    "precommit": "lint-staged"
+    "plugin": "vue-cli-service build --mode plugin"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "lint-staged": {
     "*.{js,json,css,md,vue}": [
