@@ -3,14 +3,8 @@
     <Col span="4">
       <Card>
         <p slot="title" class="permission-management-p">
-          <span>{{ $t("user") }}</span>
-          <Button
-            icon="ios-add"
-            type="dashed"
-            size="small"
-            @click="openAddUserModal"
-            >{{ $t("add_user") }}</Button
-          >
+          <span>{{ $t('user') }}</span>
+          <Button icon="ios-add" type="dashed" size="small" @click="openAddUserModal">{{ $t('add_user') }}</Button>
         </p>
         <Tag
           v-for="item in users"
@@ -31,14 +25,8 @@
     <Col span="5" offset="0" style="margin-left: 20px">
       <Card>
         <p slot="title" class="permission-management-p">
-          <span>{{ $t("role") }}</span>
-          <Button
-            icon="ios-add"
-            type="dashed"
-            size="small"
-            @click="openAddRoleModal"
-            >{{ $t("add_role") }}</Button
-          >
+          <span>{{ $t('role') }}</span>
+          <Button icon="ios-add" type="dashed" size="small" @click="openAddRoleModal">{{ $t('add_role') }}</Button>
         </p>
         <div class="role-item" v-for="item in roles" :key="item.rolename">
           <Tag
@@ -51,37 +39,23 @@
           >
             <span :title="item.description">{{ item.description }}</span>
           </Tag>
-          <Button
-            icon="ios-build"
-            type="dashed"
-            size="small"
-            @click="openUserManageModal(item.rolename)"
-            >{{ $t("user") }}</Button
-          >
+          <Button icon="ios-build" type="dashed" size="small" @click="openUserManageModal(item.rolename)">{{
+            $t('user')
+          }}</Button>
         </div>
       </Card>
     </Col>
     <Col span="4" offset="0" style="margin-left: 20px">
       <Card>
-        <p slot="title">{{ $t("menus_management") }}</p>
-        <Tree
-          :data="menus"
-          show-checkbox
-          @on-check-change="handleMenuTreeCheck"
-        ></Tree>
+        <p slot="title">{{ $t('menus_management') }}</p>
+        <Tree :data="menus" show-checkbox @on-check-change="handleMenuTreeCheck"></Tree>
       </Card>
     </Col>
     <Col span="9" offset="0" style="margin-left: 20px">
       <Card>
-        <p slot="title">{{ $t("data_management") }}</p>
-        <div
-          class="data-permissions"
-          v-for="ci in ciTypePermissions"
-          :key="ci.ciTypeId"
-        >
-          <span class="ciTypes" :title="ci.ciTypeName">{{
-            ci.ciTypeName
-          }}</span>
+        <p slot="title">{{ $t('data_management') }}</p>
+        <div class="data-permissions" v-for="ci in ciTypePermissions" :key="ci.ciTypeId">
+          <span class="ciTypes" :title="ci.ciTypeName">{{ ci.ciTypeName }}</span>
           <div class="ciTypes-options">
             <Checkbox
               v-for="act in actionsType"
@@ -89,9 +63,7 @@
               :indeterminate="ci[act.actionCode] === 'P'"
               :value="ci[act.actionCode] === 'Y'"
               :key="act.actionCode"
-              @click.prevent.native="
-                ciTypesPermissionsHandler(ci, act.actionCode, act.type)
-              "
+              @click.prevent.native="ciTypesPermissionsHandler(ci, act.actionCode, act.type)"
               >{{ act.actionName }}</Checkbox
             >
             <Button
@@ -101,36 +73,17 @@
               :disabled="dataPermissionDisabled"
               @click="openPermissionManageModal(ci.roleCiTypeId)"
             >
-              {{ $t("details") }}
+              {{ $t('details') }}
             </Button>
           </div>
         </div>
       </Card>
     </Col>
-    <Modal
-      v-model="addRoleModalVisible"
-      :title="$t('add_role')"
-      @on-ok="addRole"
-      @on-cancel="cancel"
-    >
-      <Input
-        v-model="addedRoleValue"
-        :placeholder="$t('username_input_placeholder')"
-      />
+    <Modal v-model="addRoleModalVisible" :title="$t('add_role')" @on-ok="addRole" @on-cancel="cancel">
+      <Input v-model="addedRoleValue" :placeholder="$t('username_input_placeholder')" />
     </Modal>
-    <Modal
-      v-model="addUserModalVisible"
-      :title="$t('add_user')"
-      @on-ok="addUser"
-      @on-cancel="cancel"
-    >
-      <Form
-        class="validation-form"
-        ref="addedUserForm"
-        :model="addedUser"
-        label-position="left"
-        :label-width="100"
-      >
+    <Modal v-model="addUserModalVisible" :title="$t('add_user')" @on-ok="addUser" @on-cancel="cancel">
+      <Form class="validation-form" ref="addedUserForm" :model="addedUser" label-position="left" :label-width="100">
         <FormItem :label="$t('username')" prop="username">
           <Input v-model="addedUser.username" />
         </FormItem>
@@ -142,13 +95,7 @@
         </FormItem>
       </Form>
     </Modal>
-    <Modal
-      v-model="userManageModal"
-      width="700"
-      :title="$t('edit_user')"
-      @on-ok="confirmUser"
-      @on-cancel="confirmUser"
-    >
+    <Modal v-model="userManageModal" width="700" :title="$t('edit_user')" @on-ok="confirmUser" @on-cancel="confirmUser">
       <Transfer
         :titles="transferTitles"
         :list-style="transferStyle"
@@ -183,17 +130,11 @@
   </Row>
 </template>
 <script>
-import {
-  outerActions,
-  innerActions,
-  pagination,
-  components
-} from "@/const/actions.js";
+import { outerActions, innerActions, components } from '@/const/actions.js'
 import {
   getAllUsers,
   getAllRoles,
   getAllMenus,
-  getAllPermissionEntryPoints,
   getRolesByUser,
   getUsersByRole,
   addRole,
@@ -211,39 +152,38 @@ import {
   createRoleCiTypeCtrlAttributes,
   updateRoleCiTypeCtrlAttributes,
   deleteRoleCiTypeCtrlAttributes
-} from "@/api/server.js";
+} from '@/api/server.js'
 
-import { MENUS } from "@/const/menus.js";
-import { formatDataPermissionTree } from "../util/admin.js";
-import { setTimeout } from "timers";
+import { MENUS } from '@/const/menus.js'
+
 export default {
-  data() {
+  data () {
     return {
       actionsType: [
         {
-          actionCode: "creationPermission",
-          type: "CREATION",
-          actionName: this.$t("permission_management_data_creation")
+          actionCode: 'creationPermission',
+          type: 'CREATION',
+          actionName: this.$t('permission_management_data_creation')
         },
         {
-          actionCode: "removalPermission",
-          type: "REMOVAL",
-          actionName: this.$t("permission_management_data_removal")
+          actionCode: 'removalPermission',
+          type: 'REMOVAL',
+          actionName: this.$t('permission_management_data_removal')
         },
         {
-          actionCode: "modificationPermission",
-          type: "MODIFICATION",
-          actionName: this.$t("permission_management_data_modification")
+          actionCode: 'modificationPermission',
+          type: 'MODIFICATION',
+          actionName: this.$t('permission_management_data_modification')
         },
         {
-          actionCode: "enquiryPermission",
-          type: "ENQUIRY",
-          actionName: this.$t("permission_management_data_enquiry")
+          actionCode: 'enquiryPermission',
+          type: 'ENQUIRY',
+          actionName: this.$t('permission_management_data_enquiry')
         },
         {
-          actionCode: "executionPermission",
-          type: "EXECUTION",
-          actionName: this.$t("permission_management_data_execution")
+          actionCode: 'executionPermission',
+          type: 'EXECUTION',
+          actionName: this.$t('permission_management_data_execution')
         }
       ],
       users: [],
@@ -256,23 +196,23 @@ export default {
       permissionEntryPointsBackup: [],
       addRoleModalVisible: false,
       addUserModalVisible: false,
-      addedRoleValue: "",
+      addedRoleValue: '',
       userManageModal: false,
       permissionManageModal: false,
       usersKeyBySelectedRole: [],
       allUsersForTransfer: [],
       selectedRole: null,
       transferTitles: [
-        this.$t("permission_management_unselected_user"),
-        this.$t("permission_management_selected_user")
+        this.$t('permission_management_unselected_user'),
+        this.$t('permission_management_selected_user')
       ],
       // currentRoleId: 0,
       currentRoleName: null,
       ciTypePermissions: [],
       allMenusOriginResponse: [],
-      transferStyle: { width: "300px" },
-      currentRoleCiTypeId: "",
-      //for WeCMDBTable
+      transferStyle: { width: '300px' },
+      currentRoleCiTypeId: '',
+      // for WeCMDBTable
       outerActions,
       innerActions,
       ciTypeAttrsPermissions: [],
@@ -281,147 +221,139 @@ export default {
       permissionsTableOptions: {},
       defaultColumns: [
         {
-          title: this.$t("query"),
-          key: "enquiryPermission",
-          inputKey: "enquiryPermission",
+          title: this.$t('query'),
+          key: 'enquiryPermission',
+          inputKey: 'enquiryPermission',
           displaySeqNo: 1,
-          placeholder: this.$t("select_placeholder"),
-          component: "WeCMDBSelect",
+          placeholder: this.$t('select_placeholder'),
+          component: 'WeCMDBSelect',
           options: [
             {
-              label: this.$t("yes"),
-              value: "Y"
+              label: this.$t('yes'),
+              value: 'Y'
             },
             {
-              label: this.$t("no"),
-              value: "N"
+              label: this.$t('no'),
+              value: 'N'
             }
           ]
         },
         {
-          title: this.$t("new"),
-          key: "creationPermission",
-          inputKey: "creationPermission",
+          title: this.$t('new'),
+          key: 'creationPermission',
+          inputKey: 'creationPermission',
           displaySeqNo: 2,
-          placeholder: this.$t("select_placeholder"),
-          component: "WeCMDBSelect",
+          placeholder: this.$t('select_placeholder'),
+          component: 'WeCMDBSelect',
           options: [
             {
-              label: this.$t("yes"),
-              value: "Y"
+              label: this.$t('yes'),
+              value: 'Y'
             },
             {
-              label: this.$t("no"),
-              value: "N"
+              label: this.$t('no'),
+              value: 'N'
             }
           ]
         },
         {
-          title: this.$t("modify"),
-          key: "modificationPermission",
-          inputKey: "modificationPermission",
+          title: this.$t('modify'),
+          key: 'modificationPermission',
+          inputKey: 'modificationPermission',
           displaySeqNo: 3,
-          placeholder: this.$t("select_placeholder"),
-          component: "WeCMDBSelect",
+          placeholder: this.$t('select_placeholder'),
+          component: 'WeCMDBSelect',
           options: [
             {
-              label: this.$t("yes"),
-              value: "Y"
+              label: this.$t('yes'),
+              value: 'Y'
             },
             {
-              label: this.$t("no"),
-              value: "N"
+              label: this.$t('no'),
+              value: 'N'
             }
           ]
         },
         {
-          title: this.$t("execute"),
-          key: "executionPermission",
-          inputKey: "executionPermission",
+          title: this.$t('execute'),
+          key: 'executionPermission',
+          inputKey: 'executionPermission',
           displaySeqNo: 4,
-          placeholder: this.$t("select_placeholder"),
-          component: "WeCMDBSelect",
+          placeholder: this.$t('select_placeholder'),
+          component: 'WeCMDBSelect',
           options: [
             {
-              label: this.$t("yes"),
-              value: "Y"
+              label: this.$t('yes'),
+              value: 'Y'
             },
             {
-              label: this.$t("no"),
-              value: "N"
+              label: this.$t('no'),
+              value: 'N'
             }
           ]
         },
         {
-          title: this.$t("delete"),
-          key: "removalPermission",
-          inputKey: "removalPermission",
+          title: this.$t('delete'),
+          key: 'removalPermission',
+          inputKey: 'removalPermission',
           displaySeqNo: 5,
-          placeholder: this.$t("select_placeholder"),
-          component: "WeCMDBSelect",
+          placeholder: this.$t('select_placeholder'),
+          component: 'WeCMDBSelect',
           options: [
             {
-              label: this.$t("yes"),
-              value: "Y"
+              label: this.$t('yes'),
+              value: 'Y'
             },
             {
-              label: this.$t("no"),
-              value: "N"
+              label: this.$t('no'),
+              value: 'N'
             }
           ]
         }
       ],
       seletedRows: [],
       addedUser: {}
-    };
+    }
   },
   methods: {
-    renderUserNameForTransfer(item) {
-      return item.label;
+    renderUserNameForTransfer (item) {
+      return item.label
     },
-    openPermissionManageModal(roleCiTypeId) {
-      this.currentRoleCiTypeId = roleCiTypeId;
-      this.permissionManageModal = true;
-      this.getAttrPermissions();
+    openPermissionManageModal (roleCiTypeId) {
+      this.currentRoleCiTypeId = roleCiTypeId
+      this.permissionManageModal = true
+      this.getAttrPermissions()
     },
-    async getAttrPermissions() {
-      let {
-        statusCode,
-        data,
-        message
-      } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(
-        this.currentRoleCiTypeId
-      );
-      if (statusCode === "OK") {
-        this.ciTypeAttrsPermissionsBackUp = data.body;
+    async getAttrPermissions () {
+      let { statusCode, data } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(this.currentRoleCiTypeId)
+      if (statusCode === 'OK') {
+        this.ciTypeAttrsPermissionsBackUp = data.body
         this.ciTypeAttrsPermissions = data.body.map(_ => {
-          let obj = {};
+          let obj = {}
           for (let i in _) {
-            const found = data.header.find(p => p.propertyName === i);
-            const isRef = found && found.inputType === "ref";
-            if (typeof _[i] === "object" && _[i] !== null) {
+            const found = data.header.find(p => p.propertyName === i)
+            const isRef = found && found.inputType === 'ref'
+            if (typeof _[i] === 'object' && _[i] !== null) {
               obj[i] = {
                 codeId:
-                  _[i].conditionValue && isRef
-                    ? _[i].conditionValue
-                    : _[i].conditionValue.split(",").map(n => n * 1),
+                  _[i].conditionValue && isRef ? _[i].conditionValue : _[i].conditionValue.split(',').map(n => n * 1),
                 value:
                   (_[i].conditionValueObject &&
                     _[i].conditionValueObject
                       .map(s => (isRef ? s.data.key_name : s.value))
                       .toString()
-                      .replace(",", ";")) ||
+                      .replace(',', ';')) ||
                   []
-              };
+              }
             } else {
               obj[i] = {
                 codeId: _[i],
-                value: _[i] === "Y" ? this.$t("yes") : this.$t("no")
-              };
+                value: _[i] === 'Y' ? this.$t('yes') : this.$t('no')
+              }
             }
           }
-          return obj;
-        });
+          return obj
+        })
         this.attrsPermissionsColumns = data.header
           .map((h, index) => {
             return {
@@ -434,401 +366,345 @@ export default {
               referenceId: h.referenceId,
               placeholder: h.name,
               ciType: { id: h.referenceId, name: h.name },
-              type: "text",
+              type: 'text',
               ...components[h.inputType],
-              isMultiple: h.inputType === "select"
-            };
+              isMultiple: h.inputType === 'select'
+            }
           })
-          .concat(this.defaultColumns);
+          .concat(this.defaultColumns)
         this.attrsPermissionsColumns.forEach(async i => {
-          if (i.inputType === "select") {
-            const enumOptions = await getEnumCodesByCategoryId(
-              0,
-              i.referenceId
-            );
-            let opts = [];
-            if (enumOptions.statusCode === "OK") {
+          if (i.inputType === 'select') {
+            const enumOptions = await getEnumCodesByCategoryId(0, i.referenceId)
+            let opts = []
+            if (enumOptions.statusCode === 'OK') {
               opts = enumOptions.data.map(_ => {
                 return {
                   value: _.codeId,
                   label: _.value
-                };
-              });
-              this.$set(i, "options", opts);
+                }
+              })
+              this.$set(i, 'options', opts)
             }
           }
-        });
+        })
       }
     },
 
-    async exportHandler() {
+    async exportHandler () {
       const data = this.ciTypeAttrsPermissions.map(_ => {
         for (let i in _) {
-          _[i] = _[i].value;
+          _[i] = _[i].value
         }
-        return _;
-      });
+        return _
+      })
       this.$refs.table.export({
-        filename: "Permission Data",
+        filename: 'Permission Data',
         data: data
-      });
+      })
     },
-    actionFun(type, data) {
+    actionFun (type, data) {
       switch (type) {
-        case "export":
-          this.exportHandler();
-          break;
-        case "add":
-          this.addHandler();
-          break;
-        case "edit":
-          this.editHandler();
-          break;
-        case "save":
-          this.saveHandler(data);
-          break;
-        case "delete":
-          this.deleteHandler(data);
-          break;
-        case "cancel":
-          this.cancelHandler();
-          break;
-        case "innerCancel":
-          this.$refs.table.rowCancelHandler(data.weTableRowId);
-          break;
+        case 'export':
+          this.exportHandler()
+          break
+        case 'add':
+          this.addHandler()
+          break
+        case 'edit':
+          this.editHandler()
+          break
+        case 'save':
+          this.saveHandler(data)
+          break
+        case 'delete':
+          this.deleteHandler(data)
+          break
+        case 'cancel':
+          this.cancelHandler()
+          break
+        case 'innerCancel':
+          this.$refs.table.rowCancelHandler(data.weTableRowId)
+          break
         default:
-          break;
+          break
       }
     },
-    async saveHandler(data) {
+    async saveHandler (data) {
       let setBtnsStatus = () => {
         this.outerActions.forEach(_ => {
-          _.props.disabled = !(
-            _.actionType === "add" || _.actionType === "export"
-          );
-        });
-        this.$refs.table.setAllRowsUneditable();
+          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export')
+        })
+        this.$refs.table.setAllRowsUneditable()
         this.$nextTick(() => {
           /* to get iview original data to set _ischecked flag */
-          let objData = this.$refs.table.$refs.table.$refs.tbody.objData;
+          let objData = this.$refs.table.$refs.table.$refs.tbody.objData
           for (let obj in objData) {
-            objData[obj]._isChecked = false;
-            objData[obj]._isDisabled = false;
+            objData[obj]._isChecked = false
+            objData[obj]._isDisabled = false
           }
-        });
-      };
-      let d = JSON.parse(JSON.stringify(data));
-      let addAry = d.filter(_ => _.isNewAddedRow);
-      let editAry = d.filter(_ => !_.isNewAddedRow);
+        })
+      }
+      let d = JSON.parse(JSON.stringify(data))
+      let addAry = d.filter(_ => _.isNewAddedRow)
+      let editAry = d.filter(_ => !_.isNewAddedRow)
       const defaultKey = [
-        "creationPermission",
-        "enquiryPermission",
-        "executionPermission",
-        "grantPermission",
-        "modificationPermission",
-        "removalPermission",
-        "roleCiTypeId",
-        "roleCiTypeCtrlAttrId",
-        "callbackId"
-      ];
+        'creationPermission',
+        'enquiryPermission',
+        'executionPermission',
+        'grantPermission',
+        'modificationPermission',
+        'removalPermission',
+        'roleCiTypeId',
+        'roleCiTypeCtrlAttrId',
+        'callbackId'
+      ]
       if (addAry.length > 0) {
         addAry.forEach(_ => {
-          _.callbackId = _["weTableRowId"];
-          delete _.isNewAddedRow;
-          delete _.isRowEditable;
-          delete _.weTableForm;
-          delete _.weTableRowId;
+          _.callbackId = _['weTableRowId']
+          delete _.isNewAddedRow
+          delete _.isRowEditable
+          delete _.weTableForm
+          delete _.weTableRowId
           for (let i in _) {
-            const found = defaultKey.find(k => k === i);
+            const found = defaultKey.find(k => k === i)
             if (!found) {
-              _[i] = { conditionValue: _[i].toString() };
+              _[i] = { conditionValue: _[i].toString() }
             }
           }
-        });
-        const {
-          statusCode,
-          message,
-          data
-        } = await createRoleCiTypeCtrlAttributes(
-          this.currentRoleCiTypeId,
-          addAry
-        );
-        if (statusCode === "OK") {
+        })
+        const { statusCode, message } = await createRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, addAry)
+        if (statusCode === 'OK') {
           this.$Notice.success({
-            title: this.$t("add_permission_success"),
+            title: this.$t('add_permission_success'),
             desc: message
-          });
+          })
 
-          this.getAttrPermissions();
-          this.getPermissions(false, true, this.currentRoleName);
-          setBtnsStatus();
+          this.getAttrPermissions()
+          this.getPermissions(false, true, this.currentRoleName)
+          setBtnsStatus()
         }
       }
       if (editAry.length > 0) {
         editAry.forEach(_ => {
-          _.callbackId = _["weTableRowId"];
-          delete _.isNewAddedRow;
-          delete _.isRowEditable;
-          delete _.weTableForm;
-          delete _.weTableRowId;
+          _.callbackId = _['weTableRowId']
+          delete _.isNewAddedRow
+          delete _.isRowEditable
+          delete _.weTableForm
+          delete _.weTableRowId
           const foundRow = this.ciTypeAttrsPermissionsBackUp.find(
             p => p.roleCiTypeCtrlAttrId === _.roleCiTypeCtrlAttrId
-          );
+          )
           for (let i in _) {
-            const found = defaultKey.find(k => k === i);
+            const found = defaultKey.find(k => k === i)
             if (!found) {
               _[i] = {
                 conditionValue: _[i].toString(),
                 conditionId: foundRow[i].conditionId
-              };
+              }
             }
           }
-        });
-        const {
-          statusCode,
-          message,
-          data
-        } = await updateRoleCiTypeCtrlAttributes(
-          this.currentRoleCiTypeId,
-          editAry
-        );
-        if (statusCode === "OK") {
+        })
+        const { statusCode, message } = await updateRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, editAry)
+        if (statusCode === 'OK') {
           this.$Notice.success({
-            title: this.$t("update_permission_success"),
+            title: this.$t('update_permission_success'),
             desc: message
-          });
-          this.getAttrPermissions();
-          this.getPermissions(false, true, this.currentRoleName);
+          })
+          this.getAttrPermissions()
+          this.getPermissions(false, true, this.currentRoleName)
         }
       }
     },
-    deleteHandler(deleteData) {
+    deleteHandler (deleteData) {
       this.$Modal.confirm({
-        title: this.$t("delete_confirm"),
-        "z-index": 1000000,
+        title: this.$t('delete_confirm'),
+        'z-index': 1000000,
         onOk: async () => {
-          const payload = deleteData.map(_ => _.roleCiTypeCtrlAttrId);
-          const {
-            statusCode,
-            message,
-            data
-          } = await deleteRoleCiTypeCtrlAttributes(
-            this.currentRoleCiTypeId,
-            payload
-          );
-          if (statusCode === "OK") {
+          const payload = deleteData.map(_ => _.roleCiTypeCtrlAttrId)
+          const { statusCode, message } = await deleteRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, payload)
+          if (statusCode === 'OK') {
             this.$Notice.success({
-              title: this.$t("delete_permission_success"),
+              title: this.$t('delete_permission_success'),
               desc: message
-            });
+            })
             this.outerActions.forEach(_ => {
-              _.props.disabled =
-                _.actionType === "save" ||
-                _.actionType === "edit" ||
-                _.actionType === "delete";
-            });
-            this.getAttrPermissions();
+              _.props.disabled = _.actionType === 'save' || _.actionType === 'edit' || _.actionType === 'delete'
+            })
+            this.getAttrPermissions()
           }
         },
         onCancel: () => {}
-      });
-      document.querySelector(".ivu-modal-mask").click();
+      })
+      document.querySelector('.ivu-modal-mask').click()
     },
-    addHandler() {
-      let emptyRowData = {};
+    addHandler () {
+      let emptyRowData = {}
       this.attrsPermissionsColumns.forEach(_ => {
-        if (_.inputType === "multiSelect" || _.inputType === "multiRef") {
-          emptyRowData[_.inputKey] = [];
+        if (_.inputType === 'multiSelect' || _.inputType === 'multiRef') {
+          emptyRowData[_.inputKey] = []
         } else {
-          emptyRowData[_.inputKey] = "";
+          emptyRowData[_.inputKey] = ''
         }
-      });
-      emptyRowData["isRowEditable"] = true;
-      emptyRowData["isNewAddedRow"] = true;
-      emptyRowData["weTableRowId"] = new Date().getTime();
-      this.ciTypeAttrsPermissions.unshift(emptyRowData);
+      })
+      emptyRowData['isRowEditable'] = true
+      emptyRowData['isNewAddedRow'] = true
+      emptyRowData['weTableRowId'] = new Date().getTime()
+      this.ciTypeAttrsPermissions.unshift(emptyRowData)
       this.$nextTick(() => {
-        this.$refs.table.pushNewAddedRowToSelections();
-        this.$refs.table.setCheckoutStatus(true);
-      });
+        this.$refs.table.pushNewAddedRowToSelections()
+        this.$refs.table.setCheckoutStatus(true)
+      })
       this.outerActions.forEach(_ => {
-        _.props.disabled = _.actionType === "add";
-      });
+        _.props.disabled = _.actionType === 'add'
+      })
     },
-    editHandler() {
-      this.$refs.table.swapRowEditable(true);
+    editHandler () {
+      this.$refs.table.swapRowEditable(true)
       this.outerActions.forEach(_ => {
-        if (_.actionType === "save") {
-          _.props.disabled = false;
+        if (_.actionType === 'save') {
+          _.props.disabled = false
         }
-      });
+      })
       this.$nextTick(() => {
-        this.$refs.table.setCheckoutStatus(true);
-      });
+        this.$refs.table.setCheckoutStatus(true)
+      })
     },
-    cancelHandler() {
-      this.$refs.table.setAllRowsUneditable();
-      this.$refs.table.setCheckoutStatus();
+    cancelHandler () {
+      this.$refs.table.setAllRowsUneditable()
+      this.$refs.table.setCheckoutStatus()
       this.outerActions &&
         this.outerActions.forEach(_ => {
-          _.props.disabled = !(
-            _.actionType === "add" ||
-            _.actionType === "export" ||
-            _.actionType === "cancel"
-          );
-        });
+          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
+        })
     },
-    onSelectedRowsChange(rows, checkoutBoxdisable) {
+    onSelectedRowsChange (rows, checkoutBoxdisable) {
       if (rows.length > 0) {
         this.outerActions.forEach(_ => {
-          _.props.disabled = _.actionType === "add";
-        });
+          _.props.disabled = _.actionType === 'add'
+        })
       } else {
         this.outerActions.forEach(_ => {
-          _.props.disabled = !(
-            _.actionType === "add" ||
-            _.actionType === "export" ||
-            _.actionType === "cancel"
-          );
-        });
+          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
+        })
       }
-      this.seletedRows = rows;
+      this.seletedRows = rows
     },
-    cancelEdit() {
-      this.permissionEntryPointsForEdit = [];
-      this.cancelHandler();
+    cancelEdit () {
+      this.permissionEntryPointsForEdit = []
+      this.cancelHandler()
     },
-    ciTypesPermissionsHandler(ci, code, type) {
-      this.setPermissionAction(!(ci[code] === "Y"), type, ci.ciTypeId);
+    ciTypesPermissionsHandler (ci, code, type) {
+      this.setPermissionAction(!(ci[code] === 'Y'), type, ci.ciTypeId)
     },
-    async handleUserTransferChange(newTargetKeys, direction, moveKeys) {
-      if (direction === "right") {
-        let { statusCode, data, message } = await addUsersToRole(
-          moveKeys,
-          this.selectedRole
-        );
-        if (statusCode === "OK") {
+    async handleUserTransferChange (newTargetKeys, direction, moveKeys) {
+      if (direction === 'right') {
+        let { statusCode, message } = await addUsersToRole(moveKeys, this.selectedRole)
+        if (statusCode === 'OK') {
           this.$Notice.success({
-            title: "success",
+            title: 'success',
             desc: message
-          });
-          this.usersKeyBySelectedRole = newTargetKeys;
+          })
+          this.usersKeyBySelectedRole = newTargetKeys
         }
       } else {
-        let { statusCode, data, message } = await romoveUsersFromRole(
-          moveKeys,
-          this.selectedRole
-        );
-        if (statusCode === "OK") {
+        let { statusCode, message } = await romoveUsersFromRole(moveKeys, this.selectedRole)
+        if (statusCode === 'OK') {
           this.$Notice.success({
-            title: "success",
+            title: 'success',
             desc: message
-          });
-          this.usersKeyBySelectedRole = newTargetKeys;
+          })
+          this.usersKeyBySelectedRole = newTargetKeys
         }
       }
     },
-    async addRole() {
-      if (this.addedRoleValue === "") {
+    async addRole () {
+      if (this.addedRoleValue === '') {
         this.$Notice.warning({
-          title: "Warning",
-          desc: this.$t("role_name_is_required")
-        });
-        return;
+          title: 'Warning',
+          desc: this.$t('role_name_is_required')
+        })
+        return
       }
-      let { statusCode, data, message } = await addRole({
+      let { statusCode, message } = await addRole({
         roleName: this.addedRoleValue,
         description: this.addedRoleValue
-      });
-      if (statusCode === "OK") {
+      })
+      if (statusCode === 'OK') {
         this.$Notice.success({
-          title: "success",
+          title: 'success',
           desc: message
-        });
-        this.getAllRoles();
+        })
+        this.getAllRoles()
       }
     },
-    async addUser() {
-      if (this.addedUser.username === "") {
+    async addUser () {
+      if (this.addedUser.username === '') {
         this.$Notice.warning({
-          title: "Warning",
-          desc: this.$t("role_name_is_required")
-        });
-        return;
+          title: 'Warning',
+          desc: this.$t('role_name_is_required')
+        })
+        return
       }
-      let { statusCode, data, message } = await addUser([this.addedUser]);
-      if (statusCode === "OK") {
+      let { statusCode, data, message } = await addUser([this.addedUser])
+      if (statusCode === 'OK') {
         this.$Notice.success({
-          title: "success",
+          title: 'success',
           desc: message
-        });
+        })
         this.$Modal.info({
-          title: this.$t("copy_password"),
+          title: this.$t('copy_password'),
           content: data[0].password
-        });
-        this.addedUser = {};
-        this.getAllUsers();
+        })
+        this.addedUser = {}
+        this.getAllUsers()
       }
     },
-    async getPermissions(
-      queryAfterEditing,
-      checked,
-      roleOrUser,
-      byUser = false
-    ) {
+    async getPermissions (queryAfterEditing, checked, roleOrUser, byUser = false) {
       if (checked) {
-        let permissions = byUser
-          ? await getPermissionsByUser(roleOrUser)
-          : await getPermissionsByRole(roleOrUser);
-        this.ciTypePermissions = permissions.data.ciTypePermissions;
+        let permissions = byUser ? await getPermissionsByUser(roleOrUser) : await getPermissionsByRole(roleOrUser)
+        this.ciTypePermissions = permissions.data.ciTypePermissions
         if (queryAfterEditing) {
-          this.permissionEntryPointsForEdit = [];
-          this.menusPermissionSelected(
-            this.menusForEdit,
-            permissions.data.menuPermissions
-          );
+          this.permissionEntryPointsForEdit = []
+          this.menusPermissionSelected(this.menusForEdit, permissions.data.menuPermissions)
         } else {
-          this.permissionEntryPoints = [];
-          this.menusPermissionSelected(
-            this.menus,
-            permissions.data.menuPermissions
-          );
-          this.ciTypePermissions = permissions.data.ciTypePermissions;
+          this.permissionEntryPoints = []
+          this.menusPermissionSelected(this.menus, permissions.data.menuPermissions)
+          this.ciTypePermissions = permissions.data.ciTypePermissions
         }
       } else {
         if (queryAfterEditing) {
-          this.menusPermissionSelected(this.menusForEdit);
+          this.menusPermissionSelected(this.menusForEdit)
         } else {
-          this.menusPermissionSelected(this.menus);
-          this.ciTypePermissions = [];
+          this.menusPermissionSelected(this.menus)
+          this.ciTypePermissions = []
         }
       }
     },
-    async handleUserClick(checked, name) {
-      this.currentRoleName = null;
-      this.dataPermissionDisabled = true;
+    async handleUserClick (checked, name) {
+      this.currentRoleName = null
+      this.dataPermissionDisabled = true
       this.users.forEach(_ => {
-        _.checked = false;
+        _.checked = false
         if (name === _.username) {
-          _.checked = checked;
+          _.checked = checked
         }
-      });
-      let { statusCode, data, message } = await getRolesByUser(name);
-      this.getPermissions(false, checked, name, true);
-      if (statusCode === "OK") {
+      })
+      let { statusCode, data } = await getRolesByUser(name)
+      this.getPermissions(false, checked, name, true)
+      if (statusCode === 'OK') {
         this.roles.forEach(_ => {
-          _.checked = false;
-          const found = data.find(item => item.roleId === _.id);
+          _.checked = false
+          const found = data.find(item => item.roleId === _.id)
           if (found) {
-            _.checked = checked;
+            _.checked = checked
           }
-          this.menus = this.menusResponseHandeler(this.allMenusOriginResponse);
-        });
+          this.menus = this.menusResponseHandeler(this.allMenusOriginResponse)
+        })
       }
     },
-    async getAllUsers() {
-      let { statusCode, data, message } = await getAllUsers();
-      if (statusCode === "OK") {
+    async getAllUsers () {
+      let { statusCode, data } = await getAllUsers()
+      if (statusCode === 'OK') {
         this.users = data.map(_ => {
           return {
             id: _.userId,
@@ -836,76 +712,73 @@ export default {
             fullName: _.fullName,
             description: _.description,
             checked: false,
-            color: "#5cadff"
-          };
-        });
+            color: '#5cadff'
+          }
+        })
       }
     },
-    openAddRoleModal() {
-      this.addRoleModalVisible = true;
+    openAddRoleModal () {
+      this.addRoleModalVisible = true
     },
-    openAddUserModal() {
-      this.addUserModalVisible = true;
+    openAddUserModal () {
+      this.addUserModalVisible = true
     },
 
-    menusPermissionSelected(allMenus, menusPermissions = []) {
+    menusPermissionSelected (allMenus, menusPermissions = []) {
       allMenus.forEach(_ => {
         _.children.forEach(m => {
-          const subMenu = menusPermissions.find(n => m.code === n);
-          m.checked = subMenu ? true : false;
-        });
-        _.indeterminate = false;
-        _.checked = false;
-      });
+          const subMenu = menusPermissions.find(n => m.code === n)
+          m.checked = !!subMenu
+        })
+        _.indeterminate = false
+        _.checked = false
+      })
     },
 
-    async handleRoleClick(checked, rolename) {
+    async handleRoleClick (checked, rolename) {
       // this.currentRoleId = id;
-      this.currentRoleName = rolename;
-      this.dataPermissionDisabled = false;
-      this.menus = this.menusResponseHandeler(
-        this.allMenusOriginResponse,
-        false
-      );
+      this.currentRoleName = rolename
+      this.dataPermissionDisabled = false
+      this.menus = this.menusResponseHandeler(this.allMenusOriginResponse, false)
       this.roles.forEach(_ => {
-        _.checked = false;
+        _.checked = false
         if (rolename === _.rolename) {
-          _.checked = checked;
+          _.checked = checked
         }
-      });
-      let { statusCode, data, message } = await getUsersByRole(rolename);
-      this.getPermissions(false, checked, rolename);
-      if (statusCode === "OK") {
+      })
+      let { statusCode, data } = await getUsersByRole(rolename)
+      this.getPermissions(false, checked, rolename)
+      if (statusCode === 'OK') {
         this.users.forEach(_ => {
-          _.checked = false;
-          const found = data.find(item => item.username === _.username);
+          _.checked = false
+          const found = data.find(item => item.username === _.username)
           if (found) {
-            _.checked = checked;
+            _.checked = checked
           }
-        });
+        })
       }
     },
-    async handleMenuTreeCheck(allChecked, currentChecked) {
-      let menuCodes = [];
+    async handleMenuTreeCheck (allChecked, currentChecked) {
+      let menuCodes = []
       if (!currentChecked.parentId) {
-        menuCodes = currentChecked.children.map(_ => _.code);
+        menuCodes = currentChecked.children.map(_ => _.code)
       } else {
-        menuCodes.push(currentChecked.code);
+        menuCodes.push(currentChecked.code)
       }
-      const { statusCode, message, data } = currentChecked.checked
+      const { statusCode, message } = currentChecked.checked
         ? await addMenusToRole(menuCodes, this.currentRoleName)
-        : await removeMenusFromRole(menuCodes, this.currentRoleName);
-      if (statusCode === "OK") {
+        : await removeMenusFromRole(menuCodes, this.currentRoleName)
+      if (statusCode === 'OK') {
         this.$Notice.success({
-          title: "success",
+          title: 'success',
           desc: message
-        });
+        })
       }
-      this.getPermissions(true, true, this.currentRoleName);
+      this.getPermissions(true, true, this.currentRoleName)
     },
-    async getAllRoles() {
-      let { statusCode, data, message } = await getAllRoles();
-      if (statusCode === "OK") {
+    async getAllRoles () {
+      let { statusCode, data } = await getAllRoles()
+      if (statusCode === 'OK') {
         this.roles = data.map(_ => {
           return {
             id: _.roleId,
@@ -913,111 +786,103 @@ export default {
             description: _.description,
             roleType: _.roleType,
             checked: false,
-            color: "success"
-          };
-        });
+            color: 'success'
+          }
+        })
       }
     },
-    menusResponseHandeler(data, disabled = true) {
-      let menus = [];
+    menusResponseHandeler (data, disabled = true) {
+      let menus = []
       data.forEach(_ => {
         if (!_.parentId) {
-          let menuObj = MENUS.find(m => m.code === _.code);
+          let menuObj = MENUS.find(m => m.code === _.code)
           menus.push({
             ..._,
-            title: this.$lang === "zh-CN" ? menuObj.cnName : menuObj.enName,
+            title: this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
             id: _.id,
             expand: true,
             checked: false,
             children: [],
             disabled
-          });
+          })
         }
-      });
+      })
       data.forEach(_ => {
         if (_.parentId) {
-          let menuObj = MENUS.find(m => m.code === _.code);
+          let menuObj = MENUS.find(m => m.code === _.code)
           menus.forEach(h => {
             if (_.parentId === h.id) {
               h.children.push({
                 ..._,
-                title: this.$lang === "zh-CN" ? menuObj.cnName : menuObj.enName,
+                title: this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
                 id: _.id,
                 expand: true,
                 checked: false,
                 disabled
-              });
+              })
             }
-          });
+          })
         }
-      });
-      return menus;
+      })
+      return menus
     },
-    async getAllMenus() {
-      let { statusCode, data, message } = await getAllMenus();
-      if (statusCode === "OK") {
-        this.allMenusOriginResponse = data;
-        this.menus = this.menusResponseHandeler(data);
-        this.menusForEdit = this.menusResponseHandeler(data, false);
+    async getAllMenus () {
+      let { statusCode, data } = await getAllMenus()
+      if (statusCode === 'OK') {
+        this.allMenusOriginResponse = data
+        this.menus = this.menusResponseHandeler(data)
+        this.menusForEdit = this.menusResponseHandeler(data, false)
       }
     },
-    permissionResponseHandeler(res) {
-      this.getPermissions(true, true, this.currentRoleName);
+    permissionResponseHandeler (res) {
+      this.getPermissions(true, true, this.currentRoleName)
     },
-    async setPermissionAction(checked, name, id) {
-      if (!this.currentRoleName) return;
+    async setPermissionAction (checked, name, id) {
+      if (!this.currentRoleName) return
       if (checked) {
-        const addRes = await addDataPermissionAction(
-          this.currentRoleName,
-          id,
-          name
-        );
-        this.permissionResponseHandeler(addRes);
+        const addRes = await addDataPermissionAction(this.currentRoleName, id, name)
+        this.permissionResponseHandeler(addRes)
       } else {
-        const delRes = await removeDataPermissionAction(
-          this.currentRoleName,
-          id,
-          name
-        );
-        this.permissionResponseHandeler(delRes);
+        const delRes = await removeDataPermissionAction(this.currentRoleName, id, name)
+        this.permissionResponseHandeler(delRes)
       }
     },
-    getArrDifference(arr1, arr2) {
-      return arr1.concat(arr2).filter(function(v, i, arr) {
-        return arr.indexOf(v) === arr.lastIndexOf(v);
-      });
+    getArrDifference (arr1, arr2) {
+      return arr1.concat(arr2).filter(function (v, i, arr) {
+        return arr.indexOf(v) === arr.lastIndexOf(v)
+      })
     },
-    async openUserManageModal(rolename) {
-      this.usersKeyBySelectedRole = [];
-      this.allUsersForTransfer = [];
-      this.selectedRole = rolename;
-      let { statusCode, data, message } = await getUsersByRole(rolename);
-      if (statusCode === "OK") {
-        this.usersKeyBySelectedRole = data.map(_ => _.userId);
+    async openUserManageModal (rolename) {
+      this.usersKeyBySelectedRole = []
+      this.allUsersForTransfer = []
+      this.selectedRole = rolename
+      let { statusCode, data } = await getUsersByRole(rolename)
+      if (statusCode === 'OK') {
+        this.usersKeyBySelectedRole = data.map(_ => _.userId)
       }
       this.allUsersForTransfer = this.users.map(_ => {
         return {
           key: _.id,
           username: _.username,
           label: ` ${_.username} ( ${_.description} ) `
-        };
-      });
-      this.userManageModal = true;
+        }
+      })
+      this.userManageModal = true
     },
-    cancel() {},
-    confirmUser() {
+    cancel () {},
+    confirmUser () {
       if (this.currentRoleName) {
-        this.handleRoleClick(true, this.currentRoleName);
+        this.handleRoleClick(true, this.currentRoleName)
       }
     }
   },
-  created() {
-    this.getAllUsers();
-    this.getAllRoles();
-    this.getAllMenus();
+  created () {
+    this.getAllUsers()
+    this.getAllRoles()
+    this.getAllMenus()
   },
   watch: {}
-};
+}
 </script>
 
 <style lang="scss" scoped>
