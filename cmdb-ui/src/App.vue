@@ -9,8 +9,8 @@
 
 <style lang="scss">
 #app {
-  background: url("./assets/wecmdb-background.png");
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
+  background: url('./assets/wecmdb-background.png');
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
@@ -48,14 +48,14 @@ html {
 .validation-form {
   .no-need-validation {
     .ivu-form-item-label:before {
-      content: " ";
+      content: ' ';
       display: inline-block;
       margin-right: 4px;
       line-height: 1;
     }
   }
   .ivu-form-item-label:before {
-    content: "*";
+    content: '*';
     display: inline-block;
     margin-right: 4px;
     line-height: 1;
