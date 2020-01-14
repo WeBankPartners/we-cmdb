@@ -2,7 +2,6 @@ package com.webank.plugins.wecmdb.service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -46,8 +45,12 @@ public class WecubeAdapterService {
     private static final String ID = "id";
     private static final String GUID = "guid";
     private static final String CODE = "code";
+    private static final String STATUS = "status";
+    private static final String STATUS_CREATED = "created";
     private static final Map<String, String> dataTypeMapping = new HashMap<>();
     private static final String DISPLAY_NAME = "displayName";
+    private static final String CITYPE_ID = "ciTypeId";
+    
     static {
         dataTypeMapping.put(FieldType.Varchar.getCode(), DataType.String.getCode());
         dataTypeMapping.put(FieldType.Int.getCode(), DataType.Integer.getCode());
@@ -124,7 +127,9 @@ public class WecubeAdapterService {
     }
 
     public List<EntityDto> getDataModel() {
-        QueryResponse<CiTypeDto> result = queryCiTypes(QueryRequest.defaultQueryObject());
+        QueryRequest queryByStatus = QueryRequest.defaultQueryObject();
+        queryByStatus.addEqualsFilter(STATUS, STATUS_CREATED);
+        QueryResponse<CiTypeDto> result = queryCiTypes(queryByStatus);
         return convertDataModel(result);
     }
 
@@ -137,9 +142,11 @@ public class WecubeAdapterService {
                 entityDto.setName(ciTypeDto.getTableName());
                 entityDto.setDisplayName(ciTypeDto.getName());
                 entityDto.setDescription(ciTypeDto.getDescription());
-                entityDto.setStatus(ciTypeDto.getStatus());
-
-                QueryResponse<CiTypeAttrDto> ciTypeAttrResponse = queryCiTypeAttrs(QueryRequest.defaultQueryObject().addEqualsFilter("ciTypeId", ciTypeDto.getCiTypeId()));
+                
+                QueryRequest queryCiTypeAattr = QueryRequest.defaultQueryObject()
+                        .addEqualsFilter(CITYPE_ID, ciTypeDto.getCiTypeId())
+                        .addEqualsFilter(STATUS, STATUS_CREATED);
+                QueryResponse<CiTypeAttrDto> ciTypeAttrResponse = queryCiTypeAttrs(queryCiTypeAattr);
                 if (ciTypeAttrResponse != null && ciTypeAttrResponse.getContents() != null && !ciTypeAttrResponse.getContents().isEmpty()) {
                     List<CiTypeAttrDto> ciTypeAttrDtos = ciTypeAttrResponse.getContents();
                     List<AttributeDto> attributeDtos = new ArrayList<>();
@@ -161,7 +168,6 @@ public class WecubeAdapterService {
             attributeDto.setEntityName(ciTypeDto.getTableName());
             attributeDto.setDescription(ciTypeAttrDto.getDescription());
             attributeDto.setName(ciTypeAttrDto.getPropertyName());
-            attributeDto.setStatus(ciTypeAttrDto.getStatus());
             switch (InputType.fromCode(ciTypeAttrDto.getInputType())) {
             case Reference:
             case MultRef: {
@@ -196,7 +202,7 @@ public class WecubeAdapterService {
     }
 
     private String getCiTypeNameById(Integer ciTypeId) {
-        QueryRequest queryObject = QueryRequest.defaultQueryObject().addEqualsFilter("ciTypeId", ciTypeId);
+        QueryRequest queryObject = QueryRequest.defaultQueryObject().addEqualsFilter(CITYPE_ID, ciTypeId);
         QueryResponse<CiTypeDto> ciTypes = queryCiTypes(queryObject);
         if (ciTypes != null && ciTypes.getContents() != null && !ciTypes.getContents().isEmpty()) {
             return ciTypes.getContents().get(0).getTableName();
@@ -312,7 +318,7 @@ public class WecubeAdapterService {
     }
 
     private List<CiTypeAttrDto> getCiTypeAttrs(Integer ciTypeId) {
-        QueryResponse<CiTypeAttrDto> ciTypeAttrResult = queryCiTypeAttrs(QueryRequest.defaultQueryObject().addEqualsFilter("ciTypeId", ciTypeId));
+        QueryResponse<CiTypeAttrDto> ciTypeAttrResult = queryCiTypeAttrs(QueryRequest.defaultQueryObject().addEqualsFilter(CITYPE_ID, ciTypeId));
         if (ciTypeAttrResult != null && ciTypeAttrResult.getContents() != null && !ciTypeAttrResult.getContents().isEmpty()) {
             return ciTypeAttrResult.getContents();
         } else {
@@ -322,14 +328,14 @@ public class WecubeAdapterService {
 
     public List<Map<String, Object>> createCiData(String entityName, List<Map<String, Object>> request) {
         List<Map<String, Object>> createdCiData = ciService.create(retrieveCiTypeIdByTableName(entityName), request);
-        QueryRequest queryObject = QueryRequest.defaultQueryObject().addInFilter("guid", createdCiData.stream().map(item -> item.get("guid")).collect(Collectors.toList()));
+        QueryRequest queryObject = QueryRequest.defaultQueryObject().addInFilter(GUID, createdCiData.stream().map(item -> item.get(GUID)).collect(Collectors.toList()));
         return convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
     }
 
     public List<Map<String, Object>> updateCiData(String entityName, List<Map<String, Object>> originRequest) {
         List<Map<String, Object>> convertedRequest = convertedRequest(originRequest);
         List<Map<String, Object>> updatedCiData = ciService.update(retrieveCiTypeIdByTableName(entityName), convertedRequest);
-        QueryRequest queryObject = QueryRequest.defaultQueryObject().addInFilter("guid", updatedCiData.stream().map(item -> item.get("guid")).collect(Collectors.toList()));
+        QueryRequest queryObject = QueryRequest.defaultQueryObject().addInFilter(GUID, updatedCiData.stream().map(item -> item.get(GUID)).collect(Collectors.toList()));
         return convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
     }
 
