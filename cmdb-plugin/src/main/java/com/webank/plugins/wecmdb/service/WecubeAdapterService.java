@@ -46,7 +46,7 @@ public class WecubeAdapterService {
     private static final String GUID = "guid";
     private static final String CODE = "code";
     private static final String STATUS = "status";
-    private static final String DECOMMISSIONED = "decommissioned";
+    private static final String STATUS_CREATED = "created";
     private static final Map<String, String> dataTypeMapping = new HashMap<>();
     private static final String DISPLAY_NAME = "displayName";
     private static final String CITYPE_ID = "ciTypeId";
@@ -128,7 +128,7 @@ public class WecubeAdapterService {
 
     public List<EntityDto> getDataModel() {
         QueryRequest queryByStatus = QueryRequest.defaultQueryObject();
-        queryByStatus.addNotEqualsFilter(STATUS, DECOMMISSIONED);
+        queryByStatus.addEqualsFilter(STATUS, STATUS_CREATED);
         QueryResponse<CiTypeDto> result = queryCiTypes(queryByStatus);
         return convertDataModel(result);
     }
@@ -145,7 +145,7 @@ public class WecubeAdapterService {
                 
                 QueryRequest queryCiTypeAattr = QueryRequest.defaultQueryObject()
                         .addEqualsFilter(CITYPE_ID, ciTypeDto.getCiTypeId())
-                        .addNotEqualsFilter(STATUS, DECOMMISSIONED);
+                        .addEqualsFilter(STATUS, STATUS_CREATED);
                 QueryResponse<CiTypeAttrDto> ciTypeAttrResponse = queryCiTypeAttrs(queryCiTypeAattr);
                 if (ciTypeAttrResponse != null && ciTypeAttrResponse.getContents() != null && !ciTypeAttrResponse.getContents().isEmpty()) {
                     List<CiTypeAttrDto> ciTypeAttrDtos = ciTypeAttrResponse.getContents();
