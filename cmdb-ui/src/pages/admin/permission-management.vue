@@ -6,20 +6,22 @@
           <span>{{ $t('user') }}</span>
           <Button icon="ios-add" type="dashed" size="small" @click="openAddUserModal">{{ $t('add_user') }}</Button>
         </p>
-        <Tag
-          v-for="item in users"
-          :key="item.id"
-          :name="item.username"
-          :color="item.color"
-          :checked="item.checked"
-          checkable
-          :fade="false"
-          @on-change="handleUserClick"
-        >
-          <span :title="` ${item.username} ( ${item.description} ) `">{{
-            ` ${item.username} ( ${item.description} ) `
-          }}</span>
-        </Tag>
+        <div class="tagContainers">
+          <Tag
+            v-for="item in users"
+            :key="item.id"
+            :name="item.username"
+            :color="item.color"
+            :checked="item.checked"
+            checkable
+            :fade="false"
+            @on-change="handleUserClick"
+          >
+            <span :title="` ${item.username} ( ${item.description} ) `">{{
+              ` ${item.username} ( ${item.description} ) `
+            }}</span>
+          </Tag>
+        </div>
       </Card>
     </Col>
     <Col span="5" offset="0" style="margin-left: 20px">
@@ -28,53 +30,59 @@
           <span>{{ $t('role') }}</span>
           <Button icon="ios-add" type="dashed" size="small" @click="openAddRoleModal">{{ $t('add_role') }}</Button>
         </p>
-        <div class="role-item" v-for="item in roles" :key="item.rolename">
-          <Tag
-            :name="item.rolename"
-            :color="item.color"
-            :checked="item.checked"
-            checkable
-            :fade="false"
-            @on-change="handleRoleClick"
-          >
-            <span :title="item.description">{{ item.description }}</span>
-          </Tag>
-          <Button icon="ios-build" type="dashed" size="small" @click="openUserManageModal(item.rolename)">{{
-            $t('user')
-          }}</Button>
+        <div class="tagContainers">
+          <div class="role-item" v-for="item in roles" :key="item.rolename">
+            <Tag
+              :name="item.rolename"
+              :color="item.color"
+              :checked="item.checked"
+              checkable
+              :fade="false"
+              @on-change="handleRoleClick"
+            >
+              <span :title="item.description">{{ item.description }}</span>
+            </Tag>
+            <Button icon="ios-build" type="dashed" size="small" @click="openUserManageModal(item.rolename)">{{
+              $t('user')
+            }}</Button>
+          </div>
         </div>
       </Card>
     </Col>
     <Col span="4" offset="0" style="margin-left: 20px">
       <Card>
         <p slot="title">{{ $t('menus_management') }}</p>
-        <Tree :data="menus" show-checkbox @on-check-change="handleMenuTreeCheck"></Tree>
+        <div class="tagContainers">
+          <Tree :data="menus" show-checkbox @on-check-change="handleMenuTreeCheck"></Tree>
+        </div>
       </Card>
     </Col>
     <Col span="9" offset="0" style="margin-left: 20px">
       <Card>
         <p slot="title">{{ $t('data_management') }}</p>
-        <div class="data-permissions" v-for="ci in ciTypePermissions" :key="ci.ciTypeId">
-          <span class="ciTypes" :title="ci.ciTypeName">{{ ci.ciTypeName }}</span>
-          <div class="ciTypes-options">
-            <Checkbox
-              v-for="act in actionsType"
-              :disabled="dataPermissionDisabled"
-              :indeterminate="ci[act.actionCode] === 'P'"
-              :value="ci[act.actionCode] === 'Y'"
-              :key="act.actionCode"
-              @click.prevent.native="ciTypesPermissionsHandler(ci, act.actionCode, act.type)"
-              >{{ act.actionName }}</Checkbox
-            >
-            <Button
-              icon="ios-build"
-              type="dashed"
-              size="small"
-              :disabled="dataPermissionDisabled"
-              @click="openPermissionManageModal(ci.roleCiTypeId)"
-            >
-              {{ $t('details') }}
-            </Button>
+        <div class="tagContainers">
+          <div class="data-permissions" v-for="ci in ciTypePermissions" :key="ci.ciTypeId">
+            <span class="ciTypes" :title="ci.ciTypeName">{{ ci.ciTypeName }}</span>
+            <div class="ciTypes-options">
+              <Checkbox
+                v-for="act in actionsType"
+                :disabled="dataPermissionDisabled"
+                :indeterminate="ci[act.actionCode] === 'P'"
+                :value="ci[act.actionCode] === 'Y'"
+                :key="act.actionCode"
+                @click.prevent.native="ciTypesPermissionsHandler(ci, act.actionCode, act.type)"
+                >{{ act.actionName }}</Checkbox
+              >
+              <Button
+                icon="ios-build"
+                type="dashed"
+                size="small"
+                :disabled="dataPermissionDisabled"
+                @click="openPermissionManageModal(ci.roleCiTypeId)"
+              >
+                {{ $t('details') }}
+              </Button>
+            </div>
           </div>
         </div>
       </Card>
@@ -886,6 +894,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.tagContainers {
+  overflow: auto;
+  height: calc(100vh - 205px);
+}
 .ivu-tag {
   display: block;
   border: #515a61 1px dashed !important;
