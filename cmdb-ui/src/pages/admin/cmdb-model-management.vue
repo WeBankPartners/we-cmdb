@@ -16,7 +16,13 @@
             </Col>
             <Col span="13" offset="1">
               <span class="filter-title">{{ $t('state') }}</span>
-              <Select multiple :max-tag-count="3" v-model="selectedStatus" @on-change="handleStatusChange" style="width: 350px;">
+              <Select
+                multiple
+                :max-tag-count="3"
+                v-model="selectedStatus"
+                @on-change="handleStatusChange"
+                style="width: 350px;"
+              >
                 <Option v-for="item in statusList" :value="item" :key="item">
                   {{ item }}
                 </Option>
@@ -43,7 +49,12 @@
         </Card>
       </div>
     </Col>
-    <Col span="6" offset="0" class="func-wrapper" v-if="JSON.stringify(currentSelectedLayer) !== '{}' || JSON.stringify(currentSelectedCI) !== '{}'">
+    <Col
+      span="6"
+      offset="0"
+      class="func-wrapper"
+      v-if="JSON.stringify(currentSelectedLayer) !== '{}' || JSON.stringify(currentSelectedCI) !== '{}'"
+    >
       <Card v-if="isLayerSelected">
         <Row slot="title">
           <p style="width: calc(100% - 165px);">
@@ -67,51 +78,98 @@
             </Tooltip>
           </span>
         </Row>
-        <Collapse accordion>
-          <Panel class="collapse-row" v-for="(item, index) in currentSelectLayerChildren.ciTypes" :key="item.ciTypeId" :name="index.toString()">
-            <div class="collapse-row-title">
-              <span :class="`${item.status === 'decommissioned' ? 'decommissionedLabel ' : ''}ci-type-header-title`">{{ item.name }}</span>
-              <span class="header-buttons-container margin-right">
-                <Tooltip v-if="item.status === 'decommissioned'" :content="$t('roll_back')" placement="top-start">
-                  <Button size="small" @click.stop.prevent="revertCI(item.ciTypeId)" icon="md-redo"></Button>
-                </Tooltip>
-                <Tooltip v-else :content="$t('delete_ci')" placement="top-start">
-                  <Button size="small" @click.stop.prevent="deleteCI(item.ciTypeId, item.status)" icon="ios-trash"></Button>
-                </Tooltip>
-              </span>
-            </div>
-            <div slot="content">
-              <Form class="validation-form" :model="item.form" label-position="left" :label-width="100">
-                <FormItem :label="$t('ci_type_id')" prop="tableName">
-                  <Input v-model="item.form.tableName" disabled></Input>
-                </FormItem>
-                <FormItem :label="$t('refrence_layer')">
-                  <Select v-model="item.form.layerId" :disabled="item.form.status === 'decommissioned'">
-                    <Option v-for="layer in layers" :value="layer.layerId" :key="layer.layerId">{{ layer.name }}</Option>
-                  </Select>
-                </FormItem>
-                <FormItem :label="$t('description')" prop="description">
-                  <Input v-model="item.form.description" :disabled="item.form.status === 'decommissioned'"></Input>
-                </FormItem>
-                <FormItem :label="$t('icon')">
-                  <Select v-model="item.form.imageFileId">
-                    <img v-if="item.form.imageFileId" :src="`${baseURL}/files/${item.form.imageFileId}.png`" slot="prefix" height="24" width="24" style="margin-top:2px;" />
-                    <Option v-for="(item, i) in imgs" :key="i + 1" :value="i + 1">
-                      <img slot :src="`${baseURL}/files/${i + 1}.png`" width="30" height="30" />
-                      &nbsp;
-                    </Option>
-                  </Select>
-                </FormItem>
-                <FormItem>
-                  <Button type="primary" small @click="saveCiType(item.ciTypeId, item.form)" :disabled="item.form.status !== 'notCreated'">{{ $t('save_draft') }}</Button>
-                  <Button type="primary" small @click="submitCiType(item.ciTypeId, item.form)" style="margin-left: 8px" :disabled="item.form.status === 'decommissioned'">{{ $t('submit') }}</Button>
-                </FormItem>
-              </Form>
-            </div>
-          </Panel>
-        </Collapse>
-        <Modal v-model="isAddNewCITypeModalVisible" :title="$t('new_ci_type')" @on-visible-change="addCiTypeModalToggle" footer-hide>
-          <Form class="validation-form" ref="addNewCITypeForm" :model="addNewCITypeForm" label-position="left" :label-width="100">
+        <div class="attrContainer">
+          <Collapse accordion>
+            <Panel
+              class="collapse-row"
+              v-for="(item, index) in currentSelectLayerChildren.ciTypes"
+              :key="item.ciTypeId"
+              :name="index.toString()"
+            >
+              <div class="collapse-row-title">
+                <span
+                  :class="`${item.status === 'decommissioned' ? 'decommissionedLabel ' : ''}ci-type-header-title`"
+                  >{{ item.name }}</span
+                >
+                <span class="header-buttons-container margin-right">
+                  <Tooltip v-if="item.status === 'decommissioned'" :content="$t('roll_back')" placement="top-start">
+                    <Button size="small" @click.stop.prevent="revertCI(item.ciTypeId)" icon="md-redo"></Button>
+                  </Tooltip>
+                  <Tooltip v-else :content="$t('delete_ci')" placement="top-start">
+                    <Button
+                      size="small"
+                      @click.stop.prevent="deleteCI(item.ciTypeId, item.status)"
+                      icon="ios-trash"
+                    ></Button>
+                  </Tooltip>
+                </span>
+              </div>
+              <div slot="content">
+                <Form class="validation-form" :model="item.form" label-position="left" :label-width="100">
+                  <FormItem :label="$t('ci_type_id')" prop="tableName">
+                    <Input v-model="item.form.tableName" disabled></Input>
+                  </FormItem>
+                  <FormItem :label="$t('refrence_layer')">
+                    <Select v-model="item.form.layerId" :disabled="item.form.status === 'decommissioned'">
+                      <Option v-for="layer in layers" :value="layer.layerId" :key="layer.layerId">{{
+                        layer.name
+                      }}</Option>
+                    </Select>
+                  </FormItem>
+                  <FormItem :label="$t('description')" prop="description">
+                    <Input v-model="item.form.description" :disabled="item.form.status === 'decommissioned'"></Input>
+                  </FormItem>
+                  <FormItem :label="$t('icon')">
+                    <Select v-model="item.form.imageFileId">
+                      <img
+                        v-if="item.form.imageFileId"
+                        :src="`${baseURL}/files/${item.form.imageFileId}.png`"
+                        slot="prefix"
+                        height="24"
+                        width="24"
+                        style="margin-top:2px;"
+                      />
+                      <Option v-for="(item, i) in imgs" :key="i + 1" :value="i + 1">
+                        <img slot :src="`${baseURL}/files/${i + 1}.png`" width="30" height="30" />
+                        &nbsp;
+                      </Option>
+                    </Select>
+                  </FormItem>
+                  <FormItem>
+                    <Button
+                      type="primary"
+                      small
+                      @click="saveCiType(item.ciTypeId, item.form)"
+                      :disabled="item.form.status !== 'notCreated'"
+                      >{{ $t('save_draft') }}</Button
+                    >
+                    <Button
+                      type="primary"
+                      small
+                      @click="submitCiType(item.ciTypeId, item.form)"
+                      style="margin-left: 8px"
+                      :disabled="item.form.status === 'decommissioned'"
+                      >{{ $t('submit') }}</Button
+                    >
+                  </FormItem>
+                </Form>
+              </div>
+            </Panel>
+          </Collapse>
+        </div>
+        <Modal
+          v-model="isAddNewCITypeModalVisible"
+          :title="$t('new_ci_type')"
+          @on-visible-change="addCiTypeModalToggle"
+          footer-hide
+        >
+          <Form
+            class="validation-form"
+            ref="addNewCITypeForm"
+            :model="addNewCITypeForm"
+            label-position="left"
+            :label-width="100"
+          >
             <FormItem :label="$t('table_name')" prop="name">
               <Input v-model="addNewCITypeForm.name"></Input>
             </FormItem>
@@ -128,7 +186,13 @@
             </FormItem>
             <FormItem :label="$t('icon')">
               <Select v-model="addNewCITypeForm.imageFileId">
-                <img v-if="addNewCITypeForm.imageFileId" :src="`${baseURL}/files/${addNewCITypeForm.imageFileId}.png`" slot="prefix" height="24" width="24" />
+                <img
+                  v-if="addNewCITypeForm.imageFileId"
+                  :src="`${baseURL}/files/${addNewCITypeForm.imageFileId}.png`"
+                  slot="prefix"
+                  height="24"
+                  width="24"
+                />
                 <Option v-for="(item, i) in imgs" :key="i + 1" :value="i + 1">
                   <img slot :src="`${baseURL}/files/${i + 1}.png`" width="30" height="30" />
                   &nbsp;
@@ -155,243 +219,452 @@
             </Tooltip>
           </span>
         </Row>
-        <Collapse accordion @on-change="onCIAttrCollapeOpen">
-          <Panel class="collapse-row" v-for="item in currentSelectedCIChildren" :key="item.ciTypeAttrId" :name="item.ciTypeAttrId.toString()" v-if="!item.isHidden">
-            <div class="collapse-row-title">
-              <span :class="`${item.status === 'decommissioned' ? 'decommissionedLabel ' : ''}attr-header-title`">{{ item.name }}</span>
-              <span class="header-buttons-container margin-right">
-                <Tooltip :content="$t('move_up_ci_attribute')" placement="top-start">
-                  <Button size="small" @click.stop.prevent="moveUpAttr(item.ciTypeAttrId)" icon="md-arrow-round-up"></Button>
-                </Tooltip>
-                <Tooltip :content="$t('move_down_ci_attribute')" placement="top-start">
-                  <Button size="small" @click.stop.prevent="moveDownAttr(item.ciTypeAttrId)" icon="md-arrow-round-down"></Button>
-                </Tooltip>
-                <Tooltip v-if="item.status === 'decommissioned'" :content="$t('roll_back')" placement="top-start">
-                  <Button size="small" @click.stop.prevent="revertCIAttr(item.ciTypeAttrId)" icon="md-redo"></Button>
-                </Tooltip>
-                <Tooltip v-else :content="$t('delete')" placement="top-start">
-                  <Button size="small" @click.stop.prevent="deleteCIAttr(item.ciTypeAttrId, item.status)" icon="ios-trash"></Button>
-                </Tooltip>
-              </span>
-            </div>
-            <div slot="content">
-              <Form class="validation-form" ref="ciAttrForm" label-position="left" :label-width="120">
-                <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
-                  <Input v-model="item.form.propertyName" disabled></Input>
-                </FormItem>
-                <FormItem prop="name" :label="$t('ci_attribute_name')">
-                  <Input v-model="item.form.name" :disabled="item.form.status === 'decommissioned'"></Input>
-                </FormItem>
-                <FormItem :label="$t('search_filter_number')" prop="searchSeqNo">
-                  <InputNumber :min="0" :disabled="item.form.status === 'decommissioned'" v-model="item.form.searchSeqNo"></InputNumber>
-                </FormItem>
-                <FormItem prop="inputType" :label="$t('data_type')">
-                  <Select v-model="item.form.inputType" @on-change="onInputTypeChange($event, item.form.status !== 'notCreated')" :disabled="item.form.status !== 'notCreated'">
-                    <Option v-for="item in allInputTypes" :value="item" :key="item">{{ item }}</Option>
-                  </Select>
-                </FormItem>
-                <FormItem v-if="item.form.inputType === 'text' || item.form.inputType === 'textArea'" prop="regularExpressionRule" :label="$t('regular_rule')">
-                  <Input v-model="item.form.regularExpressionRule"></Input>
-                </FormItem>
-                <FormItem :label="$t('real_type')">
-                  <Input v-model="item.form.propertyType" disabled></Input>
-                </FormItem>
-                <FormItem prop="length" :label="$t('length')" v-if="item.form.inputType === 'text' || item.form.inputType === 'textArea' || item.form.inputType === 'number'">
-                  <InputNumber :min="1" :disabled="item.form.status !== 'notCreated'" v-model="item.form.length"></InputNumber>
-                </FormItem>
-                <FormItem prop="referenceId" v-if="item.form.inputType === 'ref' || item.form.inputType === 'multiRef'" :label="$t('reference_select')">
-                  <Select v-model="item.form.referenceId" :disabled="item.form.status === 'decommissioned'">
-                    <Option v-for="item in allCiTypes" :value="item.ciTypeId" :key="item.ciTypeId">{{ item.name }}</Option>
-                  </Select>
-                </FormItem>
-                <FormItem prop="referenceName" v-if="item.form.inputType === 'ref' || item.form.inputType === 'multiRef'" :label="$t('reference_name')">
-                  <Input v-model="item.form.referenceName" :disabled="item.form.status === 'decommissioned'"></Input>
-                </FormItem>
-                <FormItem prop="referenceType" v-if="item.form.inputType === 'ref' || item.form.inputType === 'multiRef'" :label="$t('reference_type')">
-                  <Select v-model="item.form.referenceType" :disabled="item.form.status === 'decommissioned'">
-                    <Option v-for="item in allReferenceTypes" :value="item.codeId" :key="item.codeId">{{ item.value }}</Option>
-                  </Select>
-                </FormItem>
-                <FormItem prop="referenceId" v-if="item.form.inputType === 'select' || item.form.inputType === 'multiSelect'" :label="$t('select')">
-                  <Select v-if="item.form.isSystem === true" clearable v-model="item.form.referenceId" :disabled="item.form.status === 'decommissioned'">
-                    <Option v-for="enumItem in currentSelectedCIAttrEnum" :value="enumItem.catId" :key="enumItem.catId" style="max-width: 300px">{{ `[${'system'}] ${enumItem.catName}` }}</Option>
-                  </Select>
+        <div class="attrContainer">
+          <Collapse accordion @on-change="onCIAttrCollapeOpen">
+            <Panel
+              class="collapse-row"
+              v-for="item in currentSelectedCIChildren"
+              :key="item.ciTypeAttrId"
+              :name="item.ciTypeAttrId.toString()"
+              v-if="!item.isHidden"
+            >
+              <div class="collapse-row-title">
+                <span :class="`${item.status === 'decommissioned' ? 'decommissionedLabel ' : ''}attr-header-title`">{{
+                  item.name
+                }}</span>
+                <span class="header-buttons-container margin-right">
+                  <Tooltip :content="$t('move_up_ci_attribute')" placement="top-start">
+                    <Button
+                      size="small"
+                      @click.stop.prevent="moveUpAttr(item.ciTypeAttrId)"
+                      icon="md-arrow-round-up"
+                    ></Button>
+                  </Tooltip>
+                  <Tooltip :content="$t('move_down_ci_attribute')" placement="top-start">
+                    <Button
+                      size="small"
+                      @click.stop.prevent="moveDownAttr(item.ciTypeAttrId)"
+                      icon="md-arrow-round-down"
+                    ></Button>
+                  </Tooltip>
+                  <Tooltip v-if="item.status === 'decommissioned'" :content="$t('roll_back')" placement="top-start">
+                    <Button size="small" @click.stop.prevent="revertCIAttr(item.ciTypeAttrId)" icon="md-redo"></Button>
+                  </Tooltip>
+                  <Tooltip v-else :content="$t('delete')" placement="top-start">
+                    <Button
+                      size="small"
+                      @click.stop.prevent="deleteCIAttr(item.ciTypeAttrId, item.status)"
+                      icon="ios-trash"
+                    ></Button>
+                  </Tooltip>
+                </span>
+              </div>
+              <div slot="content">
+                <Form class="validation-form" ref="ciAttrForm" label-position="right" :label-width="140">
+                  <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
+                    <Input v-model="item.form.propertyName" disabled></Input>
+                  </FormItem>
+                  <FormItem prop="name" :label="$t('ci_attribute_name')">
+                    <Input v-model="item.form.name" :disabled="item.form.status === 'decommissioned'"></Input>
+                  </FormItem>
+                  <FormItem :label="$t('search_filter_number')" prop="searchSeqNo">
+                    <InputNumber
+                      :min="0"
+                      :disabled="item.form.status === 'decommissioned'"
+                      v-model="item.form.searchSeqNo"
+                    ></InputNumber>
+                  </FormItem>
+                  <FormItem prop="inputType" :label="$t('data_type')">
+                    <Select
+                      v-model="item.form.inputType"
+                      @on-change="onInputTypeChange($event, item.form.status !== 'notCreated')"
+                      :disabled="item.form.status !== 'notCreated'"
+                    >
+                      <Option v-for="item in allInputTypes" :value="item" :key="item">{{ item }}</Option>
+                    </Select>
+                  </FormItem>
+                  <FormItem
+                    v-if="item.form.inputType === 'text' || item.form.inputType === 'textArea'"
+                    prop="regularExpressionRule"
+                    :label="$t('regular_rule')"
+                  >
+                    <Input v-model="item.form.regularExpressionRule"></Input>
+                  </FormItem>
+                  <FormItem :label="$t('real_type')">
+                    <Input v-model="item.form.propertyType" disabled></Input>
+                  </FormItem>
+                  <FormItem
+                    prop="length"
+                    :label="$t('length')"
+                    v-if="
+                      item.form.inputType === 'text' ||
+                        item.form.inputType === 'textArea' ||
+                        item.form.inputType === 'number'
+                    "
+                  >
+                    <InputNumber
+                      :min="1"
+                      :disabled="item.form.status !== 'notCreated'"
+                      v-model="item.form.length"
+                    ></InputNumber>
+                  </FormItem>
+                  <FormItem
+                    prop="referenceId"
+                    v-if="item.form.inputType === 'ref' || item.form.inputType === 'multiRef'"
+                    :label="$t('reference_select')"
+                  >
+                    <Select v-model="item.form.referenceId" :disabled="item.form.status === 'decommissioned'">
+                      <Option v-for="item in allCiTypes" :value="item.ciTypeId" :key="item.ciTypeId">{{
+                        item.name
+                      }}</Option>
+                    </Select>
+                  </FormItem>
+                  <FormItem
+                    prop="referenceName"
+                    v-if="item.form.inputType === 'ref' || item.form.inputType === 'multiRef'"
+                    :label="$t('reference_name')"
+                  >
+                    <Input v-model="item.form.referenceName" :disabled="item.form.status === 'decommissioned'"></Input>
+                  </FormItem>
+                  <FormItem
+                    prop="referenceType"
+                    v-if="item.form.inputType === 'ref' || item.form.inputType === 'multiRef'"
+                    :label="$t('reference_type')"
+                  >
+                    <Select v-model="item.form.referenceType" :disabled="item.form.status === 'decommissioned'">
+                      <Option v-for="item in allReferenceTypes" :value="item.codeId" :key="item.codeId">{{
+                        item.value
+                      }}</Option>
+                    </Select>
+                  </FormItem>
+                  <FormItem
+                    prop="referenceId"
+                    v-if="item.form.inputType === 'select' || item.form.inputType === 'multiSelect'"
+                    :label="$t('select')"
+                  >
+                    <Select
+                      v-if="item.form.isSystem === true"
+                      clearable
+                      v-model="item.form.referenceId"
+                      :disabled="item.form.status === 'decommissioned'"
+                    >
+                      <Option
+                        v-for="enumItem in currentSelectedCIAttrEnum"
+                        :value="enumItem.catId"
+                        :key="enumItem.catId"
+                        style="max-width: 300px"
+                        >{{ `[${'system'}] ${enumItem.catName}` }}</Option
+                      >
+                    </Select>
 
-                  <Select v-else clearable v-model="item.form.referenceId" :disabled="item.form.status === 'decommissioned'">
-                    <span slot="prefix" @click.stop.prevent="openEnumGroupModal(null)">@+</span>
-                    <Option v-for="enumItem in currentSelectedCIAttrEnum" :value="enumItem.catId" :key="enumItem.catId" style="max-width: 300px">
-                      {{ `[${enumItem.catTypeId === 2 ? 'common' : 'private'}] ${enumItem.catName}` }}
-                      <span style="float:right">
-                        <Button @click.stop.prevent="openEnumGroupModal(enumItem)" icon="ios-build" type="primary" size="small"></Button>
-                      </span>
-                    </Option>
-                  </Select>
-                </FormItem>
-                <FormItem prop="isRefreshable" :label="$t('is_refreshable')">
-                  <RadioGroup v-model="item.form.isRefreshable">
-                    <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
-                    <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
-                  </RadioGroup>
-                </FormItem>
-                <FormItem prop="isDisplayed" :label="$t('is_displayed')">
-                  <RadioGroup v-model="item.form.isDisplayed">
-                    <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
-                    <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
-                  </RadioGroup>
-                </FormItem>
-                <FormItem prop="isAccessControlled" v-if="item.form.inputType === 'select' || item.form.inputType === 'ref' || item.form.inputType === 'multiSelect' || item.form.inputType === 'multiRef'" :label="$t('is_access_controlled')">
-                  <RadioGroup v-model="item.form.isAccessControlled">
-                    <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
-                    <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
-                  </RadioGroup>
-                </FormItem>
-                <FormItem prop="isNullable" :label="$t('is_nullable')">
-                  <RadioGroup v-model="item.form.isNullable">
-                    <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
-                    <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
-                  </RadioGroup>
-                </FormItem>
-                <FormItem prop="isEditable" :label="$t('is_editable')">
-                  <RadioGroup v-model="item.form.isEditable">
-                    <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
-                    <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
-                  </RadioGroup>
-                </FormItem>
-                <FormItem prop="isUnique" :label="$t('is_unique')">
-                  <RadioGroup v-model="item.form.isUnique">
-                    <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
-                    <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
-                  </RadioGroup>
-                </FormItem>
-                <FormItem prop="isAuto" :label="$t('is_auto')">
-                  <RadioGroup v-model="item.form.isAuto">
-                    <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
-                    <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
-                  </RadioGroup>
-                </FormItem>
-                <FormItem prop="autoFillRule" v-if="item.form.isAuto === 'yes'" :label="$t('auto_fill_rule')">
-                  <AutoFill :allCiTypes="allCiTypesWithAttr" :rootCiTypeId="item.ciTypeId" :specialDelimiters="specialDelimiters" v-model="item.form.autoFillRule" :disabled="item.form.status === 'decommissioned'"></AutoFill>
-                </FormItem>
-                <FormItem class="no-need-validation" v-if="item.form.inputType === 'ref' || item.form.inputType === 'select' || item.form.inputType === 'multiRef' || item.form.inputType === 'multiSelect'" :label="$t('filter_rule')">
-                  <FilterRule :allLayers="source" :filterAttr="item" :rootCiTypeId="item.ciTypeId" v-model="item.form.filterRule" :disabled="item.form.status === 'decommissioned'"></FilterRule>
-                </FormItem>
-                <FormItem>
-                  <Button type="primary" small @click="applyAttr(item.ciTypeAttrId, item.form)" style="float: right" :disabled="item.form.status === 'decommissioned'">{{ $t('submit') }}</Button>
-                  <Button type="primary" small @click="saveAttr(item.ciTypeAttrId, item.form)" style="float: right; margin-right: 20px" :disabled="item.form.status !== 'notCreated'">{{ $t('save_draft') }}</Button>
-                </FormItem>
-              </Form>
-            </div>
-          </Panel>
-        </Collapse>
-        <Modal v-model="isAddNewAttrModalVisible" :title="$t('new_ci_attribute')" @on-visible-change="addAttrModalToggle" footer-hide>
-          <Form class="validation-form" ref="ciAttrForm" :model="addNewAttrForm" label-position="left" :label-width="120">
-            <FormItem :label="$t('ci_attribute_name')" prop="name">
-              <Input v-model="addNewAttrForm.name"></Input>
-            </FormItem>
-            <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
-              <Input v-model="addNewAttrForm.propertyName"></Input>
-            </FormItem>
-            <FormItem :label="$t('search_filter_number')">
-              <InputNumber :min="0" v-model="addNewAttrForm.searchSeqNo"></InputNumber>
-            </FormItem>
-            <FormItem prop="inputType" :label="$t('data_type')">
-              <Select v-model="addNewAttrForm.inputType" @on-change="onInputTypeChange($event, false)">
-                <Option v-for="item in allInputTypes" :value="item" :key="item">{{ item }}</Option>
-              </Select>
-            </FormItem>
-            <FormItem v-if="addNewAttrForm.inputType === 'text' || addNewAttrForm.inputType === 'textArea'" prop="regularExpressionRule" :label="$t('regular_rule')">
-              <Input v-model="addNewAttrForm.regularExpressionRule"></Input>
-            </FormItem>
-            <FormItem prop="propertyType" :label="$t('real_type')">
-              <Input v-model="addNewAttrForm.propertyType" disabled></Input>
-            </FormItem>
-            <FormItem prop="length" :label="$t('length')" v-if="addNewAttrForm.inputType === 'text' || addNewAttrForm.inputType === 'textArea' || addNewAttrForm.inputType === 'number'">
-              <InputNumber :min="1" v-model="addNewAttrForm.length"></InputNumber>
-            </FormItem>
-            <FormItem prop="referenceId" v-if="addNewAttrForm.inputType === 'ref' || addNewAttrForm.inputType === 'multiRef'" :label="$t('reference_select')">
-              <Select v-model="addNewAttrForm.referenceId">
-                <Option v-for="item in allCiTypes" :value="item.ciTypeId" :key="item.ciTypeId">{{ item.name }}</Option>
-              </Select>
-            </FormItem>
-            <FormItem prop="referenceName" v-if="addNewAttrForm.inputType === 'ref' || addNewAttrForm.inputType === 'multiRef'" :label="$t('reference_name')">
-              <Input v-model="addNewAttrForm.referenceName"></Input>
-            </FormItem>
-            <FormItem prop="referenceType" v-if="addNewAttrForm.inputType === 'ref' || addNewAttrForm.inputType === 'multiRef'" :label="$t('reference_type')">
-              <Select v-model="addNewAttrForm.referenceType">
-                <Option v-for="item in allReferenceTypes" :value="item.codeId" :key="item.codeId">{{ item.value }}</Option>
-              </Select>
-            </FormItem>
-            <FormItem prop="referenceId" v-if="addNewAttrForm.inputType === 'select' || addNewAttrForm.inputType === 'multiSelect'" :label="$t('select')">
-              <Select clearable v-model="addNewAttrForm.referenceId">
-                <span slot="prefix" @click.stop.prevent="openEnumGroupModal(null)">@+</span>
-                <Option v-for="item in currentSelectedCIAttrEnum" :value="item.catId" :key="item.catId">
-                  {{ `[${item.catTypeId === 2 ? 'common' : 'private'}] ${item.catName}` }}
-                  <span style="float:right">
-                    <Button @click.stop.prevent="openEnumGroupModal(item)" icon="ios-build" type="primary" size="small"></Button>
-                  </span>
-                </Option>
-              </Select>
-            </FormItem>
-            <FormItem prop="isRefreshable" :label="$t('is_refreshable')">
-              <RadioGroup v-model="addNewAttrForm.isRefreshable">
-                <Radio label="yes">Yes</Radio>
-                <Radio label="no">No</Radio>
-              </RadioGroup>
-            </FormItem>
-            <FormItem prop="isDisplayed" :label="$t('is_displayed')">
-              <RadioGroup v-model="addNewAttrForm.isDisplayed">
-                <Radio label="yes">Yes</Radio>
-                <Radio label="no">No</Radio>
-              </RadioGroup>
-            </FormItem>
-            <FormItem prop="isAccessControlled" v-if="addNewAttrForm.inputType === 'select' || addNewAttrForm.inputType === 'multiSelect' || addNewAttrForm.inputType === 'ref' || addNewAttrForm.inputType === 'multiRef'" :label="$t('is_access_controlled')">
-              <RadioGroup v-model="addNewAttrForm.isAccessControlled">
-                <Radio label="yes">Yes</Radio>
-                <Radio label="no">No</Radio>
-              </RadioGroup>
-            </FormItem>
-            <FormItem prop="isNullable" :label="$t('is_nullable')">
-              <RadioGroup v-model="addNewAttrForm.isNullable">
-                <Radio label="yes">Yes</Radio>
-                <Radio label="no">No</Radio>
-              </RadioGroup>
-            </FormItem>
-            <FormItem prop="isEditable" :label="$t('is_editable')">
-              <RadioGroup v-model="addNewAttrForm.isEditable">
-                <Radio label="yes">Yes</Radio>
-                <Radio label="no">No</Radio>
-              </RadioGroup>
-            </FormItem>
-            <FormItem prop="isUnique" :label="$t('is_unique')">
-              <RadioGroup v-model="addNewAttrForm.isUnique">
-                <Radio label="yes">Yes</Radio>
-                <Radio label="no">No</Radio>
-              </RadioGroup>
-            </FormItem>
-            <FormItem prop="isAuto" :label="$t('is_auto')">
-              <RadioGroup v-model="addNewAttrForm.isAuto">
-                <Radio label="yes">Yes</Radio>
-                <Radio label="no">No</Radio>
-              </RadioGroup>
-            </FormItem>
-            <FormItem prop="layerId" v-if="addNewAttrForm.isAuto === 'yes'" :label="$t('auto_fill_rule')">
-              <AutoFill :allCiTypes="allCiTypesWithAttr" :rootCiTypeId="currentSelectedCI.ciTypeId" :specialDelimiters="specialDelimiters" v-model="addNewAttrForm.autoFillRule"></AutoFill>
-            </FormItem>
-            <FormItem>
-              <Button type="primary" small @click="addNewAttr" style="float: right">{{ $t('submit') }}</Button>
-            </FormItem>
-          </Form>
-        </Modal>
+                    <Select
+                      v-else
+                      clearable
+                      v-model="item.form.referenceId"
+                      :disabled="item.form.status === 'decommissioned'"
+                    >
+                      <span slot="prefix" @click.stop.prevent="openEnumGroupModal(null)">@+</span>
+                      <Option
+                        v-for="enumItem in currentSelectedCIAttrEnum"
+                        :value="enumItem.catId"
+                        :key="enumItem.catId"
+                        style="max-width: 300px"
+                      >
+                        {{ `[${enumItem.catTypeId === 2 ? 'common' : 'private'}] ${enumItem.catName}` }}
+                        <span style="float:right">
+                          <Button
+                            @click.stop.prevent="openEnumGroupModal(enumItem)"
+                            icon="ios-build"
+                            type="primary"
+                            size="small"
+                          ></Button>
+                        </span>
+                      </Option>
+                    </Select>
+                  </FormItem>
+                  <FormItem prop="isRefreshable" :label="$t('is_refreshable')">
+                    <RadioGroup v-model="item.form.isRefreshable">
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
+                    </RadioGroup>
+                  </FormItem>
+                  <FormItem prop="isDisplayed" :label="$t('is_displayed')">
+                    <RadioGroup v-model="item.form.isDisplayed">
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
+                    </RadioGroup>
+                  </FormItem>
+                  <FormItem
+                    prop="isAccessControlled"
+                    v-if="
+                      item.form.inputType === 'select' ||
+                        item.form.inputType === 'ref' ||
+                        item.form.inputType === 'multiSelect' ||
+                        item.form.inputType === 'multiRef'
+                    "
+                    :label="$t('is_access_controlled')"
+                  >
+                    <RadioGroup v-model="item.form.isAccessControlled">
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
+                    </RadioGroup>
+                  </FormItem>
+                  <FormItem prop="isNullable" :label="$t('is_nullable')">
+                    <RadioGroup v-model="item.form.isNullable">
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
+                    </RadioGroup>
+                  </FormItem>
+                  <FormItem prop="isEditable" :label="$t('is_editable')">
+                    <RadioGroup v-model="item.form.isEditable">
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
+                    </RadioGroup>
+                  </FormItem>
+                  <FormItem prop="isUnique" :label="$t('is_unique')">
+                    <RadioGroup v-model="item.form.isUnique">
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
+                    </RadioGroup>
+                  </FormItem>
+                  <FormItem prop="isAuto" :label="$t('is_auto')">
+                    <RadioGroup v-model="item.form.isAuto">
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
+                    </RadioGroup>
+                  </FormItem>
+                  <FormItem prop="autoFillRule" v-if="item.form.isAuto === 'yes'" :label="$t('auto_fill_rule')">
+                    <AutoFill
+                      :allCiTypes="allCiTypesWithAttr"
+                      :rootCiTypeId="item.ciTypeId"
+                      :specialDelimiters="specialDelimiters"
+                      v-model="item.form.autoFillRule"
+                      :disabled="item.form.status === 'decommissioned'"
+                    ></AutoFill>
+                  </FormItem>
+                  <FormItem
+                    class="no-need-validation"
+                    v-if="
+                      item.form.inputType === 'ref' ||
+                        item.form.inputType === 'select' ||
+                        item.form.inputType === 'multiRef' ||
+                        item.form.inputType === 'multiSelect'
+                    "
+                    :label="$t('filter_rule')"
+                  >
+                    <FilterRule
+                      :allLayers="source"
+                      :filterAttr="item"
+                      :rootCiTypeId="item.ciTypeId"
+                      v-model="item.form.filterRule"
+                      :disabled="item.form.status === 'decommissioned'"
+                    ></FilterRule>
+                  </FormItem>
+                  <FormItem>
+                    <Button
+                      type="primary"
+                      small
+                      @click="applyAttr(item.ciTypeAttrId, item.form)"
+                      style="float: right"
+                      :disabled="item.form.status === 'decommissioned'"
+                      >{{ $t('submit') }}</Button
+                    >
+                    <Button
+                      type="primary"
+                      small
+                      @click="saveAttr(item.ciTypeAttrId, item.form)"
+                      style="float: right; margin-right: 20px"
+                      :disabled="item.form.status !== 'notCreated'"
+                      >{{ $t('save_draft') }}</Button
+                    >
+                  </FormItem>
+                </Form>
+              </div>
+            </Panel>
+          </Collapse>
+        </div>
       </Card>
+      <Modal
+        v-model="isAddNewAttrModalVisible"
+        :title="$t('new_ci_attribute')"
+        @on-visible-change="addAttrModalToggle"
+        footer-hide
+      >
+        <Form
+          class="validation-form"
+          ref="ciAttrForm"
+          :model="addNewAttrForm"
+          label-position="right"
+          :label-width="150"
+        >
+          <FormItem :label="$t('ci_attribute_name')" prop="name">
+            <Input v-model="addNewAttrForm.name"></Input>
+          </FormItem>
+          <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
+            <Input v-model="addNewAttrForm.propertyName"></Input>
+          </FormItem>
+          <FormItem :label="$t('search_filter_number')">
+            <InputNumber :min="0" v-model="addNewAttrForm.searchSeqNo"></InputNumber>
+          </FormItem>
+          <FormItem prop="inputType" :label="$t('data_type')">
+            <Select v-model="addNewAttrForm.inputType" @on-change="onInputTypeChange($event, false)">
+              <Option v-for="item in allInputTypes" :value="item" :key="item">{{ item }}</Option>
+            </Select>
+          </FormItem>
+          <FormItem
+            v-if="addNewAttrForm.inputType === 'text' || addNewAttrForm.inputType === 'textArea'"
+            prop="regularExpressionRule"
+            :label="$t('regular_rule')"
+          >
+            <Input v-model="addNewAttrForm.regularExpressionRule"></Input>
+          </FormItem>
+          <FormItem prop="propertyType" :label="$t('real_type')">
+            <Input v-model="addNewAttrForm.propertyType" disabled></Input>
+          </FormItem>
+          <FormItem
+            prop="length"
+            :label="$t('length')"
+            v-if="
+              addNewAttrForm.inputType === 'text' ||
+                addNewAttrForm.inputType === 'textArea' ||
+                addNewAttrForm.inputType === 'number'
+            "
+          >
+            <InputNumber :min="1" v-model="addNewAttrForm.length"></InputNumber>
+          </FormItem>
+          <FormItem
+            prop="referenceId"
+            v-if="addNewAttrForm.inputType === 'ref' || addNewAttrForm.inputType === 'multiRef'"
+            :label="$t('reference_select')"
+          >
+            <Select v-model="addNewAttrForm.referenceId">
+              <Option v-for="item in allCiTypes" :value="item.ciTypeId" :key="item.ciTypeId">{{ item.name }}</Option>
+            </Select>
+          </FormItem>
+          <FormItem
+            prop="referenceName"
+            v-if="addNewAttrForm.inputType === 'ref' || addNewAttrForm.inputType === 'multiRef'"
+            :label="$t('reference_name')"
+          >
+            <Input v-model="addNewAttrForm.referenceName"></Input>
+          </FormItem>
+          <FormItem
+            prop="referenceType"
+            v-if="addNewAttrForm.inputType === 'ref' || addNewAttrForm.inputType === 'multiRef'"
+            :label="$t('reference_type')"
+          >
+            <Select v-model="addNewAttrForm.referenceType">
+              <Option v-for="item in allReferenceTypes" :value="item.codeId" :key="item.codeId">{{
+                item.value
+              }}</Option>
+            </Select>
+          </FormItem>
+          <FormItem
+            prop="referenceId"
+            v-if="addNewAttrForm.inputType === 'select' || addNewAttrForm.inputType === 'multiSelect'"
+            :label="$t('select')"
+          >
+            <Select clearable v-model="addNewAttrForm.referenceId">
+              <span slot="prefix" @click.stop.prevent="openEnumGroupModal(null)">@+</span>
+              <Option v-for="item in currentSelectedCIAttrEnum" :value="item.catId" :key="item.catId">
+                {{ `[${item.catTypeId === 2 ? 'common' : 'private'}] ${item.catName}` }}
+                <span style="float:right">
+                  <Button
+                    @click.stop.prevent="openEnumGroupModal(item)"
+                    icon="ios-build"
+                    type="primary"
+                    size="small"
+                  ></Button>
+                </span>
+              </Option>
+            </Select>
+          </FormItem>
+          <FormItem prop="isRefreshable" :label="$t('is_refreshable')">
+            <RadioGroup v-model="addNewAttrForm.isRefreshable">
+              <Radio label="yes">Yes</Radio>
+              <Radio label="no">No</Radio>
+            </RadioGroup>
+          </FormItem>
+          <FormItem prop="isDisplayed" :label="$t('is_displayed')">
+            <RadioGroup v-model="addNewAttrForm.isDisplayed">
+              <Radio label="yes">Yes</Radio>
+              <Radio label="no">No</Radio>
+            </RadioGroup>
+          </FormItem>
+          <FormItem
+            prop="isAccessControlled"
+            v-if="
+              addNewAttrForm.inputType === 'select' ||
+                addNewAttrForm.inputType === 'multiSelect' ||
+                addNewAttrForm.inputType === 'ref' ||
+                addNewAttrForm.inputType === 'multiRef'
+            "
+            :label="$t('is_access_controlled')"
+          >
+            <RadioGroup v-model="addNewAttrForm.isAccessControlled">
+              <Radio label="yes">Yes</Radio>
+              <Radio label="no">No</Radio>
+            </RadioGroup>
+          </FormItem>
+          <FormItem prop="isNullable" :label="$t('is_nullable')">
+            <RadioGroup v-model="addNewAttrForm.isNullable">
+              <Radio label="yes">Yes</Radio>
+              <Radio label="no">No</Radio>
+            </RadioGroup>
+          </FormItem>
+          <FormItem prop="isEditable" :label="$t('is_editable')">
+            <RadioGroup v-model="addNewAttrForm.isEditable">
+              <Radio label="yes">Yes</Radio>
+              <Radio label="no">No</Radio>
+            </RadioGroup>
+          </FormItem>
+          <FormItem prop="isUnique" :label="$t('is_unique')">
+            <RadioGroup v-model="addNewAttrForm.isUnique">
+              <Radio label="yes">Yes</Radio>
+              <Radio label="no">No</Radio>
+            </RadioGroup>
+          </FormItem>
+          <FormItem prop="isAuto" :label="$t('is_auto')">
+            <RadioGroup v-model="addNewAttrForm.isAuto">
+              <Radio label="yes">Yes</Radio>
+              <Radio label="no">No</Radio>
+            </RadioGroup>
+          </FormItem>
+          <FormItem prop="layerId" v-if="addNewAttrForm.isAuto === 'yes'" :label="$t('auto_fill_rule')">
+            <AutoFill
+              :allCiTypes="allCiTypesWithAttr"
+              :rootCiTypeId="currentSelectedCI.ciTypeId"
+              :specialDelimiters="specialDelimiters"
+              v-model="addNewAttrForm.autoFillRule"
+            ></AutoFill>
+          </FormItem>
+          <FormItem>
+            <Button type="primary" small @click="addNewAttr" style="float: right">{{ $t('submit') }}</Button>
+          </FormItem>
+        </Form>
+      </Modal>
 
-      <Modal v-model="isEditLayerNameModalVisible" :title="$t('edit_layer_name')" @on-ok="editLayerName" @on-cancel="() => {}">
+      <Modal
+        v-model="isEditLayerNameModalVisible"
+        :title="$t('edit_layer_name')"
+        @on-ok="editLayerName"
+        @on-cancel="() => {}"
+      >
         <Input v-model="updatedLayerNameValue.code" :placeholder="$t('input_placeholder')" />
       </Modal>
 
       <Modal v-model="isEditCINameModalVisible" :title="$t('edit_ci_name')" @on-ok="editCIName" @on-cancel="() => {}">
         <Input v-model="updatedCINameValue.name" :placeholder="$t('input_placeholder')" />
       </Modal>
-      <enumGroupModal @hideHandler="hideEnumGroupModal" @getAllEnums="getEnum" :allEnumCategoryTypes="allEnumCategoryTypes" :enumGroupVisible="enumGroupModalVisible" :currentCiType="currentSelectedCI" :category="currentCategory" :allCategory="allEnumCategories"></enumGroupModal>
+      <enumGroupModal
+        @hideHandler="hideEnumGroupModal"
+        @getAllEnums="getEnum"
+        :allEnumCategoryTypes="allEnumCategoryTypes"
+        :enumGroupVisible="enumGroupModalVisible"
+        :currentCiType="currentSelectedCI"
+        :category="currentCategory"
+        :allCategory="allEnumCategories"
+      ></enumGroupModal>
     </Col>
     <!-- eslint-disable-next-line -->
     <Col span="6" offset="0" class="func-wrapper" v-else>
@@ -411,7 +684,34 @@ import * as d3 from 'd3-selection'
 import * as d3Graphviz from 'd3-graphviz'
 import { addEvent } from '../util/event.js'
 import { formatString } from '../util/format.js'
-import { getAllCITypesByLayerWithAttr, getAllLayers, createLayer, deleteCITypeByID, deleteAttr, updateCIType, applyCiTypes, createNewCIType, updateLayer, swapLayerPosition, createNewCIAttr, updateCIAttr, deleteLayer, swapCiTypeAttributePosition, getAllCITypes, getAllInputTypes, getEnumByCIType, getAllSystemEnumCodes, getTableStatus, applyCIAttr, getAllEnumCategoryTypes, getAllEnumCategories, implementCiType, implementCiAttr, getEnumCategoriesByTypeId, getSpecialConnector } from '@/api/server'
+import {
+  getAllCITypesByLayerWithAttr,
+  getAllLayers,
+  createLayer,
+  deleteCITypeByID,
+  deleteAttr,
+  updateCIType,
+  applyCiTypes,
+  createNewCIType,
+  updateLayer,
+  swapLayerPosition,
+  createNewCIAttr,
+  updateCIAttr,
+  deleteLayer,
+  swapCiTypeAttributePosition,
+  getAllCITypes,
+  getAllInputTypes,
+  getEnumByCIType,
+  getAllSystemEnumCodes,
+  getTableStatus,
+  applyCIAttr,
+  getAllEnumCategoryTypes,
+  getAllEnumCategories,
+  implementCiType,
+  implementCiAttr,
+  getEnumCategoriesByTypeId,
+  getSpecialConnector
+} from '@/api/server'
 import STATUS_LIST from '@/const/graph-status-list.js'
 import { PROPERTY_TYPE_MAP } from '@/const/data-types.js'
 import { setHeaders, baseURL } from '@/api/base.js'
@@ -571,7 +871,10 @@ export default {
           this.source.forEach(_ => {
             _.ciTypes &&
               _.ciTypes.forEach(async i => {
-                let imgFileSource = i.imageFileId === 0 || i.imageFileId === undefined ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4) : `${baseURL}/files/${i.imageFileId}`
+                let imgFileSource =
+                  i.imageFileId === 0 || i.imageFileId === undefined
+                    ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
+                    : `${baseURL}/files/${i.imageFileId}`
                 this.$set(i, 'form', {
                   ...i,
                   imgSource: imgFileSource,
@@ -609,7 +912,13 @@ export default {
       data.forEach(_ => {
         if (_.ciTypes) nodes = nodes.concat(_.ciTypes)
       })
-      var dots = ['digraph  {', 'bgcolor="transparent";', 'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.1", height="1.1", color="transparent" ,fontsize=12];', 'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];', 'ranksep = 1.1; nodesep=.7; size = "11,8"; rankdir=TB']
+      var dots = [
+        'digraph  {',
+        'bgcolor="transparent";',
+        'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.1", height="1.1", color="transparent" ,fontsize=12];',
+        'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];',
+        'ranksep = 1.1; nodesep=.7; size = "11,8"; rankdir=TB'
+      ]
       let layerTag = `node [];`
 
       // generate group
@@ -621,12 +930,16 @@ export default {
         } else {
           layerTag += `"layer_${_.layerId}"`
         }
-        tempClusterObjForGraph[index] = [`{ rank=same; "layer_${_.layerId}"[id="layerId_${_.layerId}",class="layer",label="${_.name}",tooltip="${_.name}"];`]
+        tempClusterObjForGraph[index] = [
+          `{ rank=same; "layer_${_.layerId}"[id="layerId_${_.layerId}",class="layer",label="${_.name}",tooltip="${_.name}"];`
+        ]
         nodes.length > 0 &&
           nodes.forEach((node, nodeIndex) => {
             if (node.layerId === _.layerId) {
               let fontcolor = node.status === 'notCreated' ? '#10a34e' : 'black'
-              tempClusterObjForGraph[index].push(`"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`)
+              tempClusterObjForGraph[index].push(
+                `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`
+              )
             }
             if (nodeIndex === nodes.length - 1) {
               tempClusterObjForGraph[index].push('} ')
@@ -793,10 +1106,16 @@ export default {
     },
     async getEnum (isNewAdd = false) {
       const SYS_ENUM_TYPE_ID = 1
-      const res = this.selectedCIAttrIsSystem && !isNewAdd ? await getEnumCategoriesByTypeId(SYS_ENUM_TYPE_ID) : await getEnumByCIType(this.currentSelectedCI.ciTypeId)
+      const res =
+        this.selectedCIAttrIsSystem && !isNewAdd
+          ? await getEnumCategoriesByTypeId(SYS_ENUM_TYPE_ID)
+          : await getEnumByCIType(this.currentSelectedCI.ciTypeId)
       if (res.statusCode === 'OK') {
         let enumList = []
-        enumList = this.selectedCIAttrIsSystem && !isNewAdd ? res.data : enumList.concat(res.data.private || []).concat(res.data.common || [])
+        enumList =
+          this.selectedCIAttrIsSystem && !isNewAdd
+            ? res.data
+            : enumList.concat(res.data.private || []).concat(res.data.common || [])
         this.currentSelectedCIAttrEnum = enumList
       }
     },
@@ -951,7 +1270,10 @@ export default {
         title: this.$t('delete_confirm'),
         'z-index': 1000000,
         onOk: async () => {
-          let res = status === 'notCreated' ? await deleteAttr(this.currentSelectedCI.ciTypeId, id) : await implementCiAttr(this.currentSelectedCI.ciTypeId, id, 'deco')
+          let res =
+            status === 'notCreated'
+              ? await deleteAttr(this.currentSelectedCI.ciTypeId, id)
+              : await implementCiAttr(this.currentSelectedCI.ciTypeId, id, 'deco')
           if (res.statusCode === 'OK') {
             this.$Notice.success({
               title: status === 'notCreated' ? 'Delete CI Attr Successful' : 'Deprecate CI Attr Successful',
@@ -1100,7 +1422,11 @@ export default {
       this.addNewAttrForm = {}
     },
     async saveAttr (ciTypeAttrId, form) {
-      const isSelectOrRef = form.inputType === 'select' || form.inputType === 'ref' || form.inputType === 'multiSelect' || form.inputType === 'multiRef'
+      const isSelectOrRef =
+        form.inputType === 'select' ||
+        form.inputType === 'ref' ||
+        form.inputType === 'multiSelect' ||
+        form.inputType === 'multiRef'
       let payload = {
         ...form,
         length: form.length || 1,
@@ -1124,7 +1450,11 @@ export default {
       }
     },
     async applyAttr (ciTypeAttrId, form) {
-      const isSelectOrRef = form.inputType === 'select' || form.inputType === 'ref' || form.inputType === 'multiSelect' || form.inputType === 'multiRef'
+      const isSelectOrRef =
+        form.inputType === 'select' ||
+        form.inputType === 'ref' ||
+        form.inputType === 'multiSelect' ||
+        form.inputType === 'multiRef'
       let updateRes = await updateCIAttr(this.currentSelectedCI.ciTypeId, ciTypeAttrId, {
         ...form,
         length: form.length || 1,
@@ -1265,6 +1595,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.attrContainer {
+  overflow: auto;
+  height: calc(100vh - 205px);
+}
 .ivu-card-head p {
   height: 30px;
   line-height: 30px;
