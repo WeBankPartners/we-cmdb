@@ -539,7 +539,13 @@ export default {
       }
       if (links.statusCode === 'OK') {
         const found = links.data.find(_ => _.idcGuid === foundIdcGuid)
-        this.physicalGraphLinks = found ? found.linkList : []
+        this.physicalGraphLinks = found ? found.linkList.map(_ => {
+          return {
+            ..._,
+            from: _.data.network_zone_design_1,
+            to: _.data.network_zone_design_2
+          }
+        }) : []
       }
     },
     graphCallback () {
