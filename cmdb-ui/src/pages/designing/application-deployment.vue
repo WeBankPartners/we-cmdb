@@ -284,9 +284,9 @@ export default {
         const node = this.systemLines[guid]
         if (this.graphNodes[node.from] && this.graphNodes[node.to]) {
           let color = '#000'
-          // if (!_.fixedDate) {
-          //   color = stateColor[node.state]
-          // }
+          if (!node.fixedDate) {
+            color = stateColor[node.state]
+          }
           result.push(
             `n_${node.from}->n_${node.to}`,
             `[id="gl_${node.id}",`,
@@ -417,7 +417,13 @@ export default {
         }
       }
       if (links.statusCode === 'OK') {
-        this.physicalGraphLinks = links.data || []
+        this.physicalGraphLinks = links.data.map(_ => {
+          return {
+            ..._,
+            from: _.data.network_zone_1,
+            to: _.data.network_zone_2
+          }
+        }) || []
       }
     },
     graphCallback () {
