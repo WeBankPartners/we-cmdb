@@ -221,7 +221,7 @@ export default {
       this.graph.get(idcData.guid).renderDot(nodesString)
       let fsize = 16
       let divWidth = window.innerWidth
-      let divHeight = window.innerHeight
+      let divHeight = window.innerHeight - 220
       let children = idcData.children || []
       let svg = d3.select('#graph').select('svg')
       svg.attr('width', divWidth).attr('height', divHeight)
