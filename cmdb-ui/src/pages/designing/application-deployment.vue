@@ -417,13 +417,14 @@ export default {
         }
       }
       if (links.statusCode === 'OK') {
-        this.physicalGraphLinks = links.data.map(_ => {
+        const found = links.data.find(_ => _.idcGuid === this.systemVersion)
+        this.physicalGraphLinks = found ? found.links.data.map(_ => {
           return {
             ..._,
             from: _.data.network_zone_1,
             to: _.data.network_zone_2
           }
-        }) || []
+        }) : []
       }
     },
     graphCallback () {
