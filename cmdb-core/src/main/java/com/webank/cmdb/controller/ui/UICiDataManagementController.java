@@ -46,7 +46,6 @@ import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.service.ImageService;
-import com.webank.cmdb.service.StaticDtoService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -212,7 +211,15 @@ public class UICiDataManagementController {
             @RequestBody QueryRequest queryObject) {
         return wrapperService.queryCiData(ciTypeId, queryObject);
     }
-
+    
+    @RolesAllowed({ MENU_DESIGNING_CI_DATA_MANAGEMENT, MENU_DESIGNING_CI_DATA_ENQUIRY })
+    @PostMapping("/ci-types/{ci-type-id}/ci-data/query-by-type")
+    @ResponseBody
+    public Object queryCiDataByType(@PathVariable(value = "ci-type-id") int ciTypeId,
+            @RequestBody QueryRequest queryObject) {
+        return wrapperService.queryCiDataByType(ciTypeId, queryObject);
+    }
+    
     @PostMapping("/referenceCiData/{reference-attr-id}/query")
     @ResponseBody
     public Object queryReferenceCiData(@PathVariable(value = "reference-attr-id") int referenceAttrId,
@@ -348,6 +355,13 @@ public class UICiDataManagementController {
     public Object getSystemDesigns() {
         return wrapperService.getSystemDesigns();
     }
+    
+    @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN, MENU_APPLICATION_DEPLOYMENT_DESIGN })
+    @GetMapping("/system")
+    @ResponseBody
+    public Object getSystems() {
+        return wrapperService.getSystems();
+    }
 
     @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN })
     @PutMapping("/ci-types/{ci-type-id}/ci-data/{ci-data-id}")
@@ -391,10 +405,9 @@ public class UICiDataManagementController {
     @PostMapping("/deploy-designs/tabs/ci-data")
     @ResponseBody
     public Object getDeployCiData(@RequestParam(value = "code-id") Integer codeId,
-            @RequestParam(value = "env-code") String envCode,
-            @RequestParam(value = "system-design-guid") String systemDesignGuid,
+            @RequestParam(value = "system-guid") String systemGuid,
             @RequestBody QueryRequest queryObject) {
-        return wrapperService.getDeployCiData(codeId, envCode, systemDesignGuid, queryObject);
+        return wrapperService.getDeployCiData(codeId, null, systemGuid, queryObject);
     }
 
     @RolesAllowed({ MENU_APPLICATION_DEPLOYMENT_DESIGN })
@@ -403,19 +416,19 @@ public class UICiDataManagementController {
     public Object getDeployDesignTabs() {
         return wrapperService.getDeployDesignTabs();
     }
-
+    
     @RolesAllowed({ MENU_APPLICATION_DEPLOYMENT_DESIGN })
-    @GetMapping("/trees/all-deploy-trees/from-subsys")
+    @GetMapping("/trees/all-deploy-trees/from-system")
     @ResponseBody
-    public List<ResourceTreeDto> getAllDeployTreesFromSubSys(@RequestParam(value = "env-code") String envCode, @RequestParam(value = "system-design-guid") String systemDesignGuid) {
-        return wrapperService.getAllDeployTreesFromSubSys(envCode, systemDesignGuid);
+    public List<ResourceTreeDto> getAllDeployTreesFromSystem(@RequestParam(value = "system-guid") String systemGuid) {
+        return wrapperService.getAllDeployTreesFromSystem(systemGuid);
     }
 
     @RolesAllowed({ MENU_APPLICATION_DEPLOYMENT_DESIGN })
-    @GetMapping("/data-tree/application-deployment-design")
+    @GetMapping("/data-tree/application-deployment")
     @ResponseBody
-    public List<ResourceTreeDto> getApplicationDeploymentDesignDataTree(@RequestParam(value = "system-design-guid") String systemDesignGuid, @RequestParam(value = "env-code") Integer envCodeId) {
-        return wrapperService.getApplicationDeploymentDesignDataTreeBySystemDesignGuidAndEnvCode(systemDesignGuid, envCodeId);
+    public List<ResourceTreeDto> getApplicationDeploymentDataTree(@RequestParam(value = "system-guid") String systemGuid) {
+        return wrapperService.getApplicationDeploymentDesignDataTreeBySystemDesignGuidAndEnvCode(systemGuid);
     }
 
     @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN })

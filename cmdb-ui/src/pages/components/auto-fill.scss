@@ -1,0 +1,97 @@
+.auto-fill {
+  overflow: hidden;
+  word-break: break-all;
+
+  &-span {
+    border-bottom: 1px solid transparent;
+
+    &:hover {
+      cursor: pointer;
+    }
+    
+    &.contains {
+      color: #f00;
+    }
+  }
+
+  &-special-delimiter {
+    font-weight: 600;
+  }
+
+  &-placeholder {
+    color: #aaa;
+  }
+
+  &-hover {
+    border-bottom: 1px solid #00f;
+  }
+
+  &-current-node {
+    background-color: rgb(227, 231, 235);
+  }
+
+  &-error {
+    border-bottom: 1px solid #f00;
+  }
+
+  &-braces {
+    font-weight: 600;
+  }
+
+  &-options {
+    max-height: 200px;
+    overflow: auto;
+    width: 100%;
+  }
+
+  &-li {
+    cursor: pointer;
+    height: 25px;
+    line-height: 25px;
+    width: 100%;
+
+    &-ref-from {
+      color: rgb(22, 206, 22);
+    }
+    &-ref-to {
+      color: rgb(206, 13, 13);
+    }
+
+    &:hover {
+      background-color: rgb(227, 231, 235);
+    }
+  }
+
+  &-add {
+    cursor: pointer;
+  }
+
+  &-filter-li {
+    align-items: center;
+    display: flex;
+    margin: 5px 0;
+    min-height: 32px;
+
+    &-icon {
+      cursor: pointer;
+      margin-right: 5px;
+    }
+
+    &-select {
+      margin-right: 5px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      
+      &.title {
+        width: 150px;
+      }
+      &.operator {
+        width: 100px;
+      }
+    }
+
+    &-input {
+      flex: 1;
+    }
+  }
+}

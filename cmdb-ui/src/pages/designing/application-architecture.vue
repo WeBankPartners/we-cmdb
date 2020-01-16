@@ -1,39 +1,40 @@
 <template>
   <Row>
     <Row>
-      <Col span="12">
+      <Col span="16">
         <Row>
-          <span style="margin-right: 10px">{{ $t("system_design") }}</span>
-          <Select
-            filterable
-            @on-change="onSystemDesignSelect"
-            label-in-name
-            style="width: 35%;"
-          >
-            <Option
-              v-for="item in systemDesigns"
-              :value="item.guid"
-              :key="item.guid"
-              >{{ item.name }}</Option
-            >
+          <span style="margin-right: 10px">{{ $t('system_design') }}</span>
+          <Select @on-change="onSystemDesignSelect" label-in-name style="width: 35%;">
+            <OptionGroup v-for="(data, idx) in systemDesigns" :key="idx" :label="data[0].name">
+              <Option
+                v-for="item in data"
+                :value="item.guid"
+                :key="item.guid"
+                style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
+              >
+                <div>{{ item.name }}</div>
+                <div v-if="item.fixed_date" style="color:#ccc; flex-shrink:1; margin-left:10px">
+                  {{ item.fixed_date }}
+                </div>
+              </Option>
+            </OptionGroup>
           </Select>
-          <Button style="margin: 0 10px;" @click="onArchChange">{{
-            $t("architecture_change")
+          <Button style="margin: 0 10px;" @click="onArchChange(false)" :disabled="!allowArch">{{
+            $t('architecture_change')
           }}</Button>
-          <Button @click="querySysTree">{{ $t("fix_version") }}</Button>
-          <Modal
-            v-model="fixVersionTreeModal"
-            width="500px"
-            :title="$t('fix_version')"
-          >
+          <Button style="margin-right: 10px;" @click="querySysTree" :disabled="!allowFixVersion">{{
+            $t('fix_version')
+          }}</Button>
+          <Button @click="onArchChange(true)" :disabled="!systemDesignVersion || allowFixVersion">{{
+            $t('query')
+          }}</Button>
+          <Modal v-model="fixVersionTreeModal" width="500px" :title="$t('fix_version')">
             <div style="max-height: 600px; overflow: auto;">
               <Tree :data="deployTree"></Tree>
             </div>
             <div slot="footer">
-              <Button @click="cancelFixVersion">{{ $t("cancel") }}</Button>
-              <Button type="info" @click="onArchFixVersion">{{
-                $t("confirm")
-              }}</Button>
+              <Button @click="cancelFixVersion">{{ $t('cancel') }}</Button>
+              <Button type="info" @click="onArchFixVersion">{{ $t('confirm') }}</Button>
             </div>
           </Modal>
         </Row>
@@ -41,42 +42,45 @@
     </Row>
     <Card style="margin-top: 20px">
       <div>
-        <Tabs
-          type="card"
-          :value="currentTab"
-          :closable="false"
-          @on-click="handleTabClick"
-        >
-          <TabPane
-            :label="$t('application_logic_diagram')"
-            name="architecture-design"
-          >
+        <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
+          <TabPane :label="$t('application_logic_diagram')" name="architectureDesign" class="app-tab">
             <Alert show-icon closable v-if="isDataChanged">
               Data has beed changed, click Reload button to reload graph.
               <Button slot="desc" @click="reloadHandler">Reload</Button>
             </Alert>
             <Spin size="large" fix v-if="spinShow">
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-              <div>{{ $t("loading") }}</div>
+              <div>{{ $t('loading') }}</div>
             </Spin>
-            <div v-else-if="!systemDesignData.length" class="no-data">
-              {{ $t("no_data") }}
+            <div v-else-if="!appLogicData.length" class="no-data">
+              {{ $t('no_data') }}
+            </div>
+            <div style="padding-right: 20px">
+              <div class="graph-container" id="appLogicGraph"></div>
+            </div>
+          </TabPane>
+          <TabPane :label="$t('service_invoke_diagram')" name="serviceInvoke" class="app-tab">
+            <Alert show-icon closable v-if="isDataChanged">
+              Data has beed changed, click Reload button to reload graph.
+              <Button slot="desc" @click="reloadHandler">Reload</Button>
+            </Alert>
+            <Spin size="large" fix v-if="spinShow">
+              <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+              <div>{{ $t('loading') }}</div>
+            </Spin>
+            <div v-else-if="!serviceInvokeData.length" class="no-data">
+              {{ $t('no_data') }}
             </div>
             <Row>
-              <Col span="18">
-                <div style="padding-right: 20px">
-                  <div class="graph-container" id="graph"></div>
+              <Col span="18" style="min-height:40px;">
+                <div>
+                  <div class="graph-container" id="serviceInvokeGraph"></div>
                 </div>
               </Col>
-              <Col
-                span="6"
-                offset="0"
-                class="func-wrapper"
-                v-if="isShowInvokeSequence"
-              >
+              <Col span="6" offset="0" class="func-wrapper" v-if="isShowInvokeSequence">
                 <Collapse>
                   <Panel name="invokeDesignSequence">
-                    <b>{{ $t("invoking_sequential_design") }}</b>
+                    <b>{{ $t('invoking_sequential_design') }}</b>
                     <Form
                       slot="content"
                       ref="invokeSequenceForm"
@@ -98,68 +102,36 @@
                               >{{ item.data.code }}</Option
                             >
                           </Select>
-                          <Button
-                            style="float:right;width:70px;"
-                            @click="onSearchInvokeSquence"
-                            >{{ $t("confirm") }}</Button
-                          >
+                          <Button style="float:right;width:70px;" @click="onSearchInvokeSquence">{{
+                            $t('confirm')
+                          }}</Button>
                         </Row>
                       </Form-item>
                       <Form-item
                         :label="$t('invoking_sequential_design_sequence')"
                         v-if="invokeSequenceForm.isShowInvokeSequenceDetial"
                       >
-                        <span style="margin-right: 10px">{{
-                          invokeSequenceForm.spliceInvokeSequenceList
-                        }}</span>
+                        <span style="margin-right: 10px">{{ invokeSequenceForm.spliceInvokeSequenceList }}</span>
                       </Form-item>
-                      <Form-Item
-                        :label="$t('current_invoking')"
-                        v-if="invokeSequenceForm.isShowInvokeSequenceDetial"
-                      >
+                      <Form-Item :label="$t('current_invoking')" v-if="invokeSequenceForm.isShowInvokeSequenceDetial">
                         <Row>
-                          <span style="margin-right: 10px">{{
-                            invokeSequenceForm.currentInvokeSequenceTag
-                          }}</span>
-                          <span
-                            class="header-buttons-container margin-right"
-                            style="float:right"
-                          >
-                            <Tooltip
-                              :content="$t('prev_step')"
-                              placement="top-start"
-                            >
-                              <Button
-                                size="small"
-                                @click="backInvokeSequence"
-                                icon="md-arrow-round-back"
-                              ></Button>
+                          <span style="margin-right: 10px">{{ invokeSequenceForm.currentInvokeSequenceTag }}</span>
+                          <span class="header-buttons-container margin-right" style="float:right">
+                            <Tooltip :content="$t('prev_step')" placement="top-start">
+                              <Button size="small" @click="backInvokeSequence" icon="md-arrow-round-back"></Button>
                             </Tooltip>
-                            <span
-                              >{{ invokeSequenceForm.currentNum }}/{{
-                                invokeSequenceForm.totalNum
-                              }}</span
-                            >
-                            <Tooltip
-                              :content="$t('next_step')"
-                              placement="top-start"
-                            >
-                              <Button
-                                size="small"
-                                @click="nextInvokeSequence"
-                                icon="md-arrow-round-forward"
-                              ></Button>
+                            <span>{{ invokeSequenceForm.currentNum }}/{{ invokeSequenceForm.totalNum }}</span>
+                            <Tooltip :content="$t('next_step')" placement="top-start">
+                              <Button size="small" @click="nextInvokeSequence" icon="md-arrow-round-forward"></Button>
                             </Tooltip>
                           </span>
                         </Row>
                       </Form-Item>
-                      <Form-Item
-                        v-if="invokeSequenceForm.isShowInvokeSequenceDetial"
-                      >
+                      <Form-Item v-if="invokeSequenceForm.isShowInvokeSequenceDetial">
                         <Button
                           style="margin-right: calc(50% + 35px);width=70px;float: right"
                           @click="closeInvokeSquence"
-                          >{{ $t("back") }}</Button
+                          >{{ $t('back') }}</Button
                         >
                       </Form-Item>
                     </Form>
@@ -169,43 +141,30 @@
             </Row>
           </TabPane>
 
-          <TabPane
-            :label="$t('physical_deployment_diagram')"
-            name="physicalGraph"
-          >
-            <div id="physicalGraph">
+          <TabPane :label="$t('physical_deployment_diagram')" name="physicalGraph" class="app-tab">
+            <div>
               <PhysicalGraph
                 v-if="physicalGraphData.length"
                 :graphData="physicalGraphData"
                 :links="physicalGraphLinks"
                 :callback="graphCallback"
               ></PhysicalGraph>
-              <div v-else class="no-data">{{ $t("no_data") }}</div>
+              <div v-else class="no-data">{{ $t('no_data') }}</div>
               <Spin size="large" fix v-if="physicalSpin">
-                <Icon
-                  type="ios-loading"
-                  size="44"
-                  class="spin-icon-load"
-                ></Icon>
-                <div>{{ $t("loading") }}</div>
+                <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+                <div>{{ $t('loading') }}</div>
               </Spin>
             </div>
           </TabPane>
-          <TabPane
-            v-if="!!systemDesignVersion"
-            v-for="ci in tabList"
-            :key="ci.id"
-            :name="ci.id"
-            :label="ci.name"
-          >
+          <TabPane v-if="!!systemDesignVersion" v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name">
             <WeCMDBTable
               :tableData="ci.tableData"
-              :tableOuterActions="ci.outerActions"
-              :tableInnerActions="ci.innerActions"
+              :tableOuterActions="isTableViewOnly ? null : ci.outerActions"
+              :tableInnerActions="isTableViewOnly ? null : ci.innerActions"
               :tableColumns="ci.tableColumns"
               :pagination="ci.pagination"
               :ascOptions="ci.ascOptions"
-              :showCheckbox="needCheckout"
+              :showCheckbox="isTableViewOnly ? false : needCheckout"
               :isRefreshable="true"
               @actionFun="actionFun"
               @handleSubmit="handleSubmit"
@@ -224,62 +183,59 @@
 </template>
 
 <script>
-import * as d3 from "d3-selection";
-import * as d3Graphviz from "d3-graphviz";
+import * as d3 from 'd3-selection'
+// eslint-disable-next-line no-unused-vars
+import * as d3Graphviz from 'd3-graphviz'
 import {
   getCiTypeAttributes,
   deleteCiDatas,
   createCiDatas,
   updateCiDatas,
   getEnumCodesByCategoryId,
-  getCiTypes,
   getSystemDesigns,
-  updateCIRecord,
   getAllDesignTreeFromSystemDesign,
   saveAllDesignTreeFromSystemDesign,
   getArchitectureDesignTabs,
   getArchitectureCiDatas,
   getAllCITypes,
   operateCiState,
+  getIdcDesignTreeByGuid,
   getApplicationFrameworkDesignDataTree,
   getAllZoneLinkDesignGroupByIdcDesign
-} from "@/api/server";
-import {
-  outerActions,
-  innerActions,
-  pagination,
-  components
-} from "@/const/actions.js";
-import { formatData } from "../util/format.js";
-import { getExtraInnerActions } from "../util/state-operations.js";
-import PhysicalGraph from "./physical-graph";
+} from '@/api/server'
+import { outerActions, innerActions, pagination, components } from '@/const/actions.js'
+import { formatData } from '../util/format.js'
+import { getExtraInnerActions } from '../util/state-operations.js'
+import PhysicalGraph from './physical-graph'
+import moment from 'moment'
 
-const stateColorMap = new Map([
-  ["new", "#19be6b"],
-  ["created", "#19be6b"],
-  ["update", "#2d8cf0"],
-  ["change", "#2d8cf0"],
-  ["destroyed", "#ed4014"],
-  ["delete", "#ed4014"]
-]);
-const colors = [
-  "#bbdefb",
-  "#90caf9",
-  "#64b5f6",
-  "#42a5f5",
-  "#2196f3",
-  "#1e88e5",
-  "#1976d2"
-];
+const stateColor = {
+  new: '#19be6b',
+  created: '#19be6b',
+  update: '#2d8cf0',
+  change: '#2d8cf0',
+  destroyed: '#ed4014',
+  delete: '#ed4014'
+}
+const colors = ['#bbdefb', '#90caf9', '#64b5f6', '#42a5f5', '#2196f3', '#1e88e5', '#1976d2']
+const LAST_LEVEL_CI_TYPE_ID = 3 // 单元设计的ciTypeId，也是两张图最小节点的ciTypeId
+const APP_INVOKE_LINES_CI_YTPE_ID = 5 // 调用设计的ciTypeId
+const SERVICE_INVOKE_LINES_CI_TYPE_ID = 35 // 服务调用设计的ciTypeId
+const LINK_TYPE_ENUM_ID = 28 // 链接类型的枚举ID
+const SERVICE_DESIGN = 'service_design' // 服务设计ci的code
+const SERVICE_TYPE = 'service_type' // 服务类型
+const SERVICE_INVOKE_SEQ_DESIGN = 'service_invoke_design_sequence' // 服务调用时序设计ci的code
+
 export default {
   components: {
     PhysicalGraph
   },
-  data() {
+  data () {
     return {
       tabList: [],
       systemDesigns: [],
-      systemDesignVersion: "",
+      systemDesignsOrigin: [],
+      systemDesignVersion: '',
       deployTree: [],
       fixVersionTreeModal: false,
       payload: {
@@ -290,862 +246,877 @@ export default {
         },
         paging: true
       },
-      systemDesignCiTypeId: "",
-      invokeDesignCiTypeId: "",
+      systemDesignCiTypeId: '',
+      invokeDesignCiTypeId: '',
       graph: {},
       systemDesignData: [],
+      appLogicData: [],
+      serviceInvokeData: [],
       physicalGraphData: [],
       physicalGraphLinks: [],
-      physicalGraphNodes: {},
-      physicalGraphLineNodes: {
-        serviceDesign: {},
-        unitDesign: {}
-      },
-      currentTab: "architecture-design",
+      graphNodes: {},
+      currentTab: 'architectureDesign',
       spinShow: false,
       isDataChanged: false,
       physicalSpin: false,
       invokeLines: [],
       isShowInvokeSequence: false,
-      invokeSequenceCode: "6",
+      invokeSequenceCode: '6',
       invokeSequenceForm: {
         isShowInvokeSequenceDetial: false,
         invokeSequenceData: [],
-        spliceInvokeSequenceList: "",
+        spliceInvokeSequenceList: '',
         totalNum: 0,
         currentNum: 0,
-        currentInvokeSequenceTag: "",
+        currentInvokeSequenceTag: '',
         currentInvokeSequence: [],
-        selectedInvokeSequence: ""
-      }
-    };
+        selectedInvokeSequence: ''
+      },
+      appInvokeLines: {},
+      appServiceInvokeLines: {},
+      allowArch: false,
+      allowFixVersion: false,
+      isTableViewOnly: true,
+      systemDesignFixedDate: 0,
+      linkTypes: []
+    }
   },
   computed: {
-    tableRef() {
-      return "table" + this.currentTab;
+    tableRef () {
+      return 'table' + this.currentTab
     },
-    needCheckout() {
-      return this.$route.name === "ciDataEnquiry" ? false : true;
+    needCheckout () {
+      return this.$route.name !== 'ciDataEnquiry'
     }
   },
   methods: {
-    closeInvokeSquence() {
-      this.invokeSequenceForm.totalNum = 0;
-      this.invokeSequenceForm.currentNum = 0;
-      this.invokeSequenceForm.selectedInvokeSequence = "";
-      this.invokeSequenceForm.currentInvokeSequenceTag = "";
-      this.invokeSequenceForm.currentInvokeSequence = [];
-      this.invokeSequenceForm.isShowInvokeSequenceDetial = false;
-      this.invokeSequenceForm.spliceInvokeSequenceList = "";
-      this.initGraph();
+    closeInvokeSquence () {
+      this.invokeSequenceForm.totalNum = 0
+      this.invokeSequenceForm.currentNum = 0
+      this.invokeSequenceForm.selectedInvokeSequence = ''
+      this.invokeSequenceForm.currentInvokeSequenceTag = ''
+      this.invokeSequenceForm.currentInvokeSequence = []
+      this.invokeSequenceForm.isShowInvokeSequenceDetial = false
+      this.invokeSequenceForm.spliceInvokeSequenceList = ''
+      this.initGraph()
     },
-    backInvokeSequence() {
+    backInvokeSequence () {
       if (this.invokeSequenceForm.currentNum > 1) {
-        let invokeDesignSequenceList = this.invokeSequenceForm
-          .currentInvokeSequence;
-        this.invokeSequenceForm.currentNum =
-          this.invokeSequenceForm.currentNum - 1;
+        let invokeDesignSequenceList = this.invokeSequenceForm.currentInvokeSequence
+        this.invokeSequenceForm.currentNum = this.invokeSequenceForm.currentNum - 1
         this.invokeSequenceForm.currentInvokeSequenceTag =
-          invokeDesignSequenceList[
-            this.invokeSequenceForm.currentNum - 1
-          ].key_name;
-        this.reColorInvokeSequence();
+          invokeDesignSequenceList[this.invokeSequenceForm.currentNum - 1].key_name
+        this.reColorInvokeSequence()
       }
     },
-    nextInvokeSequence() {
-      if (
-        this.invokeSequenceForm.currentNum < this.invokeSequenceForm.totalNum
-      ) {
-        let invokeDesignSequenceList = this.invokeSequenceForm
-          .currentInvokeSequence;
-        this.invokeSequenceForm.currentNum =
-          this.invokeSequenceForm.currentNum + 1;
+    nextInvokeSequence () {
+      if (this.invokeSequenceForm.currentNum < this.invokeSequenceForm.totalNum) {
+        let invokeDesignSequenceList = this.invokeSequenceForm.currentInvokeSequence
+        this.invokeSequenceForm.currentNum = this.invokeSequenceForm.currentNum + 1
         this.invokeSequenceForm.currentInvokeSequenceTag =
-          invokeDesignSequenceList[
-            this.invokeSequenceForm.currentNum - 1
-          ].key_name;
-        this.reColorInvokeSequence();
+          invokeDesignSequenceList[this.invokeSequenceForm.currentNum - 1].key_name
+        this.reColorInvokeSequence()
       }
     },
-    async getAllInvokeSequenceData() {
-      this.invokeSequenceForm.invokeSequenceData = [];
-      let found = this.tabList.find(i => i.code === this.invokeSequenceCode);
-      const { statusCode, message, data } = await getArchitectureCiDatas(
-        found.codeId,
-        this.systemDesignVersion,
-        {}
-      );
-      if (statusCode === "OK") {
-        this.invokeSequenceForm.invokeSequenceData = data.contents;
+    async getAllInvokeSequenceData () {
+      this.invokeSequenceForm.invokeSequenceData = []
+      let found = this.tabList.find(i => i.code === this.invokeSequenceCode)
+      const { statusCode, data } = await getArchitectureCiDatas(found.codeId, this.systemDesignVersion, {})
+      if (statusCode === 'OK') {
+        this.invokeSequenceForm.invokeSequenceData = data.contents
       }
     },
-    onSearchInvokeSquence() {
-      this.invokeSequenceForm.isShowInvokeSequenceDetial = true;
+    onSearchInvokeSquence () {
+      this.invokeSequenceForm.isShowInvokeSequenceDetial = true
       const found = this.invokeSequenceForm.invokeSequenceData.find(
         i => i.data.guid === this.invokeSequenceForm.selectedInvokeSequence
-      );
+      )
       if (found) {
-        this.invokeSequenceForm.currentInvokeSequence =
-          found.data.invoke_design_sequence;
-        this.handleInvokeSquence(true);
+        this.invokeSequenceForm.currentInvokeSequence = found.data[SERVICE_INVOKE_SEQ_DESIGN]
+        this.handleInvokeSquence(true)
       }
     },
-    handleInvokeSquence() {
-      let invokeDesignSequenceList = this.invokeSequenceForm
-        .currentInvokeSequence;
-      let spliceInvokeSequenceList = [];
+    handleInvokeSquence () {
+      let invokeDesignSequenceList = this.invokeSequenceForm.currentInvokeSequence
+      let spliceInvokeSequenceList = []
       invokeDesignSequenceList.forEach(_ => {
-        spliceInvokeSequenceList.push(_.key_name);
-      });
-      this.invokeSequenceForm.spliceInvokeSequenceList = spliceInvokeSequenceList.join(
-        " -> "
-      );
+        spliceInvokeSequenceList.push(_.key_name)
+      })
+      this.invokeSequenceForm.spliceInvokeSequenceList = spliceInvokeSequenceList.join(' -> ')
       if (invokeDesignSequenceList.length > 0) {
-        this.invokeSequenceForm.totalNum = invokeDesignSequenceList.length;
-        this.invokeSequenceForm.currentNum = 1;
-        this.invokeSequenceForm.currentInvokeSequenceTag =
-          invokeDesignSequenceList[0].key_name;
+        this.invokeSequenceForm.totalNum = invokeDesignSequenceList.length
+        this.invokeSequenceForm.currentNum = 1
+        this.invokeSequenceForm.currentInvokeSequenceTag = invokeDesignSequenceList[0].key_name
       }
-      this.reColorInvokeSequence();
+      this.reColorInvokeSequence()
     },
-    reColorInvokeSequence() {
-      this.initGraph();
-      this.shadeAll();
+    reColorInvokeSequence () {
+      this.initGraph()
+      this.shadeAll()
 
       this.invokeSequenceForm.currentInvokeSequence.forEach(_ => {
-        this.reColorCurrentInvokeSequenceNode(
-          _.service_design,
-          "ellipse",
-          "green"
-        );
-        this.reColorCurrentInvokeSequenceNode(
-          _.unit_design,
-          "polygon",
-          "green"
-        );
-        this.reColorCurrentInvokeSequenceLine(_, "green");
-      });
+        this.reColorCurrentInvokeSequenceNode(_.service_design, 'ellipse', 'black')
+        this.reColorCurrentInvokeSequenceNode(_.unit_design, 'polygon', 'black')
+        this.reColorCurrentInvokeSequenceLine(_, 'black')
+      })
 
-      let index = this.invokeSequenceForm.currentNum;
-      let current = this.invokeSequenceForm.currentInvokeSequence[index - 1];
-      this.reColorCurrentInvokeSequenceLine(current, "red");
+      let index = this.invokeSequenceForm.currentNum
+      let current = this.invokeSequenceForm.currentInvokeSequence[index - 1]
+      this.reColorCurrentInvokeSequenceLine(current, 'green')
     },
-    async onArchFixVersion() {
-      if (this.systemDesignVersion === "") return;
-      const { statusCode, message, data } = await saveAllDesignTreeFromSystemDesign(
-        this.systemDesignVersion
-      );
-      if (statusCode === "OK") {
-        this.queryCiData();
+    async onArchFixVersion () {
+      if (this.systemDesignVersion === '') return
+      const { statusCode, message } = await saveAllDesignTreeFromSystemDesign(this.systemDesignVersion)
+      if (statusCode === 'OK') {
+        this.queryCiData()
         this.$Notice.success({
-          title: "Success",
+          title: 'Success',
           desc: message
-        });
-        this.fixVersionTreeModal = false;
+        })
+        this.fixVersionTreeModal = false
       }
     },
-    cancelFixVersion() {
-      this.fixVersionTreeModal = false;
+    cancelFixVersion () {
+      this.fixVersionTreeModal = false
     },
-    async reloadHandler() {
-      this.onArchChange();
-      this.isDataChanged = false;
+    async reloadHandler () {
+      this.onArchChange()
+      this.isDataChanged = false
     },
-    async onArchChange() {
-      this.invokeSequenceForm.selectedInvokeSequence = "";
-      this.invokeSequenceForm.isShowInvokeSequenceDetial = false;
-      let { statusCode, message, data } = await getAllCITypes();
-      if (statusCode === "OK") {
+    async onArchChange (isTableViewOnly = false) {
+      this.invokeSequenceForm.selectedInvokeSequence = ''
+      this.invokeSequenceForm.isShowInvokeSequenceDetial = false
+      let { statusCode, data } = await getAllCITypes()
+      if (statusCode === 'OK') {
         data.forEach(ci => {
-          if (ci.tableName === "system_design") {
-            this.systemDesignCiTypeId = ci.ciTypeId + "";
+          if (ci.tableName === 'system_design') {
+            this.systemDesignCiTypeId = ci.ciTypeId + ''
           }
-          if (ci.tableName === "invoke_design") {
-            this.invokeDesignCiTypeId = ci.ciTypeId;
+          if (ci.tableName === 'invoke_design') {
+            this.invokeDesignCiTypeId = ci.ciTypeId
           }
-        });
+        })
       }
 
-      if (this.systemDesignVersion === "") return;
-      this.spinShow = true;
-      this.physicalSpin = true;
-      this.getAllDesignTreeFromSystemDesign();
-      this.getPhysicalGraphData();
-    },
-    async getAllDesignTreeFromSystemDesign() {
-      const { statusCode, message, data } = await getAllDesignTreeFromSystemDesign(
-        this.systemDesignVersion
-      );
-      if (statusCode === "OK") {
-        this.getAllInvokeSequenceData();
-        this.systemDesignData = data ? data : [];
-        this.initGraph();
+      if (this.systemDesignVersion === '') return
+      this.spinShow = true
+      this.physicalSpin = true
+      this.allowFixVersion = !isTableViewOnly
+      this.isTableViewOnly = isTableViewOnly
+      if (
+        this.currentTab === 'architectureDesign' ||
+        this.currentTab === 'physicalGraph' ||
+        this.currentTab === 'serviceInvoke'
+      ) {
+        this.getAllDesignTreeFromSystemDesign()
+        this.getPhysicalGraphData()
+      } else {
+        this.getCurrentData()
       }
-
-      let response = await updateCIRecord(this.systemDesignCiTypeId, {
-        guid: this.systemDesignVersion
-      });
     },
-    async getPhysicalGraphData() {
-      this.physicalGraphData = [];
+    async getAllDesignTreeFromSystemDesign () {
       const promiseArray = [
+        getAllDesignTreeFromSystemDesign(this.systemDesignVersion),
+        getEnumCodesByCategoryId(0, LINK_TYPE_ENUM_ID)
+      ]
+      const [treeData, enumData] = await Promise.all(promiseArray)
+      if (enumData.statusCode === 'OK') {
+        this.linkTypes = enumData.data
+      }
+      if (treeData.statusCode === 'OK') {
+        this.getAllInvokeSequenceData()
+        this.appInvokeLines = {}
+        this.appServiceInvokeLines = {}
+        this.systemDesignFixedDate = +new Date(treeData.data[0].data.fixed_date)
+        const formatAppLogicTree = array =>
+          array.map(_ => {
+            let result = {
+              ciTypeId: _.ciTypeId,
+              guid: _.guid,
+              data: _.data
+            }
+            if (_.children instanceof Array && _.children.length && _.ciTypeId !== LAST_LEVEL_CI_TYPE_ID) {
+              result.children = formatAppLogicTree(_.children)
+            }
+            return result
+          })
+        const formatAppLogicLine = array =>
+          array.forEach(_ => {
+            if (_.ciTypeId === APP_INVOKE_LINES_CI_YTPE_ID) {
+              this.appInvokeLines[_.guid] = {
+                from: _.data.invoke_unit_design,
+                to: _.data.invoked_unit_design,
+                id: _.guid,
+                label: _.data.invoke_type.value,
+                state: _.data.state.code,
+                fixedDate: +new Date(_.data.fixed_date)
+              }
+            }
+            if (_.children instanceof Array && _.children.length) {
+              formatAppLogicLine(_.children)
+            }
+          })
+        let serviceDesignNodes = {}
+        const formatServiceInvokeLine = array =>
+          array.forEach(_ => {
+            if (_.ciTypeId === SERVICE_INVOKE_LINES_CI_TYPE_ID) {
+              const linkTypeName = this.linkTypes.find(item => item.codeId === _.data[SERVICE_DESIGN][SERVICE_TYPE])
+                .value
+              serviceDesignNodes[_.data.invoke_unit_design.guid] = true
+              serviceDesignNodes[_.data.invoked_unit_design.guid] = true
+              this.appServiceInvokeLines[_.guid] = {
+                from: _.data.invoke_unit_design,
+                to: _.data.invoked_unit_design,
+                id: _.guid,
+                label: `${_.data[SERVICE_DESIGN].name}:${linkTypeName}`,
+                state: _.data.state.code,
+                fixedDate: +new Date(_.data.fixed_date)
+              }
+            }
+            if (_.children instanceof Array && _.children.length) {
+              formatServiceInvokeLine(_.children)
+            }
+          })
+        const formatServiceInvokeTree = array =>
+          array
+            .filter(_ => _.ciTypeId !== LAST_LEVEL_CI_TYPE_ID || serviceDesignNodes[_.guid])
+            .map(_ => {
+              let result = {
+                ciTypeId: _.ciTypeId,
+                guid: _.guid,
+                data: _.data
+              }
+              if (_.ciTypeId !== LAST_LEVEL_CI_TYPE_ID && _.children instanceof Array && _.children.length) {
+                result.children = formatServiceInvokeTree(_.children)
+              }
+              return result
+            })
+        this.appLogicData = formatAppLogicTree(treeData.data)
+        formatAppLogicLine(treeData.data)
+        formatServiceInvokeLine(treeData.data)
+        this.serviceInvokeData = formatServiceInvokeTree(treeData.data)
+        this.initGraph()
+      }
+    },
+    async getPhysicalGraphData () {
+      this.physicalGraphData = []
+      const foundIdcGuid = this.systemDesignsOrigin.find(_ => _.guid === this.systemDesignVersion).data_center_design
+        .guid
+      if (!foundIdcGuid) {
+        return
+      }
+      const promiseArray = [
+        getIdcDesignTreeByGuid([foundIdcGuid]),
         getApplicationFrameworkDesignDataTree(this.systemDesignVersion),
         getAllZoneLinkDesignGroupByIdcDesign()
-      ];
-      const [graphData, links] = await Promise.all(promiseArray);
-      if (graphData.statusCode === "OK") {
-        if (graphData.data.length) {
-          this.physicalGraphData = graphData.data;
-        } else {
-          this.physicalGraphData = [];
-          this.physicalSpin = false;
+      ]
+      const [idcData, unitsData, links] = await Promise.all(promiseArray)
+      if (unitsData.statusCode === 'OK' && idcData.statusCode === 'OK') {
+        let setDesigns = {}
+        unitsData.data.forEach(_ => {
+          if (setDesigns[_.data.resource_set_design.guid]) {
+            setDesigns[_.data.resource_set_design.guid].push(_)
+          } else {
+            setDesigns[_.data.resource_set_design.guid] = [_]
+          }
+        })
+        const formatTree = data => {
+          return data.map(_ => {
+            let result = {
+              ..._
+            }
+            if (setDesigns[_.guid]) {
+              result.children = setDesigns[_.guid]
+            }
+            if (_.children instanceof Array && _.children.length) {
+              result.children = formatTree(_.children)
+            }
+            return result
+          })
+        }
+        this.physicalGraphData = formatTree(idcData.data)
+        this.physicalSpin = false
+      }
+      if (links.statusCode === 'OK') {
+        const found = links.data.find(_ => _.idcGuid === foundIdcGuid)
+        this.physicalGraphLinks = found
+          ? found.linkList.map(_ => {
+            return {
+              ..._,
+              from: _.data.network_zone_design_1,
+              to: _.data.network_zone_design_2
+            }
+          })
+          : []
+      }
+    },
+    graphCallback () {
+      this.physicalSpin = false
+    },
+    async querySysTree () {
+      if (this.systemDesignVersion === '') return
+      this.spinShow = true
+      const { statusCode, data } = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
+      if (statusCode === 'OK') {
+        this.spinShow = false
+        this.deployTree = this.formatTree(data).array
+        this.fixVersionTreeModal = true
+      }
+    },
+    formatTree (data) {
+      let array = []
+      let isShow = false
+      data.forEach(_ => {
+        let _isShow = false
+        if (!_.data.fixed_date) {
+          isShow = true
+          _isShow = true
+        }
+        const color = stateColor[_.data.state.code]
+        let result = {
+          fixed_date: _.data.fixed_date,
+          state: _.data.state.code,
+          expand: true,
+          render: (h, params) => <span style={'color:' + color + ';'}>{_.data.key_name}</span>
+        }
+        if (_.children instanceof Array && _.children.length && this.formatTree(_.children).isShow) {
+          isShow = true
+          _isShow = true
+          result.children = this.formatTree(_.children).array
+        }
+        if (_isShow) {
+          array.push(result)
+        }
+      })
+      if (array.length && isShow) {
+        return {
+          isShow: isShow,
+          array: array
+        }
+      } else {
+        return {
+          isShow: isShow,
+          array: null
         }
       }
-      if (links.statusCode === "OK") {
-        this.physicalGraphLinks = links.data || [];
-      }
     },
-    graphCallback() {
-      this.physicalSpin = false;
-    },
-    async querySysTree() {
-      if (this.systemDesignVersion === "") return;
-      this.spinShow = true;
-      const { statusCode, message, data } = await getAllDesignTreeFromSystemDesign(
-        this.systemDesignVersion
-      );
-      if (statusCode === "OK") {
-        this.spinShow = false;
-        this.systemDesignData = data ? data : [];
-        this.deployTree = this.formatTree(this.systemDesignData);
-        this.fixVersionTreeModal = true;
-      }
-    },
-    formatTree(data) {
-      return data.map(_ => {
-        if (_.children && _.children.length > 0) {
-          return {
-            ..._,
-
-            title: _.data.key_name,
-            id: _.guid,
-            expand: true,
-            disableCheckbox: !_.data.WeCMDBOrchestration,
-            children: this.formatTree(_.children)
-          };
-        } else {
-          return {
-            ..._,
-            title: _.data.key_name,
-            id: _.guid,
-            expand: true,
-            disableCheckbox: !_.data.WeCMDBOrchestration
-          };
-        }
-      });
-    },
-    initGraph() {
-      this.isShowInvokeSequence = true;
-      this.spinShow = true;
-      let graph;
-
-      const initEvent = () => {
-        graph = d3.select("#graph");
-
+    initGraph () {
+      this.isShowInvokeSequence = true
+      this.spinShow = true
+      let graph
+      const initEvent = id => {
+        graph = d3.select(id)
         graph
-          .on("dblclick.zoom", null)
-          .on("wheel.zoom", null)
-          .on("mousewheel.zoom", null);
+          .on('dblclick.zoom', null)
+          .on('wheel.zoom', null)
+          .on('mousewheel.zoom', null)
         this.graph.graphviz = graph
           .graphviz()
+          .fit(true)
+          .zoom(true)
           .scale(1.2)
           .width(window.innerWidth * 0.96)
           .height(window.innerHeight * 0.8)
-          .zoom(true);
-      };
-
-      initEvent();
-      this.renderGraph(this.systemDesignData);
-      this.spinShow = false;
+      }
+      // 应用逻辑图
+      initEvent('#appLogicGraph')
+      this.renderGraph('#appLogicGraph', this.appLogicData, this.appInvokeLines)
+      // 服务调用图
+      initEvent('#serviceInvokeGraph')
+      this.renderGraph('#serviceInvokeGraph', this.serviceInvokeData, this.appServiceInvokeLines)
+      this.spinShow = false
     },
-    genDOT(sysData) {
-      this.physicalGraphNodes = {};
-      this.physicalGraphLineNodes = {
-        serviceDesign: {},
-        unitDesign: {}
-      };
-      this.invokeLines = [];
-      const width = 16;
-      const height = 12;
+    renderGraph (id, data, linesData) {
+      let nodesString = this.genDOT(id, data, linesData)
+      this.graph.graphviz.renderDot(nodesString)
+      let svg = d3.select(id).select('svg')
+      let width = svg.attr('width')
+      let height = svg.attr('height')
+      svg.attr('viewBox', '0 0 ' + width + ' ' + height)
+    },
+    genDOT (id, sysData, linesData) {
+      this.graphNodes[id] = {}
+      this.invokeLines = []
+      const width = 16
+      const height = 12
       let dots = [
-        "digraph G{",
-        "rankdir=LR nodesep=0.5;",
-        "Node [fontname=Arial, fontsize=12];",
-        'Edge [fontname=Arial, minlen="2",fontsize=10];',
+        'digraph G{',
+        'rankdir=LR;nodesep=0.5;',
+        'Node[fontname=Arial,fontsize=12,shape=box,style=filled];',
+        'Edge[fontname=Arial,minlen="2",fontsize=6,labeldistance=1.5];',
         `size="${width},${height}";`,
         `subgraph cluster_${sysData[0].guid} {`,
         `style="filled";color="${colors[0]}";`,
         `tooltip="${sysData[0].data.description}";`,
         `label="${sysData[0].data.name}";`,
-        this.genChildrenDot(sysData[0].children || [], 1),
-        "}",
-        ...this.invokeLines,
-        this.renderOtherNodes(),
-        "}"
-      ];
-
-      console.log(
-        dots
-          .join("")
-          .replace(/;/g, ";\n")
-          .replace(/]/g, "]\n")
-      );
-
-      return dots.join("");
+        this.genChildrenDot(id, sysData[0].children || [], 1),
+        '}',
+        this.genLines(id, linesData),
+        '}'
+      ]
+      return dots.join('')
     },
-    genChildrenDot(data, level) {
-      const width = 12;
-      const height = 9;
-      let dots = [];
+    genChildrenDot (id, data, level) {
+      const width = 12
+      const height = 9
+      let dots = []
       if (data.length) {
         data.forEach(_ => {
+          let color = ''
+          if (this.isTableViewOnly && this.systemDesignFixedDate) {
+            if (this.systemDesignFixedDate <= _.data.fixed_date) {
+              color = stateColor[_.data.state.code]
+            }
+          } else if (!_.data.fixed_date) {
+            color = stateColor[_.data.state.code]
+          }
           if (_.children instanceof Array && _.children.length) {
             dots = dots.concat([
               `subgraph cluster_${_.guid}{`,
               `id="g_${_.guid}";`,
-              `style="filled";color="${colors[level]}";`,
+              `color="${color || colors[level]}";`,
+              `style="filled";fillcolor="${colors[level]}";`,
               `label="${_.data.code || _.data.key_name}";`,
               `tooltip="${_.data.description || _.data.name}"`,
-              _.ciTypeId === 3
-                ? this.genServiceInvokeLine(_)
-                : this.genChildrenDot(_.children, level + 1),
-              "}"
-            ]);
+              this.genChildrenDot(id, _.children, level + 1),
+              '}'
+            ])
           } else {
-            this.physicalGraphNodes[_.guid] = _;
+            this.graphNodes[id][_.guid] = _
             dots = dots.concat([
-              `"${_.guid}"`,
+              `"n_${_.guid}"`,
               `[id="n_${_.guid}";`,
               `label="${_.data.code || _.data.key_name}";`,
-              "shape=box;",
-              `style="filled";color="${colors[level]}";`,
+              `color="${color || colors[level]}";`,
+              `fillcolor="${colors[level]}";`,
               `tooltip="${_.data.description || _.data.name}"];`
-            ]);
+            ])
           }
-        });
+        })
       } else {
-        dots.push(
-          `g[label=" ",color="${colors[0]}";width="${width}";height="${height -
-            3}"]`
-        );
+        dots.push(`g[label=" ",color="${colors[0]}";width="${width}";height="${height - 3}"]`)
       }
-      return dots.join("");
+      return dots.join('')
     },
-    genServiceInvokeLine(unitNode) {
-      const unitLabel = unitNode.data.code || unitNode.data.key_name;
-      let serviceData = [];
-      let InvokeLine = [];
-      unitNode.children.forEach(_ => {
-        if (_.ciTypeId === 4) {
-          serviceData.push(_);
-        } else if (_.ciTypeId === 5) {
-          InvokeLine.push(_);
-        }
-      });
-      if (InvokeLine.length) {
-        InvokeLine.forEach(line => {
-          let color = "grey";
-          if (line.data.state && stateColorMap.has(line.data.state.code)) {
-            color = stateColorMap.get(line.data.state.code);
+    genLines (id, linesData) {
+      let otherNodes = []
+      const result = Object.keys(linesData).map(guid => {
+        const node = linesData[guid]
+        let color = '#000'
+        if (this.isTableViewOnly && this.systemDesignFixedDate) {
+          if (this.systemDesignFixedDate <= node.fixedDate) {
+            color = stateColor[node.state]
           }
-          this.invokeLines.push(
-            `gn_${line.data.unit_design.guid} -> gn_${
-              line.data.service_design.guid
-            } [id="gl_${line.guid}",color="${color}",taillabel="${
-              line.data.type.value
-            }", labeldistance=3];`
-          );
-          this.physicalGraphLineNodes.serviceDesign[
-            line.data.service_design.guid
-          ] = line.data.service_design;
-          this.physicalGraphLineNodes.unitDesign[line.data.unit_design.guid] =
-            line.data.unit_design;
-        });
-      }
-      return [
-        this.renderNode(unitNode, "doubleoctagon"),
-        ...this.renderServiceNode(serviceData, unitNode)
-      ].join("");
-    },
-    renderNode(node, nodeType) {
-      this.physicalGraphNodes[node.guid] = node;
-      return `"gn_${node.guid}" [label="${node.data.code}", id="gn_${
-        node.guid
-      }", shape=${nodeType ||
-        "ellipse"},style="filled", color="${stateColorMap.get(
-        node.data.state.code
-      )}", tooltip="${node.data.description || node.data.name}"]`;
-    },
-    renderServiceNode(serviceData, unitNode) {
-      let result = [];
-      if (serviceData.length) {
-        serviceData.forEach(_ => {
-          result = result.concat([
-            this.renderNode(_),
-            `"gn_${_.guid}" -> "gn_${unitNode.guid}" [arrowhead = "t"]`
-          ]);
-        });
-      }
-      return result;
-    },
-    renderOtherNodes() {
-      let result = "";
-      Object.keys(this.physicalGraphLineNodes.serviceDesign).forEach(
-        serviceGuid => {
-          if (!this.physicalGraphNodes[serviceGuid]) {
-            const node = this.physicalGraphLineNodes.serviceDesign[serviceGuid];
-            result += `"gn_${node.guid}" [label="${node.code}",id="gn_${
-              node.guid
-            }",shape="ellipse",tooltip="${node.description || node.name}"]`;
-          }
+        } else if (!node.fixedDate) {
+          color = stateColor[node.state]
         }
-      );
-      Object.keys(this.physicalGraphLineNodes.unitDesign).forEach(unitGuid => {
-        if (!this.physicalGraphNodes[unitGuid]) {
-          const node = this.physicalGraphLineNodes.unitDesign[unitGuid];
-          result += `"gn_${node.guid}" [label="${node.code}",id="gn_${
-            node.guid
-          }",shape="doubleoctagon",tooltip="${node.description || node.name}"]`;
+        if (!this.graphNodes[id][node.from.guid]) {
+          otherNodes.push(node.from)
         }
-      });
-      return result;
+        if (!this.graphNodes[id][node.to.guid]) {
+          otherNodes.push(node.to)
+        }
+        return `n_${node.from.guid} -> n_${node.to.guid}[id="gl_${node.id}",color="${color}",tooltip="${node.label ||
+          ''}",taillabel="${node.label || ''}"];`
+      })
+      let nodes = []
+      otherNodes.forEach(_ => {
+        nodes = nodes.concat([
+          `"n_${_.guid}"`,
+          `[id="n_${_.guid}";`,
+          `label="${_.code || _.key_name}";`,
+          'shape=box;',
+          `style="filled";`,
+          `tooltip="${_.description || _.name}"];`
+        ])
+      })
+      return result.join('') + nodes.join('')
     },
-    renderGraph(data) {
-      let nodesString = this.genDOT(data);
-      this.graph.graphviz.renderDot(nodesString);
-      let svg = d3.select("#graph").select("svg");
-      let width = svg.attr("width");
-      let height = svg.attr("height");
-      svg.attr("viewBox", "0 0 " + width + " " + height);
+    shadeAll () {
+      d3.selectAll('#serviceInvokeGraph g path')
+        .attr('stroke', '#7f8fa6')
+        .attr('stroke-opacity', '.2')
+      d3.selectAll('#serviceInvokeGraph g polygon')
+        .attr('stroke', '#7f8fa6')
+        .attr('stroke-opacity', '.2')
+        .attr('fill', '#7f8fa6')
+        .attr('fill-opacity', '.2')
+      d3.selectAll('#serviceInvokeGraph g ellipse')
+        .attr('stroke', '#7f8fa6')
+        .attr('stroke-opacity', '.2')
+        .attr('fill', '#7f8fa6')
+        .attr('fill-opacity', '.2')
+      d3.selectAll('text').attr('fill', '#000')
     },
-    shadeAll() {
-      d3.selectAll("g path")
-        .attr("stroke", "#7f8fa6")
-        .attr("stroke-opacity", ".2");
-      d3.selectAll("g polygon")
-        .attr("stroke", "#7f8fa6")
-        .attr("stroke-opacity", ".2")
-        .attr("fill", "#7f8fa6")
-        .attr("fill-opacity", ".2");
-      d3.selectAll("g ellipse")
-        .attr("stroke", "#7f8fa6")
-        .attr("stroke-opacity", ".2")
-        .attr("fill", "#7f8fa6")
-        .attr("fill-opacity", ".2");
-      d3.selectAll("text").attr("fill", "#000");
-    },
-    reColorCurrentInvokeSequenceLine(invokeSequence, color) {
-      //line
+    reColorCurrentInvokeSequenceLine (invokeSequence, color) {
+      // line
       let edge = d3
-        .select("#" + `gl_${invokeSequence.guid}`)
-        .attr("stroke", color)
-        .attr("stroke-opacity", "1");
+        .select('#' + `gl_${invokeSequence.guid}`)
+        .attr('stroke', color)
+        .attr('stroke-opacity', '1')
       edge
-        .select("path")
-        .attr("stroke", color)
-        .attr("stroke-opacity", "1");
+        .select('path')
+        .attr('stroke', color)
+        .attr('stroke-opacity', '1')
       edge
-        .select("polygon")
-        .attr("fill", color)
-        .attr("stroke", color)
-        .attr("stroke-opacity", "1");
+        .select('polygon')
+        .attr('fill', color)
+        .attr('stroke', color)
+        .attr('stroke-opacity', '1')
     },
-    reColorCurrentInvokeSequenceNode(nodeId, nodeType, color) {
-      //node
-      let node = d3.select("#" + `gn_${nodeId}`);
+    reColorCurrentInvokeSequenceNode (nodeId, nodeType, color) {
+      // node
+      let node = d3.select('#' + `gn_${nodeId}`)
       node
         .selectAll(nodeType)
-        .attr("fill", color)
-        .attr("stroke", color)
-        .attr("stroke-opacity", "1");
+        .attr('fill', color)
+        .attr('stroke', color)
+        .attr('stroke-opacity', '1')
     },
-    handleTabClick(name) {
-      this.payload.filters = [];
-      this.currentTab = name;
-      if (name !== "architecture-design" && name !== "physicalGraph") {
-        this.getCurrentData();
+    handleTabClick (name) {
+      this.payload.filters = []
+      this.currentTab = name
+      if (name !== 'architectureDesign' && name !== 'physicalGraph' && name !== 'serviceInvoke') {
+        this.getCurrentData()
       }
     },
-    onSelectedRowsChange(rows, checkoutBoxdisable) {
+    onSelectedRowsChange (rows, checkoutBoxdisable) {
       if (rows.length > 0) {
-        let isUpdateableAry = [];
-        let isDeleteableAry = [];
+        let isUpdateableAry = []
+        let isDeleteableAry = []
 
         rows.forEach((r, index) => {
-          isUpdateableAry.push(!!r.nextOperations.find(op => op === "update"));
-          isDeleteableAry.push(!!r.nextOperations.find(op => op === "delete"));
-        });
+          isUpdateableAry.push(!!r.nextOperations.find(op => op === 'update'))
+          isDeleteableAry.push(!!r.nextOperations.find(op => op === 'delete'))
+        })
         let isValueTrue = val => {
-          return val === true;
-        };
+          return val === true
+        }
 
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.outerActions.forEach(_ => {
               switch (_.actionType) {
-                case "add":
-                  _.props.disabled = _.actionType === "add";
-                  break;
-                case "edit":
-                  _.props.disabled = !isUpdateableAry.every(isValueTrue);
-                  break;
-                case "delete":
-                  _.props.disabled = !isDeleteableAry.every(isValueTrue);
-                  break;
+                case 'add':
+                  _.props.disabled = _.actionType === 'add'
+                  break
+                case 'edit':
+                  _.props.disabled = !isUpdateableAry.every(isValueTrue)
+                  break
+                case 'delete':
+                  _.props.disabled = !isDeleteableAry.every(isValueTrue)
+                  break
                 default:
-                  break;
+                  break
               }
-            });
+            })
           }
-        });
+        })
       } else {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.outerActions.forEach(_ => {
-              _.props.disabled = !(
-                _.actionType === "add" ||
-                _.actionType === "export" ||
-                _.actionType === "cancel"
-              );
-            });
+              _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
+            })
           }
-        });
+        })
       }
     },
-    actionFun(type, data) {
+    actionFun (type, data) {
       switch (type) {
-        case "export":
-          this.exportHandler();
-          break;
-        case "add":
-          this.addHandler();
-          break;
-        case "edit":
-          this.editHandler();
-          break;
-        case "save":
-          this.saveHandler(data);
-          break;
-        case "delete":
-          this.deleteHandler(data);
-          break;
-        case "cancel":
-          this.cancelHandler();
-          break;
-        case "innerCancel":
-          this.$refs[this.tableRef][0].rowCancelHandler(data.weTableRowId);
-          break;
+        case 'export':
+          this.exportHandler()
+          break
+        case 'add':
+          this.addHandler()
+          break
+        case 'edit':
+          this.editHandler()
+          break
+        case 'save':
+          this.saveHandler(data)
+          break
+        case 'delete':
+          this.deleteHandler(data)
+          break
+        case 'cancel':
+          this.cancelHandler()
+          break
+        case 'innerCancel':
+          this.$refs[this.tableRef][0].rowCancelHandler(data.weTableRowId)
+          break
         default:
-          this.defaultHandler(type, data);
-          break;
+          this.defaultHandler(type, data)
+          break
       }
     },
-    sortHandler(data) {
-      if (data.order === "normal") {
-        delete this.payload.sorting;
+    sortHandler (data) {
+      if (data.order === 'normal') {
+        delete this.payload.sorting
       } else {
         this.payload.sorting = {
-          asc: data.order === "asc",
+          asc: data.order === 'asc',
           field: data.key
-        };
+        }
       }
-      this.queryCiData();
+      this.queryCiData()
     },
-    handleSubmit(data) {
-      this.payload.filters = data;
-      this.queryCiData();
+    handleSubmit (data) {
+      this.payload.filters = data
+      this.queryCiData()
     },
-    async defaultHandler(type, row) {
-      const { data, statusCode, message } = await operateCiState(
-        this.currentTab,
-        row.guid,
-        type
-      );
-      if (statusCode === "OK") {
+    async defaultHandler (type, row) {
+      const { statusCode, message } = await operateCiState(this.currentTab, row.guid, type)
+      if (statusCode === 'OK') {
         this.$Notice.success({
           title: type,
           desc: message
-        });
-        this.queryCiData();
+        })
+        this.queryCiData()
       }
     },
-    addHandler() {
+    addHandler () {
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
-          let emptyRowData = {};
+          let emptyRowData = {}
           ci.tableColumns.forEach(_ => {
-            if (_.inputType === "multiSelect" || _.inputType === "multiRef") {
-              emptyRowData[_.inputKey] = [];
+            if (_.inputType === 'multiSelect' || _.inputType === 'multiRef') {
+              emptyRowData[_.inputKey] = []
             } else {
-              emptyRowData[_.inputKey] = "";
+              emptyRowData[_.inputKey] = ''
             }
-          });
-          emptyRowData["isRowEditable"] = true;
-          emptyRowData["isNewAddedRow"] = true;
-          emptyRowData["weTableRowId"] = 1;
-          emptyRowData["nextOperations"] = [];
+          })
+          emptyRowData['isRowEditable'] = true
+          emptyRowData['isNewAddedRow'] = true
+          emptyRowData['weTableRowId'] = 1
+          emptyRowData['nextOperations'] = []
 
-          ci.tableData.unshift(emptyRowData);
+          ci.tableData.unshift(emptyRowData)
           this.$nextTick(() => {
-            this.$refs[this.tableRef][0].pushNewAddedRowToSelections();
-            this.$refs[this.tableRef][0].setCheckoutStatus(true);
-          });
+            this.$refs[this.tableRef][0].pushNewAddedRowToSelections()
+            this.$refs[this.tableRef][0].setCheckoutStatus(true)
+          })
           ci.outerActions.forEach(_ => {
-            _.props.disabled = _.actionType === "add";
-          });
+            _.props.disabled = _.actionType === 'add'
+          })
         }
-      });
+      })
     },
-    cancelHandler() {
-      this.$refs[this.tableRef][0].setAllRowsUneditable();
-      this.$refs[this.tableRef][0].setCheckoutStatus();
+    cancelHandler () {
+      this.$refs[this.tableRef][0].setAllRowsUneditable()
+      this.$refs[this.tableRef][0].setCheckoutStatus()
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
           ci.outerActions.forEach(_ => {
-            _.props.disabled = !(
-              _.actionType === "add" ||
-              _.actionType === "export" ||
-              _.actionType === "cancel"
-            );
-          });
+            _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
+          })
         }
-      });
+      })
     },
-    deleteHandler(deleteData) {
+    deleteHandler (deleteData) {
       this.$Modal.confirm({
-        title: this.$t("delete_confirm"),
-        "z-index": 1000000,
+        title: this.$t('delete_confirm'),
+        'z-index': 1000000,
         onOk: async () => {
-          let found = this.tabList.find(i => i.id === this.currentTab);
+          let found = this.tabList.find(i => i.id === this.currentTab)
           const payload = {
             id: found && found.code,
             deleteData: deleteData.map(_ => _.guid)
-          };
-          const { statusCode, message, data } = await deleteCiDatas(payload);
-          if (statusCode === "OK") {
+          }
+          const { statusCode, message } = await deleteCiDatas(payload)
+          if (statusCode === 'OK') {
             this.$Notice.success({
-              title: "Delete data Success",
+              title: 'Delete data Success',
               desc: message
-            });
+            })
             this.tabList.forEach(ci => {
               if (ci.id === this.currentTab) {
                 ci.outerActions.forEach(_ => {
-                  _.props.disabled =
-                    _.actionType === "save" ||
-                    _.actionType === "edit" ||
-                    _.actionType === "delete";
-                });
+                  _.props.disabled = _.actionType === 'save' || _.actionType === 'edit' || _.actionType === 'delete'
+                })
               }
-            });
-            this.isDataChanged = true;
-            this.queryCiData();
+            })
+            this.isDataChanged = true
+            this.queryCiData()
           }
         },
         onCancel: () => {}
-      });
-      document.querySelector(".ivu-modal-mask").click();
+      })
+      document.querySelector('.ivu-modal-mask').click()
     },
-    editHandler() {
-      this.$refs[this.tableRef][0].swapRowEditable(true);
+    editHandler () {
+      this.$refs[this.tableRef][0].swapRowEditable(true)
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
           ci.outerActions.forEach(_ => {
-            if (_.actionType === "save") {
-              _.props.disabled = false;
+            if (_.actionType === 'save') {
+              _.props.disabled = false
             }
-          });
+          })
         }
-      });
+      })
       this.$nextTick(() => {
-        this.$refs[this.tableRef][0].setCheckoutStatus(true);
-      });
+        this.$refs[this.tableRef][0].setCheckoutStatus(true)
+      })
     },
-    deleteAttr() {
-      let attrs = [];
-      const found = this.tabList.find(_ => _.id === this.currentTab);
+    deleteAttr () {
+      let attrs = []
+      const found = this.tabList.find(_ => _.id === this.currentTab)
       found.tableColumns.forEach(i => {
         if (i.isAuto) {
-          attrs.push(i.propertyName);
+          attrs.push(i.propertyName)
         }
-      });
-      return attrs;
+      })
+      return attrs
     },
-    async saveHandler(data) {
+    async saveHandler (data) {
       let setBtnsStatus = () => {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.outerActions.forEach(_ => {
-              _.props.disabled = !(
-                _.actionType === "add" || _.actionType === "export"
-              );
-            });
+              _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export')
+            })
           }
-        });
-        this.$refs[this.tableRef][0].setAllRowsUneditable();
+        })
+        this.$refs[this.tableRef][0].setAllRowsUneditable()
         this.$nextTick(() => {
           /* to get iview original data to set _ischecked flag */
-          let objData = this.$refs[this.tableRef][0].$refs.table.$refs.tbody
-            .objData;
+          let objData = this.$refs[this.tableRef][0].$refs.table.$refs.tbody.objData
           for (let obj in objData) {
-            objData[obj]._isChecked = false;
-            objData[obj]._isDisabled = false;
+            objData[obj]._isChecked = false
+            objData[obj]._isDisabled = false
           }
-        });
-      };
-      let d = JSON.parse(JSON.stringify(data));
-      let addAry = d.filter(_ => _.isNewAddedRow);
-      let editAry = d.filter(_ => !_.isNewAddedRow);
+        })
+      }
+      let d = JSON.parse(JSON.stringify(data))
+      let addAry = d.filter(_ => _.isNewAddedRow)
+      let editAry = d.filter(_ => !_.isNewAddedRow)
       if (addAry.length > 0) {
-        const deleteAttrs = this.deleteAttr();
+        const deleteAttrs = this.deleteAttr()
         addAry.forEach(_ => {
           deleteAttrs.forEach(attr => {
-            delete _[attr];
-          });
-          delete _.isRowEditable;
-          delete _.weTableForm;
-          delete _.weTableRowId;
-          delete _.isNewAddedRow;
-          delete _.nextOperations;
-        });
-        let found = this.tabList.find(i => i.id === this.currentTab);
+            delete _[attr]
+          })
+          delete _.isRowEditable
+          delete _.weTableForm
+          delete _.weTableRowId
+          delete _.isNewAddedRow
+          delete _.nextOperations
+        })
+        let found = this.tabList.find(i => i.id === this.currentTab)
         let payload = {
           id: found && found.code,
           createData: addAry
-        };
-        const { statusCode, message, data } = await createCiDatas(payload);
-        if (statusCode === "OK") {
+        }
+        const { statusCode, message } = await createCiDatas(payload)
+        if (statusCode === 'OK') {
           this.$Notice.success({
-            title: "Add data Success",
+            title: 'Add data Success',
             desc: message
-          });
-          this.isDataChanged = true;
-          setBtnsStatus();
-          this.queryCiData();
+          })
+          this.isDataChanged = true
+          setBtnsStatus()
+          this.queryCiData()
         }
       }
       if (editAry.length > 0) {
         editAry.forEach(_ => {
-          delete _.isRowEditable;
-          delete _.weTableForm;
-          delete _.weTableRowId;
-          delete _.isNewAddedRow;
-          delete _.nextOperations;
-        });
-        let found = this.tabList.find(i => i.id === this.currentTab);
+          delete _.isRowEditable
+          delete _.weTableForm
+          delete _.weTableRowId
+          delete _.isNewAddedRow
+          delete _.nextOperations
+        })
+        let found = this.tabList.find(i => i.id === this.currentTab)
 
         let payload = {
           id: found && found.code,
           updateData: editAry
-        };
-        const { statusCode, message, data } = await updateCiDatas(payload);
-        if (statusCode === "OK") {
+        }
+        const { statusCode, message } = await updateCiDatas(payload)
+        if (statusCode === 'OK') {
           this.$Notice.success({
-            title: "Update data Success",
+            title: 'Update data Success',
             desc: message
-          });
-          this.isDataChanged = true;
-          setBtnsStatus();
-          this.queryCiData();
+          })
+          this.isDataChanged = true
+          setBtnsStatus()
+          this.queryCiData()
         }
       }
     },
-    async exportHandler() {
+    async exportHandler () {
       let exportPayload = {
         ...this.payload,
         paging: false
-      };
-      const { statusCode, message, data } = await getArchitectureCiDatas(
+      }
+      const { statusCode, data } = await getArchitectureCiDatas(
         this.currentTab,
         this.systemDesignVersion,
         exportPayload
-      );
-      if (statusCode === "OK") {
+      )
+      if (statusCode === 'OK') {
         this.$refs[this.tableRef][0].export({
-          filename: "Ci Data",
+          filename: 'Ci Data',
           data: formatData(data.contents.map(_ => _.data))
-        });
+        })
       }
     },
-    pageChange(current) {
+    pageChange (current) {
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
-          ci.pagination.currentPage = current;
+          ci.pagination.currentPage = current
         }
-      });
-      this.queryCiData();
+      })
+      this.queryCiData()
     },
-    pageSizeChange(size) {
+    pageSizeChange (size) {
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
-          ci.pagination.pageSize = size;
+          ci.pagination.pageSize = size
         }
-      });
-      this.queryCiData();
+      })
+      this.queryCiData()
     },
-    async queryCiData() {
-      this.payload.pageable.pageSize = 10;
-      this.payload.pageable.startIndex = 0;
+    async queryCiData () {
+      this.payload.pageable.pageSize = 10
+      this.payload.pageable.startIndex = 0
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
-          this.payload.pageable.pageSize = ci.pagination.pageSize;
-          this.payload.pageable.startIndex =
-            (ci.pagination.currentPage - 1) * ci.pagination.pageSize;
+          this.payload.pageable.pageSize = ci.pagination.pageSize
+          this.payload.pageable.startIndex = (ci.pagination.currentPage - 1) * ci.pagination.pageSize
         }
-      });
+      })
 
-      let found = this.tabList.find(i => i.code === this.currentTab);
-      const { statusCode, message, data } = await getArchitectureCiDatas(
-        found.codeId,
-        this.systemDesignVersion,
-        this.payload
-      );
-      if (statusCode === "OK") {
+      let found = this.tabList.find(i => i.code === this.currentTab)
+      const { statusCode, data } = await getArchitectureCiDatas(found.codeId, this.systemDesignVersion, this.payload)
+      if (statusCode === 'OK') {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.tableData = data
               ? data.contents.map(_ => {
-                  return {
-                    ..._.data,
-                    nextOperations: _.meta.nextOperations || []
-                  };
-                })
-              : [];
-            ci.pagination.total = data ? data.pageInfo.totalRows : 0;
+                return {
+                  ..._.data,
+                  nextOperations: _.meta.nextOperations || []
+                }
+              })
+              : []
+            ci.pagination.total = data ? data.pageInfo.totalRows : 0
           }
-        });
+        })
       }
     },
-    async queryCiAttrs(id) {
-      const { statusCode, message, data } = await getCiTypeAttributes(id);
-      let columns = [];
-      const disabledCol = [
-        "created_date",
-        "updated_date",
-        "created_by",
-        "updated_by",
-        "key_name",
-        "guid"
-      ];
-      if (statusCode === "OK") {
-        let columns = [];
+    async queryCiAttrs (id) {
+      const { statusCode, data } = await getCiTypeAttributes(id)
+      if (statusCode === 'OK') {
+        let columns = []
         data.forEach(_ => {
-          const disEditor = disabledCol.find(i => i === _.propertyName);
-          let renderKey = _.propertyName;
-          if (_.status !== "decommissioned" && _.status !== "notCreated") {
+          let renderKey = _.propertyName
+          if (_.status !== 'decommissioned' && _.status !== 'notCreated') {
             const com =
-              _.propertyName === "invoke_design_sequence"
-                ? { component: "WeCMDBSequenceDiagram" }
-                : { ...components[_.inputType] };
+              _.propertyName === SERVICE_INVOKE_SEQ_DESIGN
+                ? { component: 'WeCMDBSequenceDiagram' }
+                : { ...components[_.inputType] }
             columns.push({
               ..._,
               title: _.name,
@@ -1156,47 +1127,44 @@ export default {
               disEditor: !_.isEditable,
               disAdded: !_.isEditable,
               placeholder: _.name,
-              component: "Input",
+              component: 'Input',
               ciType: { id: _.referenceId, name: _.name },
-              type: "text",
+              type: 'text',
               ...com
-            });
+            })
           }
-        });
+        })
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
-            ci.tableColumns = this.getSelectOptions(columns);
+            ci.tableColumns = this.getSelectOptions(columns)
           }
-        });
+        })
       }
     },
-    getSelectOptions(columns) {
+    getSelectOptions (columns) {
       columns.forEach(async _ => {
-        if (_.inputType === "select") {
-          const { status, message, data } = await getEnumCodesByCategoryId(
-            0,
-            _.referenceId
-          );
-          _["options"] = data
-            .filter(j => j.status === "active")
+        if (_.inputType === 'select') {
+          const { data } = await getEnumCodesByCategoryId(0, _.referenceId)
+          _['options'] = data
+            .filter(j => j.status === 'active')
             .map(i => {
               return {
                 label: i.value,
                 value: i.codeId
-              };
-            });
+              }
+            })
         }
-      });
-      return columns;
+      })
+      return columns
     },
-    getCurrentData() {
-      this.queryCiAttrs(this.currentTab);
-      this.queryCiData();
+    getCurrentData () {
+      this.queryCiAttrs(this.currentTab)
+      this.queryCiData()
     },
-    async getArchitectureDesignTabs() {
-      const { data, statusCode, message } = await getArchitectureDesignTabs();
-      let allInnerActions = await getExtraInnerActions();
-      if (statusCode === "OK") {
+    async getArchitectureDesignTabs () {
+      const { data, statusCode } = await getArchitectureDesignTabs()
+      let allInnerActions = await getExtraInnerActions()
+      if (statusCode === 'OK') {
         this.tabList = data.map(_ => {
           return {
             ..._,
@@ -1205,36 +1173,54 @@ export default {
             tableData: [],
             tableColumns: [],
             outerActions: JSON.parse(JSON.stringify(outerActions)),
-            innerActions: JSON.parse(
-              JSON.stringify(innerActions.concat(allInnerActions))
-            ),
+            innerActions: JSON.parse(JSON.stringify(innerActions.concat(allInnerActions))),
             pagination: JSON.parse(JSON.stringify(pagination)),
             ascOptions: {}
-          };
-        });
+          }
+        })
       }
     },
-    onSystemDesignSelect(key) {
-      this.systemDesignVersion = key;
+    onSystemDesignSelect (key) {
+      this.systemDesignVersion = key
+      this.allowArch = this.systemDesignsOrigin.some(x => x.r_guid === key) // 是否允许架构变更，当guid等于r_guid时允许
+      this.allowFixVersion = false
+      this.isTableViewOnly = true
       if (
-        this.currentTab !== "architecture-design" &&
-        this.currentTab !== "physicalGraph"
+        this.currentTab !== 'architecture-design' &&
+        this.currentTab !== 'physicalGraph' &&
+        this.currentTab === 'serviceInvoke'
       ) {
-        this.getCurrentData();
+        this.tabList.forEach(ci => {
+          ci.tableData = []
+        })
       }
     },
-    async getSystemDesigns() {
-      let { statusCode, data, message } = await getSystemDesigns();
-      if (statusCode === "OK") {
-        this.systemDesigns = data.contents.map(_ => _.data);
+    async getSystemDesigns () {
+      let { statusCode, data } = await getSystemDesigns()
+      if (statusCode === 'OK') {
+        this.systemDesignsOrigin = data.contents.map(_ => _.data)
+        // 进行分组排序
+        const resultObj = this.systemDesignsOrigin
+          .sort((a, b) => {
+            if (!b.fixed_date) return 1
+            if (!a.fixed_date) return -1
+            if (moment(a.fixed_date).isSameOrAfter(moment(b.fixed_date))) return -1
+            return 1
+          })
+          .reduce((obj, x) => {
+            if (!obj[x.r_guid]) obj[x.r_guid] = []
+            x.guid === x.r_guid ? obj[x.r_guid].unshift(x) : obj[x.r_guid].push(x)
+            return obj
+          }, {})
+        this.systemDesigns = Object.values(resultObj)
       }
     }
   },
-  created() {
-    this.getArchitectureDesignTabs();
-    this.getSystemDesigns();
+  created () {
+    this.getArchitectureDesignTabs()
+    this.getSystemDesigns()
   }
-};
+}
 </script>
 
 <style scoped>
@@ -1251,5 +1237,8 @@ export default {
 }
 .no-data {
   text-align: center;
+}
+.app-tab {
+  height: calc(100vh - 240px);
 }
 </style>

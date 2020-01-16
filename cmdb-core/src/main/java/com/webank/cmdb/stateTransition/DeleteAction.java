@@ -1,5 +1,6 @@
 package com.webank.cmdb.stateTransition;
 
+import java.util.Date;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
@@ -28,7 +29,7 @@ public class DeleteAction implements Action {
     }
 
     @Override
-    public Map<String, Object> perform(EntityManager entityManager, int ciTypeId, String guid, AdmStateTransition transition, Map<String, Object> ciData, DynamicEntityHolder entityHolder) {
+    public Map<String, Object> perform(EntityManager entityManager, int ciTypeId, String guid, AdmStateTransition transition, Map<String, Object> ciData, DynamicEntityHolder entityHolder,Date date) {
         // need call Ci service to delete for validation instead of delete directly
         ciService.doDelete(entityManager, ciTypeId, guid, false);
         logger.info("Deleted ci [{}:{}]", ciTypeId, guid);

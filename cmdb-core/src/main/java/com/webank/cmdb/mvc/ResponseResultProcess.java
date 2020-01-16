@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import com.google.common.collect.Lists;
+import com.webank.cmdb.dto.CustomResponseDto;
 import com.webank.cmdb.dto.ResponseDto;
 import com.webank.cmdb.exception.BatchChangeException;
 import com.webank.cmdb.exception.BatchChangeException.ExceptionHolder;
@@ -46,9 +47,13 @@ public class ResponseResultProcess implements ResponseBodyAdvice<Object> {
             return body;
         }
 
+        if (body instanceof CustomResponseDto) {
+            return body;
+        }
+
         if (!(body instanceof ResponseDto)) {
             if (body == null) {
-                body = SUCCESS;
+                body = new Object[0];
             }
             return new ResponseDto(ResponseDto.STATUS_OK, body);
         } else {

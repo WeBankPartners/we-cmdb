@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,12 +23,15 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.webank.cmdb.config.ApplicationProperties.UIProperties;
+import com.webank.cmdb.constant.AggregationFuction;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.ImplementOperation;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
+import com.webank.cmdb.domain.AdmRole;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
@@ -48,6 +52,7 @@ import com.webank.cmdb.dto.RoleDto;
 import com.webank.cmdb.dto.RoleUserDto;
 import com.webank.cmdb.dto.UserDto;
 import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.repository.AdmRoleRepository;
 import com.webank.cmdb.repository.StaticEntityRepository;
 import com.webank.cmdb.service.BaseKeyInfoService;
 import com.webank.cmdb.service.CiService;
@@ -77,6 +82,9 @@ public class UIWrapperService {
     private static final String CONSTANT_SEQ_NO = "seqNo";
     private static final String CONSTANT_SELECT = "select";
     private static final String CONSTANT_GUID_PATH = "root$guid";
+    private static final String CONSTANT_R_GUID_PATH = "r_guid";
+    private static final String CONSTANT_FIXED_DATE = "fixed_date";
+    private static final String List = null;
 
     @Autowired
     private UIProperties uiProperties;
@@ -96,7 +104,9 @@ public class UIWrapperService {
     private FilterRuleService filterRuleService;
     @Autowired
     private BaseKeyInfoService baseKeyInfoService;
-    
+    @Autowired
+    private AdmRoleRepository admRoleRepository;
+
     public void swapCiTypeLayerPosition(int layerId, int targetLayerId) {
         CatCodeDto enumCode = getEnumCodeById(layerId);
         CatCodeDto targetEnumCode = getEnumCodeById(targetLayerId);
@@ -226,7 +236,7 @@ public class UIWrapperService {
         if (catCode.getCatId().equals(getLayerCategoryId())) {
             catCode.setSeqNo(getMaxLayerSeqNumber() + 1);
         }
-        
+
         if (catCode.getGroupCodeId() != null && !(catCode.getGroupCodeId() instanceof Integer)) {
             catCode.setGroupCodeId(null);
         }
@@ -378,9 +388,8 @@ public class UIWrapperService {
     public List<CatCodeDto> updateEnumCodes(List<Map<String, Object>> catCodeDtos) {
         catCodeDtos.forEach(dto -> {
             dto.remove("ciTypes");
-            Object groupCodeId= dto.get("groupCodeId");
-            dto.put("catId", getLayerCategoryId());
-            if (groupCodeId!=null && !(groupCodeId instanceof Integer)) {
+            Object groupCodeId = dto.get("groupCodeId");
+            if (groupCodeId != null && !(groupCodeId instanceof Integer)) {
                 dto.remove("groupCodeId");
             }
         });
@@ -473,6 +482,38 @@ public class UIWrapperService {
         } else if (queryObject.getSorting() == null || queryObject.getSorting().getField() == null) {
             queryObject.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_CREATED_DATE));
         }
+        return ciService.query(ciTypeId, queryObject);
+    }
+
+    public QueryResponse<CiData> queryCiDataByType(Integer ciTypeId, QueryRequest queryObject) {
+        if (queryObject == null) {
+            queryObject = QueryRequest.defaultQueryObject().descendingSortBy(CmdbConstants.DEFAULT_FIELD_CREATED_DATE);
+        } else if (queryObject.getSorting() == null || queryObject.getSorting().getField() == null) {
+            queryObject.getDialect().setShowCiHistory(false);
+            queryObject.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_CREATED_DATE));
+        }
+        queryObject.addNotEqualsFilter("state", uiProperties.getEnumIdOfStateDelete());
+        QueryResponse<CiData> query = ciService.query(ciTypeId, queryObject);
+        List<String> ciDataIds = new ArrayList<>();
+        if (query.getContents() == null || query.getContents().size() <= 0) {
+            return query;
+        }
+        query.getContents().forEach(cidata -> {
+            String fixedDate = (String) cidata.getData().get(CONSTANT_FIXED_DATE);
+            if (StringUtils.isBlank(fixedDate)) {
+                String pGuid = (String) cidata.getData().get(CmdbConstants.DEFAULT_FIELD_PARENT_GUID);
+                if (StringUtils.isNotBlank(pGuid)) {
+                    ciDataIds.add(pGuid);
+                }
+            } else {
+                ciDataIds.add((String) cidata.getData().get(CmdbConstants.DEFAULT_FIELD_GUID));
+            }
+        });
+        if (ciDataIds.size() <= 0) {
+            return new QueryResponse<CiData>();
+        }
+        queryObject.addInFilter(CmdbConstants.DEFAULT_FIELD_GUID, ciDataIds);
+        queryObject.getDialect().setShowCiHistory(true);
         return ciService.query(ciTypeId, queryObject);
     }
 
@@ -706,7 +747,7 @@ public class UIWrapperService {
     }
 
     public List<CiData> getCiDataByGuid(Integer ciTypeId, List<String> guidList) {
-        QueryResponse<CiData> response = ciService.query(ciTypeId, defaultQueryObject().addInFilter("guid", guidList));
+        QueryResponse<CiData> response = ciService.query(ciTypeId, defaultQueryObject().addInFilter(CmdbConstants.GUID, guidList));
         return response != null ? response.getContents() : null;
     }
 
@@ -718,7 +759,7 @@ public class UIWrapperService {
     }
 
     public List<RoleCiTypeCtrlAttrConditionDto> updateRoleCiTypeCtrlAttrConditions(RoleCiTypeCtrlAttrConditionDto... roleCiTypeCtrlAttrConditions) {
-        return staticDtoService.update(RoleCiTypeCtrlAttrConditionDto.class, Lists.newArrayList(BeanMapUtils.convertBeanToMap(roleCiTypeCtrlAttrConditions)));
+        return staticDtoService.update(RoleCiTypeCtrlAttrConditionDto.class, BeanMapUtils.convertBeansToMaps(Arrays.asList(roleCiTypeCtrlAttrConditions)));
     }
 
     public List<RoleCiTypeDto> updateRoleCiTypes(RoleCiTypeDto... roleCiTypes) {
@@ -752,13 +793,13 @@ public class UIWrapperService {
             List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceCodeOfBelong());
 
             if (childrenCiTypeRelativeAttributes.size() != 0) {
-                recursiveGetChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, limitedCiTypes, ciDataMap.get("guid").toString(), resourceTrees.get(i).getChildren());
+                recursiveGetChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, limitedCiTypes, ciDataMap.get(CmdbConstants.GUID).toString(), resourceTrees.get(i).getChildren());
                 continue;
             }
 
             List<CiTypeAttrDto> runningCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceCodeOfRunning());
             if (runningCiTypeRelativeAttributes.size() != 0) {
-                recursiveGetChildrenDataByRelativeAttributes(runningCiTypeRelativeAttributes, limitedCiTypes, ciDataMap.get("guid").toString(), resourceTrees.get(i).getChildren());
+                recursiveGetChildrenDataByRelativeAttributes(runningCiTypeRelativeAttributes, limitedCiTypes, ciDataMap.get(CmdbConstants.GUID).toString(), resourceTrees.get(i).getChildren());
             }
         }
     }
@@ -766,7 +807,7 @@ public class UIWrapperService {
     private List<ResourceTreeDto> getDataTreesByCiTypeIdAndGuid(int ciTypeId, List<String> guids) {
         List<Integer> sameLayerCiTypes = getSameCiTypesByCiTypeId(ciTypeId);
         List<ResourceTreeDto> resourceTrees = new ArrayList<>();
-        QueryResponse<CiData> response = ciService.query(ciTypeId, defaultQueryObject().addInFilter("guid", guids));
+        QueryResponse<CiData> response = ciService.query(ciTypeId, defaultQueryObject().addInFilter(CmdbConstants.GUID, guids));
 
         if (response == null || response.getContents() == null || response.getContents().size() == 0) {
             return null;
@@ -789,7 +830,7 @@ public class UIWrapperService {
                 if (!sameLayerCiTypes.contains(childrenCiTypeRelativeAttribute.getCiTypeId())) {
                     continue;
                 }
-                filter.put(childrenCiTypeRelativeAttribute.getPropertyName(), ciDataMap.get("guid").toString());
+                filter.put(childrenCiTypeRelativeAttribute.getPropertyName(), ciDataMap.get(CmdbConstants.GUID).toString());
                 recursiveGetChildrenData(childrenCiTypeRelativeAttribute.getCiTypeId(), sameLayerCiTypes, resourceTrees.get(i).getChildren(), filter);
             }
         }
@@ -815,10 +856,8 @@ public class UIWrapperService {
     private ResourceTreeDto buildNewResourceTreeDto(CiData ciData, Integer ciTypeId) {
         ResourceTreeDto resourceTree = new ResourceTreeDto();
         Map<String, Object> data = ciData.getData();
-        resourceTree.setGuid(data.get("guid").toString());
+        resourceTree.setGuid(data.get(CmdbConstants.GUID).toString());
         resourceTree.setCiTypeId(ciTypeId);
-        List<CiTypeAttrDto> ciTypeAttributes = getCiTypeAttributesByCiTypeId(ciTypeId);
-        resourceTree.setAttrs(ciTypeAttributes);
         resourceTree.setData(data);
 
         return resourceTree;
@@ -857,19 +896,19 @@ public class UIWrapperService {
         }
     }
 
-    private void recursiveGetChildrenDataByRelativeAttributes(List<CiTypeAttrDto> childrenCiTypeRelativeAttributes, String stateEnumCode, String guid, List<ResourceTreeDto> children) {
+    private void recursiveGetChildrenDataByRelativeAttributes(List<CiTypeAttrDto> childrenCiTypeRelativeAttributes, String stateEnumCode, String guid, List<ResourceTreeDto> children, Filter fixDate) {
         if (childrenCiTypeRelativeAttributes.size() != 0) {
-            for (CiTypeAttrDto childrenCiTypeRelativeAttribute : childrenCiTypeRelativeAttributes) {
-                Map<String, Object> filter = new HashMap<>();
-                filter.put(childrenCiTypeRelativeAttribute.getPropertyName(), guid);
 
+            for (CiTypeAttrDto childrenCiTypeRelativeAttribute : childrenCiTypeRelativeAttributes) {
+                QueryRequest defaultQueryObject = QueryRequest.defaultQueryObject();
+                defaultQueryObject.addEqualsFilter(childrenCiTypeRelativeAttribute.getPropertyName(), guid);
                 List<CiTypeAttrDto> attr = getCiTypeAttributesByCiTypeIdAndPropertyName(childrenCiTypeRelativeAttribute.getCiTypeId(), uiProperties.getPropertyNameOfState());
                 if (attr.size() == 0) {
                     continue;
                 }
 
                 int stateEnumCatOfChildren = attr.get(0).getReferenceId();
-                recursiveGetChildrenDataFilterState(childrenCiTypeRelativeAttribute.getCiTypeId(), stateEnumCatOfChildren, stateEnumCode, children, filter);
+                recursiveGetChildrenDataFilterState(childrenCiTypeRelativeAttribute.getCiTypeId(), stateEnumCatOfChildren, stateEnumCode, children, defaultQueryObject, fixDate);
             }
         }
     }
@@ -883,22 +922,22 @@ public class UIWrapperService {
         }
 
         for (CiData idcDesign : idcDesignData) {
-            String idcDesignGuid = idcDesign.getData().get("guid").toString();
+            String idcDesignGuid = idcDesign.getData().get(CmdbConstants.GUID).toString();
 
             ZoneLinkDto result = new ZoneLinkDto();
             result.setIdcGuid(idcDesignGuid);
 
-            List<CiData> zoneDesignData = queryCiData(uiProperties.getCiTypeIdOfZoneDesign(), defaultQueryObject().addEqualsFilter("idc_design", idcDesignGuid)).getContents();
+            List<CiData> zoneDesignData = queryCiData(uiProperties.getCiTypeIdOfZoneDesign(), defaultQueryObject().addEqualsFilter("data_center_design", idcDesignGuid)).getContents();
             List<String> zoneDesignList = new ArrayList<>();
             for (Object zoneDesign : zoneDesignData) {
-                zoneDesignList.add(idcDesign.getData().get("guid").toString());
+                zoneDesignList.add(idcDesign.getData().get(CmdbConstants.GUID).toString());
             }
 
             if (zoneDesignList.size() != 0) {
                 List<CiData> zoneDesignLinkData = queryCiData(uiProperties.getCiTypeIdOfZoneLinkDesign(),
                         defaultQueryObject()
-                                .addInFilter("zone_design1", zoneDesignList)
-                                .addInFilter("zone_design2", zoneDesignList)
+                                .addInFilter("network_zone_design_1", zoneDesignList)
+                                .addInFilter("network_zone_design_2", zoneDesignList)
                                 .setFiltersRelationship("or")).getContents();
                 result.setLinkList(zoneDesignLinkData);
             }
@@ -920,22 +959,23 @@ public class UIWrapperService {
 
         List<CiData> idcData = queryCiData(uiProperties.getCiTypeIdOfIdc(), defaultQueryObject()).getContents();
         for (CiData idc : idcData) {
-            String idcGuid = idc.getData().get("guid").toString();
+            String idcGuid = idc.getData().get(CmdbConstants.GUID).toString();
 
             ZoneLinkDto result = new ZoneLinkDto();
             result.setIdcGuid(idcGuid);
 
-            List<CiData> zoneData = queryCiData(uiProperties.getCiTypeIdOfZone(), defaultQueryObject().addEqualsFilter("idc", idcGuid)).getContents();
+            List<CiData> zoneData = queryCiData(uiProperties.getCiTypeIdOfZone(), defaultQueryObject().addEqualsFilter("data_center", idcGuid)).getContents();
             List<String> zoneList = new ArrayList<>();
-            for (Object zone : zoneData) {
-                zoneList.add(idc.getData().get("guid").toString());
+            for (CiData zone : zoneData) {
+                zoneList.add(zone.getData().get(CmdbConstants.GUID).toString());
             }
             if (zoneList.size() != 0) {
-                List<CiData> zoneLinkData = queryCiData(uiProperties.getCiTypeIdOfZoneLink(),
-                        defaultQueryObject()
-                                .addInFilter("zone1", zoneList)
-                                .addInFilter("zone2", zoneList)
-                                .setFiltersRelationship("or"))
+                QueryRequest setFiltersRelationship = defaultQueryObject()
+                .addInFilter("network_zone_1", zoneList)
+                .addInFilter("network_zone_2", zoneList)
+                .setFiltersRelationship("or");
+                setFiltersRelationship.getDialect().setShowCiHistory(true);
+                List<CiData> zoneLinkData = queryCiData(uiProperties.getCiTypeIdOfZoneLink(),setFiltersRelationship)
                                         .getContents();
                 result.setLinkList(zoneLinkData);
             }
@@ -945,7 +985,13 @@ public class UIWrapperService {
     }
 
     public Object getSystemDesigns() {
-        return queryCiData(uiProperties.getCiTypeIdOfSystemDesign(), defaultQueryObject());
+        QueryRequest defaultQueryObject = defaultQueryObject();
+        defaultQueryObject.getDialect().setShowCiHistory(true);
+        return queryCiData(uiProperties.getCiTypeIdOfSystemDesign(), defaultQueryObject);
+    }
+
+    public Object getSystems() {
+        return queryCiData(uiProperties.getCiTypeIdOfSystem(), defaultQueryObject());
     }
 
     public List<ResourceTreeDto> getAllDesignTreesFromSystemDesign(String systemDesignGuid) {
@@ -959,11 +1005,26 @@ public class UIWrapperService {
         int stateEnumCat = attr.get(0).getReferenceId();
         String stateEnumCode = uiProperties.getEnumCodeOfStateDelete();
 
-        Map<String, Object> filter = new HashMap<>();
-        filter.put("guid", systemDesignGuid);
-        recursiveGetChildrenDataFilterState(systemDesignCiTypeId, stateEnumCat, stateEnumCode, designTrees, filter);
+        QueryRequest defaultQueryRequest = QueryRequest.defaultQueryObject();
+        defaultQueryRequest.addEqualsFilter(CmdbConstants.GUID, systemDesignGuid);
+        Filter fixDateFilter = getFixDateFilter(systemDesignCiTypeId, defaultQueryRequest);
+
+        recursiveGetChildrenDataFilterState(systemDesignCiTypeId, stateEnumCat, stateEnumCode, designTrees, defaultQueryRequest, fixDateFilter);
 
         return designTrees;
+    }
+
+    private Filter getFixDateFilter(int systemDesignCiTypeId, QueryRequest defaultQueryRequest) {
+        defaultQueryRequest.getDialect().setShowCiHistory(true);
+        List<CiData> ciDatas = queryCiData(systemDesignCiTypeId, defaultQueryRequest).getContents();
+
+        String fixDate = (String) ciDatas.get(0).getData().get(CONSTANT_FIXED_DATE);
+
+        Filter fixDateFilter = null;
+        if (StringUtils.isNotBlank(fixDate)) {
+            fixDateFilter = new Filter(CONSTANT_FIXED_DATE, FilterOperator.LessEqual.getCode(), fixDate);
+        }
+        return fixDateFilter;
     }
 
     public List<CiTypeAttrDto> getCiTypeAttributesByCiTypeIdAndPropertyName(int ciTypId, String propertyName) {
@@ -974,23 +1035,55 @@ public class UIWrapperService {
         return queryCiTypeAttributes(queryObject);
     }
 
-    public void recursiveGetChildrenDataFilterState(Integer ciTypeId, int stateEnumCat, String stateEnumCode, List<ResourceTreeDto> resourceTrees, Map<String, Object> inputFilters) {
-        List<CiData> ciDatas = queryCiData(ciTypeId, buildQueryObjectWithEqualsFilter(inputFilters)).getContents();
+    public void recursiveGetChildrenDataFilterState(Integer ciTypeId, int stateEnumCat, String stateEnumCode, List<ResourceTreeDto> resourceTrees, QueryRequest inputFilters, Filter fixDate) {
+        inputFilters = setQueryRequest(inputFilters, fixDate, ciTypeId);
+
+        List<CiData> ciDatas = queryCiData(ciTypeId, inputFilters).getContents();
+
         for (int i = 0; i < ciDatas.size(); i++) {
             CiData ciData = ciDatas.get(i);
             Map<String, Object> ciDataMap = ciData.getData();
             ResourceTreeDto resourceTreeDto = buildNewResourceTreeDto(ciData, ciTypeId);
 
-            List<CiTypeAttrDto> ciTypeAttributes = (List<CiTypeAttrDto>) resourceTreeDto.getAttrs();
-
-            if (checkCiTypeAttributes(ciTypeAttributes, stateEnumCat, stateEnumCode, ciDataMap)) {
-                continue;
-            }
+            /*
+             * List<CiTypeAttrDto> ciTypeAttributes = (List<CiTypeAttrDto>)
+             * resourceTreeDto.getAttrs();
+             * 
+             * if (checkCiTypeAttributes(ciTypeAttributes, stateEnumCat, stateEnumCode,
+             * ciDataMap)) { continue; }
+             */
 
             resourceTrees.add(resourceTreeDto);
             List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceCodeOfBelong());
-            recursiveGetChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, stateEnumCode, ciDataMap.get("guid").toString(), resourceTrees.get(i).getChildren());
+            recursiveGetChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, stateEnumCode, ciDataMap.get(CmdbConstants.DEFAULT_FIELD_ROOT_GUID).toString(), resourceTrees.get(i).getChildren(), fixDate);
         }
+    }
+
+    private QueryRequest setQueryRequest(QueryRequest inputFilters, Filter fixDate, Integer ciTypeId) {
+        if (fixDate == null) {
+            return inputFilters;
+        }
+        QueryRequest queryData = defaultQueryObject();
+        
+        if (inputFilters.getFilters().size() == 1) {
+            queryData.getFilters().add(inputFilters.getFilters().get(0));
+        }
+        inputFilters.getDialect().setShowCiHistory(true);
+        inputFilters.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
+        Map<String, String> aggregation = Maps.newHashMap();
+        aggregation.put(AggregationFuction.MAX.getCode(), CONSTANT_FIXED_DATE);
+        inputFilters.setAggregationFuction(aggregation);
+        inputFilters.getFilters().add(fixDate);
+        inputFilters.addNotEmptyFilter(CONSTANT_FIXED_DATE);
+        inputFilters.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID));
+        List<CiData> fixed_date = queryCiData(ciTypeId, inputFilters).getContents();
+        if (fixed_date == null || fixed_date.size() <= 0) {
+            return inputFilters;
+        }
+        List date = (List) fixed_date.get(0).getData().get(CONSTANT_FIXED_DATE);
+        queryData.addInFilter(CONSTANT_FIXED_DATE, date);
+        queryData.getDialect().setShowCiHistory(true);
+        return queryData;
     }
 
     private boolean checkCiTypeAttributes(List<CiTypeAttrDto> ciTypeAttributes, int stateEnumCat, String stateEnumCode, Map ciDataMap) {
@@ -1000,7 +1093,7 @@ public class UIWrapperService {
                 delconFlag = false;
                 try {
                     Map catCodeData = (Map) ciDataMap.get(ciTypeAttribute.getPropertyName());
-                    String fixedDate = ciDataMap.get("fixed_date").toString();
+                    String fixedDate = ciDataMap.get(CONSTANT_FIXED_DATE).toString();
                     if (stateEnumCode.equalsIgnoreCase(catCodeData.get("code").toString()) && fixedDate != null && fixedDate.length() > 0) {
                         delconFlag = true;
                         break;
@@ -1035,21 +1128,21 @@ public class UIWrapperService {
     public Object getArchitectureDesignTabs() {
         return getEnumCodesByCategoryName(uiProperties.getCatNameOfArchitectureDesign());
     }
-    
+
     public Object getPlanningDesignTabs() {
         return getEnumCodesByCategoryName(uiProperties.getCatNameOfPlanningDesign());
     }
-    
+
     public Object getResourcePlanningTabs() {
         return getEnumCodesByCategoryName(uiProperties.getCatNameOfResoursePlanning());
     }
-    
+
     public Object getArchitectureCiData(Integer codeId, String systemDesignGuid, QueryRequest queryObject) {
         Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystemDesign();
         return getCiData(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId);
     }
 
-    private Object getCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject,int systemDesignCiTypeId) {
+    private Object getCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject, int systemDesignCiTypeId) {
         List<String> guid = Arrays.asList(systemDesignGuid.split(","));
         CatCodeDto code = getEnumCodeById(codeId);
         Integer ciTypeId = Integer.parseInt(code.getCode());
@@ -1061,7 +1154,7 @@ public class UIWrapperService {
         }
 
         if (routineForGetingSystemDesignGuid == null) {
-            queryObject.addInFilter("guid", guid);
+            queryObject.addInFilter(CmdbConstants.GUID, guid);
             return queryCiData(ciTypeId, queryObject);
         }
 
@@ -1076,7 +1169,7 @@ public class UIWrapperService {
             return new QueryResponse<CiData>();
         }
 
-        queryObject.addInFilter("guid", guids);
+        queryObject.addInFilter(CmdbConstants.GUID, guids);
         return queryCiData(ciTypeId, queryObject);
     }
 
@@ -1100,7 +1193,7 @@ public class UIWrapperService {
         QueryRequest queryRequest = new QueryRequest();
         List<Filter> filters = new ArrayList<Filter>();
         String enumPorpertyNameOfEnv = getEnumPropertyNameByCiTypeId(rootCiTypeId, envEnumCat);
-        
+
         if (envEnumCode != null && enumPorpertyNameOfEnv != null) {
             Filter rootCifilter = new Filter("root$" + enumPorpertyNameOfEnv, "eq", getEnumCodeIdByCode(envEnumCat, envEnumCode));
             filters.add(rootCifilter);
@@ -1116,7 +1209,7 @@ public class UIWrapperService {
         List<Integer> attrs = new ArrayList<Integer>();
         List<String> attrKeyNames = new ArrayList<String>();
 
-        attrs.add(getAttrIdByCiTypeId(rootCiTypeId, "guid"));
+        attrs.add(getAttrIdByCiTypeId(rootCiTypeId, CmdbConstants.GUID));
         attrKeyNames.add(CONSTANT_GUID_PATH);
 
         if (envEnumCode != null && enumPorpertyNameOfEnv != null) {
@@ -1129,7 +1222,7 @@ public class UIWrapperService {
 
         rootDto.setCriteria(rootNode);
         rootDto.setQueryRequest(queryRequest);
-        
+
         IntegrationQueryDto childQueryDto = travelRoutine(routineItems, filterCiTypeId, rootDto, 1, "", envEnumCat, envEnumCode);
         if (childQueryDto != null) {
             rootDto.getCriteria().setChildren(Arrays.asList(childQueryDto));
@@ -1175,7 +1268,7 @@ public class UIWrapperService {
             return null;
         }
         CiRoutineItem item = routines.get(position);
-        
+
         IntegrationQueryDto dto = new IntegrationQueryDto();
         dto.setName("index-" + position);
         dto.setCiTypeId(item.getCiTypeId());
@@ -1186,8 +1279,8 @@ public class UIWrapperService {
         dto.setParentRs(parentRs);
 
         AdmCiType ciType = staticEntityRepository.findEntityById(AdmCiType.class, item.getCiTypeId());
-        String tableName=CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, ciType.getTableName());
-        key = key+"-"+tableName;
+        String tableName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, ciType.getTableName());
+        key = key + "-" + tableName;
         String enumPorpertyNameOfEnv = getEnumPropertyNameByCiTypeId(item.getCiTypeId(), envEnumCat);
         if (envEnumCode != null && enumPorpertyNameOfEnv != null) {
             List<Integer> attrs = new ArrayList<Integer>();
@@ -1196,21 +1289,21 @@ public class UIWrapperService {
                 key = key.substring(1);
             Filter cifilter = new Filter(key + "." + enumPorpertyNameOfEnv, "eq",
                     getEnumCodeIdByCode(envEnumCat, envEnumCode));
-            
+
             rootDto.getQueryRequest().getFilters().add(cifilter);
             attrs.add(getAttrIdByCiTypeId(item.getCiTypeId(), enumPorpertyNameOfEnv));
             attrKeyNames.add(key + "." + enumPorpertyNameOfEnv);
             dto.setAttrs(attrs);
             dto.setAttrKeyNames(attrKeyNames);
         }
-        IntegrationQueryDto childDto = travelRoutine(routines, filterCiTypeId, rootDto, ++position, "",envEnumCat,envEnumCode);
+        IntegrationQueryDto childDto = travelRoutine(routines, filterCiTypeId, rootDto, ++position, "", envEnumCat, envEnumCode);
         if (childDto == null) {
             if (filterCiTypeId != item.getCiTypeId()) {
                 log.error("routine tail ciType not right!!!");
                 return null;
             }
 
-            dto.setAttrs(Arrays.asList(getAttrIdByCiTypeId(item.getCiTypeId(), "guid"), getAttrIdByCiTypeId(item.getCiTypeId(), "r_guid")));
+            dto.setAttrs(Arrays.asList(getAttrIdByCiTypeId(item.getCiTypeId(), CmdbConstants.GUID), getAttrIdByCiTypeId(item.getCiTypeId(), CONSTANT_R_GUID_PATH)));
             dto.setAttrKeyNames(Arrays.asList("tail$guid", "tail$r_guid"));
         } else {
             dto.setChildren(Arrays.asList(childDto));
@@ -1219,21 +1312,18 @@ public class UIWrapperService {
         return dto;
     }
 
-    public Object getDeployCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject) {
-        int systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystemDesign();
-        return getCiData(codeId, envCode, systemDesignGuid, queryObject, systemDesignCiTypeId);
+    public Object getDeployCiData(Integer codeId, String envCode, String systemGuid, QueryRequest queryObject) {
+        int systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystem();
+        return getCiData(codeId, envCode, systemGuid, queryObject, systemDesignCiTypeId);
     }
 
     public Object getDeployDesignTabs() {
         return getEnumCodesByCategoryName(uiProperties.getCatNameOfDeployDesign());
     }
 
-    public List<ResourceTreeDto> getAllDeployTreesFromSubSys(String envCode, String systemDesignGuid) {
-        List<String> guid = Arrays.asList(systemDesignGuid.split(","));
+    public List<ResourceTreeDto> getAllDeployTreesFromSystem(String systemGuid) {
         List<ResourceTreeDto> deployTrees = new ArrayList<>();
-        int systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystemDesign();
         int subsysCiTypeId = uiProperties.getCiTypeIdOfSubsys();
-        int envEnumCat = getEnumCategoryByName(uiProperties.getEnumCategoryNameOfEnv()).getCatId();
 
         String stateEnumCode = uiProperties.getEnumCodeOfStateDelete();
 
@@ -1248,8 +1338,7 @@ public class UIWrapperService {
             return null;
         }
 
-        List<Map<String, Object>> ciDatas = getAllCiDataOfRootCi(subsysCiTypeId, envEnumCat, envCode, systemDesignCiTypeId, guid, routine);
-
+        Map<String, Object> ciData = ciService.getCi(uiProperties.getCiTypeIdOfSystem(), systemGuid);
         List<CiTypeAttrDto> attrOfSubsys = getCiTypeAttributesByCiTypeIdAndPropertyName(subsysCiTypeId, uiProperties.getPropertyNameOfState());
         if (attrOfSubsys.size() == 0) {
             return null;
@@ -1257,17 +1346,14 @@ public class UIWrapperService {
 
         int stateEnumCatOfSubsys = attrOfSubsys.get(0).getReferenceId();
 
-        for (int i = 0; i < ciDatas.size(); i++) {
-            Object ciData = ciDatas.get(i);
-            Map ciDataMap = (Map) ciData;
+        Map ciDataMap = (Map) ciData;
 
-            Map<String, Object> filter = new HashMap<>();
-            filter.put("guid", ciDataMap.get(CONSTANT_GUID_PATH).toString());
+        QueryRequest defaultQueryRequest = QueryRequest.defaultQueryObject();
+        defaultQueryRequest.addEqualsFilter(CmdbConstants.GUID, ciDataMap.get(CmdbConstants.DEFAULT_FIELD_GUID).toString());
 
-            List<ResourceTreeDto> resourceTrees = new ArrayList<>();
-            recursiveGetChildrenDataFilterState(subsysCiTypeId, stateEnumCatOfSubsys, stateEnumCode, resourceTrees, filter);
-            deployTrees.addAll(resourceTrees);
-        }
+        List<ResourceTreeDto> resourceTrees = new ArrayList<>();
+        recursiveGetChildrenDataFilterState(uiProperties.getCiTypeIdOfSystem(), stateEnumCatOfSubsys, stateEnumCode, resourceTrees, defaultQueryRequest, null);
+        deployTrees.addAll(resourceTrees);
 
         return deployTrees;
     }
@@ -1285,26 +1371,26 @@ public class UIWrapperService {
         return response != null ? response.getContents() : null;
     }
 
-    public List<ResourceTreeDto> getApplicationDeploymentDesignDataTreeBySystemDesignGuidAndEnvCode(String systemDesignGuid, Integer envCodeId) {
+    public List<ResourceTreeDto> getApplicationDeploymentDesignDataTreeBySystemDesignGuidAndEnvCode(String systemGuid) {
         List<ResourceTreeDto> instanceData = new ArrayList<>();
-        Map<String, Object> systemDesignfilter = new HashMap<>();
-        Map<String, Object> subsystemfilter = new HashMap<>();
-        List<Integer> limitedCiTypeIdsOfGetInstanceData = Lists.newArrayList(uiProperties.getCiTypeIdOfSystemDesign(),
+
+        QueryRequest systemDesignfilter = QueryRequest.defaultQueryObject();
+
+        List<Integer> limitedCiTypeIdsOfGetInstanceData = Lists.newArrayList(uiProperties.getCiTypeIdOfSystem(),
                 uiProperties.getCiTypeIdOfSubsystemDesign(),
                 uiProperties.getCiTypeIdOfSubsys(),
                 uiProperties.getCiTypeIdOfUnit(),
                 uiProperties.getCiTypeIdOfInstance());
 
-        systemDesignfilter.put("guid", systemDesignGuid);
-        subsystemfilter.put("env", envCodeId);
-        getBottomChildrenDataByBottomCiTypeId(uiProperties.getCiTypeIdOfSystemDesign(),
+        systemDesignfilter.addEqualsFilter(CmdbConstants.GUID, systemGuid);
+        getBottomChildrenDataByBottomCiTypeId(uiProperties.getCiTypeIdOfSystem(),
                 uiProperties.getCiTypeIdOfInstance(),
                 instanceData,
                 limitedCiTypeIdsOfGetInstanceData,
                 systemDesignfilter,
-                subsystemfilter);
+                null);
 
-        List<CiTypeAttrDto> relateCiAttrDtoList = getRefToAttrByCiTypeIdAndRefName(uiProperties.getCiTypeIdOfInstance(), uiProperties.getReferenceCodeOfRunning());
+        List<CiTypeAttrDto> relateCiAttrDtoList = getRefToAttrByCiTypeIdAndRefName(uiProperties.getCiTypeIdOfInstance(), uiProperties.getReferenceCodeOfUse());
         if (relateCiAttrDtoList.size() == 0 || relateCiAttrDtoList.get(0) == null) {
             return new ArrayList<>();
         }
@@ -1328,15 +1414,11 @@ public class UIWrapperService {
         return idcDataTree;
     }
 
-    private void getBottomChildrenDataByBottomCiTypeId(Integer ciTypeId, Integer bottomCiTypeId, List<ResourceTreeDto> bottomChildrenData, List<Integer> limitedCiTypeIds, Map<String, Object> inputFilters,
-            Map<String, Object> subsystemFilters) {
-        QueryRequest buildQueryObjectWithEqualsFilter = buildQueryObjectWithEqualsFilter(inputFilters);
-        AdmCiType admCiType = staticEntityRepository.findEntityById(AdmCiType.class,
-                ciTypeId);
-        if (uiProperties.getCiTypeCodeOfSubsys().equals(admCiType.getTableName())) {
-            buildQueryObjectWithEqualsFilter = buildQueryObjectWithEqualsFilter.addEqualsFilters(subsystemFilters);
-        }
-        List<CiData> ciDatas = queryCiData(ciTypeId, buildQueryObjectWithEqualsFilter).getContents();
+    private void getBottomChildrenDataByBottomCiTypeId(Integer ciTypeId, Integer bottomCiTypeId, List<ResourceTreeDto> bottomChildrenData, List<Integer> limitedCiTypeIds, QueryRequest queryRequest,
+            Filter fixDateFilter) {
+        queryRequest = setQueryRequest(queryRequest, fixDateFilter, ciTypeId);
+        List<CiData> ciDatas = queryCiData(ciTypeId, queryRequest).getContents();
+
         if (ciTypeId.equals(bottomCiTypeId)) {
             for (CiData ciData : ciDatas) {
                 ResourceTreeDto ci = buildNewResourceTreeDto(ciData, ciTypeId);
@@ -1349,28 +1431,29 @@ public class UIWrapperService {
         for (CiData ciData : ciDatas) {
             Map<String, Object> ciDataMap = ciData.getData();
             List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceCodeOfBelong());
-            if (childrenCiTypeRelativeAttributes.size() != 0 && ciDataMap.get("guid") != null) {
-                findBelongCi = getBottomChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, limitedCiTypeIds, ciDataMap.get("guid").toString(), bottomChildrenData, bottomCiTypeId, subsystemFilters);
+            if (childrenCiTypeRelativeAttributes.size() != 0 && ciDataMap.get(CmdbConstants.GUID) != null) {
+                findBelongCi = getBottomChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, limitedCiTypeIds, ciDataMap.get(CmdbConstants.GUID).toString(), bottomChildrenData, bottomCiTypeId, fixDateFilter);
             }
 
             if (!findBelongCi) {
                 List<CiTypeAttrDto> realizeCiTypeRelativeAttributes = findRealizeCiAttributesByCiTypeId(ciTypeId);
-                if (realizeCiTypeRelativeAttributes.size() != 0 && ciDataMap.get("guid") != null) {
-                    getBottomChildrenDataByRealizeAttributes(realizeCiTypeRelativeAttributes, limitedCiTypeIds, ciDataMap.get("guid").toString(), bottomChildrenData, bottomCiTypeId, subsystemFilters);
+                if (realizeCiTypeRelativeAttributes.size() != 0 && ciDataMap.get(CmdbConstants.GUID) != null) {
+                    getBottomChildrenDataByRealizeAttributes(realizeCiTypeRelativeAttributes, limitedCiTypeIds, ciDataMap.get(CmdbConstants.GUID).toString(), bottomChildrenData, bottomCiTypeId, fixDateFilter);
                 }
             }
         }
     }
 
     private void getBottomChildrenDataByRealizeAttributes(List<CiTypeAttrDto> realizeCiTypeRelativeAttributes, List<Integer> limitedCiTypeIds, String guid, List<ResourceTreeDto> bottomChildrenData, Integer bottomCiTypeId,
-            Map<String, Object> subsystemFilters) {
+            Filter fixDateFilter) {
         for (CiTypeAttrDto realizeCiTypeRelativeAttribute : realizeCiTypeRelativeAttributes) {
-            Map<String, Object> filter = new HashMap<>();
             if (!limitedCiTypeIds.contains(realizeCiTypeRelativeAttribute.getCiTypeId())) {
                 continue;
             }
-            filter.put(realizeCiTypeRelativeAttribute.getPropertyName(), guid);
-            getBottomChildrenDataByBottomCiTypeId(realizeCiTypeRelativeAttribute.getCiTypeId(), bottomCiTypeId, bottomChildrenData, limitedCiTypeIds, filter, subsystemFilters);
+
+            QueryRequest filter = QueryRequest.defaultQueryObject();
+            filter.addEqualsFilter(realizeCiTypeRelativeAttribute.getPropertyName(), guid);
+            getBottomChildrenDataByBottomCiTypeId(realizeCiTypeRelativeAttribute.getCiTypeId(), bottomCiTypeId, bottomChildrenData, limitedCiTypeIds, filter, fixDateFilter);
         }
     }
 
@@ -1387,18 +1470,14 @@ public class UIWrapperService {
     }
 
     private boolean getBottomChildrenDataByRelativeAttributes(List<CiTypeAttrDto> childrenCiTypeRelativeAttributes, List<Integer> limitedCiTypeIds, String guid, List<ResourceTreeDto> bottomChildrenData, Integer bottomCiTypeId,
-            Map<String, Object> subsystemFilters) {
+            Filter fixDateFilter) {
         for (CiTypeAttrDto childrenCiTypeRelativeAttribute : childrenCiTypeRelativeAttributes) {
-            Map<String, Object> filter = new HashMap<>();
+            QueryRequest filter = QueryRequest.defaultQueryObject();
             if (!limitedCiTypeIds.contains(childrenCiTypeRelativeAttribute.getCiTypeId())) {
                 continue;
             }
-            if (childrenCiTypeRelativeAttribute.getCiTypeId().equals(uiProperties.getCiTypeIdOfSubsys())) {
-                filter = subsystemFilters;
-            }
-            filter.put(childrenCiTypeRelativeAttribute.getPropertyName(), guid);
-
-            getBottomChildrenDataByBottomCiTypeId(childrenCiTypeRelativeAttribute.getCiTypeId(), bottomCiTypeId, bottomChildrenData, limitedCiTypeIds, filter, subsystemFilters);
+            filter.addEqualsFilter(childrenCiTypeRelativeAttribute.getPropertyName(), guid);
+            getBottomChildrenDataByBottomCiTypeId(childrenCiTypeRelativeAttribute.getCiTypeId(), bottomCiTypeId, bottomChildrenData, limitedCiTypeIds, filter, fixDateFilter);
             return true;
         }
         return false;
@@ -1422,11 +1501,11 @@ public class UIWrapperService {
             boolean continueFlag = false;
             Map ciMap = (Map) singleData.getData();
             Object relateCiTypeDto = ciMap.get(relateCiAttrDto.getPropertyName());
-            if (relateCiTypeDto == null||"".equals(relateCiTypeDto)) {
+            if (relateCiTypeDto == null || "".equals(relateCiTypeDto)) {
                 continue;
             }
 
-            String relateCiAttrValue = ((Map) relateCiTypeDto).get("guid").toString();
+            String relateCiAttrValue = ((Map) relateCiTypeDto).get(CmdbConstants.GUID).toString();
 
             if (returnData.size() != 0) {
                 for (ResourceTreeDto returnDatum : returnData) {
@@ -1506,14 +1585,15 @@ public class UIWrapperService {
 
     public List<ResourceTreeDto> getApplicationFrameworkDesignDataTreeBySystemDesignGuid(String systemDesignGuid) {
         List<ResourceTreeDto> unitDesignDatas = new ArrayList<>();
-        Map<String, Object> inputFilter = new HashMap<>();
-        inputFilter.put("guid", systemDesignGuid);
+        QueryRequest defaultQueryObject = QueryRequest.defaultQueryObject();
+        defaultQueryObject.addEqualsFilter(CmdbConstants.GUID, systemDesignGuid);
+        Filter fixDateFilter = getFixDateFilter(uiProperties.getCiTypeIdOfSystemDesign(), defaultQueryObject);
         getBottomChildrenDataByBottomCiTypeId(uiProperties.getCiTypeIdOfSystemDesign(),
                 uiProperties.getCiTypeIdOfUnitDesign(),
                 unitDesignDatas,
                 getSameCiTypesByCiTypeId(uiProperties.getCiTypeIdOfSystemDesign()),
-                inputFilter,
-                new HashMap<>());
+                defaultQueryObject,
+                fixDateFilter);
 
         List<ResourceTreeDto> allIdcDesignDatas = getAllIdcDesignTrees();
 
@@ -1562,15 +1642,34 @@ public class UIWrapperService {
 
     public List<CiData> getIdcDataByGuid(List<String> idcGuids) {
         QueryRequest defaultQueryObject = defaultQueryObject();
-        defaultQueryObject.addInFilter("guid", idcGuids);
-        QueryResponse<CiData> queryCiData = queryCiData(uiProperties.getCiTypeIdOfIdc(),defaultQueryObject);
+        defaultQueryObject.addInFilter(CmdbConstants.GUID, idcGuids);
+        QueryResponse<CiData> queryCiData = queryCiData(uiProperties.getCiTypeIdOfIdc(), defaultQueryObject);
         return queryCiData.getContents();
-        
+
     }
 
     public Object getResourcePlanningCiData(int codeId, String systemDesignGuid, QueryRequest queryObject) {
         Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfIdc();
         return getCiData(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId);
+    }
+
+    public int getRoleIdByRoleName(String roleName) {
+        return getRoleIdByRoleName(roleName, false);
+    }
+
+    public int getRoleIdByRoleName(String roleName, boolean createIfNotExist) {
+        AdmRole role = admRoleRepository.findByRoleName(roleName);
+        if (role == null) {
+            if (createIfNotExist) {
+                RoleDto roleDto = new RoleDto();
+                roleDto.setRoleName(roleName);
+                List<RoleDto> roles = createRoles(roleDto);
+                role = roles.get(0).toDomain();
+            } else {
+                throw new CmdbException(String.format("Can not found Role by name (%s)", roleName));
+            }
+        }
+        return role.getIdAdmRole();
     }
 
 }

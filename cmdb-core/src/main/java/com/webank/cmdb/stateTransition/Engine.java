@@ -1,5 +1,6 @@
 package com.webank.cmdb.stateTransition;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,8 +48,11 @@ public class Engine {
     private AdmCiTypeAttrRepository ciTypeAttrRepository;
     @Autowired
     private CiService ciService;
-
     public Map<String, Object> process(EntityManager entityManager, int ciTypeId, String guid, String operation, Map<String, Object> ciData, DynamicEntityHolder entityHolder) {
+        return process(entityManager, ciTypeId, guid, operation, ciData, entityHolder, null);
+        
+    }
+    public Map<String, Object> process(EntityManager entityManager, int ciTypeId, String guid, String operation, Map<String, Object> ciData, DynamicEntityHolder entityHolder, Date date) {
         Optional<AdmCiType> optCiType = ciTypeRepository.findById(ciTypeId);
         if (!optCiType.isPresent()) {
             throw new InvalidArgumentException(String.format("The given Ci Type [%d] is not found.", ciTypeId));
@@ -78,7 +82,7 @@ public class Engine {
             if (action == null) {
                 throw new ServiceException(String.format("Can not find out corresponding action [%s].", optActionCode.get().getCode()));
             }
-            return action.perform(entityManager, ciTypeId, guid, stateTransition, ciData, entityHolder);
+            return action.perform(entityManager, ciTypeId, guid, stateTransition, ciData, entityHolder, date);
         } else {
             return ClassUtils.convertBeanToMap(ciHolder.getEntityObj(), ciHolder.getEntityMeta(), false);
         }

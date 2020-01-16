@@ -3,6 +3,8 @@ package com.webank.cmdb.service.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -125,6 +127,8 @@ public class FilterRuleService {
         switch (InputType.fromCode(attrWithFilterRule.getInputType())) {
         case Droplist:
             return querySelectDatas(leftAttr, ruleExpr, request, rightValues, leftRoutines);
+        case MultSelDroplist:
+            return querySelectDatas(leftAttr, ruleExpr, request, rightValues, leftRoutines);
         default:
             return queryCiDataDatas(leftAttr, ruleExpr, request, rightValues, leftRoutines);
         }
@@ -173,7 +177,10 @@ public class FilterRuleService {
 
                     List<Filter> filters = new ArrayList<>();
                     filters.add(new Filter("catId", "eq", lastLeftAttr.getReferenceId()));
-                    filters.add(new Filter(leftEnumCodeAttr, "eq", extractValueFromEnum(value, leftEnumCodeAttr, ruleExpr)));
+                    List<Object> values = extractValuesFromEnum(value, leftEnumCodeAttr, ruleExpr);
+                    if (!values.isEmpty()) {
+                        filters.add(new Filter(leftEnumCodeAttr, "in", values));
+                    }
                     filters.addAll(orignRequest.getFilters());
 
                     QueryRequest request = new QueryRequest();
@@ -186,22 +193,35 @@ public class FilterRuleService {
         return results;
     }
 
-    private Object extractValueFromEnum(Object value, String leftEnumCodeAttr, FilterRuleExpression ruleExpr) {
+    private List<Object> extractValuesFromEnum(Object value, String leftEnumCodeAttr, FilterRuleExpression ruleExpr) {
+        List<Object> values = new ArrayList<>();
         if (value instanceof CatCodeDto) {
-            String rightEnumCodeAttr = leftEnumCodeAttr;
-            if (ruleExpr.getRight() instanceof String) {
-                try {
-                    List<AutoFillIntegrationQueryDto> routines = JsonUtil.toList((String) ruleExpr.getRight(), AutoFillIntegrationQueryDto.class);
-                    rightEnumCodeAttr = routines.get(routines.size() - 1).getEnumCodeAttr();
-                } catch (IOException e) {
-                    throw new InvalidArgumentException(String.format("Failed to parse right filter rule [%s]", ruleExpr.getRight()), e);
-                }
-            }
-            BeanMap beanMap = new BeanMap(value);
-            return beanMap.get(rightEnumCodeAttr);
+            values.add(extractedSingleEnumValue(value, leftEnumCodeAttr, ruleExpr));
+        } else if (value instanceof List) {
+            List<CatCodeDto> items = (List)value;
+            items.forEach(item->{
+                values.add(extractedSingleEnumValue(item, leftEnumCodeAttr, ruleExpr));
+            });
+        } else {
+            values.add(value);
         }
-        return value;
+        return values;
     }
+
+    private Object extractedSingleEnumValue(Object value, String leftEnumCodeAttr, FilterRuleExpression ruleExpr) {
+        String rightEnumCodeAttr = leftEnumCodeAttr;
+        if (ruleExpr.getRight() instanceof String) {
+            try {
+                List<AutoFillIntegrationQueryDto> routines = JsonUtil.toList((String) ruleExpr.getRight(), AutoFillIntegrationQueryDto.class);
+                rightEnumCodeAttr = routines.get(routines.size() - 1).getEnumCodeAttr();
+            } catch (IOException e) {
+                throw new InvalidArgumentException(String.format("Failed to parse right filter rule [%s]", ruleExpr.getRight()), e);
+            }
+        }
+        BeanMap beanMap = new BeanMap(value);
+        return beanMap.get(rightEnumCodeAttr);
+    }
+
 
     private List<Object> queryCiDataDatas(AdmCiTypeAttr lastLeftAttr, FilterRuleExpression ruleExpr, QueryRequest orignRequest, List<Object> rightValues, List<AutoFillIntegrationQueryDto> leftRoutines) {
         List<Object> results = new LinkedList<>();
@@ -229,7 +249,10 @@ public class FilterRuleService {
                 rightValues.forEach(value -> {
                     List<Filter> filters = new ArrayList<>();
                     filters.add(new Filter("catId", "eq", lastLeftAttr.getReferenceId()));
-                    filters.add(new Filter(enumCodeAttr, "eq", extractValueFromEnum(value, enumCodeAttr, ruleExpr)));
+                    List<Object> values = extractValuesFromEnum(value, enumCodeAttr, ruleExpr);
+                    if (!values.isEmpty()) {
+                        filters.add(new Filter(enumCodeAttr, "in", values));
+                    }
 
                     QueryRequest request = new QueryRequest();
                     request.setFilterRs("and");
@@ -376,7 +399,12 @@ public class FilterRuleService {
                     rootDto.setAttrKeyNames(Arrays.asList(TARGET_NAME));
                 }
             }
-            Filter filter = new Filter(aliasName, "eq", valueOfFilter);
+            Filter filter = null;
+            if(valueOfFilter instanceof Collection) {
+                filter = new Filter(aliasName, "in", valueOfFilter);
+            }else {
+                filter = new Filter(aliasName, "eq", valueOfFilter);
+            }
             queryRequest.setFilters(Arrays.asList(filter));
         }
 

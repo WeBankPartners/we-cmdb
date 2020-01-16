@@ -104,8 +104,8 @@ public class EnumCodeInterceptorService extends BasicInterceptorService<CatCodeD
         validateRequiredFields(dto);
         validateIfCatIdExist(dto.getCatId());
         validateGroupCodeId(dto.getGroupCodeId());
-        validateIfCodeUniqueByCatId(null, dto.getCode(), dto.getCatId());
-        validateIfValueUniqueByCatId(null, dto.getValue(), dto.getCatId());
+        validateIfCodeUniqueByCatId(null, dto.getCode(), dto.getCatId(),dto.getGroupCodeId());
+        validateIfValueUniqueByCatId(null, dto.getValue(), dto.getCatId(),dto.getGroupCodeId());
         assignSeqNo(domainBean);
         assignDefaultStatus(domainBean);
     }
@@ -122,8 +122,8 @@ public class EnumCodeInterceptorService extends BasicInterceptorService<CatCodeD
         AdmBasekeyCode code = codeRepository.getOne(id);
         validateIfCatIdExist(vals.get("catId"));
         validateGroupCodeId(vals.get("groupCodeId"));
-        validateIfCodeUniqueByCatId(code, vals.get("code"), vals.get("catId"));
-        validateIfValueUniqueByCatId(code, vals.get("value"), vals.get("catId"));
+        validateIfCodeUniqueByCatId(code, vals.get("code"), vals.get("catId"), vals.get("groupCodeId"));
+        validateIfValueUniqueByCatId(code, vals.get("value"), vals.get("catId"), vals.get("groupCodeId"));
         validateStatus(vals);
     }
 
@@ -182,34 +182,54 @@ public class EnumCodeInterceptorService extends BasicInterceptorService<CatCodeD
         }
     }
 
-    private void validateIfCodeUniqueByCatId(AdmBasekeyCode oldCode, Object code, Object catId) {
+    private void validateIfCodeUniqueByCatId(AdmBasekeyCode oldCode, Object code, Object catId, Object groupCodeId) {
         if (code != null) {
             if (StringUtils.isBlank((String) code)) {
                 throw new InvalidArgumentException("Code is not allow to be empty.");
             }
 
-            if (oldCode == null && codeRepository.existsByCatIdAndCode((Integer) catId, (String) code)) {
-                throw new InvalidArgumentException(String.format("Code with catId [%s] and code [%s] already exists.", catId, code));
-            }
-
-            if (oldCode != null && codeRepository.existsByCatIdAndCodeAndIdAdmBasekeyNot((Integer) catId, (String) code, oldCode.getIdAdmBasekey())) {
-                throw new InvalidArgumentException(String.format("Code with catId [%s] and code [%s] already exists.", catId, code));
+             if (groupCodeId != null) {
+            	if (oldCode == null && codeRepository.existsByCatIdAndCodeAndGroupCodeId((Integer) catId, (String) code, (Integer)groupCodeId)) {
+		            throw new InvalidArgumentException(String.format("Code with catId [%s] and code [%s] and groupCodeId [%s] already exists.", catId, code, groupCodeId));
+            	}
+            	
+            	if (oldCode != null && codeRepository.existsByCatIdAndCodeAndGroupCodeIdAndIdAdmBasekeyNot((Integer) catId, (String) code, oldCode.getIdAdmBasekey(), (Integer)groupCodeId)) {
+		            throw new InvalidArgumentException(String.format("Code with catId [%s] and code [%s] and groupCodeId [%s] already exists.", catId, code, groupCodeId));
+            	}
+            }else {
+            	if (oldCode == null && codeRepository.existsByCatIdAndCode((Integer) catId, (String) code)) {
+            		throw new InvalidArgumentException(String.format("Code with catId [%s] and code [%s] already exists.", catId, code));
+            	}
+            	
+            	if (oldCode != null && codeRepository.existsByCatIdAndCodeAndIdAdmBasekeyNot((Integer) catId, (String) code, oldCode.getIdAdmBasekey())) {
+            		throw new InvalidArgumentException(String.format("Code with catId [%s] and code [%s] already exists.", catId, code));
+            	}
             }
         }
     }
 
-    private void validateIfValueUniqueByCatId(AdmBasekeyCode oldValue, Object value, Object catId) {
+    private void validateIfValueUniqueByCatId(AdmBasekeyCode oldValue, Object value, Object catId, Object groupCodeId) {
         if (value != null) {
             if (StringUtils.isBlank((String) value)) {
                 throw new InvalidArgumentException("Value is not allow to be empty.");
             }
 
-            if (oldValue == null && codeRepository.existsByCatIdAndValue((Integer) catId, (String) value)) {
-                throw new InvalidArgumentException(String.format("Code with catId [%s] and value [%s] already exists.", catId, value));
-            }
-
-            if (oldValue != null && codeRepository.existsByCatIdAndValueAndIdAdmBasekeyNot((Integer) catId, (String) value, oldValue.getIdAdmBasekey())) {
-                throw new InvalidArgumentException(String.format("Code with catId [%s] and value [%s] already exists.", catId, value));
+            if (groupCodeId != null) {
+		        if (oldValue == null && codeRepository.existsByCatIdAndValueAndGroupCodeId((Integer) catId, (String) value, (Integer) groupCodeId)) {
+		            throw new InvalidArgumentException(String.format("Code with catId [%s] and value [%s] and groupCodeId [%s] already exists.", catId, value, groupCodeId));
+		        }
+		
+		        if (oldValue != null && codeRepository.existsByCatIdAndValueAndGroupCodeIdAndIdAdmBasekeyNot((Integer) catId, (String) value, oldValue.getIdAdmBasekey(), (Integer) groupCodeId)) {
+		            throw new InvalidArgumentException(String.format("Code with catId [%s] and value [%s] and groupCodeId [%s] already exists.", catId, value, groupCodeId));
+		        }
+            }else {
+            	if (oldValue == null && codeRepository.existsByCatIdAndValue((Integer) catId, (String) value)) {
+            		throw new InvalidArgumentException(String.format("Code with catId [%s] and value [%s] already exists.", catId, value));
+            	}
+            	
+            	if (oldValue != null && codeRepository.existsByCatIdAndValueAndIdAdmBasekeyNot((Integer) catId, (String) value, oldValue.getIdAdmBasekey())) {
+            		throw new InvalidArgumentException(String.format("Code with catId [%s] and value [%s] already exists.", catId, value));
+            	}
             }
         }
     }

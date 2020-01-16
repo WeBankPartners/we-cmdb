@@ -3,12 +3,36 @@ name: Java CI
 on: [push, pull_request]
 
 jobs:
-  build:
-
+  build_wecube:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v1
+      with:
+        repository: WeBankPartners/wecube-platform.git
+        ref: refs/heads/master
+    - uses: actions/cache@v1
+      with:
+        path: ~/.m2/repository
+        key: maven-cmdb
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+    - name: Build with Maven
+      run: mvn --file /home/runner/work/we-cmdb/wecube-platform.git/pom.xml clean install -Dmaven.test.skip=true
+
+
+  build:
+    needs: build_wecube
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/cache@v1
+      with:
+        path: ~/.m2/repository
+        key: maven-cmdb
     - name: Set up JDK 1.8
       uses: actions/setup-java@v1
       with:
