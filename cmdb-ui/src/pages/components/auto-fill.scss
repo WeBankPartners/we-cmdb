@@ -3,7 +3,7 @@
   word-break: break-all;
 
   &-span {
-    border-bottom: 1px solid #fff;
+    border-bottom: 1px solid transparent;
 
     &:hover {
       cursor: pointer;
