@@ -30,7 +30,7 @@ The following installation and configuration operations are performed under the 
 
 	```
 	{
-	  "bip": "169.254.32.1/28",
+	  "bip": "10.0.0.1/28",
 	  "bridge": "",
 	  "debug": false,
 	  "default-runtime": "runc",
