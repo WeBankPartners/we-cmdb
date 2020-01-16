@@ -11,9 +11,11 @@ import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_REMOV
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
+import java.lang.reflect.Array;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -46,6 +48,7 @@ import javax.transaction.Transactional;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.proxy.HibernateProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -334,23 +337,30 @@ public class CiServiceImpl implements CiService {
         int totalCount = 0;
         QueryResponse<CiData> ciInfoResp = new QueryResponse<>();
         try {
-            // ciRequest.setFilters(convertFilterForMultiValueField(entityManager,
-            // ciRequest.getFilters()));
             results = doQuery(ciRequest, entityMeta, true);
             totalCount = convertResultToInteger(results);
 
             results = doQuery(ciRequest, entityMeta, false);
+            if (ciRequest.getAggregationFuction() != null &&
+                    ciRequest.getAggregationFuction().size() > 0) {
+                if (results != null && results.size() > 0) {
+                    Map<String, Object> enhacedMap = Maps.newHashMap();
+                    enhacedMap.put("fixed_date", results);
+                    ciInfoResp.addContent(new CiData(enhacedMap, null));
+                }
+            } else {
+                results.forEach(x -> {
+                    Map<String, Object> entityBeanMap = null;
 
-            results.forEach(x -> {
-                // DynamicEntityHolder entityBean =
-                // DynamicEntityHolder.createDynamicEntityBean(entityMeta, x);
-                Map<String, Object> entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true);
-                Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
-                List<String> nextOperations = getNextOperations(entityBeanMap);
-                CiData ciData = new CiData(enhacedMap, nextOperations);
+                    entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true, ciRequest.getResultColumns());
 
-                ciInfoResp.addContent(ciData);
-            });
+                    Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
+                    List<String> nextOperations = getNextOperations(entityBeanMap);
+                    CiData ciData = new CiData(enhacedMap, nextOperations);
+
+                    ciInfoResp.addContent(ciData);
+                });
+            }
         } finally {
             priEntityManager.close();
         }
@@ -481,6 +491,12 @@ public class CiServiceImpl implements CiService {
 
                 if (!isSelRowCount) {
                     JpaQueryUtils.applySorting(ciRequest.getSorting(), cb, query, selectionMap);
+                    if(ciRequest.getGroupBys()!=null && ciRequest.getGroupBys().size()>0) {
+                        JpaQueryUtils.applyGroupBy(ciRequest.getGroupBys(),query,selectionMap);
+                    }
+                    if(ciRequest.getAggregationFuction()!=null &&ciRequest.getAggregationFuction().size()>0) {
+                        JpaQueryUtils.applyAggregation(ciRequest.getAggregationFuction(), cb, query, selectionMap, root);
+                    }
                 }
             }
             
@@ -588,8 +604,12 @@ public class CiServiceImpl implements CiService {
                     }
                     ciMap.put(fieldName, enrichMulSels);
                 } else if (fieldNode.isJoinNode() && DynamicEntityType.MultiReference.equals(fieldNode.getEntityType()) && Strings.isNullOrEmpty(fieldNode.getMappedBy())) {
-                    Set<Map> referCis = (Set<Map>) value;
+                    Set<Object> referCis = (Set<Object>) value;
                     attr = attrMap.get(attrId);
+                    if(InputType.MultRef.getCode().equals(attr.getInputType())) {
+                        referCis = fetchCiDomainObjForMultRef(attr, referCis);
+                    }
+                    
                     DynamicEntityMeta multRefMeta = multRefMetaMap.get(attrId);
                     Map<String, Integer> sortMap = JpaQueryUtils.getSortedMapForMultiRef(entityManager, attr, multRefMeta);
     
@@ -604,7 +624,26 @@ public class CiServiceImpl implements CiService {
         return ciMap;
     }
 
-    private List getSortedMultRefList(Set<Map> referCis, Map<String, Integer> sortMap) {
+    private Set<Object> fetchCiDomainObjForMultRef(AdmCiTypeAttr attr, Set<Object> referCis) {
+        Integer refCiTypeId = attr.getReferenceId();
+        DynamicEntityMeta refEntityMeta = dynamicEntityMetaMap.get(refCiTypeId);
+        Class refEntityClzz = refEntityMeta.getEntityClazz();
+        if(refEntityClzz != null) {
+            Set<Object> realReferCis = new HashSet<Object>();
+            referCis.forEach(elem -> {
+                if(elem instanceof HibernateProxy) {
+                    Object domainObj = ((HibernateProxy) elem).getHibernateLazyInitializer().getImplementation();
+                    realReferCis.add(domainObj);
+                }else {
+                    realReferCis.add(elem);
+                }
+            });
+            referCis = realReferCis;
+        }
+        return referCis;
+    }
+
+    private List getSortedMultRefList(Set<Object> referCis, Map<String, Integer> sortMap) {
         List ciList = Lists.newLinkedList();
         for (Object ci : referCis) {
             ciList.add(ci);
@@ -1313,20 +1352,22 @@ public class CiServiceImpl implements CiService {
             } else {
                 selFieldMap.remove("root");
                 for (Map.Entry<String, FieldInfo> kv : selFieldMap.entrySet()) {
-                    if (enableBiz) {
-                        if (kv.getKey().endsWith(".biz_key") || kv.getKey().endsWith(".state")) {
+                    if (isRequestField(intQueryReq, kv)) {
+                        if (enableBiz) {
+                            if (kv.getKey().endsWith(".biz_key") || kv.getKey().endsWith(".state")) {
+                                continue;
+                            }
+                        }
+                        if (kv.getKey().startsWith(ACCESS_CONTROL_ATTRIBUTE_PREFIX)) {
                             continue;
                         }
-                    }
-                    if (kv.getKey().startsWith(ACCESS_CONTROL_ATTRIBUTE_PREFIX)) {
-                        continue;
-                    }
-                    if (kv.getKey().endsWith(".guid") || kv.getKey().endsWith(".r_guid")) {
-                        continue;
-                    }
-                    selectedFields.add(kv.getValue());
-                    if(!selections.contains(kv.getValue().getExpression())) {
-                    	selections.add(kv.getValue().getExpression());
+                        if (kv.getKey().endsWith(".guid") || kv.getKey().endsWith(".r_guid")) {
+                            continue;
+                        }
+                        selectedFields.add(kv.getValue());
+                        if (!selections.contains(kv.getValue().getExpression())) {
+                            selections.add(kv.getValue().getExpression());
+                        }
                     }
                 }
                 query.multiselect(selections);
@@ -1365,6 +1406,10 @@ public class CiServiceImpl implements CiService {
         } finally {
             priEntityManager.close();
         }
+    }
+
+    private boolean isRequestField(QueryRequest intQueryReq, Map.Entry<String, FieldInfo> kv) {
+        return intQueryReq.getResultColumns() == null || intQueryReq.getResultColumns().isEmpty() || intQueryReq.getResultColumns().contains(kv.getKey());
     }
 
     private List<Predicate> buildHistoryDataControlPredicate(QueryRequest intQueryReq, CriteriaBuilder cb, Map<String, Expression> selectionMap) {
@@ -1974,12 +2019,13 @@ public class CiServiceImpl implements CiService {
             EntityTransaction transaction = entityManager.getTransaction();
             transaction.begin();
             try {
+                Date date = new Date();
                 for (CiIndentity ciId : ciIds) {
                     DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciId.getCiTypeId());
                     Object entityBean = validateCi(ciId.getCiTypeId(), ciId.getGuid(), entityMeta, entityManager, ACTION_MODIFICATION);
                     DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
 
-                    Map<String, Object> result = stateTransEngine.process(entityManager, ciId.getCiTypeId(), ciId.getGuid(), operation, null, entityHolder);
+                    Map<String, Object> result = stateTransEngine.process(entityManager, ciId.getCiTypeId(), ciId.getGuid(), operation, null, entityHolder, date);
                     Map<String, Object> enhacedMap = enrichCiObject(entityMeta, result, entityManager);
                     results.add(enhacedMap);
                 }
@@ -2023,13 +2069,13 @@ public class CiServiceImpl implements CiService {
         MultiValueFeildOperationUtils.processMultValueFieldsForCloneCi(entityManager, entityMeta, newGuid, fromBeanMap, toEntityHolder, this);
 
         toEntityHolder.put(CmdbConstants.DEFAULT_FIELD_GUID, newGuid);
-        fromBeanMap.put(CmdbConstants.DEFAULT_FIELD_PARENT_GUID, newGuid);
 
         List<AdmCiTypeAttr> refreshableAttrs = ciTypeAttrRepository.findByCiTypeIdAndIsRefreshable(ciTypeId, 1);
         refreshableAttrs.forEach(attr -> {
             fromBeanMap.put(attr.getPropertyName(), null);
         });
-
+	fromBeanMap.put(CmdbConstants.DEFAULT_FIELD_PARENT_GUID, newGuid);
+	
         entityManager.merge(fromBean);
         entityManager.persist(toEntityHolder.getEntityObj());
         return fromBean;
@@ -2058,7 +2104,8 @@ public class CiServiceImpl implements CiService {
     public List<Map<String, Object>> lookupReferenceByCis(int ciTypeId, String guid, boolean checkFinalState) {
         List<Map<String, Object>> dependentCis = Lists.newLinkedList();
         List<AdmCiTypeAttr> referredAttrs = ciTypeAttrRepository.findByInputTypeAndReferenceId(InputType.Reference.getCode(), ciTypeId);
-        referredAttrs.forEach(attr -> {
+        referredAttrs.addAll(ciTypeAttrRepository.findByInputTypeAndReferenceId(InputType.MultRef.getCode(), ciTypeId));
+	referredAttrs.forEach(attr -> {
             List<Map<String, Object>> ciData = queryWithFilters(attr.getCiTypeId(), Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), guid)), false);
             if (ciData != null && ciData.size() > 0) {
                 ciData.forEach(data -> {

@@ -61,7 +61,6 @@ CREATE TABLE IF NOT EXISTS `adm_basekey_code` (
   `seq_no` int(11) DEFAULT NULL COMMENT '排序序号',
   `status` varchar(20) DEFAULT 'active' COMMENT '枚举状态',
   PRIMARY KEY (`id_adm_basekey`),
-  UNIQUE KEY `id_adm_basekey_cat_code` (`id_adm_basekey_cat`,`code`),
   KEY `fk_adm_basekey_code_adm_basekey_cat_1` (`id_adm_basekey_cat`),
   KEY `fk_adm_basekey_code_group_code_id` (`group_code_id`),
   CONSTRAINT `fk_adm_basekey_code_adm_basekey_cat_1` FOREIGN KEY (`id_adm_basekey_cat`) REFERENCES `adm_basekey_cat` (`id_adm_basekey_cat`),
@@ -400,7 +399,7 @@ CREATE TABLE IF NOT EXISTS `adm_state_transition` (
   CONSTRAINT `fk_adm_state_transition_target_state` FOREIGN KEY (`target_state`) REFERENCES `adm_basekey_code` (`id_adm_basekey`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `block_storage` (
+CREATE TABLE IF NOT EXISTS `block_storage` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -413,20 +412,18 @@ CREATE TABLE `block_storage` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
   `asset_code` varchar(50) DEFAULT NULL COMMENT '资产编码',
+  `block_storage_type` int(15) DEFAULT NULL COMMENT '块存储类型',
   `charge_type` int(15) DEFAULT NULL COMMENT '计费模式',
   `disk_size` int(15) DEFAULT NULL COMMENT '容量(GB)',
-  `host` varchar(15) DEFAULT NULL COMMENT '主机',
-  `instance_num` int(2) DEFAULT NULL COMMENT '计费周期(月)',
+  `end_date` datetime DEFAULT NULL COMMENT '截止时间，包年包月时必须给出',
   `mount_point` varchar(50) DEFAULT NULL COMMENT '挂载点',
   `name` varchar(50) DEFAULT NULL COMMENT '名称',
-  `type` int(15) DEFAULT NULL COMMENT '类型',
+  `resource_instance` varchar(15) DEFAULT NULL COMMENT '资源实例',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `DCN` (
+CREATE TABLE IF NOT EXISTS `business_app_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -439,15 +436,40 @@ CREATE TABLE `DCN` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `dcn_design` varchar(15) DEFAULT NULL COMMENT '数据中心节点设计',
+  `cpu` varchar(50) DEFAULT NULL COMMENT 'CPU(核)',
+  `deploy_package` varchar(15) DEFAULT NULL COMMENT '部署包',
+  `deploy_package_url` varchar(200) DEFAULT NULL COMMENT '部署包路径',
+  `deploy_user_password` varchar(200) DEFAULT NULL COMMENT '部署用户密码',
+  `memory` varchar(50) DEFAULT NULL COMMENT '内存(GB)',
+  `port` varchar(50) DEFAULT NULL COMMENT '端口',
+  `resource_instance` varchar(15) DEFAULT NULL COMMENT '资源实例',
+  `storage` int(50) DEFAULT NULL COMMENT '存储空间(GB)',
+  `unit` varchar(15) DEFAULT NULL COMMENT '单元',
+  `unit_type` int(15) DEFAULT NULL COMMENT '单元类型',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `business_zone` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `dcn_design` varchar(15) DEFAULT NULL COMMENT '业务区域设计',
   `name` varchar(50) DEFAULT NULL COMMENT '名称',
-  `zone` varchar(15) DEFAULT NULL COMMENT '安全区域',
+  `network_segment` varchar(15) DEFAULT NULL COMMENT '网段',
+  `network_zone` varchar(15) DEFAULT NULL COMMENT '网络区域',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `DCN_desgin` (
+CREATE TABLE IF NOT EXISTS `business_zone_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -460,15 +482,13 @@ CREATE TABLE `DCN_desgin` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
   `business_group` int(15) DEFAULT NULL COMMENT '业务群组',
-  `type` int(15) DEFAULT NULL COMMENT '类型',
+  `network_segment_design` varchar(15) DEFAULT NULL COMMENT '网段设计',
   `zone_design` varchar(15) DEFAULT NULL COMMENT '安全区域设计',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `host` (
+CREATE TABLE IF NOT EXISTS `data_center` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -481,49 +501,16 @@ CREATE TABLE `host` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `asset_code` varchar(50) DEFAULT NULL COMMENT '资产编码',
-  `charge_type` int(15) DEFAULT NULL COMMENT '计费模式',
-  `disk` int(15) DEFAULT NULL COMMENT '系统盘(G)',
-  `instance_num` int(2) DEFAULT NULL COMMENT '计费周期(月)',
-  `internet_nat_ip` varchar(15) DEFAULT NULL COMMENT '外网IP',
-  `intranet_ip` varchar(15) DEFAULT NULL COMMENT '内网IP',
-  `name` varchar(50) DEFAULT NULL COMMENT '名称',
-  `os` int(15) DEFAULT NULL COMMENT '操作系统',
-  `password` varchar(64) DEFAULT NULL COMMENT '主机登陆密码',
-  `resource_set` varchar(15) DEFAULT NULL COMMENT '资源集',
-  `type` int(15) DEFAULT NULL COMMENT '类型',
-  `username` varchar(50) DEFAULT NULL COMMENT '主机登陆用户名',
-  PRIMARY KEY (`guid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `IDC` (
-  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
-  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
-  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
-  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
-  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
-  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
-  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
-  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
-  `state` int(15) DEFAULT NULL COMMENT '状态',
-  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
-  `code` varchar(50) DEFAULT NULL COMMENT '编码',
-  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `address` varchar(1000) DEFAULT NULL COMMENT '地址',
-  `city` varchar(50) DEFAULT NULL COMMENT '城市',
-  `env_type` int(15) DEFAULT NULL COMMENT '类型',
-  `idc_design` varchar(15) DEFAULT NULL COMMENT '机房设计',
+  `auth_parameter` int(15) DEFAULT NULL COMMENT '认证参数',
+  `data_center_design` varchar(15) DEFAULT NULL COMMENT '数据中心设计',
+  `deploy_environment` int(15) DEFAULT NULL COMMENT '部署环境',
   `name` varchar(50) DEFAULT NULL COMMENT '名称',
   `network_segment` varchar(15) DEFAULT NULL COMMENT '网段',
-  `parameter` varchar(1000) DEFAULT NULL COMMENT '远程参数',
+  `user_id` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `IDC_design` (
+CREATE TABLE IF NOT EXISTS `data_center_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -536,14 +523,12 @@ CREATE TABLE `IDC_design` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `env_type` int(15) DEFAULT NULL COMMENT '环境类型',
   `name` varchar(50) DEFAULT NULL COMMENT '名称',
+  `network_segment_design` varchar(15) DEFAULT NULL COMMENT '网段设计',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `invoke` (
+CREATE TABLE IF NOT EXISTS `deploy_package` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -556,149 +541,35 @@ CREATE TABLE `invoke` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `invoke_design` varchar(15) DEFAULT NULL COMMENT '调用设计',
-  `service` varchar(15) DEFAULT NULL COMMENT '服务',
-  `unit` varchar(15) DEFAULT NULL COMMENT '单元',
-  PRIMARY KEY (`guid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `invoke_design` (
-  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
-  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
-  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
-  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
-  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
-  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
-  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
-  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
-  `state` int(15) DEFAULT NULL COMMENT '状态',
-  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
-  `code` varchar(50) DEFAULT NULL COMMENT '编码',
-  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `service_design` varchar(15) DEFAULT NULL COMMENT '服务设计',
-  `type` int(15) DEFAULT NULL COMMENT '类型',
-  `unit_design` varchar(15) DEFAULT NULL COMMENT '单元设计',
-  PRIMARY KEY (`guid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `invoke_sequence_design` (
-  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
-  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
-  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
-  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
-  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
-  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
-  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
-  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
-  `state` int(15) DEFAULT NULL COMMENT '状态',
-  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
-  `code` varchar(50) DEFAULT NULL COMMENT '编码',
-  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `name` varchar(50) DEFAULT NULL COMMENT '服务名称',
-  `service_design` varchar(15) DEFAULT NULL COMMENT '服务设计',
-  PRIMARY KEY (`guid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `invoke_sequence_design$invoke_design_sequence` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) NOT NULL,
-  `to_guid` varchar(15) NOT NULL,
-  `seq_no` int(5) DEFAULT '0',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `ip_addr` (
-  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
-  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
-  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
-  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
-  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
-  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
-  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
-  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
-  `state` int(15) DEFAULT NULL COMMENT '状态',
-  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
-  `code` varchar(50) DEFAULT NULL COMMENT '编码',
-  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `network_segment` varchar(15) DEFAULT NULL COMMENT 'IP网段',
-  `type` int(15) DEFAULT NULL COMMENT '类型',
-  `used_record` varchar(1000) DEFAULT NULL COMMENT '使用记录',
-  PRIMARY KEY (`guid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `network_segment` (
-  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
-  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
-  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
-  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
-  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
-  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
-  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
-  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
-  `state` int(15) DEFAULT NULL COMMENT '状态',
-  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
-  `code` varchar(50) DEFAULT NULL COMMENT '编码',
-  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `asset_code` varchar(50) DEFAULT NULL COMMENT '资产编码',
-  `f_network_segment` varchar(15) DEFAULT NULL COMMENT '父网段',
-  `gateway_ip` varchar(15) DEFAULT NULL COMMENT '网关IP地址',
-  `mask` int(15) DEFAULT NULL COMMENT '子网',
-  `name` varchar(50) DEFAULT NULL COMMENT '服务名称',
-  `type` int(15) DEFAULT NULL COMMENT '类型',
-  PRIMARY KEY (`guid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `package` (
-  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
-  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
-  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
-  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
-  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
-  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
-  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
-  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
-  `state` int(15) DEFAULT NULL COMMENT '状态',
-  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
-  `code` varchar(50) DEFAULT NULL COMMENT '编码',
-  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `deploy_file` varchar(200) DEFAULT NULL COMMENT '部署脚本文件',
+  `absolute_deploy_file_path` varchar(200) DEFAULT NULL COMMENT '执行部署脚本文件',
+  `absolute_start_file_path` varchar(200) DEFAULT NULL COMMENT '启动脚步文件',
+  `absolute_stop_file_path` varchar(200) DEFAULT NULL COMMENT '停止脚步文件',
+  `deploy_file_path` varchar(200) DEFAULT NULL COMMENT '执行部署脚本文件',
+  `deploy_package_url` varchar(200) DEFAULT NULL COMMENT '存储路径',
   `deploy_path` varchar(200) DEFAULT NULL COMMENT '部署路径',
-  `deploy_user` int(15) DEFAULT NULL COMMENT '部署用户',
+  `deploy_user` varchar(15) DEFAULT NULL COMMENT '部署用户',
   `diff_conf_file` varchar(200) DEFAULT NULL COMMENT '差异配置文件',
   `md5_value` varchar(50) DEFAULT NULL COMMENT 'MD5值',
   `name` varchar(50) DEFAULT NULL COMMENT '包名称',
-  `start_file` varchar(200) DEFAULT NULL COMMENT '启动脚本文件',
-  `stop_file` varchar(200) DEFAULT NULL COMMENT '停止脚本文件',
+  `start_file_path` varchar(200) DEFAULT NULL COMMENT '启动脚步文件',
+  `stop_file_path` varchar(200) DEFAULT NULL COMMENT '停止脚步文件',
   `unit_design` varchar(15) DEFAULT NULL COMMENT '单元设计',
   `upload_time` datetime DEFAULT NULL COMMENT '上传时间',
   `upload_user` varchar(50) DEFAULT NULL COMMENT '上传人',
-  `url` varchar(200) DEFAULT NULL COMMENT '存储路径',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `package$diff_conf_variable` (
+CREATE TABLE IF NOT EXISTS `deploy_package$diff_conf_variable` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) NOT NULL,
   `to_code` int(11) NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `package$diff_conf_variable_fk_code` (`to_code`),
-  CONSTRAINT `package$diff_conf_variable_fk_code` FOREIGN KEY (`to_code`) REFERENCES `adm_basekey_code` (`id_adm_basekey`)
+  KEY `deploy_package$diff_conf_variable_fk_code` (`to_code`),
+  CONSTRAINT `deploy_package$diff_conf_variable_fk_code` FOREIGN KEY (`to_code`) REFERENCES `adm_basekey_code` (`id_adm_basekey`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `resource_set` (
+CREATE TABLE IF NOT EXISTS `deploy_user` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -711,18 +582,15 @@ CREATE TABLE `resource_set` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `asset_code` varchar(50) DEFAULT NULL COMMENT '资产编码',
-  `dcn` varchar(15) DEFAULT NULL COMMENT 'DCN',
-  `env` int(15) DEFAULT NULL COMMENT '环境',
-  `name` varchar(50) DEFAULT NULL COMMENT '名称',
-  `network_segment` varchar(15) DEFAULT NULL COMMENT '网段',
-  `resource_set_design` varchar(15) DEFAULT NULL COMMENT '资源集设计',
+  `group_id` varchar(50) DEFAULT NULL COMMENT '用户组ID',
+  `group_name` varchar(50) DEFAULT NULL COMMENT '用户组名',
+  `home_path` varchar(200) DEFAULT NULL COMMENT 'home目录',
+  `name` varchar(50) DEFAULT NULL COMMENT '用户名',
+  `user_id` varchar(50) DEFAULT NULL COMMENT '用户ID',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `resource_set_design` (
+CREATE TABLE IF NOT EXISTS `invoke` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -735,41 +603,14 @@ CREATE TABLE `resource_set_design` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `dcn_design` varchar(15) DEFAULT NULL COMMENT '数据中心节点设计',
-  `type` int(15) DEFAULT NULL COMMENT '类型',
-  PRIMARY KEY (`guid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `running_instance` (
-  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
-  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
-  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
-  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
-  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
-  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
-  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
-  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
-  `state` int(15) DEFAULT NULL COMMENT '状态',
-  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
-  `code` varchar(50) DEFAULT NULL COMMENT '编码',
-  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `asset_code` varchar(50) DEFAULT NULL COMMENT '资产编码',
-  `charge_type` int(15) DEFAULT NULL COMMENT '计费模式',
-  `host` varchar(15) DEFAULT NULL COMMENT '资源集',
-  `instance_disk` int(4) DEFAULT NULL COMMENT '实例磁盘(GB)',
-  `instance_mem` int(2) DEFAULT NULL COMMENT '实例内存(GB)',
-  `instance_num` int(2) DEFAULT NULL COMMENT '计费周期(月)',
-  `port` varchar(50) DEFAULT NULL COMMENT '端口',
-  `type` int(15) DEFAULT NULL COMMENT '类型',
+  `invoke_design` varchar(15) DEFAULT NULL COMMENT '调用设计',
+  `invoke_type` int(15) DEFAULT NULL COMMENT '调用类型',
+  `service` varchar(15) DEFAULT NULL COMMENT '服务',
   `unit` varchar(15) DEFAULT NULL COMMENT '单元',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `service` (
+CREATE TABLE IF NOT EXISTS `invoke_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -782,41 +623,13 @@ CREATE TABLE `service` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `dns_domain` int(15) DEFAULT NULL COMMENT '域名域',
-  `dns_name` varchar(50) DEFAULT NULL COMMENT '域名名',
-  `ha_type` int(15) DEFAULT NULL COMMENT '高可用',
+  `invoke_type` int(15) DEFAULT NULL COMMENT '调用类型',
   `service_design` varchar(15) DEFAULT NULL COMMENT '服务设计',
-  `service_ip` varchar(15) DEFAULT NULL COMMENT '服务IP',
-  `service_port` varchar(50) DEFAULT NULL COMMENT '服务端口',
-  `unit` varchar(15) DEFAULT NULL COMMENT '单元',
-  PRIMARY KEY (`guid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `service_design` (
-  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
-  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
-  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
-  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
-  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
-  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
-  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
-  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
-  `state` int(15) DEFAULT NULL COMMENT '状态',
-  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
-  `code` varchar(50) DEFAULT NULL COMMENT '编码',
-  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `ha_type` int(15) DEFAULT NULL COMMENT '高可用',
-  `name` varchar(50) DEFAULT NULL COMMENT '服务名称',
-  `type` int(15) DEFAULT NULL COMMENT '类型',
   `unit_design` varchar(15) DEFAULT NULL COMMENT '单元设计',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `subsys` (
+CREATE TABLE IF NOT EXISTS `invoke_seq_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -829,79 +642,12 @@ CREATE TABLE `subsys` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `env` int(15) DEFAULT NULL COMMENT '环境',
-  `manager` varchar(50) DEFAULT NULL COMMENT '运维人员',
-  `subsys_design` varchar(20) DEFAULT NULL COMMENT '子系统设计',
-  PRIMARY KEY (`guid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `subsys_design` (
-  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
-  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
-  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
-  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
-  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
-  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
-  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
-  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
-  `state` int(15) DEFAULT NULL COMMENT '状态',
-  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
-  `code` varchar(50) DEFAULT NULL COMMENT '编码',
-  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `business_group` int(15) DEFAULT NULL COMMENT '业务群组',
-  `dcn_design_type` int(15) DEFAULT NULL COMMENT 'DCN设计类型',
-  `name` varchar(50) DEFAULT NULL COMMENT '名称',
+  `name` varchar(50) DEFAULT NULL COMMENT '时序名称',
   `system_design` varchar(15) DEFAULT NULL COMMENT '系统设计',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `system_design` (
-  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
-  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
-  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
-  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
-  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
-  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
-  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
-  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
-  `state` int(15) DEFAULT NULL COMMENT '状态',
-  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
-  `code` varchar(50) DEFAULT NULL COMMENT '编码',
-  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `business_group` int(50) DEFAULT NULL COMMENT '业务群组',
-  `name` varchar(50) DEFAULT NULL COMMENT '名称',
-  PRIMARY KEY (`guid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `unit` (
-  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
-  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
-  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
-  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
-  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
-  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
-  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
-  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
-  `state` int(15) DEFAULT NULL COMMENT '状态',
-  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
-  `code` varchar(50) DEFAULT NULL COMMENT '编码',
-  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `instance_num` int(3) DEFAULT NULL COMMENT '实例数量',
-  `package` varchar(20) DEFAULT NULL COMMENT '部署包',
-  `subsys` varchar(20) DEFAULT NULL COMMENT '子系统',
-  `unit_design` varchar(15) DEFAULT NULL COMMENT '单元统设计',
-  PRIMARY KEY (`guid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `unit$resource_set` (
+CREATE TABLE IF NOT EXISTS `invoke_seq_design$invoke_design_sequence` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) NOT NULL,
   `to_guid` varchar(15) NOT NULL,
@@ -909,7 +655,7 @@ CREATE TABLE `unit$resource_set` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `unit_design` (
+CREATE TABLE IF NOT EXISTS `ip_address` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -922,18 +668,14 @@ CREATE TABLE `unit_design` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `across_idc` int(15) DEFAULT NULL COMMENT '跨IDC部署',
-  `name` varchar(50) DEFAULT NULL COMMENT '单元名称',
-  `resource_set_design` varchar(15) DEFAULT NULL COMMENT '资源集设计',
-  `resource_set_design_type` int(15) DEFAULT NULL COMMENT '资源集设计类型',
-  `subsys_design` varchar(15) DEFAULT NULL COMMENT '系统',
-  `type` int(15) DEFAULT NULL COMMENT '类型',
+  `ip_address_usage` int(15) DEFAULT NULL COMMENT 'IP用途',
+  `network_segment` varchar(15) DEFAULT NULL COMMENT '网段',
+  `network_segment_type` int(15) DEFAULT NULL COMMENT '网段类型',
+  `used_record` varchar(1000) DEFAULT NULL COMMENT '使用记录',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `zone` (
+CREATE TABLE IF NOT EXISTS `network_segment` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -946,20 +688,58 @@ CREATE TABLE `zone` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
+  `f_network_segment` varchar(15) DEFAULT NULL COMMENT '父网段',
+  `gateway_ip` varchar(15) DEFAULT NULL COMMENT '网关IP地址',
+  `mask` int(15) DEFAULT NULL COMMENT '子网掩码',
+  `name` varchar(50) DEFAULT NULL COMMENT '名称',
+  `network_segment_design` varchar(15) DEFAULT NULL COMMENT '网段设计',
+  `network_segment_type` int(15) DEFAULT NULL COMMENT '网段类型',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `network_segment_design` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `f_network_segment` varchar(15) DEFAULT NULL COMMENT '父网段',
+  `mask` int(15) DEFAULT NULL COMMENT '子网掩码',
+  `name` varchar(50) DEFAULT NULL COMMENT '名称',
+  `network_segment_type` int(15) DEFAULT NULL COMMENT '网段类型',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `network_zone` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
   `asset_code` varchar(50) DEFAULT NULL COMMENT '资产编码',
-  `idc` varchar(15) DEFAULT NULL COMMENT '机房',
+  `data_center` varchar(15) DEFAULT NULL COMMENT '数据中心',
   `name` varchar(50) DEFAULT NULL COMMENT '服务名称',
   `network_segment` varchar(15) DEFAULT NULL COMMENT '网段',
-  `type` int(15) DEFAULT NULL COMMENT '类型',
-  `vpc` varchar(50) DEFAULT NULL COMMENT '虚拟专用网',
-  `zone_design` varchar(15) DEFAULT NULL COMMENT '安全区域设计',
-  `zone_layer` int(15) DEFAULT NULL COMMENT '层级',
+  `network_zone_design` varchar(15) DEFAULT NULL COMMENT '安全区域设计',
+  `network_zone_layer` int(15) DEFAULT NULL COMMENT '网络区域层级',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `zone_design` (
+CREATE TABLE IF NOT EXISTS `network_zone_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -972,15 +752,13 @@ CREATE TABLE `zone_design` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `idc_design` varchar(15) DEFAULT NULL COMMENT '机房设计',
-  `type` int(15) DEFAULT NULL COMMENT '类型',
-  `zone_layer` int(15) DEFAULT NULL COMMENT '层级',
+  `data_center_design` varchar(15) DEFAULT NULL COMMENT '数据中心设计',
+  `network_segment_design` varchar(15) DEFAULT NULL COMMENT '网段设计',
+  `network_zone_layer` int(15) DEFAULT NULL COMMENT '网络区域层级',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `zone_link` (
+CREATE TABLE IF NOT EXISTS `network_zone_link` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -993,17 +771,17 @@ CREATE TABLE `zone_link` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
   `asset_code` varchar(50) DEFAULT NULL COMMENT '资产编码',
   `name` varchar(50) DEFAULT NULL COMMENT '名称',
-  `zone1` varchar(15) DEFAULT NULL COMMENT '安全区域1',
-  `zone2` varchar(15) DEFAULT NULL COMMENT '安全区域2',
-  `zone_link_design` varchar(15) DEFAULT NULL COMMENT '安全区域连接设计',
+  `netband_width` varchar(50) DEFAULT NULL COMMENT '网络带宽(M)',
+  `network_zone_1` varchar(15) DEFAULT NULL COMMENT '网络区域1',
+  `network_zone_2` varchar(15) DEFAULT NULL COMMENT '网络区域2',
+  `network_zone_link_design` varchar(15) DEFAULT NULL COMMENT '网络区域连接设计',
+  `network_zone_link_type` int(15) DEFAULT NULL COMMENT '网络连接类型',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `zone_link_design` (
+CREATE TABLE IF NOT EXISTS `network_zone_link_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
@@ -1016,12 +794,343 @@ CREATE TABLE `zone_link_design` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(50) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `orchestration` int(15) DEFAULT NULL COMMENT '编排',
-  `biz_key` varchar(50) DEFAULT NULL COMMENT '编排实例ID',
-  `zone_design1` varchar(15) DEFAULT NULL COMMENT '安全区域设计',
-  `zone_design2` varchar(15) DEFAULT NULL COMMENT '安全区域设计',
+  `network_zone_design_1` varchar(15) DEFAULT NULL COMMENT '网络区域设计1',
+  `network_zone_design_2` varchar(15) DEFAULT NULL COMMENT '网络区域设计2',
+  `network_zone_link_type` int(15) DEFAULT NULL COMMENT '网络连接类型',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `resource_instance` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `asset_code` varchar(50) DEFAULT NULL COMMENT '资产编码',
+  `charge_type` int(15) DEFAULT NULL COMMENT '计费模式',
+  `cluster_node_type` int(15) DEFAULT NULL COMMENT '集群节点类型',
+  `cpu` varchar(50) DEFAULT NULL COMMENT 'CPU(核)',
+  `end_date` datetime DEFAULT NULL COMMENT '截止时间，包年包月时必须给出',
+  `internet_ip` varchar(15) DEFAULT NULL COMMENT '外网IP',
+  `intranet_ip` varchar(15) DEFAULT NULL COMMENT '内网IP',
+  `memory` varchar(50) DEFAULT NULL COMMENT '内存(GB)',
+  `name` varchar(50) DEFAULT NULL COMMENT '名称',
+  `resource_instance_spec` int(15) DEFAULT NULL COMMENT '资源实例规格',
+  `resource_instance_type` int(15) DEFAULT NULL COMMENT '资源实例类型',
+  `resource_set` varchar(15) DEFAULT NULL COMMENT '资源集合',
+  `resource_system` int(15) DEFAULT NULL COMMENT '资源系统',
+  `storage` varchar(50) DEFAULT NULL COMMENT '存储空间(GB)',
+  `unit_type` int(15) DEFAULT NULL COMMENT '单元类型',
+  `user_name` varchar(50) DEFAULT NULL COMMENT '管理员用户名',
+  `user_password` varchar(200) DEFAULT NULL COMMENT '管理员用户密码',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `resource_set` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `business_zone` varchar(15) DEFAULT NULL COMMENT '业务区域',
+  `cluster_type` int(15) DEFAULT NULL COMMENT '集群类型',
+  `internet_ip_segment` varchar(15) DEFAULT NULL COMMENT '互联网网段',
+  `name` varchar(50) DEFAULT NULL COMMENT '名称',
+  `network_segment` varchar(15) DEFAULT NULL COMMENT '网段',
+  `resource_set_design` varchar(15) DEFAULT NULL COMMENT '资源集合设计',
+  `routing_table_asset_code` varchar(50) DEFAULT NULL COMMENT '路由表资产编码',
+  `subnet_asset_code` varchar(50) DEFAULT NULL COMMENT '子网资产编码',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `resource_set$deploy_environment` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `from_guid` varchar(15) NOT NULL,
+  `to_code` int(11) NOT NULL,
+  `seq_no` int(5) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `resource_set$deploy_environment_fk_code` (`to_code`),
+  CONSTRAINT `resource_set$deploy_environment_fk_code` FOREIGN KEY (`to_code`) REFERENCES `adm_basekey_code` (`id_adm_basekey`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `resource_set_design` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `business_zone_design` varchar(15) DEFAULT NULL COMMENT '业务区域设计',
+  `internet_network_segment_design` varchar(15) DEFAULT NULL COMMENT '互联网网段设计',
+  `network_segment_design` varchar(15) DEFAULT NULL COMMENT '网段设计',
+  `unit_design_type` int(15) DEFAULT NULL COMMENT '单元设计类型',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `resource_set_design$cluster_type` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `from_guid` varchar(15) NOT NULL,
+  `to_code` int(11) NOT NULL,
+  `seq_no` int(5) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `resource_set_design$cluster_type_fk_code` (`to_code`),
+  CONSTRAINT `resource_set_design$cluster_type_fk_code` FOREIGN KEY (`to_code`) REFERENCES `adm_basekey_code` (`id_adm_basekey`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `routing_rule` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `asset_code` varchar(50) DEFAULT NULL COMMENT '资产编码',
+  `dest_network_segment` varchar(15) DEFAULT NULL COMMENT '目标网段',
+  `network_zone_link_design` varchar(15) DEFAULT NULL COMMENT '网络区域连接',
+  `resource_set` varchar(15) DEFAULT NULL COMMENT '资源集合',
+  `routing_rule_design` varchar(15) DEFAULT NULL COMMENT '路由规则设计',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `routing_rule_design` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `dest_network_segment` varchar(15) DEFAULT NULL COMMENT '目标网段',
+  `network_zone_link_design` varchar(15) DEFAULT NULL COMMENT '网络区域连接',
+  `resource_set` varchar(15) DEFAULT NULL COMMENT '资源集合',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `service` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `asset_code` varchar(50) DEFAULT NULL COMMENT '资产编码',
+  `cluster_type` int(15) DEFAULT NULL COMMENT '集群类型',
+  `dns_name` varchar(50) DEFAULT NULL COMMENT '域名名',
+  `internet_service_ip` varchar(15) DEFAULT NULL COMMENT '互联网服务IP',
+  `service_design` varchar(15) DEFAULT NULL COMMENT '服务设计',
+  `service_dns_domain` int(15) DEFAULT NULL COMMENT '域名域',
+  `service_ip` varchar(15) DEFAULT NULL COMMENT '服务IP',
+  `service_port` varchar(50) DEFAULT NULL COMMENT '服务端口',
+  `service_type` int(15) DEFAULT NULL COMMENT '服务类型',
+  `unit` varchar(15) DEFAULT NULL COMMENT '单元',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `service_design` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `cluster_type` int(15) DEFAULT NULL COMMENT '集群类型',
+  `name` varchar(50) DEFAULT NULL COMMENT '服务名称',
+  `service_type` int(15) DEFAULT NULL COMMENT '服务类型',
+  `unit_design` varchar(15) DEFAULT NULL COMMENT '单元设计',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `subsys` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `manager` varchar(50) DEFAULT NULL COMMENT '运维人员',
+  `subsys_design` varchar(15) DEFAULT NULL COMMENT '子系统设计',
+  `system` varchar(15) DEFAULT NULL COMMENT '系统',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `subsys$business_zone` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `from_guid` varchar(15) NOT NULL,
+  `to_guid` varchar(15) NOT NULL,
+  `seq_no` int(5) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `subsys_design` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `business_group` int(15) DEFAULT NULL COMMENT '业务群组',
+  `business_zone_design` varchar(15) DEFAULT NULL COMMENT '业务区域设计',
+  `name` varchar(50) DEFAULT NULL COMMENT '名称',
+  `system_design` varchar(15) DEFAULT NULL COMMENT '系统设计',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `system` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `deploy_environment` int(15) DEFAULT NULL COMMENT '部署环境',
+  `system_design` varchar(15) DEFAULT NULL COMMENT '系统设计',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `system_design` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `business_group` int(15) DEFAULT NULL COMMENT '业务群组',
+  `name` varchar(50) DEFAULT NULL COMMENT '名称',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `unit` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `manager` varchar(50) DEFAULT NULL COMMENT '运维人员',
+  `subsys` varchar(15) DEFAULT NULL COMMENT '子系统',
+  `unit_design` varchar(15) DEFAULT NULL COMMENT '单元设计',
+  `security_group_asset_code` varchar(50) DEFAULT NULL COMMENT '安全组资产编码',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `unit$deploy_package` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `from_guid` varchar(15) NOT NULL,
+  `to_guid` varchar(15) NOT NULL,
+  `seq_no` int(5) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `unit$resource_set` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `from_guid` varchar(15) NOT NULL,
+  `to_guid` varchar(15) NOT NULL,
+  `seq_no` int(5) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `unit$unit_type` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `from_guid` varchar(15) NOT NULL,
+  `to_code` int(11) NOT NULL,
+  `seq_no` int(5) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `unit$unit_type_fk_code` (`to_code`),
+  CONSTRAINT `unit$unit_type_fk_code` FOREIGN KEY (`to_code`) REFERENCES `adm_basekey_code` (`id_adm_basekey`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `unit_design` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `key_name` varchar(200) DEFAULT NULL COMMENT '唯一名称',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `across_resource_set` int(15) DEFAULT NULL COMMENT '跨资源集合部署',
+  `name` varchar(50) DEFAULT NULL COMMENT '单元名称',
+  `resource_set_design` varchar(15) DEFAULT NULL COMMENT '资源集合设计',
+  `subsys_design` varchar(15) DEFAULT NULL COMMENT '系统',
+  `unit_design_type` int(15) DEFAULT NULL COMMENT '单元设计类型',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 SET FOREIGN_KEY_CHECKS=1;

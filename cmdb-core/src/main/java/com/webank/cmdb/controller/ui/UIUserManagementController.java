@@ -1,6 +1,7 @@
 package com.webank.cmdb.controller.ui;
 
-import static com.webank.cmdb.domain.AdmMenu.*;
+import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_PERMISSION_MANAGEMENT;
+import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_USER_PASSWORD_MANAGEMENT;
 
 import java.util.List;
 import java.util.Map;
@@ -118,33 +119,34 @@ public class UIUserManagementController {
     }
 
     @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
-    @GetMapping("/roles/{role-id}/users")
+    @GetMapping("/roles/{role-name}/users")
     @ResponseBody
-    public Object getUsersByRoleId(@PathVariable(value = "role-id") int roleId) {
-        return wrapperService.getUsersByRoleId(roleId);
+    public Object getUsersByRoleId(@PathVariable(value = "role-name") String roleName) {
+        return wrapperService.getUsersByRoleId(wrapperService.getRoleIdByRoleName(roleName));
     }
 
     @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
-    @GetMapping("/roles/{role-id}/permissions")
+    @GetMapping("/roles/{role-name}/permissions")
     @ResponseBody
-    public Object getPermissionsByRoleId(@PathVariable(value = "role-id") int roleId) {
+    public Object getPermissionsByRoleId(@PathVariable(value = "role-name") String roleName) {
+        int roleId = wrapperService.getRoleIdByRoleName(roleName, true);
         List<String> menuPermissions = userManagerService.getMenuDtosByRoleId(roleId);
         List<RoleCiTypeDto> ciTypePermissions = userManagerService.getRoleCiTypesByRoleId(roleId);
         return new Permissions(menuPermissions, ciTypePermissions);
     }
 
     @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
-    @GetMapping("/roles/{role-id}/menu-permissions")
+    @GetMapping("/roles/{role-name}/menu-permissions")
     @ResponseBody
-    public Object getMenuPermissionsByRoleId(@PathVariable(value = "role-id") int roleId) {
-        return userManagerService.getMenuDtosByRoleId(roleId);
+    public Object getMenuPermissionsByRoleId(@PathVariable(value = "role-name") String roleName) {
+        return userManagerService.getMenuDtosByRoleId(wrapperService.getRoleIdByRoleName(roleName));
     }
 
     @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
-    @GetMapping("/roles/{role-id}/citype-permissions")
+    @GetMapping("/roles/{role-name}/citype-permissions")
     @ResponseBody
-    public Object getCiTypePermissionsByRoleId(@PathVariable(value = "role-id") int roleId) {
-        return userManagerService.getRoleCiTypesByRoleId(roleId);
+    public Object getCiTypePermissionsByRoleId(@PathVariable(value = "role-name") String roleName) {
+        return userManagerService.getRoleCiTypesByRoleId(wrapperService.getRoleIdByRoleName(roleName));
     }
 
     @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
@@ -178,52 +180,52 @@ public class UIUserManagementController {
     }
 
     @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
-    @DeleteMapping("/roles/{role-id}")
+    @DeleteMapping("/roles/{role-name}")
     @ResponseBody
-    public void deleteRole(@PathVariable(value = "role-id") int roleId) {
-        userManagerService.deleteRole(roleId);
+    public void deleteRole(@PathVariable(value = "role-name") String roleName) {
+        userManagerService.deleteRole(wrapperService.getRoleIdByRoleName(roleName));
     }
 
     @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
-    @PostMapping("/roles/{role-id}/users")
+    @PostMapping("/roles/{role-name}/users")
     @ResponseBody
-    public void grantRoleForUser(@PathVariable(value = "role-id") int roleId, @RequestBody List<String> userIds) {
-        userManagerService.grantRoleForUsers(roleId, userIds);
+    public void grantRoleForUser(@PathVariable(value = "role-name") String roleName, @RequestBody List<String> userIds) {
+        userManagerService.grantRoleForUsers(wrapperService.getRoleIdByRoleName(roleName), userIds);
     }
 
     @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
-    @DeleteMapping("/roles/{role-id}/users")
+    @DeleteMapping("/roles/{role-name}/users")
     @ResponseBody
-    public void revokeRoleForUser(@PathVariable(value = "role-id") int roleId, @RequestBody List<String> usernames) {
-        userManagerService.revokeRoleForUsers(roleId, usernames);
+    public void revokeRoleForUser(@PathVariable(value = "role-name") String roleName, @RequestBody List<String> usernames) {
+        userManagerService.revokeRoleForUsers(wrapperService.getRoleIdByRoleName(roleName), usernames);
     }
 
     @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
-    @PostMapping("/roles/{role-id}/menu-permissions")
+    @PostMapping("/roles/{role-name}/menu-permissions")
     @ResponseBody
-    public void assignMenuPermissionForRole(@PathVariable(value = "role-id") int roleId, @RequestBody List<String> menuCodes) {
-        userManagerService.assignMenuPermissionForRoles(roleId, menuCodes);
+    public void assignMenuPermissionForRole(@PathVariable(value = "role-name") String roleName, @RequestBody List<String> menuCodes) {
+        userManagerService.assignMenuPermissionForRoles(wrapperService.getRoleIdByRoleName(roleName), menuCodes);
     }
 
     @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
-    @DeleteMapping("/roles/{role-id}/menu-permissions")
+    @DeleteMapping("/roles/{role-name}/menu-permissions")
     @ResponseBody
-    public void removeMenuPermissionForRole(@PathVariable(value = "role-id") int roleId, @RequestBody List<String> menuCodes) {
-        userManagerService.removeMenuPermissionForRoles(roleId, menuCodes);
+    public void removeMenuPermissionForRole(@PathVariable(value = "role-name") String roleName, @RequestBody List<String> menuCodes) {
+        userManagerService.removeMenuPermissionForRoles(wrapperService.getRoleIdByRoleName(roleName), menuCodes);
     }
 
     @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
-    @PostMapping("/roles/{role-id}/citypes/{citype-id}/actions/{action-code}")
+    @PostMapping("/roles/{role-name}/citypes/{citype-id}/actions/{action-code}")
     @ResponseBody
-    public void assignCiTypePermissionForRole(@PathVariable(value = "role-id") int roleId, @PathVariable(value = "citype-id") int ciTypeId, @PathVariable(value = "action-code") String actionCode) {
-        userManagerService.assignCiTypePermissionForRole(roleId, ciTypeId, actionCode);
+    public void assignCiTypePermissionForRole(@PathVariable(value = "role-name") String roleName, @PathVariable(value = "citype-id") int ciTypeId, @PathVariable(value = "action-code") String actionCode) {
+        userManagerService.assignCiTypePermissionForRole(wrapperService.getRoleIdByRoleName(roleName), ciTypeId, actionCode);
     }
 
     @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
-    @DeleteMapping("/roles/{role-id}/citypes/{citype-id}/actions/{action-code}")
+    @DeleteMapping("/roles/{role-name}/citypes/{citype-id}/actions/{action-code}")
     @ResponseBody
-    public void removeCiTypePermissionForRole(@PathVariable(value = "role-id") int roleId, @PathVariable(value = "citype-id") int ciTypeId, @PathVariable(value = "action-code") String actionCode) {
-        userManagerService.removeCiTypePermissionForRole(roleId, ciTypeId, actionCode);
+    public void removeCiTypePermissionForRole(@PathVariable(value = "role-name") String roleName, @PathVariable(value = "citype-id") int ciTypeId, @PathVariable(value = "action-code") String actionCode) {
+        userManagerService.removeCiTypePermissionForRole(wrapperService.getRoleIdByRoleName(roleName), ciTypeId, actionCode);
     }
 
     @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
