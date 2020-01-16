@@ -17,4 +17,6 @@ public interface AdmIntegrateTemplateRepository extends JpaRepository<AdmIntegra
             + "ON al.id_alias = aa.id_alias " + "WHERE t.ci_type_id = :ciTypeId  AND aa.id_ci_type_attr = :tailAttrId AND aa.id_alias NOT IN " + "(SELECT parent_alias_id FROM adm_integrate_template_relation)", nativeQuery = true)
     List<AdmIntegrateTemplate> findAllByCiTypeIdAndTailAttrId(@Param("ciTypeId") Integer ciType, @Param("tailAttrId") Integer attrId);
 
+    List<AdmIntegrateTemplate> findAllByName(String name);
+
 }
