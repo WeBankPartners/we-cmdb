@@ -413,12 +413,16 @@ public class CiDataInterceptorService {
 
     private String queryValueByRule(String rootGuid, AdmCiTypeAttr attrWithGuid, Object autoFillRuleValue, StringBuilder sb) {
         List<AutoFillItem> autoRuleItems = parserRule(autoFillRuleValue);
+        boolean isPreviousExpressionValue = true;
         for (AutoFillItem item : autoRuleItems) {
             if (AutoFillType.Rule.getCode().equals(item.getType())) {
                 try {
                     List<AutoFillIntegrationQueryDto> routines = JsonUtil.toList(item.getValue(), AutoFillIntegrationQueryDto.class);
                     QueryResponse response = queryIntegrateWithRoutines(rootGuid, attrWithGuid, routines);
                     List<String> targetValues = getValueFromResponse(response, routines);
+                    if(isPreviousExpressionValue && targetValues.isEmpty()) {
+                        return null;
+                    }
                     for (int i = 0; i < targetValues.size(); i++) {
                         String value = targetValues.get(i);
                         if (checkExpression(value)) {
@@ -435,6 +439,7 @@ public class CiDataInterceptorService {
                 }
             } else {
                 sb.append(item.getValue());
+                isPreviousExpressionValue=false;
             }
         }
         return sb.toString();
