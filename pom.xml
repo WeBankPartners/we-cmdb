@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -8,14 +9,35 @@
 		<version>2.1.3.RELEASE</version>
 		<relativePath />
 	</parent>
-	<groupId>com.webank.cmdb</groupId>
+
+	<properties>
+		<cmdb.version>1.4.0-SNAPSHOT</cmdb.version>
+		<java.version>1.8</java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
 	<artifactId>cmdb</artifactId>
-	<version>1.4.0-SNAPSHOT</version>
+	<groupId>com.webank.cmdb</groupId>
+	<version>${cmdb.version}</version>
 	<packaging>pom</packaging>
-	<name>cmdb</name>
-	<description>cmdb</description>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
 	<modules>
-	    <module>cmdb-ui</module>
+		<module>cmdb-ui</module>
 		<module>cmdb-core</module>
+		<module>cmdb-plugin</module>
 	</modules>
 </project>

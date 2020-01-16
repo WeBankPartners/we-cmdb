@@ -32,8 +32,16 @@ public class IntegrationQueryDto {
     // relation with parent node, it is not needed in root node.
     private Relationship parentRs;
     private List<IntegrationQueryDto> children = new LinkedList<>();
+    private List<Filter> filters = new ArrayList<Filter>();
+    public List<Filter> getFilters() {
+		return filters;
+	}
 
-    public IntegrationQueryDto() {
+	public void setFilters(List<Filter> filters) {
+		this.filters = filters;
+	}
+
+	public IntegrationQueryDto() {
     }
 
     public IntegrationQueryDto(String name) {
@@ -180,8 +188,8 @@ public class IntegrationQueryDto {
     public void setAggKeyNames(List<String> aggKeyNames) {
         this.aggKeyNames = aggKeyNames;
     }
-  
-    @Override
+    
+	@Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("ciTypeId", ciTypeId)

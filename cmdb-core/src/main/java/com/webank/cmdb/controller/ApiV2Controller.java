@@ -505,4 +505,9 @@ public class ApiV2Controller {
     public void deleteRoleCiTypeCtrlAttrConditions(@Valid @RequestBody List<Integer> requestIds) {
         staticDtoService.delete(RoleCiTypeCtrlAttrConditionDto.class, requestIds);
     }
+    
+    @GetMapping("/static-data/special-connector")
+    public Object getSpecialConnector() {
+        return constantService.getSpecialConnector();
+    }
 }
