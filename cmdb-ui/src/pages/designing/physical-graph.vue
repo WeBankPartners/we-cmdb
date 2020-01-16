@@ -126,7 +126,7 @@ export default {
     genLink () {
       let result = ''
       this.links.forEach(link => {
-        result += `g_${link.data.network_zone_design_1.guid}->g_${link.data.network_zone_design_2.guid}[arrowhead="none"];`
+        result += `g_${link.from.guid}->g_${link.to.guid}[arrowhead="none"];`
       })
       return result
     },
@@ -235,10 +235,8 @@ export default {
     }
   },
   mounted () {
-    this.$nextTick(() => {
-      this.initEvent()
-      this.callback()
-    })
+    this.initEvent()
+    this.callback()
   }
 }
 </script>
