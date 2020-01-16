@@ -3,7 +3,7 @@ cd `dirname $0`
 
 rm -rf database
 
-cp -r ../../cmdb-core/src/main/resources/database/en database
+cp -r ../../cmdb-core/src/main/resources/database/ch database
 
 cd database
 for i in `ls -1 ./*.sql`; do
