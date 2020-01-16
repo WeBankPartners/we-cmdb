@@ -11,28 +11,28 @@ export default new Router({
       component: () => import('@/pages/index'),
       children: [
         {
-          path: 'homepage',
+          path: '/homepage',
           name: 'homepage',
           component: () => import('@/pages/home-page'),
           params: {},
           props: true
         },
         {
-          path: '404',
+          path: '/404',
           name: '404',
           component: () => import('@/pages/404'),
           params: {},
           props: true
         },
         {
-          path: 'coming-soon',
+          path: '/coming-soon',
           name: 'comingsoon',
           component: () => import('@/pages/coming-soon'),
           params: {},
           props: true
         },
         {
-          path: 'setting/change-password',
+          path: '/setting/change-password',
           name: 'changePassword',
           component: () => import('@/pages/change-password')
         },
