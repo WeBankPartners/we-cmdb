@@ -9,11 +9,8 @@ spring:
     url: jdbc:h2:mem:cmdb;MODE=MYSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=true;MV_STORE=FALSE;INIT=CREATE SCHEMA IF NOT EXISTS wecmdb_dev\;SET SCHEMA wecmdb_dev
     username: sa
     password:
-    schema: classpath:/database/ch/01.cmdb.schema_ch.sql
-    data:
-      - classpath:/database/ch/02.cmdb.system.data_ch.sql
-      - classpath:/local/ch/03.cmdb.system.data.h2_ch.sql
-      - classpath:/database/ch/04.cmdb.experience.data_ch.sql
+    schema: classpath:/database/ch/05.cmdb.create_table_ch.sql
+    data: classpath:/database/ch/06.cmdb.insert_data_ch.sql
     sql-script-encoding: utf-8
 
     
