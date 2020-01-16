@@ -90,9 +90,9 @@ export default {
       //     }
       //   })
       // })
-      this.$nextTick(() => {
-        this.setCheckoutStatus(disable)
-      })
+      // this.$nextTick(() => {
+      this.setCheckoutStatus(disable)
+      // })
     },
     setCheckoutStatus (disable) {
       let objData = this.$refs.table.$refs.tbody.objData
