@@ -418,13 +418,15 @@ export default {
       }
       if (links.statusCode === 'OK') {
         const found = links.data.find(_ => _.idcGuid === this.systemVersion)
-        this.physicalGraphLinks = found ? found.links.data.map(_ => {
-          return {
-            ..._,
-            from: _.data.network_zone_1,
-            to: _.data.network_zone_2
-          }
-        }) : []
+        this.physicalGraphLinks = found
+          ? found.links.data.map(_ => {
+            return {
+              ..._,
+              from: _.data.network_zone_1,
+              to: _.data.network_zone_2
+            }
+          })
+          : []
       }
     },
     graphCallback () {

@@ -207,7 +207,9 @@ export default {
       this.options = []
       this.optionsDisplay = true
       const isAttrNode = attrIndex ? !!JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].parentRs : false
-      const attrInputType = isAttrNode ? this.ciTypeAttrsObj[JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].parentRs.attrId].inputType : ''
+      const attrInputType = isAttrNode
+        ? this.ciTypeAttrsObj[JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].parentRs.attrId].inputType
+        : ''
       // 删除节点
       this.options.push({
         type: 'option',
@@ -236,10 +238,17 @@ export default {
       }
 
       const node = JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex]
-      if (!node.parentRs || this.ciTypeAttrsObj[node.parentRs.attrId].inputType === 'ref' || this.ciTypeAttrsObj[node.parentRs.attrId].inputType === 'multiRef') {
+      if (
+        !node.parentRs ||
+        this.ciTypeAttrsObj[node.parentRs.attrId].inputType === 'ref' ||
+        this.ciTypeAttrsObj[node.parentRs.attrId].inputType === 'multiRef'
+      ) {
         const ciTypeId = JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].ciTypeId
         this.getRefData(ruleIndex, attrIndex, ciTypeId)
-      } else if ((node.parentRs && this.ciTypeAttrsObj[node.parentRs.attrId].inputType === 'select') || this.ciTypeAttrsObj[node.parentRs.attrId].inputType === 'multiSelect') {
+      } else if (
+        (node.parentRs && this.ciTypeAttrsObj[node.parentRs.attrId].inputType === 'select') ||
+        this.ciTypeAttrsObj[node.parentRs.attrId].inputType === 'multiSelect'
+      ) {
         this.showEnumOptions(ruleIndex, attrIndex)
       }
     },
@@ -351,7 +360,12 @@ export default {
         if (attrIndex === '0') {
           // 删除该属性表达式（即该花括号内的内容）
           this.autoFillArray.splice(ruleIndex, 1)
-          if (ruleIndex !== '0' && this.autoFillArray[+ruleIndex - 1].type === 'delimiter' && this.autoFillArray[ruleIndex] && this.autoFillArray[ruleIndex].type === 'delimiter') {
+          if (
+            ruleIndex !== '0' &&
+            this.autoFillArray[+ruleIndex - 1].type === 'delimiter' &&
+            this.autoFillArray[ruleIndex] &&
+            this.autoFillArray[ruleIndex].type === 'delimiter'
+          ) {
             this.autoFillArray[+ruleIndex - 1].value += this.autoFillArray[ruleIndex].value
             this.autoFillArray.splice(ruleIndex, 1)
           }
@@ -460,7 +474,9 @@ export default {
       let result = JSON.parse(val.value).map((_, attrIndex) => {
         let isLegal = true
         if (attrIndex === JSON.parse(val.value).length - 1) {
-          const lastInputType = JSON.parse(val.value)[attrIndex].parentRs ? this.ciTypeAttrsObj[JSON.parse(val.value)[attrIndex].parentRs.attrId].inputType : ''
+          const lastInputType = JSON.parse(val.value)[attrIndex].parentRs
+            ? this.ciTypeAttrsObj[JSON.parse(val.value)[attrIndex].parentRs.attrId].inputType
+            : ''
           if (lastInputType === 'ref' || lastInputType === 'multiRef' || !lastInputType) {
             isLegal = false
           } else if (lastInputType === 'select' || lastInputType === 'multiSelect') {
@@ -500,10 +516,14 @@ export default {
           })
         } else {
           const inputType = this.ciTypeAttrsObj[_.parentRs.attrId].inputType
-          const ref = _.parentRs.isReferedFromParent === 1 ? (inputType === 'ref' || inputType === 'multiRef') ? '->' : '.' : '<-'
+          const ref =
+            _.parentRs.isReferedFromParent === 1 ? (inputType === 'ref' || inputType === 'multiRef' ? '->' : '.') : '<-'
           const attrName = this.ciTypeAttrsObj[_.parentRs.attrId].name
           const enumCode = _.enumCodeAttr ? `.${_.enumCodeAttr}` : ''
-          if (this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'ref' || this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'multiRef') {
+          if (
+            this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'ref' ||
+            this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'multiRef'
+          ) {
             return ` ${ref}(${ciTypeName})${attrName}${filterNode}`.split('').map(_ => {
               const classList = {
                 'auto-fill-span': true,
@@ -558,7 +578,15 @@ export default {
       // type === delimiter 时，连接符
       let result = null
       if (this.activeDelimiterIndex === i + '') {
-        result = <Input ref="delimiterInput" on-on-blur={() => this.confirmDelimiter(i)} on-on-enter={() => this.$refs.delimiterInput.blur()} onInput={v => this.onDelimiterInput(v, i)} value={val} />
+        result = (
+          <Input
+            ref="delimiterInput"
+            on-on-blur={() => this.confirmDelimiter(i)}
+            on-on-enter={() => this.$refs.delimiterInput.blur()}
+            onInput={v => this.onDelimiterInput(v, i)}
+            value={val}
+          />
+        )
       } else {
         result = [
           <span style="margin-left:5px;"></span>,
@@ -579,7 +607,10 @@ export default {
         <span style="margin-left:5px;"></span>,
         value.split('').map(_ => {
           return (
-            <span class={`auto-fill-span auto-fill-special-delimiter${this.hoverSpan === i + '' ? ' hover' : ''}`} index={i}>
+            <span
+              class={`auto-fill-span auto-fill-special-delimiter${this.hoverSpan === i + '' ? ' hover' : ''}`}
+              index={i}
+            >
               {this.specialDelimiters.find(item => item.code === value).value}
             </span>
           )
@@ -610,7 +641,12 @@ export default {
       this.autoFillArray[i].value = v
     },
     renderAddRule () {
-      return [<Icon class="auto-fill-add" type="md-add-circle" />, !this.autoFillArray.length && <span class="auto-fill-add auto-fill-placeholder">{this.$t('auto_fill_filter_placeholder')}</span>]
+      return [
+        <Icon class="auto-fill-add" type="md-add-circle" />,
+        !this.autoFillArray.length && (
+          <span class="auto-fill-add auto-fill-placeholder">{this.$t('auto_fill_filter_placeholder')}</span>
+        )
+      ]
     },
     initAutoFillArray () {
       if (!this.allCiTypes.length || !this.value) {
@@ -635,10 +671,21 @@ export default {
         value: ''
       }
       return (
-        <Modal value={this.modalDisplay} onInput={v => (this.modalDisplay = v)} title={this.$t('auto_fill_filter_modal_title')} on-on-ok={this.confirmFilter} on-on-cancel={this.cancelFilter}>
+        <Modal
+          value={this.modalDisplay}
+          onInput={v => (this.modalDisplay = v)}
+          title={this.$t('auto_fill_filter_modal_title')}
+          on-on-ok={this.confirmFilter}
+          on-on-cancel={this.cancelFilter}
+        >
           {this.filters.map((_, i) => (
             <div class="auto-fill-filter-li">
-              <Icon type="md-remove-circle" color="red" onClick={() => this.filters.splice(i, 1)} class="auto-fill-filter-li-icon" />
+              <Icon
+                type="md-remove-circle"
+                color="red"
+                onClick={() => this.filters.splice(i, 1)}
+                class="auto-fill-filter-li-icon"
+              />
               <Select value={_.name} onInput={v => this.changeFilter(v, i)} class="auto-fill-filter-li-select title">
                 {this.filterCiAttrs.map(attr => (
                   <Option key={attr.ciTypeAttrId} value={attr.propertyName}>
@@ -646,7 +693,11 @@ export default {
                   </Option>
                 ))}
               </Select>
-              <Select value={_.operator} onInput={v => (this.filters[i].operator = v)} class="auto-fill-filter-li-select operator">
+              <Select
+                value={_.operator}
+                onInput={v => (this.filters[i].operator = v)}
+                class="auto-fill-filter-li-select operator"
+              >
                 {this.operatorList.map(o => (
                   <Option key={o.code} value={o.code}>
                     {o.value}
