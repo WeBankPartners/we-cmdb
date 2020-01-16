@@ -72,9 +72,7 @@ export default {
       this.$refs[name].resetFields()
     },
     focusOnInput () {
-      this.$nextTick(() => {
-        this.$refs['oldPassword'].focus()
-      })
+      this.$refs['oldPassword'].focus()
     }
   },
   mounted () {
