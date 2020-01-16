@@ -719,11 +719,12 @@ export default {
         if (_.type === 'rule') {
           const ruleArray = JSON.parse(_.value)
           const lastNode = ruleArray[ruleArray.length - 1]
-          const lastAttrId = ruleArray[ruleArray.length - 1].parentRs ? ruleArray[ruleArray.length - 1].parentRs.attrId : 0
+          const lastAttrId = lastNode.parentRs ? lastNode.parentRs.attrId : 0
+          const inputType = this.ciTypeAttrsObj[lastAttrId].inputType
           if (lastNode.parentRs) {
-            if (this.ciTypeAttrsObj[lastAttrId].inputType === 'ref' || this.ciTypeAttrsObj[lastAttrId].inputType === 'multiRef') {
+            if (inputType === 'ref' || inputType === 'multiRef') {
               isLegal = false
-            } else if (this.ciTypeAttrsObj[lastAttrId].inputType === 'select' || this.ciTypeAttrsObj[lastAttrId].inputType === 'multiSelect') {
+            } else if (inputType === 'select' || inputType === 'multiSelect') {
               if (!lastNode.enumCodeAttr) {
                 isLegal = false
               }
