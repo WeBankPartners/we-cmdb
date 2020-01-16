@@ -10,44 +10,26 @@
           :placeholder="$t('select_idc')"
         >
           <OptionGroup v-for="idc in realIdcs" :key="idc.guuid" :label="idc.name">
-            <Option
-              v-for="item in idc.logicIdcs"
-              :value="item.guid"
-              :key="item.guid"
-            >{{ item.name }}</Option>
+            <Option v-for="item in idc.logicIdcs" :value="item.guid" :key="item.guid">{{ item.name }}</Option>
           </OptionGroup>
         </Select>
       </Col>
-      <Button @click="onIdcDataChange" type="primary">{{ $t("query") }}</Button>
+      <Button @click="onIdcDataChange" type="primary">{{ $t('query') }}</Button>
     </Row>
     <Row class="graph-tabs">
       <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-        <div>{{ $t("loading") }}</div>
+        <div>{{ $t('loading') }}</div>
       </Spin>
-      <Tabs
-        v-if="idcData.length"
-        type="card"
-        :value="currentTab"
-        :closable="false"
-        @on-click="handleTabClick"
-      >
-        <TabPane
-          :label="$t('resource_planning_diagram')"
-          name="resource-design"
-        >
+      <Tabs v-if="idcData.length" type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
+        <TabPane :label="$t('resource_planning_diagram')" name="resource-design">
           <Alert show-icon closable v-if="isDataChanged">
             Data has beed changed, click Reload button to reload graph.
             <Button slot="desc" @click="reloadHandler">Reload</Button>
           </Alert>
           <div class="graph-container-big" id="resourcePlanningGraph"></div>
         </TabPane>
-        <TabPane
-          v-for="ci in tabList"
-          :key="ci.id"
-          :name="ci.id"
-          :label="ci.name"
-        >
+        <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name">
           <WeCMDBTable
             :tableData="ci.tableData"
             :tableOuterActions="ci.outerActions"
@@ -89,25 +71,12 @@ import {
   getAllZoneLinkGroupByIdc,
   operateCiState
 } from '@/api/server'
-import {
-  outerActions,
-  innerActions,
-  pagination,
-  components
-} from '@/const/actions.js'
+import { outerActions, innerActions, pagination, components } from '@/const/actions.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 
 const fontSize = 16
-const colors = [
-  '#bbdefb',
-  '#90caf9',
-  '#64b5f6',
-  '#42a5f5',
-  '#2196f3',
-  '#1e88e5',
-  '#1976d2'
-]
+const colors = ['#bbdefb', '#90caf9', '#64b5f6', '#42a5f5', '#2196f3', '#1e88e5', '#1976d2']
 export default {
   data () {
     return {
@@ -200,10 +169,7 @@ export default {
       })
       if (this.selectedIdcs.length) {
         this.spinShow = true
-        const promiseArray = [
-          getIdcImplementTreeByGuid(this.selectedIdcs),
-          getAllZoneLinkGroupByIdc()
-        ]
+        const promiseArray = [getIdcImplementTreeByGuid(this.selectedIdcs), getAllZoneLinkGroupByIdc()]
         const [idcData, links] = await Promise.all(promiseArray)
         if (idcData.statusCode === 'OK' && links.statusCode === 'OK') {
           this.idcData = idcData.data
@@ -261,7 +227,10 @@ export default {
       let width = window.innerWidth
       let height = window.innerHeight
       let svg = d3.select('#resourcePlanningGraph').select('svg')
-      svg.attr('width', width).attr('height', height).attr('viewBox', `0 0 ${width} ${height}`)
+      svg
+        .attr('width', width)
+        .attr('height', height)
+        .attr('viewBox', `0 0 ${width} ${height}`)
 
       this.idcData.forEach(_ => {
         const children = _.children || []
@@ -306,10 +275,7 @@ export default {
           '}'
         )
       })
-      dots.push(
-        this.genLines(),
-        '}'
-      )
+      dots.push(this.genLines(), '}')
       return dots.join('')
     },
     genChildren (data) {
@@ -340,14 +306,14 @@ export default {
               label = zone.data.key_name
             }
             this.graphNodes[zone.guid] = zone
-            dots.push(`n_${zone.guid}[id="n_${zone.guid}",color="${colors[1]}",label="${label}",width=${ll},height=${lg}];`)
+            dots.push(
+              `n_${zone.guid}[id="n_${zone.guid}",color="${colors[1]}",label="${label}",width=${ll},height=${lg}];`
+            )
           })
           dots.push('}')
         })
       } else {
-        dots.push(
-          `n_${data.data.guid}[label=" ",color="${colors[0]}",width="${width - 0.5}",height="${height - 3}"]`
-        )
+        dots.push(`n_${data.data.guid}[label=" ",color="${colors[0]}",width="${width - 0.5}",height="${height - 3}"]`)
       }
       return dots.join('')
     },
@@ -355,7 +321,9 @@ export default {
       let dots = []
       this.lineData.forEach(_ => {
         if (this.graphNodes[_.from] && this.graphNodes[_.to]) {
-          dots.push(`n_${_.from} -> n_${_.to}[id=gl_${_.guid},tooltip="${_.label || ''}",taillabel="${_.label || ''}"];`)
+          dots.push(
+            `n_${_.from} -> n_${_.to}[id=gl_${_.guid},tooltip="${_.label || ''}",taillabel="${_.label || ''}"];`
+          )
         }
       })
       return dots.join('')
@@ -376,15 +344,11 @@ export default {
       if (pw > ph * 1.2) {
         if (pw / n > ph - tfsize) {
           mgap = (ph - tfsize) * 0.04
-          fontsize =
-            tfsize * 0.8 > (ph - tfsize) * 0.1
-              ? (ph - tfsize) * 0.1
-              : tfsize * 0.8
+          fontsize = tfsize * 0.8 > (ph - tfsize) * 0.1 ? (ph - tfsize) * 0.1 : tfsize * 0.8
           strokewidth = (ph - tfsize) * 0.005
         } else {
           mgap = (pw / n) * 0.04
-          fontsize =
-            tfsize * 0.8 > (pw / n) * 0.1 ? (pw / n) * 0.1 : tfsize * 0.8
+          fontsize = tfsize * 0.8 > (pw / n) * 0.1 ? (pw / n) * 0.1 : tfsize * 0.8
           strokewidth = (pw / n) * 0.005
         }
         w = (pw - mgap) / n - mgap
@@ -413,23 +377,11 @@ export default {
           g.append('text')
             .attr('x', tx)
             .attr('y', ty)
-            .text(
-              node.children[i].data.code
-                ? node.children[i].data.code
-                : node.children[i].data.key_name
-            )
+            .text(node.children[i].data.code ? node.children[i].data.code : node.children[i].data.key_name)
             .attr('style', 'text-anchor:middle')
             .attr('font-size', fontsize)
           if (Array.isArray(node.children[i].children)) {
-            this.setChildren(
-              node.children[i],
-              { x: rx, y: ry },
-              w,
-              h,
-              fontsize,
-              deep + 1,
-              idcName
-            )
+            this.setChildren(node.children[i], { x: rx, y: ry }, w, h, fontsize, deep + 1, idcName)
           }
         }
       } else {
@@ -439,10 +391,7 @@ export default {
           strokewidth = pw * 0.005
         } else {
           mgap = ((ph - tfsize) / n) * 0.04
-          fontsize =
-            tfsize * 0.8 > ((ph - tfsize) / n) * 0.1
-              ? ((ph - tfsize) / n) * 0.1
-              : tfsize * 0.8
+          fontsize = tfsize * 0.8 > ((ph - tfsize) / n) * 0.1 ? ((ph - tfsize) / n) * 0.1 : tfsize * 0.8
           strokewidth = ((ph - tfsize) / n) * 0.005
         }
         w = pw - 2 * mgap
@@ -471,23 +420,11 @@ export default {
           g.append('text')
             .attr('x', tx)
             .attr('y', ty)
-            .text(
-              node.children[i].data.code
-                ? node.children[i].data.code
-                : node.children[i].data.key_name
-            )
+            .text(node.children[i].data.code ? node.children[i].data.code : node.children[i].data.key_name)
             .attr('style', 'text-anchor:middle')
             .attr('font-size', fontsize)
           if (Array.isArray(node.children[i].children)) {
-            this.setChildren(
-              node.children[i],
-              { x: rx, y: ry },
-              w,
-              h,
-              fontsize,
-              deep + 1,
-              idcName
-            )
+            this.setChildren(node.children[i], { x: rx, y: ry }, w, h, fontsize, deep + 1, idcName)
           }
         }
       }
@@ -515,11 +452,7 @@ export default {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.outerActions.forEach(_ => {
-              _.props.disabled = !(
-                _.actionType === 'add' ||
-                _.actionType === 'export' ||
-                _.actionType === 'cancel'
-              )
+              _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
             })
           }
         })
@@ -554,11 +487,7 @@ export default {
       }
     },
     async defaultHandler (type, row) {
-      const { statusCode, message } = await operateCiState(
-        this.currentTab,
-        row.guid,
-        type
-      )
+      const { statusCode, message } = await operateCiState(this.currentTab, row.guid, type)
       if (statusCode === 'OK') {
         this.$Notice.success({
           title: type,
@@ -614,11 +543,7 @@ export default {
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
           ci.outerActions.forEach(_ => {
-            _.props.disabled = !(
-              _.actionType === 'add' ||
-              _.actionType === 'export' ||
-              _.actionType === 'cancel'
-            )
+            _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
           })
         }
       })
@@ -642,10 +567,7 @@ export default {
             this.tabList.forEach(ci => {
               if (ci.id === this.currentTab) {
                 ci.outerActions.forEach(_ => {
-                  _.props.disabled =
-                    _.actionType === 'save' ||
-                    _.actionType === 'edit' ||
-                    _.actionType === 'delete'
+                  _.props.disabled = _.actionType === 'save' || _.actionType === 'edit' || _.actionType === 'delete'
                 })
               }
             })
@@ -686,17 +608,14 @@ export default {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.outerActions.forEach(_ => {
-              _.props.disabled = !(
-                _.actionType === 'add' || _.actionType === 'export'
-              )
+              _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export')
             })
           }
         })
         this.$refs[this.tableRef][0].setAllRowsUneditable()
         this.$nextTick(() => {
           /* to get iview original data to set _ischecked flag */
-          let objData = this.$refs[this.tableRef][0].$refs.table.$refs.tbody
-            .objData
+          let objData = this.$refs[this.tableRef][0].$refs.table.$refs.tbody.objData
           for (let obj in objData) {
             objData[obj]._isChecked = false
             objData[obj]._isDisabled = false
@@ -794,8 +713,7 @@ export default {
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
           this.payload.pageable.pageSize = ci.pagination.pageSize
-          this.payload.pageable.startIndex =
-            (ci.pagination.currentPage - 1) * ci.pagination.pageSize
+          this.payload.pageable.startIndex = (ci.pagination.currentPage - 1) * ci.pagination.pageSize
         }
       })
       const found = this.tabList.find(_ => _.code === this.currentTab)
@@ -852,10 +770,7 @@ export default {
     getSelectOptions (columns) {
       columns.forEach(async _ => {
         if (_.inputType === 'select' || _.inputType === 'multiSelect') {
-          const { data } = await getEnumCodesByCategoryId(
-            0,
-            _.referenceId
-          )
+          const { data } = await getEnumCodesByCategoryId(0, _.referenceId)
           _['options'] = data
             .filter(j => j.status === 'active')
             .map(i => {
@@ -884,9 +799,7 @@ export default {
             tableData: [],
             tableColumns: [],
             outerActions: JSON.parse(JSON.stringify(outerActions)),
-            innerActions: JSON.parse(
-              JSON.stringify(innerActions.concat(allInnerActions))
-            ),
+            innerActions: JSON.parse(JSON.stringify(innerActions.concat(allInnerActions))),
             pagination: JSON.parse(JSON.stringify(pagination)),
             ascOptions: {}
           }
@@ -936,7 +849,7 @@ export default {
 .resource-planning-title {
   display: flex;
   margin-right: 10px;
-  &>span {
+  & > span {
     line-height: 32px;
   }
 }
