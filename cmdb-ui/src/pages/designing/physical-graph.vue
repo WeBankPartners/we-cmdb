@@ -235,10 +235,8 @@ export default {
     }
   },
   mounted () {
-    this.$nextTick(() => {
-      this.initEvent()
-      this.callback()
-    })
+    this.initEvent()
+    this.callback()
   }
 }
 </script>
