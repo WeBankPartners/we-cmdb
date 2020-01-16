@@ -44,7 +44,7 @@ public class ConfirmAction implements Action {
     }
 
     @Override
-    public Map<String, Object> perform(EntityManager entityManager, int ciTypeId, String guid, AdmStateTransition transition, Map<String, Object> ciData, DynamicEntityHolder ciHolder) {
+    public Map<String, Object> perform(EntityManager entityManager, int ciTypeId, String guid, AdmStateTransition transition, Map<String, Object> ciData, DynamicEntityHolder ciHolder, Date date) {
         SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (ciHolder == null) {
             ciHolder = ciService.getCiHolder(ciTypeId, guid);
@@ -53,8 +53,13 @@ public class ConfirmAction implements Action {
         if (!Strings.isNullOrEmpty(fixedDate)) {
             throw new InvalidArgumentException(String.format("The Ci [%s] has been confirmed, can not be confirmed again.", guid));
         }
-
-        fixedDate = dateFmt.format(new Date());
+        if(date != null) {
+            fixedDate = dateFmt.format(date);
+            
+        }else {
+            fixedDate = dateFmt.format(new Date());
+            
+        }
         Map<String, Object> updateMap = Maps.newHashMap();
         int targetState = transition.getTargetState();
         MapUtils.putAll(updateMap, new Object[] { CmdbConstants.GUID, guid, CmdbConstants.DEFAULT_FIELD_FIXED_DATE, fixedDate, CmdbConstants.DEFAULT_FIELD_STATE, targetState });
@@ -65,5 +70,4 @@ public class ConfirmAction implements Action {
         logger.info("Update fixed_date to {} on ci [{}:{}]", fixedDate, ciTypeId, guid);
         return ClassUtils.convertBeanToMap(ciHolder.getEntityObj(), ciHolder.getEntityMeta(), false);
     }
-
 }

@@ -56,13 +56,21 @@ public interface AdmBasekeyCodeRepository extends JpaRepository<AdmBasekeyCode, 
 
     AdmBasekeyCode findFirstByCatIdOrderBySeqNoDesc(Integer catId);
 
+    boolean existsByCatIdAndValueAndGroupCodeId(Integer catId, String value, Integer groupCodeId);
+    
     boolean existsByCatIdAndValue(Integer catId, String value);
 
     boolean existsByCatIdAndValueAndIdAdmBasekeyNot(Integer catId, String value, Integer codeId);
+    
+    boolean existsByCatIdAndValueAndGroupCodeIdAndIdAdmBasekeyNot(Integer catId, String code, Integer groupCodeId, Integer codeId);
+  
+    boolean existsByCatIdAndCodeAndGroupCodeId(Integer catId, String code, Integer groupCodeId);
 
     boolean existsByCatIdAndCode(Integer catId, String code);
 
     boolean existsByCatIdAndCodeAndIdAdmBasekeyNot(Integer catId, String code, Integer codeId);
+    
+    boolean existsByCatIdAndCodeAndGroupCodeIdAndIdAdmBasekeyNot(Integer catId, String code, Integer groupCodeId, Integer codeId);
 
     boolean existsByCatIdAndIdAdmBasekey(Integer catId, Integer codeId);
 
