@@ -167,7 +167,7 @@ export default {
             type,
             value: JSON.stringify([{ ciTypeId: this.rootCiTypeId }])
           })
-          this.optionsDisplay = false
+          this.showRuleOptions(this.autoFillArray.length - 1 + '', '0')
           break
         case 'delimiter':
           this.autoFillArray.push({
@@ -300,7 +300,7 @@ export default {
             const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
             const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].name : this.ciTypesObj[_.ciTypeId].name
             const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId].name
-            const nodeName = isRef ? `->(${ciTypeName})${attrName}` : `->${attrName}`
+            const nodeName = isRef ? `->(${ciTypeName})${attrName}` : `.${attrName}`
             const nodeObj = {
               ciTypeId: isRef ? _.referenceId : _.ciTypeId,
               parentRs: {
@@ -499,7 +499,8 @@ export default {
             )
           })
         } else {
-          const ref = _.parentRs.isReferedFromParent === 1 ? '->' : '<-'
+          const inputType = this.ciTypeAttrsObj[_.parentRs.attrId].inputType
+          const ref = _.parentRs.isReferedFromParent === 1 ? (inputType === 'ref' || inputType === 'multiRef') ? '->' : '.' : '<-'
           const attrName = this.ciTypeAttrsObj[_.parentRs.attrId].name
           const enumCode = _.enumCodeAttr ? `.${_.enumCodeAttr}` : ''
           if (this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'ref' || this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'multiRef') {
@@ -557,8 +558,7 @@ export default {
       // type === delimiter 时，连接符
       let result = null
       if (this.activeDelimiterIndex === i + '') {
-        this.activeDelimiterValue = val
-        result = <Input ref="delimiterInput" on-on-blur={() => this.confirmDelimiter(i)} on-on-enter={() => this.$refs.delimiterInput.blur()} onInput={v => this.onDelimiterInput(v)} value={val} />
+        result = <Input ref="delimiterInput" on-on-blur={() => this.confirmDelimiter(i)} on-on-enter={() => this.$refs.delimiterInput.blur()} onInput={v => this.onDelimiterInput(v, i)} value={val} />
       } else {
         result = [
           <span style="margin-left:5px;"></span>,
@@ -589,11 +589,10 @@ export default {
     },
     // 连接符输入框失焦或按回车时，需要更新 this.autoFillArray
     confirmDelimiter (i) {
-      if (this.activeDelimiterValue === '') {
+      if (this.autoFillArray[i].value === '') {
         // 如果输入框没有值，则在 this.autoFillArray 中删掉该项
         this.autoFillArray.splice(i, 1)
       } else {
-        this.autoFillArray[i].value = this.activeDelimiterValue
         // 将相邻两项 type === delimiter 合并为一项
         if (this.autoFillArray[i + 1] && this.autoFillArray[i + 1].type === 'delimiter') {
           this.autoFillArray[i].value += this.autoFillArray[i + 1].value
@@ -605,11 +604,10 @@ export default {
         }
       }
       this.activeDelimiterIndex = ''
-      this.activeDelimiterValue = ''
       this.handleInput()
     },
-    onDelimiterInput (v) {
-      this.activeDelimiterValue = v
+    onDelimiterInput (v, i) {
+      this.autoFillArray[i].value = v
     },
     renderAddRule () {
       return [<Icon class="auto-fill-add" type="md-add-circle" />, !this.autoFillArray.length && <span class="auto-fill-add auto-fill-placeholder">{this.$t('auto_fill_filter_placeholder')}</span>]
@@ -715,29 +713,27 @@ export default {
       this.filterIndex = []
     },
     handleInput () {
-      this.$nextTick(() => {
-        const value = this.autoFillArray.length ? JSON.stringify(this.autoFillArray) : ''
-        let isLegal = true
-        this.autoFillArray.forEach(_ => {
-          if (_.type === 'rule') {
-            const ruleArray = JSON.parse(_.value)
-            const lastNode = ruleArray[ruleArray.length - 1]
-            const lastAttrId = ruleArray[ruleArray.length - 1].parentRs ? ruleArray[ruleArray.length - 1].parentRs.attrId : 0
-            if (lastNode.parentRs) {
-              if (this.ciTypeAttrsObj[lastAttrId].inputType === 'ref' || this.ciTypeAttrsObj[lastAttrId].inputType === 'multiRef') {
+      const value = this.autoFillArray.length ? JSON.stringify(this.autoFillArray) : ''
+      let isLegal = true
+      this.autoFillArray.forEach(_ => {
+        if (_.type === 'rule') {
+          const ruleArray = JSON.parse(_.value)
+          const lastNode = ruleArray[ruleArray.length - 1]
+          const lastAttrId = ruleArray[ruleArray.length - 1].parentRs ? ruleArray[ruleArray.length - 1].parentRs.attrId : 0
+          if (lastNode.parentRs) {
+            if (this.ciTypeAttrsObj[lastAttrId].inputType === 'ref' || this.ciTypeAttrsObj[lastAttrId].inputType === 'multiRef') {
+              isLegal = false
+            } else if (this.ciTypeAttrsObj[lastAttrId].inputType === 'select' || this.ciTypeAttrsObj[lastAttrId].inputType === 'multiSelect') {
+              if (!lastNode.enumCodeAttr) {
                 isLegal = false
-              } else if (this.ciTypeAttrsObj[lastAttrId].inputType === 'select' || this.ciTypeAttrsObj[lastAttrId].inputType === 'multiSelect') {
-                if (!lastNode.enumCodeAttr) {
-                  isLegal = false
-                }
               }
             }
           }
-        })
-        if (isLegal) {
-          this.$emit('input', value)
         }
       })
+      if (isLegal) {
+        this.$emit('input', value)
+      }
     }
   },
   mounted () {
