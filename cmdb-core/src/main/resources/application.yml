@@ -9,7 +9,7 @@ spring:
     location: classpath:/cmdb.txt
   profiles:
     #en-local、ch-local
-    active: en-local
+    active: dev
   cache:
     type: caffeine
     caffeine:
@@ -33,7 +33,7 @@ cmdb:
   security:
     enabled: false
 
-    #Authentication provider options: LOCAL or CAS. Effective ONLY when security-enabled set as true.
+    #Authentication provider options: LOCAL, CAS or PLATFORM-AUTH. Effective ONLY when security-enabled set as true.
     authentication-provider: LOCAL
 
     #Effective ONLY when security-enabled set as true and authentication-provider turns to CAS

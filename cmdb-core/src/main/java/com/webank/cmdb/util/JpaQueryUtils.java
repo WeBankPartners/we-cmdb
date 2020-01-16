@@ -14,11 +14,14 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
 
 import org.apache.commons.beanutils.BeanMap;
 import org.hibernate.proxy.HibernateProxy;
 
 import com.google.common.base.Strings;
+import com.webank.cmdb.constant.AggregationFuction;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.FilterRelationship;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
@@ -74,8 +77,14 @@ public class JpaQueryUtils {
             case Greater:
                 processGreaterOperator(cb, predicates, filter, filterExpr);
                 break;
+            case GreaterEqual:
+                processGreaterEqualOperator(cb, predicates, filter, filterExpr);
+                break;
             case Less:
                 processLessOperator(cb, predicates, filter, filterExpr);
+                break;
+            case LessEqual:
+                processLessEqualOperator(cb, predicates, filter, filterExpr);
                 break;
             case NotEqual:
                 processNotEqualsOperator(cb, predicates, filter, filterExpr);
@@ -85,6 +94,15 @@ public class JpaQueryUtils {
                 break;
             case Null:
                 predicates.add(cb.isNull(filterExpr));
+                break;
+            case NotEmpty:
+                filter.setValue("");
+                processNotEqualsOperator(cb, predicates, filter, filterExpr);
+                predicates.add(cb.isNotNull(filterExpr));
+                break;
+            case Empty:
+                filter.setValue("");
+                processNotEqualsOperator(cb, predicates, filter, filterExpr);
                 break;
             default:
                 throw new InvalidArgumentException(String.format("Filter operator [%s] is unsupportted.", filter.getOperator()));
@@ -147,6 +165,30 @@ public class JpaQueryUtils {
                 predicates.add(cb.lessThan(filterExpr, (Double) value));
         }
     }
+    
+    public static void processLessEqualOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter, Expression filterExpr) {
+        Object value = filter.getValue();
+        if (value instanceof Date) {
+            Timestamp timestamp = new Timestamp(((Date) value).getTime());
+            predicates.add(cb.lessThanOrEqualTo(filterExpr, timestamp));
+        } else if (value instanceof String) {
+            if (filterExpr.getJavaType().equals(Timestamp.class)) {
+                java.util.Date date = DateUtils.convertToTimestamp(String.valueOf(value));
+                predicates.add(cb.lessThanOrEqualTo(filterExpr, new Timestamp(date.getTime())));
+            } else {
+                predicates.add(cb.lessThanOrEqualTo(filterExpr, (String) value));
+            }
+        } else if (value instanceof Number) {
+            if (value instanceof Integer)
+                predicates.add(cb.lessThanOrEqualTo(filterExpr, (Integer) value));
+            if (value instanceof Long)
+                predicates.add(cb.lessThanOrEqualTo(filterExpr, (Long) value));
+            if (value instanceof Float)
+                predicates.add(cb.lessThanOrEqualTo(filterExpr, (Float) value));
+            if (value instanceof Double)
+                predicates.add(cb.lessThanOrEqualTo(filterExpr, (Double) value));
+        }
+    }
 
     public static void processGreaterOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter, Expression filterExpr) {
         Object value = filter.getValue();
@@ -169,6 +211,30 @@ public class JpaQueryUtils {
                 predicates.add(cb.greaterThan(filterExpr, (Float) value));
             if (value instanceof Double)
                 predicates.add(cb.greaterThan(filterExpr, (Double) value));
+        }
+    }
+    
+    public static void processGreaterEqualOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter, Expression filterExpr) {
+        Object value = filter.getValue();
+        if (value instanceof Date) {
+            Timestamp timestamp = new Timestamp(((Date) value).getTime());
+            predicates.add(cb.greaterThanOrEqualTo(filterExpr, timestamp));
+        } else if (value instanceof String) {
+            if (filterExpr.getJavaType().equals(Timestamp.class)) {
+                java.util.Date date = DateUtils.convertToTimestamp((String) value);
+                predicates.add(cb.greaterThanOrEqualTo(filterExpr, new Timestamp(date.getTime())));
+            } else {
+                predicates.add(cb.greaterThanOrEqualTo(filterExpr, (String) value));
+            }
+        } else if (value instanceof Number) {
+            if (value instanceof Integer)
+                predicates.add(cb.greaterThanOrEqualTo(filterExpr, (Integer) value));
+            if (value instanceof Long)
+                predicates.add(cb.greaterThanOrEqualTo(filterExpr, (Long) value));
+            if (value instanceof Float)
+                predicates.add(cb.greaterThanOrEqualTo(filterExpr, (Float) value));
+            if (value instanceof Double)
+                predicates.add(cb.greaterThanOrEqualTo(filterExpr, (Double) value));
         }
     }
 
@@ -270,4 +336,45 @@ public class JpaQueryUtils {
         return sortMap;
     }
 
+    public static void applyGroupBy(List<String> groupBys, CriteriaQuery<?> query, Map<String, Expression> selectionMap) {
+        List<Expression<?>> grouping = new LinkedList<>();
+        groupBys.stream().forEach(groupBy -> {
+            Expression<?> filterExpr = selectionMap.get(groupBy);
+            if (filterExpr == null) {
+                throw new InvalidArgumentException(String.format("Given filter name [%s] is not existed.", groupBy));
+            }
+            grouping.add(filterExpr);
+            
+        });
+        query.groupBy(grouping);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void applyAggregation(Map<String, String> aggregationFuction, CriteriaBuilder cb, CriteriaQuery query, Map<String, Expression> selectionMap, Root root) {
+        Selection<?> selection = null;
+        for (String key : aggregationFuction.keySet()) {
+            Expression expression = selectionMap.get(aggregationFuction.get(key));
+            switch (AggregationFuction.fromCode(key)) {
+            case MAX:
+                //selection = cb.tuple(root,cb.max(expression));
+                selection = cb.max(expression);
+                break;
+            case MIN:
+                selection = cb.tuple(root,cb.min(expression));
+                break;
+            case SUM:
+                selection = cb.tuple(root,cb.sum(expression));
+                break;
+            case AVG:
+                selection = cb.tuple(root,cb.avg(expression));
+                break;
+            case COUNT:
+                selection = cb.count(root);
+                break;
+            default:
+                throw new InvalidArgumentException(String.format("Aggregation Fuction [%s] is unsupportted.", key));
+            }
+        }
+        query.select(selection);
+    }
 }

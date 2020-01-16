@@ -1,5 +1,6 @@
 package com.webank.cmdb.stateTransition;
 
+import java.util.Date;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
@@ -32,7 +33,7 @@ public class UpdateAction implements Action {
     }
 
     @Override
-    public Map<String, Object> perform(EntityManager entityManager, int ciTypeId, String guid, AdmStateTransition transition, Map<String, Object> ciData, DynamicEntityHolder entityHolder) {
+    public Map<String, Object> perform(EntityManager entityManager, int ciTypeId, String guid, AdmStateTransition transition, Map<String, Object> ciData, DynamicEntityHolder entityHolder, Date date) {
         Map<String, Object> updateMap = Maps.newHashMap(ciData);
         MapUtils.putAll(updateMap, new Object[] { CmdbConstants.DEFAULT_FIELD_STATE, transition.getTargetState() });
 

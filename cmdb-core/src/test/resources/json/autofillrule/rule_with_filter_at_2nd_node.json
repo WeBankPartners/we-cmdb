@@ -1,0 +1,6 @@
+[
+	{
+		"type": "rule",
+		"value": "[{\"ciTypeId\":1},{\"ciTypeId\":2,\"parentRs\":{\"attrId\":27,\"isReferedFromParent\":0},\"filters\": [{\"name\": \"name\",\"operator\": \"in\",\"value\": [\"Subsys design A1\"]}]},{\"ciTypeId\":2,\"parentRs\":{\"attrId\":25,\"isReferedFromParent\":1}}]"
+	}
+]

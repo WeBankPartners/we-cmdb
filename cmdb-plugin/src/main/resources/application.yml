@@ -1,0 +1,63 @@
+server:
+  port: 8081
+  address: localhost
+  servlet:
+    context-path: /wecmdb
+
+plugins:
+  pacakge-name: wecmdb
+
+spring:
+  banner:
+    location: classpath:/cmdb.txt
+  profiles:
+    #en-local、ch-local
+    active: dev
+  cache:
+    type: caffeine
+    caffeine:
+      spec: expireAfterWrite=30s
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://db-server:3306/db_schema?characterEncoding=utf8&serverTimezone=UTC
+    username: db_user
+    password: db_password
+  jpa:
+    database: MySQL
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+
+cmdb:
+  datasource:
+    schema: db_user
+
+  security:
+    enabled: true
+
+    #Authentication provider options: LOCAL, CAS or PLATFORM-AUTH. Effective ONLY when security-enabled set as true.
+    authentication-provider: PLATFORM-AUTH
+
+    #Effective ONLY when security-enabled set as true and authentication-provider turns to CAS
+    cas-server-url: http://cas-server-ip:8080/cas
+    cas-redirect-app-addr: localhost:8080
+
+    #Effective ONLY when security-enabled set as true
+    whitelist-ip-address:
+
+platform:
+   auth:
+      jwt-sso-authentication-uri: http://localhost:19090/auth/v1/api/login
+      jwt-sso-access-token-uri: http://localhost:19090/auth/v1/api/token
+      sub-system-code: SYS-WECMDB
+      sub-system-private-key: MockPrivateKey
+      auth-server-public-key: MockPublicKey
+
+logging:
+  level:
+    root: INFO
+    com:
+      webank:
+        cmdb: INFO
+    
