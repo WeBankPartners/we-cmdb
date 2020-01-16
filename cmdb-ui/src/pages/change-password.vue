@@ -2,13 +2,29 @@
   <div id="changePassword">
     <Form ref="formValidate" :model="formItem" :label-width="120" :rules="ruleValidate">
       <FormItem :label="$t('old_password')" prop="oldPassword">
-        <Input v-model="formItem.oldPassword" ref="oldPassword" type="password" class="input" :placeholder="$t('old_password_input_placeholder')" />
+        <Input
+          v-model="formItem.oldPassword"
+          ref="oldPassword"
+          type="password"
+          class="input"
+          :placeholder="$t('old_password_input_placeholder')"
+        />
       </FormItem>
       <FormItem :label="$t('new_password')" prop="newPassword">
-        <Input v-model="formItem.newPassword" type="password" class="input" :placeholder="$t('new_password_input_placeholder')" />
+        <Input
+          v-model="formItem.newPassword"
+          type="password"
+          class="input"
+          :placeholder="$t('new_password_input_placeholder')"
+        />
       </FormItem>
       <FormItem :label="$t('confirm_password')" prop="confimPassword">
-        <Input v-model="formItem.confimPassword" type="password" class="input" :placeholder="$t('confirm_new_password_placeholder')" />
+        <Input
+          v-model="formItem.confimPassword"
+          type="password"
+          class="input"
+          :placeholder="$t('confirm_new_password_placeholder')"
+        />
       </FormItem>
       <FormItem>
         <Button type="primary" @click="handleSubmit('formValidate')">{{ $t('confirm') }}</Button>
