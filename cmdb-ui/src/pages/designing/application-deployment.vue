@@ -407,6 +407,9 @@ export default {
     async getPhysicalGraphData () {
       this.physicalGraphData = []
       const selectedSystem = this.systems.find(_ => _.guid === this.systemVersion)
+      if (!selectedSystem) {
+        return
+      }
       let idcs = []
       if (selectedSystem.data_center instanceof Array) {
         let idcsObj = {}
