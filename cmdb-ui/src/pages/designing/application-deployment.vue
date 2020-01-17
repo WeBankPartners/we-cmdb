@@ -106,7 +106,7 @@ import {
   startProcessInstancesWithCiDataInbatch,
   getAllCITypes,
   operateCiState,
-  getApplicationDeploymentDataTree,
+  getIdcImplementTreeByGuid,
   getAllZoneLinkGroupByIdc
 } from '@/api/server.js'
 import { outerActions, innerActions, pagination, components } from '@/const/actions.js'
@@ -406,27 +406,70 @@ export default {
     },
     async getPhysicalGraphData () {
       this.physicalGraphData = []
-      const promiseArray = [getApplicationDeploymentDataTree(this.systemVersion), getAllZoneLinkGroupByIdc()]
-      const [graphData, links] = await Promise.all(promiseArray)
-      if (graphData.statusCode === 'OK') {
-        if (graphData.data.length) {
-          this.physicalGraphData = graphData.data
-        } else {
-          this.physicalGraphData = []
-          this.physicalSpin = false
-        }
+      const selectedSystem = this.systems.find(_ => _.guid === this.systemVersion)
+      let idcs = []
+      if (selectedSystem.data_center instanceof Array) {
+        let idcsObj = {}
+        selectedSystem.data_center.forEach(_ => {
+          idcsObj[_.guid] = _.guid
+          if (_.regional_data_center) {
+            idcsObj[_.regional_data_center] = _.regional_data_center
+          }
+        })
+        Object.keys(idcsObj).forEach(idc => {
+          idcs.push(idc)
+        })
       }
-      if (links.statusCode === 'OK') {
-        const found = links.data.find(_ => _.idcGuid === this.systemVersion)
-        this.physicalGraphLinks = found
-          ? found.links.data.map(_ => {
-            return {
-              ..._,
-              from: _.data.network_zone_1,
-              to: _.data.network_zone_2
+      const promiseArray = [getIdcImplementTreeByGuid(idcs), getAllZoneLinkGroupByIdc()]
+      const [idcData, links] = await Promise.all(promiseArray)
+      if (idcData.statusCode === 'OK' && links.statusCode === 'OK') {
+        this.physicalGraphData = []
+        let logicNetZone = {}
+        idcData.data.forEach(_ => {
+          if (!_.data.regional_data_center) {
+            let obj = {
+              ciTypeId: _.ciTypeId,
+              guid: _.guid,
+              data: _.data
             }
-          })
-          : []
+            if (_.children instanceof Array) {
+              obj.children = _.children.filter(zone => zone.ciTypeId !== _.ciTypeId)
+            }
+            this.physicalGraphData.push(obj)
+          } else if (_.data.regional_data_center && _.children instanceof Array) {
+            _.children.forEach(zone => {
+              logicNetZone[zone.guid] = zone
+            })
+          }
+        })
+        idcData.data.forEach(_ => {
+          if (!_.data.regional_data_center && _.children instanceof Array) {
+            _.children.forEach(zone => {
+              if (zone.children instanceof Array) {
+                zone.children = zone.children.filter(item => !!logicNetZone[item.guid])
+              }
+            })
+          }
+        })
+        let allZoneLinkObj = {}
+        links.data.forEach(_ => {
+          if (_.linkList instanceof Array) {
+            _.linkList.forEach(link => {
+              allZoneLinkObj[link.data.guid] = link.data
+            })
+          }
+        })
+        this.physicalGraphLinks = []
+        Object.keys(allZoneLinkObj).forEach(guid => {
+          const line = {
+            guid,
+            from: allZoneLinkObj[guid].network_zone_1,
+            to: allZoneLinkObj[guid].network_zone_2,
+            label: allZoneLinkObj[guid].code,
+            state: allZoneLinkObj[guid].state.code
+          }
+          this.physicalGraphLinks.push(line)
+        })
       }
     },
     graphCallback () {
