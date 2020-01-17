@@ -35,9 +35,30 @@
 		</plugins>
 	</build>
 
-	<modules>
-		<module>cmdb-ui</module>
-		<module>cmdb-core</module>
-		<module>cmdb-plugin</module>
-	</modules>
+	<profiles>
+		<profile>
+			<id>build</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<modules>
+				<module>cmdb-ui</module>
+				<module>cmdb-core</module>
+			</modules>
+		</profile>
+		<profile>
+			<id>plugin</id>
+			<activation>
+				<property>
+					<name>buildType</name>
+					<value>plugin</value>
+				</property>
+			</activation>
+			<modules>
+				<module>cmdb-ui</module>
+				<module>cmdb-core</module>
+				<module>cmdb-plugin</module>
+			</modules>
+		</profile>
+	</profiles>
 </project>

@@ -1,4 +1,5 @@
 # WeCMDB
+
 <p align="left">
     <a href="https://opensource.org/licenses/Apache-2.0" alt="License">
         <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a>
@@ -16,111 +17,123 @@
         <img src="https://img.shields.io/github/commit-activity/m/WeBankPartners/we-cmdb" /></a>
 </p>
 
-English / [中文](README_CN.md)
+中文 / [English](README_EN.md)
 
-## Link for Trial
-[Click to try WeCMDB](https://sandbox.webank.com/wecmdb)<br>
+## 试用链接
+[点此试用WeCMDB](https://sandbox.webank.com/wecmdb/)<br>
 
-## Demo
-<img src="./cmdb-wiki/docs/manual/images/ci-data-management-en.gif" />
+## 功能演示
+<img src="./cmdb-wiki/docs/manual/images/ci-data-management.gif" />
 
-## Introduction
-To ensure the accuracy and the integrity of CMDB data is a widely recognized challenge in the domain of IT operation. In order to answer the questions such as "how to record with accuracy the IT information ranging from physical layer, logical layer to application layer as well as the relations between them", "how to accomplish complicated IT operation processes using those information" and "how to implement automation and intelligence", we realize that CMDB is becoming the foundation for carrying out IT operation properly. 
+## 引言
+在IT运维领域中，CMDB信息的准确性和完整性一直是行业内公认的挑战。如何保证企业的IT信息从物理层，到逻辑层，到应用层以及其关系信息被准确记录，以及如何利用CMDB的信息完成各种复杂的IT运维流程，甚至实现自动化、智能化，CMDB已成为IT运维可正常开展的基石。随着云计算和互联网业务高速发展，IT资源信息成几何级增加。如何管理日益增长的IT数据，拥有一套强大的CMDB系统显得尤为重要。
 
-Furthermore, thanks to the rapid development of cloud computing technology and Internet business, IT information is increasing in a exponential pattern, a powerful CMDB system is especially important to manage this data growth. 
+## 起源
+WeCMDB（Configuration Management Database 配置管理数据库），是源自微众银行运维管理实践的的一套配置管理数据库系统。为高效支撑海量用户和巨量数据的互联网应用，
+分布式架构被广泛采用于支撑当前的系统，然而分布式架构同时也刷新了运维管理的要求。相对于传统架构，分布式架构给IT基础架构带来了三个变化：海量的服务器、频繁的滚动发布、和复杂的服务间依赖关系。
+由此带来的运维问题快速推动了DevOps工具的发展，以及智能运维管理理念的变化。
 
-## Origin
-WeCMDB is a configuration management database system originating from IT operation practices in WeBank. 
+CMDB，作为运维工具的核心，提供了全体系IT信息唯一数据源，是IT运维自动化、智能化的基础和前提条件。依赖可靠的CMDB，IT信息从物理层（数据中心、机架机位、服务器、网络信息等），
+到逻辑层（IP、系统架构信息），到应用层（业务应用系统信息）被完整的记录并管理起来。
 
-Distributed architecture has been widely adopted in order to support large amount of user traffic and data in Internet application systems. Compared to traditional system architecture, in the meanwhile, it also brings 3 changes to IT infrastructure: massive servers, frequent rolling deployment of applications and complex dependencies between services. These challeges quickly promote the development of DevOps tools and the new ideas in more intelligent IT operation management.
+## 系统架构
+整体架构如下图：
 
-CMDB, as the core of IT operation tools, working as the single source of truth for information in the entire IT system, is the foundation and prerequisite for IT operation to become automated and intelligent. With a reliable CMDB, IT information ranging from physical layer (including data centers, chassises, positions, servers, network information, etc.), logical layer (IP addresses, architecture information) to application layer (information of business application systems) can all be recorded and managed properly.
+![WeCMDB系统架构](cmdb-wiki/images/wecmdb_arch_cn.png) 
 
-## System Architecture
-Architecture is as follows: 
 
-![WeCMDB System Architecture](cmdb-wiki/images/wecmdb_arch_en.png) 
+## 简介
+WeCMDB是集中配置数据中心，管理IT各层面组件及组件关系信息。同时与自动化运维管理工具紧密相联，支持运维管理工具及流程的运作，发挥配置信息的价值，同时依赖这些工具、流程保证数据准确性。
 
-## Summary
-WeCMDB is a centralized store for configuration data, which is used to manage the information of components and the relations between those components in all layers of IT systems. It is closely related to the automation tools in IT operation as well as the processes they are caryying, so that these tools can function smoothly and the value of configuration data is well utilized. In the contrary, those tools and processcess are also playing an important role in keeping the configuration data accurate.
+**WeCMDB具备以下特点：**
 
-Here are the characteristics of WeCMDB:
+- 配置模型，动态扩展
+	
+	灵活添加配置项、属性及关系;属性数据类型、填充规则等均可动态定义。
 
-- Extensible and Dynamic Data Model
+- 配置查询，灵活多样
+	
+	在线自定义多配置关联查询。
 
-  Configuration items, attributes and relations can be added easily, while data types and automatic value filling rules for each attribute can be defined in a dynamic way. 
+- 细粒度权限管控
+	
+	实现了细粒度的数据权限控制；支持在线配置。
 
-- Flexible Query Configuration
+- 开放友好API服务
+	
+	支持在线定义接口可读写的配置项、属性及关系；支持在线测试，验证接口准确性。
 
-  Queries involving multiple configuration items and relations can be customized on the fly.
-  
-- Fine-grained Authorization
+- 多维度日志查询
+	
+	提供管理界面，支持多维度数据变迁历史查询。
 
-  Fine-grained access control of data can be configured and take effect immediately.
-  
-- Open and Friendly API Service
+## 主要功能
+- 信息查询功能
 
-  Customization of each interface on the configuration items, attributes and relations that it accesses is supported; online testing is provided to verify the accuracy of the interfaces.
-  
-- Multidimensional Queries on Logs
+	包括配置查询、综合查询、日志查询。
 
-  Management console is provided to support queries with muliple dimensions on data transition history.
+- 配置管理功能
 
-## Main Features
-- Information Inquiry
+	包括配置信息管理、基础配置查询、综合查询管理、综合查询接口配置。
 
-  Support query on configuration data, integrated query and query on logs. 
+- 视图管理功能
+    包括IDC规划设计、IDC资源规划、应用架构设计、应用部署设计。
 
-- Configuration Management
+- 系统管理功能
 
-  Support configuration data management, basic configuration query, integrated query management and interface configuration for integrated queries.
+	包括权限管理（角色管理，用户角色管理， 数据权限， 菜单管理）。
 
-- View Management
+## 快速入门
+WeCMDB常规容器化部署。
 
-  Support configuration management from different aspects,IDC planning design， IDC resource planning, application architecture design, application deployment design, which include graphic display all the configuration items of the selected aspects and you can maintain the items there easily.
+如何编译WeCMDB，请查看文档
+[WeCMDB编译文档](cmdb-wiki/docs/install/wecmdb_compile_guide.md)
 
-- System Management
+如何安装WeCMDB， 请查看文档
+[WeCMDB部署文档](cmdb-wiki/docs/install/wecmdb_install_guide.md)
 
-  Support authorization management (including users, roles, data permision and access to menu items).
-  
-## Quick Start
-Normal deployment with containers of WeCMDB:
+## 用户手册
+关于WeCMDB模型说明， 请查看文档
+[WeCMDB 模型说明手册](cmdb-wiki/docs/manual/wecmdb_model_guide.md)
 
-Please refer to the [WeCMDB Compiling Guide](cmdb-wiki/docs/install/wecmdb_compile_guide_en.md) on how to compile WeCMDB.
+关于WeCMDB的使用和操作说明， 请查看文档
+[WeCMDB用户手册](cmdb-wiki/docs/manual/wecmdb_user_guide.md)
 
-Please refer to the [WeCMDB Deployment Guide](cmdb-wiki/docs/install/wecmdb_install_guide_en.md) on how to install WeCMDB.
+## 开发者文档
+**WeCMDB快速本地启动**  
+如何本地快速体验，请查看文档[WeCMDB快速本地启动环境配置](cmdb-wiki/docs/developer/wecmdb_local_standalone_guide.md)
 
-## User Manuals
-Please refer to the [WeCMDB Model Guide](cmdb-wiki/docs/manual/wecmdb_model_guide_en.md) for guide on WeCMDB model.
+**WeCMDB常规环境搭建**  
+WeCMDB使用Java和Vue进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
 
-Please refer to the [WeCMDB User Guide](cmdb-wiki/docs/manual/wecmdb_user_guide_en.md) for usage and operations.
+请参考文档进行开发环境配置[WeCMDB开发环境配置](cmdb-wiki/docs/developer/wecmdb_developer_guide.md)
 
-## Developer Guide
-#### Deploy WeCMDB in Standalone Mode
-Please refer to the [WeCMDB Quick Start in Standalone Mode](cmdb-wiki/docs/developer/wecmdb_local_standalone_guide_en.md) for setting up local environment quickly.
+**WeCMDB代码贡献指引**  
+关于WeCMDB代码贡献， 请查看文档
+[WeCMDB代码贡献指引](cmdb-wiki/docs/developer/code_contributors_submit_guide.md)
 
-#### Deploy WeCMDB in Normal Mode
-WeCMDB is developed with Java and Vue, uses MySQL for data persistence and relies on Tomcat as the web application container.
+## API说明
+关于WeCMDB的API说明， 请查看文档
+[WeCMDB API手册](cmdb-wiki/docs/api/wecmdb_api_guide.md)
 
-Please refer to the [WeCMDB Developer Guide](cmdb-wiki/docs/developer/wecmdb_developer_guide_en.md) for setting up development environment.
+## 性能
+关于WeCMDB的性能，请查看文档
+[WeCMDB 性能](cmdb-wiki/docs/developer/performance.md)
 
-#### WeCMDB Contributors Guide
-Please refer to the [WeCMDB Contributors Guide](cmdb-wiki/docs/developer/code_contributors_submit_guide_en.md) for contributors how to submit code.
+## 术语表
+关于WeCMDB的使用到的术语，请查看文档
+[WeCMDB 术语表](cmdb-wiki/docs/manual/wecmdb_glossary.md)
 
-## API Reference
-Please refer to the [WeCMDB API Guide](cmdb-wiki/docs/api/wecmdb_api_guide_en.md).
+## 版权声明
+WeCMDB是基于 Apache License 2.0 协议， 详情请参考
+[LICENSE](LICENSE)
 
-## Glossary
-Please refer to the [WeCMDB Glossary](cmdb-wiki/docs/manual/wecmdb_glossary_en.md) to understand the terms that used for WeCMDB.
+## 社区
+- 如果您想得到最快的响应，请给我们提[Issue](https://github.com/WeBankPartners/we-cmdb/issues/new/choose)或扫描下面的二维码，我们会第一时间反馈。
 
-## License
-WeCMDB is licensed under the Apache License Version 2.0 , please refer to the [license](LICENSE) for details.
+	<div align="left">
+	<img src="cmdb-wiki/images/wecube_qr_code.png"  height="200" width="200">
+	</div>
 
-## Community
-- For quick response, please [raise an issue](https://github.com/WeBankPartners/we-cmdb/issues/new/choose) to us, or you can also scan the following QR code to join our community, we will provide feedback as quickly as we can.
 
-  <div align="left">
-  <img src="cmdb-wiki/images/wecube_qr_code.png"  height="200" width="200">
-  </div>
-
-- Contact us: fintech@webank.com
+- 联系我们：fintech@webank.com
