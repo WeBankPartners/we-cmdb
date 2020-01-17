@@ -1138,8 +1138,13 @@ public class UIWrapperService {
     }
 
     public Object getArchitectureCiData(Integer codeId, String systemDesignGuid, QueryRequest queryObject) {
+        CatCodeDto code = getEnumCodeById(codeId);
+        Integer ciTypeId = Integer.parseInt(code.getCode());
         Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystemDesign();
-        return getCiData(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId);
+        queryObject.addEqualsFilter(CmdbConstants.DEFAULT_FIELD_GUID, systemDesignGuid);
+        Filter fixDateFilter = getFixDateFilter(systemDesignCiTypeId, queryObject);
+        queryObject = setQueryRequest(defaultQueryObject(), fixDateFilter, ciTypeId);
+        return ciService.query(ciTypeId, queryObject);
     }
 
     private Object getCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject, int systemDesignCiTypeId) {
