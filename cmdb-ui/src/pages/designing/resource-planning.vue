@@ -173,7 +173,7 @@ export default {
         const [idcData, links] = await Promise.all(promiseArray)
         if (idcData.statusCode === 'OK' && links.statusCode === 'OK') {
           this.idcData = []
-          let logiceNetZone = {}
+          let logicNetZone = {}
           idcData.data.forEach(_ => {
             if (!_.data.regional_data_center) {
               let obj = {
@@ -187,7 +187,7 @@ export default {
               this.idcData.push(obj)
             } else if (_.data.regional_data_center && _.children instanceof Array) {
               _.children.forEach(zone => {
-                logiceNetZone[zone.guid] = zone
+                logicNetZone[zone.guid] = zone
               })
             }
           })
@@ -195,7 +195,7 @@ export default {
             if (!_.data.regional_data_center && _.children instanceof Array) {
               _.children.forEach(zone => {
                 if (zone.children instanceof Array) {
-                  zone.children = zone.children.filter(item => !!logiceNetZone[item.guid])
+                  zone.children = zone.children.filter(item => !!logicNetZone[item.guid])
                 }
               })
             }
