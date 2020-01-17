@@ -172,7 +172,34 @@ export default {
         const promiseArray = [getIdcImplementTreeByGuid(this.selectedIdcs), getAllZoneLinkGroupByIdc()]
         const [idcData, links] = await Promise.all(promiseArray)
         if (idcData.statusCode === 'OK' && links.statusCode === 'OK') {
-          this.idcData = idcData.data
+          this.idcData = []
+          let logicNetZone = {}
+          idcData.data.forEach(_ => {
+            if (!_.data.regional_data_center) {
+              let obj = {
+                ciTypeId: _.ciTypeId,
+                guid: _.guid,
+                data: _.data
+              }
+              if (_.children instanceof Array) {
+                obj.children = _.children.filter(zone => zone.ciTypeId !== _.ciTypeId)
+              }
+              this.idcData.push(obj)
+            } else if (_.data.regional_data_center && _.children instanceof Array) {
+              _.children.forEach(zone => {
+                logicNetZone[zone.guid] = zone
+              })
+            }
+          })
+          idcData.data.forEach(_ => {
+            if (!_.data.regional_data_center && _.children instanceof Array) {
+              _.children.forEach(zone => {
+                if (zone.children instanceof Array) {
+                  zone.children = zone.children.filter(item => !!logicNetZone[item.guid])
+                }
+              })
+            }
+          })
           let allZoneLinkObj = {}
           links.data.forEach(_ => {
             if (_.linkList instanceof Array) {
@@ -263,6 +290,7 @@ export default {
         'digraph G{',
         'rankdir=TB;nodesep=0.5;',
         `Node[shape=box,fontsize=${fontSize},labelloc=t,penwidth=2];`,
+        'Edge[fontsize=6];',
         `size="${width},${height}";`
       ]
       data.forEach(idc => {
