@@ -13,7 +13,8 @@ const colors = ['#bbdefb', '#90caf9', '#64b5f6', '#42a5f5', '#2196f3', '#1e88e5'
 export default {
   data () {
     return {
-      graph: null
+      graph: null,
+      nodesGuid: {}
     }
   },
   props: {
@@ -87,6 +88,7 @@ export default {
       return dots.join('')
     },
     genChildren (idcData) {
+      this.nodesGuid = {}
       const width = 16
       const height = 12
       let dots = []
@@ -112,11 +114,13 @@ export default {
             } else {
               label = zone.data.key_name
             }
+            this.nodesGuid[zone.guid] = zone.guid
             dots.push(`g_${zone.guid}[id="g_${zone.guid}", label="${label}", width=${ll},height=${lg}];`)
           })
           dots.push('}')
         })
       } else {
+        this.nodesGuid[idcData.data.guid] = idcData.data.guid
         dots.push(
           `g_${idcData.data.guid}[label=" ";color="${colors[0]}";width="${width - 0.5}";height="${height - 3}"]`
         )
@@ -126,7 +130,9 @@ export default {
     genLink () {
       let result = ''
       this.links.forEach(link => {
-        result += `g_${link.from.guid}->g_${link.to.guid}[arrowhead="none"];`
+        if (this.nodesGuid[link.from.guid] && this.nodesGuid[link.to.guid]) {
+          result += `g_${link.from.guid}->g_${link.to.guid}[arrowhead="none"];`
+        }
       })
       return result
     },
