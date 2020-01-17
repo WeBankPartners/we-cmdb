@@ -164,12 +164,13 @@ export default {
           willSelectIdc[realIdcGuid] = realIdcGuid
         }
       })
+      let selectedIdcs = JSON.parse(JSON.stringify(this.selectedIdcs))
       Object.keys(willSelectIdc).forEach(guid => {
-        this.selectedIdcs.push(guid)
+        selectedIdcs.push(guid)
       })
-      if (this.selectedIdcs.length) {
+      if (selectedIdcs.length) {
         this.spinShow = true
-        const promiseArray = [getIdcImplementTreeByGuid(this.selectedIdcs), getAllZoneLinkGroupByIdc()]
+        const promiseArray = [getIdcImplementTreeByGuid(selectedIdcs), getAllZoneLinkGroupByIdc()]
         const [idcData, links] = await Promise.all(promiseArray)
         if (idcData.statusCode === 'OK' && links.statusCode === 'OK') {
           this.idcData = []
