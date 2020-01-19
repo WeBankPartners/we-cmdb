@@ -596,7 +596,7 @@ export default {
       } else {
         return {
           isShow: isShow,
-          array: null
+          array: []
         }
       }
     },
