@@ -412,8 +412,8 @@ public class UICiDataManagementController {
     @RolesAllowed({ MENU_APPLICATION_DEPLOYMENT_DESIGN })
     @PostMapping("/deploy-designs/tabs/update-system-design")
     @ResponseBody
-    public void updateSystemDesign(@RequestParam(value = "system-guid") String systemGuid) {
-        wrapperService.updateSystemDesign(systemGuid);
+    public Object updateSystemDesign(@RequestParam(value = "system-guid") String systemGuid) {
+        return wrapperService.updateSystemDesign(systemGuid);
     }
 
     @RolesAllowed({ MENU_APPLICATION_DEPLOYMENT_DESIGN })
