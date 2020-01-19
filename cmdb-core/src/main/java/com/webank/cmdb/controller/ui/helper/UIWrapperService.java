@@ -1672,11 +1672,13 @@ public class UIWrapperService {
         return role.getIdAdmRole();
     }
 
-    public void updateSystemDesign(String systemGuid) {
+    public List<Map<String, Object>> updateSystemDesign(String systemGuid) {
         Map<String, Object> ciDataMap = ciService.getCi(uiProperties.getCiTypeIdOfSystemDesign(), systemGuid);
+        List<Map<String,Object>> ystemDesignData = new ArrayList<Map<String,Object>>();
         if(StringUtils.isNotBlank((String)ciDataMap.get(CONSTANT_FIXED_DATE)) &&((String)ciDataMap.get(CmdbConstants.GUID)).equals((String)ciDataMap.get(CmdbConstants.DEFAULT_FIELD_ROOT_GUID))) {
-            ciService.update(uiProperties.getCiTypeIdOfSystemDesign(), systemGuid, ciDataMap);
+            ystemDesignData = ciService.update(uiProperties.getCiTypeIdOfSystemDesign(), Arrays.asList(ciDataMap));
         }
+        return ystemDesignData;
     }
 
 }
