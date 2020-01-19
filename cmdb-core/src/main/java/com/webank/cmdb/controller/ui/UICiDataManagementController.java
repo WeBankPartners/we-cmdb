@@ -409,6 +409,12 @@ public class UICiDataManagementController {
             @RequestBody QueryRequest queryObject) {
         return wrapperService.getDeployCiData(codeId, null, systemGuid, queryObject);
     }
+    @RolesAllowed({ MENU_APPLICATION_DEPLOYMENT_DESIGN })
+    @PostMapping("/deploy-designs/tabs/update-system-design")
+    @ResponseBody
+    public void updateSystemDesign(@RequestParam(value = "system-guid") String systemGuid) {
+        wrapperService.updateSystemDesign(systemGuid);
+    }
 
     @RolesAllowed({ MENU_APPLICATION_DEPLOYMENT_DESIGN })
     @GetMapping("/deploy-designs/tabs")
