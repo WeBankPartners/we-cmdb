@@ -43,7 +43,7 @@
         </div>
       </TabPane>
       <TabPane :label="$t('physical_deployment_diagram')" name="physicalGraph" :index="3">
-        <div id="physicalGraph">
+        <div>
           <PhysicalGraph
             v-if="physicalGraphData.length"
             :graphData="physicalGraphData"
@@ -92,7 +92,6 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-
 import {
   getDeployCiData,
   getDeployDesignTabs,
@@ -426,7 +425,7 @@ export default {
       const promiseArray = [getIdcImplementTreeByGuid(idcs), getAllZoneLinkGroupByIdc()]
       const [idcData, links] = await Promise.all(promiseArray)
       if (idcData.statusCode === 'OK' && links.statusCode === 'OK') {
-        this.physicalGraphData = []
+        let _physicalGraphData = []
         let logicNetZone = {}
         idcData.data.forEach(_ => {
           if (!_.data.regional_data_center) {
@@ -438,22 +437,45 @@ export default {
             if (_.children instanceof Array) {
               obj.children = _.children.filter(zone => zone.ciTypeId !== _.ciTypeId)
             }
-            this.physicalGraphData.push(obj)
+            _physicalGraphData.push(obj)
           } else if (_.data.regional_data_center && _.children instanceof Array) {
             _.children.forEach(zone => {
-              logicNetZone[zone.guid] = zone
-            })
-          }
-        })
-        idcData.data.forEach(_ => {
-          if (!_.data.regional_data_center && _.children instanceof Array) {
-            _.children.forEach(zone => {
-              if (zone.children instanceof Array) {
-                zone.children = zone.children.filter(item => !!logicNetZone[item.guid])
+              zone.data.code = `${zone.data.code}(${zone.data.data_center.code})`
+              if (logicNetZone[zone.data.vpc_network_zone.guid]) {
+                logicNetZone[zone.data.vpc_network_zone.guid].push(zone)
+              } else {
+                logicNetZone[zone.data.vpc_network_zone.guid] = [zone]
               }
             })
           }
         })
+        _physicalGraphData.forEach(_ => {
+          if (_.children instanceof Array) {
+            _.children.map(zone => {
+              if (logicNetZone[zone.guid]) {
+                zone.children = logicNetZone[zone.guid]
+              }
+              return zone
+            })
+          }
+        })
+
+        const sortingTree = array => {
+          let obj = {}
+          array.forEach(_ => {
+            _.text = [_.data.code]
+            if (_.data.network_segment) {
+              _.text.push(_.data.network_segment.code)
+            }
+            if (_.children instanceof Array) {
+              _.children = sortingTree(_.children)
+            }
+            obj[_.data.code + _.guid] = _
+          })
+          return Object.keys(obj).sort().map(_ => obj[_])
+        }
+        this.physicalGraphData = sortingTree(_physicalGraphData)
+
         let allZoneLinkObj = {}
         links.data.forEach(_ => {
           if (_.linkList instanceof Array) {
