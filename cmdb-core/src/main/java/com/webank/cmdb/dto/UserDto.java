@@ -37,7 +37,6 @@ public class UserDto extends BasicResourceDto<UserDto, AdmUser> {
         this.username = username;
         this.fullName = fullName;
         this.description = description;
-        this.password = password;
     }
 
     @Override
