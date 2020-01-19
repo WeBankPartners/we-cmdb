@@ -173,7 +173,7 @@ export default {
         const promiseArray = [getIdcImplementTreeByGuid(selectedIdcs), getAllZoneLinkGroupByIdc()]
         const [idcData, links] = await Promise.all(promiseArray)
         if (idcData.statusCode === 'OK' && links.statusCode === 'OK') {
-          this.idcData = []
+          let _idcData = []
           let logicNetZone = {}
           idcData.data.forEach(_ => {
             if (!_.data.regional_data_center) {
@@ -185,22 +185,45 @@ export default {
               if (_.children instanceof Array) {
                 obj.children = _.children.filter(zone => zone.ciTypeId !== _.ciTypeId)
               }
-              this.idcData.push(obj)
+              _idcData.push(obj)
             } else if (_.data.regional_data_center && _.children instanceof Array) {
               _.children.forEach(zone => {
-                logicNetZone[zone.guid] = zone
-              })
-            }
-          })
-          idcData.data.forEach(_ => {
-            if (!_.data.regional_data_center && _.children instanceof Array) {
-              _.children.forEach(zone => {
-                if (zone.children instanceof Array) {
-                  zone.children = zone.children.filter(item => !!logicNetZone[item.guid])
+                zone.data.code = `${zone.data.code}(${zone.data.data_center.code})`
+                if (logicNetZone[zone.data.vpc_network_zone.guid]) {
+                  logicNetZone[zone.data.vpc_network_zone.guid].push(zone)
+                } else {
+                  logicNetZone[zone.data.vpc_network_zone.guid] = [zone]
                 }
               })
             }
           })
+          _idcData.forEach(_ => {
+            if (_.children instanceof Array) {
+              _.children.map(zone => {
+                if (logicNetZone[zone.guid]) {
+                  zone.children = logicNetZone[zone.guid]
+                }
+                return zone
+              })
+            }
+          })
+
+          const sortingTree = array => {
+            let obj = {}
+            array.forEach(_ => {
+              _.text = [_.data.code]
+              if (_.data.network_segment) {
+                _.text.push(_.data.network_segment.code)
+              }
+              if (_.children instanceof Array) {
+                _.children = sortingTree(_.children)
+              }
+              obj[_.data.code + _.guid] = _
+            })
+            return Object.keys(obj).sort().map(_ => obj[_])
+          }
+          this.idcData = sortingTree(_idcData)
+
           let allZoneLinkObj = {}
           links.data.forEach(_ => {
             if (_.linkList instanceof Array) {
@@ -278,7 +301,7 @@ export default {
             }
             const pw = parseInt(points[0].split(',')[0] - points[1].split(',')[0])
             const ph = parseInt(points[2].split(',')[1] - points[1].split(',')[1])
-            this.setChildren(zone, p, pw, ph, fontSize, 1)
+            this.setChildren(zone, p, pw, ph, fontSize, 1, 1)
           }
         })
       })
@@ -364,75 +387,90 @@ export default {
       })
       return result
     },
-    setChildren (node, p1, pw, ph, tfsize, deep, idcName) {
+    setChildren (node, p1, pw, ph, tfsize, tlength = 1, deep) {
       let graph = d3.select('#resourcePlanningGraph').select('#n_' + node.guid)
-      let n = node.children.length
+      const n = node.children.length
       let w, h, mgap, fontsize, strokewidth
       let rx, ry, tx, ty, g
       let color = colors[deep + 1]
       if (pw > ph * 1.2) {
-        if (pw / n > ph - tfsize) {
-          mgap = (ph - tfsize) * 0.04
-          fontsize = tfsize * 0.8 > (ph - tfsize) * 0.1 ? (ph - tfsize) * 0.1 : tfsize * 0.8
+        if (pw / n > ph - tfsize * tlength) {
+          mgap = (ph - tfsize * tlength) * 0.04
+          fontsize = tfsize * 0.8 > (ph - tfsize) * 0.2 ? (ph - tfsize) * 0.2 : tfsize * 0.8
           strokewidth = (ph - tfsize) * 0.005
         } else {
           mgap = (pw / n) * 0.04
-          fontsize = tfsize * 0.8 > (pw / n) * 0.1 ? (pw / n) * 0.1 : tfsize * 0.8
+          fontsize = tfsize * 0.8 > (pw / n) * 0.2 ? (pw / n) * 0.2 : tfsize * 0.8
           strokewidth = (pw / n) * 0.005
         }
         w = (pw - mgap) / n - mgap
-        h = ph - tfsize - 2 * mgap
-        for (var i = 0; i < n; i++) {
+        h = ph - tfsize * tlength - 2 * mgap
+        for (let i = 0; i < n; i++) {
+          const _tlength = node.children[i].text.length
           rx = p1.x + (w + mgap) * i + mgap
-          ry = p1.y + tfsize + mgap
+          ry = p1.y + tfsize * tlength + mgap
           tx = p1.x + (w + mgap) * i + w * 0.5 + mgap
-          if (Array.isArray(node.children[i].children)) {
-            ty = p1.y + tfsize + mgap + fontsize
-          } else {
-            ty = p1.y + tfsize + mgap + h * 0.5
-          }
           g = graph
             .append('g')
             .attr('class', 'node')
             .attr('id', `n_${node.children[i].guid}`)
+          let _ry = ry
+          let _h = h
+          if (Array.isArray(node.children[i].children)) {
+            ty = p1.y + tfsize * tlength + mgap + fontsize
+          } else {
+            _ry = ry
+            _h = h
+            ty = p1.y + tfsize * tlength + mgap + _h * 0.5
+          }
           g.append('rect')
             .attr('x', rx)
-            .attr('y', ry)
+            .attr('y', _ry)
             .attr('width', w)
-            .attr('height', h)
+            .attr('height', _h)
             .attr('stroke', 'black')
             .attr('fill', color)
             .attr('stroke-width', strokewidth)
           g.append('text')
             .attr('x', tx)
             .attr('y', ty)
-            .text(node.children[i].data.code ? node.children[i].data.code : node.children[i].data.key_name)
             .attr('style', 'text-anchor:middle')
-            .attr('font-size', fontsize)
+          node.children[i].text.forEach((_, index) => {
+            const _fontsize = 2 * w / _.length < fontsize ? 2 * w / _.length : fontsize
+            g.select('text')
+              .append('tspan')
+              .attr('font-size', _fontsize)
+              .attr('x', tx)
+              .attr('y', ty + fontsize * index)
+              .attr('title', _)
+              .text(_)
+          })
           if (Array.isArray(node.children[i].children)) {
-            this.setChildren(node.children[i], { x: rx, y: ry }, w, h, fontsize, deep + 1, idcName)
+            this.setChildren(node.children[i], { x: rx, y: _ry }, w, _h, fontsize, _tlength, deep + 1)
           }
         }
       } else {
         if ((ph - tfsize) / n > pw) {
           mgap = pw * 0.04
-          fontsize = tfsize * 0.8 > pw * 0.1 ? pw * 0.1 : tfsize * 0.8
+          fontsize = tfsize * 0.8 > pw * 0.2 ? pw * 0.2 : tfsize * 0.8
           strokewidth = pw * 0.005
         } else {
           mgap = ((ph - tfsize) / n) * 0.04
-          fontsize = tfsize * 0.8 > ((ph - tfsize) / n) * 0.1 ? ((ph - tfsize) / n) * 0.1 : tfsize * 0.8
+          fontsize = tfsize * 0.8 > ((ph - tfsize) / n) * 0.2 ? ((ph - tfsize) / n) * 0.2 : tfsize * 0.8
           strokewidth = ((ph - tfsize) / n) * 0.005
         }
         w = pw - 2 * mgap
-        h = (ph - tfsize - mgap) / n - mgap
+        h = (ph - tfsize * tlength - mgap) / n - mgap
         for (let i = 0; i < n; i++) {
+          const _tlength = node.children[i].text.length
           rx = p1.x + mgap
-          ry = p1.y + tfsize + (h + mgap) * i + mgap
+          ry = p1.y + tfsize * tlength + (h + mgap) * i + mgap
           tx = p1.x + w * 0.5 + mgap
           if (Array.isArray(node.children[i].children)) {
             ty = p1.y + tfsize + (h + mgap) * i + fontsize + mgap
           } else {
-            ty = p1.y + tfsize + (h + mgap) * i + h * 0.5 + mgap
+            // TODO
+            ty = p1.y + mgap + fontsize * (tlength + 1) + (h + mgap) * i + h * 0.5
           }
           g = graph
             .append('g')
@@ -449,11 +487,18 @@ export default {
           g.append('text')
             .attr('x', tx)
             .attr('y', ty)
-            .text(node.children[i].data.code ? node.children[i].data.code : node.children[i].data.key_name)
             .attr('style', 'text-anchor:middle')
-            .attr('font-size', fontsize)
+          node.children[i].text.forEach((_, index) => {
+            const _fontsize = 2 * w / _.length < fontsize ? 2 * w / _.length : fontsize
+            g.select('text')
+              .append('tspan')
+              .attr('font-size', _fontsize)
+              .attr('x', tx)
+              .attr('y', ty + fontsize * index)
+              .text(_)
+          })
           if (Array.isArray(node.children[i].children)) {
-            this.setChildren(node.children[i], { x: rx, y: ry }, w, h, fontsize, deep + 1, idcName)
+            this.setChildren(node.children[i], { x: rx, y: ry }, w, h, fontsize, _tlength, deep + 1)
           }
         }
       }
