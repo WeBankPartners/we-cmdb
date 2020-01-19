@@ -358,6 +358,7 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(384, 51, 'egress', '出站规则', NULL, NULL, 2, 'active'),
 	(385, 52, 'DROP', '拒绝', NULL, NULL, 1, 'active'),
 	(386, 52, 'ACCEPT', '通过', NULL, NULL, 2, 'active'),
+	(387, 19, 'guid_of_deploy_detail', '[{"ciTypeId": 7},{ "ciTypeId": 1, "parentRs": { "attrId": 106, "isReferedFromParent": 1}}]', NULL, NULL, 8, 'active'),
 	(391, 1, 'APL', '应用开发层', NULL, '应用开发层', 2, 'active');
 /*!40000 ALTER TABLE `adm_basekey_code` ENABLE KEYS */;
 
