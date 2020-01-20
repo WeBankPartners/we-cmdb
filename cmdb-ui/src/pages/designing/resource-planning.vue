@@ -204,6 +204,8 @@ export default {
               _.children.map(zone => {
                 if (logicNetZone[zone.guid]) {
                   zone.children = logicNetZone[zone.guid]
+                } else {
+                  zone.children = []
                 }
                 return zone
               })
@@ -316,7 +318,7 @@ export default {
         'digraph G{',
         'rankdir=TB;nodesep=0.5;',
         `Node[shape=box,fontsize=${fontSize},labelloc=t,penwidth=2];`,
-        'Edge[fontsize=6];',
+        'Edge[fontsize=6,arrowhead="none"];',
         `size="${width},${height}";`
       ]
       data.forEach(idc => {
@@ -469,7 +471,7 @@ export default {
           ry = p1.y + tfsize * tlength + (h + mgap) * i + mgap
           tx = p1.x + w * 0.5 + mgap
           if (Array.isArray(node.children[i].children)) {
-            ty = p1.y + tfsize + (h + mgap) * i + fontsize + mgap
+            ty = p1.y + tfsize * tlength + (h + mgap) * i + fontsize + mgap
           } else {
             // TODO
             ty = p1.y + mgap + fontsize * (tlength + 1) + (h + mgap) * i + h * 0.5
