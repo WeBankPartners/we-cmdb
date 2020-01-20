@@ -74,9 +74,11 @@ import {
 import { outerActions, innerActions, pagination, components } from '@/const/actions.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
+import {
+  colors,
+  defaultFontSize as fontSize
+} from '../../const/graph-configuration'
 
-const fontSize = 16
-const colors = ['#bbdefb', '#90caf9', '#64b5f6', '#42a5f5', '#2196f3', '#1e88e5', '#1976d2']
 export default {
   data () {
     return {
