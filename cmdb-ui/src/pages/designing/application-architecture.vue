@@ -444,7 +444,8 @@ export default {
             let result = {
               ciTypeId: _.ciTypeId,
               guid: _.guid,
-              data: _.data
+              data: _.data,
+              fixedDate: +new Date(_.data.fixed_date)
             }
             if (_.children instanceof Array && _.children.length && _.ciTypeId !== LAST_LEVEL_CI_TYPE_ID) {
               result.children = formatAppLogicTree(_.children)
@@ -495,7 +496,8 @@ export default {
               let result = {
                 ciTypeId: _.ciTypeId,
                 guid: _.guid,
-                data: _.data
+                data: _.data,
+                fixedDate: +new Date(_.data.fixed_date)
               }
               if (_.ciTypeId !== LAST_LEVEL_CI_TYPE_ID && _.children instanceof Array && _.children.length) {
                 result.children = formatServiceInvokeTree(_.children)
@@ -675,10 +677,10 @@ export default {
         data.forEach(_ => {
           let color = ''
           if (this.isTableViewOnly && this.systemDesignFixedDate) {
-            if (this.systemDesignFixedDate <= _.data.fixed_date) {
+            if (this.systemDesignFixedDate <= _.fixedDate) {
               color = stateColor[_.data.state.code]
             }
-          } else if (!_.data.fixed_date) {
+          } else if (!_.fixedDate) {
             color = stateColor[_.data.state.code]
           }
           if (_.children instanceof Array && _.children.length) {
@@ -1108,7 +1110,8 @@ export default {
               ? data.contents.map(_ => {
                 return {
                   ..._.data,
-                  nextOperations: _.meta.nextOperations || []
+                  // 需要过滤掉‘确认’按钮
+                  nextOperations: _.meta.nextOperations.filter(item => item !== 'confirm') || []
                 }
               })
               : []
@@ -1176,7 +1179,8 @@ export default {
       const { data, statusCode } = await getArchitectureDesignTabs()
       let allInnerActions = await getExtraInnerActions()
       if (statusCode === 'OK') {
-        this.tabList = data.map(_ => {
+        // 需要过滤掉‘确认’按钮
+        this.tabList = data.filter(_ => _.actionType !== 'confirm').map(_ => {
           return {
             ..._,
             name: _.value,

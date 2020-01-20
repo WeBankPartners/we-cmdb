@@ -1106,7 +1106,7 @@ INSERT INTO `service_invoke_seq_design$service_invoke_design_sequence` (`id`, `f
 
 -- 正在导出表  wecmdb_embedded.subsys 的数据：~7 rows (大约)
 /*!40000 ALTER TABLE `subsys` DISABLE KEYS */;
-INSERT INTO `subsys` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_date`, `created_by`, `created_date`, `key_name`, `state`, `fixed_date`, `description`, `code`, `manager`, `subsys_design`, `system`) VALUES
+INSERT INTO `subsys` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_date`, `created_by`, `created_date`, `key_name`, `state`, `fixed_date`, `description`, `code`, `manager`, `subsys_design`, `we_system`) VALUES
 	('0008_0000000006', NULL, '0008_0000000006', NULL, '2019-12-25 01:35:34', NULL, '2019-12-21 13:51:32', 'DMCS_PRD_CORE', 37, '', '', 'CORE', 'liuchao', '0002_0000000009', '0007_0000000001'),
 	('0008_0000000007', NULL, '0008_0000000007', NULL, '2019-12-24 09:35:32', NULL, '2019-12-21 13:52:47', 'DMCS_PRD_ADM', 37, '', '', 'ADM', 'liuchao', '0002_0000000010', '0007_0000000001'),
 	('0008_0000000008', NULL, '0008_0000000008', NULL, '2019-12-24 03:56:38', NULL, '2019-12-24 03:56:38', 'WECUBE_PRD_CLIENT', 37, '', '', 'CLIENT', '', '0002_0000000012', '0007_0000000003'),
@@ -1178,7 +1178,7 @@ INSERT INTO `subsys_design$business_zone_design` (`id`, `from_guid`, `to_guid`, 
 
 -- 正在导出表  wecmdb_embedded.system 的数据：~3 rows (大约)
 /*!40000 ALTER TABLE `system` DISABLE KEYS */;
-INSERT INTO `system` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_date`, `created_by`, `created_date`, `key_name`, `state`, `fixed_date`, `description`, `code`, `deploy_environment`, `system_design`, `region_data_center`) VALUES
+INSERT INTO `we_system` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_date`, `created_by`, `created_date`, `key_name`, `state`, `fixed_date`, `description`, `code`, `deploy_environment`, `system_design`, `region_data_center`) VALUES
 	('0007_0000000001', NULL, '0007_0000000001', NULL, '2020-01-03 04:15:58', NULL, '2019-12-18 05:23:39', 'DMCS_PRD', 37, '', '', 'DMCS_PRD', 69, '0001_0000000001', NULL),
 	('0007_0000000002', NULL, '0007_0000000002', NULL, '2020-01-08 10:24:26', NULL, '2019-12-18 05:24:51', 'PRD_DEMO2', 37, '', '', 'DEMO2_PRD', 69, '0001_0000000002', NULL),
 	('0007_0000000003', NULL, '0007_0000000003', 'admin', '2020-01-03 04:26:02', NULL, '2019-12-24 03:52:50', 'WECUBE_PRD', 37, '2020-01-03 12:26:02', '', 'WECUBE_PRD', 69, '0001_0000000003', NULL);
@@ -1186,7 +1186,7 @@ INSERT INTO `system` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_date`, 
 
 -- 正在导出表  wecmdb_embedded.system$data_center 的数据：~7 rows (大约)
 /*!40000 ALTER TABLE `system$data_center` DISABLE KEYS */;
-INSERT INTO `system$data_center` (`id`, `from_guid`, `to_guid`, `seq_no`) VALUES
+INSERT INTO `we_system$data_center` (`id`, `from_guid`, `to_guid`, `seq_no`) VALUES
 	(1, '0007_0000000002', '0018_0000000001', 2),
 	(2, '0007_0000000002', '0018_0000000003', 1),
 	(3, '0007_0000000002', '0018_0000000002', 3),
