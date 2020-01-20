@@ -1141,10 +1141,13 @@ public class UIWrapperService {
         CatCodeDto code = getEnumCodeById(codeId);
         Integer ciTypeId = Integer.parseInt(code.getCode());
         queryObject = setQueryRequest(queryObject, fixDateFilter, ciTypeId);
-        return ciService.query(ciTypeId, queryObject);
+        
+        return getCiDataHistory(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId,true);
     }
-
     private Object getCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject, int systemDesignCiTypeId) {
+        return getCiDataHistory(codeId, envCode, systemDesignGuid, queryObject, systemDesignCiTypeId,false);
+    }
+    private Object getCiDataHistory(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject, int systemDesignCiTypeId,boolean showHistory) {
         List<String> guid = Arrays.asList(systemDesignGuid.split(","));
         CatCodeDto code = getEnumCodeById(codeId);
         Integer ciTypeId = Integer.parseInt(code.getCode());
@@ -1161,7 +1164,7 @@ public class UIWrapperService {
         }
 
         List<Map<String, Object>> ciDatas = getAllCiDataOfRootCi(ciTypeId, envEnumCat, envCode, systemDesignCiTypeId,
-                guid, routineForGetingSystemDesignGuid);
+                guid, routineForGetingSystemDesignGuid, showHistory);
         if (queryObject == null) {
             queryObject = QueryRequest.defaultQueryObject();
         }
@@ -1179,8 +1182,8 @@ public class UIWrapperService {
         QueryResponse<CatCodeDto> queryResult = staticDtoService.query(CatCodeDto.class, defaultQueryObject("groupCodeId", groupId).ascendingSortBy(CONSTANT_SEQ_NO));
         return queryResult.getContents();
     }
-
-    private List<Map<String, Object>> getAllCiDataOfRootCi(int rootCiTypeId, int envEnumCat, String envEnumCode, int filterCiTypeId, List<String> guid, String routine) {
+   
+    private List<Map<String, Object>> getAllCiDataOfRootCi(int rootCiTypeId, int envEnumCat, String envEnumCode, int filterCiTypeId, List<String> guid, String routine, boolean showHistory) {
         List<CiRoutineItem> routineItems = new ArrayList<>();
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -1229,7 +1232,9 @@ public class UIWrapperService {
         if (childQueryDto != null) {
             rootDto.getCriteria().setChildren(Arrays.asList(childQueryDto));
         }
-
+        if (showHistory) {
+            rootDto.getQueryRequest().getDialect().setShowCiHistory(true);
+        }
         return ciService.adhocIntegrateQuery(rootDto).getContents();
     }
 
