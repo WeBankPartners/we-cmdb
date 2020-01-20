@@ -4,12 +4,13 @@
       <Col span="16">
         <Row>
           <span style="margin-right: 10px">{{ $t('system_design') }}</span>
-          <Select @on-change="onSystemDesignSelect" label-in-name style="width: 35%;">
+          <Select v-model="systemDesignVersion" @on-change="onSystemDesignSelect" label-in-name style="width: 35%;">
             <OptionGroup v-for="(data, idx) in systemDesigns" :key="idx" :label="data[0].name">
               <Option
                 v-for="item in data"
                 :value="item.guid"
                 :key="item.guid"
+                :label="`${item.name}${item.fixed_date ? ' ' + item.fixed_date : ''}`"
                 style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
               >
                 <div>{{ item.name }}</div>
@@ -201,23 +202,16 @@ import {
   operateCiState,
   getIdcDesignTreeByGuid,
   getApplicationFrameworkDesignDataTree,
-  getAllZoneLinkDesignGroupByIdcDesign
+  getAllZoneLinkDesignGroupByIdcDesign,
+  updateSystemDesign
 } from '@/api/server'
 import { outerActions, innerActions, pagination, components } from '@/const/actions.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import PhysicalGraph from './physical-graph'
 import moment from 'moment'
+import { colors, stateColor } from '../../const/graph-configuration'
 
-const stateColor = {
-  new: '#19be6b',
-  created: '#19be6b',
-  update: '#2d8cf0',
-  change: '#2d8cf0',
-  destroyed: '#ed4014',
-  delete: '#ed4014'
-}
-const colors = ['#bbdefb', '#90caf9', '#64b5f6', '#42a5f5', '#2196f3', '#1e88e5', '#1976d2']
 const LAST_LEVEL_CI_TYPE_ID = 3 // 单元设计的ciTypeId，也是两张图最小节点的ciTypeId
 const APP_INVOKE_LINES_CI_YTPE_ID = 5 // 调用设计的ciTypeId
 const SERVICE_INVOKE_LINES_CI_TYPE_ID = 35 // 服务调用设计的ciTypeId
@@ -373,6 +367,7 @@ export default {
           title: 'Success',
           desc: message
         })
+        this.getSystemDesigns()
         this.fixVersionTreeModal = false
       }
     },
@@ -384,9 +379,25 @@ export default {
       this.isDataChanged = false
     },
     async onArchChange (isTableViewOnly = false) {
+      if (isTableViewOnly) {
+        this.queryGraphData(isTableViewOnly)
+      } else {
+        const { statusCode, data } = await updateSystemDesign(this.systemDesignVersion)
+        if (statusCode === 'OK') {
+          if (data.length) {
+            this.getSystemDesigns(() => {
+              this.queryGraphData(isTableViewOnly)
+            })
+          } else {
+            this.queryGraphData(isTableViewOnly)
+          }
+        }
+      }
+    },
+    async queryGraphData (isTableViewOnly) {
       this.invokeSequenceForm.selectedInvokeSequence = ''
       this.invokeSequenceForm.isShowInvokeSequenceDetial = false
-      let { statusCode, data } = await getAllCITypes()
+      const { statusCode, data } = await getAllCITypes()
       if (statusCode === 'OK') {
         data.forEach(ci => {
           if (ci.tableName === 'system_design') {
@@ -572,7 +583,7 @@ export default {
           isShow = true
           _isShow = true
         }
-        const color = stateColor[_.data.state.code]
+        const color = _.data.fixed_date ? '#000' : stateColor[_.data.state.code]
         let result = {
           fixed_date: _.data.fixed_date,
           state: _.data.state.code,
@@ -1181,7 +1192,6 @@ export default {
       }
     },
     onSystemDesignSelect (key) {
-      this.systemDesignVersion = key
       this.allowArch = this.systemDesignsOrigin.some(x => x.r_guid === key) // 是否允许架构变更，当guid等于r_guid时允许
       this.allowFixVersion = false
       this.isTableViewOnly = true
@@ -1195,8 +1205,9 @@ export default {
         })
       }
     },
-    async getSystemDesigns () {
-      let { statusCode, data } = await getSystemDesigns()
+    async getSystemDesigns (callback) {
+      this.systemDesigns = []
+      const { statusCode, data } = await getSystemDesigns()
       if (statusCode === 'OK') {
         this.systemDesignsOrigin = data.contents.map(_ => _.data)
         // 进行分组排序
@@ -1213,6 +1224,9 @@ export default {
             return obj
           }, {})
         this.systemDesigns = Object.values(resultObj)
+        if (callback && callback instanceof Function) {
+          callback()
+        }
       }
     }
   },
