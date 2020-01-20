@@ -112,6 +112,7 @@ export const getAllDeployTreesFromSystemCi = guid => req.get(`/trees/all-deploy-
 export const startProcessInstancesWithCiDataInbatch = data => req.post(`/process/inbatch/instances`, data)
 export const getApplicationDeploymentDataTree = guid => req.get(`/data-tree/application-deployment?system-guid=${guid}`)
 export const getTableStatus = () => req.get('/static-data/available-ci-type-table-status')
+export const updateSystemDesign = guid => req.post(`/deploy-designs/tabs/update-system-design?system-guid=${guid}`)
 // basic data page
 export const getAllSystemEnumCodes = data => req.post(`/enum/system/codes`, data)
 export const getSystemCategories = () => req.get(`/enum/system-categories`)
