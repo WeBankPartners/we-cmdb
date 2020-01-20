@@ -1217,7 +1217,7 @@ CREATE TABLE IF NOT EXISTS `subsys` (
   `code` varchar(200) DEFAULT NULL COMMENT '编码',
   `manager` varchar(50) DEFAULT NULL COMMENT '运维人员',
   `subsys_design` varchar(15) DEFAULT NULL COMMENT '子系统设计',
-  `system` varchar(15) DEFAULT NULL COMMENT '系统',
+  `we_system` varchar(15) DEFAULT NULL COMMENT '系统',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -1265,7 +1265,7 @@ CREATE TABLE IF NOT EXISTS `subsys_design$business_zone_design` (
 
 -- 数据导出被取消选择。
 -- 导出  表 wecmdb_embedded.system 结构
-CREATE TABLE IF NOT EXISTS `system` (
+CREATE TABLE IF NOT EXISTS `we_system` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
   `r_guid` varchar(15) DEFAULT NULL COMMENT '原始数据guid',
@@ -1286,7 +1286,7 @@ CREATE TABLE IF NOT EXISTS `system` (
 
 -- 数据导出被取消选择。
 -- 导出  表 wecmdb_embedded.system$data_center 结构
-CREATE TABLE IF NOT EXISTS `system$data_center` (
+CREATE TABLE IF NOT EXISTS `we_system$data_center` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) NOT NULL,
   `to_guid` varchar(15) NOT NULL,
