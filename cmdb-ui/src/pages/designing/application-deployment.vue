@@ -42,7 +42,8 @@
           </Spin>
         </div>
       </TabPane>
-      <TabPane :label="$t('physical_deployment_diagram')" name="physicalGraph" :index="3">
+      <!-- TODO -->
+      <!-- <TabPane :label="$t('physical_deployment_diagram')" name="physicalGraph" :index="3">
         <div>
           <PhysicalGraph
             v-if="physicalGraphData.length"
@@ -56,7 +57,7 @@
             <div>{{ $t('loading') }}</div>
           </Spin>
         </div>
-      </TabPane>
+      </TabPane> -->
       <TabPane
         v-for="(ci, index) in tabList"
         :key="ci.id"
@@ -112,6 +113,7 @@ import { outerActions, innerActions, pagination, components } from '@/const/acti
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import PhysicalGraph from './physical-graph'
+import { colors, stateColor } from '../../const/graph-configuration'
 
 const LAST_LEVEL_CI_TYPE_ID = 9
 const BUSINESS_APP_INSTANCE = 14
@@ -119,15 +121,6 @@ const URL_ATTR_NAME = 'resource_instance'
 const LINE_CI_TYPE_ID = 11
 const LINE_FROM_ATTR = 'invoke_unit'
 const LINE_TO_ATTR = 'invoked_unit'
-const stateColor = {
-  new: '#19be6b',
-  created: '#19be6b',
-  update: '#2d8cf0',
-  change: '#2d8cf0',
-  destroyed: '#ed4014',
-  delete: '#ed4014'
-}
-const colors = ['#bbdefb', '#90caf9', '#64b5f6', '#42a5f5', '#2196f3', '#1e88e5', '#1976d2']
 
 export default {
   components: {
@@ -335,7 +328,8 @@ export default {
       }
       this.physicalSpin = true
       this.getAllDeployTreesFromSystemCi()
-      this.getPhysicalGraphData()
+      // TODO
+      // this.getPhysicalGraphData()
     },
     async getAllDeployTreesFromSystemCi () {
       const { statusCode, data } = await getAllDeployTreesFromSystemCi(this.systemVersion)

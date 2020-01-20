@@ -6,9 +6,10 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-
-const fontSize = 16
-const colors = ['#bbdefb', '#90caf9', '#64b5f6', '#42a5f5', '#2196f3', '#1e88e5', '#1976d2']
+import {
+  colors,
+  defaultFontSize as fontSize
+} from '../../const/graph-configuration'
 
 export default {
   data () {
