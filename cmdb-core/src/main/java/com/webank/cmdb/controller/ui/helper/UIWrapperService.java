@@ -1145,7 +1145,7 @@ public class UIWrapperService {
         return getCiDataHistory(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId,true);
     }
     private Object getCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject, int systemDesignCiTypeId) {
-        return getCiDataHistory(systemDesignCiTypeId, systemDesignGuid, systemDesignGuid, queryObject, systemDesignCiTypeId,false);
+        return getCiDataHistory(codeId, envCode, systemDesignGuid, queryObject, systemDesignCiTypeId,false);
     }
     private Object getCiDataHistory(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject, int systemDesignCiTypeId,boolean showHistory) {
         List<String> guid = Arrays.asList(systemDesignGuid.split(","));
