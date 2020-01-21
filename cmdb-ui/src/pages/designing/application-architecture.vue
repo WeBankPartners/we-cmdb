@@ -201,7 +201,6 @@ import {
   getAllCITypes,
   operateCiState,
   getIdcDesignTreeByGuid,
-  getApplicationFrameworkDesignDataTree,
   getAllZoneLinkDesignGroupByIdcDesign,
   updateSystemDesign
 } from '@/api/server'
@@ -272,7 +271,8 @@ export default {
       allowFixVersion: false,
       isTableViewOnly: true,
       systemDesignFixedDate: 0,
-      linkTypes: []
+      linkTypes: [],
+      allUnitDesign: []
     }
   },
   computed: {
@@ -420,12 +420,12 @@ export default {
         this.currentTab === 'serviceInvoke'
       ) {
         this.getAllDesignTreeFromSystemDesign()
-        this.getPhysicalGraphData()
       } else {
         this.getCurrentData()
       }
     },
     async getAllDesignTreeFromSystemDesign () {
+      this.allUnitDesign = []
       const promiseArray = [
         getAllDesignTreeFromSystemDesign(this.systemDesignVersion),
         getEnumCodesByCategoryId(0, LINK_TYPE_ENUM_ID)
@@ -449,6 +449,9 @@ export default {
             }
             if (_.children instanceof Array && _.children.length && _.ciTypeId !== LAST_LEVEL_CI_TYPE_ID) {
               result.children = formatAppLogicTree(_.children)
+            }
+            if (_.ciTypeId === LAST_LEVEL_CI_TYPE_ID) {
+              this.allUnitDesign.push(result)
             }
             return result
           })
@@ -508,6 +511,7 @@ export default {
         formatAppLogicLine(treeData.data)
         formatServiceInvokeLine(treeData.data)
         this.serviceInvokeData = formatServiceInvokeTree(treeData.data)
+        this.getPhysicalGraphData()
         this.initGraph()
       }
     },
@@ -520,13 +524,21 @@ export default {
       }
       const promiseArray = [
         getIdcDesignTreeByGuid([foundIdcGuid]),
-        getApplicationFrameworkDesignDataTree(this.systemDesignVersion),
         getAllZoneLinkDesignGroupByIdcDesign()
       ]
-      const [idcData, unitsData, links] = await Promise.all(promiseArray)
-      if (unitsData.statusCode === 'OK' && idcData.statusCode === 'OK') {
+      const [idcData, links] = await Promise.all(promiseArray)
+      if (idcData.statusCode === 'OK') {
         let setDesigns = {}
-        unitsData.data.forEach(_ => {
+        this.allUnitDesign.forEach(_ => {
+          let color = ''
+          if (this.isTableViewOnly && this.systemDesignFixedDate) {
+            if (this.systemDesignFixedDate <= _.fixedDate) {
+              color = stateColor[_.data.state.code]
+            }
+          } else if (!_.fixedDate) {
+            color = stateColor[_.data.state.code]
+          }
+          _.color = color
           if (setDesigns[_.data.resource_set_design.guid]) {
             setDesigns[_.data.resource_set_design.guid].push(_)
           } else {
