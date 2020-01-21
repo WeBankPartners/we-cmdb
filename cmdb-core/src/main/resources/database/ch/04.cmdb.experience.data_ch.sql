@@ -1177,15 +1177,15 @@ INSERT INTO `subsys_design$business_zone_design` (`id`, `from_guid`, `to_guid`, 
 /*!40000 ALTER TABLE `subsys_design$business_zone_design` ENABLE KEYS */;
 
 -- 正在导出表  wecmdb_embedded.system 的数据：~3 rows (大约)
-/*!40000 ALTER TABLE `system` DISABLE KEYS */;
+/*!40000 ALTER TABLE `we_system` DISABLE KEYS */;
 INSERT INTO `we_system` (`guid`, `p_guid`, `r_guid`, `updated_by`, `updated_date`, `created_by`, `created_date`, `key_name`, `state`, `fixed_date`, `description`, `code`, `deploy_environment`, `system_design`, `region_data_center`) VALUES
 	('0007_0000000001', NULL, '0007_0000000001', NULL, '2020-01-03 04:15:58', NULL, '2019-12-18 05:23:39', 'DMCS_PRD', 37, '', '', 'DMCS_PRD', 69, '0001_0000000001', NULL),
 	('0007_0000000002', NULL, '0007_0000000002', NULL, '2020-01-08 10:24:26', NULL, '2019-12-18 05:24:51', 'PRD_DEMO2', 37, '', '', 'DEMO2_PRD', 69, '0001_0000000002', NULL),
 	('0007_0000000003', NULL, '0007_0000000003', 'admin', '2020-01-03 04:26:02', NULL, '2019-12-24 03:52:50', 'WECUBE_PRD', 37, '2020-01-03 12:26:02', '', 'WECUBE_PRD', 69, '0001_0000000003', NULL);
-/*!40000 ALTER TABLE `system` ENABLE KEYS */;
+/*!40000 ALTER TABLE `we_system` ENABLE KEYS */;
 
 -- 正在导出表  wecmdb_embedded.system$data_center 的数据：~7 rows (大约)
-/*!40000 ALTER TABLE `system$data_center` DISABLE KEYS */;
+/*!40000 ALTER TABLE `we_system$data_center` DISABLE KEYS */;
 INSERT INTO `we_system$data_center` (`id`, `from_guid`, `to_guid`, `seq_no`) VALUES
 	(1, '0007_0000000002', '0018_0000000001', 2),
 	(2, '0007_0000000002', '0018_0000000003', 1),
@@ -1194,7 +1194,7 @@ INSERT INTO `we_system$data_center` (`id`, `from_guid`, `to_guid`, `seq_no`) VAL
 	(13, '0007_0000000001', '0018_0000000001', 1),
 	(14, '0007_0000000001', '0018_0000000002', 2),
 	(15, '0007_0000000001', '0018_0000000003', 3);
-/*!40000 ALTER TABLE `system$data_center` ENABLE KEYS */;
+/*!40000 ALTER TABLE `we_system$data_center` ENABLE KEYS */;
 
 -- 正在导出表  wecmdb_embedded.system_design 的数据：~7 rows (大约)
 /*!40000 ALTER TABLE `system_design` DISABLE KEYS */;
