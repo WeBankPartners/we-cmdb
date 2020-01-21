@@ -40,21 +40,21 @@
     <!-- 5.权限设定 -->
     <authorities>
         <authority systemRoleName="SUPER_ADMIN" >
-            <menu code="DESIGNING_CI_DATA_ENQUIRY" />
-            <menu code="DESIGNING_CI_INTEGRATED_QUERY_EXECUTION" />
-            <menu code="CMDB_DESIGNING_ENUM_ENQUIRY" />
-            <menu code="DESIGNING_CI_DATA_MANAGEMENT" />
-            <menu code="DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT" />
-            <menu code="CMDB_DESIGNING_ENUM_MANAGEMENT" />
-            <menu code="IDC_PLANNING_DESIGN" />
-            <menu code="IDC_RESOURCE_PLANNING" />
-            <menu code="APPLICATION_ARCHITECTURE_DESIGN" />
-            <menu code="APPLICATION_DEPLOYMENT_DESIGN" />
-            <menu code="ADMIN_CMDB_MODEL_MANAGEMENT" />
-            <menu code="ADMIN_PERMISSION_MANAGEMENT" />
-            <menu code="CMDB_ADMIN_BASE_DATA_MANAGEMENT" />
-            <menu code="ADMIN_QUERY_LOG" />
-            <menu code="ADMIN_USER_PASSWORD_MANAGEMENT" />
+            <menu code="MENU_DESIGNING_CI_DATA_ENQUIRY" />
+            <menu code="MENU_DESIGNING_CI_INTEGRATED_QUERY_EXECUTION" />
+            <menu code="MENU_CMDB_DESIGNING_ENUM_ENQUIRY" />
+            <menu code="MENU_DESIGNING_CI_DATA_MANAGEMENT" />
+            <menu code="MENU_DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT" />
+            <menu code="MENU_CMDB_DESIGNING_ENUM_MANAGEMENT" />
+            <menu code="MENU_IDC_PLANNING_DESIGN" />
+            <menu code="MENU_IDC_RESOURCE_PLANNING" />
+            <menu code="MENU_APPLICATION_ARCHITECTURE_DESIGN" />
+            <menu code="MENU_APPLICATION_DEPLOYMENT_DESIGN" />
+            <menu code="MENU_ADMIN_CMDB_MODEL_MANAGEMENT" />
+            <menu code="MENU_ADMIN_PERMISSION_MANAGEMENT" />
+            <menu code="MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT" />
+            <menu code="MENU_ADMIN_QUERY_LOG" />
+            <menu code="MENU_ADMIN_USER_PASSWORD_MANAGEMENT" />
         </authority >
     </authorities>
 
@@ -66,16 +66,236 @@
 
     <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
     <plugins>
-        <plugin id="ci-data-confirm" name="CI Data Confirmation">
+        <plugin name="CIDataConfirm" registerName="any_ci">
             <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
                 <inputParameters>
                     <parameter datatype="string" mappingType='context' required='Y'>guid</parameter>
                 </inputParameters>
                 <outputParameters>
-                    <parameter datatype="string">status</parameter>
-                    <parameter datatype="string">message</parameter>
-                    <parameter datatype="string">guid</parameter>
-                    <parameter datatype="string">fixed_date</parameter>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="system" registerName="system">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:system.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="subsys" registerName="subsys">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:subsys.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="unit" registerName="unit">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:unit.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="invoke" registerName="invoke">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:invoke.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="direct_service_invoke" registerName="direct_service_invoke">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:direct_service_invoke.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="business_app_instance" registerName="business_app_instance">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:business_app_instance.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="data_center" registerName="data_center">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:data_center.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="network_zone" registerName="network_zone">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:network_zone.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="network_zone_link" registerName="network_zone_link">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:network_zone_link.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="business_zone" registerName="business_zone">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:business_zone.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="resource_set" registerName="resource_set">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:resource_set.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin><plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="routing_rule" registerName="routing_rule">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:routing_rule.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="default_security_policy" registerName="default_security_policy">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:default_security_policy.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin><plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="resource_instance" registerName="resource_instance">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:resource_instance.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="block_storage" registerName="block_storage">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:block_storage.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="ip_address" registerName="ip_address">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:ip_address.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="CIDataConfirm" targetPackage="wecmdb" targetEntity="network_segment" registerName="network_segment">
+            <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType="entity" mappingEntityExpression="wecmdb:network_segment.id"  required="Y">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">status</parameter>
+                    <parameter datatype="string" mappingType="context">message</parameter>
+                    <parameter datatype="string" mappingType="context">guid</parameter>
+                    <parameter datatype="string" mappingType="context">fixed_date</parameter>
                 </outputParameters>
             </interface>
         </plugin>
