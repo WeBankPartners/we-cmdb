@@ -73,6 +73,7 @@ public class RoleDto extends BasicResourceDto<RoleDto, AdmRole> {
 
     public AdmRole toDomain() {
         AdmRole domain = new AdmRole();
+        domain.setIdAdmRole(this.getRoleId());
         domain.setRoleName(this.getRoleName());
         domain.setRoleType(this.getRoleType());
         domain.setDescription(this.getDescription());
