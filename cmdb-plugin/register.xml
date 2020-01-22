@@ -9,22 +9,22 @@
          
     <!-- 2.菜单注入 - 描述运行本插件包需要注入的菜单 -->
  <menus>
-        <menu code='DESIGNING_CI_DATA_ENQUIRY' cat='DESIGNING' displayName="CI Data Enquiry" localDisplayName="CI数据查询">/wecmdb/designing/ci-data-enquiry</menu>
-        <menu code='DESIGNING_CI_INTEGRATED_QUERY_EXECUTION' cat='DESIGNING' displayName="CI Integrated Enquiry" localDisplayName="CI综合查询">/wecmdb/designing/ci-integrated-query-execution</menu>
-        <menu code='CMDB_DESIGNING_ENUM_ENQUIRY' cat='DESIGNING' displayName="Enum Enquiry" localDisplayName="枚举数据查询">/wecmdb/designing/enum-enquiry</menu>
+        <menu code='MENU_DESIGNING_CI_DATA_ENQUIRY' cat='DESIGNING' displayName="CI Data Enquiry" localDisplayName="CI数据查询">/wecmdb/designing/ci-data-enquiry</menu>
+        <menu code='MENU_DESIGNING_CI_INTEGRATED_QUERY_EXECUTION' cat='DESIGNING' displayName="CI Integrated Enquiry" localDisplayName="CI综合查询">/wecmdb/designing/ci-integrated-query-execution</menu>
+        <menu code='MENU_CMDB_DESIGNING_ENUM_ENQUIRY' cat='DESIGNING' displayName="Enum Enquiry" localDisplayName="枚举数据查询">/wecmdb/designing/enum-enquiry</menu>
 
-        <menu code='DESIGNING_CI_DATA_MANAGEMENT' cat='DESIGNING' displayName="CI Data Management" localDisplayName="CI数据管理">/wecmdb/designing/ci-data-management</menu>
-        <menu code='DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT' cat='DESIGNING' displayName="CI Integrated Enquiry Management" localDisplayName="CI综合查询管理">/wecmdb/designing/ci-integrated-query-management</menu>
-        <menu code='CMDB_DESIGNING_ENUM_MANAGEMENT' cat='DESIGNING' displayName="Enum Management" localDisplayName="枚举数据管理">/wecmdb/designing/enum-management</menu>
+        <menu code='MENU_DESIGNING_CI_DATA_MANAGEMENT' cat='DESIGNING' displayName="CI Data Management" localDisplayName="CI数据管理">/wecmdb/designing/ci-data-management</menu>
+        <menu code='MENU_DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT' cat='DESIGNING' displayName="CI Integrated Enquiry Management" localDisplayName="CI综合查询管理">/wecmdb/designing/ci-integrated-query-management</menu>
+        <menu code='MENU_CMDB_DESIGNING_ENUM_MANAGEMENT' cat='DESIGNING' displayName="Enum Management" localDisplayName="枚举数据管理">/wecmdb/designing/enum-management</menu>
 
-        <menu code='IDC_PLANNING_DESIGN' cat='DESIGNING' displayName="IDC Planning Design" localDisplayName="机房规划设计">/wecmdb/view-management/idc-planning-design</menu>
-        <menu code='IDC_RESOURCE_PLANNING' cat='DESIGNING' displayName="IDC Resource Plan" localDisplayName="机房资源规划">/wecmdb/view-management/idc-resource-planning</menu>
-        <menu code='APPLICATION_ARCHITECTURE_DESIGN' cat='DESIGNING' displayName="App Architecture Design" localDisplayName="应用架构设计">/wecmdb/view-management/application-architecture-design</menu>
-        <menu code='APPLICATION_DEPLOYMENT_DESIGN' cat='DESIGNING' displayName="App Deployment Design" localDisplayName="应用部署设计">/wecmdb/view-management/application-deployment-design</menu>
+        <menu code='MENU_IDC_PLANNING_DESIGN' cat='DESIGNING' displayName="IDC Planning Design" localDisplayName="机房规划设计">/wecmdb/view-management/idc-planning-design</menu>
+        <menu code='MENU_IDC_RESOURCE_PLANNING' cat='DESIGNING' displayName="IDC Resource Plan" localDisplayName="机房资源规划">/wecmdb/view-management/idc-resource-planning</menu>
+        <menu code='MENU_APPLICATION_ARCHITECTURE_DESIGN' cat='DESIGNING' displayName="App Architecture Design" localDisplayName="应用架构设计">/wecmdb/view-management/application-architecture-design</menu>
+        <menu code='MENU_APPLICATION_DEPLOYMENT_DESIGN' cat='DESIGNING' displayName="App Deployment Design" localDisplayName="应用部署设计">/wecmdb/view-management/application-deployment-design</menu>
 
-        <menu code='ADMIN_CMDB_MODEL_MANAGEMENT' cat='ADMIN' displayName="CMDB Modeling" localDisplayName="CMDB模型管理">/wecmdb/admin/cmdb-model-management</menu>
-        <menu code='CMDB_ADMIN_BASE_DATA_MANAGEMENT' cat='ADMIN' displayName="CMDB Base Datas" localDisplayName="CMDB基础数据管理">/wecmdb/admin/base-data-management</menu>
-        <menu code='ADMIN_QUERY_LOG' cat='ADMIN' displayName="CMDB Logs" localDisplayName="CMDB日志查询">/wecmdb/admin/query-log</menu>
+        <menu code='MENU_ADMIN_CMDB_MODEL_MANAGEMENT' cat='ADMIN' displayName="CMDB Modeling" localDisplayName="CMDB模型管理">/wecmdb/admin/cmdb-model-management</menu>
+        <menu code='MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT' cat='ADMIN' displayName="CMDB Base Datas" localDisplayName="CMDB基础数据管理">/wecmdb/admin/base-data-management</menu>
+        <menu code='MENU_ADMIN_QUERY_LOG' cat='ADMIN' displayName="CMDB Logs" localDisplayName="CMDB日志查询">/wecmdb/admin/query-log</menu>
 
         <menu code='MENU_ADMIN_PERMISSION_MANAGEMENT' cat='ADMIN' displayName="CMDB Permissions" localDisplayName="CMDB权限管理">/wecmdb/admin/permission-management</menu>
     </menus>
