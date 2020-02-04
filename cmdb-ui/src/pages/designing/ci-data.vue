@@ -7,14 +7,37 @@
         </card>
       </TabPane>
       <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name">
-        <WeCMDBTable :tableData="ci.tableData" :tableOuterActions="ci.outerActions" :tableInnerActions="ci.innerActions" :tableColumns="ci.tableColumns" :pagination="ci.pagination" :ascOptions="ci.ascOptions" :showCheckbox="needCheckout" :isRefreshable="true" @actionFun="actionFun" @handleSubmit="handleSubmit" @sortHandler="sortHandler" @getSelectedRows="onSelectedRowsChange" @pageChange="pageChange" @pageSizeChange="pageSizeChange" tableHeight="650" :ref="'table' + ci.id"></WeCMDBTable>
+        <WeCMDBTable
+          :tableData="ci.tableData"
+          :tableOuterActions="ci.outerActions"
+          :tableInnerActions="ci.innerActions"
+          :tableColumns="ci.tableColumns"
+          :pagination="ci.pagination"
+          :ascOptions="ci.ascOptions"
+          :showCheckbox="needCheckout"
+          :isRefreshable="true"
+          @actionFun="actionFun"
+          @handleSubmit="handleSubmit"
+          @sortHandler="sortHandler"
+          @getSelectedRows="onSelectedRowsChange"
+          @pageChange="pageChange"
+          @pageSizeChange="pageSizeChange"
+          tableHeight="650"
+          :ref="'table' + ci.id"
+        ></WeCMDBTable>
         <Modal footer-hide v-model="compareVisible" width="90" class-name="compare-modal">
           <Table :columns="ci.tableColumns.filter(x => x.isDisplayed || x.displaySeqNo)" :data="compareData" border />
         </Modal>
       </TabPane>
       <div slot="extra" class="history-query">
         <div class="label">{{ $t('updated_time') }}</div>
-        <DatePicker type="datetime" format="yyyy-MM-dd HH:mm" :options="options" :value="queryDate" @on-change="handleDateChange" />
+        <DatePicker
+          type="datetime"
+          format="yyyy-MM-dd HH:mm"
+          :options="options"
+          :value="queryDate"
+          @on-change="handleDateChange"
+        />
         <div class="label">{{ $t('query_type') }}</div>
         <Select v-model="queryType" @on-change="handleQueryEmit">
           <Option value="1">{{ $t('type_latest') }}</Option>
@@ -31,7 +54,18 @@ import * as d3 from 'd3-selection'
 import * as d3Graphviz from 'd3-graphviz'
 import moment from 'moment'
 import { addEvent } from '../util/event.js'
-import { getAllCITypesByLayerWithAttr, getAllLayers, queryCiData, queryCiDataByType, getCiTypeAttributes, deleteCiDatas, createCiDatas, updateCiDatas, getEnumCodesByCategoryId, operateCiState } from '@/api/server'
+import {
+  getAllCITypesByLayerWithAttr,
+  getAllLayers,
+  queryCiData,
+  queryCiDataByType,
+  getCiTypeAttributes,
+  deleteCiDatas,
+  createCiDatas,
+  updateCiDatas,
+  getEnumCodesByCategoryId,
+  operateCiState
+} from '@/api/server'
 import { setHeaders, baseURL } from '@/api/base.js'
 import { outerActions, innerActions, pagination, components, exportOuterActions } from '@/const/actions.js'
 import { formatData } from '../util/format.js'
@@ -81,9 +115,15 @@ export default {
   methods: {
     handleDateChange (date) {
       if (date !== '') {
-        if (moment(date).isSame(moment(), 'day') && (this.queryDate === null || !moment(date).isSame(moment(this.queryDate), 'day'))) {
+        if (
+          moment(date).isSame(moment(), 'day') &&
+          (this.queryDate === null || !moment(date).isSame(moment(this.queryDate), 'day'))
+        ) {
           this.queryDate = moment().format('YYYY-MM-DD HH:mm')
-        } else if (moment(date).isBefore(moment(), 'day') && (this.queryDate === null || !moment(date).isSame(moment(this.queryDate), 'day'))) {
+        } else if (
+          moment(date).isBefore(moment(), 'day') &&
+          (this.queryDate === null || !moment(date).isSame(moment(this.queryDate), 'day'))
+        ) {
           this.queryDate = moment(date)
             .endOf('day')
             .format('YYYY-MM-DD HH:mm')
@@ -177,7 +217,10 @@ export default {
             _.ciTypes &&
               _.ciTypes.forEach(async i => {
                 this.ciTypesName[i.ciTypeId] = i.name
-                let imgFileSource = i.imageFileId === 0 || i.imageFileId === undefined ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4) : `${baseURL}/files/${i.imageFileId}`
+                let imgFileSource =
+                  i.imageFileId === 0 || i.imageFileId === undefined
+                    ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
+                    : `${baseURL}/files/${i.imageFileId}`
                 this.$set(i, 'form', {
                   ...i,
                   imgSource: imgFileSource,
@@ -208,7 +251,13 @@ export default {
       data.forEach(_ => {
         if (_.ciTypes) nodes = nodes.concat(_.ciTypes)
       })
-      var dots = ['digraph  {', 'bgcolor="transparent";', 'Node [fontname=Arial,shape="ellipse", fixedsize="true", width="1.1", height="1.1", color="transparent" ,fontsize=11];', 'Edge [fontname=Arial,minlen="1", color="#7f8fa6", fontsize=10];', 'ranksep = 1.1; nodesep=.7; size = "11,8";rankdir=TB']
+      var dots = [
+        'digraph  {',
+        'bgcolor="transparent";',
+        'Node [fontname=Arial,shape="ellipse", fixedsize="true", width="1.1", height="1.1", color="transparent" ,fontsize=11];',
+        'Edge [fontname=Arial,minlen="1", color="#7f8fa6", fontsize=10];',
+        'ranksep = 1.1; nodesep=.7; size = "11,8";rankdir=TB'
+      ]
       let layerTag = `node [];`
 
       // generate group
@@ -220,10 +269,14 @@ export default {
         } else {
           layerTag += `"layer_${_.layerId}"`
         }
-        tempClusterObjForGraph[index] = [`{ rank=same; "layer_${_.layerId}"[id="layerId_${_.layerId}",class="layer",label="${_.name}",tooltip="${_.name}"];`]
+        tempClusterObjForGraph[index] = [
+          `{ rank=same; "layer_${_.layerId}"[id="layerId_${_.layerId}",class="layer",label="${_.name}",tooltip="${_.name}"];`
+        ]
         nodes.forEach((node, nodeIndex) => {
           if (node.layerId === _.layerId) {
-            tempClusterObjForGraph[index].push(`"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",image="${node.form.imgSource}.png", labelloc="b"]`)
+            tempClusterObjForGraph[index].push(
+              `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",image="${node.form.imgSource}.png", labelloc="b"]`
+            )
           }
           if (nodeIndex === nodes.length - 1) {
             tempClusterObjForGraph[index].push('} ')
@@ -335,7 +388,10 @@ export default {
             name: g.children[1].children[0].getAttribute('title'),
             id: g.id,
             tableData: [],
-            outerActions: this.$route.name === 'ciDataEnquiry' ? JSON.parse(JSON.stringify(exportOuterActions)) : JSON.parse(JSON.stringify(outerActions)),
+            outerActions:
+              this.$route.name === 'ciDataEnquiry'
+                ? JSON.parse(JSON.stringify(exportOuterActions))
+                : JSON.parse(JSON.stringify(outerActions)),
             innerActions:
               this.$route.name === 'ciDataEnquiry'
                 ? null
@@ -740,6 +796,7 @@ export default {
           if (_.status !== 'decommissioned' && _.status !== 'notCreated') {
             columns.push({
               ..._,
+              tooltip: true,
               title: _.name,
               key: renderKey,
               inputKey: _.propertyName,
