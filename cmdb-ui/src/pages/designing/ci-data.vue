@@ -110,6 +110,19 @@ export default {
     },
     needCheckout () {
       return this.$route.name !== 'ciDataEnquiry'
+    },
+    filterByDate () {
+      if (this.queryDate) {
+        return [
+          {
+            name: 'updated_date',
+            operator: 'lt',
+            value: moment(this.queryDate).format('YYYY-MM-DD HH:mm:ss')
+          }
+        ]
+      } else {
+        return null
+      }
     }
   },
   methods: {
@@ -549,7 +562,11 @@ export default {
       this.queryCiData()
     },
     handleSubmit (data) {
-      this.payload.filters = this.payload.filters.concat(data)
+      if (this.filterByDate) {
+        this.payload.filters = this.filterByDate.concat(data)
+      } else {
+        this.payload.filters = data
+      }
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
           ci.pagination.currentPage = 1
