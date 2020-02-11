@@ -80,7 +80,7 @@ public class ConstantService {
         List<Map<Object, Object>> specialConnector = Lists.newLinkedList();
 
         Map<Object, Object> and = Maps.newHashMap();
-        and.put("code", SpecialSymbolUtils.getAroundSpecialSymbol(SYMBOL_AND));
+        and.put("code", SpecialSymbolUtils.getAfterSpecialSymbol(SYMBOL_AND));
         and.put("value", SYMBOL_AND);
         specialConnector.add(and);
 
