@@ -38,7 +38,8 @@ export default {
       referTos: [],
       referBys: [],
       ciTypeAttrs: [],
-      selectedAttrs: []
+      selectedAttrs: [],
+      currentTab: 'name1'
     }
   },
   mounted () {
@@ -566,6 +567,7 @@ export default {
       this.savedSelectedRefs.bys = []
       this.savedSelectedRefs.tos = []
       this.isSwitcherOpen = false
+      this.currentTab = 'name1'
     }
   },
   render (h) {
@@ -580,11 +582,17 @@ export default {
           on-on-ok={handleConfirm}
           on-on-cancel={() => {
             this.isSwitcherOpen = false
+            this.currentTab = 'name1'
           }}
           mask-closable={false}
         >
           <div>
-            <Tabs value="name1">
+            <Tabs
+              value={this.currentTab}
+              on-input={val => {
+                this.currentTab = val
+              }}
+            >
               <TabPane label={this.$t('attribute')} name="name1">
                 {isSwitcherOpen && this.renderAttrs()}
               </TabPane>
