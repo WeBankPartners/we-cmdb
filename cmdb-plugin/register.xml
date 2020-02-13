@@ -35,7 +35,7 @@
 
     <!-- 4.系统参数 - 描述运行本插件包需要的系统参数 -->
     <systemParameters>
-        <systemParameter name="CMDB_URL" scopeType="global" defaultValue="http://10.128.202.3:20000/wecmdb"/>
+        <systemParameter name="CMDB_URL" scopeType="global" defaultValue="http://127.0.0.1:20000/wecmdb"/>
     </systemParameters>
 
     <!-- 5.权限设定 -->
