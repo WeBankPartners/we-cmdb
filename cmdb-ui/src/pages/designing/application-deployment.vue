@@ -466,7 +466,9 @@ export default {
             }
             obj[_.data.code + _.guid] = _
           })
-          return Object.keys(obj).sort().map(_ => obj[_])
+          return Object.keys(obj)
+            .sort()
+            .map(_ => obj[_])
         }
         this.physicalGraphData = sortingTree(_physicalGraphData)
 
@@ -974,6 +976,7 @@ export default {
           if (_.status !== 'decommissioned' && _.status !== 'notCreated') {
             columns.push({
               ..._,
+              tooltip: true,
               title: _.name,
               key: renderKey,
               inputKey: _.propertyName,
@@ -983,8 +986,10 @@ export default {
               disAdded: !_.isEditable,
               placeholder: _.name,
               component: 'Input',
+              filterRule: !!_.filterRule,
               ciType: { id: _.referenceId, name: _.name },
               type: 'text',
+              isMultiple: _.inputType === 'multiSelect',
               ...components[_.inputType]
             })
           }
