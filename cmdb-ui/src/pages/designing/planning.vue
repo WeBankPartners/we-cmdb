@@ -196,7 +196,9 @@ export default {
             } else {
               label = zone.data.key_name
             }
-            dots.push(`g_${zone.guid}[id="g_${zone.guid}",color="${colors[1]}",label="${label}",width=${ll},height=${lg}];`)
+            dots.push(
+              `g_${zone.guid}[id="g_${zone.guid}",color="${colors[1]}",label="${label}",width=${ll},height=${lg}];`
+            )
           })
           dots.push('}')
         })
@@ -294,7 +296,7 @@ export default {
             .attr('y', ty)
             .attr('style', 'text-anchor:middle')
           node.children[i].text.forEach((_, index) => {
-            const _fontsize = 2 * w / _.length < fontsize ? 2 * w / _.length : fontsize
+            const _fontsize = (2 * w) / _.length < fontsize ? (2 * w) / _.length : fontsize
             g.select('text')
               .append('tspan')
               .attr('font-size', _fontsize)
@@ -346,7 +348,7 @@ export default {
             .attr('y', ty)
             .attr('style', 'text-anchor:middle')
           node.children[i].text.forEach((_, index) => {
-            const _fontsize = 2 * w / _.length < fontsize ? 2 * w / _.length : fontsize
+            const _fontsize = (2 * w) / _.length < fontsize ? (2 * w) / _.length : fontsize
             g.select('text')
               .append('tspan')
               .attr('font-size', _fontsize)
@@ -677,6 +679,7 @@ export default {
           if (_.status !== 'decommissioned' && _.status !== 'notCreated') {
             columns.push({
               ..._,
+              tooltip: true,
               title: _.name,
               key: renderKey,
               inputKey: _.propertyName,
@@ -686,8 +689,10 @@ export default {
               disAdded: !_.isEditable,
               placeholder: _.name,
               component: 'Input',
+              filterRule: !!_.filterRule,
               ciType: { id: _.referenceId, name: _.name },
               type: 'text',
+              isMultiple: _.inputType === 'multiSelect',
               ...components[_.inputType]
             })
           }
