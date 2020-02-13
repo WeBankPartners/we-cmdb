@@ -522,10 +522,7 @@ export default {
       if (!foundIdcGuid) {
         return
       }
-      const promiseArray = [
-        getIdcDesignTreeByGuid([foundIdcGuid]),
-        getAllZoneLinkDesignGroupByIdcDesign()
-      ]
+      const promiseArray = [getIdcDesignTreeByGuid([foundIdcGuid]), getAllZoneLinkDesignGroupByIdcDesign()]
       const [idcData, links] = await Promise.all(promiseArray)
       if (idcData.statusCode === 'OK') {
         let setDesigns = {}
@@ -1145,6 +1142,7 @@ export default {
                 : { ...components[_.inputType] }
             columns.push({
               ..._,
+              tooltip: true,
               title: _.name,
               key: renderKey,
               inputKey: _.propertyName,
@@ -1154,8 +1152,10 @@ export default {
               disAdded: !_.isEditable,
               placeholder: _.name,
               component: 'Input',
+              filterRule: !!_.filterRule,
               ciType: { id: _.referenceId, name: _.name },
               type: 'text',
+              isMultiple: _.inputType === 'multiSelect',
               ...com
             })
           }
@@ -1192,19 +1192,21 @@ export default {
       let allInnerActions = await getExtraInnerActions()
       if (statusCode === 'OK') {
         // 需要过滤掉‘确认’按钮
-        this.tabList = data.filter(_ => _.actionType !== 'confirm').map(_ => {
-          return {
-            ..._,
-            name: _.value,
-            id: _.code,
-            tableData: [],
-            tableColumns: [],
-            outerActions: JSON.parse(JSON.stringify(outerActions)),
-            innerActions: JSON.parse(JSON.stringify(innerActions.concat(allInnerActions))),
-            pagination: JSON.parse(JSON.stringify(pagination)),
-            ascOptions: {}
-          }
-        })
+        this.tabList = data
+          .filter(_ => _.actionType !== 'confirm')
+          .map(_ => {
+            return {
+              ..._,
+              name: _.value,
+              id: _.code,
+              tableData: [],
+              tableColumns: [],
+              outerActions: JSON.parse(JSON.stringify(outerActions)),
+              innerActions: JSON.parse(JSON.stringify(innerActions.concat(allInnerActions))),
+              pagination: JSON.parse(JSON.stringify(pagination)),
+              ascOptions: {}
+            }
+          })
       }
     },
     onSystemDesignSelect (key) {
