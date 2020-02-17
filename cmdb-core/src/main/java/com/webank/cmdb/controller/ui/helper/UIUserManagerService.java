@@ -202,7 +202,9 @@ public class UIUserManagerService {
         if (roleCiType == null)
             throw new CmdbException("CiType permission not found for roleCiTypeId:" + roleCiTypeId);
         List<CiTypeAttrDto> accessControlAttributes = uiWrapperService.getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
-
+        for (CiTypeAttrDto ciTypeAttrDto: accessControlAttributes) {
+            ciTypeAttrDto.setFilterRule(null);
+        }
         List<RoleCiTypeCtrlAttrDto> roleCiTypeCtrlAttrs = uiWrapperService.getRoleCiTypeCtrlAttributesByRoleCiTypeId(roleCiTypeId);
         List<Map<String, Object>> roleCiTypeCtrlAttrsModels;
         if (isNotEmpty(roleCiTypeCtrlAttrs)) {
