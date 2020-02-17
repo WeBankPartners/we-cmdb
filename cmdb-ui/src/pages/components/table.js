@@ -600,13 +600,12 @@ export default {
                         ? params.row[col.inputKey]
                         : ''
                       : params.row[col.inputKey],
-                  filterParams:
-                      params.column.filterRule && !params.column.notFilte
-                        ? {
-                          attrId: params.column.ciTypeAttrId,
-                          params: params.row
-                        }
-                        : null,
+                  filterParams: params.column.filterRule
+                    ? {
+                      attrId: params.column.ciTypeAttrId,
+                      params: params.row
+                    }
+                    : null,
                   isMultiple: params.column.isMultiple,
                   options: params.column.optionKey
                     ? _this.ascOptions[params.row[col.optionKey]]
