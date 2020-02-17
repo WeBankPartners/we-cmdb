@@ -62,9 +62,10 @@
 import Vue from 'vue'
 import { getAllCITypes, getQueryNames, queryIntHeader, excuteIntQuery, getEnumCodesByCategoryId } from '@/api/server'
 import { components } from '../../const/actions.js'
+import { pluginI18n } from '../../const/plugin-i18n.js'
 const innerActions = [
   {
-    label: window.vm ? window.vm.$t('basic_data') : Vue.t('basic_data'),
+    label: window.vm ? pluginI18n('basic_data') : Vue.t('basic_data'),
     props: {
       type: 'info',
       size: 'small'
@@ -74,7 +75,7 @@ const innerActions = [
 ]
 const outerActions = [
   {
-    label: window.vm ? window.vm.$t('show_message') : Vue.t('show_message'),
+    label: window.vm ? pluginI18n('show_message') : Vue.t('show_message'),
     props: {
       type: 'success',
       icon: 'ios-eye',
