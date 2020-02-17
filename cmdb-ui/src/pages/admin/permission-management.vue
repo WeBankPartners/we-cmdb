@@ -377,7 +377,7 @@ export default {
               type: 'text',
               ...components[h.inputType],
               isMultiple: h.inputType === 'select',
-              notFilte: true
+              filterRule: null
             }
           })
           .concat(this.defaultColumns)
