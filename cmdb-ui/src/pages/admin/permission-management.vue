@@ -376,7 +376,8 @@ export default {
               ciType: { id: h.referenceId, name: h.name },
               type: 'text',
               ...components[h.inputType],
-              isMultiple: h.inputType === 'select'
+              isMultiple: h.inputType === 'select',
+              filterRule: null
             }
           })
           .concat(this.defaultColumns)
