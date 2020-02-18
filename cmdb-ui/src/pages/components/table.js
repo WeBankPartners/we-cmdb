@@ -616,25 +616,31 @@ export default {
                     ? _this.ascOptions[params.row[col.optionKey]]
                     : params.column.options
                 }
-                : {
-                  value: params.column.isRefreshable
-                    ? ''
-                    : params.column.inputType === 'multiRef'
-                      ? Array.isArray(params.row[col.inputKey])
-                        ? params.row[col.inputKey]
-                        : ''
-                      : params.row[col.inputKey] || '',
-                  filterParams: params.column.filterRule
-                    ? {
-                      attrId: params.column.ciTypeAttrId,
-                      params: params.row
-                    }
-                    : null,
-                  ciType: params.column.component === 'WeCMDBRefSelect' ? params.column.ciType : null,
-                  ...params.column,
-                  type: params.column.component === 'DatePicker' ? 'date' : params.column.type,
-                  guid: params.row.guid ? params.row.guid : '123'
-                }
+                : params.column.component === 'WeCMDBCiPassword'
+                  ? {
+                    isEdit: true,
+                    guid: params.row.guid,
+                    propertyName: params.column.propertyName
+                  }
+                  : {
+                    value: params.column.isRefreshable
+                      ? ''
+                      : params.column.inputType === 'multiRef'
+                        ? Array.isArray(params.row[col.inputKey])
+                          ? params.row[col.inputKey]
+                          : ''
+                        : params.row[col.inputKey] || '',
+                    filterParams: params.column.filterRule
+                      ? {
+                        attrId: params.column.ciTypeAttrId,
+                        params: params.row
+                      }
+                      : null,
+                    ciType: params.column.component === 'WeCMDBRefSelect' ? params.column.ciType : null,
+                    ...params.column,
+                    type: params.column.component === 'DatePicker' ? 'date' : params.column.type,
+                    guid: params.row.guid ? params.row.guid : '123'
+                  }
             const fun =
               params.column.component === 'DatePicker'
                 ? {
@@ -653,6 +659,15 @@ export default {
             }
             return <params.column.component {...data} />
           } else {
+            if (params.column.component === 'WeCMDBCiPassword') {
+              return (
+                <params.column.component
+                  isEdit={false}
+                  guid={params.row.guid}
+                  propertyName={params.column.propertyName}
+                />
+              )
+            }
             let content = ''
             if (Array.isArray(params.row.weTableForm[col.key])) {
               if (params.column.inputType === 'multiSelect') {
