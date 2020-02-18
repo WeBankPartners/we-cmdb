@@ -140,7 +140,6 @@ export default {
         }
         return result
       })
-      console.log(JSON.parse(JSON.stringify(this.data)))
       this.data.forEach(_ => {
         for (let i in _['weTableForm']) {
           if (
