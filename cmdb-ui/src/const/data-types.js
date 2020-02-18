@@ -37,5 +37,6 @@ export const PROPERTY_TYPE_MAP = {
   select: 'int',
   multiSelect: 'varchar',
   ref: 'varchar',
-  multiRef: 'varchar'
+  multiRef: 'varchar',
+  password: 'varchar'
 }
