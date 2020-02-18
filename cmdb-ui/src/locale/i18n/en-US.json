@@ -227,5 +227,9 @@
   "query_type": "Query Type",
   "type_latest": "Latest",
   "type_all": "All",
-  "type_reality": "Confirmed"
+  "type_reality": "Confirmed",
+  "show": "Show",
+  "close": "Close",
+  "password": "Password",
+  "is_required": "cannot be empty"
 }
