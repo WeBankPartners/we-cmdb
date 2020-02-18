@@ -128,13 +128,19 @@ export default {
     },
     formatTableData () {
       this.data = this.tableData.map((_, index) => {
-        return {
+        let result = {
           ..._,
           weTableRowId: index + 1,
           isRowEditable: _.isRowEditable && index === 0 ? _.isRowEditable : false,
           weTableForm: { ..._ }
         }
+        if (_.guid && _.r_guid && _.r_guid !== _.guid) {
+          result.nextOperations = []
+          result._disabled = true
+        }
+        return result
       })
+      console.log(JSON.parse(JSON.stringify(this.data)))
       this.data.forEach(_ => {
         for (let i in _['weTableForm']) {
           if (
