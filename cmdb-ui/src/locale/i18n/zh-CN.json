@@ -231,5 +231,10 @@
   "query_type": "查询类型",
   "type_latest": "最新",
   "type_all": "所有",
-  "type_reality": "现实"
+  "type_reality": "现实",
+  "show": "显示",
+  "close": "关闭",
+  "password": "密码",
+  "is_required": "不能为空",
+  "fetch_password_failed": "获取密码失败"
 }
