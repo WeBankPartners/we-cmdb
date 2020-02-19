@@ -50,6 +50,8 @@ public class WecubeAdapterService {
     private static final Map<String, String> dataTypeMapping = new HashMap<>();
     private static final String DISPLAY_NAME = "displayName";
     private static final String CITYPE_ID = "ciTypeId";
+    private static final String SUCCESS = "0";
+    private static final String FAIL = "1";
     
     static {
         dataTypeMapping.put(FieldType.Varchar.getCode(), DataType.String.getCode());
@@ -87,12 +89,12 @@ public class WecubeAdapterService {
         operateCiDtos.forEach(operateCiDto -> {
             Map<String, Object> resultItem = new HashMap<>();
             resultItem.put(CALLBACK_PARAMETER, operateCiDto.getCallbackParameter());
-            resultItem.put(ERROR_CODE, 0);
+            resultItem.put(ERROR_CODE, SUCCESS);
             resultItem.put(ERROR_MESSAGE, "");
 
             if (StringUtils.isBlank(operateCiDto.getGuid())) {
                 String errorMessage = "Field 'guid' is required for CI data confirmation.";
-                resultItem.put(ERROR_CODE, 1);
+                resultItem.put(ERROR_CODE, FAIL);
                 resultItem.put(ERROR_MESSAGE, errorMessage);
                 ExceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
                 results.add(resultItem);
@@ -109,7 +111,7 @@ public class WecubeAdapterService {
                     results.add(resultItem);
                 } catch (Exception e) {
                     String errorMessage = String.format("Failed to confirm CI [guid = %s], error = %s", guid, e.getMessage());
-                    resultItem.put(ERROR_CODE, 1);
+                    resultItem.put(ERROR_CODE, FAIL);
                     resultItem.put(ERROR_MESSAGE, errorMessage);
                     ExceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
                     results.add(resultItem);
