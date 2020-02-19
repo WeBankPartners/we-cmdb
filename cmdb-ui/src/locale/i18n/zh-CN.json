@@ -235,5 +235,6 @@
   "show": "显示",
   "close": "关闭",
   "password": "密码",
-  "is_required": "不能为空"
+  "is_required": "不能为空",
+  "fetch_password_failed": "获取密码失败"
 }
