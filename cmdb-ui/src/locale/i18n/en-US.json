@@ -231,5 +231,6 @@
   "show": "Show",
   "close": "Close",
   "password": "Password",
-  "is_required": "cannot be empty"
+  "is_required": "Cannot be empty",
+  "fetch_password_failed": "Failed to fetch password"
 }
