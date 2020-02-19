@@ -1,14 +1,22 @@
 <template>
   <div class="ci-password">
+    <!-- 编辑状态单元格 -->
     <div v-if="isEdit">
-      <Button @click="showEditModal" type="primary">{{ $t('password_edit') }}</Button>
+      <Button @click="showEditModal" :disabled="disabled" type="primary">{{ $t('password_edit') }}</Button>
     </div>
+    <!-- 查看状态单元格 -->
     <div v-else>
       <span>******</span>
       <a @click="showPassword">{{ $t('show') }}</a>
     </div>
     <!-- 密码编辑弹框 -->
-    <Modal v-model="isShowEditModal" :title="$t('password_edit')" @on-ok="confirm" @on-cancel="closeEditModal">
+    <Modal
+      v-model="isShowEditModal"
+      :title="$t('password_edit')"
+      :loading="modalLoading"
+      @on-ok="confirm"
+      @on-cancel="closeEditModal"
+    >
       <Form :model="formData" :rules="rules" label-position="right" :label-width="120">
         <FormItem :label="$t('new_password')" prop="newPassword">
           <Input
@@ -17,7 +25,6 @@
             ref="newPasswordInput"
             type="password"
             v-model="formData.newPassword"
-            @on-enter="inputFocus"
           />
         </FormItem>
         <FormItem :label="$t('confirm_password')" prop="comparedPassword">
@@ -27,13 +34,16 @@
             ref="comparedPasswordInput"
             type="password"
             v-model="formData.comparedPassword"
-            @on-enter="confirm"
           />
         </FormItem>
       </Form>
     </Modal>
     <!-- 密码显示弹框 -->
     <Modal v-model="isShowPasswordModal" :title="$t('password')" @on-cancel="closePassword">
+      <Spin size="large" fix v-if="spinShow">
+        <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+        <div>{{ $t('loading') }}</div>
+      </Spin>
       <div class="ci-password-span">{{ password }}</div>
       <div slot="footer">
         <Button @click="closePassword">{{ $t('close') }}</Button>
@@ -43,17 +53,21 @@
 </template>
 
 <script>
+// import { editPassword, getPassword } from '@/api/server'
 export default {
   props: {
     isEdit: false,
     guid: '',
-    propertyName: ''
+    propertyName: '',
+    disabled: false
   },
   data () {
     return {
       isShowEditModal: false,
       isShowPasswordModal: false,
       password: '',
+      spinShow: false,
+      modalLoading: false,
       formData: {
         newPassword: '',
         comparedPassword: ''
@@ -91,8 +105,10 @@ export default {
       this.$refs.comparedPasswordInput.focus()
     },
     async confirm () {
+      this.modalLoading = true
       // TODO
       // const { data, statusCode } = await editPassword({guid: this.guid, propertyName: this.propertyName, newPassword: this.formData.newPassword})
+      // this.modalLoading = false
       // if (statusCode === 'OK') {
       //   this.password = data
       //   this.isShowEditModal = false
@@ -100,6 +116,7 @@ export default {
     },
     closeEditModal () {
       this.isShowEditModal = false
+      this.modalLoading = false
       this.formData = {
         newPassword: '',
         comparedPassword: ''
@@ -107,10 +124,14 @@ export default {
     },
     async showPassword () {
       this.isShowPasswordModal = true
+      this.spinShow = true
       // TODO
       // const { data, statusCode } = await getPassword({guid: this.guid, propertyName: this.propertyName})
+      // this.spinShow = false
       // if (statusCode === 'OK') {
       //   this.password = data
+      // } else {
+      //   this.password = this.$t('fetch_password_failed')
       // }
     },
     closePassword () {
