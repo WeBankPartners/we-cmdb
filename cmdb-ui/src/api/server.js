@@ -101,8 +101,8 @@ export const getAllDesignTreeFromSystemDesign = id =>
 export const saveAllDesignTreeFromSystemDesign = id =>
   req.post(`/trees/all-design-trees/from-system-design/save?system-design-guid=${id}`)
 export const getArchitectureDesignTabs = () => req.get('/architecture-designs/tabs')
-export const getArchitectureCiDatas = (tabId, sysId, payload) =>
-  req.post(`/architecture-designs/tabs/ci-data?code-id=${tabId}&system-design-guid=${sysId}`, payload)
+export const getArchitectureCiDatas = (tabId, sysId, rguid, payload) =>
+  req.post(`/architecture-designs/tabs/ci-data?code-id=${tabId}&system-design-guid=${sysId}&r-guid=${rguid}`, payload)
 export const getApplicationFrameworkDesignDataTree = guid =>
   req.get(`/data-tree/application-framework-design?system-design-guid=${guid}`)
 export const getDeployCiData = (data, payload) =>
