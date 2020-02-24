@@ -447,7 +447,7 @@ public class UICiDataManagementController {
     @GetMapping("/ci-data/{ci-type-id}/query-password/{guid}/{field}")
     @ResponseBody
     public ResponseDto queryPassword(@PathVariable(value = "ci-type-id") int ciTypeId,@PathVariable(value = "guid") String guid,@PathVariable(value = "field") String field) {
-        QueryResponse<CiData> ciData = wrapperService.queryCiData(ciTypeId, defaultQueryObject(CmdbConstants.GUID, guid));
+        QueryResponse<CiData> ciData = wrapperService.queryCiDataShowPassword(ciTypeId, defaultQueryObject(CmdbConstants.GUID, guid),true);
         ResponseDto responseDto = new ResponseDto();
         if(ciData.getContents().size()>0){
             responseDto.setStatusCode(ResponseDto.STATUS_OK);
