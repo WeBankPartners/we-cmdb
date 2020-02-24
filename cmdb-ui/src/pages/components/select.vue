@@ -1,9 +1,26 @@
 <template>
   <div>
-    <Select v-if="!isGroup" :value="value" :multiple="isMultiple" filterable clearable @on-change="changeValue" @on-open-change="getFilterRulesOptions">
+    <Select
+      v-if="!isGroup"
+      :value="value"
+      :multiple="isMultiple"
+      filterable
+      clearable
+      @on-change="changeValue"
+      @on-open-change="getFilterRulesOptions"
+    >
       <Option v-for="item in opts" :value="item.value || ''" :key="item.value">{{ item.label }}</Option>
     </Select>
-    <Select v-else :value="value" :multiple="isMultiple" filterable clearable @on-change="changeValue" @on-open-change="getFilterRulesOptions" :max-tag-count="maxTags">
+    <Select
+      v-else
+      :value="value"
+      :multiple="isMultiple"
+      filterable
+      clearable
+      @on-change="changeValue"
+      @on-open-change="getFilterRulesOptions"
+      :max-tag-count="maxTags"
+    >
       <OptionGroup v-for="(group, index) in opts" :key="index" :label="group.label">
         <Option v-for="item in group.children" :value="item.value || ''" :key="item.value">{{ item.label }}</Option>
       </OptionGroup>
@@ -11,7 +28,7 @@
   </div>
 </template>
 <script>
-import { queryReferenceEnumCodes } from '@/api/server'
+import { queryReferenceEnumCodes, getEnumCodesByCategoryId } from '@/api/server'
 const DEFAULT_TAG_NUMBER = 2
 export default {
   name: 'WeCMDBSelect',
@@ -22,11 +39,13 @@ export default {
     isGroup: { default: () => false },
     options: { default: () => [] },
     maxTags: { default: () => DEFAULT_TAG_NUMBER },
-    filterParams: {}
+    filterParams: {},
+    enumId: { default: () => null }
   },
   data () {
     return {
-      filterOpts: []
+      filterOpts: [],
+      enumOpts: []
     }
   },
   watch: {},
@@ -34,6 +53,8 @@ export default {
     opts () {
       if (this.filterParams) {
         return this.filterOpts
+      } else if (this.enumId) {
+        return this.enumOpts
       } else {
         return this.options
       }
@@ -73,6 +94,17 @@ export default {
               }
             })
         }
+      }
+      if (val && !this.filterParams && this.enumId) {
+        const { data } = await getEnumCodesByCategoryId(0, this.enumId)
+        this.enumOpts = data
+          .filter(j => j.status === 'active')
+          .map(i => {
+            return {
+              label: i.value,
+              value: i.codeId
+            }
+          })
       }
     }
   }
