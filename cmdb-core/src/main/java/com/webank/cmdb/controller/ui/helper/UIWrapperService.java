@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -106,6 +107,8 @@ public class UIWrapperService {
     private BaseKeyInfoService baseKeyInfoService;
     @Autowired
     private AdmRoleRepository admRoleRepository;
+    @Autowired
+    private AdmCiTypeAttrRepository admCiTypeAttrRepository;
 
     public void swapCiTypeLayerPosition(int layerId, int targetLayerId) {
         CatCodeDto enumCode = getEnumCodeById(layerId);
@@ -481,6 +484,21 @@ public class UIWrapperService {
             queryObject = QueryRequest.defaultQueryObject().descendingSortBy(CmdbConstants.DEFAULT_FIELD_CREATED_DATE);
         } else if (queryObject.getSorting() == null || queryObject.getSorting().getField() == null) {
             queryObject.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_CREATED_DATE));
+        }
+        List<AdmCiTypeAttr> ciAttrs = admCiTypeAttrRepository.findAllByCiTypeId(ciTypeId);
+        List<String> passwordField = new ArrayList<>();
+        for (AdmCiTypeAttr ciTypeAttrs:ciAttrs) {
+            if(CmdbConstants.PASSWORD.equalsIgnoreCase(ciTypeAttrs.getInputType())){
+                passwordField.add(ciTypeAttrs.getPropertyName());
+            }
+        }
+        QueryResponse<CiData> query = ciService.query(ciTypeId, queryObject);
+        for (CiData cidata:query.getContents()) {
+            for (String key:passwordField) {
+                if (cidata.getData().containsKey(key)) {
+                    cidata.getData().put(key, CmdbConstants.PASSWORD_SHOW);
+                }
+            }
         }
         return ciService.query(ciTypeId, queryObject);
     }
