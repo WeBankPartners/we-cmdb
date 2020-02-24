@@ -833,7 +833,7 @@ export default {
         })
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
-            ci.tableColumns = this.getSelectOptions(columns)
+            ci.tableColumns = columns
           }
         })
       }
