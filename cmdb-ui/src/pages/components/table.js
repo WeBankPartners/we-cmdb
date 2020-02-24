@@ -41,7 +41,6 @@ export default {
     },
     tableColumns: {
       handler (val, oldval) {
-        this.calColumn()
         this.tableColumns.forEach(_ => {
           if (_.children) {
             _.children.forEach(j => {
@@ -56,9 +55,8 @@ export default {
           }
         })
         this.showedColumns = this.tableColumns.filter(_ => _.isDisplayed || _.displaySeqNo).map(column => column.title)
-        // this.calColumn()
+        this.calColumn()
       },
-      deep: true,
       immediate: true
     },
     ascOptions: {
@@ -329,7 +327,8 @@ export default {
       if (item.isNotFilterable) return
       const data = {
         props: {
-          ...item
+          ...item,
+          enumId: item.referenceId ? item.referenceId : null
         },
         style: {
           width: '100%'
@@ -565,7 +564,6 @@ export default {
             )
           }
         })
-
       if (this.isColumnsFilterOn) {
         this.columns = this.columns.filter(column => {
           return (
@@ -622,7 +620,8 @@ export default {
                   isMultiple: params.column.isMultiple,
                   options: params.column.optionKey
                     ? _this.ascOptions[params.row[col.optionKey]]
-                    : params.column.options
+                    : params.column.options,
+                  enumId: params.column.referenceId ? params.column.referenceId : null
                 }
                 : {
                   value: params.column.isRefreshable
