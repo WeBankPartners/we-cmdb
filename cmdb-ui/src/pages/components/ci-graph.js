@@ -1,5 +1,6 @@
 import vis from 'vis'
 import { getRefCiTypeFrom, getRefCiTypeTo, getCiTypeAttr } from '@/api/server'
+import './ci-graph.scss'
 
 const visOptions = {
   interaction: {
@@ -336,6 +337,7 @@ export default {
           data={data}
           show-checkbox={true}
           on-on-check-change={(all, current) => this.handleReferToChange(all, current)}
+          class="ci-graph-tree"
         />
       )
     },
@@ -361,6 +363,7 @@ export default {
           data={data}
           show-checkbox={true}
           on-on-check-change={(all, current) => this.handleReferByChange(all, current)}
+          class="ci-graph-tree"
         />
       )
     },
@@ -388,6 +391,7 @@ export default {
           data={data}
           show-checkbox={true}
           on-on-check-change={(all, current) => this.handleCiTypeAttrChange(all, current)}
+          class="ci-graph-tree"
         />
       )
     },

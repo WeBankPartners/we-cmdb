@@ -395,9 +395,9 @@ public class UICiDataManagementController {
     @PostMapping("/architecture-designs/tabs/ci-data")
     @ResponseBody
     public Object getArchitectureCiData(@RequestParam(value = "code-id") Integer codeId,
-            @RequestParam(value = "system-design-guid") String systemDesignGuid,
+            @RequestParam(value = "system-design-guid") String systemDesignGuid,@RequestParam(value = "r-guid") String rGuid,
             @RequestBody QueryRequest queryObject) {
-        return wrapperService.getArchitectureCiData(codeId, systemDesignGuid, queryObject);
+        return wrapperService.getArchitectureCiData(codeId, systemDesignGuid, queryObject,rGuid);
     }
 
     @RolesAllowed({ MENU_APPLICATION_DEPLOYMENT_DESIGN })

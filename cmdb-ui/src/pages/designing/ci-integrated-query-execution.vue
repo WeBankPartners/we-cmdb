@@ -168,6 +168,7 @@ export default {
                   ...components[child.attr.inputType],
                   placeholder: child.attr.name,
                   ...child.attr,
+                  enumId: child.attr.referenceId ? child.attr.referenceId : null,
                   ciType: { id: child.attr.referenceId, name: '' }
                 }
               })
@@ -180,9 +181,9 @@ export default {
           }
         })
         this.getTableData()
-        this.$nextTick(() => {
-          this.getColumnOptions()
-        })
+        // this.$nextTick(() => {
+        //   this.getColumnOptions()
+        // })
       }
     },
     getColumnOptions () {

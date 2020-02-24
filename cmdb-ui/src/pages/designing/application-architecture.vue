@@ -281,6 +281,14 @@ export default {
     },
     needCheckout () {
       return this.$route.name !== 'ciDataEnquiry'
+    },
+    currentRguid () {
+      const found = this.systemDesignsOrigin.find(_ => _.guid === this.systemDesignVersion)
+      if (found) {
+        return found.r_guid
+      } else {
+        return ''
+      }
     }
   },
   methods: {
@@ -315,7 +323,12 @@ export default {
     async getAllInvokeSequenceData () {
       this.invokeSequenceForm.invokeSequenceData = []
       let found = this.tabList.find(i => i.code === this.invokeSequenceCode)
-      const { statusCode, data } = await getArchitectureCiDatas(found.codeId, this.systemDesignVersion, {})
+      const { statusCode, data } = await getArchitectureCiDatas(
+        found.codeId,
+        this.systemDesignVersion,
+        this.currentRguid,
+        {}
+      )
       if (statusCode === 'OK') {
         this.invokeSequenceForm.invokeSequenceData = data.contents
       }
@@ -1075,6 +1088,7 @@ export default {
       const { statusCode, data } = await getArchitectureCiDatas(
         this.currentTab,
         this.systemDesignVersion,
+        this.currentRguid,
         exportPayload
       )
       if (statusCode === 'OK') {
@@ -1111,7 +1125,12 @@ export default {
       })
 
       let found = this.tabList.find(i => i.code === this.currentTab)
-      const { statusCode, data } = await getArchitectureCiDatas(found.codeId, this.systemDesignVersion, this.payload)
+      const { statusCode, data } = await getArchitectureCiDatas(
+        found.codeId,
+        this.systemDesignVersion,
+        this.currentRguid,
+        this.payload
+      )
       if (statusCode === 'OK') {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
