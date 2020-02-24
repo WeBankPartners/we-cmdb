@@ -90,19 +90,7 @@ export default {
         comparedPassword: ''
       },
       rules: {
-        newPassword: [
-          {
-            required: true,
-            message: this.$t('is_required'),
-            trigger: 'blur'
-          }
-        ],
         comparedPassword: [
-          {
-            required: true,
-            message: this.$t('is_required'),
-            trigger: 'blur'
-          },
           {
             message: this.$t('please_input_right_new_password'),
             validator: () => this.formData.newPassword === this.formData.comparedPassword
