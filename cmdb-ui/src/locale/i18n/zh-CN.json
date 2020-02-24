@@ -231,5 +231,6 @@
   "query_type": "查询类型",
   "type_latest": "最新",
   "type_all": "所有",
-  "type_reality": "现实"
+  "type_reality": "现实",
+  "actions": "操作"
 }
