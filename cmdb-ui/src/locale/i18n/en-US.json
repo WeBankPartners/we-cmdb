@@ -232,5 +232,6 @@
   "close": "Close",
   "password": "Password",
   "is_required": "Cannot be empty",
-  "fetch_password_failed": "Failed to fetch password"
+  "fetch_password_failed": "Failed to fetch password",
+  "no_password": "No Password"
 }

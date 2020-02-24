@@ -662,6 +662,7 @@ export default {
             if (params.column.component === 'WeCMDBCiPassword') {
               return (
                 <params.column.component
+                  ciTypeId={params.column.ciTypeId}
                   isEdit={false}
                   guid={params.row.guid}
                   propertyName={params.column.propertyName}

@@ -236,5 +236,6 @@
   "close": "关闭",
   "password": "密码",
   "is_required": "不能为空",
-  "fetch_password_failed": "获取密码失败"
+  "fetch_password_failed": "获取密码失败",
+  "no_password": "没有密码"
 }
