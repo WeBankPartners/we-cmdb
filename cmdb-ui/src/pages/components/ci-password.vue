@@ -53,13 +53,17 @@
 </template>
 
 <script>
-// import { editPassword, getPassword } from '@/api/server'
+import { updatePassword, queryPassword } from '@/api/server'
 export default {
   props: {
     isEdit: false,
     guid: '',
     propertyName: '',
-    disabled: false
+    disabled: false,
+    ciTypeId: {
+      required: true,
+      type: Number
+    }
   },
   data () {
     return {
@@ -105,14 +109,19 @@ export default {
       this.$refs.comparedPasswordInput.focus()
     },
     async confirm () {
-      this.modalLoading = true
       // TODO
-      // const { data, statusCode } = await editPassword({guid: this.guid, propertyName: this.propertyName, newPassword: this.formData.newPassword})
-      // this.modalLoading = false
-      // if (statusCode === 'OK') {
-      //   this.password = data
-      //   this.isShowEditModal = false
-      // }
+      this.modalLoading = true
+      const payload = {
+        guid: this.guid,
+        field: this.propertyName,
+        value: this.formData.newPassword
+      }
+      const { data, statusCode } = await updatePassword(this.ciTypeId, payload)
+      this.modalLoading = false
+      if (statusCode === 'OK') {
+        this.password = data
+        this.isShowEditModal = false
+      }
     },
     closeEditModal () {
       this.isShowEditModal = false
@@ -125,14 +134,14 @@ export default {
     async showPassword () {
       this.isShowPasswordModal = true
       this.spinShow = true
-      // TODO
-      // const { data, statusCode } = await getPassword({guid: this.guid, propertyName: this.propertyName})
-      // this.spinShow = false
-      // if (statusCode === 'OK') {
-      //   this.password = data
-      // } else {
-      //   this.password = this.$t('fetch_password_failed')
-      // }
+      const { ciTypeId, guid, propertyName } = this
+      const { data, statusCode } = await queryPassword(ciTypeId, guid, propertyName)
+      this.spinShow = false
+      if (statusCode === 'OK') {
+        this.password = data || this.$t('no_password')
+      } else {
+        this.password = this.$t('fetch_password_failed')
+      }
     },
     closePassword () {
       this.password = ''
