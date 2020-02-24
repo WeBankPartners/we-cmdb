@@ -1,30 +1,5 @@
 package com.webank.cmdb.controller.ui.helper;
 
-import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Modification;
-import static com.webank.cmdb.controller.ui.helper.CollectionUtils.asMap;
-import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.webank.cmdb.config.log.OperationLogPointcut;
@@ -32,28 +7,30 @@ import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.domain.AdmMenu;
 import com.webank.cmdb.domain.AdmRoleMenu;
-import com.webank.cmdb.domain.AdmUser;
-import com.webank.cmdb.dto.CiTypeAttrDto;
-import com.webank.cmdb.dto.CiTypeDto;
-import com.webank.cmdb.dto.CiTypePermissions;
-import com.webank.cmdb.dto.MenuDto;
-import com.webank.cmdb.dto.QueryRequest;
-import com.webank.cmdb.dto.QueryResponse;
-import com.webank.cmdb.dto.ResponseDto;
-import com.webank.cmdb.dto.RoleCiTypeCtrlAttrConditionDto;
-import com.webank.cmdb.dto.RoleCiTypeCtrlAttrDto;
-import com.webank.cmdb.dto.RoleCiTypeDto;
-import com.webank.cmdb.dto.RoleDto;
-import com.webank.cmdb.dto.RoleUserDto;
-import com.webank.cmdb.dto.UserDto;
+import com.webank.cmdb.dto.*;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.repository.AdmMenusRepository;
 import com.webank.cmdb.repository.UserRepository;
 import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.util.BeanMapUtils;
 import com.webank.cmdb.util.CmdbThreadLocal;
-
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Modification;
+import static com.webank.cmdb.controller.ui.helper.CollectionUtils.asMap;
+import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 @Service
 @Slf4j
@@ -503,17 +480,17 @@ public class UIUserManagerService {
         return sb.toString();
     }
 
-    public QueryResponse<UserDto> findByName(String username) {
+    public QueryResponse<UserAndPasswordDto> findByName(String username) {
         QueryRequest ciRequest = QueryRequest.defaultQueryObject("username", username);
-        return staticDtoService.query(UserDto.class, ciRequest);
+        return staticDtoService.query(UserAndPasswordDto.class, ciRequest);
     }
 
     public Object changePassword(Map<String, Object> password) {
         ResponseDto<UserDto> responseDto = new ResponseDto<UserDto>(ResponseDto.STATUS_OK, null);
         String currentUser = CmdbThreadLocal.getIntance().getCurrentUser();
         if (currentUser != null) {
-            QueryResponse<UserDto> queryData = findByName(currentUser);
-            UserDto user = CollectionUtils.pickRandomOne(queryData.getContents());
+            QueryResponse<UserAndPasswordDto> queryData = findByName(currentUser);
+            UserAndPasswordDto user = CollectionUtils.pickRandomOne(queryData.getContents());
             if (user == null) {
                 throw new CmdbException("This user does not exist");
             }
@@ -536,8 +513,8 @@ public class UIUserManagerService {
 
     public Object adminResetPassword(Map<String, Object> userDto) {
         String randomPassword = getRandomPassword();
-        QueryResponse<UserDto> queryData = findByName((String) userDto.get("username"));
-        UserDto user = CollectionUtils.pickRandomOne(queryData.getContents());
+        QueryResponse<UserAndPasswordDto> queryData = findByName((String) userDto.get("username"));
+        UserAndPasswordDto user = CollectionUtils.pickRandomOne(queryData.getContents());
         if (user == null) {
             throw new CmdbException("This user does not exist");
         } else {

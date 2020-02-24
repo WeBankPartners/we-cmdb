@@ -239,5 +239,6 @@
   "is_required": "不能为空",
   "fetch_password_failed": "获取密码失败",
   "no_password": "未设密码",
-  "enter_password": "输入密码"
+  "enter_password": "输入密码",
+  "actions": "操作"
 }

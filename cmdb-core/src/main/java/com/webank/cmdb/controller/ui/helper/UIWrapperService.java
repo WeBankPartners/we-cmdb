@@ -1166,14 +1166,14 @@ public class UIWrapperService {
         return getEnumCodesByCategoryName(uiProperties.getCatNameOfResoursePlanning());
     }
 
-    public Object getArchitectureCiData(Integer codeId, String systemDesignGuid, QueryRequest queryObject) {
+    public Object getArchitectureCiData(Integer codeId, String systemDesignGuid, QueryRequest queryObject,String rGuid) {
         Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystemDesign();
         Filter fixDateFilter = getFixDateFilter(systemDesignCiTypeId, systemDesignGuid);
         CatCodeDto code = getEnumCodeById(codeId);
         Integer ciTypeId = Integer.parseInt(code.getCode());
         queryObject = setQueryRequest(queryObject, fixDateFilter, ciTypeId);
         
-        return getCiDataHistory(codeId, null, systemDesignGuid, queryObject, systemDesignCiTypeId,true);
+        return getCiDataHistory(codeId, null, rGuid, queryObject, systemDesignCiTypeId,true);
     }
     private Object getCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject, int systemDesignCiTypeId) {
         return getCiDataHistory(codeId, envCode, systemDesignGuid, queryObject, systemDesignCiTypeId,false);
