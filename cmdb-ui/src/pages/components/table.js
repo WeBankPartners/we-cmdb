@@ -618,9 +618,12 @@ export default {
                 }
                 : params.column.component === 'WeCMDBCiPassword'
                   ? {
+                    isNewAddedRow: params.row.isNewAddedRow || false,
+                    ciTypeId: params.column.ciTypeId,
                     isEdit: true,
                     guid: params.row.guid,
-                    propertyName: params.column.propertyName
+                    propertyName: params.column.propertyName,
+                    value: params.row[params.column.propertyName]
                   }
                   : {
                     value: params.column.isRefreshable
@@ -666,6 +669,7 @@ export default {
                   isEdit={false}
                   guid={params.row.guid}
                   propertyName={params.column.propertyName}
+                  value={params.row[params.column.propertyName]}
                 />
               )
             }
