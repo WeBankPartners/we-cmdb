@@ -154,6 +154,6 @@ export const queryLogHeader = () => req.get('/log/queryHeader')
 export const queryLog = data => req.post('/log/query', data)
 // ci-data password
 export const queryPassword = (ciTypeId, guid, field) => req.get(`/ci-data/${ciTypeId}/query-password/${guid}/${field}`)
-export const updatePassword = ciTypeId => req.get(`/ci-data/${ciTypeId}/change-password`)
+export const updatePassword = (ciTypeId, data) => req.post(`/ci-data/${ciTypeId}/change-password`, data)
 // wecube api
 export const getWecubeRoles = () => window.request.get('platform/v1/roles/retrieve')
