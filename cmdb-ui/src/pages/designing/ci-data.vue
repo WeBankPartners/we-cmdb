@@ -63,7 +63,6 @@ import {
   deleteCiDatas,
   createCiDatas,
   updateCiDatas,
-  getEnumCodesByCategoryId,
   operateCiState
 } from '@/api/server'
 import { setHeaders, baseURL } from '@/api/base.js'
@@ -837,22 +836,6 @@ export default {
           }
         })
       }
-    },
-    getSelectOptions (columns) {
-      columns.forEach(async _ => {
-        if (_.inputType === 'select' || _.inputType === 'multiSelect') {
-          const { data } = await getEnumCodesByCategoryId(0, _.referenceId)
-          _['options'] = data
-            .filter(j => j.status === 'active')
-            .map(i => {
-              return {
-                label: i.value,
-                value: i.codeId
-              }
-            })
-        }
-      })
-      return columns
     }
   },
   mounted () {
