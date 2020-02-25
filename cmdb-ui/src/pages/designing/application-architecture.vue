@@ -323,7 +323,12 @@ export default {
     async getAllInvokeSequenceData () {
       this.invokeSequenceForm.invokeSequenceData = []
       let found = this.tabList.find(i => i.code === this.invokeSequenceCode)
-      const { statusCode, data } = await getArchitectureCiDatas(found.codeId, this.systemDesignVersion, this.currentRguid, {})
+      const { statusCode, data } = await getArchitectureCiDatas(
+        found.codeId,
+        this.systemDesignVersion,
+        this.currentRguid,
+        {}
+      )
       if (statusCode === 'OK') {
         this.invokeSequenceForm.invokeSequenceData = data.contents
       }
@@ -1120,7 +1125,12 @@ export default {
       })
 
       let found = this.tabList.find(i => i.code === this.currentTab)
-      const { statusCode, data } = await getArchitectureCiDatas(found.codeId, this.systemDesignVersion, this.currentRguid, this.payload)
+      const { statusCode, data } = await getArchitectureCiDatas(
+        found.codeId,
+        this.systemDesignVersion,
+        this.currentRguid,
+        this.payload
+      )
       if (statusCode === 'OK') {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {

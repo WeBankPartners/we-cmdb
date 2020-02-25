@@ -592,11 +592,23 @@ export default {
         resizable: !isLastCol, // 除最后一列，该属性都为true
         sortable: this.isSortable ? 'custom' : false,
         render: (h, params) => {
-          if (
+          const isEdit =
             params.row.isRowEditable &&
             (!params.column.disEditor || params.row.isNewAddedRow) &&
             !params.column.disAdded
-          ) {
+          if (params.column.component === 'WeCMDBCIPassword') {
+            return (
+              <params.column.component
+                ciTypeId={params.column.ciTypeId}
+                guid={params.row.guid}
+                isEdit={isEdit}
+                isNewAddedRow={params.row.isNewAddedRow || false}
+                propertyName={params.column.propertyName}
+                value={params.row[params.column.propertyName]}
+              />
+            )
+          }
+          if (isEdit) {
             const _this = this
 
             const props =
