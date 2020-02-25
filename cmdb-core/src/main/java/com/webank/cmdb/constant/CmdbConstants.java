@@ -139,4 +139,7 @@ public class CmdbConstants {
     public static final String SYMBOL_EQUALSIGN = "=";
     public static final String SYMBOL_AND = "&";
 
+    public static final String PASSWORD = "password";
+    public static final String PASSWORD_SHOW = "******";
+
 }

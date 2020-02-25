@@ -210,7 +210,7 @@
   "confirm_new_password_placeholder": "请确认新密码",
   "please_input_new_password_again": "请再次输入新密码",
   "please_input_right_new_password": "请输入与新密码相同的值",
-  "reset_password_success": "密码重设成功！",
+  "reset_password_success": "更新密码成功！",
   "no_data": "暂无数据",
   "column_filter": "过滤列",
   "header_title": "WeCMDB (功能演示版)",
@@ -232,5 +232,13 @@
   "type_latest": "最新",
   "type_all": "所有",
   "type_reality": "现实",
+  "show": "显示",
+  "hide": "隐藏",
+  "close": "关闭",
+  "password": "密码",
+  "is_required": "不能为空",
+  "fetch_password_failed": "获取密码失败",
+  "no_password": "未设密码",
+  "enter_password": "输入密码",
   "actions": "操作"
 }
