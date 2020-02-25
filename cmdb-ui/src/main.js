@@ -17,7 +17,7 @@ import WeCMDBSimpleTable from '../src/pages/components/simple-table.vue'
 import WeCMDBAttrInput from '../src/pages/components/attr-input'
 import WeCMDBSequenceDiagram from '../src/pages/components/sequence-diagram.vue'
 import WeCMDBOrchestration from '../src/pages/components/orchestration.vue'
-import WeCMDBCiPassword from '../src/pages/components/ci-password.vue'
+import WeCMDBCIPassword from '../src/pages/components/ci-password.vue'
 
 Vue.component('WeCMDBSelect', WeCMDBSelect)
 Vue.component('WeCMDBRefSelect', WeCMDBRefSelect)
@@ -26,7 +26,7 @@ Vue.component('WeCMDBSimpleTable', WeCMDBSimpleTable)
 Vue.component('WeCMDBAttrInput', WeCMDBAttrInput)
 Vue.component('WeCMDBSequenceDiagram', WeCMDBSequenceDiagram)
 Vue.component('WeCMDBOrchestration', WeCMDBOrchestration)
-Vue.component('WeCMDBCiPassword', WeCMDBCiPassword)
+Vue.component('WeCMDBCIPassword', WeCMDBCIPassword)
 Vue.config.productionTip = false
 
 Vue.use(ViewUI, {

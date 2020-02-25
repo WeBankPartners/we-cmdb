@@ -33,7 +33,7 @@ export const components = {
     type: 'text'
   },
   password: {
-    component: 'WeCMDBCiPassword'
+    component: 'WeCMDBCIPassword'
   }
 }
 export const outerActions = [
