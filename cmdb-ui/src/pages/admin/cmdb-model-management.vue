@@ -43,7 +43,9 @@
               </FormItem>
             </Form>
             <div slot="footer">
-              <Button type="primary" @click="addNewLayer('newLayerForm')">{{ $t('submit') }}</Button>
+              <Button type="primary" @click="addNewLayer('newLayerForm')" :loading="buttonLoading.newLayer">{{
+                $t('submit')
+              }}</Button>
             </div>
           </Modal>
         </Card>
@@ -68,10 +70,20 @@
               <Button size="small" @click="isEditLayerNameModalVisible = true" icon="md-build"></Button>
             </Tooltip>
             <Tooltip :content="$t('move_up_layer')" placement="top-start">
-              <Button size="small" @click="upLayer(currentSelectedLayer.layerId)" icon="md-arrow-round-up"></Button>
+              <Button
+                size="small"
+                @click="upLayer(currentSelectedLayer.layerId)"
+                :loading="buttonLoading.upLayer"
+                icon="md-arrow-round-up"
+              ></Button>
             </Tooltip>
             <Tooltip :content="$t('move_down_layer')" placement="top-start">
-              <Button size="small" @click="downLayer(currentSelectedLayer.layerId)" icon="md-arrow-round-down"></Button>
+              <Button
+                size="small"
+                @click="downLayer(currentSelectedLayer.layerId)"
+                :loading="buttonLoading.downLayer"
+                icon="md-arrow-round-down"
+              ></Button>
             </Tooltip>
             <Tooltip :content="$t('delete_layer')" placement="top-start">
               <Button size="small" @click="deleteLayer(currentSelectedLayer.layerId)" icon="ios-trash"></Button>
@@ -93,7 +105,12 @@
                 >
                 <span class="header-buttons-container margin-right">
                   <Tooltip v-if="item.status === 'decommissioned'" :content="$t('roll_back')" placement="top-start">
-                    <Button size="small" @click.stop.prevent="revertCI(item.ciTypeId)" icon="md-redo"></Button>
+                    <Button
+                      size="small"
+                      @click.stop.prevent="revertCI(item.ciTypeId)"
+                      :loading="buttonLoading.revertCI"
+                      icon="md-redo"
+                    ></Button>
                   </Tooltip>
                   <Tooltip v-else :content="$t('delete_ci')" placement="top-start">
                     <Button
@@ -140,6 +157,7 @@
                       type="primary"
                       small
                       @click="saveCiType(item.ciTypeId, item.form)"
+                      :loading="buttonLoading.saveCiType"
                       :disabled="item.form.status !== 'notCreated'"
                       >{{ $t('save_draft') }}</Button
                     >
@@ -147,6 +165,7 @@
                       type="primary"
                       small
                       @click="submitCiType(item.ciTypeId, item.form)"
+                      :loading="buttonLoading.submitCiType"
                       style="margin-left: 8px"
                       :disabled="item.form.status === 'decommissioned'"
                       >{{ $t('submit') }}</Button
@@ -200,7 +219,14 @@
               </Select>
             </FormItem>
             <FormItem>
-              <Button type="primary" small @click="addNewCIType" style="float: right">{{ $t('confirm') }}</Button>
+              <Button
+                type="primary"
+                small
+                @click="addNewCIType"
+                :loading="buttonLoading.addNewCIType"
+                style="float: right"
+                >{{ $t('confirm') }}</Button
+              >
             </FormItem>
           </Form>
         </Modal>
@@ -212,7 +238,12 @@
           </Col>
           <span class="header-buttons-container">
             <Tooltip :content="$t('new_ci_attribute')" placement="top-start">
-              <Button size="small" @click="addNewAttrHandler" icon="md-add"></Button>
+              <Button
+                size="small"
+                @click="addNewAttrHandler"
+                :loading="buttonLoading.addNewAttrHandler"
+                icon="md-add"
+              ></Button>
             </Tooltip>
             <Tooltip :content="$t('edit_name')" placement="top-start">
               <Button size="small" @click="isEditCINameModalVisible = true" icon="md-build"></Button>
@@ -238,6 +269,7 @@
                       size="small"
                       @click.stop.prevent="moveUpAttr(item.ciTypeAttrId)"
                       icon="md-arrow-round-up"
+                      :loading="buttonLoading.moveUpAttr"
                     ></Button>
                   </Tooltip>
                   <Tooltip :content="$t('move_down_ci_attribute')" placement="top-start">
@@ -245,10 +277,16 @@
                       size="small"
                       @click.stop.prevent="moveDownAttr(item.ciTypeAttrId)"
                       icon="md-arrow-round-down"
+                      :loading="buttonLoading.moveDownAttr"
                     ></Button>
                   </Tooltip>
                   <Tooltip v-if="item.status === 'decommissioned'" :content="$t('roll_back')" placement="top-start">
-                    <Button size="small" @click.stop.prevent="revertCIAttr(item.ciTypeAttrId)" icon="md-redo"></Button>
+                    <Button
+                      size="small"
+                      @click.stop.prevent="revertCIAttr(item.ciTypeAttrId)"
+                      icon="md-redo"
+                      :loading="buttonLoading.revertCIAttr"
+                    ></Button>
                   </Tooltip>
                   <Tooltip v-else :content="$t('delete')" placement="top-start">
                     <Button
@@ -465,6 +503,7 @@
                       type="primary"
                       small
                       @click="applyAttr(item.ciTypeAttrId, item.form)"
+                      :loading="buttonLoading.applyAttr"
                       style="float: right"
                       :disabled="item.form.status === 'decommissioned'"
                       >{{ $t('submit') }}</Button
@@ -473,6 +512,7 @@
                       type="primary"
                       small
                       @click="saveAttr(item.ciTypeAttrId, item.form)"
+                      :loading="buttonLoading.saveAttr"
                       style="float: right; margin-right: 20px"
                       :disabled="item.form.status !== 'notCreated'"
                       >{{ $t('save_draft') }}</Button
@@ -639,7 +679,9 @@
             ></AutoFill>
           </FormItem>
           <FormItem>
-            <Button type="primary" small @click="addNewAttr" style="float: right">{{ $t('submit') }}</Button>
+            <Button type="primary" small @click="addNewAttr" :loading="buttonLoading.addNewAttr" style="float: right">{{
+              $t('submit')
+            }}</Button>
           </FormItem>
         </Form>
       </Modal>
@@ -780,7 +822,23 @@ export default {
       specialDelimiters: [],
       allInputTypes: [],
       allReferenceTypes: [],
-      selectedCIAttrIsSystem: false
+      selectedCIAttrIsSystem: false,
+      buttonLoading: {
+        newLayer: false,
+        upLayer: false,
+        downLayer: false,
+        revertCI: false,
+        saveCiType: false,
+        submitCiType: false,
+        addNewCIType: false,
+        addNewAttrHandler: false,
+        moveUpAttr: false,
+        moveDownAttr: false,
+        revertCIAttr: false,
+        applyAttr: false,
+        saveAttr: false,
+        addNewAttr: false
+      }
     }
   },
   methods: {
@@ -1110,6 +1168,7 @@ export default {
         this.selectedCIAttrIsSystem && !isNewAdd
           ? await getEnumCategoriesByTypeId(SYS_ENUM_TYPE_ID)
           : await getEnumByCIType(this.currentSelectedCI.ciTypeId)
+      this.buttonLoading.addNewAttrHandler = false
       if (res.statusCode === 'OK') {
         let enumList = []
         enumList =
@@ -1128,12 +1187,14 @@ export default {
     addNewLayer (formName) {
       this.$refs[formName].validate(async valid => {
         if (valid) {
+          this.buttonLoading.newLayer = true
           let payload = {
             code: this.newLayer.addNewLayerCode,
             codeDescription: this.newLayer.addNewLayerDescription,
             value: this.newLayer.addNewLayerValue
           }
           let res = await createLayer(payload)
+          this.buttonLoading.newLayer = false
           if (res.statusCode === 'OK') {
             this.$Notice.success({
               title: this.$t('add_layer_success'),
@@ -1161,6 +1222,7 @@ export default {
       }
     },
     async upLayer (id) {
+      this.buttonLoading.upLayer = true
       let currentIndex = this.layers.map(i => i.codeId).indexOf(id)
       if (!this.layers[currentIndex - 1]) {
         this.$Notice.warning({
@@ -1171,6 +1233,7 @@ export default {
       }
       let targetID = this.layers[currentIndex - 1].codeId
       let res = await swapLayerPosition(id, targetID)
+      this.buttonLoading.upLayer = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('move_up_layer_success'),
@@ -1180,6 +1243,7 @@ export default {
       }
     },
     async downLayer (id) {
+      this.buttonLoading.downLayer = true
       let currentIndex = this.layers.map(i => i.codeId).indexOf(id)
       if (!this.layers[currentIndex + 1]) {
         this.$Notice.warning({
@@ -1190,6 +1254,7 @@ export default {
       }
       let targetID = this.layers[currentIndex + 1].codeId
       let res = await swapLayerPosition(id, targetID)
+      this.buttonLoading.downLayer = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('move_down_layer_success'),
@@ -1201,10 +1266,11 @@ export default {
     async deleteLayer (id) {
       this.$Modal.confirm({
         title: this.$t('delete_confirm'),
+        loading: true,
         'z-index': 1000000,
         onOk: async () => {
           const { statusCode, message } = await deleteLayer(id)
-
+          this.$Modal.remove()
           if (statusCode === 'OK') {
             this.$Notice.success({
               title: this.$t('delete_layer_success'),
@@ -1218,7 +1284,9 @@ export default {
       document.querySelector('.ivu-modal-mask').click()
     },
     async revertCI (ciTypeId) {
+      this.buttonLoading.revertCI = true
       let res = await implementCiType(ciTypeId, 'revert')
+      this.buttonLoading.revertCI = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('revert_ci_type_success'),
@@ -1228,7 +1296,9 @@ export default {
       }
     },
     async revertCIAttr (attrId) {
+      this.buttonLoading.revertCIAttr = true
       let res = await implementCiAttr(this.currentSelectedCI.ciTypeId, attrId, 'revert')
+      this.buttonLoading.revertCIAttr = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('revert_ci_attribute_success'),
@@ -1250,9 +1320,11 @@ export default {
     async deleteCI (id, status) {
       this.$Modal.confirm({
         title: this.$t('delete_confirm'),
+        loading: true,
         'z-index': 1000000,
         onOk: async () => {
           let res = status === 'notCreated' ? await deleteCITypeByID(id) : await implementCiType(id, 'deco')
+          this.$Modal.remove()
           if (res.statusCode === 'OK') {
             this.$Notice.success({
               title: status === 'notCreated' ? 'CI delete' : 'CI decomission',
@@ -1269,11 +1341,13 @@ export default {
       this.$Modal.confirm({
         title: this.$t('delete_confirm'),
         'z-index': 1000000,
+        loading: true,
         onOk: async () => {
           let res =
             status === 'notCreated'
               ? await deleteAttr(this.currentSelectedCI.ciTypeId, id)
               : await implementCiAttr(this.currentSelectedCI.ciTypeId, id, 'deco')
+          this.$Modal.remove()
           if (res.statusCode === 'OK') {
             this.$Notice.success({
               title: status === 'notCreated' ? 'Delete CI Attr Successful' : 'Deprecate CI Attr Successful',
@@ -1287,6 +1361,7 @@ export default {
       document.querySelector('.ivu-modal-mask').click()
     },
     async saveCiType (id, form) {
+      this.buttonLoading.saveCiType = true
       delete form.attributes
       delete form.tableName
       delete form.status
@@ -1296,6 +1371,7 @@ export default {
         ...form,
         callbackId: '10000001'
       })
+      this.buttonLoading.saveCiType = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('save_ci_success'),
@@ -1307,8 +1383,10 @@ export default {
     addNewCIType () {
       this.$refs['addNewCITypeForm'].validate(async valid => {
         if (valid) {
+          this.buttonLoading.addNewCIType = true
           const payload = { ...this.addNewCITypeForm, callbackId: '10000001' }
           let res = await createNewCIType(payload)
+          this.buttonLoading.addNewCIType = false
           if (res.statusCode === 'OK') {
             this.$Notice.success({
               title: this.$t('add_ci_type_success'),
@@ -1333,6 +1411,7 @@ export default {
       }
     },
     async submitCiType (id, form) {
+      this.buttonLoading.submitCiType = true
       const isNotCreated = form.status === 'notCreated'
       delete form.attributes
       delete form.tableName
@@ -1344,6 +1423,7 @@ export default {
         : await updateCIType(id, {
           ...form
         })
+      this.buttonLoading.submitCiType = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('apply_ci_success'),
@@ -1361,8 +1441,10 @@ export default {
         })
         return
       }
+      this.buttonLoading.moveUpAttr = true
       let targetID = this.currentSelectedCIChildren[currentIndex - 1].ciTypeAttrId
       let res = await swapCiTypeAttributePosition(this.currentSelectedCI.ciTypeId, id, targetID)
+      this.buttonLoading.moveUpAttr = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('move_up_ci_attr_success'),
@@ -1380,8 +1462,10 @@ export default {
         })
         return
       }
+      this.buttonLoading.moveDownAttr = true
       let targetID = this.currentSelectedCIChildren[currentIndex + 1].ciTypeAttrId
       let res = await swapCiTypeAttributePosition(this.currentSelectedCI.ciTypeId, id, targetID)
+      this.buttonLoading.moveDownAttr = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('move_down_ci_attr_success'),
@@ -1391,6 +1475,7 @@ export default {
       }
     },
     async addNewAttr (id) {
+      this.buttonLoading.addNewAttr = true
       const payload = {
         ...this.addNewAttrForm,
         length: this.addNewAttrForm.length || 1,
@@ -1404,6 +1489,7 @@ export default {
         callbackId: '10000001'
       }
       let res = await createNewCIAttr(this.currentSelectedCI.ciTypeId, payload)
+      this.buttonLoading.addNewAttr = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('add_ci_attr_success'),
@@ -1415,6 +1501,7 @@ export default {
       }
     },
     addNewAttrHandler () {
+      this.buttonLoading.addNewAttrHandler = true
       this.getEnum(true)
       this.isAddNewAttrModalVisible = true
     },
@@ -1422,6 +1509,7 @@ export default {
       this.addNewAttrForm = {}
     },
     async saveAttr (ciTypeAttrId, form) {
+      this.buttonLoading.saveAttr = true
       const isSelectOrRef =
         form.inputType === 'select' ||
         form.inputType === 'ref' ||
@@ -1441,6 +1529,7 @@ export default {
       delete payload.status
       delete payload.ciType
       let res = await updateCIAttr(this.currentSelectedCI.ciTypeId, ciTypeAttrId, payload)
+      this.buttonLoading.saveAttr = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('save_ci_attr_success'),
@@ -1455,6 +1544,7 @@ export default {
         form.inputType === 'ref' ||
         form.inputType === 'multiSelect' ||
         form.inputType === 'multiRef'
+      this.buttonLoading.applyAttr = true
       let updateRes = await updateCIAttr(this.currentSelectedCI.ciTypeId, ciTypeAttrId, {
         ...form,
         length: form.length || 1,
@@ -1468,6 +1558,7 @@ export default {
       })
       if (updateRes.statusCode === 'OK') {
         let applyRes = await applyCIAttr(this.currentSelectedCI.ciTypeId, [ciTypeAttrId])
+        this.buttonLoading.applyAttr = false
         if (applyRes.statusCode === 'OK') {
           this.$Notice.success({
             title: this.$t('apply_ci_attr_success'),
@@ -1475,6 +1566,8 @@ export default {
           })
           this.initGraph()
         }
+      } else {
+        tis.buttonLoading.applyAttr = false
       }
     },
 
