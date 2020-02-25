@@ -228,5 +228,13 @@
   "type_latest": "Latest",
   "type_all": "All",
   "type_reality": "Confirmed",
+  "show": "Show",
+  "hide": "Hide",
+  "close": "Close",
+  "password": "Password",
+  "is_required": "Cannot be empty",
+  "fetch_password_failed": "Failed to fetch password",
+  "no_password": "No Password",
+  "enter_password": "Enter Password",
   "actions": "Actions"
 }
