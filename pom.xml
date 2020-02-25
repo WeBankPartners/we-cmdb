@@ -11,7 +11,7 @@
 	</parent>
 
 	<properties>
-		<cmdb.version>1.4.0-SNAPSHOT</cmdb.version>
+		<cmdb.version>1.4.2-SNAPSHOT</cmdb.version>
 		<java.version>1.8</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
