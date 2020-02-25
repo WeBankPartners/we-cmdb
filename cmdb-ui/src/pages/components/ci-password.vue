@@ -109,7 +109,7 @@ export default {
     inputFocus () {
       this.$refs.comparedPasswordInput.focus()
     },
-    async confirm () {
+    confirm () {
       this.$refs.form.validate(vail => {
         if (vail) {
           if (this.isNewAddedRow) {

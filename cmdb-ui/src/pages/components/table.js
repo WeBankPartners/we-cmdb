@@ -623,7 +623,7 @@ export default {
                     : params.column.options,
                   enumId: params.column.referenceId ? params.column.referenceId : null
                 }
-                : params.column.component === 'WeCMDBCiPassword'
+                : params.column.component === 'WeCMDBCIPassword'
                   ? {
                     isNewAddedRow: params.row.isNewAddedRow || false,
                     ciTypeId: params.column.ciTypeId,
@@ -669,7 +669,7 @@ export default {
             }
             return <params.column.component {...data} />
           } else {
-            if (params.column.component === 'WeCMDBCiPassword') {
+            if (params.column.component === 'WeCMDBCIPassword') {
               return (
                 <params.column.component
                   ciTypeId={params.column.ciTypeId}
