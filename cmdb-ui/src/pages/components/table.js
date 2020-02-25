@@ -592,11 +592,23 @@ export default {
         resizable: !isLastCol, // 除最后一列，该属性都为true
         sortable: this.isSortable ? 'custom' : false,
         render: (h, params) => {
-          if (
+          const isEdit =
             params.row.isRowEditable &&
             (!params.column.disEditor || params.row.isNewAddedRow) &&
             !params.column.disAdded
-          ) {
+          if (params.column.component === 'WeCMDBCIPassword') {
+            return (
+              <params.column.component
+                ciTypeId={params.column.ciTypeId}
+                guid={params.row.guid}
+                isEdit={isEdit}
+                isNewAddedRow={params.row.isNewAddedRow || false}
+                propertyName={params.column.propertyName}
+                value={params.row[params.column.propertyName]}
+              />
+            )
+          }
+          if (isEdit) {
             const _this = this
 
             const props =
@@ -623,34 +635,25 @@ export default {
                     : params.column.options,
                   enumId: params.column.referenceId ? params.column.referenceId : null
                 }
-                : params.column.component === 'WeCMDBCIPassword'
-                  ? {
-                    isNewAddedRow: params.row.isNewAddedRow || false,
-                    ciTypeId: params.column.ciTypeId,
-                    isEdit: true,
-                    guid: params.row.guid,
-                    propertyName: params.column.propertyName,
-                    value: params.row[params.column.propertyName]
-                  }
-                  : {
-                    value: params.column.isRefreshable
-                      ? ''
-                      : params.column.inputType === 'multiRef'
-                        ? Array.isArray(params.row[col.inputKey])
-                          ? params.row[col.inputKey]
-                          : ''
-                        : params.row[col.inputKey] || '',
-                    filterParams: params.column.filterRule
-                      ? {
-                        attrId: params.column.ciTypeAttrId,
-                        params: params.row
-                      }
-                      : null,
-                    ciType: params.column.component === 'WeCMDBRefSelect' ? params.column.ciType : null,
-                    ...params.column,
-                    type: params.column.component === 'DatePicker' ? 'date' : params.column.type,
-                    guid: params.row.guid ? params.row.guid : '123'
-                  }
+                : {
+                  value: params.column.isRefreshable
+                    ? ''
+                    : params.column.inputType === 'multiRef'
+                      ? Array.isArray(params.row[col.inputKey])
+                        ? params.row[col.inputKey]
+                        : ''
+                      : params.row[col.inputKey] || '',
+                  filterParams: params.column.filterRule
+                    ? {
+                      attrId: params.column.ciTypeAttrId,
+                      params: params.row
+                    }
+                    : null,
+                  ciType: params.column.component === 'WeCMDBRefSelect' ? params.column.ciType : null,
+                  ...params.column,
+                  type: params.column.component === 'DatePicker' ? 'date' : params.column.type,
+                  guid: params.row.guid ? params.row.guid : '123'
+                }
             const fun =
               params.column.component === 'DatePicker'
                 ? {
@@ -669,17 +672,6 @@ export default {
             }
             return <params.column.component {...data} />
           } else {
-            if (params.column.component === 'WeCMDBCIPassword') {
-              return (
-                <params.column.component
-                  ciTypeId={params.column.ciTypeId}
-                  isEdit={false}
-                  guid={params.row.guid}
-                  propertyName={params.column.propertyName}
-                  value={params.row[params.column.propertyName]}
-                />
-              )
-            }
             let content = ''
             if (Array.isArray(params.row.weTableForm[col.key])) {
               if (params.column.inputType === 'multiSelect') {
