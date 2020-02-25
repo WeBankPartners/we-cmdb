@@ -305,7 +305,11 @@
                   <FormItem prop="name" :label="$t('ci_attribute_name')">
                     <Input v-model="item.form.name" :disabled="item.form.status === 'decommissioned'"></Input>
                   </FormItem>
-                  <FormItem :label="$t('search_filter_number')" prop="searchSeqNo">
+                  <FormItem
+                    v-if="item.form.inputType !== 'password'"
+                    :label="$t('search_filter_number')"
+                    prop="searchSeqNo"
+                  >
                     <InputNumber
                       :min="0"
                       :disabled="item.form.status === 'decommissioned'"
@@ -322,7 +326,11 @@
                     </Select>
                   </FormItem>
                   <FormItem
-                    v-if="item.form.inputType === 'text' || item.form.inputType === 'textArea'"
+                    v-if="
+                      item.form.inputType === 'text' ||
+                        item.form.inputType === 'textArea' ||
+                        item.form.inputType === 'password'
+                    "
                     prop="regularExpressionRule"
                     :label="$t('regular_rule')"
                   >
@@ -337,7 +345,8 @@
                     v-if="
                       item.form.inputType === 'text' ||
                         item.form.inputType === 'textArea' ||
-                        item.form.inputType === 'number'
+                        item.form.inputType === 'number' ||
+                        item.form.inputType === 'password'
                     "
                   >
                     <InputNumber
@@ -543,7 +552,7 @@
           <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
             <Input v-model="addNewAttrForm.propertyName"></Input>
           </FormItem>
-          <FormItem :label="$t('search_filter_number')">
+          <FormItem v-if="addNewAttrForm.inputType !== 'password'" :label="$t('search_filter_number')">
             <InputNumber :min="0" v-model="addNewAttrForm.searchSeqNo"></InputNumber>
           </FormItem>
           <FormItem prop="inputType" :label="$t('data_type')">
@@ -552,7 +561,11 @@
             </Select>
           </FormItem>
           <FormItem
-            v-if="addNewAttrForm.inputType === 'text' || addNewAttrForm.inputType === 'textArea'"
+            v-if="
+              addNewAttrForm.inputType === 'text' ||
+                addNewAttrForm.inputType === 'textArea' ||
+                addNewAttrForm.inputType === 'password'
+            "
             prop="regularExpressionRule"
             :label="$t('regular_rule')"
           >
@@ -567,7 +580,8 @@
             v-if="
               addNewAttrForm.inputType === 'text' ||
                 addNewAttrForm.inputType === 'textArea' ||
-                addNewAttrForm.inputType === 'number'
+                addNewAttrForm.inputType === 'number' ||
+                addNewAttrForm.inputType === 'password'
             "
           >
             <InputNumber :min="1" v-model="addNewAttrForm.length"></InputNumber>
@@ -949,7 +963,7 @@ export default {
                       isAuto: j.isAuto ? 'yes' : 'no',
                       isEditable: j.isEditable ? 'yes' : 'no',
                       isUnique: j.isUnique ? 'yes' : 'no',
-                      searchSeqNo: j.searchSeqNo || 0
+                      searchSeqNo: j.inputType !== 'password' && j.searchSeqNo ? j.searchSeqNo : 0
                     })
                   })
 
