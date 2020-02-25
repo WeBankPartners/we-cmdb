@@ -2,7 +2,7 @@
   <Row>
     <Col span="18">
       <div style="padding-right: 20px">
-        <Card style="height: calc(100vh - 108px);">
+        <Card class="cmdb-model-management-left-card" style="height: calc(100vh - 108px);">
           <Row slot="title">
             <Col span="10">
               <p>
@@ -108,7 +108,7 @@
                     <Button
                       size="small"
                       @click.stop.prevent="revertCI(item.ciTypeId)"
-                      :loading="buttonLoading.revertCI"
+                      :loading="buttonLoading.revertCI[item.ciTypeId]"
                       icon="md-redo"
                     ></Button>
                   </Tooltip>
@@ -269,7 +269,7 @@
                       size="small"
                       @click.stop.prevent="moveUpAttr(item.ciTypeAttrId)"
                       icon="md-arrow-round-up"
-                      :loading="buttonLoading.moveUpAttr"
+                      :loading="buttonLoading.moveUpAttr[item.ciTypeAttrId]"
                     ></Button>
                   </Tooltip>
                   <Tooltip :content="$t('move_down_ci_attribute')" placement="top-start">
@@ -277,7 +277,7 @@
                       size="small"
                       @click.stop.prevent="moveDownAttr(item.ciTypeAttrId)"
                       icon="md-arrow-round-down"
-                      :loading="buttonLoading.moveDownAttr"
+                      :loading="buttonLoading.moveDownAttr[item.ciTypeAttrId]"
                     ></Button>
                   </Tooltip>
                   <Tooltip v-if="item.status === 'decommissioned'" :content="$t('roll_back')" placement="top-start">
@@ -285,7 +285,7 @@
                       size="small"
                       @click.stop.prevent="revertCIAttr(item.ciTypeAttrId)"
                       icon="md-redo"
-                      :loading="buttonLoading.revertCIAttr"
+                      :loading="buttonLoading.revertCIAttr[item.ciTypeAttrId]"
                     ></Button>
                   </Tooltip>
                   <Tooltip v-else :content="$t('delete')" placement="top-start">
@@ -474,13 +474,17 @@
                       <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
                     </RadioGroup>
                   </FormItem>
-                  <FormItem prop="isAuto" :label="$t('is_auto')">
+                  <FormItem prop="isAuto" v-if="item.form.inputType !== 'password'" :label="$t('is_auto')">
                     <RadioGroup v-model="item.form.isAuto">
                       <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
                       <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
                     </RadioGroup>
                   </FormItem>
-                  <FormItem prop="autoFillRule" v-if="item.form.isAuto === 'yes'" :label="$t('auto_fill_rule')">
+                  <FormItem
+                    prop="autoFillRule"
+                    v-if="item.form.isAuto === 'yes' && item.form.inputType !== 'password'"
+                    :label="$t('auto_fill_rule')"
+                  >
                     <AutoFill
                       :allCiTypes="allCiTypesWithAttr"
                       :rootCiTypeId="item.ciTypeId"
@@ -678,13 +682,17 @@
               <Radio label="no">No</Radio>
             </RadioGroup>
           </FormItem>
-          <FormItem prop="isAuto" :label="$t('is_auto')">
+          <FormItem prop="isAuto" v-if="addNewAttrForm.inputType !== 'password'" :label="$t('is_auto')">
             <RadioGroup v-model="addNewAttrForm.isAuto">
               <Radio label="yes">Yes</Radio>
               <Radio label="no">No</Radio>
             </RadioGroup>
           </FormItem>
-          <FormItem prop="layerId" v-if="addNewAttrForm.isAuto === 'yes'" :label="$t('auto_fill_rule')">
+          <FormItem
+            prop="layerId"
+            v-if="addNewAttrForm.isAuto === 'yes' && addNewAttrForm.inputType !== 'password'"
+            :label="$t('auto_fill_rule')"
+          >
             <AutoFill
               :allCiTypes="allCiTypesWithAttr"
               :rootCiTypeId="currentSelectedCI.ciTypeId"
@@ -841,14 +849,14 @@ export default {
         newLayer: false,
         upLayer: false,
         downLayer: false,
-        revertCI: false,
+        revertCI: {},
         saveCiType: false,
         submitCiType: false,
         addNewCIType: false,
         addNewAttrHandler: false,
-        moveUpAttr: false,
-        moveDownAttr: false,
-        revertCIAttr: false,
+        moveUpAttr: {},
+        moveDownAttr: {},
+        revertCIAttr: {},
         applyAttr: false,
         saveAttr: false,
         addNewAttr: false
@@ -908,8 +916,8 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           .zoom(true)
-          .height(window.innerHeight - 210)
-          .width(graphEl.offsetWidth - 16)
+          .height(window.innerHeight - 178)
+          .width(graphEl.offsetWidth)
           .attributer(function (d) {
             if (d.attributes.class === 'edge') {
               const keys = d.key.split('->')
@@ -960,7 +968,7 @@ export default {
                       isDisplayed: j.isDisplayed ? 'yes' : 'no',
                       isAccessControlled: j.isAccessControlled ? 'yes' : 'no',
                       isNullable: j.isNullable ? 'yes' : 'no',
-                      isAuto: j.isAuto ? 'yes' : 'no',
+                      isAuto: j.inputType !== 'password' && j.isAuto ? 'yes' : 'no',
                       isEditable: j.isEditable ? 'yes' : 'no',
                       isUnique: j.isUnique ? 'yes' : 'no',
                       searchSeqNo: j.inputType !== 'password' && j.searchSeqNo ? j.searchSeqNo : 0
@@ -1134,6 +1142,14 @@ export default {
                       return a.displaySeqNo - b.displaySeqNo
                     })) ||
                   []
+                this.buttonLoading.moveUpAttr = {}
+                this.buttonLoading.moveDownAttr = {}
+                this.buttonLoading.revertCIAttr = {}
+                this.currentSelectedCIChildren.forEach(attr => {
+                  this.$set(this.buttonLoading.moveUpAttr, attr.ciTypeAttrId, false)
+                  this.$set(this.buttonLoading.moveDownAttr, attr.ciTypeAttrId, false)
+                  this.$set(this.buttonLoading.revertCIAttr, attr.ciTypeAttrId, false)
+                })
               }
             })
         })
@@ -1163,6 +1179,12 @@ export default {
     },
     handleLayerSelect (layerId) {
       this.currentSelectLayerChildren = this.source.find(_ => _.codeId === layerId)
+      this.buttonLoading.revertCI = {}
+      if (this.currentSelectLayerChildren.ciTypes instanceof Array) {
+        this.currentSelectLayerChildren.ciTypes.forEach(ciType => {
+          this.$set(this.buttonLoading.revertCI, ciType.ciTypeId, false)
+        })
+      }
       this.addNewCITypeForm.layerId = this.currentSelectLayerChildren.codeId
     },
     handleStatusChange (value) {
@@ -1298,9 +1320,9 @@ export default {
       document.querySelector('.ivu-modal-mask').click()
     },
     async revertCI (ciTypeId) {
-      this.buttonLoading.revertCI = true
+      this.buttonLoading.revertCI[ciTypeId] = true
       let res = await implementCiType(ciTypeId, 'revert')
-      this.buttonLoading.revertCI = false
+      this.buttonLoading.revertCI[ciTypeId] = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('revert_ci_type_success'),
@@ -1310,9 +1332,9 @@ export default {
       }
     },
     async revertCIAttr (attrId) {
-      this.buttonLoading.revertCIAttr = true
+      this.buttonLoading.revertCIAttr[attrId] = true
       let res = await implementCiAttr(this.currentSelectedCI.ciTypeId, attrId, 'revert')
-      this.buttonLoading.revertCIAttr = false
+      this.buttonLoading.revertCIAttr[attrId] = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('revert_ci_attribute_success'),
@@ -1455,10 +1477,10 @@ export default {
         })
         return
       }
-      this.buttonLoading.moveUpAttr = true
+      this.buttonLoading.moveUpAttr[id] = true
       let targetID = this.currentSelectedCIChildren[currentIndex - 1].ciTypeAttrId
       let res = await swapCiTypeAttributePosition(this.currentSelectedCI.ciTypeId, id, targetID)
-      this.buttonLoading.moveUpAttr = false
+      this.buttonLoading.moveUpAttr[id] = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('move_up_ci_attr_success'),
@@ -1476,10 +1498,10 @@ export default {
         })
         return
       }
-      this.buttonLoading.moveDownAttr = true
+      this.buttonLoading.moveDownAttr[id] = true
       let targetID = this.currentSelectedCIChildren[currentIndex + 1].ciTypeAttrId
       let res = await swapCiTypeAttributePosition(this.currentSelectedCI.ciTypeId, id, targetID)
-      this.buttonLoading.moveDownAttr = false
+      this.buttonLoading.moveDownAttr[id] = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('move_down_ci_attr_success'),
@@ -1497,9 +1519,13 @@ export default {
         isDisplayed: this.addNewAttrForm.isDisplayed === 'yes',
         isAccessControlled: this.addNewAttrForm.isAccessControlled === 'yes',
         isNullable: this.addNewAttrForm.isNullable === 'yes',
-        isAuto: this.addNewAttrForm.isAuto === 'yes',
+        isAuto: this.addNewAttrForm.isAuto === 'yes' && this.addNewAttrForm.inputType !== 'password',
         isEditable: this.addNewAttrForm.isEditable === 'yes',
         isUnique: this.addNewAttrForm.isUnique === 'yes',
+        searchSeqNo:
+          this.addNewAttrForm.searchSeqNo && this.addNewAttrForm.inputType !== 'password'
+            ? this.addNewAttrForm.searchSeqNo
+            : 0,
         callbackId: '10000001'
       }
       let res = await createNewCIAttr(this.currentSelectedCI.ciTypeId, payload)
@@ -1536,7 +1562,7 @@ export default {
         isDisplayed: form.isDisplayed === 'yes',
         isAccessControlled: isSelectOrRef && form.isAccessControlled === 'yes',
         isNullable: form.isNullable === 'yes',
-        isAuto: form.isAuto === 'yes',
+        isAuto: form.isAuto === 'yes' && form.inputType !== 'password',
         isEditable: form.isEditable === 'yes',
         isUnique: form.isUnique === 'yes'
       }
@@ -1566,7 +1592,7 @@ export default {
         isDisplayed: form.isDisplayed === 'yes',
         isAccessControlled: isSelectOrRef && form.isAccessControlled === 'yes',
         isNullable: form.isNullable === 'yes',
-        isAuto: form.isAuto === 'yes',
+        isAuto: form.isAuto === 'yes' && form.inputType !== 'password',
         isEditable: form.isEditable === 'yes',
         isUnique: form.isUnique === 'yes'
       })
@@ -1581,7 +1607,7 @@ export default {
           this.initGraph()
         }
       } else {
-        tis.buttonLoading.applyAttr = false
+        this.buttonLoading.applyAttr = false
       }
     },
 
@@ -1702,6 +1728,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.cmdb-model-management-left-card /deep/ .ivu-card-body {
+  padding: 0;
+}
 .attrContainer {
   overflow: auto;
   height: calc(100vh - 205px);
@@ -1711,7 +1740,7 @@ export default {
   line-height: 30px;
 }
 .graph-container {
-  overflow: auto;
+  overflow: hidden;
   svg {
     g {
       cursor: pointer !important;
@@ -1755,5 +1784,8 @@ export default {
   .header-buttons-container {
     float: right;
   }
+}
+.validation-form /deep/ .ivu-form-item {
+  margin-bottom: 10px;
 }
 </style>
