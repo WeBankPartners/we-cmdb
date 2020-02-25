@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -106,6 +107,8 @@ public class UIWrapperService {
     private BaseKeyInfoService baseKeyInfoService;
     @Autowired
     private AdmRoleRepository admRoleRepository;
+    @Autowired
+    private AdmCiTypeAttrRepository admCiTypeAttrRepository;
 
     public void swapCiTypeLayerPosition(int layerId, int targetLayerId) {
         CatCodeDto enumCode = getEnumCodeById(layerId);
@@ -476,13 +479,39 @@ public class UIWrapperService {
         return ciService.create(ciTypeId, ciDatas);
     }
 
-    public QueryResponse<CiData> queryCiData(Integer ciTypeId, QueryRequest queryObject) {
+    public QueryResponse<CiData> queryCiDataShowPassword(Integer ciTypeId, QueryRequest queryObject,boolean showPassword) {
         if (queryObject == null) {
             queryObject = QueryRequest.defaultQueryObject().descendingSortBy(CmdbConstants.DEFAULT_FIELD_CREATED_DATE);
         } else if (queryObject.getSorting() == null || queryObject.getSorting().getField() == null) {
             queryObject.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_CREATED_DATE));
         }
-        return ciService.query(ciTypeId, queryObject);
+        QueryResponse<CiData> queryData = ciService.query(ciTypeId, queryObject);
+        if(showPassword){
+            return queryData;
+        }
+        return changePasswordView(ciTypeId, queryObject,queryData);
+    }
+
+    public QueryResponse<CiData> queryCiData(Integer ciTypeId, QueryRequest queryObject) {
+        return queryCiDataShowPassword(ciTypeId,queryObject,false);
+    }
+
+    private QueryResponse<CiData> changePasswordView(Integer ciTypeId, QueryRequest queryObject,QueryResponse<CiData> queryData) {
+        List<AdmCiTypeAttr> ciAttrs = admCiTypeAttrRepository.findAllByCiTypeId(ciTypeId);
+        List<String> passwordField = new ArrayList<>();
+        for (AdmCiTypeAttr ciTypeAttrs:ciAttrs) {
+            if(CmdbConstants.PASSWORD.equalsIgnoreCase(ciTypeAttrs.getInputType())){
+                passwordField.add(ciTypeAttrs.getPropertyName());
+            }
+        }
+        for (CiData cidata:queryData.getContents()) {
+            for (String key:passwordField) {
+                if (cidata.getData().containsKey(key)) {
+                    cidata.getData().put(key, CmdbConstants.PASSWORD_SHOW);
+                }
+            }
+        }
+        return queryData;
     }
 
     public QueryResponse<CiData> queryCiDataByType(Integer ciTypeId, QueryRequest queryObject) {
@@ -698,8 +727,9 @@ public class UIWrapperService {
 
     public RoleCiTypeCtrlAttrDto createRoleCiTypeCtrlAttribute(RoleCiTypeCtrlAttrDto roleCiTypeCtrlAttr) {
         List<RoleCiTypeCtrlAttrDto> roleCiTypeCtrlAttrs = createRoleCiTypeCtrlAttributes(roleCiTypeCtrlAttr);
-        if (isEmpty(roleCiTypeCtrlAttrs))
+        if (isEmpty(roleCiTypeCtrlAttrs)) {
             throw new CmdbException("Create role CiType ctrl attr failure.");
+        }
         return roleCiTypeCtrlAttrs.get(0);
     }
 
@@ -726,8 +756,9 @@ public class UIWrapperService {
 
     public RoleCiTypeCtrlAttrConditionDto createRoleCiTypeCtrlAttrCondition(RoleCiTypeCtrlAttrConditionDto roleCiTypeCtrlAttrCondition) {
         List<RoleCiTypeCtrlAttrConditionDto> roleCiTypeCtrlAttrConditions = createRoleCiTypeCtrlAttrConditions(roleCiTypeCtrlAttrCondition);
-        if (isEmpty(roleCiTypeCtrlAttrConditions))
+        if (isEmpty(roleCiTypeCtrlAttrConditions)) {
             throw new CmdbException("Create role CiType ctrl attr condition failure.");
+        }
         return roleCiTypeCtrlAttrConditions.get(0);
     }
 
