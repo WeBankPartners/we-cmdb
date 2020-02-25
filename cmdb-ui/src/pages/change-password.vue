@@ -27,7 +27,9 @@
         />
       </FormItem>
       <FormItem>
-        <Button type="primary" @click="handleSubmit('formValidate')">{{ $t('confirm') }}</Button>
+        <Button type="primary" @click="handleSubmit('formValidate')" :loading="submitButtonLoading">{{
+          $t('confirm')
+        }}</Button>
         <Button @click="handleReset('formValidate')" style="margin-left: 8px">{{ $t('cancel') }}</Button>
       </FormItem>
     </Form>
@@ -54,7 +56,8 @@ export default {
           },
           { validator: this.checkNewPassword }
         ]
-      }
+      },
+      submitButtonLoading: false
     }
   },
   methods: {
@@ -75,10 +78,12 @@ export default {
       })
     },
     async editPassword () {
+      this.submitButtonLoading = true
       const { statusCode } = await editPassword({
         password: this.formItem.oldPassword,
         newPassword: this.formItem.newPassword
       })
+      this.submitButtonLoading = false
       if (statusCode === 'OK') {
         this.$Message.success(this.$t('reset_password_success'))
         this.$router.push('/homepage')
