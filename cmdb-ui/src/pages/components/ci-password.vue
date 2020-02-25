@@ -66,16 +66,34 @@
 import { updatePassword, queryPassword } from '@/api/server'
 export default {
   props: {
-    isEdit: false,
-    guid: '',
-    propertyName: '',
-    disabled: false,
+    isEdit: {
+      type: Boolean,
+      default: false
+    },
+    guid: {
+      type: String,
+      default: ''
+    },
+    propertyName: {
+      type: String,
+      default: ''
+    },
+    disabled: {
+      type: Boolean,
+      default: false
+    },
     ciTypeId: {
       required: true,
       type: Number
     },
-    isNewAddedRow: false,
-    value: ''
+    isNewAddedRow: {
+      type: Boolean,
+      default: false
+    },
+    value: {
+      type: String,
+      default: ''
+    }
   },
   data () {
     return {
