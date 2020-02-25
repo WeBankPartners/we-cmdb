@@ -8,7 +8,7 @@ package com.webank.cmdb.constant;
  */
 public enum InputType {
     None("none"), Text("text"), Date("date"), TextArea("textArea"), Droplist("select"), MultSelDroplist("multiSelect"), Reference("ref"), MultRef("multiRef"), Number("number"), OrchestrationMuliRef("orchestration_multi_ref"),
-    Orchestration("orchestration_ref");
+    Orchestration("orchestration_ref"),Password("password");
 
     private String code;
 

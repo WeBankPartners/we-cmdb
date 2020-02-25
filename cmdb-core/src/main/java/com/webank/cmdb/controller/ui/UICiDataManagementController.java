@@ -11,15 +11,20 @@ import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_INTEGRATED_QUERY_
 import static com.webank.cmdb.domain.AdmMenu.MENU_IDC_PLANNING_DESIGN;
 import static com.webank.cmdb.domain.AdmMenu.MENU_IDC_RESOURCE_PLANNING;
 import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
+import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.security.RolesAllowed;
 
+import com.webank.cmdb.constant.CmdbConstants;
+import com.webank.cmdb.dto.*;
+import org.apache.commons.collections.SequencedHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,12 +43,6 @@ import com.webank.cmdb.config.ApplicationProperties;
 import com.webank.cmdb.controller.ui.helper.ResourceTreeDto;
 import com.webank.cmdb.controller.ui.helper.UIWrapperService;
 import com.webank.cmdb.controller.ui.helper.ZoneLinkDto;
-import com.webank.cmdb.dto.CiData;
-import com.webank.cmdb.dto.CiIndentity;
-import com.webank.cmdb.dto.CiTypeAttrDto;
-import com.webank.cmdb.dto.CiTypeDto;
-import com.webank.cmdb.dto.QueryRequest;
-import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.service.ImageService;
 
@@ -444,4 +443,38 @@ public class UICiDataManagementController {
         return wrapperService.getApplicationFrameworkDesignDataTreeBySystemDesignGuid(systemDesignGuid);
     }
 
+    @RolesAllowed({ MENU_DESIGNING_CI_DATA_MANAGEMENT, MENU_DESIGNING_CI_DATA_ENQUIRY })
+    @GetMapping("/ci-data/{ci-type-id}/query-password/{guid}/{field}")
+    @ResponseBody
+    public ResponseDto queryPassword(@PathVariable(value = "ci-type-id") int ciTypeId,@PathVariable(value = "guid") String guid,@PathVariable(value = "field") String field) {
+        QueryResponse<CiData> ciData = wrapperService.queryCiDataShowPassword(ciTypeId, defaultQueryObject(CmdbConstants.GUID, guid),true);
+        ResponseDto responseDto = new ResponseDto();
+        if(ciData.getContents().size()>0){
+            responseDto.setStatusCode(ResponseDto.STATUS_OK);
+            responseDto.setData(ciData.getContents().get(0).getData().get(field));
+        }else{
+            responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
+            responseDto.setStatusMessage(String.format("Can not find field [%s] value for guid [%s].", field, guid));
+        }
+        return responseDto;
+    }
+
+    @RolesAllowed({ MENU_DESIGNING_CI_DATA_MANAGEMENT, MENU_DESIGNING_CI_DATA_ENQUIRY })
+    @PostMapping("/ci-data/{ci-type-id}/change-password")
+    @ResponseBody
+    public ResponseDto updatePassword(@PathVariable(value = "ci-type-id") int ciTypeId,@RequestBody Map<String, Object> param) {
+        ResponseDto responseDto = new ResponseDto();
+        Map<String, Object> data = new HashMap();
+        try {
+            data.put(param.get("field").toString(), param.get("value"));
+            data.put(CmdbConstants.GUID, param.get(CmdbConstants.GUID));
+            wrapperService.updateCiData(ciTypeId, Arrays.asList(data));
+            responseDto.setStatusCode(ResponseDto.STATUS_OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
+            responseDto.setStatusMessage(e.getMessage());
+        }
+        return responseDto;
+    }
 }
