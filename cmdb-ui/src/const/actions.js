@@ -31,6 +31,9 @@ export const components = {
   textArea: {
     component: 'Input',
     type: 'text'
+  },
+  password: {
+    component: 'WeCMDBCIPassword'
   }
 }
 export const outerActions = [
