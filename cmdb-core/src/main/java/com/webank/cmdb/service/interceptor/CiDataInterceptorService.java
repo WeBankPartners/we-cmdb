@@ -264,7 +264,7 @@ public class CiDataInterceptorService {
             }
 
             Object val = ciBeanMap.get(attr.getPropertyName());
-            if (val == null || ((val instanceof String) && "".equals(val))) {
+            if (CiStatus.Created.equals(attr.getStatus()) && (val == null || ((val instanceof String) && "".equals(val)))) {
                 Integer ciTypeId = entityHolder.getEntityMeta().getCiTypeId();
                 throw new InvalidArgumentException(String.format("Field [%s] is required for creation of CiType [%s(%d)].", attr.getPropertyName(), getCiTypeName(ciTypeId), ciTypeId));
             }
