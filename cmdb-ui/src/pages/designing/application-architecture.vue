@@ -20,12 +20,20 @@
               </Option>
             </OptionGroup>
           </Select>
-          <Button style="margin: 0 10px;" @click="onArchChange(false)" :disabled="!allowArch">{{
-            $t('architecture_change')
-          }}</Button>
-          <Button style="margin-right: 10px;" @click="querySysTree" :disabled="!allowFixVersion">{{
-            $t('fix_version')
-          }}</Button>
+          <Button
+            style="margin: 0 10px;"
+            @click="onArchChange(false)"
+            :loading="buttonLoading.fixVersionModal"
+            :disabled="!allowArch"
+            >{{ $t('architecture_change') }}</Button
+          >
+          <Button
+            style="margin-right: 10px;"
+            @click="querySysTree"
+            :loading="buttonLoading.fixVersion"
+            :disabled="!allowFixVersion"
+            >{{ $t('fix_version') }}</Button
+          >
           <Button @click="onArchChange(true)" :disabled="!systemDesignVersion || allowFixVersion">{{
             $t('query')
           }}</Button>
@@ -35,7 +43,9 @@
             </div>
             <div slot="footer">
               <Button @click="cancelFixVersion">{{ $t('cancel') }}</Button>
-              <Button type="info" @click="onArchFixVersion">{{ $t('confirm') }}</Button>
+              <Button type="info" @click="onArchFixVersion" :loading="buttonLoading.fixVersionModal">{{
+                $t('confirm')
+              }}</Button>
             </div>
           </Modal>
         </Row>
@@ -272,7 +282,11 @@ export default {
       isTableViewOnly: true,
       systemDesignFixedDate: 0,
       linkTypes: [],
-      allUnitDesign: []
+      allUnitDesign: [],
+      buttonLoading: {
+        fixVersion: false,
+        fixVersionModal: false
+      }
     }
   },
   computed: {
@@ -373,6 +387,7 @@ export default {
     },
     async onArchFixVersion () {
       if (this.systemDesignVersion === '') return
+      this.buttonLoading.fixVersionModal = true
       const { statusCode, message } = await saveAllDesignTreeFromSystemDesign(this.systemDesignVersion)
       if (statusCode === 'OK') {
         this.queryCiData()
@@ -382,6 +397,9 @@ export default {
         })
         this.getSystemDesigns()
         this.fixVersionTreeModal = false
+        this.buttonLoading.fixVersionModal = false
+      } else {
+        this.buttonLoading.fixVersionModal = false
       }
     },
     cancelFixVersion () {
@@ -589,6 +607,7 @@ export default {
       this.physicalSpin = false
     },
     async querySysTree () {
+      this.buttonLoading.fixVersion = true
       if (this.systemDesignVersion === '') return
       this.spinShow = true
       const { statusCode, data } = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
@@ -596,6 +615,9 @@ export default {
         this.spinShow = false
         this.deployTree = this.formatTree(data).array
         this.fixVersionTreeModal = true
+        this.buttonLoading.fixVersion = false
+      } else {
+        this.buttonLoading.fixVersion = false
       }
     },
     formatTree (data) {

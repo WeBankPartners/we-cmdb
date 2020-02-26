@@ -30,7 +30,7 @@
             </FormItem>
           </Col>
           <Col offset="1" span="5">
-            <Button type="primary" @click="saveCategoryHandler">{{ $t('save') }}</Button>
+            <Button type="primary" @click="saveCategoryHandler" :loading="buttonLoading">{{ $t('save') }}</Button>
           </Col>
         </Row>
       </Form>
@@ -65,7 +65,8 @@ export default {
           value: 3
         }
       ],
-      isVisible: this.enumGroupVisible
+      isVisible: this.enumGroupVisible,
+      buttonLoading: false
     }
   },
   watch: {
@@ -103,6 +104,7 @@ export default {
   computed: {},
   methods: {
     async saveCategoryHandler () {
+      this.buttonLoading = true
       const type = this.allEnumCategoryTypes.find(_ => _.ciTypeId === this.currentCiType.ciTypeId)
       if (this.category) {
         // update
@@ -113,6 +115,7 @@ export default {
           groupTypeId: this.form.catGroupId
         }
         const { message, statusCode } = await updateEnumCategory(payload)
+        this.buttonLoading = false
         if (statusCode === 'OK') {
           this.$Notice.success({
             title: this.$t('update_category_success_message'),
@@ -129,6 +132,7 @@ export default {
           groupTypeId: this.form.catGroupId
         }
         const { message, data, statusCode } = await createEnumCategory(payload)
+        this.buttonLoading = false
         if (statusCode === 'OK') {
           this.$Notice.success({
             title: this.$t('add_category_success_message'),
