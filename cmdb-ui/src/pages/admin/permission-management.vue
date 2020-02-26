@@ -53,6 +53,7 @@
       <Card>
         <p slot="title">{{ $t('menus_management') }}</p>
         <div class="tagContainers">
+          <Spin size="large" fix v-if="spinShow"></Spin>
           <Tree :data="menus" show-checkbox @on-check-change="handleMenuTreeCheck"></Tree>
         </div>
       </Card>
@@ -61,6 +62,7 @@
       <Card>
         <p slot="title">{{ $t('data_management') }}</p>
         <div class="tagContainers">
+          <Spin size="large" fix v-if="spinShow"></Spin>
           <div class="data-permissions" v-for="ci in ciTypePermissions" :key="ci.ciTypeId">
             <span class="ciTypes" :title="ci.ciTypeName">{{ ci.ciTypeName }}</span>
             <div class="ciTypes-options">
@@ -320,7 +322,8 @@ export default {
         }
       ],
       seletedRows: [],
-      addedUser: {}
+      addedUser: {},
+      spinShow: false
     }
   },
   methods: {
@@ -671,6 +674,7 @@ export default {
     async getPermissions (queryAfterEditing, checked, roleOrUser, byUser = false) {
       if (checked) {
         let permissions = byUser ? await getPermissionsByUser(roleOrUser) : await getPermissionsByRole(roleOrUser)
+        this.spinShow = false
         this.ciTypePermissions = permissions.data.ciTypePermissions
         if (queryAfterEditing) {
           this.permissionEntryPointsForEdit = []
@@ -690,6 +694,7 @@ export default {
       }
     },
     async handleUserClick (checked, name) {
+      this.spinShow = true
       this.currentRoleName = null
       this.dataPermissionDisabled = true
       this.users.forEach(_ => {
@@ -745,6 +750,7 @@ export default {
     },
 
     async handleRoleClick (checked, rolename) {
+      this.spinShow = true
       // this.currentRoleId = id;
       this.currentRoleName = rolename
       this.dataPermissionDisabled = false

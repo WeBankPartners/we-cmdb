@@ -281,6 +281,7 @@ export default {
 
         let columnsTitles = this.tableColumns.filter(_ => _.isDisplayed || _.displaySeqNo).map(column => column.title)
 
+        console.log(JSON.parse(JSON.stringify(this.tableOuterActions)))
         return this.tableOuterActions.map(_ => {
           if (_.actionType === 'filterColumns') {
             return (
