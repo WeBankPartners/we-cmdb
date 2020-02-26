@@ -35,7 +35,8 @@ export default {
         { code: 'notNull', value: 'NotNull' },
         { code: 'null', value: 'Null' }
       ],
-      enumCodes: ['id', 'code', 'value', 'groupCodeId']
+      enumCodes: ['id', 'code', 'value', 'groupCodeId'],
+      spinShow: false
     }
   },
   computed: {
@@ -91,15 +92,18 @@ export default {
     renderOptions () {
       return (
         <div slot="content" class="auto-fill-options">
-          {this.options.map(_ =>
-            _.type === 'option' ? (
-              <div class={_.class} onClick={_.fn}>
-                {_.nodeName}
-              </div>
-            ) : (
-              <hr />
-            )
-          )}
+          {[
+            this.options.map(_ =>
+              _.type === 'option' ? (
+                <div class={_.class} onClick={_.fn}>
+                  {_.nodeName}
+                </div>
+              ) : (
+                <hr />
+              )
+            ),
+            this.spinShow ? <Spin fix /> : null
+          ]}
         </div>
       )
     },
@@ -270,10 +274,12 @@ export default {
       this.optionsDisplay = true
     },
     async getRefData (ruleIndex, attrIndex, ciTypeId) {
+      this.spinShow = true
       this.currentRule = ruleIndex
       this.currentAttr = attrIndex
       const promiseArray = [getRefCiTypeFrom(ciTypeId), getCiTypeAttr(ciTypeId)]
       const [refFroms, ciAttrs] = await Promise.all(promiseArray)
+      this.spinShow = false
       if (refFroms.statusCode === 'OK' && ciAttrs.statusCode === 'OK') {
         // 下拉框添加被引用的CI的选项
         refFroms.data.length &&
@@ -305,25 +311,27 @@ export default {
             type: 'line'
           })
         this.options = this.options.concat(
-          ciAttrs.data.map(_ => {
-            const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
-            const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].name : this.ciTypesObj[_.ciTypeId].name
-            const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId].name
-            const nodeName = isRef ? `->(${ciTypeName})${attrName}` : `.${attrName}`
-            const nodeObj = {
-              ciTypeId: isRef ? _.referenceId : _.ciTypeId,
-              parentRs: {
-                attrId: _.ciTypeAttrId,
-                isReferedFromParent: 1
+          ciAttrs.data
+            .filter(_ => _.inputType !== 'password')
+            .map(_ => {
+              const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
+              const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].name : this.ciTypesObj[_.ciTypeId].name
+              const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId].name
+              const nodeName = isRef ? `->(${ciTypeName})${attrName}` : `.${attrName}`
+              const nodeObj = {
+                ciTypeId: isRef ? _.referenceId : _.ciTypeId,
+                parentRs: {
+                  attrId: _.ciTypeAttrId,
+                  isReferedFromParent: 1
+                }
               }
-            }
-            return {
-              type: 'option',
-              class: 'auto-fill-li auto-fill-li-ref auto-fill-li-ref-to',
-              nodeName,
-              fn: () => this.addNode(ruleIndex, attrIndex, nodeObj)
-            }
-          })
+              return {
+                type: 'option',
+                class: 'auto-fill-li auto-fill-li-ref auto-fill-li-ref-to',
+                nodeName,
+                fn: () => this.addNode(ruleIndex, attrIndex, nodeObj)
+              }
+            })
         )
       }
     },
@@ -331,6 +339,9 @@ export default {
     showEnumOptions (ruleIndex, attrIndex) {
       this.currentRule = ruleIndex
       this.currentAttr = attrIndex
+      this.options.push({
+        type: 'line'
+      })
       this.options = this.options.concat(
         this.enumCodes.map(_ => {
           return {
