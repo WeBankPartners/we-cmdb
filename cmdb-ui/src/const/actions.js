@@ -42,7 +42,8 @@ export const outerActions = [
     props: {
       type: 'success',
       icon: 'md-add',
-      disabled: false
+      disabled: false,
+      loading: false
     },
     actionType: 'add'
   },
@@ -51,7 +52,8 @@ export const outerActions = [
     props: {
       type: 'info',
       icon: 'md-checkmark',
-      disabled: true
+      disabled: true,
+      loading: false
     },
     actionType: 'save'
   },
@@ -60,7 +62,8 @@ export const outerActions = [
     props: {
       type: 'info',
       icon: 'ios-build',
-      disabled: true
+      disabled: true,
+      loading: false
     },
     actionType: 'edit'
   },
@@ -69,7 +72,8 @@ export const outerActions = [
     props: {
       type: 'error',
       icon: 'ios-trash-outline',
-      disabled: true
+      disabled: true,
+      loading: false
     },
     actionType: 'delete'
   },
@@ -77,8 +81,9 @@ export const outerActions = [
     label: window.vm ? pluginI18n('cancel') : Vue.t('cancel'),
     props: {
       type: 'warning',
-      icon: 'md-undo'
+      icon: 'md-undo',
       // disabled: true
+      loading: false
     },
     actionType: 'cancel'
   },
@@ -86,7 +91,8 @@ export const outerActions = [
     label: window.vm ? pluginI18n('export') : Vue.t('export'),
     props: {
       type: 'primary',
-      icon: 'ios-download-outline'
+      icon: 'ios-download-outline',
+      loading: false
     },
     actionType: 'export'
   },
@@ -96,7 +102,8 @@ export const outerActions = [
       type: 'primary',
       icon: 'ios-funnel',
       shape: 'circle',
-      disabled: false
+      disabled: false,
+      loading: false
     },
     actionType: 'filterColumns'
   }

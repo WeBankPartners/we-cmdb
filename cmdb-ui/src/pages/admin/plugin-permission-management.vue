@@ -361,6 +361,11 @@ export default {
         'callbackId'
       ]
       if (addAry.length > 0) {
+        this.outerActions.forEach(_ => {
+          if (_.actionType === 'save') {
+            _.props.loading = true
+          }
+        })
         addAry.forEach(_ => {
           _.callbackId = _['weTableRowId']
           delete _.isNewAddedRow
@@ -375,6 +380,11 @@ export default {
           }
         })
         const { statusCode, message } = await createRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, addAry)
+        this.outerActions.forEach(_ => {
+          if (_.actionType === 'save') {
+            _.props.loading = false
+          }
+        })
         if (statusCode === 'OK') {
           this.$Notice.success({
             title: this.$t('add_permission_success'),
@@ -387,6 +397,11 @@ export default {
         }
       }
       if (editAry.length > 0) {
+        this.outerActions.forEach(_ => {
+          if (_.actionType === 'save') {
+            _.props.loading = true
+          }
+        })
         editAry.forEach(_ => {
           _.callbackId = _['weTableRowId']
           delete _.isNewAddedRow
@@ -407,6 +422,11 @@ export default {
           }
         })
         const { statusCode, message } = await updateRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, editAry)
+        this.outerActions.forEach(_ => {
+          if (_.actionType === 'save') {
+            _.props.loading = false
+          }
+        })
         if (statusCode === 'OK') {
           this.$Notice.success({
             title: this.$t('update_permission_success'),
@@ -414,6 +434,7 @@ export default {
           })
           this.getAttrPermissions()
           this.getPermissions(false, true, this.currentRoleName)
+          setBtnsStatus()
         }
       }
     },
