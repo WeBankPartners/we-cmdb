@@ -53,6 +53,7 @@
       <Card>
         <p slot="title">{{ $t('menus_management') }}</p>
         <div class="tagContainers">
+          <Spin size="large" fix v-if="spinShow"></Spin>
           <Tree :data="menus" show-checkbox @on-check-change="handleMenuTreeCheck"></Tree>
         </div>
       </Card>
@@ -61,6 +62,7 @@
       <Card>
         <p slot="title">{{ $t('data_management') }}</p>
         <div class="tagContainers">
+          <Spin size="large" fix v-if="spinShow"></Spin>
           <div class="data-permissions" v-for="ci in ciTypePermissions" :key="ci.ciTypeId">
             <span class="ciTypes" :title="ci.ciTypeName">{{ ci.ciTypeName }}</span>
             <div class="ciTypes-options">
@@ -320,7 +322,8 @@ export default {
         }
       ],
       seletedRows: [],
-      addedUser: {}
+      addedUser: {},
+      spinShow: false
     }
   },
   methods: {
@@ -468,6 +471,11 @@ export default {
         'callbackId'
       ]
       if (addAry.length > 0) {
+        this.outerActions.forEach(_ => {
+          if (_.actionType === 'save') {
+            _.props.loading = true
+          }
+        })
         addAry.forEach(_ => {
           _.callbackId = _['weTableRowId']
           delete _.isNewAddedRow
@@ -482,6 +490,11 @@ export default {
           }
         })
         const { statusCode, message } = await createRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, addAry)
+        this.outerActions.forEach(_ => {
+          if (_.actionType === 'save') {
+            _.props.loading = false
+          }
+        })
         if (statusCode === 'OK') {
           this.$Notice.success({
             title: this.$t('add_permission_success'),
@@ -494,6 +507,11 @@ export default {
         }
       }
       if (editAry.length > 0) {
+        this.outerActions.forEach(_ => {
+          if (_.actionType === 'save') {
+            _.props.loading = true
+          }
+        })
         editAry.forEach(_ => {
           _.callbackId = _['weTableRowId']
           delete _.isNewAddedRow
@@ -514,6 +532,11 @@ export default {
           }
         })
         const { statusCode, message } = await updateRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, editAry)
+        this.outerActions.forEach(_ => {
+          if (_.actionType === 'save') {
+            _.props.loading = false
+          }
+        })
         if (statusCode === 'OK') {
           this.$Notice.success({
             title: this.$t('update_permission_success'),
@@ -521,6 +544,7 @@ export default {
           })
           this.getAttrPermissions()
           this.getPermissions(false, true, this.currentRoleName)
+          setBtnsStatus()
         }
       }
     },
@@ -671,6 +695,7 @@ export default {
     async getPermissions (queryAfterEditing, checked, roleOrUser, byUser = false) {
       if (checked) {
         let permissions = byUser ? await getPermissionsByUser(roleOrUser) : await getPermissionsByRole(roleOrUser)
+        this.spinShow = false
         this.ciTypePermissions = permissions.data.ciTypePermissions
         if (queryAfterEditing) {
           this.permissionEntryPointsForEdit = []
@@ -690,6 +715,7 @@ export default {
       }
     },
     async handleUserClick (checked, name) {
+      this.spinShow = true
       this.currentRoleName = null
       this.dataPermissionDisabled = true
       this.users.forEach(_ => {
@@ -745,6 +771,7 @@ export default {
     },
 
     async handleRoleClick (checked, rolename) {
+      this.spinShow = true
       // this.currentRoleId = id;
       this.currentRoleName = rolename
       this.dataPermissionDisabled = false

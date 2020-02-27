@@ -259,12 +259,12 @@ public class CiDataInterceptorService {
                 continue;
             }
 
-            if (CiStatus.Decommissioned.getCode().equals(attr.getStatus())) {
+            if (CiStatus.Decommissioned.getCode().equals(attr.getStatus()) || CiStatus.NotCreated.getCode().equals(attr.getStatus()) ) {
                 continue;
             }
-
+            
             Object val = ciBeanMap.get(attr.getPropertyName());
-            if (CiStatus.Created.equals(attr.getStatus()) && (val == null || ((val instanceof String) && "".equals(val)))) {
+            if (val == null || ((val instanceof String) && "".equals(val))) {
                 Integer ciTypeId = entityHolder.getEntityMeta().getCiTypeId();
                 throw new InvalidArgumentException(String.format("Field [%s] is required for creation of CiType [%s(%d)].", attr.getPropertyName(), getCiTypeName(ciTypeId), ciTypeId));
             }
