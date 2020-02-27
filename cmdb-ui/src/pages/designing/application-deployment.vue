@@ -751,7 +751,9 @@ export default {
       this.getCurrentData()
     },
     async defaultHandler (type, row) {
+      this.$set(row.weTableForm, `${type}Loading`, true)
       const { statusCode, message } = await operateCiState(this.currentTab, row.guid, type)
+      this.$set(row.weTableForm, `${type}Loading`, false)
       if (statusCode === 'OK') {
         this.$Notice.success({
           title: type,
@@ -878,6 +880,14 @@ export default {
       let addAry = d.filter(_ => _.isNewAddedRow)
       let editAry = d.filter(_ => !_.isNewAddedRow)
       if (addAry.length > 0) {
+        const found = this.tabList.find(i => i.id === this.currentTab)
+        if (found) {
+          found.outerActions.forEach(_ => {
+            if (_.actionType === 'save') {
+              _.props.loading = true
+            }
+          })
+        }
         const deleteAttrs = this.deleteAttr()
         addAry.forEach(_ => {
           deleteAttrs.forEach(attr => {
@@ -889,12 +899,18 @@ export default {
           delete _.isNewAddedRow
           delete _.nextOperations
         })
-        let found = this.tabList.find(i => i.id === this.currentTab)
         let payload = {
           id: found && found.code,
           createData: addAry
         }
         const { statusCode, message } = await createCiDatas(payload)
+        if (found) {
+          found.outerActions.forEach(_ => {
+            if (_.actionType === 'save') {
+              _.props.loading = false
+            }
+          })
+        }
         if (statusCode === 'OK') {
           this.$Notice.success({
             title: 'Add data Success',
@@ -906,6 +922,14 @@ export default {
         }
       }
       if (editAry.length > 0) {
+        const found = this.tabList.find(i => i.id === this.currentTab)
+        if (found) {
+          found.outerActions.forEach(_ => {
+            if (_.actionType === 'save') {
+              _.props.loading = true
+            }
+          })
+        }
         editAry.forEach(_ => {
           delete _.isRowEditable
           delete _.weTableForm
@@ -913,14 +937,18 @@ export default {
           delete _.isNewAddedRow
           delete _.nextOperations
         })
-
-        let found = this.tabList.find(i => i.id === this.currentTab)
-
         let payload = {
           id: found && found.code,
           updateData: editAry
         }
         const { statusCode, message } = await updateCiDatas(payload)
+        if (found) {
+          found.outerActions.forEach(_ => {
+            if (_.actionType === 'save') {
+              _.props.loading = false
+            }
+          })
+        }
         if (statusCode === 'OK') {
           this.$Notice.success({
             title: 'Update data Success',
@@ -934,6 +962,13 @@ export default {
     },
     async exportHandler () {
       let found = this.tabList.find(i => i.code === this.currentTab)
+      if (found) {
+        found.outerActions.forEach(_ => {
+          if (_.actionType === 'export') {
+            _.props.loading = true
+          }
+        })
+      }
       let requst = {
         codeId: found.codeId,
         systemGuid: this.systemVersion
@@ -944,6 +979,13 @@ export default {
         paging: false
       }
       const { statusCode, data } = await getDeployCiData(requst, exportPayload)
+      if (found) {
+        found.outerActions.forEach(_ => {
+          if (_.actionType === 'export') {
+            _.props.loading = false
+          }
+        })
+      }
       if (statusCode === 'OK') {
         this.$refs[this.tableRef][0].export({
           filename: 'Ci Data',
@@ -1071,7 +1113,7 @@ export default {
               tableData: [],
               tableColumns: [],
               outerActions: JSON.parse(JSON.stringify(outerActions)),
-              innerActions: JSON.parse(JSON.stringify(innerActions.concat(allInnerActions))),
+              innerActions: innerActions.concat(allInnerActions),
               pagination: JSON.parse(JSON.stringify(pagination)),
               ascOptions: {}
             }
