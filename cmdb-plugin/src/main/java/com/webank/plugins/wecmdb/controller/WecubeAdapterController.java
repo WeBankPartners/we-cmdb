@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.webank.cmdb.dto.QueryRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,11 +29,8 @@ public class WecubeAdapterController {
 
     @GetMapping("/entities/{entity-name}")
     @ResponseBody
-    public Object retrieveCiData(@PathVariable(value = "entity-name") String entityName,
-            @RequestParam(value = "filter", required = false) String filter,
-            @RequestParam(value = "sorting", required = false) String sorting,
-            @RequestParam(value = "select", required = false) String select) {
-        return wecubeAdapterService.getCiDataWithConditions(entityName, filter, sorting, select);
+    public Object retrieveCiData(@PathVariable(value = "entity-name") String entityName,@RequestBody QueryRequest queryObject) {
+        return wecubeAdapterService.getCiDataWithConditions(entityName, queryObject);
     }
 
     @PostMapping("/entities/{entity-name}/create")
