@@ -217,52 +217,25 @@ public class WecubeAdapterService {
         return dataTypeMapping.get(ciTypeAttrDto.getPropertyType());
     }
 
-    public Object getCiDataWithConditions(String entityName, String filter, String sorting, String selectAttrs) {
-        QueryRequest queryObject = QueryRequest.defaultQueryObject();
-
-        applyFiltering(filter, queryObject);
-        applySorting(sorting, queryObject);
-        applySelectAttrs(selectAttrs, queryObject);
+    public Object getCiDataWithConditions(String entityName,QueryRequest queryObject) {
+        if (queryObject == null)
+            queryObject = QueryRequest.defaultQueryObject();
+        parameterAdaptation(queryObject);
 
         return convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
     }
 
-    private void applySelectAttrs(String selectAttrs, QueryRequest queryObject) {
-        if (!StringUtils.isBlank(selectAttrs)) {
-            String[] attrs = selectAttrs.split(",");
-            List<String> resultColumns = new ArrayList<>();
-            for (String attr : attrs) {
-                resultColumns.add(ID.equals(attr) ? GUID : attr.trim());
+    private void parameterAdaptation(QueryRequest queryObject) {
+        queryObject.getFilters().forEach(filter -> {
+            if (ID.equals(filter.getName())) filter.setName(GUID);
+        });
+        if (ID.equals(queryObject.getSorting().getField()))
+            queryObject.getSorting().setField(GUID);
+        for(String column: queryObject.getResultColumns()){
+            if (ID.equals(column)) {
+                queryObject.getResultColumns().remove(column);
+                queryObject.getResultColumns().add(GUID);
             }
-            queryObject.setResultColumns(resultColumns);
-        }
-    }
-
-    private void applySorting(String sorting, QueryRequest queryObject) {
-        if (!StringUtils.isBlank(sorting)) {
-            if (sorting.split(",").length != 2) {
-                throw new PluginException("The given parameter 'sorting' must be format 'key," + SORTING_ASC + "/" + SORTING_DESC + "'");
-            }
-            String sortingAttr = sorting.split(",")[0].trim();
-            String sortingValue = sorting.split(",")[1].trim();
-
-            if (SORTING_ASC.equals(sortingValue) || SORTING_DESC.equals(sortingValue)) {
-                queryObject.setSorting(new Sorting(sortingValue.equals(SORTING_ASC) ? true : false, ID.equals(sortingAttr) ? GUID : sortingAttr));
-            } else {
-                throw new PluginException("The given value of 'sorting' must be " + SORTING_ASC + " or " + SORTING_DESC + "'");
-            }
-        }
-    }
-
-    private void applyFiltering(String filter, QueryRequest queryObject) {
-        if (!StringUtils.isBlank(filter)) {
-            if (filter.split(",").length != 2) {
-                throw new PluginException("The given parameter 'filter' must be format 'key,value'");
-            }
-
-            String filterAttr = filter.split(",")[0].trim();
-            String filterValue = filter.split(",")[1].trim();
-            queryObject.addEqualsFilter(ID.equals(filterAttr) ? GUID : filterAttr, filterValue);
         }
     }
 
