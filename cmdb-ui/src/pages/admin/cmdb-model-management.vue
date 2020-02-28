@@ -780,7 +780,7 @@ import STATUS_LIST from '@/const/graph-status-list.js'
 import { PROPERTY_TYPE_MAP } from '@/const/data-types.js'
 import { setHeaders, baseURL } from '@/api/base.js'
 import enumGroupModal from './components/enum-group-modal'
-import { AutoFill } from '../components/auto-fill.js'
+import AutoFill from '../components/auto-fill.js'
 import FilterRule from '../components/filter-rule'
 
 const defaultCiTypePNG = require('@/assets/ci-type-default.png')
