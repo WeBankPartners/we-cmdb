@@ -223,7 +223,7 @@
   "auto_fill_add_delimiter": "添加连接符",
   "auto_fill_edit_delimiter": "编辑连接符",
   "auto_fill_special_delimiter": "特殊连接符",
-  "auto_fill_change_special_delimiter": "更换特殊连接符",
+  "auto_fill_change_special_delimiter": "编辑特殊连接符",
   "auto_fill_filter_modal_title": "过滤条件",
   "auto_fill_filter_modal_button": "添加过滤条件",
   "auto_fill_filter_placeholder": " <-- 点此开始编辑填充规则",
@@ -240,5 +240,6 @@
   "fetch_password_failed": "获取密码失败",
   "no_password": "未设密码",
   "enter_password": "输入密码",
-  "actions": "操作"
+  "actions": "操作",
+  "value": "值"
 }
