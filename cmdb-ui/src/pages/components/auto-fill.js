@@ -1,8 +1,8 @@
 import './auto-fill.scss'
 import { getRefCiTypeFrom, getCiTypeAttr } from '@/api/server.js'
 
-export const AutoFill = {
-  name: 'autoFill',
+export default {
+  name: 'AutoFill',
   props: {
     allCiTypes: { default: () => [], required: true },
     isReadOnly: { default: () => false, required: false },
