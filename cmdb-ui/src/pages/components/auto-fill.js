@@ -517,7 +517,6 @@ export const AutoFill = {
           filterNode += '['
           filterNode += _.filters
             .map((filter, filterIndex) => {
-              debugger
               let filterValue = ''
               if (filter.type === 'value') {
                 filterValue = Array.isArray(filter.value) ? `[${filter.value.join(',')}]` : filter.value
