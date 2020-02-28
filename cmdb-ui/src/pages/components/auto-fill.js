@@ -733,11 +733,7 @@ export const AutoFill = {
                 onClick={() => this.filters.splice(i, 1)}
                 class="auto-fill-filter-li-icon"
               />
-              <Select
-                value={_.name}
-                on-on-change={v => this.changeFilter(v, i)}
-                class="auto-fill-filter-li-select title"
-              >
+              <Select value={_.name} onInput={v => this.changeFilter(v, i)} class="auto-fill-filter-li-select title">
                 {this.filterCiAttrs.map(attr => (
                   <Option key={attr.ciTypeAttrId} value={attr.propertyName}>
                     {attr.name}
@@ -746,7 +742,7 @@ export const AutoFill = {
               </Select>
               <Select
                 value={_.operator}
-                on-on-change={v => (this.filters[i].operator = v)}
+                onInput={v => (this.filters[i].operator = v)}
                 class="auto-fill-filter-li-select operator"
               >
                 {this.operatorList.map(o => (
@@ -757,7 +753,7 @@ export const AutoFill = {
               </Select>
               <Select
                 value={_.type}
-                on-on-change={v => {
+                onInput={v => {
                   this.filters[i].type = v
                 }}
                 class="auto-fill-filter-li-select type"
