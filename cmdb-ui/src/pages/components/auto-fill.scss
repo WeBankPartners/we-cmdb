@@ -15,6 +15,7 @@
   }
 
   &-special-delimiter {
+    font-style: oblique;
     font-weight: 600;
   }
 
@@ -34,7 +35,8 @@
     border-bottom: 1px solid #f00;
   }
 
-  &-braces {
+  &-key-word {
+    font-style: oblique;
     font-weight: 600;
   }
 
