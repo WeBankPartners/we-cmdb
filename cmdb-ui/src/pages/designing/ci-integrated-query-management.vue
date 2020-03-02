@@ -39,11 +39,13 @@
       </Col>
       <Col span="6" offset="1">
         <Button :disabled="!isNewIntQuery" @click="newGraphNameModalVisible = true">{{ $t('create') }}</Button>
-        <Button :disabled="saveBtnDisable || isNewIntQuery" @click="saveGraph">{{ $t('update') }}</Button>
+        <Button :disabled="saveBtnDisable || isNewIntQuery" @click="saveGraph('update')" :loading="updateLoading">{{
+          $t('update')
+        }}</Button>
         <Modal
           v-model="newGraphNameModalVisible"
           :title="$t('add_integrated_query_name')"
-          @on-ok="saveGraph"
+          @on-ok="saveGraph('create')"
           @on-cancel="() => {}"
         >
           <Input v-model="newGraphName" :placeholder="$t('input_placeholder')" />
@@ -98,7 +100,8 @@ export default {
       saveBtnDisable: true,
       newGraphNameModalVisible: false,
       newGraphName: '',
-      ciGraphResult: null
+      ciGraphResult: null,
+      updateLoading: false
     }
   },
   created () {
@@ -267,7 +270,7 @@ export default {
       })
       document.querySelector('.ivu-modal-mask').click()
     },
-    async createIntQuery () {
+    createIntQuery () {
       if (this.selectedCI.id) {
         const found = this.allCiTypes.find(_ => _.ciTypeId === this.selectedCI.id)
         this.ciGraphData = {
@@ -276,10 +279,11 @@ export default {
           children: []
         }
         this.isNewIntQuery = true
+        this.attrs = []
       }
       document.querySelector('.content-container').click()
     },
-    async saveGraph () {
+    async saveGraph (type) {
       const reqData = this.treeifyCiTypes()
       if (!reqData) {
         this.$Notice.warning({
@@ -287,9 +291,13 @@ export default {
           desc: this.$t('unreasonable_delete_integrated_tips')
         })
       } else {
+        if (type === 'update') {
+          this.updateLoading = true
+        }
         const { statusCode, message } = this.isNewIntQuery
           ? await saveIntQuery(this.selectedCI.id, this.newGraphName, reqData)
           : await updateIntQuery(this.selectedQuery.id, reqData)
+        this.updateLoading = false
         if (statusCode === 'OK') {
           this.$Notice.success({
             title: 'Success',

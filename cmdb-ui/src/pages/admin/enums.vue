@@ -366,6 +366,11 @@ export default {
       let addObj = d.find(_ => _.isNewAddedRow)
       let editAry = d.filter(_ => !_.isNewAddedRow)
       if (addObj) {
+        this.outerActions.forEach(_ => {
+          if (_.actionType === 'save') {
+            _.props.loading = true
+          }
+        })
         let payload = {
           callbackId: 1,
           catId: addObj.catId || this.catId,
@@ -375,6 +380,11 @@ export default {
           groupCodeId: addObj.groupCodeId
         }
         const { statusCode, message } = await createEnumCode(payload)
+        this.outerActions.forEach(_ => {
+          if (_.actionType === 'save') {
+            _.props.loading = false
+          }
+        })
         if (statusCode === 'OK') {
           this.$Notice.success({
             title: this.$t('add_enum_success_message'),
@@ -385,6 +395,11 @@ export default {
         }
       }
       if (editAry.length > 0) {
+        this.outerActions.forEach(_ => {
+          if (_.actionType === 'save') {
+            _.props.loading = true
+          }
+        })
         let payload = editAry.map(_ => {
           return {
             callbackId: _.weTableRowId,
@@ -397,6 +412,11 @@ export default {
           }
         })
         const { statusCode, message } = await updateEnumCode(payload)
+        this.outerActions.forEach(_ => {
+          if (_.actionType === 'save') {
+            _.props.loading = false
+          }
+        })
         if (statusCode === 'OK') {
           this.$Notice.success({
             title: this.$t('update_enum_success_message'),
@@ -421,11 +441,20 @@ export default {
       this.getAsyncOptions(rows, checkoutBoxdisable)
     },
     async exportHandler () {
+      this.outerActions.forEach(_ => {
+        if (_.actionType === 'export') {
+          _.props.loading = true
+        }
+      })
       const { statusCode, data } =
         this.$route.name === 'baseData'
           ? await getAllSystemEnumCodes({ ...this.payload, paging: false })
           : await getAllNonSystemEnumCodes({ ...this.payload, paging: false })
-
+      this.outerActions.forEach(_ => {
+        if (_.actionType === 'export') {
+          _.props.loading = false
+        }
+      })
       if (statusCode === 'OK') {
         this.$refs.table.export({
           filename: this.$route.name === 'baseData' ? 'Basic Enums Data' : 'Enums Data',
