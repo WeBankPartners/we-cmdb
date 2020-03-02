@@ -561,10 +561,7 @@ export default {
               const operatorFound = this.operatorList.find(operator => operator.code === filter.operator)
               const operator = operatorFound ? operatorFound.value : filter.operator
               const attrFound = attrs.find(attr => attr.propertyName === filter.name)
-              let filterName = attrFound ? attrFound.name : filter.name
-              if (filterIndex > 0) {
-                filterName = ' | ' + filterName
-              }
+              const filterName = attrFound ? attrFound.name : filter.name
               if (filter.type === 'value') {
                 const _filterValue = Array.isArray(filter.value) ? `[${filter.value.join(',')}]` : filter.value
                 filterValue = this.renderSpan(_filterValue, _props)
@@ -572,6 +569,7 @@ export default {
                 filterValue = this.formaFillRule(JSON.parse(filter.value), defaultProps)
               }
               return [
+                filterIndex > 0 && <span {..._propsWithkeyWord}>{' | '}</span>,
                 ...this.renderSpan(filterName, _props),
                 ...this.renderSpan(` ${operator} `, _propsWithkeyWord),
                 ...filterValue
