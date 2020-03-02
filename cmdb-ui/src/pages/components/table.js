@@ -550,6 +550,7 @@ export default {
                       <Button
                         {...{ props: { ..._.props } }}
                         disabled={_.isDisabled && _.isDisabled(params.row)}
+                        loading={_.isLoading && _.isLoading(params.row)}
                         style="marginRight: 5px"
                         onClick={() => {
                           this.$emit('actionFun', _.actionType, params.row)
@@ -592,6 +593,8 @@ export default {
         resizable: !isLastCol, // 除最后一列，该属性都为true
         sortable: this.isSortable ? 'custom' : false,
         render: (h, params) => {
+          const _this = this
+
           const isEdit =
             params.row.isRowEditable &&
             (!params.column.disEditor || params.row.isNewAddedRow) &&
@@ -605,12 +608,13 @@ export default {
                 isNewAddedRow={params.row.isNewAddedRow || false}
                 propertyName={params.column.propertyName}
                 value={params.row[params.column.propertyName]}
+                onInput={v => {
+                  setValueHandler(_this, v, col, params)
+                }}
               />
             )
           }
           if (isEdit) {
-            const _this = this
-
             const props =
               params.column.component === 'WeCMDBSelect'
                 ? {

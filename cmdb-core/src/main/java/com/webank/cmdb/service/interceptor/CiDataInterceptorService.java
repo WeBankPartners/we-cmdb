@@ -259,10 +259,10 @@ public class CiDataInterceptorService {
                 continue;
             }
 
-            if (CiStatus.Decommissioned.getCode().equals(attr.getStatus())) {
+            if (CiStatus.Decommissioned.getCode().equals(attr.getStatus()) || CiStatus.NotCreated.getCode().equals(attr.getStatus()) ) {
                 continue;
             }
-
+            
             Object val = ciBeanMap.get(attr.getPropertyName());
             if (val == null || ((val instanceof String) && "".equals(val))) {
                 Integer ciTypeId = entityHolder.getEntityMeta().getCiTypeId();

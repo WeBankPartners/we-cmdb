@@ -23,6 +23,7 @@ export const getExtraInnerActions = async () => {
                 type: 'info',
                 size: 'small'
               },
+              isLoading: row => !!row.weTableForm.confirmLoading,
               actionType: 'confirm',
               visible: {
                 key: 'nextOperations',
@@ -36,6 +37,7 @@ export const getExtraInnerActions = async () => {
                 type: 'warning',
                 size: 'small'
               },
+              isLoading: row => !!row.weTableForm.discardLoading,
               actionType: 'discard',
               visible: {
                 key: 'nextOperations',
@@ -49,6 +51,7 @@ export const getExtraInnerActions = async () => {
                 type: 'success',
                 size: 'small'
               },
+              isLoading: row => !!row.weTableForm.startupLoading,
               actionType: 'startup',
               visible: {
                 key: 'nextOperations',
@@ -62,6 +65,7 @@ export const getExtraInnerActions = async () => {
                 type: 'error',
                 size: 'small'
               },
+              isLoading: row => !!row.weTableForm.stopLoading,
               actionType: 'stop',
               visible: {
                 key: 'nextOperations',
@@ -75,6 +79,7 @@ export const getExtraInnerActions = async () => {
                 type: 'info',
                 size: 'small'
               },
+              isLoading: row => !!row.weTableForm[`${item.code}Loading`],
               actionType: item.code,
               visible: {
                 key: 'nextOperations',
