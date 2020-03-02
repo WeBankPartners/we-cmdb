@@ -421,7 +421,7 @@ public class CiDataInterceptorService {
                     routines.forEach(routine -> {
                         routine.getFilters().forEach(filter -> {
                             if ("autoFill".equals(filter.getType())){
-                                filter.setValue(queryValueByRule(rootGuid,attrWithGuid,filter.getValue(),sb));
+                                filter.setValue(queryValueByRule(rootGuid,attrWithGuid,filter.getValue(),new StringBuilder()));
                             }
                         });
                     });
