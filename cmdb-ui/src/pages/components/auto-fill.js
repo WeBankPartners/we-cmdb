@@ -2,7 +2,7 @@ import './auto-fill.scss'
 import { getRefCiTypeFrom, getCiTypeAttr } from '@/api/server.js'
 
 export default {
-  name: 'autoFill',
+  name: 'AutoFill',
   props: {
     allCiTypes: { default: () => [], required: true },
     isReadOnly: { default: () => false, required: false },
@@ -35,7 +35,8 @@ export default {
         { code: 'notNull', value: 'NotNull' },
         { code: 'null', value: 'Null' }
       ],
-      enumCodes: ['id', 'code', 'value', 'groupCodeId']
+      enumCodes: ['id', 'code', 'value', 'groupCodeId'],
+      spinShow: false
     }
   },
   computed: {
@@ -75,7 +76,7 @@ export default {
         this.autoFillArray.map((_, i) => {
           switch (_.type) {
             case 'rule':
-              return this.renderExpression(_, i)
+              return this.renderExpression(_.value, i)
             case 'delimiter':
               return this.renderDelimiter(_.value, i)
             case 'specialDelimiter':
@@ -88,18 +89,39 @@ export default {
         this.renderModal()
       ]
     },
+    // 将过滤规则格式化为可读值
+    formaFillRule (value) {
+      return value
+        .map((_, i) => {
+          switch (_.type) {
+            case 'rule':
+              return this.renderExpression(_.value, i, 'string')
+            case 'delimiter':
+              return _.value
+            case 'specialDelimiter':
+              const found = this.specialDelimiters.find(item => item.code === value)
+              return found ? found.value : ''
+            default:
+              break
+          }
+        })
+        .join('')
+    },
     renderOptions () {
       return (
         <div slot="content" class="auto-fill-options">
-          {this.options.map(_ =>
-            _.type === 'option' ? (
-              <div class={_.class} onClick={_.fn}>
-                {_.nodeName}
-              </div>
-            ) : (
-              <hr />
-            )
-          )}
+          {[
+            this.options.map(_ =>
+              _.type === 'option' ? (
+                <div class={_.class} onClick={_.fn}>
+                  {_.nodeName}
+                </div>
+              ) : (
+                <hr />
+              )
+            ),
+            this.spinShow ? <Spin fix /> : null
+          ]}
         </div>
       )
     },
@@ -270,10 +292,12 @@ export default {
       this.optionsDisplay = true
     },
     async getRefData (ruleIndex, attrIndex, ciTypeId) {
+      this.spinShow = true
       this.currentRule = ruleIndex
       this.currentAttr = attrIndex
       const promiseArray = [getRefCiTypeFrom(ciTypeId), getCiTypeAttr(ciTypeId)]
       const [refFroms, ciAttrs] = await Promise.all(promiseArray)
+      this.spinShow = false
       if (refFroms.statusCode === 'OK' && ciAttrs.statusCode === 'OK') {
         // 下拉框添加被引用的CI的选项
         refFroms.data.length &&
@@ -305,25 +329,27 @@ export default {
             type: 'line'
           })
         this.options = this.options.concat(
-          ciAttrs.data.map(_ => {
-            const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
-            const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].name : this.ciTypesObj[_.ciTypeId].name
-            const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId].name
-            const nodeName = isRef ? `->(${ciTypeName})${attrName}` : `.${attrName}`
-            const nodeObj = {
-              ciTypeId: isRef ? _.referenceId : _.ciTypeId,
-              parentRs: {
-                attrId: _.ciTypeAttrId,
-                isReferedFromParent: 1
+          ciAttrs.data
+            .filter(_ => _.inputType !== 'password')
+            .map(_ => {
+              const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
+              const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].name : this.ciTypesObj[_.ciTypeId].name
+              const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId].name
+              const nodeName = isRef ? `->(${ciTypeName})${attrName}` : `.${attrName}`
+              const nodeObj = {
+                ciTypeId: isRef ? _.referenceId : _.ciTypeId,
+                parentRs: {
+                  attrId: _.ciTypeAttrId,
+                  isReferedFromParent: 1
+                }
               }
-            }
-            return {
-              type: 'option',
-              class: 'auto-fill-li auto-fill-li-ref auto-fill-li-ref-to',
-              nodeName,
-              fn: () => this.addNode(ruleIndex, attrIndex, nodeObj)
-            }
-          })
+              return {
+                type: 'option',
+                class: 'auto-fill-li auto-fill-li-ref auto-fill-li-ref-to',
+                nodeName,
+                fn: () => this.addNode(ruleIndex, attrIndex, nodeObj)
+              }
+            })
         )
       }
     },
@@ -331,6 +357,9 @@ export default {
     showEnumOptions (ruleIndex, attrIndex) {
       this.currentRule = ruleIndex
       this.currentAttr = attrIndex
+      this.options.push({
+        type: 'line'
+      })
       this.options = this.options.concat(
         this.enumCodes.map(_ => {
           return {
@@ -418,7 +447,7 @@ export default {
           if (found) {
             _.inputType = found.inputType
           }
-          if (_.operator === 'in') {
+          if (_.operator === 'in' && _.type === 'value') {
             _.value = _.value.join(',')
           }
           return _
@@ -469,18 +498,18 @@ export default {
       }
       this.handleInput()
     },
-    renderExpression (val, i) {
+    renderExpression (val, i, renderType = 'dom') {
       // type === rule 时，链式属性表达式
-      let result = JSON.parse(val.value).map((_, attrIndex) => {
+      let result = JSON.parse(val).map((_, attrIndex) => {
         let isLegal = true
-        if (attrIndex === JSON.parse(val.value).length - 1) {
-          const lastInputType = JSON.parse(val.value)[attrIndex].parentRs
-            ? this.ciTypeAttrsObj[JSON.parse(val.value)[attrIndex].parentRs.attrId].inputType
+        if (attrIndex === JSON.parse(val).length - 1) {
+          const lastInputType = JSON.parse(val)[attrIndex].parentRs
+            ? this.ciTypeAttrsObj[JSON.parse(val)[attrIndex].parentRs.attrId].inputType
             : ''
           if (lastInputType === 'ref' || lastInputType === 'multiRef' || !lastInputType) {
             isLegal = false
           } else if (lastInputType === 'select' || lastInputType === 'multiSelect') {
-            isLegal = !!JSON.parse(val.value)[attrIndex].enumCodeAttr
+            isLegal = !!JSON.parse(val)[attrIndex].enumCodeAttr
           }
         }
         let filterNode = ''
@@ -488,7 +517,12 @@ export default {
           filterNode += '['
           filterNode += _.filters
             .map((filter, filterIndex) => {
-              const filterValue = Array.isArray(filter.value) ? `[${filter.value.join(',')}]` : filter.value
+              let filterValue = ''
+              if (filter.type === 'value') {
+                filterValue = Array.isArray(filter.value) ? `[${filter.value.join(',')}]` : filter.value
+              } else {
+                filterValue = this.formaFillRule(JSON.parse(filter.value))
+              }
               return `${filterIndex > 0 ? ' | ' : ''}${filter.name} ${filter.operator} ${filterValue}`
             })
             .join('')
@@ -496,24 +530,26 @@ export default {
         }
         const ciTypeName = this.ciTypesObj[_.ciTypeId].name
         if (!_.parentRs) {
-          return `${ciTypeName}${filterNode}`.split('').map(_ => {
-            const classList = {
-              'auto-fill-span': true,
-              'auto-fill-hover': this.hoverAttr === attrIndex + '' && this.hoverSpan === i + '',
-              'auto-fill-current-node': this.currentRule === i + '' && this.currentAttr === attrIndex + '',
-              'auto-fill-error': !isLegal
-            }
-            const className = Object.keys(classList).map(key => {
-              if (classList[key]) {
-                return key
+          return renderType === 'dom'
+            ? `${ciTypeName}${filterNode}`.split('').map(_ => {
+              const classList = {
+                'auto-fill-span': true,
+                'auto-fill-hover': this.hoverAttr === attrIndex + '' && this.hoverSpan === i + '',
+                'auto-fill-current-node': this.currentRule === i + '' && this.currentAttr === attrIndex + '',
+                'auto-fill-error': !isLegal
               }
+              const className = Object.keys(classList).map(key => {
+                if (classList[key]) {
+                  return key
+                }
+              })
+              return (
+                <span class={className} index={i} attr-index={attrIndex}>
+                  {_}
+                </span>
+              )
             })
-            return (
-              <span class={className} index={i} attr-index={attrIndex}>
-                {_}
-              </span>
-            )
-          })
+            : `${ciTypeName}${filterNode}`
         } else {
           const inputType = this.ciTypeAttrsObj[_.parentRs.attrId].inputType
           const ref =
@@ -524,55 +560,61 @@ export default {
             this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'ref' ||
             this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'multiRef'
           ) {
-            return ` ${ref}(${ciTypeName})${attrName}${filterNode}`.split('').map(_ => {
-              const classList = {
-                'auto-fill-span': true,
-                'auto-fill-hover': this.hoverAttr === attrIndex + '' && this.hoverSpan === i + '',
-                'auto-fill-current-node': this.currentRule === i + '' && this.currentAttr === attrIndex + '',
-                'auto-fill-error': !isLegal
-              }
-              const className = Object.keys(classList).map(key => {
-                if (classList[key]) {
-                  return key
+            return renderType === 'dom'
+              ? ` ${ref}(${ciTypeName})${attrName}${filterNode}`.split('').map(_ => {
+                const classList = {
+                  'auto-fill-span': true,
+                  'auto-fill-hover': this.hoverAttr === attrIndex + '' && this.hoverSpan === i + '',
+                  'auto-fill-current-node': this.currentRule === i + '' && this.currentAttr === attrIndex + '',
+                  'auto-fill-error': !isLegal
                 }
+                const className = Object.keys(classList).map(key => {
+                  if (classList[key]) {
+                    return key
+                  }
+                })
+                return (
+                  <span class={className} index={i} attr-index={attrIndex}>
+                    {_}
+                  </span>
+                )
               })
-              return (
-                <span class={className} index={i} attr-index={attrIndex}>
-                  {_}
-                </span>
-              )
-            })
+              : ` ${ref}(${ciTypeName})${attrName}${filterNode}`
           } else {
-            return ` ${ref}${attrName}${enumCode}${filterNode}`.split('').map(_ => {
-              const classList = {
-                'auto-fill-span': true,
-                'auto-fill-hover': this.hoverAttr === attrIndex + '' && this.hoverSpan === i + '',
-                'auto-fill-current-node': this.currentRule === i + '' && this.currentAttr === attrIndex + '',
-                'auto-fill-error': !isLegal
-              }
-              const className = Object.keys(classList).map(key => {
-                if (classList[key]) {
-                  return key
+            return renderType === 'dom'
+              ? ` ${ref}${attrName}${enumCode}${filterNode}`.split('').map(_ => {
+                const classList = {
+                  'auto-fill-span': true,
+                  'auto-fill-hover': this.hoverAttr === attrIndex + '' && this.hoverSpan === i + '',
+                  'auto-fill-current-node': this.currentRule === i + '' && this.currentAttr === attrIndex + '',
+                  'auto-fill-error': !isLegal
                 }
+                const className = Object.keys(classList).map(key => {
+                  if (classList[key]) {
+                    return key
+                  }
+                })
+                return (
+                  <span class={className} index={i} attr-index={attrIndex}>
+                    {_}
+                  </span>
+                )
               })
-              return (
-                <span class={className} index={i} attr-index={attrIndex}>
-                  {_}
-                </span>
-              )
-            })
+              : ` ${ref}${attrName}${enumCode}${filterNode}`
           }
         }
       })
-      return [
-        <span class={`auto-fill-span auto-fill-braces${this.hoverSpan === i + '' ? ' contains' : ''}`} index={i}>
-          {'{ '}
-        </span>,
-        result,
-        <span class={`auto-fill-span auto-fill-braces${this.hoverSpan === i + '' ? ' contains' : ''}`} index={i}>
-          {' }'}
-        </span>
-      ]
+      return renderType === 'dom'
+        ? [
+          <span class={`auto-fill-span auto-fill-braces${this.hoverSpan === i + '' ? ' contains' : ''}`} index={i}>
+            {'{ '}
+          </span>,
+          result,
+          <span class={`auto-fill-span auto-fill-braces${this.hoverSpan === i + '' ? ' contains' : ''}`} index={i}>
+            {' }'}
+          </span>
+        ]
+        : `{ ${result.join('')} }`
     },
     renderDelimiter (val, i) {
       // type === delimiter 时，连接符
@@ -603,15 +645,17 @@ export default {
       return result
     },
     renderSpecialDelimiter (value, i) {
+      const found = this.specialDelimiters.find(item => item.code === value)
+      const specialDelimiter = found ? found.value : ''
       return [
         <span style="margin-left:5px;"></span>,
-        value.split('').map(_ => {
+        specialDelimiter.split('').map(_ => {
           return (
             <span
               class={`auto-fill-span auto-fill-special-delimiter${this.hoverSpan === i + '' ? ' hover' : ''}`}
               index={i}
             >
-              {this.specialDelimiters.find(item => item.code === value).value}
+              {_}
             </span>
           )
         }),
@@ -667,14 +711,17 @@ export default {
       const emptyFilter = {
         name: '',
         inputType: 'text',
-        operator: '',
+        operator: 'in',
+        type: 'value',
         value: ''
       }
+      const { rootCiTypeId, allCiTypes, specialDelimiters } = this
       return (
         <Modal
           value={this.modalDisplay}
           onInput={v => (this.modalDisplay = v)}
           title={this.$t('auto_fill_filter_modal_title')}
+          width="800"
           on-on-ok={this.confirmFilter}
           on-on-cancel={this.cancelFilter}
         >
@@ -704,7 +751,41 @@ export default {
                   </Option>
                 ))}
               </Select>
-              <Input class="auto-fill-filter-li-input" onInput={v => (this.filters[i].value = v)} value={_.value} />
+              <Select
+                value={_.type}
+                onInput={v => {
+                  this.filters[i].type = v
+                }}
+                class="auto-fill-filter-li-select type"
+              >
+                <Option key="value" value="value">
+                  {this.$t('value')}
+                </Option>
+                <Option key="autoFill" value="autoFill">
+                  {this.$t('auto_fill_rule')}
+                </Option>
+              </Select>
+              {_.type === 'value' ? (
+                <Input
+                  class="auto-fill-filter-li-input"
+                  onInput={v => (this.filters[i].value = v)}
+                  value={_.value}
+                  type="textarea"
+                  autosize={true}
+                />
+              ) : (
+                <AutoFill
+                  class="auto-fill-filter-li-input"
+                  allCiTypes={allCiTypes}
+                  isReadOnly={false}
+                  onInput={v => {
+                    this.filters[i].value = v
+                  }}
+                  rootCiTypeId={rootCiTypeId}
+                  specialDelimiters={specialDelimiters}
+                  value={_.value}
+                />
+              )}
             </div>
           ))}
           <Button type="primary" long onClick={() => this.filters.push(emptyFilter)}>
@@ -731,19 +812,22 @@ export default {
       const filters = this.filters
         .filter(_ => _.name && _.operator)
         .map(_ => {
-          if (_.operator === 'in') {
-            _.value = _.value.split(',')
-          }
-          if (_.inputType === 'number') {
-            if (Array.isArray(_.value)) {
-              _.value = _.value.map(v => Number(v))
-            } else {
-              _.value = Number(_.value)
+          if (_.type === 'value') {
+            if (_.operator === 'in') {
+              _.value = _.value.split(',')
+            }
+            if (_.inputType === 'number') {
+              if (Array.isArray(_.value)) {
+                _.value = _.value.map(v => Number(v))
+              } else {
+                _.value = Number(_.value)
+              }
             }
           }
           return {
             name: _.name,
             operator: _.operator,
+            type: _.type,
             value: _.value
           }
         })
@@ -799,10 +883,10 @@ export default {
       <div class="auto-fill" onmouseover={this.mouseover} onmouseout={this.mouseout} onClick={this.handleClick}>
         {this.isReadOnly ? (
           // 只读状态
-          this.renderEditor()
+          this.renderEditor(this.autoFillArray)
         ) : (
           // 可编辑状态
-          <Poptip v-model={this.optionsDisplay}>{this.renderEditor()}</Poptip>
+          <Poptip v-model={this.optionsDisplay}>{this.renderEditor(this.autoFillArray)}</Poptip>
         )}
       </div>
     )
