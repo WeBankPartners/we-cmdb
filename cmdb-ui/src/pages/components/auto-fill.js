@@ -95,17 +95,17 @@ export default {
       value.forEach((_, i) => {
         switch (_.type) {
           case 'rule':
-            result = result.concat(this.renderExpression(_.value, i, props))
+            result.push(...this.renderExpression(_.value, i, props))
             break
           case 'delimiter':
-            result = result.concat(this.renderSpan(_.value, props))
+            result.push(this.renderSpan(_.value, props))
             break
           case 'specialDelimiter':
             const found = this.specialDelimiters.find(item => item.code === _.value)
             if (found) {
-              result = result.concat(this.renderSpan(found.value, props))
+              result.push(this.renderSpan(found.value, props))
             } else {
-              result = result.concat(this.renderSpan(_.value, props))
+              result.push(this.renderSpan(_.value, props))
             }
             break
           default:
@@ -508,7 +508,7 @@ export default {
       this.handleInput()
     },
     renderSpan (value, props) {
-      return value.split('').map(_ => <span {...props}>{_}</span>)
+      return <span {...props}>{value}</span>
     },
     formatClassName (classList) {
       return Object.keys(classList).map(key => {
@@ -519,7 +519,8 @@ export default {
     },
     renderExpression (val, i, props) {
       // type === rule 时，链式属性表达式
-      let result = JSON.parse(val).map((_, attrIndex) => {
+      let result = []
+      JSON.parse(val).forEach((_, attrIndex) => {
         let isLegal = true
         if (attrIndex === JSON.parse(val).length - 1) {
           const lastInputType = JSON.parse(val)[attrIndex].parentRs
@@ -564,14 +565,14 @@ export default {
               const filterName = attrFound ? attrFound.name : filter.name
               if (filter.type === 'value') {
                 const _filterValue = Array.isArray(filter.value) ? `[${filter.value.join(',')}]` : filter.value
-                filterValue = this.renderSpan(_filterValue, _props)
+                filterValue = [this.renderSpan(_filterValue, _props)]
               } else {
                 filterValue = this.formaFillRule(JSON.parse(filter.value), defaultProps)
               }
               return [
-                filterIndex > 0 && <span {..._propsWithkeyWord}>{' | '}</span>,
-                ...this.renderSpan(filterName, _props),
-                ...this.renderSpan(` ${operator} `, _propsWithkeyWord),
+                filterIndex > 0 && <span {..._propsWithkeyWord}> | </span>,
+                this.renderSpan(filterName, _props),
+                this.renderSpan(` ${operator} `, _propsWithkeyWord),
                 ...filterValue
               ]
             }),
@@ -580,7 +581,7 @@ export default {
         }
         const ciTypeName = this.ciTypesObj[_.ciTypeId].name
         if (!_.parentRs) {
-          return [...this.renderSpan(ciTypeName, _props), ...filterNode]
+          result.push(this.renderSpan(ciTypeName, _props), ...filterNode)
         } else {
           const inputType = this.ciTypeAttrsObj[_.parentRs.attrId].inputType
           const ref =
@@ -591,9 +592,9 @@ export default {
             this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'ref' ||
             this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'multiRef'
           ) {
-            return [...this.renderSpan(` ${ref}(${ciTypeName})${attrName}`, _props), ...filterNode]
+            result.push(this.renderSpan(` ${ref}(${ciTypeName})${attrName}`, _props), ...filterNode)
           } else {
-            return [...this.renderSpan(` ${ref}${attrName}${enumCode}`, _props), ...filterNode]
+            result.push(this.renderSpan(` ${ref}${attrName}${enumCode}`, _props), ...filterNode)
           }
         }
       })
@@ -613,13 +614,12 @@ export default {
             index: i
           }
         }
-      return [<span {...propsWithBraces}>{'{ '}</span>, result, <span {...propsWithBraces}>{' }'}</span>]
+      return [<span {...propsWithBraces}>{' { '}</span>, ...result, <span {...propsWithBraces}>{' } '}</span>]
     },
     renderDelimiter (val, i) {
       // type === delimiter 时，连接符
-      let result = null
       if (this.activeDelimiterIndex === i + '') {
-        result = (
+        return (
           <Input
             ref="delimiterInput"
             on-on-blur={() => this.confirmDelimiter(i)}
@@ -639,13 +639,8 @@ export default {
             index: i
           }
         }
-        result = [
-          <span style="margin-left:5px;"></span>,
-          this.renderSpan(val, _props),
-          <span style="margin-right:5px;"></span>
-        ]
+        return this.renderSpan(val, _props)
       }
-      return result
     },
     renderSpecialDelimiter (value, i) {
       const found = this.specialDelimiters.find(item => item.code === value)
@@ -661,11 +656,7 @@ export default {
           index: i
         }
       }
-      return [
-        <span style="margin-left:5px;"></span>,
-        this.renderSpan(specialDelimiter, _props),
-        <span style="margin-right:5px;"></span>
-      ]
+      return this.renderSpan(specialDelimiter, _props)
     },
     // 连接符输入框失焦或按回车时，需要更新 this.autoFillArray
     confirmDelimiter (i) {
@@ -784,9 +775,7 @@ export default {
                   class="auto-fill-filter-li-input"
                   allCiTypes={allCiTypes}
                   isReadOnly={false}
-                  onInput={v => {
-                    this.filters[i].value = v
-                  }}
+                  onInput={v => (this.filters[i].value = v)}
                   rootCiTypeId={rootCiTypeId}
                   specialDelimiters={specialDelimiters}
                   value={_.value}
