@@ -10,13 +10,17 @@ public class Filter {
     @NotNull
     private Object value = null;
 
+    private Object type = null;
+
+
     public Filter() {
     }
 
-    public Filter(String name, String operator, Object value) {
+    public Filter(String name, String operator, Object value,String... type) {
         this.name = name;
         this.operator = operator;
         this.value = value;
+        this.type = type;
     }
 
     public String getName() {
@@ -41,5 +45,13 @@ public class Filter {
 
     public void setValue(Object value) {
         this.value = value;
+    }
+
+    public Object getType() {
+        return type;
+    }
+
+    public void setType(Object type) {
+        this.type = type;
     }
 }
