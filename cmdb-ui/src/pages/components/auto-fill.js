@@ -881,10 +881,10 @@ export default {
       <div class="auto-fill" onmouseover={this.mouseover} onmouseout={this.mouseout} onClick={this.handleClick}>
         {this.isReadOnly ? (
           // 只读状态
-          this.renderEditor(this.autoFillArray)
+          this.renderEditor()
         ) : (
           // 可编辑状态
-          <Poptip v-model={this.optionsDisplay}>{this.renderEditor(this.autoFillArray)}</Poptip>
+          <Poptip v-model={this.optionsDisplay}>{this.renderEditor()}</Poptip>
         )}
       </div>
     )
