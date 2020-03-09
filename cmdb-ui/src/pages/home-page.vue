@@ -14,6 +14,7 @@ import { addEvent } from './util/event.js'
 export default {
   data () {
     return {
+      currentZoomLevelId: 1,
       baseURL,
       layers: [],
       graph: {},
@@ -194,7 +195,13 @@ export default {
       data.forEach(_ => {
         if (_.ciTypes) nodes = nodes.concat(_.ciTypes)
       })
-      var dots = ['digraph  {', 'bgcolor="transparent";', 'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.1", height="1.1", color="transparent" ,fontsize=12];', 'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];', 'ranksep = 1.1; nodesep=.7; size = "11,8"; rankdir=TB']
+      var dots = [
+        'digraph  {',
+        'bgcolor="transparent";',
+        'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.1", height="1.1", color="transparent" ,fontsize=12];',
+        'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];',
+        'ranksep = 1.1; nodesep=.7; size = "11,8"; rankdir=TB'
+      ]
       let layerTag = `node [];`
 
       // generate group
@@ -206,12 +213,16 @@ export default {
         } else {
           layerTag += `"layer_${_.layerId}"`
         }
-        tempClusterObjForGraph[index] = [`{ rank=same; "layer_${_.layerId}"[id="layerId_${_.layerId}",class="layer",label="${_.name}",tooltip="${_.name}"];`]
+        tempClusterObjForGraph[index] = [
+          `{ rank=same; "layer_${_.layerId}"[id="layerId_${_.layerId}",class="layer",label="${_.name}",tooltip="${_.name}"];`
+        ]
         nodes.length > 0 &&
           nodes.forEach((node, nodeIndex) => {
-            if (node.layerId === _.layerId) {
+            if (node.layerId === _.layerId && node.zoomLevelId === this.currentZoomLevelId) {
               let fontcolor = node.status === 'notCreated' ? '#10a34e' : 'black'
-              tempClusterObjForGraph[index].push(`"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`)
+              tempClusterObjForGraph[index].push(
+                `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`
+              )
             }
             if (nodeIndex === nodes.length - 1) {
               tempClusterObjForGraph[index].push('} ')
@@ -230,8 +241,8 @@ export default {
         node.attributes &&
           node.attributes.forEach(attr => {
             if (attr.inputType === 'ref' || attr.inputType === 'multiRef') {
-              var target = nodes.find(_ => _.ciTypeId === attr.referenceId)
-              if (target) {
+              const target = nodes.find(_ => _.ciTypeId === attr.referenceId)
+              if (target && node.zoomLevelId === target.zoomLevelId && node.zoomLevelId === this.currentZoomLevelId) {
                 dots.push(this.genEdge(nodes, node, attr))
               }
             }
