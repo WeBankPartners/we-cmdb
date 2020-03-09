@@ -4,7 +4,7 @@
       <div style="padding-right: 20px">
         <Card class="cmdb-model-management-left-card" style="height: calc(100vh - 108px);">
           <Row slot="title">
-            <Col span="10">
+            <Col span="8">
               <p>
                 {{ $t('architecture_diagram') }}
                 <span class="header-buttons-container margin-left">
@@ -14,7 +14,7 @@
                 </span>
               </p>
             </Col>
-            <Col span="13" offset="1">
+            <Col span="10" offset="1">
               <span class="filter-title">{{ $t('state') }}</span>
               <Select
                 multiple
@@ -27,6 +27,13 @@
                   {{ item }}
                 </Option>
               </Select>
+            </Col>
+            <Col span="4" offset="1">
+              <span class="filter-title">{{ $t('change_layer') }}</span>
+              <Button :disabled="currentZoomLevelIdIndex === 0" @click="changeLayer(-1)">↑</Button>
+              <Button :disabled="currentZoomLevelIdIndex === zoomLevelIdList.length - 1" @click="changeLayer(1)"
+                >↓</Button
+              >
             </Col>
           </Row>
           <div class="graph-container" id="graph"></div>
@@ -795,6 +802,8 @@ export default {
     return {
       baseURL,
       imgs: new Array(26),
+      currentZoomLevelIdIndex: 0,
+      zoomLevelIdList: [1],
       source: {},
       layers: [],
       graph: {},
@@ -934,6 +943,8 @@ export default {
           })
       }
 
+      this.currentZoomLevelIdIndex = 0
+      this.zoomLevelIdList = [1]
       let layerResponse = await getAllLayers()
       if (layerResponse.statusCode === 'OK') {
         let tempLayer = layerResponse.data
@@ -951,6 +962,10 @@ export default {
           this.source.forEach(_ => {
             _.ciTypes &&
               _.ciTypes.forEach(async i => {
+                if (this.zoomLevelIdList.indexOf(i.zoomLevelId) < 0) {
+                  this.zoomLevelIdList.push(i.zoomLevelId)
+                  this.zoomLevelIdList.sort((a, b) => a - b)
+                }
                 let imgFileSource =
                   i.imageFileId === 0 || i.imageFileId === undefined
                     ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
@@ -1015,7 +1030,7 @@ export default {
         ]
         nodes.length > 0 &&
           nodes.forEach((node, nodeIndex) => {
-            if (node.layerId === _.layerId) {
+            if (node.layerId === _.layerId && node.zoomLevelId === this.currentZoomLevelId) {
               let fontcolor = node.status === 'notCreated' ? '#10a34e' : 'black'
               tempClusterObjForGraph[index].push(
                 `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`
@@ -1039,7 +1054,7 @@ export default {
           node.attributes.forEach(attr => {
             if (attr.inputType === 'ref' || attr.inputType === 'multiRef') {
               var target = nodes.find(_ => _.ciTypeId === attr.referenceId)
-              if (target) {
+              if (target && node.zoomLevelId === target.zoomLevelId && node.zoomLevelId === this.currentZoomLevelId) {
                 dots.push(this.genEdge(nodes, node, attr))
               }
             }
@@ -1160,6 +1175,44 @@ export default {
         this.getAllEnumTypes()
         this.getAllEnumCategories()
       }
+    },
+    changeLayer (v) {
+      this.currentZoomLevelIdIndex += v
+      let graph
+      const graphEl = document.getElementById('graph')
+      const initEvent = () => {
+        graph = d3.select('#graph')
+        graph
+          .on('dblclick.zoom', null)
+          .on('wheel.zoom', null)
+          .on('mousewheel.zoom', null)
+
+        this.graph.graphviz = graph
+          .graphviz()
+          .zoom(true)
+          .height(window.innerHeight - 178)
+          .width(graphEl.offsetWidth)
+          .attributer(function (d) {
+            if (d.attributes.class === 'edge') {
+              const keys = d.key.split('->')
+              const from = keys[0].trim()
+              const to = keys[1].trim()
+              d.attributes.from = from
+              d.attributes.to = to
+            }
+
+            if (d.tag === 'text') {
+              const key = d.children[0].text
+              d3.select(this).attr('text-key', key)
+            }
+          })
+      }
+      this.nodeName = ''
+      this.currentSelectedLayer = {}
+      this.currentSelectedCI = {}
+      this.renderRightPanels()
+      initEvent()
+      this.renderGraph(this.source)
     },
     async getAllEnumCategories () {
       if (this.allEnumCategories.length === 0) {
@@ -1722,6 +1775,9 @@ export default {
       return {
         'X-XSRF-TOKEN': uploadToken && uploadToken.split('=')[1]
       }
+    },
+    currentZoomLevelId () {
+      return this.zoomLevelIdList[this.currentZoomLevelIdIndex]
     }
   }
 }
