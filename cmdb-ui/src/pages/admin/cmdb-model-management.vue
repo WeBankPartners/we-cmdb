@@ -848,6 +848,7 @@ export default {
       currentSelectLayerChildren: [],
       currentSelectedCIChildren: [],
       addNewCITypeForm: {
+        zoomLevelId: 1,
         imageFileId: 1
       },
       addNewAttrForm: {
@@ -897,6 +898,7 @@ export default {
     addCiTypeModalToggle (isShow) {
       if (!isShow) {
         this.addNewCITypeForm = {
+          zoomLevelId: 1,
           layerId: this.addNewCITypeForm.layerId,
           imageFileId: 1
         }
