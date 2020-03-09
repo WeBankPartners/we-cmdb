@@ -30,8 +30,10 @@
             </Col>
             <Col span="4" offset="1">
               <span class="filter-title">{{ $t('change_layer') }}</span>
-              <Button :disabled="currentZoomLevelIdIndex === 0" @click="changeLayer(-1)">↑</Button>
-              <Button :disabled="currentZoomLevelIdIndex === zoomLevelIdList.length - 1" @click="changeLayer(1)"
+              <Button :disabled="currentZoomLevelId === 1" @click="changeLayer(-1)">↑</Button>
+              <Button
+                :disabled="currentZoomLevelId === zoomLevelIdList[zoomLevelIdList.length - 1]"
+                @click="changeLayer(1)"
                 >↓</Button
               >
             </Col>
@@ -101,7 +103,7 @@
           <Collapse accordion>
             <Panel
               class="collapse-row"
-              v-for="(item, index) in currentSelectLayerChildren.ciTypes"
+              v-for="(item, index) in currentSelectLayerChildrenWithCurrentZoomLevelId"
               :key="item.ciTypeId"
               :name="index.toString()"
             >
@@ -132,6 +134,13 @@
                 <Form class="validation-form" :model="item.form" label-position="left" :label-width="100">
                   <FormItem :label="$t('ci_type_id')" prop="tableName">
                     <Input v-model="item.form.tableName" disabled></Input>
+                  </FormItem>
+                  <FormItem :label="$t('zoom_level')" prop="zoomLevelId">
+                    <InputNumber
+                      v-model="item.form.zoomLevelId"
+                      :min="1"
+                      :disabled="item.form.status === 'decommissioned'"
+                    ></InputNumber>
                   </FormItem>
                   <FormItem :label="$t('refrence_layer')">
                     <Select v-model="item.form.layerId" :disabled="item.form.status === 'decommissioned'">
@@ -201,6 +210,9 @@
             </FormItem>
             <FormItem :label="$t('ci_type_id')" prop="tableName">
               <Input v-model="addNewCITypeForm.tableName"></Input>
+            </FormItem>
+            <FormItem :label="$t('zoom_level')" prop="zoomLevelId">
+              <InputNumber :min="1" v-model="addNewCITypeForm.zoomLevelId"></InputNumber>
             </FormItem>
             <FormItem :label="$t('refrence_layer')">
               <Select disabled v-model="addNewCITypeForm.layerId">
@@ -802,7 +814,7 @@ export default {
     return {
       baseURL,
       imgs: new Array(26),
-      currentZoomLevelIdIndex: 0,
+      currentZoomLevelId: 1,
       zoomLevelIdList: [1],
       source: {},
       layers: [],
@@ -943,7 +955,6 @@ export default {
           })
       }
 
-      this.currentZoomLevelIdIndex = 0
       this.zoomLevelIdList = [1]
       let layerResponse = await getAllLayers()
       if (layerResponse.statusCode === 'OK') {
@@ -1177,7 +1188,9 @@ export default {
       }
     },
     changeLayer (v) {
-      this.currentZoomLevelIdIndex += v
+      let currentZoomLevelIdIndex = this.zoomLevelIdList.indexOf > 0 ? this.zoomLevelIdList.indexOf : 1
+      currentZoomLevelIdIndex += v
+      this.currentZoomLevelId = this.zoomLevelIdList[currentZoomLevelIdIndex]
       let graph
       const graphEl = document.getElementById('graph')
       const initEvent = () => {
@@ -1494,6 +1507,7 @@ export default {
       this.addNewCITypeForm = {
         name: '',
         tableName: '',
+        zoomLevelId: 1,
         layerId: '',
         description: '',
         imageFileId: 1
@@ -1776,8 +1790,12 @@ export default {
         'X-XSRF-TOKEN': uploadToken && uploadToken.split('=')[1]
       }
     },
-    currentZoomLevelId () {
-      return this.zoomLevelIdList[this.currentZoomLevelIdIndex]
+    currentSelectLayerChildrenWithCurrentZoomLevelId () {
+      if (this.currentSelectLayerChildren.ciTypes instanceof Array) {
+        return this.currentSelectLayerChildren.ciTypes.filter(_ => _.zoomLevelId === this.currentZoomLevelId)
+      } else {
+        return []
+      }
     }
   }
 }
