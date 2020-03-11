@@ -6,7 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.alibaba.fastjson.JSONArray;
 import com.webank.cmdb.dto.QueryRequest;
+import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.util.BeanMapUtils;
 import com.webank.plugins.wecmdb.helper.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,22 +38,16 @@ public class WecubeAdapterController {
     @Autowired
     private HttpServletRequest request;
 
-
     @PostMapping("/entities")
     @ResponseBody
-    public Object retrieveCiDataSend(@RequestParam(value = "entity-name") String entityName,@RequestBody QueryRequest queryObject) throws Exception {
+    public OperateCiJsonResponse retrieveCiDataSend(@RequestParam(value = "entity-name") String entityName,@RequestBody QueryRequest queryObject) {
         StringBuffer url=request.getRequestURL().append("/").append(entityName);
-        Map<String, Object> paramMap = BeanMapUtils.convertBeanToMap(queryObject);
-        try {
-            return HttpUtils.post(paramMap, url.toString());
-        } catch (IOException e) {
-            throw new Exception(e.getMessage());
-        }
+        return getCiDataResponse(url, BeanMapUtils.convertBeanToMap(queryObject));
     }
 
     @PostMapping("/entities/{entity-name}")
     @ResponseBody
-    public Object retrieveCiData(@PathVariable(value = "entity-name") String entityName,@RequestBody QueryRequest queryObject) {
+    public List<Map<String, Object>> retrieveCiData(@PathVariable(value = "entity-name") String entityName,@RequestBody QueryRequest queryObject) {
         return wecubeAdapterService.getCiDataWithConditions(entityName, queryObject);
     }
 
@@ -60,18 +56,11 @@ public class WecubeAdapterController {
         return wecubeAdapterService.createCiData(entityName, request);
     }
 
-
     @PostMapping("/entities/create")
     @ResponseBody
-    public Object createCiDataSend(@RequestParam(value = "entity-name") String entityName, @RequestBody List<Map<String, Object>> cidata) {
+    public OperateCiJsonResponse createCiDataSend(@RequestParam(value = "entity-name") String entityName, @RequestBody List<Map<String, Object>> cidata) {
         StringBuffer url=request.getRequestURL().append("/entities").append("/").append(entityName).append("/create");
-        Map<String, Object> paramMap = BeanMapUtils.convertBeanToMap(cidata);
-        try {
-            return HttpUtils.post(paramMap, url.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return getCiDataResponse(url, BeanMapUtils.convertBeanToMap(cidata));
     }
 
     @PostMapping("/entities/{entity-name}/update")
@@ -79,19 +68,11 @@ public class WecubeAdapterController {
         return wecubeAdapterService.updateCiData(entityName, request);
     }
 
-
-
     @PostMapping("/entities/update")
     @ResponseBody
-    public Object updateCiDataSend(@RequestParam(value = "entity-name") String entityName, @RequestBody List<Map<String, Object>> cidata) {
+    public OperateCiJsonResponse updateCiDataSend(@RequestParam(value = "entity-name") String entityName, @RequestBody List<Map<String, Object>> cidata) {
         StringBuffer url=request.getRequestURL().append("/entities").append("/").append(entityName).append("/update");
-        Map<String, Object> paramMap = BeanMapUtils.convertBeanToMap(cidata);
-        try {
-            return HttpUtils.post(paramMap, url.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return getCiDataResponse(url, BeanMapUtils.convertBeanToMap(cidata));
     }
 
     @PostMapping("/entities/{entity-name}/delete")
@@ -101,14 +82,13 @@ public class WecubeAdapterController {
 
     @PostMapping("/entities/delete")
     @ResponseBody
-    public Object deleteCiDataSend(@RequestParam(value = "entity-name") String entityName, @RequestBody List<Map<String, Object>> cidata) {
+    public void deleteCiDataSend(@RequestParam(value = "entity-name") String entityName, @RequestBody List<Map<String, Object>> cidata) {
         StringBuffer url=request.getRequestURL().append("/entities").append("/").append(entityName).append("/delete");
         Map<String, Object> paramMap = BeanMapUtils.convertBeanToMap(cidata);
         try {
-            return HttpUtils.post(paramMap, url.toString());
+            HttpUtils.post(paramMap, url.toString());
         } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            throw new CmdbException(e.getMessage());
         }
     }
 
@@ -125,14 +105,24 @@ public class WecubeAdapterController {
         } else {
             response = OperateCiJsonResponse.okayWithData(results);
         }
-
         return response;
-
     }
 
     @GetMapping("/data-model")
     @ResponseBody
     public List<EntityDto> getDataModel() {
         return wecubeAdapterService.getDataModel();
+    }
+
+    private OperateCiJsonResponse getCiDataResponse(StringBuffer url, Map<String, Object> stringObjectMap) {
+        OperateCiJsonResponse response = new OperateCiJsonResponse();
+        try {
+            String results = HttpUtils.post(stringObjectMap, url.toString());
+            List<Map<String, Object>> listObjectSec = JSONArray.parseObject(results, List.class);
+            response = OperateCiJsonResponse.okayWithData(listObjectSec);
+        } catch (IOException e) {
+            response = OperateCiJsonResponse.errorWithData(e.getMessage(), null);
+        }
+        return response;
     }
 }
