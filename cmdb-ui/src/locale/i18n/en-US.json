@@ -242,5 +242,6 @@
   "enter_password": "Enter Password",
   "actions": "Actions",
   "value": "Value",
-  "change_layer": "change Layer"
+  "change_layer": "Change Layer",
+  "zoom_level": "Layer"
 }
