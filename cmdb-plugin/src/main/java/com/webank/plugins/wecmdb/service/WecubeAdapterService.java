@@ -217,7 +217,7 @@ public class WecubeAdapterService {
         return dataTypeMapping.get(ciTypeAttrDto.getPropertyType());
     }
 
-    public Object getCiDataWithConditions(String entityName,QueryRequest queryObject) {
+    public List<Map<String, Object>> getCiDataWithConditions(String entityName,QueryRequest queryObject) {
         if (queryObject == null)
             queryObject = QueryRequest.defaultQueryObject();
         parameterAdaptation(queryObject);
