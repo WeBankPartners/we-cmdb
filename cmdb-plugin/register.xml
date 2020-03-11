@@ -66,6 +66,56 @@
 
     <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
     <plugins>
+        <plugin name="AnyCIDataCreate" targetPackage="wecmdb">
+            <interface action="create" path="/wecmdb/entities/create" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType='context' required='Y'>entity-name</parameter>
+                    <parameter datatype="string" mappingType='context'>cidata</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">resultCode</parameter>
+                    <parameter datatype="string" mappingType="context">resultMessage</parameter>
+                    <parameter datatype="string" mappingType="context">results</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="AnyCIDataUpdate" targetPackage="wecmdb">
+            <interface action="update" path="/wecmdb/entities/update" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType='context' required='Y'>entity-name</parameter>
+                    <parameter datatype="string" mappingType='context'>cidata</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">resultCode</parameter>
+                    <parameter datatype="string" mappingType="context">resultMessage</parameter>
+                    <parameter datatype="string" mappingType="context">results</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="AnyCIDataDelete" targetPackage="wecmdb">
+            <interface action="delete" path="/wecmdb/entities/deete" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType='context' required='Y'>entity-name</parameter>
+                    <parameter datatype="string" mappingType='context'>cidata</parameter>
+                </inputParameters>
+                <outputParameters>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="AnyCIDataQuery" targetPackage="wecmdb">
+            <interface action="query" path="/wecmdb/entities" httpMethod='POST'>
+                <inputParameters>
+                    <parameter datatype="string" mappingType='context' required='Y'>entity-name</parameter>
+                    <parameter datatype="string" mappingType='context'>queryObject</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" mappingType="context">resultCode</parameter>
+                    <parameter datatype="string" mappingType="context">resultMessage</parameter>
+                    <parameter datatype="string" mappingType="context">results</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+
         <plugin name="AnyCIDataConfirm" targetPackage="wecmdb">
             <interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
                 <inputParameters>
