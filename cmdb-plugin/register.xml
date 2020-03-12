@@ -70,7 +70,7 @@
             <interface action="create" path="/wecmdb/entities/create" httpMethod='POST'>
                 <inputParameters>
                     <parameter datatype="string" mappingType='context' required='Y'>entity-name</parameter>
-                    <parameter datatype="string" mappingType='context'>cidata</parameter>
+                    <parameter datatype="string" mappingType='context' required='Y'>cidata</parameter>
                 </inputParameters>
                 <outputParameters>
                     <parameter datatype="string" mappingType="context">resultCode</parameter>
@@ -83,7 +83,7 @@
             <interface action="update" path="/wecmdb/entities/update" httpMethod='POST'>
                 <inputParameters>
                     <parameter datatype="string" mappingType='context' required='Y'>entity-name</parameter>
-                    <parameter datatype="string" mappingType='context'>cidata</parameter>
+                    <parameter datatype="string" mappingType='context' required='Y'>cidata</parameter>
                 </inputParameters>
                 <outputParameters>
                     <parameter datatype="string" mappingType="context">resultCode</parameter>
@@ -96,7 +96,7 @@
             <interface action="delete" path="/wecmdb/entities/deete" httpMethod='POST'>
                 <inputParameters>
                     <parameter datatype="string" mappingType='context' required='Y'>entity-name</parameter>
-                    <parameter datatype="string" mappingType='context'>cidata</parameter>
+                    <parameter datatype="string" mappingType='context' required='Y'>cidata</parameter>
                 </inputParameters>
                 <outputParameters>
                 </outputParameters>
@@ -106,7 +106,7 @@
             <interface action="query" path="/wecmdb/entities" httpMethod='POST'>
                 <inputParameters>
                     <parameter datatype="string" mappingType='context' required='Y'>entity-name</parameter>
-                    <parameter datatype="string" mappingType='context'>queryObject</parameter>
+                    <parameter datatype="string" mappingType='context' required='Y'>queryObject</parameter>
                 </inputParameters>
                 <outputParameters>
                     <parameter datatype="string" mappingType="context">resultCode</parameter>
