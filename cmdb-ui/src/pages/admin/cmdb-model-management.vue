@@ -28,14 +28,22 @@
                 </Option>
               </Select>
             </Col>
-            <Col span="4" offset="1">
+            <Col span="4" offset="1" class="filter-col">
               <span class="filter-title">{{ $t('change_layer') }}</span>
-              <Button :disabled="currentZoomLevelId === 1" @click="changeLayer(-1)">↑</Button>
               <Button
-                :disabled="currentZoomLevelId === zoomLevelIdList[zoomLevelIdList.length - 1]"
+                class="filter-col-icon"
+                @click="changeLayer(-1)"
+                :disabled="currentZoomLevelId === 1"
+                icon="md-arrow-round-up"
+                size="small"
+              ></Button>
+              <Button
+                class="filter-col-icon"
                 @click="changeLayer(1)"
-                >↓</Button
-              >
+                :disabled="currentZoomLevelId === zoomLevelIdList[zoomLevelIdList.length - 1]"
+                icon="md-arrow-round-down"
+                size="small"
+              ></Button>
             </Col>
           </Row>
           <div class="graph-container" id="graph"></div>
@@ -1863,5 +1871,14 @@ export default {
 }
 .validation-form /deep/ .ivu-form-item {
   margin-bottom: 10px;
+}
+.filter-col {
+  align-items: center;
+  display: flex;
+  height: 32px;
+
+  &-icon {
+    margin-right: 5px;
+  }
 }
 </style>
