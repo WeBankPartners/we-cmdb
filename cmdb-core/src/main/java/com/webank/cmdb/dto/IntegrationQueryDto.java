@@ -1,8 +1,6 @@
 package com.webank.cmdb.dto;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -13,6 +11,7 @@ import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.domain.AdmIntegrateTemplate;
 import com.webank.cmdb.domain.AdmIntegrateTemplateAlias;
 import com.webank.cmdb.domain.AdmIntegrateTemplateRelation;
+import com.webank.cmdb.exception.InvalidArgumentException;
 import com.webank.cmdb.exception.ServiceException;
 
 @JsonInclude(Include.NON_EMPTY)
@@ -67,6 +66,29 @@ public class IntegrationQueryDto {
         }
 
         return buildDtoTree(rootAlias, null, null);
+    }
+
+    public void validate(){
+        if(children.size()>0){
+            for(IntegrationQueryDto child:children){
+                child.validate();
+            }
+        }else{
+            if(attrs.size() != attrKeyNames.size()){
+                throw new InvalidArgumentException("Attribute list should have same size of attrKeyName.");
+            }
+
+            if(attrKeyNames!=null && attrKeyNames.size()>0){
+                Set<String> nameSet = new HashSet<>();
+                for(String keyName:attrKeyNames){
+                    if(nameSet.contains(keyName)){
+                        throw new InvalidArgumentException(String.format("Attribute key name (%s) can not be duplicated.",keyName));
+                    }else{
+                        nameSet.add(keyName);
+                    }
+                }
+            }
+        }
     }
 
     private static IntegrationQueryDto buildDtoTree(AdmIntegrateTemplateAlias alias, AdmIntegrateTemplateAlias parentAlias, AdmIntegrateTemplateRelation parentRelation) {
