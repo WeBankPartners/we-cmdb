@@ -74,7 +74,7 @@ public class IntegrationQueryDto {
                 child.validate();
             }
         }else{
-            if(attrs.size() != attrKeyNames.size()){
+            if(attrKeyNames.size()>0 && attrs.size() != attrKeyNames.size()){
                 throw new InvalidArgumentException("Attribute list should have same size of attrKeyName.");
             }
 
