@@ -358,6 +358,11 @@ public class ApiV2Controller {
         return ciService.integrateQuery(queryId, queryRequest);
     }
 
+    @PostMapping("/intQuery/executeByName/{queryName}")
+    public QueryResponse queryIntByName(@PathVariable("queryName") String queryName, @RequestBody QueryRequest queryRequest) {
+        return ciService.integrateQuery(queryName, queryRequest);
+    }
+
     @PostMapping("/intQuery/adhoc/execute")
     public QueryResponse queryAdhocInt(@RequestBody AdhocIntegrationQueryDto adhocQueryRequest) {
         return ciService.adhocIntegrateQuery(adhocQueryRequest);
@@ -384,14 +389,23 @@ public class ApiV2Controller {
     }
 
     @GetMapping("/intQuery/{queryId}/header")
-
     public List<IntQueryResponseHeader> queryIntHeader(@PathVariable("queryId") int queryId) {
         return ciService.integrateQueryHeader(queryId);
     }
 
+    @GetMapping("/intQuery/headerByName")
+    public List<IntQueryResponseHeader> queryIntHeader(@RequestParam("queryName") String queryName) {
+        return ciService.integrateQueryHeader(queryName);
+    }
+
     @GetMapping("/intQuery/ciType/{ciTypeId}/{queryId}")
-    public IntegrationQueryDto getIntQueryByName(@PathVariable("ciTypeId") Integer ciTypeId, @PathVariable("queryId") int queryId) {
+    public IntegrationQueryDto getIntQueryById(@PathVariable("ciTypeId") Integer ciTypeId, @PathVariable("queryId") int queryId) {
         return intQueryService.getIntegrationQuery(queryId);
+    }
+
+    @GetMapping("/intQuery")
+    public IntegrationQueryDto getIntQueryByName(@RequestParam("name")String queryName) {
+        return intQueryService.getIntegrationQueryByName(queryName);
     }
 
     @PostMapping("/users/retrieve")

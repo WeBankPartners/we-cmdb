@@ -54,6 +54,8 @@ public interface CiService extends CmdbService {
 
     QueryResponse integrateQuery(int intQueryId, QueryRequest intQueryReq);
 
+    QueryResponse integrateQuery(String queryName, QueryRequest intQueryReq);
+
     List<IntQueryResponseHeader> integrateQueryHeader(int queryId);
 
     HashSet<String> retrieveVersions(int ciTypeId);
@@ -83,4 +85,6 @@ public interface CiService extends CmdbService {
     Object getCiBeanObject(EntityManager entityManager, int ciTypeId, String guid);
     
     List<CiKeyPair> retrieveKeyPairs(int ciTypeId);
+
+    List<IntQueryResponseHeader> integrateQueryHeader(String queryName);
 }

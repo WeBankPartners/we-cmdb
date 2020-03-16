@@ -77,6 +77,12 @@ public class IntegrationQueryServiceImpl implements IntegrationQueryService {
         if (logger.isDebugEnabled()) {
             logger.debug("Creating integrate query for ciTypeId [{}] queryName:{} intQueryDto:{}", ciTypeId, queryName, JsonUtil.toJsonString(intQueryDto));
         }
+
+        List<AdmIntegrateTemplate> intQuerys = intTempRepository.findAllByName(queryName);
+        if(intQuerys != null && intQuerys.size()>0){
+            throw new InvalidArgumentException(String.format("The given integration name (%s) is existed.",queryName));
+        }
+
         AdmIntegrateTemplate intTemplate = new AdmIntegrateTemplate();
         intTemplate.setName(queryName);
         intTemplate.setDes(queryName);
@@ -269,6 +275,16 @@ public class IntegrationQueryServiceImpl implements IntegrationQueryService {
         Optional<AdmIntegrateTemplate> intTemplateOpt = validateIntTemplateId(queryId);
 
         return IntegrationQueryDto.fromDomain(intTemplateOpt.get());
+    }
+
+    @Override
+    public IntegrationQueryDto getIntegrationQueryByName(String intQueryName) {
+        List<AdmIntegrateTemplate> intQueryTempls = intTempRepository.findAllByName(intQueryName);
+        if(intQueryTempls!=null && intQueryTempls.size()==0){
+            throw new InvalidArgumentException(String.format("Can not find out AdmIntegrateTemplate by given query name [%s].", intQueryName));
+        }else{
+            return IntegrationQueryDto.fromDomain(intQueryTempls.get(0));
+        }
     }
 
     private Optional<AdmIntegrateTemplate> validateIntTemplateId(int queryId) {

@@ -14,6 +14,8 @@ public interface IntegrationQueryService extends CmdbService {
 
     IntegrationQueryDto getIntegrationQuery(int queryId);
 
+    IntegrationQueryDto getIntegrationQueryByName(String intQueryName);
+
     int duplicateIntegrationQuery(int queryId);
 
     void deleteIntegrationQuery(int queryId);
