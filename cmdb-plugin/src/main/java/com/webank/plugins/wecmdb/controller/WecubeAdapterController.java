@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.alibaba.fastjson.JSONArray;
-import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.util.BeanMapUtils;
+import com.webank.plugins.wecmdb.dto.wecube.*;
 import com.webank.plugins.wecmdb.helper.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,10 +21,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.cmdb.exception.BatchChangeException.ExceptionHolder;
-import com.webank.plugins.wecmdb.dto.wecube.EntityDto;
-import com.webank.plugins.wecmdb.dto.wecube.OperateCiDto;
-import com.webank.plugins.wecmdb.dto.wecube.OperateCiDtoInputs;
-import com.webank.plugins.wecmdb.dto.wecube.OperateCiJsonResponse;
 import com.webank.plugins.wecmdb.service.WecubeAdapterService;
 
 import javax.servlet.http.HttpServletRequest;
