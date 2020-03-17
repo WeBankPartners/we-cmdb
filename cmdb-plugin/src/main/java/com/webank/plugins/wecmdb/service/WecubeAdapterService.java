@@ -1,37 +1,26 @@
 package com.webank.plugins.wecmdb.service;
 
+import com.webank.cmdb.constant.FieldType;
+import com.webank.cmdb.constant.InputType;
+import com.webank.cmdb.dto.*;
+import com.webank.cmdb.dto.QueryRequest;
+import com.webank.cmdb.exception.BatchChangeException.ExceptionHolder;
+import com.webank.cmdb.service.CiService;
+import com.webank.cmdb.service.StaticDtoService;
+import com.webank.cmdb.util.BeanMapUtils;
+import com.webank.plugins.wecmdb.dto.wecube.*;
+import com.webank.plugins.wecmdb.exception.PluginException;
+import com.webank.plugins.wecmdb.helper.ConfirmHelper;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import javax.transaction.Transactional;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.webank.cmdb.constant.FieldType;
-import com.webank.cmdb.constant.InputType;
-import com.webank.cmdb.dto.CatCodeDto;
-import com.webank.cmdb.dto.CiData;
-import com.webank.cmdb.dto.CiIndentity;
-import com.webank.cmdb.dto.CiTypeAttrDto;
-import com.webank.cmdb.dto.CiTypeDto;
-import com.webank.cmdb.dto.QueryRequest;
-import com.webank.cmdb.dto.QueryResponse;
-import com.webank.cmdb.exception.BatchChangeException.ExceptionHolder;
-import com.webank.cmdb.service.CiService;
-import com.webank.cmdb.service.StaticDtoService;
-import com.webank.cmdb.util.BeanMapUtils;
-import com.webank.cmdb.util.Sorting;
-import com.webank.plugins.wecmdb.dto.wecube.AttributeDto;
-import com.webank.plugins.wecmdb.dto.wecube.DataType;
-import com.webank.plugins.wecmdb.dto.wecube.EntityDto;
-import com.webank.plugins.wecmdb.dto.wecube.OperateCiDto;
-import com.webank.plugins.wecmdb.exception.PluginException;
-import com.webank.plugins.wecmdb.helper.ConfirmHelper;
 
 @Service
 public class WecubeAdapterService {
@@ -217,26 +206,29 @@ public class WecubeAdapterService {
         return dataTypeMapping.get(ciTypeAttrDto.getPropertyType());
     }
 
-    public List<Map<String, Object>> getCiDataWithConditions(String entityName,QueryRequest queryObject) {
-        if (queryObject == null)
-            queryObject = QueryRequest.defaultQueryObject();
-        parameterAdaptation(queryObject);
-
-        return convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
+    public List<Map<String, Object>> getCiDataWithConditions(String entityName, com.webank.plugins.wecmdb.dto.wecube.QueryRequest queryObject) {
+        QueryRequest queryRequest = new QueryRequest();
+        if (queryObject == null){
+            queryRequest = QueryRequest.defaultQueryObject();
+        }else{
+            queryRequest = parameterAdaptation(queryObject);
+        }
+        return convertCiData(queryRequest, retrieveCiTypeIdByTableName(entityName));
     }
 
-    private void parameterAdaptation(QueryRequest queryObject) {
-        queryObject.getFilters().forEach(filter -> {
-            if (ID.equals(filter.getName())) filter.setName(GUID);
-        });
-        if (ID.equals(queryObject.getSorting().getField()))
-            queryObject.getSorting().setField(GUID);
-        for(String column: queryObject.getResultColumns()){
-            if (ID.equals(column)) {
-                queryObject.getResultColumns().remove(column);
-                queryObject.getResultColumns().add(GUID);
+    private QueryRequest parameterAdaptation(com.webank.plugins.wecmdb.dto.wecube.QueryRequest queryObject) {
+        QueryRequest queryRequest = QueryRequest.defaultQueryObject();
+        queryObject.getAdditionalFilters().forEach(filter -> {
+            Filter guidFilter;
+            if (ID.equals(filter.getAttrName())) {
+                guidFilter = new Filter(GUID,filter.getOp(),filter.getCondition());
+            }else{
+                guidFilter = new Filter(filter.getAttrName(),filter.getOp(),filter.getCondition());
             }
-        }
+            queryRequest.getFilters().add(guidFilter);
+        });
+        queryRequest.addEqualsFilter(queryObject.getCriteria().getAttrName().equals(ID)?GUID:queryObject.getCriteria().getAttrName(),queryObject.getCriteria().getCondition());
+        return queryRequest;
     }
 
     private List<Map<String, Object>> convertCiData(QueryRequest queryObject, Integer ciTypeId) {
