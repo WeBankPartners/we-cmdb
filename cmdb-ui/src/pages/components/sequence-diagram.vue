@@ -13,44 +13,42 @@
         <Col span="17">
           <Card>
             <p slot="title">{{ $t('sequential_graph') }}</p>
-            <div :id="'abc' + guid"></div>
+            <div :id="'guid_' + guid"></div>
           </Card>
         </Col>
         <Col span="7" style="padding: 0 0 0 20px">
           <Card>
             <p slot="title">{{ $t('invoking_refrence') }}</p>
-            <Row>
-              <Col span="7">
-                <span>{{ $t('select_invoking_refrence') }}</span>
-              </Col>
-              <Col span="16">
-                <Select
-                  multiple
-                  filterable
-                  @on-change="selectChangeHandler"
-                  :max-tag-count="1"
-                  clearabled
-                  v-model="selectedSequences"
-                >
-                  <Option v-for="s in sequenceData" :label="s.key_name" :value="s.guid" :key="s.guid"></Option>
-                </Select>
-              </Col>
+            <Row class="sequence-diagram-select-row">
+              <span :title="$t('select_invoking_refrence')">{{ $t('select_invoking_refrence') }}</span>
+              <Select filterable :max-tag-count="1" clearabled v-model="selectedSequence">
+                <Option v-for="s in sequenceData" :label="s.key_name" :value="s.guid" :key="s.guid"></Option>
+              </Select>
+              <Button class="sequence-diagram-select-row-button" @click="pushSequence()">添加</Button>
             </Row>
             <p
-              v-for="sequence in selectedSequenceData"
-              style="display: flex;margin-top:5px;border: 1px dashed gray;border-radius: 5px;padding: 0 10px;"
-              :key="sequence.guid"
+              v-for="(sequence, index) in selectedSequenceData"
+              class="sequence-diagram-list"
+              :key="`${index}-${sequence.guid}`"
             >
               <span class="sequence_name" :title="sequence.key_name">{{ sequence.key_name }}</span>
               <Button
                 size="small"
+                class="sequence-diagram-icon"
                 @click.stop.prevent="moveUpSequence(sequence.guid)"
                 icon="md-arrow-round-up"
               ></Button>
               <Button
                 size="small"
+                class="sequence-diagram-icon"
                 @click.stop.prevent="moveDownSequence(sequence.guid)"
                 icon="md-arrow-round-down"
+              ></Button>
+              <Button
+                size="small"
+                class="sequence-diagram-icon"
+                @click.stop.prevent="deleteSequence(index)"
+                icon="ios-trash"
               ></Button>
             </p>
           </Card>
@@ -66,13 +64,15 @@ import mermaid from 'mermaid'
 const SERVICE_INVOKE_DESIGN_SEQUENCE_CI_TYPE_ID = 35
 const INVOKE_UNIT_DESIGN = 'invoke_unit_design'
 const INVOKED_UNIT_DESIGN = 'invoked_unit_design'
+const SERVICE_DESIGN = 'service_design'
 
 export default {
   name: 'WeCMDBSequenceDiagram',
   data () {
     return {
       sequenceData: [],
-      selectedSequences: [],
+      selectedSequence: '',
+      selectedSequenceList: [],
       selectedSequenceData: [],
       sequenceVisiable: false,
       graphString: 'sequenceDiagram \n A->>B'
@@ -99,9 +99,12 @@ export default {
   methods: {
     displaySequence () {
       if (this.value) {
-        this.selectedSequences = this.value
+        this.selectedSequenceList = this.vaule
         this.selectChangeHandler(this.value)
       }
+    },
+    pushSequence () {
+      this.selectChangeHandler([...this.selectedSequenceList, this.selectedSequence])
     },
     moveUpSequence (id) {
       let currentIndex = this.selectedSequenceData.map(i => i.guid).indexOf(id)
@@ -119,10 +122,7 @@ export default {
 
       this.selectedSequenceData = clone
       this.initSequenceGraph()
-      this.$emit(
-        'input',
-        this.selectedSequenceData.map(_ => _.guid)
-      )
+      this.updateValue(this.selectedSequenceData.map(_ => _.guid))
     },
     moveDownSequence (id) {
       let currentIndex = this.selectedSequenceData.map(i => i.guid).indexOf(id)
@@ -140,10 +140,12 @@ export default {
 
       this.selectedSequenceData = clone
       this.initSequenceGraph()
-      this.$emit(
-        'input',
-        this.selectedSequenceData.map(_ => _.guid)
-      )
+      this.updateValue(this.selectedSequenceData.map(_ => _.guid))
+    },
+    deleteSequence (index) {
+      let value = [...this.selectedSequenceList]
+      value.splice(index, 1)
+      this.selectChangeHandler(value)
     },
     initSequenceGraph () {
       this.graphString = 'sequenceDiagram \n'
@@ -154,12 +156,12 @@ export default {
             `${_[INVOKE_UNIT_DESIGN].key_name.replace(/-/g, '&')}->>${_[INVOKED_UNIT_DESIGN].key_name.replace(
               /-/g,
               '&'
-            )}:${index + 1} : ${_.description.length === 0 ? '' : _.description}`
+            )}:${index + 1} : ${_[SERVICE_DESIGN] && _[SERVICE_DESIGN].name ? _[SERVICE_DESIGN].name : ''}`
           )
         })
         this.graphString = graphNode.toString().replace(/,/g, ' \n')
       }
-      const element = document.querySelector(`#abc${this.guid}`)
+      const element = document.querySelector(`#guid_${this.guid}`)
       element.removeAttribute('data-processed')
       element.innerHTML = this.graphString
       mermaid.parse(this.graphString)
@@ -189,6 +191,10 @@ export default {
         }
       })
       this.initSequenceGraph()
+      this.updateValue(val)
+    },
+    updateValue (val) {
+      this.selectedSequenceList = val
       this.$emit('input', val)
     },
     visibleChangeHandler (status) {
@@ -223,5 +229,28 @@ export default {
   text-overflow: ellipsis;
   line-height: 30px;
   height: 30px;
+}
+.sequence-diagram-select-row {
+  display: flex;
+  align-items: center;
+
+  > span {
+    width: 25%;
+  }
+
+  &-button {
+    margin-left: 5px;
+  }
+}
+.sequence-diagram-list {
+  align-items: center;
+  border: 1px dashed gray;
+  border-radius: 5px;
+  display: flex;
+  margin-top: 5px;
+  padding: 0 10px;
+}
+.sequence-diagram-icon {
+  margin-left: 5px;
 }
 </style>
