@@ -39,13 +39,16 @@
       </Col>
       <Col span="6" offset="1">
         <Button :disabled="!isNewIntQuery" @click="newGraphNameModalVisible = true">{{ $t('create') }}</Button>
-        <Button :disabled="saveBtnDisable || isNewIntQuery" @click="beforeUpdateGraph()" :loading="updateLoading">{{
-          $t('update')
-        }}</Button>
+        <Button
+          :disabled="saveBtnDisable || isNewIntQuery"
+          @click="beforeSaveGraph('update')"
+          :loading="updateLoading"
+          >{{ $t('update') }}</Button
+        >
         <Modal
           v-model="newGraphNameModalVisible"
           :title="$t('add_integrated_query_name')"
-          @on-ok="saveGraph('create')"
+          @on-ok="beforeSaveGraph('create')"
           @on-cancel="() => {}"
         >
           <Input v-model="newGraphName" :placeholder="$t('input_placeholder')" />
@@ -278,7 +281,9 @@ export default {
             name: root.node.label,
             attrs: attrsObject[root.node.label].map(_ => _.ciTypeAttrId),
             attrAliases: attrsObject[root.node.label].map(_ => _.name),
-            attrKeyNames: attrsObject[root.node.label].map(_ => _.attrKeyName)
+            attrKeyNames: attrsObject[root.node.label][0].attrKeyName
+              ? attrsObject[root.node.label].map(_ => _.attrKeyName)
+              : []
           }
         }
         const t = {
@@ -287,7 +292,9 @@ export default {
           name: root.node.label,
           attrs: attrsObject[root.node.label].map(_ => _.ciTypeAttrId),
           attrAliases: attrsObject[root.node.label].map(_ => _.name),
-          attrKeyNames: attrsObject[root.node.label].map(_ => _.attrKeyName)
+          attrKeyNames: attrsObject[root.node.label][0].attrKeyName
+            ? attrsObject[root.node.label].map(_ => _.attrKeyName)
+            : []
         }
 
         if (root.to) {
@@ -298,7 +305,7 @@ export default {
                 return {
                   attrs: attrsObject[_.label].map(_ => _.ciTypeAttrId),
                   attrAliases: attrsObject[_.label].map(_ => _.name),
-                  attrKeyNames: attrsObject[_.label].map(_ => _.attrKeyName),
+                  attrKeyNames: attrsObject[_.label][0].attrKeyName ? attrsObject[_.label].map(_ => _.attrKeyName) : [],
                   ...ret,
                   parentRs: {
                     attrId: _.refPropertyId,
@@ -311,7 +318,7 @@ export default {
                   name: _.label,
                   attrs: attrsObject[_.label].map(_ => _.ciTypeAttrId),
                   attrAliases: attrsObject[_.label].map(_ => _.name),
-                  attrKeyNames: attrsObject[_.label].map(_ => _.attrKeyName),
+                  attrKeyNames: attrsObject[_.label][0].attrKeyName ? attrsObject[_.label].map(_ => _.attrKeyName) : [],
                   parentRs: {
                     attrId: _.refPropertyId,
                     isReferedFromParent: true
@@ -330,7 +337,7 @@ export default {
                 return {
                   attrs: attrsObject[_.label].map(_ => _.ciTypeAttrId),
                   attrAliases: attrsObject[_.label].map(_ => _.name),
-                  attrKeyNames: attrsObject[_.label].map(_ => _.attrKeyName),
+                  attrKeyNames: attrsObject[_.label][0].attrKeyName ? attrsObject[_.label].map(_ => _.attrKeyName) : [],
                   ...ret,
                   parentRs: {
                     attrId: _.refPropertyId,
@@ -343,7 +350,7 @@ export default {
                   name: _.label,
                   attrs: attrsObject[_.label].map(_ => _.ciTypeAttrId),
                   attrAliases: attrsObject[_.label].map(_ => _.name),
-                  attrKeyNames: attrsObject[_.label].map(_ => _.attrKeyName),
+                  attrKeyNames: attrsObject[_.label][0].attrKeyName ? attrsObject[_.label].map(_ => _.attrKeyName) : [],
                   parentRs: {
                     attrId: _.refPropertyId,
                     isReferedFromParent: false
@@ -379,10 +386,6 @@ export default {
       document.querySelector('.ivu-modal-mask').click()
     },
     createIntQuery () {
-      this.selectedQuery = {
-        id: 0,
-        value: ''
-      }
       if (this.selectedCI.id) {
         const found = this.allCiTypes.find(_ => _.ciTypeId === this.selectedCI.id)
         this.ciGraphData = {
@@ -397,17 +400,21 @@ export default {
       }
       document.querySelector('.content-container').click()
     },
-    beforeUpdateGraph () {
+    beforeSaveGraph (type) {
       this.formAttrs = JSON.parse(JSON.stringify(this.attrs))
       let validator = true
+      let isEmpty = true
       this.attrsList.reduce((pre, cur) => {
-        if (pre.indexOf(cur) >= 0 || !cur.attrKeyName) {
+        if (pre.indexOf(cur) >= 0 || (!isEmpty && !cur.attrKeyName)) {
           validator = false
+        }
+        if (cur.attrKeyName) {
+          isEmpty = false
         }
         return pre.concat(cur.attrKeyName)
       }, [])
       if (validator) {
-        this.saveGraph('update')
+        this.saveGraph(type)
       } else {
         this.needToUpdate = true
         this.showKeyNameModal()
