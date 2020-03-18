@@ -24,7 +24,8 @@ let indexMap = {}
 export default {
   name: 'CiGraph',
   props: {
-    ciGraphData: { type: Object }
+    ciGraphData: { type: Object },
+    attributeObject: { type: Object }
   },
   data () {
     return {
@@ -183,6 +184,8 @@ export default {
               })
               : [],
             attrAliases: root.attrAliases,
+            attrKeyNames: root.attrKeyNames,
+            attributeList: root.attributeList,
             index: _this.calIndex(root.name)
           }
         }
@@ -201,6 +204,8 @@ export default {
               })
               : [],
             attrAliases: child.attrAliases,
+            attrKeyNames: child.attrKeyNames,
+            attributeList: child.attributeList,
             label: child.name,
             ciTypeId: child.ciTypeId,
             referenceId: child.ciTypeId,
@@ -225,7 +230,7 @@ export default {
     },
     renderGraph () {
       this.savedRenderedNodes = this.generateCiRelation(this.ciGraphData)
-      console.log(this.savedRenderedNodes)
+      this.$emit('onMounted', this.savedRenderedNodes)
       let container = document.getElementById('mynetwork')
       let data = {
         nodes: this.deduplicate(this.createNodes(this.generateCiRelation(this.ciGraphData))),
@@ -327,6 +332,7 @@ export default {
             return {
               id: _.referenceId,
               title: _.name,
+              propertyName: _.propertyName,
               checked: !!found
             }
           })
@@ -353,6 +359,7 @@ export default {
             return {
               id: _.ciTypeId,
               title: _.name,
+              propertyName: _.propertyName,
               checked: !!found
             }
           })
@@ -381,6 +388,7 @@ export default {
               return {
                 id: _.ciTypeAttrId,
                 title: _.name,
+                propertyName: _.propertyName,
                 checked: !!found
               }
             })
@@ -425,12 +433,20 @@ export default {
       let data = all.map(_ => {
         return {
           ciTypeAttrId: _.id,
-          name: _.title
+          name: _.title,
+          propertyName: _.propertyName
         }
       })
       data && data.length > 0 && data[0].ciTypeAttrId === 'all' && data.splice(0, 1)
       this.selectedAttrs = data
       this.savedClickedNode.node.attrs = data
+      this.savedClickedNode.node.attributeList = data.map((_, i) => {
+        return {
+          ciTypeAttrId: _.ciTypeAttrId,
+          name: _.name,
+          attrKeyName: this.attributeObject[_.ciTypeAttrId] ? this.attributeObject[_.ciTypeAttrId].attrKeyName : ''
+        }
+      })
     },
     handleConfirm () {
       const nodes = []
@@ -565,7 +581,6 @@ export default {
       this.savedNetWork.on('click', this.handler)
 
       // props.onChange && props.onChange(savedRenderedNodes.current);
-      console.log('this.savedRenderedNodes', this.savedRenderedNodes)
       this.$emit('onChange', this.savedRenderedNodes)
 
       this.savedSelectedRefs.bys = []
