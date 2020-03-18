@@ -241,5 +241,8 @@
   "no_password": "No Password",
   "enter_password": "Enter Password",
   "actions": "Actions",
-  "value": "Value"
+  "value": "Value",
+  "show_key_name": "KeyName",
+  "change_key_name": "Change KeyName",
+  "keyname_should_be_unique": "The keyName should unique and cannot be empty!"
 }
