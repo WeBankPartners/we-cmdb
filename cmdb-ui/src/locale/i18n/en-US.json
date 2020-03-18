@@ -242,6 +242,8 @@
   "enter_password": "Enter Password",
   "actions": "Actions",
   "value": "Value",
+  "change_layer": "Change Layer",
+  "zoom_level": "Layer",
   "show_key_name": "KeyName",
   "change_key_name": "Change KeyName",
   "keyname_should_be_unique": "The keyName should unique and cannot be empty!"

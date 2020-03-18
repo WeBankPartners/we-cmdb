@@ -75,6 +75,7 @@ export default {
   data () {
     return {
       baseURL,
+      currentZoomLevelId: 1,
       tabList: [],
       currentTab: 'CMDB',
       payload: {
@@ -285,7 +286,7 @@ export default {
           `{ rank=same; "layer_${_.layerId}"[id="layerId_${_.layerId}",class="layer",label="${_.name}",tooltip="${_.name}"];`
         ]
         nodes.forEach((node, nodeIndex) => {
-          if (node.layerId === _.layerId) {
+          if (node.layerId === _.layerId && node.zoomLevelId === this.currentZoomLevelId) {
             tempClusterObjForGraph[index].push(
               `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",image="${node.form.imgSource}.png", labelloc="b"]`
             )
@@ -309,7 +310,7 @@ export default {
           node.attributes.forEach(attr => {
             if (attr.inputType === 'ref' || attr.inputType === 'multiRef') {
               var target = nodes.find(_ => _.ciTypeId === attr.referenceId)
-              if (target) {
+              if (target && node.zoomLevelId === target.zoomLevelId && node.zoomLevelId === this.currentZoomLevelId) {
                 dots.push(this.genEdge(nodes, node, attr))
               }
             }
