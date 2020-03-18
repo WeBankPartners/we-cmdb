@@ -90,7 +90,7 @@ export default {
       ]
     },
     // 将过滤规则格式化为可读值
-    formaFillRule (value) {
+    formatFillRule (value) {
       return value
         .map((_, i) => {
           switch (_.type) {
@@ -521,7 +521,7 @@ export default {
               if (filter.type === 'value') {
                 filterValue = Array.isArray(filter.value) ? `[${filter.value.join(',')}]` : filter.value
               } else {
-                filterValue = this.formaFillRule(JSON.parse(filter.value))
+                filterValue = this.formatFillRule(JSON.parse(filter.value))
               }
               return `${filterIndex > 0 ? ' | ' : ''}${filter.name} ${filter.operator} ${filterValue}`
             })
