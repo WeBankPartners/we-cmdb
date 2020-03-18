@@ -418,6 +418,13 @@ public class CiDataInterceptorService {
             if (AutoFillType.Rule.getCode().equals(item.getType())) {
                 try {
                     List<AutoFillIntegrationQueryDto> routines = JsonUtil.toList(item.getValue(), AutoFillIntegrationQueryDto.class);
+                    routines.forEach(routine -> {
+                        routine.getFilters().forEach(filter -> {
+                            if ("autoFill".equals(filter.getType())){
+                                filter.setValue(queryValueByRule(rootGuid,attrWithGuid,filter.getValue(),new StringBuilder()));
+                            }
+                        });
+                    });
                     QueryResponse response = queryIntegrateWithRoutines(rootGuid, attrWithGuid, routines);
                     List<String> targetValues = getValueFromResponse(response, routines);
                     if(isPreviousExpressionValue && targetValues.isEmpty()) {
