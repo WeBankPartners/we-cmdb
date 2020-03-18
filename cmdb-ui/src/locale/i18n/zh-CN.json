@@ -241,5 +241,8 @@
   "no_password": "未设密码",
   "enter_password": "输入密码",
   "actions": "操作",
-  "value": "值"
+  "value": "值",
+  "show_key_name": "KeyName",
+  "change_key_name": "更改别名",
+  "keyname_should_be_unique": "别名必须唯一且不能为空!"
 }
