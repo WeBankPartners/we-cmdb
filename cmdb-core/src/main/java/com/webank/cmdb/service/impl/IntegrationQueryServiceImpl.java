@@ -77,6 +77,8 @@ public class IntegrationQueryServiceImpl implements IntegrationQueryService {
         if (logger.isDebugEnabled()) {
             logger.debug("Creating integrate query for ciTypeId [{}] queryName:{} intQueryDto:{}", ciTypeId, queryName, JsonUtil.toJsonString(intQueryDto));
         }
+        intQueryDto.validate();
+
         AdmIntegrateTemplate intTemplate = new AdmIntegrateTemplate();
         intTemplate.setName(queryName);
         intTemplate.setDes(queryName);
@@ -176,7 +178,10 @@ public class IntegrationQueryServiceImpl implements IntegrationQueryService {
             templAttr.setSeqNo(1);
             if (intQueryDto.getAggKeyNames().size() > 0 && !Strings.isNullOrEmpty(intQueryDto.getAggKeyNames().get(i))) {
                 templAttr.setKeyName(intQueryDto.getAggKeyNames().get(i));
-            } else {
+            } else if(intQueryDto.getAttrKeyNames().size() > 0){
+                templAttr.setKeyName(intQueryDto.getAttrKeyNames().get(i));
+            }
+            else {
                 templAttr.setKeyName(keyName);
             }
             // templAttr.setSysAttr(attrAlias);
