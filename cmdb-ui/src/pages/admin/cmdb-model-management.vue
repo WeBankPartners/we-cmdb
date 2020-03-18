@@ -4,7 +4,7 @@
       <div style="padding-right: 20px">
         <Card class="cmdb-model-management-left-card" style="height: calc(100vh - 108px);">
           <Row slot="title">
-            <Col span="10">
+            <Col span="8">
               <p>
                 {{ $t('architecture_diagram') }}
                 <span class="header-buttons-container margin-left">
@@ -14,7 +14,7 @@
                 </span>
               </p>
             </Col>
-            <Col span="13" offset="1">
+            <Col span="10" offset="1">
               <span class="filter-title">{{ $t('state') }}</span>
               <Select
                 multiple
@@ -27,6 +27,23 @@
                   {{ item }}
                 </Option>
               </Select>
+            </Col>
+            <Col span="4" offset="1" class="filter-col">
+              <span class="filter-title">{{ $t('change_layer') }}</span>
+              <Button
+                class="filter-col-icon"
+                @click="changeLayer(-1)"
+                :disabled="currentZoomLevelId === 1"
+                icon="md-arrow-round-up"
+                size="small"
+              ></Button>
+              <Button
+                class="filter-col-icon"
+                @click="changeLayer(1)"
+                :disabled="currentZoomLevelId === zoomLevelIdList[zoomLevelIdList.length - 1]"
+                icon="md-arrow-round-down"
+                size="small"
+              ></Button>
             </Col>
           </Row>
           <div class="graph-container" id="graph"></div>
@@ -94,7 +111,7 @@
           <Collapse accordion>
             <Panel
               class="collapse-row"
-              v-for="(item, index) in currentSelectLayerChildren.ciTypes"
+              v-for="(item, index) in currentSelectLayerChildrenWithCurrentZoomLevelId"
               :key="item.ciTypeId"
               :name="index.toString()"
             >
@@ -125,6 +142,13 @@
                 <Form class="validation-form" :model="item.form" label-position="left" :label-width="100">
                   <FormItem :label="$t('ci_type_id')" prop="tableName">
                     <Input v-model="item.form.tableName" disabled></Input>
+                  </FormItem>
+                  <FormItem :label="$t('zoom_level')" prop="zoomLevelId">
+                    <InputNumber
+                      v-model="item.form.zoomLevelId"
+                      :min="1"
+                      :disabled="item.form.status === 'decommissioned'"
+                    ></InputNumber>
                   </FormItem>
                   <FormItem :label="$t('refrence_layer')">
                     <Select v-model="item.form.layerId" :disabled="item.form.status === 'decommissioned'">
@@ -194,6 +218,9 @@
             </FormItem>
             <FormItem :label="$t('ci_type_id')" prop="tableName">
               <Input v-model="addNewCITypeForm.tableName"></Input>
+            </FormItem>
+            <FormItem :label="$t('zoom_level')" prop="zoomLevelId">
+              <InputNumber :min="1" v-model="addNewCITypeForm.zoomLevelId"></InputNumber>
             </FormItem>
             <FormItem :label="$t('refrence_layer')">
               <Select disabled v-model="addNewCITypeForm.layerId">
@@ -795,6 +822,8 @@ export default {
     return {
       baseURL,
       imgs: new Array(26),
+      currentZoomLevelId: 1,
+      zoomLevelIdList: [1],
       source: {},
       layers: [],
       graph: {},
@@ -827,6 +856,7 @@ export default {
       currentSelectLayerChildren: [],
       currentSelectedCIChildren: [],
       addNewCITypeForm: {
+        zoomLevelId: 1,
         imageFileId: 1
       },
       addNewAttrForm: {
@@ -876,6 +906,7 @@ export default {
     addCiTypeModalToggle (isShow) {
       if (!isShow) {
         this.addNewCITypeForm = {
+          zoomLevelId: 1,
           layerId: this.addNewCITypeForm.layerId,
           imageFileId: 1
         }
@@ -934,6 +965,7 @@ export default {
           })
       }
 
+      this.zoomLevelIdList = [1]
       let layerResponse = await getAllLayers()
       if (layerResponse.statusCode === 'OK') {
         let tempLayer = layerResponse.data
@@ -951,6 +983,10 @@ export default {
           this.source.forEach(_ => {
             _.ciTypes &&
               _.ciTypes.forEach(async i => {
+                if (this.zoomLevelIdList.indexOf(i.zoomLevelId) < 0) {
+                  this.zoomLevelIdList.push(i.zoomLevelId)
+                  this.zoomLevelIdList.sort((a, b) => a - b)
+                }
                 let imgFileSource =
                   i.imageFileId === 0 || i.imageFileId === undefined
                     ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
@@ -1015,7 +1051,7 @@ export default {
         ]
         nodes.length > 0 &&
           nodes.forEach((node, nodeIndex) => {
-            if (node.layerId === _.layerId) {
+            if (node.layerId === _.layerId && node.zoomLevelId === this.currentZoomLevelId) {
               let fontcolor = node.status === 'notCreated' ? '#10a34e' : 'black'
               tempClusterObjForGraph[index].push(
                 `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`
@@ -1039,7 +1075,7 @@ export default {
           node.attributes.forEach(attr => {
             if (attr.inputType === 'ref' || attr.inputType === 'multiRef') {
               var target = nodes.find(_ => _.ciTypeId === attr.referenceId)
-              if (target) {
+              if (target && node.zoomLevelId === target.zoomLevelId && node.zoomLevelId === this.currentZoomLevelId) {
                 dots.push(this.genEdge(nodes, node, attr))
               }
             }
@@ -1160,6 +1196,46 @@ export default {
         this.getAllEnumTypes()
         this.getAllEnumCategories()
       }
+    },
+    changeLayer (v) {
+      let currentZoomLevelIdIndex = this.zoomLevelIdList.indexOf > 0 ? this.zoomLevelIdList.indexOf : 1
+      currentZoomLevelIdIndex += v
+      this.currentZoomLevelId = this.zoomLevelIdList[currentZoomLevelIdIndex]
+      let graph
+      const graphEl = document.getElementById('graph')
+      const initEvent = () => {
+        graph = d3.select('#graph')
+        graph
+          .on('dblclick.zoom', null)
+          .on('wheel.zoom', null)
+          .on('mousewheel.zoom', null)
+
+        this.graph.graphviz = graph
+          .graphviz()
+          .zoom(true)
+          .height(window.innerHeight - 178)
+          .width(graphEl.offsetWidth)
+          .attributer(function (d) {
+            if (d.attributes.class === 'edge') {
+              const keys = d.key.split('->')
+              const from = keys[0].trim()
+              const to = keys[1].trim()
+              d.attributes.from = from
+              d.attributes.to = to
+            }
+
+            if (d.tag === 'text') {
+              const key = d.children[0].text
+              d3.select(this).attr('text-key', key)
+            }
+          })
+      }
+      this.nodeName = ''
+      this.currentSelectedLayer = {}
+      this.currentSelectedCI = {}
+      this.renderRightPanels()
+      initEvent()
+      this.renderGraph(this.source)
     },
     async getAllEnumCategories () {
       if (this.allEnumCategories.length === 0) {
@@ -1441,6 +1517,7 @@ export default {
       this.addNewCITypeForm = {
         name: '',
         tableName: '',
+        zoomLevelId: 1,
         layerId: '',
         description: '',
         imageFileId: 1
@@ -1722,6 +1799,13 @@ export default {
       return {
         'X-XSRF-TOKEN': uploadToken && uploadToken.split('=')[1]
       }
+    },
+    currentSelectLayerChildrenWithCurrentZoomLevelId () {
+      if (this.currentSelectLayerChildren.ciTypes instanceof Array) {
+        return this.currentSelectLayerChildren.ciTypes.filter(_ => _.zoomLevelId === this.currentZoomLevelId)
+      } else {
+        return []
+      }
     }
   }
 }
@@ -1787,5 +1871,14 @@ export default {
 }
 .validation-form /deep/ .ivu-form-item {
   margin-bottom: 10px;
+}
+.filter-col {
+  align-items: center;
+  display: flex;
+  height: 32px;
+
+  &-icon {
+    margin-right: 5px;
+  }
 }
 </style>
