@@ -1,6 +1,7 @@
 package com.webank.plugins.wecmdb.service;
 
 import com.webank.cmdb.constant.FieldType;
+import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.dto.*;
 import com.webank.cmdb.dto.Filter;
@@ -272,12 +273,30 @@ public class WecubeAdapterService {
             if (ID.equals(filter.getAttrName())) {
                 guidFilter = new Filter(GUID,filter.getOp(),filter.getCondition());
             }else{
-                guidFilter = new Filter(filter.getAttrName(),filter.getOp(),filter.getCondition());
+                guidFilter = adapterFilter(filter);
             }
             queryRequest.getFilters().add(guidFilter);
         });
         queryRequest.addEqualsFilter(queryObject.getCriteria().getAttrName().equals(ID)?GUID:queryObject.getCriteria().getAttrName(),queryObject.getCriteria().getCondition());
         return queryRequest;
+    }
+
+    private Filter adapterFilter(com.webank.plugins.wecmdb.dto.wecube.Filter filter) {
+        Filter guidFilter;
+        if ("is".equals(filter.getOp())){
+            if ("NULL".equals(filter.getCondition())) {
+                guidFilter = new Filter(filter.getAttrName(), FilterOperator.Null.getCode(), filter.getCondition());
+            }else{
+                guidFilter = new Filter(filter.getAttrName(),FilterOperator.Equal.getCode(),filter.getCondition());
+            }
+        }else if("isnot".equals(filter.getOp())){
+            guidFilter = new Filter(filter.getAttrName(), FilterOperator.NotNull.getCode(),filter.getCondition());
+        }else if("neq".equals(filter.getOp())){
+            guidFilter = new Filter(filter.getAttrName(),FilterOperator.NotEqual.getCode(),filter.getCondition());
+        }else{
+            guidFilter = new Filter(filter.getAttrName(),filter.getOp(),filter.getCondition());
+        }
+        return guidFilter;
     }
 
     private List<Map<String, Object>> convertCiData(QueryRequest queryObject, Integer ciTypeId) {
