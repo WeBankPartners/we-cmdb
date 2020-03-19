@@ -41,7 +41,7 @@ public class WecubeAdapterController {
         return getCiDataResponse(url, BeanMapUtils.convertBeanToMap(queryObject));
     }
 
-    @PostMapping("/entities/{entity-name}")
+    @PostMapping("/entities/{entity-name}/query")
     @ResponseBody
     public List<Map<String, Object>> retrieveCiData(@PathVariable(value = "entity-name") String entityName,@RequestBody QueryRequest queryObject) {
         return wecubeAdapterService.getCiDataWithConditions(entityName, queryObject);
