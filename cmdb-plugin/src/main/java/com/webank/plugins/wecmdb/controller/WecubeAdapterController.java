@@ -33,7 +33,16 @@ public class WecubeAdapterController {
     private WecubeAdapterService wecubeAdapterService;
     @Autowired
     private HttpServletRequest request;
-
+    
+    @GetMapping("/entities/{entity-name}")
+    @ResponseBody
+    public Object retrieveCiData(@PathVariable(value = "entity-name") String entityName,
+                                 @RequestParam(value = "filter", required = false) String filter,
+                                 @RequestParam(value = "sorting", required = false) String sorting,
+                                 @RequestParam(value = "select", required = false) String select) {
+        com.webank.cmdb.dto.QueryRequest queryRequest = com.webank.cmdb.dto.QueryRequest.defaultQueryObject();
+        return wecubeAdapterService.retrieveCiData(entityName, filter, sorting, select);
+    }
     @PostMapping("/entities")
     @ResponseBody
     public OperateCiJsonResponse retrieveCiDataSend(@RequestParam(value = "entity-name") String entityName,@RequestBody QueryRequest queryObject) {

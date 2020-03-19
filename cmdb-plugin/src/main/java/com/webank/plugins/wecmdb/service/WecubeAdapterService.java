@@ -8,6 +8,7 @@ import com.webank.cmdb.exception.BatchChangeException.ExceptionHolder;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.util.BeanMapUtils;
+import com.webank.cmdb.util.Sorting;
 import com.webank.plugins.wecmdb.dto.wecube.*;
 import com.webank.plugins.wecmdb.exception.PluginException;
 import com.webank.plugins.wecmdb.helper.ConfirmHelper;
@@ -205,7 +206,54 @@ public class WecubeAdapterService {
     private String mapToWecubeDataType(CiTypeAttrDto ciTypeAttrDto) {
         return dataTypeMapping.get(ciTypeAttrDto.getPropertyType());
     }
+    public List<Map<String, Object>> retrieveCiData(String entityName, String filter, String sorting, String selectAttrs) {
+        QueryRequest queryObject = QueryRequest.defaultQueryObject();
 
+        applyFiltering(filter, queryObject);
+        applySorting(sorting, queryObject);
+        applySelectAttrs(selectAttrs, queryObject);
+
+        return convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
+    }
+
+    private void applySelectAttrs(String selectAttrs, QueryRequest queryObject) {
+        if (!StringUtils.isBlank(selectAttrs)) {
+            String[] attrs = selectAttrs.split(",");
+            List<String> resultColumns = new ArrayList<>();
+            for (String attr : attrs) {
+                resultColumns.add(ID.equals(attr) ? GUID : attr.trim());
+            }
+            queryObject.setResultColumns(resultColumns);
+        }
+    }
+
+    private void applySorting(String sorting, QueryRequest queryObject) {
+        if (!StringUtils.isBlank(sorting)) {
+            if (sorting.split(",").length != 2) {
+                throw new PluginException("The given parameter 'sorting' must be format 'key," + SORTING_ASC + "/" + SORTING_DESC + "'");
+            }
+            String sortingAttr = sorting.split(",")[0].trim();
+            String sortingValue = sorting.split(",")[1].trim();
+
+            if (SORTING_ASC.equals(sortingValue) || SORTING_DESC.equals(sortingValue)) {
+                queryObject.setSorting(new Sorting(sortingValue.equals(SORTING_ASC) ? true : false, ID.equals(sortingAttr) ? GUID : sortingAttr));
+            } else {
+                throw new PluginException("The given value of 'sorting' must be " + SORTING_ASC + " or " + SORTING_DESC + "'");
+            }
+        }
+    }
+
+    private void applyFiltering(String filter, QueryRequest queryObject) {
+        if (!StringUtils.isBlank(filter)) {
+            if (filter.split(",").length != 2) {
+                throw new PluginException("The given parameter 'filter' must be format 'key,value'");
+            }
+
+            String filterAttr = filter.split(",")[0].trim();
+            String filterValue = filter.split(",")[1].trim();
+            queryObject.addEqualsFilter(ID.equals(filterAttr) ? GUID : filterAttr, filterValue);
+        }
+    }
     public List<Map<String, Object>> getCiDataWithConditions(String entityName, com.webank.plugins.wecmdb.dto.wecube.QueryRequest queryObject) {
         QueryRequest queryRequest = new QueryRequest();
         if (queryObject == null){
