@@ -7,13 +7,12 @@ public class Filter {
         private String attrName = null;
         @NotNull
         private String op = null;
-        @NotNull
         private Object condition = null;
 
         public Filter() {
         }
 
-        public Filter(@NotNull String attrName, @NotNull String op, @NotNull Object condition) {
+        public Filter(@NotNull String attrName, @NotNull String op, Object condition) {
             this.attrName = attrName;
             this.op = op;
             this.condition = condition;
