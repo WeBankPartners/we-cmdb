@@ -1198,7 +1198,10 @@ export default {
       }
     },
     changeLayer (v) {
-      let currentZoomLevelIdIndex = this.zoomLevelIdList.indexOf > 0 ? this.zoomLevelIdList.indexOf : 1
+      let currentZoomLevelIdIndex =
+        this.zoomLevelIdList.indexOf(this.currentZoomLevelId) >= 0
+          ? this.zoomLevelIdList.indexOf(this.currentZoomLevelId)
+          : 1
       currentZoomLevelIdIndex += v
       this.currentZoomLevelId = this.zoomLevelIdList[currentZoomLevelIdIndex]
       let graph
