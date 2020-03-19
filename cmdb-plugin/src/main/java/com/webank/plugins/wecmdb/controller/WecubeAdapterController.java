@@ -33,7 +33,7 @@ public class WecubeAdapterController {
     private WecubeAdapterService wecubeAdapterService;
     @Autowired
     private HttpServletRequest request;
-    
+
     @GetMapping("/entities/{entity-name}")
     @ResponseBody
     public Object retrieveCiData(@PathVariable(value = "entity-name") String entityName,
