@@ -30,6 +30,21 @@
         </Modal>
       </TabPane>
       <div slot="extra" class="history-query">
+        <span class="filter-title">{{ $t('change_layer') }}</span>
+        <Button
+          class="filter-col-icon"
+          @click="changeLayer(-1)"
+          :disabled="currentZoomLevelId === 1"
+          icon="md-arrow-round-up"
+          size="small"
+        ></Button>
+        <Button
+          class="filter-col-icon"
+          @click="changeLayer(1)"
+          :disabled="currentZoomLevelId === zoomLevelIdList[zoomLevelIdList.length - 1]"
+          icon="md-arrow-round-down"
+          size="small"
+        ></Button>
         <div class="label">{{ $t('updated_time') }}</div>
         <DatePicker
           type="datetime"
@@ -101,7 +116,8 @@ export default {
         }
       },
       queryType: '1', // 1 - 最新； 2 - 现实； 3 - 所有；
-      queryDate: null
+      queryDate: null,
+      zoomLevelIdList: [1]
     }
   },
   computed: {
@@ -213,6 +229,7 @@ export default {
           })
       }
 
+      this.zoomLevelIdList = [1]
       let layerResponse = await getAllLayers()
       if (layerResponse.statusCode === 'OK') {
         let tempLayer = layerResponse.data
@@ -229,6 +246,10 @@ export default {
           this.source.forEach(_ => {
             _.ciTypes &&
               _.ciTypes.forEach(async i => {
+                if (this.zoomLevelIdList.indexOf(i.zoomLevelId) < 0) {
+                  this.zoomLevelIdList.push(i.zoomLevelId)
+                  this.zoomLevelIdList.sort((a, b) => a - b)
+                }
                 this.ciTypesName[i.ciTypeId] = i.name
                 let imgFileSource =
                   i.imageFileId === 0 || i.imageFileId === undefined
@@ -887,6 +908,15 @@ export default {
           }
         })
       }
+    },
+    changeLayer (v) {
+      let currentZoomLevelIdIndex =
+        this.zoomLevelIdList.indexOf(this.currentZoomLevelId) >= 0
+          ? this.zoomLevelIdList.indexOf(this.currentZoomLevelId)
+          : 1
+      currentZoomLevelIdIndex += v
+      this.currentZoomLevelId = this.zoomLevelIdList[currentZoomLevelIdIndex]
+      this.initGraph()
     }
   },
   mounted () {
@@ -935,6 +965,14 @@ export default {
 
   .ivu-select {
     width: 100px;
+  }
+
+  .filter-title {
+    margin-right: 5px;
+  }
+
+  .filter-col-icon {
+    margin-right: 5px;
   }
 }
 </style>
