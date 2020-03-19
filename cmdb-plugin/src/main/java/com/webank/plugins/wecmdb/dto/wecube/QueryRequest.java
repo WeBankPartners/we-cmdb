@@ -1,13 +1,6 @@
 package com.webank.plugins.wecmdb.dto.wecube;
 
-import com.webank.cmdb.constant.FilterRelationship;
-import com.webank.cmdb.dto.Filter;
-import com.webank.cmdb.dto.IntQueryOperateAggRequetDto;
-import com.webank.cmdb.util.Pageable;
-import com.webank.cmdb.util.Sorting;
 
-import javax.validation.constraints.NotNull;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +25,7 @@ public class QueryRequest {
         this.criteria = criteria;
     }
 
-    public static class Criteria {
+    public class Criteria {
         private String attrName;
         private String condition;
 
@@ -57,47 +50,6 @@ public class QueryRequest {
         }
 
         public void setCondition(String condition) {
-            this.condition = condition;
-        }
-    }
-    public class Filter {
-        @NotNull
-        private String attrName = null;
-        @NotNull
-        private String op = null;
-        @NotNull
-        private Object condition = null;
-
-        public Filter() {
-        }
-
-        public Filter(@NotNull String attrName, @NotNull String op, @NotNull Object condition) {
-            this.attrName = attrName;
-            this.op = op;
-            this.condition = condition;
-        }
-
-        public String getAttrName() {
-            return attrName;
-        }
-
-        public void setAttrName(String attrName) {
-            this.attrName = attrName;
-        }
-
-        public String getOp() {
-            return op;
-        }
-
-        public void setOp(String op) {
-            this.op = op;
-        }
-
-        public Object getCondition() {
-            return condition;
-        }
-
-        public void setCondition(Object condition) {
             this.condition = condition;
         }
     }
