@@ -332,6 +332,15 @@
                   <FormItem prop="name" :label="$t('ci_attribute_name')">
                     <Input v-model="item.form.name" :disabled="item.form.status === 'decommissioned'"></Input>
                   </FormItem>
+                  <FormItem prop="description" :label="$t('description')">
+                    <Input
+                      v-model="item.form.description"
+                      :disabled="item.form.status === 'decommissioned'"
+                      type="textarea"
+                      :rows="1"
+                      :autosize="true"
+                    />
+                  </FormItem>
                   <FormItem
                     v-if="item.form.inputType !== 'password'"
                     :label="$t('search_filter_number')"
@@ -579,6 +588,9 @@
         >
           <FormItem :label="$t('ci_attribute_name')" prop="name">
             <Input v-model="addNewAttrForm.name"></Input>
+          </FormItem>
+          <FormItem :label="$t('description')" prop="description">
+            <Input v-model="addNewAttrForm.description" type="textarea" :rows="1" :autosize="true" />
           </FormItem>
           <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
             <Input v-model="addNewAttrForm.propertyName"></Input>
