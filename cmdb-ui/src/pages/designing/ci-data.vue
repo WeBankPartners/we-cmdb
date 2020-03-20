@@ -886,6 +886,11 @@ export default {
               ..._,
               tooltip: true,
               title: _.name,
+              renderHeader: (h, params) => (
+                <Tooltip content={_.description} placement="top">
+                  <span>{_.name}</span>
+                </Tooltip>
+              ),
               key: renderKey,
               inputKey: _.propertyName,
               inputType: _.inputType,
