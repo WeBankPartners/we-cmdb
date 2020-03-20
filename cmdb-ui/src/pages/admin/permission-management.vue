@@ -140,6 +140,7 @@
   </Row>
 </template>
 <script>
+import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { outerActions, innerActions, components } from '@/const/actions.js'
 import {
   getAllUsers,
@@ -444,7 +445,7 @@ export default {
     async saveHandler (data) {
       let setBtnsStatus = () => {
         this.outerActions.forEach(_ => {
-          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
+          _.props.disabled = resetButtonDisabled(_)
         })
         this.$refs.table.setAllRowsUneditable()
         this.$nextTick(() => {
@@ -607,7 +608,7 @@ export default {
       this.$refs.table.setCheckoutStatus()
       this.outerActions &&
         this.outerActions.forEach(_ => {
-          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
+          _.props.disabled = resetButtonDisabled(_)
         })
     },
     onSelectedRowsChange (rows, checkoutBoxdisable) {
@@ -617,7 +618,7 @@ export default {
         })
       } else {
         this.outerActions.forEach(_ => {
-          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
+          _.props.disabled = resetButtonDisabled(_)
         })
       }
       this.seletedRows = rows
