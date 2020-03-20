@@ -350,7 +350,7 @@ export default {
     async saveHandler (data) {
       let setBtnsStatus = () => {
         this.outerActions.forEach(_ => {
-          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export')
+          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
         })
         this.$refs.table.setAllRowsUneditable()
         this.$nextTick(() => {
