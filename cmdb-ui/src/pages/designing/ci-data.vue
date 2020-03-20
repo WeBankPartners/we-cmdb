@@ -707,7 +707,7 @@ export default {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.outerActions.forEach(_ => {
-              _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export')
+              _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
             })
           }
         })
