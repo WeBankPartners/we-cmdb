@@ -32,6 +32,7 @@ import {
   getAllNonSystemEnumCodes,
   getNonSystemCategories
 } from '@/api/server.js'
+import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { outerActions, innerActions, exportOuterActions } from '@/const/actions.js'
 
 export default {
@@ -289,7 +290,7 @@ export default {
       this.$refs.table.setCheckoutStatus()
       this.outerActions &&
         this.outerActions.forEach(_ => {
-          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
+          _.props.disabled = resetButtonDisabled(_)
         })
     },
     addHandler () {
@@ -350,7 +351,7 @@ export default {
     async saveHandler (data) {
       let setBtnsStatus = () => {
         this.outerActions.forEach(_ => {
-          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
+          _.props.disabled = resetButtonDisabled(_)
         })
         this.$refs.table.setAllRowsUneditable()
         this.$nextTick(() => {
@@ -434,7 +435,7 @@ export default {
         })
       } else {
         this.outerActions.forEach(_ => {
-          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
+          _.props.disabled = resetButtonDisabled(_)
         })
       }
       this.seletedRows = rows
