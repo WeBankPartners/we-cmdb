@@ -215,6 +215,7 @@ import {
   updateSystemDesign
 } from '@/api/server'
 import { outerActions, innerActions, pagination, components } from '@/const/actions.js'
+import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import PhysicalGraph from './physical-graph'
@@ -873,7 +874,7 @@ export default {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.outerActions.forEach(_ => {
-              _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
+              _.props.disabled = resetButtonDisabled(_)
             })
           }
         })
@@ -967,7 +968,7 @@ export default {
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
           ci.outerActions.forEach(_ => {
-            _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
+            _.props.disabled = resetButtonDisabled(_)
           })
         }
       })
@@ -1033,7 +1034,7 @@ export default {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.outerActions.forEach(_ => {
-              _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export')
+              _.props.disabled = resetButtonDisabled(_)
             })
           }
         })
