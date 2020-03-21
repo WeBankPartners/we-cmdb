@@ -1,5 +1,6 @@
 package com.webank.cmdb.repository;
 
+import java.util.List;
 import java.util.Map;
 
 import com.webank.cmdb.domain.AdmCiType;
@@ -28,4 +29,6 @@ public interface StaticEntityRepository {
     Object update(Object domainObj);
 
     void createDefaultCiTypeAttrs(AdmCiType admCiType);
+
+    List<AdmCiTypeAttr> retrieveDefaultAdmCiTypeAttrs(AdmCiType admCiType);
 }
