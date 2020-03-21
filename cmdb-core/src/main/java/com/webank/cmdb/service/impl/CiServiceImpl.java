@@ -1020,7 +1020,7 @@ public class CiServiceImpl implements CiService {
     }
 
     private Map<String, Object> doUpdate(EntityManager entityManager, int ciTypeId, Map<String, Object> ci, boolean enableStateTransition) {
-        DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
+            DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
 
         String guid = ci.get(GUID).toString();
         Object entityBean = validateCi(ciTypeId, guid, entityMeta, entityManager, ACTION_MODIFICATION);
@@ -1034,6 +1034,7 @@ public class CiServiceImpl implements CiService {
             entityManager.merge(entityHolder.getEntityObj());
         } else {
             updatedMap = stateTransEngine.process(entityManager, ciTypeId, guid, StateOperation.Update.getCode(), convertedCi, entityHolder);
+            ci.put(CmdbConstants.DEFAULT_FIELD_STATE,StateOperation.Update.getCode());
         }
 
         ciDataInterceptorService.postUpdate(entityHolder, entityManager, ci);
@@ -2103,8 +2104,8 @@ public class CiServiceImpl implements CiService {
     @Override
     public List<Map<String, Object>> lookupReferenceByCis(int ciTypeId, String guid, boolean checkFinalState) {
         List<Map<String, Object>> dependentCis = Lists.newLinkedList();
-        List<AdmCiTypeAttr> referredAttrs = ciTypeAttrRepository.findByInputTypeAndReferenceId(InputType.Reference.getCode(), ciTypeId);
-        referredAttrs.addAll(ciTypeAttrRepository.findByInputTypeAndReferenceId(InputType.MultRef.getCode(), ciTypeId));
+        List<AdmCiTypeAttr> referredAttrs = ciTypeAttrRepository.findByInputTypeAndReferenceIdAndStatus(InputType.Reference.getCode(), ciTypeId, CiStatus.Created.getCode());
+        referredAttrs.addAll(ciTypeAttrRepository.findByInputTypeAndReferenceIdAndStatus(InputType.MultRef.getCode(), ciTypeId, CiStatus.Created.getCode()));
 	referredAttrs.forEach(attr -> {
             List<Map<String, Object>> ciData = queryWithFilters(attr.getCiTypeId(), Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), guid)), false);
             if (ciData != null && ciData.size() > 0) {
