@@ -4,14 +4,11 @@ import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Creation
 import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Implementation;
 import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Modification;
 import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Removal;
+import static com.webank.cmdb.constant.CmdbConstants.DEFAULT_FIELDS;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
@@ -142,7 +139,6 @@ public class CiTypeServiceImpl implements CiTypeService {
      * if the expected table is existed.
      *
      * @param ciType
-     * @param admTenement
      * @return
      */
     private String checkTableName(CiTypeDto ciType) {
@@ -586,11 +582,13 @@ public class CiTypeServiceImpl implements CiTypeService {
         if (CiStatus.fromCode(admCiType.getStatus()) == CiStatus.NotCreated) {
             throw new DependencyException(String.format("Can not create ciTypeAttr [%s] due to it's ciType [%s] is not created yet", admCiTypeAttr.getPropertyName(), admCiType.getTableName()));
         }
-        List<String> defaultColumns = CmdbConstants.DEFAULT_FIELDS;
+        if(DEFAULT_FIELDS.isEmpty()){
+            DEFAULT_FIELDS = staticEntityRepository.retrieveDefaultAdmCiTypeAttrs(new AdmCiType()).stream().map(AdmCiTypeAttr::getPropertyName).collect(Collectors.toList());
+        }
         CiStatus ciStatus = CiStatus.fromCode(admCiTypeAttr.getStatus());
         if (ciStatus == CiStatus.NotCreated || ciStatus == CiStatus.Dirty) {
             // system default columns should be created with table
-            if (!defaultColumns.contains(admCiTypeAttr.getPropertyName())) {
+            if (!DEFAULT_FIELDS.contains(admCiTypeAttr.getPropertyName())) {
                 staticEntityRepository.applyCiTypeAttr(admCiTypeAttr);
             }
 

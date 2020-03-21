@@ -567,7 +567,7 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
         sb.append(") ENGINE=InnoDB DEFAULT CHARSET=utf8");
         return sb.toString();
     }
-
+    @Override
     public List<AdmCiTypeAttr> retrieveDefaultAdmCiTypeAttrs(AdmCiType admCiType) {
         Query createNativeQuery = entityManager.createNativeQuery("SELECT * FROM ADM_CI_TYPE_ATTR_BASE ");
         List baseAttrs = createNativeQuery.getResultList();
