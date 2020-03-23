@@ -8,13 +8,14 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line
 import * as d3Graphviz from 'd3-graphviz'
-import { getAllLayers, getAllCITypesByLayerWithAttr } from '@/api/server'
+import { getAllLayers, getAllCITypesByLayerWithAttr, getEnumCodesByCategoryId } from '@/api/server'
 import { setHeaders, baseURL } from '@/api/base.js'
 import { addEvent } from './util/event.js'
+import { zoomLevelCat } from '@/const/init-params.js'
 export default {
   data () {
     return {
-      currentZoomLevelId: 1,
+      currentZoomLevelId: [],
       baseURL,
       layers: [],
       graph: {},
@@ -65,8 +66,14 @@ export default {
         this.layers = tempLayer.sort((a, b) => {
           return a.seqNo - b.seqNo
         })
-        let ciResponse = await getAllCITypesByLayerWithAttr(this.selectedStatus)
-        if (ciResponse.statusCode === 'OK') {
+        let [ciResponse, _zoomLevelIdList] = await Promise.all([
+          getAllCITypesByLayerWithAttr(this.selectedStatus),
+          getEnumCodesByCategoryId(1, zoomLevelCat)
+        ])
+        if (ciResponse.statusCode === 'OK' && _zoomLevelIdList.statusCode === 'OK') {
+          if (_zoomLevelIdList.data.length) {
+            this.currentZoomLevelId = [_zoomLevelIdList.data[0].codeId]
+          }
           this.source = []
           this.source = ciResponse.data
           this.source.forEach(_ => {
@@ -218,7 +225,7 @@ export default {
         ]
         nodes.length > 0 &&
           nodes.forEach((node, nodeIndex) => {
-            if (node.layerId === _.layerId && node.zoomLevelId === this.currentZoomLevelId) {
+            if (node.layerId === _.layerId && this.currentZoomLevelId.indexOf(node.zoomLevelId) >= 0) {
               let fontcolor = node.status === 'notCreated' ? '#10a34e' : 'black'
               tempClusterObjForGraph[index].push(
                 `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`
@@ -242,7 +249,11 @@ export default {
           node.attributes.forEach(attr => {
             if (attr.inputType === 'ref' || attr.inputType === 'multiRef') {
               const target = nodes.find(_ => _.ciTypeId === attr.referenceId)
-              if (target && node.zoomLevelId === target.zoomLevelId && node.zoomLevelId === this.currentZoomLevelId) {
+              if (
+                target &&
+                node.zoomLevelId === target.zoomLevelId &&
+                this.currentZoomLevelId.indexOf(node.zoomLevelId) >= 0
+              ) {
                 dots.push(this.genEdge(nodes, node, attr))
               }
             }
