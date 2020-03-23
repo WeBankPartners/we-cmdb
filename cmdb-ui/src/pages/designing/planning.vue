@@ -13,7 +13,7 @@
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
         <div>{{ $t('loading') }}</div>
       </Spin>
-      <Tabs v-if="idcDesignData" type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
+      <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
         <TabPane :label="$t('planning_design_diagram')" name="resource-design">
           <Alert show-icon closable v-if="isDataChanged">
             Data has beed changed, click Reload button to reload graph.
@@ -68,6 +68,11 @@ import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import { colors } from '../../const/graph-configuration'
+import { VIEW_CONFIG_PARAMS } from '@/const/init-params.js'
+
+const NETWORK_SEGMENT_DESIGN = 'idcPlanningNetworkSegmentDesign'
+const LINK_FROM = 'idcPlanningLinkFrom'
+const LINK_TO = 'idcPlanningLinkTo'
 
 export default {
   data () {
@@ -111,10 +116,10 @@ export default {
             let result = {
               ..._
             }
-            if (_.data.network_segment_design) {
-              result.text = [_.data.code, _.data.network_segment_design.code]
+            if (_.data[this.initParams[NETWORK_SEGMENT_DESIGN]]) {
+              result.text = [_.data.code || '', _.data[this.initParams[NETWORK_SEGMENT_DESIGN]].code || '']
             } else {
-              result.text = [_.data.code]
+              result.text = [_.data.code || '']
             }
             if (_.children instanceof Array && _.children.length) {
               result.children = formatTree(_.children)
@@ -176,12 +181,12 @@ export default {
       const children = idcData.children || []
       let layers = new Map()
       children.forEach(zone => {
-        if (layers.has(zone.data.network_zone_layer.value)) {
-          layers.get(zone.data.network_zone_layer.value).push(zone)
+        if (layers.has(zone.data.network_zone_layer)) {
+          layers.get(zone.data.network_zone_layer).push(zone)
         } else {
           let layer = []
           layer.push(zone)
-          layers.set(zone.data.network_zone_layer.value, layer)
+          layers.set(zone.data.network_zone_layer, layer)
         }
       })
       if (layers.size) {
@@ -780,11 +785,11 @@ export default {
           idcLink.linkList.forEach(_ => {
             let zoneLink = {}
             if (
-              _.data.network_zone_design_1.data_center_design === this.selectedIdc &&
-              _.data.network_zone_design_2.data_center_design === this.selectedIdc
+              _.data[this.initParams[LINK_FROM]].data_center_design === this.selectedIdc &&
+              _.data[this.initParams[LINK_TO]].data_center_design === this.selectedIdc
             ) {
-              zoneLink.azone = `g_${_.data.network_zone_design_1.guid}`
-              zoneLink.bzone = `g_${_.data.network_zone_design_2.guid}`
+              zoneLink.azone = `g_${_.data[this.initParams[LINK_FROM]].guid}`
+              zoneLink.bzone = `g_${_.data[this.initParams[LINK_TO]].guid}`
               const guid = this.idcDesignData.data.guid
               if (this.zoneLinkDesignData.has(guid)) {
                 this.zoneLinkDesignData.get(guid).push(zoneLink)
@@ -822,11 +827,21 @@ export default {
       if (statusCode === 'OK') {
         this.allIdcs = data.map(_ => _.data)
       }
+    },
+    async getConfigParams () {
+      const { statusCode, data } = await getEnumCodesByCategoryId(0, VIEW_CONFIG_PARAMS)
+      if (statusCode === 'OK') {
+        this.initParams = {}
+        data.forEach(_ => {
+          this.initParams[_.code] = _.value
+        })
+      }
+      this.getTabLists()
+      this.getAllIdcDesignData()
     }
   },
   mounted () {
-    this.getTabLists()
-    this.getAllIdcDesignData()
+    this.getConfigParams()
   }
 }
 </script>

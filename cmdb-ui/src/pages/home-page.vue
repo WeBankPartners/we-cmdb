@@ -11,7 +11,7 @@ import * as d3Graphviz from 'd3-graphviz'
 import { getAllLayers, getAllCITypesByLayerWithAttr, getEnumCodesByCategoryId } from '@/api/server'
 import { setHeaders, baseURL } from '@/api/base.js'
 import { addEvent } from './util/event.js'
-import { zoomLevelCat } from '@/const/init-params.js'
+import { ZOOM_LEVEL_CAT } from '@/const/init-params.js'
 export default {
   data () {
     return {
@@ -68,7 +68,7 @@ export default {
         })
         let [ciResponse, _zoomLevelIdList] = await Promise.all([
           getAllCITypesByLayerWithAttr(this.selectedStatus),
-          getEnumCodesByCategoryId(1, zoomLevelCat)
+          getEnumCodesByCategoryId(1, ZOOM_LEVEL_CAT)
         ])
         if (ciResponse.statusCode === 'OK' && _zoomLevelIdList.statusCode === 'OK') {
           if (_zoomLevelIdList.data.length) {
