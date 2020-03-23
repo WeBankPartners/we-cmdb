@@ -828,7 +828,7 @@ import { setHeaders, baseURL } from '@/api/base.js'
 import enumGroupModal from './components/enum-group-modal'
 import AutoFill from '../components/auto-fill.js'
 import FilterRule from '../components/filter-rule'
-import { zoomLevelCat } from '@/const/init-params.js'
+import { ZOOM_LEVEL_CAT } from '@/const/init-params.js'
 
 const defaultCiTypePNG = require('@/assets/ci-type-default.png')
 
@@ -999,7 +999,7 @@ export default {
         })
         let [ciResponse, _zoomLevelIdList] = await Promise.all([
           getAllCITypesByLayerWithAttr(this.selectedStatus),
-          getEnumCodesByCategoryId(1, zoomLevelCat)
+          getEnumCodesByCategoryId(1, ZOOM_LEVEL_CAT)
         ])
         if (ciResponse.statusCode === 'OK' && _zoomLevelIdList.statusCode === 'OK') {
           if (_zoomLevelIdList.data.length) {
