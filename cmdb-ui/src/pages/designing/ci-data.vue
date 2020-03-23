@@ -78,7 +78,7 @@ import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import { deepClone } from '../util/common-func.js'
-import { zoomLevelCat } from '@/const/init-params.js'
+import { ZOOM_LEVEL_CAT } from '@/const/init-params.js'
 const defaultCiTypePNG = require('@/assets/ci-type-default.png')
 export default {
   data () {
@@ -236,7 +236,7 @@ export default {
         })
         let [ciResponse, _zoomLevelIdList] = await Promise.all([
           getAllCITypesByLayerWithAttr(filters),
-          getEnumCodesByCategoryId(1, zoomLevelCat)
+          getEnumCodesByCategoryId(1, ZOOM_LEVEL_CAT)
         ])
         if (ciResponse.statusCode === 'OK' && _zoomLevelIdList.statusCode === 'OK') {
           if (_zoomLevelIdList.data.length) {
