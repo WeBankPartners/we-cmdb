@@ -543,7 +543,6 @@ export default {
       }
     },
     selectCiType (opt) {
-      console.log(JSON.parse(JSON.stringify(opt)))
       this.optionsHide = false
       this.filterRuleArray[this.filterRuleArray.length - 1] = [
         {
@@ -555,7 +554,6 @@ export default {
       this.$refs.textarea.focus()
     },
     selectAttr (opt) {
-      console.log(JSON.parse(JSON.stringify(opt)))
       this.optionsHide = false
       const val = {
         ciTypeId: opt.id,
@@ -580,14 +578,12 @@ export default {
       }
     },
     selectRules (code) {
-      console.log(JSON.parse(JSON.stringify(code)))
       this.optionsHide = false
       this.isShowSelectRules = false
       this.inputVal += `${code} `
       this.$refs.textarea.focus()
     },
     selectEnumCode (code) {
-      console.log(JSON.parse(JSON.stringify(code)))
       this.optionsHide = false
       this.isShowSelect = false
       this.inputVal += `.${code} `
