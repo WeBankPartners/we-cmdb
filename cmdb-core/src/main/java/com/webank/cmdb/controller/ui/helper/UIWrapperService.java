@@ -1182,7 +1182,12 @@ public class UIWrapperService {
         List<String> guid = Arrays.asList(systemDesignGuid.split(","));
         CatCodeDto code = getEnumCodeById(codeId);
         Integer ciTypeId = Integer.parseInt(code.getCode());
-        Integer envEnumCat = getEnumCategoryByName(uiProperties.getEnumCategoryNameOfEnv()).getCatId();
+        CategoryDto enumCategoryByName = getEnumCategoryByName(uiProperties.getEnumCategoryNameOfEnv());
+        Integer envEnumCat = null;
+        if (enumCategoryByName != null){
+            envEnumCat = enumCategoryByName.getCatId();
+
+        }
         List<CatCodeDto> codeOfRoutines = getEnumCodesByGroupId(code.getCodeId());
         String routineForGetingSystemDesignGuid = null;
         if (codeOfRoutines.size() > 0) {

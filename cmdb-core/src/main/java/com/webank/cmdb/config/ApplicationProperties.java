@@ -28,8 +28,8 @@ public class ApplicationProperties {
         private Integer ciTypeIdOfSubsys = 47;
         private Integer ciTypeIdOfSystem = 46;
         private String ciTypeCodeOfSubsys = "subsys";
-        private Integer ciTypeIdOfHost = 15;
-        private Integer ciTypeIdOfInstance = 14;
+        private Integer ciTypeIdOfHost = 32;
+        private Integer ciTypeIdOfInstance = 50;
         private Integer ciTypeIdOfIdc = 22;
         private Integer ciTypeIdOfZone = 24;
         private Integer ciTypeIdOfZoneLink = 26;
