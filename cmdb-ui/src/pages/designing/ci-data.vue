@@ -31,20 +31,11 @@
       </TabPane>
       <div slot="extra" class="history-query">
         <span class="filter-title">{{ $t('change_layer') }}</span>
-        <Button
-          class="filter-col-icon"
-          @click="changeLayer(-1)"
-          :disabled="currentZoomLevelId === 1"
-          icon="md-arrow-round-up"
-          size="small"
-        ></Button>
-        <Button
-          class="filter-col-icon"
-          @click="changeLayer(1)"
-          :disabled="currentZoomLevelId === zoomLevelIdList[zoomLevelIdList.length - 1]"
-          icon="md-arrow-round-down"
-          size="small"
-        ></Button>
+        <Select multiple :max-tag-count="3" v-model="currentZoomLevelId" @on-change="changeLayer" style="width: 300px;">
+          <Option v-for="item in zoomLevelIdList" :value="item.codeId" :key="item.codeId">
+            {{ item.value }}
+          </Option>
+        </Select>
         <div class="label">{{ $t('updated_time') }}</div>
         <DatePicker
           type="datetime"
@@ -71,6 +62,7 @@ import moment from 'moment'
 import { addEvent } from '../util/event.js'
 import {
   getAllCITypesByLayerWithAttr,
+  getEnumCodesByCategoryId,
   getAllLayers,
   queryCiData,
   queryCiDataByType,
@@ -86,12 +78,13 @@ import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import { deepClone } from '../util/common-func.js'
+import { zoomLevelCat } from '@/const/init-params.js'
 const defaultCiTypePNG = require('@/assets/ci-type-default.png')
 export default {
   data () {
     return {
       baseURL,
-      currentZoomLevelId: 1,
+      currentZoomLevelId: [],
       tabList: [],
       currentTab: 'CMDB',
       payload: {
@@ -118,7 +111,7 @@ export default {
       },
       queryType: '1', // 1 - 最新； 2 - 现实； 3 - 所有；
       queryDate: null,
-      zoomLevelIdList: [1]
+      zoomLevelIdList: []
     }
   },
   computed: {
@@ -230,7 +223,7 @@ export default {
           })
       }
 
-      this.zoomLevelIdList = [1]
+      this.zoomLevelIdList = []
       let layerResponse = await getAllLayers()
       if (layerResponse.statusCode === 'OK') {
         let tempLayer = layerResponse.data
@@ -241,16 +234,19 @@ export default {
         this.layers = tempLayer.sort((a, b) => {
           return a.seqNo - b.seqNo
         })
-        let ciResponse = await getAllCITypesByLayerWithAttr(filters)
-        if (ciResponse.statusCode === 'OK') {
+        let [ciResponse, _zoomLevelIdList] = await Promise.all([
+          getAllCITypesByLayerWithAttr(filters),
+          getEnumCodesByCategoryId(1, zoomLevelCat)
+        ])
+        if (ciResponse.statusCode === 'OK' && _zoomLevelIdList.statusCode === 'OK') {
+          if (_zoomLevelIdList.data.length) {
+            this.zoomLevelIdList = _zoomLevelIdList.data
+            this.currentZoomLevelId = [_zoomLevelIdList.data[0].codeId]
+          }
           this.source = ciResponse.data
           this.source.forEach(_ => {
             _.ciTypes &&
               _.ciTypes.forEach(async i => {
-                if (this.zoomLevelIdList.indexOf(i.zoomLevelId) < 0) {
-                  this.zoomLevelIdList.push(i.zoomLevelId)
-                  this.zoomLevelIdList.sort((a, b) => a - b)
-                }
                 this.ciTypesName[i.ciTypeId] = i.name
                 let imgFileSource =
                   i.imageFileId === 0 || i.imageFileId === undefined
@@ -277,7 +273,6 @@ export default {
             'X-XSRF-TOKEN': uploadToken && uploadToken.split('=')[1]
           })
           initEvent()
-          this.renderGraph(ciResponse.data)
         }
       }
     },
@@ -308,7 +303,7 @@ export default {
           `{ rank=same; "layer_${_.layerId}"[id="layerId_${_.layerId}",class="layer",label="${_.name}",tooltip="${_.name}"];`
         ]
         nodes.forEach((node, nodeIndex) => {
-          if (node.layerId === _.layerId && node.zoomLevelId === this.currentZoomLevelId) {
+          if (node.layerId === _.layerId && this.currentZoomLevelId.indexOf(node.zoomLevelId) >= 0) {
             tempClusterObjForGraph[index].push(
               `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",image="${node.form.imgSource}.png", labelloc="b"]`
             )
@@ -332,7 +327,11 @@ export default {
           node.attributes.forEach(attr => {
             if (attr.inputType === 'ref' || attr.inputType === 'multiRef') {
               var target = nodes.find(_ => _.ciTypeId === attr.referenceId)
-              if (target && node.zoomLevelId === target.zoomLevelId && node.zoomLevelId === this.currentZoomLevelId) {
+              if (
+                target &&
+                node.zoomLevelId === target.zoomLevelId &&
+                this.currentZoomLevelId.indexOf(node.zoomLevelId) >= 0
+              ) {
                 dots.push(this.genEdge(nodes, node, attr))
               }
             }
@@ -393,73 +392,74 @@ export default {
       this.loadImage(nodesString)
       this.graph.graphviz.renderDot(nodesString)
       this.shadeAll()
-      addEvent('.node', 'mouseover', async e => {
-        e.preventDefault()
-        e.stopPropagation()
-        d3.selectAll('g').attr('cursor', 'pointer')
-        var g = e.currentTarget
-        var nodeName = g.children[0].innerHTML.trim()
-        this.shadeAll()
-        this.colorNode(nodeName)
-      })
-
-      addEvent('svg', 'mouseover', e => {
-        this.shadeAll()
-        e.preventDefault()
-        e.stopPropagation()
-      })
-
-      addEvent('.node', 'click', async e => {
-        e.preventDefault()
-        e.stopPropagation()
-        var g = e.currentTarget
-        let isLayerSelected = g.getAttribute('class').indexOf('layer') >= 0
-        if (isLayerSelected) {
-          return
+      addEvent('.node', 'mouseover', this.handleNodeMouseover)
+      addEvent('svg', 'mouseover', this.handleSvgMouseover)
+      addEvent('.node', 'click', this.handleNodeClick)
+    },
+    async handleNodeMouseover (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      d3.selectAll('g').attr('cursor', 'pointer')
+      var g = e.currentTarget
+      var nodeName = g.children[0].innerHTML.trim()
+      this.shadeAll()
+      this.colorNode(nodeName)
+    },
+    handleSvgMouseover (e) {
+      this.shadeAll()
+      e.preventDefault()
+      e.stopPropagation()
+    },
+    async handleNodeClick (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      var g = e.currentTarget
+      let isLayerSelected = g.getAttribute('class').indexOf('layer') >= 0
+      if (isLayerSelected) {
+        return
+      }
+      const found = this.tabList.find(_ => _.id === g.id)
+      if (!found) {
+        const ci = {
+          name: g.children[1].children[0].getAttribute('title'),
+          id: g.id,
+          tableData: [],
+          outerActions:
+            this.$route.name === 'ciDataEnquiry'
+              ? JSON.parse(JSON.stringify(exportOuterActions))
+              : JSON.parse(JSON.stringify(outerActions)),
+          innerActions:
+            this.$route.name === 'ciDataEnquiry'
+              ? null
+              : deepClone(
+                innerActions.concat(await getExtraInnerActions()).concat([
+                  {
+                    label: this.$t('compare'),
+                    props: {
+                      type: 'info',
+                      size: 'small'
+                    },
+                    actionType: 'compare',
+                    isDisabled: row => !row.weTableForm.p_guid,
+                    isLoading: row => !!row.weTableForm.compareLoading
+                  }
+                ])
+              ),
+          tableColumns: [],
+          pagination: JSON.parse(JSON.stringify(pagination)),
+          ascOptions: {}
         }
-        const found = this.tabList.find(_ => _.id === g.id)
-        if (!found) {
-          const ci = {
-            name: g.children[1].children[0].getAttribute('title'),
-            id: g.id,
-            tableData: [],
-            outerActions:
-              this.$route.name === 'ciDataEnquiry'
-                ? JSON.parse(JSON.stringify(exportOuterActions))
-                : JSON.parse(JSON.stringify(outerActions)),
-            innerActions:
-              this.$route.name === 'ciDataEnquiry'
-                ? null
-                : deepClone(
-                  innerActions.concat(await getExtraInnerActions()).concat([
-                    {
-                      label: this.$t('compare'),
-                      props: {
-                        type: 'info',
-                        size: 'small'
-                      },
-                      actionType: 'compare',
-                      isDisabled: row => !row.weTableForm.p_guid,
-                      isLoading: row => !!row.weTableForm.compareLoading
-                    }
-                  ])
-                ),
-            tableColumns: [],
-            pagination: JSON.parse(JSON.stringify(pagination)),
-            ascOptions: {}
-          }
-          const query = {
-            id: g.id,
-            queryObject: this.payload
-          }
-          this.tabList.push(ci)
-          this.currentTab = g.id
-          this.queryCiAttrs(g.id)
-          this.queryCiData(query)
-        } else {
-          this.currentTab = g.id
+        const query = {
+          id: g.id,
+          queryObject: this.payload
         }
-      })
+        this.tabList.push(ci)
+        this.currentTab = g.id
+        this.queryCiAttrs(g.id)
+        this.queryCiData(query)
+      } else {
+        this.currentTab = g.id
+      }
     },
 
     onSelectedRowsChange (rows, checkoutBoxdisable) {
@@ -915,14 +915,8 @@ export default {
         })
       }
     },
-    changeLayer (v) {
-      let currentZoomLevelIdIndex =
-        this.zoomLevelIdList.indexOf(this.currentZoomLevelId) >= 0
-          ? this.zoomLevelIdList.indexOf(this.currentZoomLevelId)
-          : 1
-      currentZoomLevelIdIndex += v
-      this.currentZoomLevelId = this.zoomLevelIdList[currentZoomLevelIdIndex]
-      this.initGraph()
+    changeLayer () {
+      this.renderGraph(this.source)
     }
   },
   mounted () {
