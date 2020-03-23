@@ -1169,21 +1169,22 @@ export default {
         e.stopPropagation()
       })
       this.shadeAll()
-      addEvent('.node', 'mouseover', async e => {
-        e.preventDefault()
-        e.stopPropagation()
-        d3.selectAll('g').attr('cursor', 'pointer')
-
-        this.g = e.currentTarget
-        this.nodeName = this.g.children[0].innerHTML.trim()
-        this.shadeAll()
-        this.colorNode(this.nodeName)
-      })
-      addEvent('.node', 'click', async e => {
-        this.n = e.currentTarget
-        this.isLayerSelected = this.g.getAttribute('class').indexOf('layer') >= 0
-        this.renderRightPanels()
-      })
+      addEvent('.node', 'mouseover', this.handleNodeMouseover)
+      addEvent('.node', 'click', this.handleNodeClick)
+    },
+    handleNodeMouseover (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      d3.selectAll('g').attr('cursor', 'pointer')
+      this.g = e.currentTarget
+      this.nodeName = this.g.children[0].innerHTML.trim()
+      this.shadeAll()
+      this.colorNode(this.nodeName)
+    },
+    handleNodeClick (e) {
+      this.n = e.currentTarget
+      this.isLayerSelected = this.g.getAttribute('class').indexOf('layer') >= 0
+      this.renderRightPanels()
     },
     renderRightPanels () {
       if (!this.nodeName) return
