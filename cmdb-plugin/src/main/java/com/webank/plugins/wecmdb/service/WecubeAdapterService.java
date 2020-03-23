@@ -277,7 +277,9 @@ public class WecubeAdapterService {
             }
             queryRequest.getFilters().add(guidFilter);
         });
-        queryRequest.addEqualsFilter(queryObject.getCriteria().getAttrName().equals(ID)?GUID:queryObject.getCriteria().getAttrName(),queryObject.getCriteria().getCondition());
+        if (queryObject.getCriteria() != null && queryObject.getCriteria().getAttrName() != null){
+            queryRequest.addEqualsFilter(queryObject.getCriteria().getAttrName().equals(ID)?GUID:queryObject.getCriteria().getAttrName(),queryObject.getCriteria().getCondition());
+        }
         return queryRequest;
     }
 
