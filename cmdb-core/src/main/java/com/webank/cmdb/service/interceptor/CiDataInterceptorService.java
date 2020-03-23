@@ -15,9 +15,11 @@ import java.util.regex.Pattern;
 
 import javax.persistence.EntityManager;
 
+import com.webank.cmdb.Application;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
@@ -323,13 +325,13 @@ public class CiDataInterceptorService {
         if (!StringUtils.isBlank(rawValue)) {
             switch (InputType.fromCode(attrWithRule.getInputType())) {
             case Droplist:
-            case Reference:
             case Number:
                 value = Integer.valueOf(rawValue);
                 break;
             case Date:
                 value = DateUtils.convertToTimestamp(rawValue);
                 break;
+            case Reference:
             default:
                 value = rawValue;
                 break;
