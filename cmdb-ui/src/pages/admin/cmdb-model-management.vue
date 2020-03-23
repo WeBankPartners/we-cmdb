@@ -30,20 +30,17 @@
             </Col>
             <Col span="4" offset="1" class="filter-col">
               <span class="filter-title">{{ $t('change_layer') }}</span>
-              <Button
-                class="filter-col-icon"
-                @click="changeLayer(-1)"
-                :disabled="currentZoomLevelId === 1"
-                icon="md-arrow-round-up"
-                size="small"
-              ></Button>
-              <Button
-                class="filter-col-icon"
-                @click="changeLayer(1)"
-                :disabled="currentZoomLevelId === zoomLevelIdList[zoomLevelIdList.length - 1]"
-                icon="md-arrow-round-down"
-                size="small"
-              ></Button>
+              <Select
+                multiple
+                :max-tag-count="3"
+                v-model="currentZoomLevelId"
+                @on-change="changeLayer"
+                style="flex: 1;"
+              >
+                <Option v-for="item in zoomLevelIdList" :value="item.codeId" :key="item.codeId">
+                  {{ item.value }}
+                </Option>
+              </Select>
             </Col>
           </Row>
           <div class="graph-container" id="graph"></div>
@@ -144,11 +141,16 @@
                     <Input v-model="item.form.tableName" disabled></Input>
                   </FormItem>
                   <FormItem :label="$t('zoom_level')" prop="zoomLevelId">
-                    <InputNumber
+                    <Select
+                      :max-tag-count="3"
                       v-model="item.form.zoomLevelId"
-                      :min="1"
+                      @on-change="changeLayer"
                       :disabled="item.form.status === 'decommissioned'"
-                    ></InputNumber>
+                    >
+                      <Option v-for="item in zoomLevelIdList" :value="item.codeId" :key="item.codeId">
+                        {{ item.value }}
+                      </Option>
+                    </Select>
                   </FormItem>
                   <FormItem :label="$t('refrence_layer')">
                     <Select v-model="item.form.layerId" :disabled="item.form.status === 'decommissioned'">
@@ -220,7 +222,11 @@
               <Input v-model="addNewCITypeForm.tableName"></Input>
             </FormItem>
             <FormItem :label="$t('zoom_level')" prop="zoomLevelId">
-              <InputNumber :min="1" v-model="addNewCITypeForm.zoomLevelId"></InputNumber>
+              <Select :max-tag-count="3" v-model="addNewCITypeForm.zoomLevelId">
+                <Option v-for="item in zoomLevelIdList" :value="item.codeId" :key="item.codeId">
+                  {{ item.value }}
+                </Option>
+              </Select>
             </FormItem>
             <FormItem :label="$t('refrence_layer')">
               <Select disabled v-model="addNewCITypeForm.layerId">
@@ -540,7 +546,7 @@
                     :label="$t('filter_rule')"
                   >
                     <FilterRule
-                      :allLayers="source"
+                      :allLayers="filterRuleSource"
                       :filterAttr="item"
                       :rootCiTypeId="item.ciTypeId"
                       v-model="item.form.filterRule"
@@ -809,6 +815,7 @@ import {
   getTableStatus,
   applyCIAttr,
   getAllEnumCategoryTypes,
+  getEnumCodesByCategoryId,
   getAllEnumCategories,
   implementCiType,
   implementCiAttr,
@@ -821,6 +828,7 @@ import { setHeaders, baseURL } from '@/api/base.js'
 import enumGroupModal from './components/enum-group-modal'
 import AutoFill from '../components/auto-fill.js'
 import FilterRule from '../components/filter-rule'
+import { zoomLevelCat } from '@/const/init-params.js'
 
 const defaultCiTypePNG = require('@/assets/ci-type-default.png')
 
@@ -834,9 +842,10 @@ export default {
     return {
       baseURL,
       imgs: new Array(26),
-      currentZoomLevelId: 1,
-      zoomLevelIdList: [1],
-      source: {},
+      currentZoomLevelId: [],
+      zoomLevelIdList: [],
+      source: [],
+      filterRuleSource: [],
       layers: [],
       graph: {},
       currentSelectedLayer: {},
@@ -977,7 +986,7 @@ export default {
           })
       }
 
-      this.zoomLevelIdList = [1]
+      this.zoomLevelIdList = []
       let layerResponse = await getAllLayers()
       if (layerResponse.statusCode === 'OK') {
         let tempLayer = layerResponse.data
@@ -988,17 +997,20 @@ export default {
         this.layers = tempLayer.sort((a, b) => {
           return a.seqNo - b.seqNo
         })
-        let ciResponse = await getAllCITypesByLayerWithAttr(this.selectedStatus)
-        if (ciResponse.statusCode === 'OK') {
+        let [ciResponse, _zoomLevelIdList] = await Promise.all([
+          getAllCITypesByLayerWithAttr(this.selectedStatus),
+          getEnumCodesByCategoryId(1, zoomLevelCat)
+        ])
+        if (ciResponse.statusCode === 'OK' && _zoomLevelIdList.statusCode === 'OK') {
+          if (_zoomLevelIdList.data.length) {
+            this.zoomLevelIdList = _zoomLevelIdList.data
+            this.currentZoomLevelId = [_zoomLevelIdList.data[0].codeId]
+          }
           this.source = []
           this.source = ciResponse.data
           this.source.forEach(_ => {
             _.ciTypes &&
               _.ciTypes.forEach(async i => {
-                if (this.zoomLevelIdList.indexOf(i.zoomLevelId) < 0) {
-                  this.zoomLevelIdList.push(i.zoomLevelId)
-                  this.zoomLevelIdList.sort((a, b) => a - b)
-                }
                 let imgFileSource =
                   i.imageFileId === 0 || i.imageFileId === undefined
                     ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
@@ -1063,7 +1075,7 @@ export default {
         ]
         nodes.length > 0 &&
           nodes.forEach((node, nodeIndex) => {
-            if (node.layerId === _.layerId && node.zoomLevelId === this.currentZoomLevelId) {
+            if (node.layerId === _.layerId && this.currentZoomLevelId.indexOf(node.zoomLevelId) >= 0) {
               let fontcolor = node.status === 'notCreated' ? '#10a34e' : 'black'
               tempClusterObjForGraph[index].push(
                 `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`
@@ -1087,7 +1099,11 @@ export default {
           node.attributes.forEach(attr => {
             if (attr.inputType === 'ref' || attr.inputType === 'multiRef') {
               var target = nodes.find(_ => _.ciTypeId === attr.referenceId)
-              if (target && node.zoomLevelId === target.zoomLevelId && node.zoomLevelId === this.currentZoomLevelId) {
+              if (
+                target &&
+                node.zoomLevelId === target.zoomLevelId &&
+                this.currentZoomLevelId.indexOf(node.zoomLevelId) >= 0
+              ) {
                 dots.push(this.genEdge(nodes, node, attr))
               }
             }
@@ -1153,21 +1169,22 @@ export default {
         e.stopPropagation()
       })
       this.shadeAll()
-      addEvent('.node', 'mouseover', async e => {
-        e.preventDefault()
-        e.stopPropagation()
-        d3.selectAll('g').attr('cursor', 'pointer')
-
-        this.g = e.currentTarget
-        this.nodeName = this.g.children[0].innerHTML.trim()
-        this.shadeAll()
-        this.colorNode(this.nodeName)
-      })
-      addEvent('.node', 'click', async e => {
-        this.n = e.currentTarget
-        this.isLayerSelected = this.g.getAttribute('class').indexOf('layer') >= 0
-        this.renderRightPanels()
-      })
+      addEvent('.node', 'mouseover', this.handleNodeMouseover)
+      addEvent('.node', 'click', this.handleNodeClick)
+    },
+    handleNodeMouseover (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      d3.selectAll('g').attr('cursor', 'pointer')
+      this.g = e.currentTarget
+      this.nodeName = this.g.children[0].innerHTML.trim()
+      this.shadeAll()
+      this.colorNode(this.nodeName)
+    },
+    handleNodeClick (e) {
+      this.n = e.currentTarget
+      this.isLayerSelected = this.g.getAttribute('class').indexOf('layer') >= 0
+      this.renderRightPanels()
     },
     renderRightPanels () {
       if (!this.nodeName) return
@@ -1209,13 +1226,7 @@ export default {
         this.getAllEnumCategories()
       }
     },
-    changeLayer (v) {
-      let currentZoomLevelIdIndex =
-        this.zoomLevelIdList.indexOf(this.currentZoomLevelId) >= 0
-          ? this.zoomLevelIdList.indexOf(this.currentZoomLevelId)
-          : 1
-      currentZoomLevelIdIndex += v
-      this.currentZoomLevelId = this.zoomLevelIdList[currentZoomLevelIdIndex]
+    changeLayer () {
       let graph
       const graphEl = document.getElementById('graph')
       const initEvent = () => {
@@ -1753,6 +1764,7 @@ export default {
     async getAllCiTypeWithAttr () {
       const res = await getAllCITypesByLayerWithAttr(['notCreated', 'created', 'decommissioned', 'dirty'])
       if (res.statusCode === 'OK') {
+        this.filterRuleSource = res.data
         let allCiTypesWithAttr = []
         res.data.forEach(layer => {
           layer.ciTypes &&
@@ -1817,7 +1829,7 @@ export default {
     },
     currentSelectLayerChildrenWithCurrentZoomLevelId () {
       if (this.currentSelectLayerChildren.ciTypes instanceof Array) {
-        return this.currentSelectLayerChildren.ciTypes.filter(_ => _.zoomLevelId === this.currentZoomLevelId)
+        return this.currentSelectLayerChildren.ciTypes.filter(_ => this.currentZoomLevelId.indexOf(_.zoomLevelId) >= 0)
       } else {
         return []
       }
