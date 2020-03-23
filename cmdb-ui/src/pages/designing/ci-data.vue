@@ -31,7 +31,7 @@
       </TabPane>
       <div slot="extra" class="history-query">
         <span class="filter-title">{{ $t('change_layer') }}</span>
-        <Select multiple :max-tag-count="3" v-model="currentZoomLevelId" @on-change="changeLayer" style="flex: 1;">
+        <Select multiple :max-tag-count="3" v-model="currentZoomLevelId" @on-change="changeLayer" style="width: 300px;">
           <Option v-for="item in zoomLevelIdList" :value="item.codeId" :key="item.codeId">
             {{ item.value }}
           </Option>
@@ -273,7 +273,6 @@ export default {
             'X-XSRF-TOKEN': uploadToken && uploadToken.split('=')[1]
           })
           initEvent()
-          this.renderGraph(ciResponse.data)
         }
       }
     },
@@ -393,73 +392,74 @@ export default {
       this.loadImage(nodesString)
       this.graph.graphviz.renderDot(nodesString)
       this.shadeAll()
-      addEvent('.node', 'mouseover', async e => {
-        e.preventDefault()
-        e.stopPropagation()
-        d3.selectAll('g').attr('cursor', 'pointer')
-        var g = e.currentTarget
-        var nodeName = g.children[0].innerHTML.trim()
-        this.shadeAll()
-        this.colorNode(nodeName)
-      })
-
-      addEvent('svg', 'mouseover', e => {
-        this.shadeAll()
-        e.preventDefault()
-        e.stopPropagation()
-      })
-
-      addEvent('.node', 'click', async e => {
-        e.preventDefault()
-        e.stopPropagation()
-        var g = e.currentTarget
-        let isLayerSelected = g.getAttribute('class').indexOf('layer') >= 0
-        if (isLayerSelected) {
-          return
+      addEvent('.node', 'mouseover', this.handleNodeMouseover)
+      addEvent('svg', 'mouseover', this.handleSvgMouseover)
+      addEvent('.node', 'click', this.handleNodeClick)
+    },
+    async handleNodeMouseover (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      d3.selectAll('g').attr('cursor', 'pointer')
+      var g = e.currentTarget
+      var nodeName = g.children[0].innerHTML.trim()
+      this.shadeAll()
+      this.colorNode(nodeName)
+    },
+    handleSvgMouseover (e) {
+      this.shadeAll()
+      e.preventDefault()
+      e.stopPropagation()
+    },
+    async handleNodeClick (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      var g = e.currentTarget
+      let isLayerSelected = g.getAttribute('class').indexOf('layer') >= 0
+      if (isLayerSelected) {
+        return
+      }
+      const found = this.tabList.find(_ => _.id === g.id)
+      if (!found) {
+        const ci = {
+          name: g.children[1].children[0].getAttribute('title'),
+          id: g.id,
+          tableData: [],
+          outerActions:
+            this.$route.name === 'ciDataEnquiry'
+              ? JSON.parse(JSON.stringify(exportOuterActions))
+              : JSON.parse(JSON.stringify(outerActions)),
+          innerActions:
+            this.$route.name === 'ciDataEnquiry'
+              ? null
+              : deepClone(
+                innerActions.concat(await getExtraInnerActions()).concat([
+                  {
+                    label: this.$t('compare'),
+                    props: {
+                      type: 'info',
+                      size: 'small'
+                    },
+                    actionType: 'compare',
+                    isDisabled: row => !row.weTableForm.p_guid,
+                    isLoading: row => !!row.weTableForm.compareLoading
+                  }
+                ])
+              ),
+          tableColumns: [],
+          pagination: JSON.parse(JSON.stringify(pagination)),
+          ascOptions: {}
         }
-        const found = this.tabList.find(_ => _.id === g.id)
-        if (!found) {
-          const ci = {
-            name: g.children[1].children[0].getAttribute('title'),
-            id: g.id,
-            tableData: [],
-            outerActions:
-              this.$route.name === 'ciDataEnquiry'
-                ? JSON.parse(JSON.stringify(exportOuterActions))
-                : JSON.parse(JSON.stringify(outerActions)),
-            innerActions:
-              this.$route.name === 'ciDataEnquiry'
-                ? null
-                : deepClone(
-                  innerActions.concat(await getExtraInnerActions()).concat([
-                    {
-                      label: this.$t('compare'),
-                      props: {
-                        type: 'info',
-                        size: 'small'
-                      },
-                      actionType: 'compare',
-                      isDisabled: row => !row.weTableForm.p_guid,
-                      isLoading: row => !!row.weTableForm.compareLoading
-                    }
-                  ])
-                ),
-            tableColumns: [],
-            pagination: JSON.parse(JSON.stringify(pagination)),
-            ascOptions: {}
-          }
-          const query = {
-            id: g.id,
-            queryObject: this.payload
-          }
-          this.tabList.push(ci)
-          this.currentTab = g.id
-          this.queryCiAttrs(g.id)
-          this.queryCiData(query)
-        } else {
-          this.currentTab = g.id
+        const query = {
+          id: g.id,
+          queryObject: this.payload
         }
-      })
+        this.tabList.push(ci)
+        this.currentTab = g.id
+        this.queryCiAttrs(g.id)
+        this.queryCiData(query)
+      } else {
+        this.currentTab = g.id
+      }
     },
 
     onSelectedRowsChange (rows, checkoutBoxdisable) {
