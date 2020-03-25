@@ -5,6 +5,7 @@ import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,7 +15,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.webank.cmdb.config.ApplicationProperties;
 import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
+import com.webank.cmdb.util.JsonUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,6 +71,8 @@ import com.webank.cmdb.util.Sorting;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.PostConstruct;
+
 @Service
 @Slf4j
 @Transactional
@@ -109,6 +114,17 @@ public class UIWrapperService {
     private AdmRoleRepository admRoleRepository;
     @Autowired
     private AdmCiTypeAttrRepository admCiTypeAttrRepository;
+    @PostConstruct
+    public void initCiTypeId() throws IOException {
+        CategoryDto categoryDto = getEnumCategoryByName(uiProperties.getEnumCodeofView());
+        if (categoryDto == null) {
+            throw new CmdbException(String.format("The enum category name [%s] not found.", uiProperties.getEnumCodeofView()));
+        }
+        QueryRequest queryObject = defaultQueryObject().addEqualsFilter(CONSTANT_CAT_ID, categoryDto.getCatId());
+
+        QueryResponse<CatCodeDto> response = staticDtoService.query(CatCodeDto.class, queryObject);
+        propertiesAssignment(response);
+    }
 
     public void swapCiTypeLayerPosition(int layerId, int targetLayerId) {
         CatCodeDto enumCode = getEnumCodeById(layerId);
@@ -1724,4 +1740,27 @@ public class UIWrapperService {
         return ystemDesignData;
     }
 
+    private void propertiesAssignment(QueryResponse<CatCodeDto> response) throws IOException {
+        if(response != null) {
+            StringBuilder sb = new StringBuilder("{");
+            response.getContents().stream().forEach(catCodeDto -> sb.append("\""+catCodeDto.getCode()).append("\":\"").append(catCodeDto.getValue()+"\"").append(","));
+            sb.deleteCharAt(sb.lastIndexOf(","));
+            sb.append("}");
+            UIProperties uiPropertiesFromDB = JsonUtil.toObject(sb.toString(), UIProperties.class);
+            this.uiProperties.setCiTypeIdOfSystemDesign(uiPropertiesFromDB.getCiTypeIdOfSystemDesign());
+            this.uiProperties.setCiTypeIdOfSubsystemDesign(uiPropertiesFromDB.getCiTypeIdOfSubsystemDesign());
+            this.uiProperties.setCiTypeIdOfUnitDesign(uiPropertiesFromDB.getCiTypeIdOfUnitDesign());
+            this.uiProperties.setCiTypeIdOfUnit(uiPropertiesFromDB.getCiTypeIdOfUnit());
+            this.uiProperties.setCiTypeIdOfSubsys(uiPropertiesFromDB.getCiTypeIdOfSubsys());
+            this.uiProperties.setCiTypeIdOfSystem(uiPropertiesFromDB.getCiTypeIdOfSystem());
+            this.uiProperties.setCiTypeIdOfHost(uiPropertiesFromDB.getCiTypeIdOfHost());
+            this.uiProperties.setCiTypeIdOfInstance(uiPropertiesFromDB.getCiTypeIdOfInstance());
+            this.uiProperties.setCiTypeIdOfIdc(uiPropertiesFromDB.getCiTypeIdOfIdc());
+            this.uiProperties.setCiTypeIdOfZone(uiPropertiesFromDB.getCiTypeIdOfZone());
+            this.uiProperties.setCiTypeIdOfZoneLink(uiPropertiesFromDB.getCiTypeIdOfZoneLink());
+            this.uiProperties.setCiTypeIdOfIdcDesign(uiPropertiesFromDB.getCiTypeIdOfIdcDesign());
+            this.uiProperties.setCiTypeIdOfZoneDesign(uiPropertiesFromDB.getCiTypeIdOfZoneDesign());
+            this.uiProperties.setCiTypeIdOfZoneLinkDesign(uiPropertiesFromDB.getCiTypeIdOfZoneLinkDesign());
+        }
+    }
 }

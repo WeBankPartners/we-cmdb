@@ -18,24 +18,25 @@ public class ApplicationProperties {
 
     @Data
     @ConfigurationProperties(prefix = "cmdb.ui")
-    public class UIProperties {
+    public static class UIProperties {
         private Integer enumCategoryTypeSystem = 1;
+        private String enumCodeofView = "view_ci_type_id";
         private Integer enumCategoryTypeCommon = 2;
-        private Integer ciTypeIdOfSystemDesign = 37;
-        private Integer ciTypeIdOfSubsystemDesign = 38;
-        private Integer ciTypeIdOfUnitDesign = 39;
-        private Integer ciTypeIdOfUnit = 48;
-        private Integer ciTypeIdOfSubsys = 47;
-        private Integer ciTypeIdOfSystem = 46;
+        private Integer ciTypeIdOfSystemDesign = 337;
+        private Integer ciTypeIdOfSubsystemDesign = 338;
+        private Integer ciTypeIdOfUnitDesign = 339;
+        private Integer ciTypeIdOfUnit = 448;
+        private Integer ciTypeIdOfSubsys = 447;
+        private Integer ciTypeIdOfSystem = 446;
         private String ciTypeCodeOfSubsys = "subsys";
-        private Integer ciTypeIdOfHost = 32;
-        private Integer ciTypeIdOfInstance = 50;
-        private Integer ciTypeIdOfIdc = 22;
-        private Integer ciTypeIdOfZone = 24;
-        private Integer ciTypeIdOfZoneLink = 26;
-        private Integer ciTypeIdOfIdcDesign = 12;
-        private Integer ciTypeIdOfZoneDesign = 14;
-        private Integer ciTypeIdOfZoneLinkDesign = 16;
+        private Integer ciTypeIdOfHost = 332;
+        private Integer ciTypeIdOfInstance = 550;
+        private Integer ciTypeIdOfIdc = 222;
+        private Integer ciTypeIdOfZone = 224;
+        private Integer ciTypeIdOfZoneLink = 226;
+        private Integer ciTypeIdOfIdcDesign = 112;
+        private Integer ciTypeIdOfZoneDesign = 114;
+        private Integer ciTypeIdOfZoneLinkDesign = 116;
         private String enumCategoryCiTypeLayer = "ci_layer";
         private String enumCategoryCiTypeCatalog = "ci_catalog";
         private String enumCategoryCiTypeZoomLevels = "ci_zoom_level";
