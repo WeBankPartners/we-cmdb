@@ -37,6 +37,7 @@ public class WecubeAdapterService {
     private static final String ID = "id";
     private static final String GUID = "guid";
     private static final String CODE = "code";
+    private static final String KEY_NAME = "key_name";
     private static final String STATUS = "status";
     private static final String STATUS_CREATED = "created";
     private static final Map<String, String> dataTypeMapping = new HashMap<>();
@@ -344,7 +345,7 @@ public class WecubeAdapterService {
                 } else if (GUID.equals(attr.getPropertyName())) {
                     convertedMap.put(attr.getPropertyName(), value);
                     convertedMap.put(ID, value);
-                } else if (CODE.equals(attr.getPropertyName())) {
+                } else if (KEY_NAME.equals(attr.getPropertyName())) {
                     convertedMap.put(attr.getPropertyName(), value);
                     convertedMap.put(DISPLAY_NAME, value);
                 } else {
