@@ -14,7 +14,7 @@
                 </span>
               </p>
             </Col>
-            <Col span="10" offset="1">
+            <Col span="8" offset="1">
               <span class="filter-title">{{ $t('state') }}</span>
               <Select
                 multiple
@@ -28,7 +28,7 @@
                 </Option>
               </Select>
             </Col>
-            <Col span="4" offset="1" class="filter-col">
+            <Col span="6" offset="1" class="filter-col">
               <span class="filter-title">{{ $t('change_layer') }}</span>
               <Select
                 multiple
