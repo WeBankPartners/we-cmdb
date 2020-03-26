@@ -185,7 +185,13 @@ export default {
             let obj = {}
             array.forEach(_ => {
               _.text = [_.data.code]
-              if (_.data[this.initParams[NETWORK_SEGMENT]]) {
+              if (_.data[this.initParams[NETWORK_SEGMENT]] instanceof Array) {
+                let text = []
+                _.data[this.initParams[NETWORK_SEGMENT]].forEach(networkSegment => {
+                  text.push(networkSegment.code)
+                })
+                _.text.push(`[${text.join(', ')}]`)
+              } else if (typeof _.data[this.initParams[NETWORK_SEGMENT]] === 'object') {
                 _.text.push(_.data[this.initParams[NETWORK_SEGMENT]].code || '')
               }
               if (_.children instanceof Array) {
@@ -276,7 +282,7 @@ export default {
             }
             const pw = parseInt(points[0].split(',')[0] - points[1].split(',')[0])
             const ph = parseInt(points[2].split(',')[1] - points[1].split(',')[1])
-            this.setChildren(zone, p, pw, ph, fontSize, 1, 1)
+            this.setChildren(zone, p, pw, ph, fontSize, 2, 1)
           }
         })
       })
@@ -327,8 +333,8 @@ export default {
           let ll = (width - 0.5 * layer.length) / layer.length
           layer.forEach(zone => {
             let label
-            if (zone.data.code && zone.data.code !== null && zone.data.code !== '') {
-              label = zone.data.code
+            if (zone.data.code) {
+              label = `${zone.data.code}\n${zone.data.network_segment ? zone.data.network_segment.code : ''}`
             } else {
               label = zone.data.key_name
             }
