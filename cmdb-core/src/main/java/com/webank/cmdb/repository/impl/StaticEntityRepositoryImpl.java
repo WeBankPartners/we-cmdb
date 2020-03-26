@@ -569,7 +569,7 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
     }
     @Override
     public List<AdmCiTypeAttr> retrieveDefaultAdmCiTypeAttrs(AdmCiType admCiType) {
-        Query createNativeQuery = entityManager.createNativeQuery("SELECT * FROM ADM_CI_TYPE_ATTR_BASE ");
+        Query createNativeQuery = entityManager.createNativeQuery("SELECT * FROM adm_ci_type_attr_base ");
         List baseAttrs = createNativeQuery.getResultList();
         List<AdmCiTypeAttr> ciTypeAttrs = retrieveBaseAttrs(baseAttrs, admCiType);
         return ciTypeAttrs;
