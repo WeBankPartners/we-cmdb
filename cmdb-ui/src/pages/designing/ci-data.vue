@@ -465,7 +465,7 @@ export default {
       }
       setTimeout(() => {
         this.isHandleNodeClick = false
-      }, 1000)
+      }, 500)
     },
 
     onSelectedRowsChange (rows, checkoutBoxdisable) {
