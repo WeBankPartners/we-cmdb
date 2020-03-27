@@ -32,7 +32,7 @@ package: image
 	cd package && sed -i "s~{{REPOSITORY}}~$(project_name)~g" register.xml
 	cd ../cmdb-ui/dist && zip -r ui.zip .
 	cd package && cp $(mkfile_dir)/../cmdb-ui/dist/ui.zip .
-	cd package && cat $(cmdb_database_path)/01.cmdb.schema_ch.sql $(cmdb_database_path)/02.cmdb.system.data_ch.sql $(cmdb_database_path)/03.cmdb.system.data.mysql_ch.sql >init.sql
+	cd package && cat $(cmdb_database_path)/01.cmdb.schema_ch.sql $(cmdb_database_path)/02.cmdb.system.data_ch.sql $(cmdb_database_path)/03.cmdb.system.data.mysql_ch.sql $(cmdb_database_path)/04.cmdb.experience.data_ch.sql >init.sql
 	cd package && zip -r $(project_name)-$(version).zip .
 	docker rmi $(project_name):$(version)
 
