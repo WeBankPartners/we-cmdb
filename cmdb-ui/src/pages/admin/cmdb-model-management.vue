@@ -1190,7 +1190,7 @@ export default {
       this.renderRightPanels()
       setTimeout(() => {
         this.isHandleNodeClick = false
-      }, 1000)
+      }, 500)
     },
     renderRightPanels () {
       if (!this.nodeName) return
