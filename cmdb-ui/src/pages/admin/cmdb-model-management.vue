@@ -911,7 +911,8 @@ export default {
         applyAttr: false,
         saveAttr: false,
         addNewAttr: false
-      }
+      },
+      isHandleNodeClick: false
     }
   },
   methods: {
@@ -1182,9 +1183,14 @@ export default {
       this.colorNode(this.nodeName)
     },
     handleNodeClick (e) {
+      if (this.isHandleNodeClick) return
+      this.isHandleNodeClick = true
       this.n = e.currentTarget
       this.isLayerSelected = this.g.getAttribute('class').indexOf('layer') >= 0
       this.renderRightPanels()
+      setTimeout(() => {
+        this.isHandleNodeClick = false
+      }, 1000)
     },
     renderRightPanels () {
       if (!this.nodeName) return
