@@ -111,7 +111,8 @@ export default {
       },
       queryType: '1', // 1 - 最新； 2 - 现实； 3 - 所有；
       queryDate: null,
-      zoomLevelIdList: []
+      zoomLevelIdList: [],
+      isHandleNodeClick: false
     }
   },
   computed: {
@@ -411,6 +412,8 @@ export default {
       e.stopPropagation()
     },
     async handleNodeClick (e) {
+      if (this.isHandleNodeClick) return
+      this.isHandleNodeClick = true
       e.preventDefault()
       e.stopPropagation()
       var g = e.currentTarget
@@ -460,6 +463,9 @@ export default {
       } else {
         this.currentTab = g.id
       }
+      setTimeout(() => {
+        this.isHandleNodeClick = false
+      }, 1000)
     },
 
     onSelectedRowsChange (rows, checkoutBoxdisable) {
