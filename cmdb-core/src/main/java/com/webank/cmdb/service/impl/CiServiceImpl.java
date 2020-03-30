@@ -2025,8 +2025,11 @@ public class CiServiceImpl implements CiService {
                     DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciId.getCiTypeId());
                     Object entityBean = validateCi(ciId.getCiTypeId(), ciId.getGuid(), entityMeta, entityManager, ACTION_MODIFICATION);
                     DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
-
                     Map<String, Object> result = stateTransEngine.process(entityManager, ciId.getCiTypeId(), ciId.getGuid(), operation, null, entityHolder, date);
+                    Map ci = new HashMap();
+                    ci.put(CmdbConstants.DEFAULT_FIELD_STATE,operation);
+                    ci.put(GUID, ciId);
+                    ciDataInterceptorService.handleReferenceAutoFill(entityHolder,entityManager,ci);
                     Map<String, Object> enhacedMap = enrichCiObject(entityMeta, result, entityManager);
                     results.add(enhacedMap);
                 }
