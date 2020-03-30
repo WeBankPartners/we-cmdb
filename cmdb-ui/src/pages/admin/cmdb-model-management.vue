@@ -4,7 +4,7 @@
       <div style="padding-right: 20px">
         <Card class="cmdb-model-management-left-card" style="height: calc(100vh - 108px);">
           <Row slot="title">
-            <Col span="8">
+            <Col span="6">
               <p>
                 {{ $t('architecture_diagram') }}
                 <span class="header-buttons-container margin-left">
@@ -14,21 +14,21 @@
                 </span>
               </p>
             </Col>
-            <Col span="8" offset="1">
+            <Col span="8" offset="1" class="filter-col">
               <span class="filter-title">{{ $t('state') }}</span>
               <Select
                 multiple
                 :max-tag-count="3"
                 v-model="selectedStatus"
                 @on-change="handleStatusChange"
-                style="width: 350px;"
+                style="flex: 1;"
               >
                 <Option v-for="item in statusList" :value="item" :key="item">
                   {{ item }}
                 </Option>
               </Select>
             </Col>
-            <Col span="6" offset="1" class="filter-col">
+            <Col span="8" offset="1" class="filter-col">
               <span class="filter-title">{{ $t('change_layer') }}</span>
               <Select
                 multiple
@@ -987,7 +987,6 @@ export default {
           })
       }
 
-      this.zoomLevelIdList = []
       let layerResponse = await getAllLayers()
       if (layerResponse.statusCode === 'OK') {
         let tempLayer = layerResponse.data
@@ -1005,7 +1004,7 @@ export default {
         if (ciResponse.statusCode === 'OK' && _zoomLevelIdList.statusCode === 'OK') {
           if (_zoomLevelIdList.data.length) {
             this.zoomLevelIdList = _zoomLevelIdList.data
-            this.currentZoomLevelId = [_zoomLevelIdList.data[0].codeId]
+            this.currentZoomLevelId = this.currentZoomLevelId.length ? this.currentZoomLevelId : [_zoomLevelIdList.data[0].codeId]
           }
           this.source = []
           this.source = ciResponse.data
