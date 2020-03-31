@@ -216,7 +216,17 @@ export default {
 
     return (
       <div style="width:100%">
-        <Select onInput={v => (this.selected = v)} value={this.selected} multiple={!this.highlightRow} disabled={this.selectDisabled} style="width:100%" filterable clearable on-on-change={this.selectChangeHandler} on-on-open-change={this.getFilterRulesOptions} max-tag-count={2}>
+        <Select
+          onInput={v => (this.selected = v)}
+          value={this.selected}
+          multiple={!this.highlightRow}
+          disabled={this.selectDisabled}
+          style="width:100%"
+          filterable
+          clearable
+          on-on-change={this.selectChangeHandler}
+          on-on-open-change={this.getFilterRulesOptions}
+          max-tag-count={2}>
           <span slot="prefix" onClick={e => this.showRefModal(e)}>
             @
           </span>
