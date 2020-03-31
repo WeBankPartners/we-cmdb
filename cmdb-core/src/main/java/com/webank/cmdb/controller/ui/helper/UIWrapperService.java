@@ -563,7 +563,8 @@ public class UIWrapperService {
     }
 
     public List<Map<String, Object>> updateCiData(Integer ciTypeId, List<Map<String, Object>> ciData) {
-        return ciService.update(ciTypeId, ciData);
+        List<Map<String,Object>> filterOfPassword = ciService.filterOfPassword(ciTypeId,ciData);
+        return ciService.update(ciTypeId, filterOfPassword);
     }
 
     public void deleteCiData(Integer ciTypeId, List<String> ids) {
@@ -1762,5 +1763,21 @@ public class UIWrapperService {
             this.uiProperties.setCiTypeIdOfZoneDesign(uiPropertiesFromDB.getCiTypeIdOfZoneDesign());
             this.uiProperties.setCiTypeIdOfZoneLinkDesign(uiPropertiesFromDB.getCiTypeIdOfZoneLinkDesign());
         }
+    }
+
+
+    public List<Map<String, Object>> updateCiDataForPassword(int ciTypeId, Map<String, Object> param) {
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put(param.get("field").toString(), param.get("value"));
+        data.put(CmdbConstants.GUID, param.get(CmdbConstants.GUID));
+
+        Map<String, Object> ciDataMap = ciService.getCi(ciTypeId, param.get(CmdbConstants.GUID).toString());
+        if(param.get("originalValue")==null||ciDataMap.get(param.get("field"))==null) {
+            throw new CmdbException(String.format("Password is null"));
+        }
+        if(!param.get("originalValue").toString().equals(ciDataMap.get(param.get("field")).toString())) {
+            throw new CmdbException(String.format("Password mistake"));
+        }
+        return ciService.update(ciTypeId, Arrays.asList(data));        
     }
 }
