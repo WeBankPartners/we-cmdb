@@ -1,27 +1,42 @@
 <template>
   <div class="ci-password">
     <!-- 新增及编辑状态单元格 -->
-    <div v-if="isEdit">
-      <Button v-if="isNewAddedRow && !value" @click="showEditModal" :disabled="disabled" type="primary">{{
-        $t('enter_password')
-      }}</Button>
-      <div class="ci-password-cell-show" v-else-if="isNewAddedRow && value">
-        <Tooltip class="ci-password-cell-show-span" :content="isShowPassword ? value : '******'">
-          <span>{{ isShowPassword ? value : '******' }}</span>
-        </Tooltip>
-        <a @click="() => (isShowPassword = !isShowPassword)">{{ isShowPassword ? $t('hide') : $t('show') }}</a>
-        <a @click="showEditModal">{{ $t('edit') }}</a>
-      </div>
-      <Button v-else @click="showEditModal" :disabled="disabled" type="primary">{{ $t('password_edit') }}</Button>
+    <Button v-if="isNewAddedRow && !value" @click="showEditModal" :disabled="disabled" type="primary">{{
+      $t('enter_password')
+    }}</Button>
+    <div class="ci-password-cell-show" v-else-if="isNewAddedRow && value">
+      <Tooltip class="ci-password-cell-show-span" :content="isShowPassword ? value : '******'">
+        <span>{{ isShowPassword ? value : '******' }}</span>
+      </Tooltip>
+      <Tooltip class="ci-password-cell-show-span" :content="isShowPassword ? $t('hide') : $t('show')" placement="top-start">
+        <Button size="small" @click="isShowPassword = !isShowPassword" :icon="isShowPassword ? 'md-eye-off' : 'md-eye'"></Button>
+      </Tooltip>
+      <Tooltip class="ci-password-cell-show-span" :content="$t('edit')" placement="top-start">
+        <Button size="small" @click="showEditModal" icon="md-build"></Button>
+      </Tooltip>
     </div>
-    <!-- 只读状态单元格 -->
+    <!-- 制度及编辑状态单元格 -->
     <div v-else class="ci-password-cell-show">
-      <span class="ci-password-cell-show-span">{{ value }}</span>
-      <a @click="showPassword">{{ $t('show') }}</a>
+      <span>{{ value }}</span>
+      <Tooltip class="ci-password-cell-show-span" :content="$t('show')" placement="top-start">
+        <Button size="small" @click="showPassword" icon="md-search"></Button>
+      </Tooltip>
+      <Tooltip class="ci-password-cell-show-span" :content="$t('edit')" placement="top-start">
+        <Button size="small" @click="showEditModal" icon="md-build"></Button>
+      </Tooltip>
     </div>
     <!-- 密码编辑弹框 -->
     <Modal v-model="isShowEditModal" :title="isNewAddedRow ? $t('enter_password') : $t('password_edit')">
       <Form ref="form" :model="formData" :rules="rules" label-position="right" :label-width="120">
+        <FormItem v-if="!isNewAddedRow" :label="$t('old_password')" prop="newPassword">
+          <Input
+            password
+            :placeholder="$t('old_password_input_placeholder')"
+            ref="oldPasswordInput"
+            type="password"
+            v-model="formData.originalValue"
+          />
+        </FormItem>
         <FormItem :label="isNewAddedRow ? $t('password') : $t('new_password')" prop="newPassword">
           <Input
             password
@@ -104,6 +119,7 @@ export default {
       spinShow: false,
       modalLoading: false,
       formData: {
+        originalValue: '',
         newPassword: '',
         comparedPassword: ''
       },
@@ -121,7 +137,11 @@ export default {
     showEditModal () {
       this.isShowEditModal = true
       this.$nextTick(() => {
-        this.$refs.newPasswordInput.focus()
+        if (this.$refs.oldPasswordInput) {
+          this.$refs.oldPasswordInput.focus()
+        } else {
+          this.$refs.newPasswordInput.focus()
+        }
       })
     },
     inputFocus () {
@@ -141,6 +161,7 @@ export default {
     handleInput () {
       this.$emit('input', this.formData.newPassword)
       this.formData = {
+        originalValue: '',
         newPassword: '',
         comparedPassword: ''
       }
@@ -151,10 +172,12 @@ export default {
       const payload = {
         guid: this.guid,
         field: this.propertyName,
-        value: this.formData.newPassword
+        value: this.formData.newPassword,
+        originalValue: this.formData.originalValue 
       }
       const { statusCode } = await updatePassword(this.ciTypeId, payload)
       this.formData = {
+        originalValue: '',
         newPassword: '',
         comparedPassword: ''
       }
@@ -170,6 +193,7 @@ export default {
     closeEditModal () {
       this.isShowEditModal = false
       this.formData = {
+        originalValue: '',
         newPassword: '',
         comparedPassword: ''
       }
@@ -208,6 +232,7 @@ export default {
   display: flex;
   &-span {
     flex: 1;
+    margin-left: 5px;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
