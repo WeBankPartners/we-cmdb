@@ -597,16 +597,10 @@ export default {
         _this.selectedRows.forEach(_ => {
           if (_.weTableRowId === params.row.weTableRowId) {
             _[col.inputKey] = v
+            params.row[col.inputKey] = v
             attrsWillReset.forEach(attr => {
               _[attr.propertyName] = attr.value
-            })
-          }
-        })
-        _this.data.forEach(_ => {
-          if (_.weTableRowId === params.row.weTableRowId) {
-            _[col.inputKey] = v
-            attrsWillReset.forEach(attr => {
-              _[attr.propertyName] = attr.value
+              params.row[attr.propertyName] = v
             })
           }
         })
