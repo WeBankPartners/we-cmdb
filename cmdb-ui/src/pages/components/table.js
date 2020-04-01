@@ -581,9 +581,31 @@ export default {
     },
     renderCol (col, isLastCol = false) {
       let setValueHandler = (_this, v, col, params) => {
+        // 更新下拉框后，searchSeqNo大于当前属性并且受过滤规则影响的下拉框需要清空值
+        let attrsWillReset = []
+        _this.tableColumns.forEach(_ => {
+          if (_.searchSeqNo > col.searchSeqNo && _.filterRule) {
+            if (col.inputType === 'multiSelect' || col.inputType === 'multiRef') {
+              attrsWillReset.push({
+                propertyName: _.propertyName,
+                value: []
+              })
+            } else if (col.inputType === 'select' || col.inputType === 'ref') {
+              attrsWillReset.push({
+                propertyName: _.propertyName,
+                value: ''
+              })
+            }
+          }
+        })
         _this.selectedRows.forEach(_ => {
           if (_.weTableRowId === params.row.weTableRowId) {
             _[col.inputKey] = v
+            params.row[col.inputKey] = v
+            attrsWillReset.forEach(attr => {
+              _[attr.propertyName] = attr.value
+              params.row[attr.propertyName] = v
+            })
           }
         })
         this.$emit('getSelectedRows', _this.selectedRows, true)
