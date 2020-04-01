@@ -246,5 +246,8 @@
   "zoom_level": "所属图层",
   "show_key_name": "KeyName",
   "change_key_name": "更改别名",
-  "keyname_should_be_unique": "别名必须唯一且不能为空!"
+  "keyname_should_be_unique": "别名必须唯一且不能为空!",
+  "copyToNew": "复制新增",
+  "input_set_of_copy": "请输入新增的数量",
+  "set": "份"
 }
