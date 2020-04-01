@@ -47,11 +47,13 @@
         </Modal>
         <!-- 复制新增编辑 -->
         <Modal
+          v-if="copyTableVisible"
           v-model="copyTableVisible"
           width="90"
           class-name="copy-modal"
           :title="$t('copyToNew')"
           @on-ok="handleCopySubmit"
+          :ok-text="$t('save')"
         >
           <WeCMDBTable
             :tableColumns="ci.tableColumns"
@@ -633,7 +635,9 @@ export default {
     },
     handleCopyToNew () {
       this.copyTableVisible = true
-      this.$refs['copy' + this.currentTab] && this.$refs['copy' + this.currentTab][0].pushAllRowsToSelections()
+      this.$nextTick(() => {
+        this.$refs['copy' + this.currentTab] && this.$refs['copy' + this.currentTab][0].pushAllRowsToSelections()
+      })
     },
     handleCopyEditData (rows) {
       this.copyEditData = rows
