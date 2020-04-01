@@ -1216,7 +1216,7 @@ public class UIWrapperService {
             return queryCiData(ciTypeId, queryObject);
         }
 
-        List<Map<String, Object>> ciDatas = getAllCiDataOfRootCi(ciTypeId, envEnumCat, envCode, systemDesignCiTypeId,
+        List<Map<String, Object>> ciDatas = this.getAllCiDataOfRootCi(ciTypeId, envEnumCat, envCode, systemDesignCiTypeId,
                 guid, routineForGetingSystemDesignGuid, showHistory);
         if (queryObject == null) {
             queryObject = QueryRequest.defaultQueryObject();
@@ -1236,7 +1236,7 @@ public class UIWrapperService {
         return queryResult.getContents();
     }
    
-    private List<Map<String, Object>> getAllCiDataOfRootCi(int rootCiTypeId, int envEnumCat, String envEnumCode, int filterCiTypeId, List<String> guid, String routine, boolean showHistory) {
+    private List<Map<String, Object>> getAllCiDataOfRootCi(int rootCiTypeId, Integer envEnumCat, String envEnumCode, int filterCiTypeId, List<String> guid, String routine, boolean showHistory) {
         List<CiRoutineItem> routineItems = new ArrayList<>();
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -1291,7 +1291,7 @@ public class UIWrapperService {
         return ciService.adhocIntegrateQuery(rootDto).getContents();
     }
 
-    private String getEnumPropertyNameByCiTypeId(int ciTypeId, int enumCat) {
+    private String getEnumPropertyNameByCiTypeId(int ciTypeId, Integer enumCat) {
         List<CiTypeAttrDto> ciTypeAttributes = getCiTypeAttributesByCiTypeId(ciTypeId);
         for (int j = 0; j < ciTypeAttributes.size(); j++) {
             if (ciTypeAttributes.get(j).getInputType().equals(CONSTANT_SELECT) && ciTypeAttributes.get(j).getReferenceId() == enumCat) {
@@ -1302,7 +1302,7 @@ public class UIWrapperService {
         return null;
     }
 
-    private int getEnumCodeIdByCode(int enumCat, String enumCode) {
+    private int getEnumCodeIdByCode(Integer enumCat, String enumCode) {
         List<CatCodeDto> catCodeList = getEnumCodesByCategoryId(enumCat);
         for (CatCodeDto catCodeDto : catCodeList) {
             if (enumCode.equalsIgnoreCase(catCodeDto.getCode())) {
@@ -1323,7 +1323,7 @@ public class UIWrapperService {
         return null;
     }
 
-    private IntegrationQueryDto travelRoutine(List<CiRoutineItem> routines, int filterCiTypeId, AdhocIntegrationQueryDto rootDto, int position, String key, int envEnumCat, String envEnumCode) {
+    private IntegrationQueryDto travelRoutine(List<CiRoutineItem> routines, int filterCiTypeId, AdhocIntegrationQueryDto rootDto, int position, String key, Integer envEnumCat, String envEnumCode) {
         if (position >= routines.size()) {
             return null;
         }
