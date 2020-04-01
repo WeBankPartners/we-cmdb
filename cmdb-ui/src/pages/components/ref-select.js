@@ -64,7 +64,9 @@ export default {
         })
       if (noPagingRes.statusCode === 'OK') {
         this.selectDisabled = false
-        this.allTableDataWithoutPaging = this.filterParams ? noPagingRes.data.contents : noPagingRes.data.contents.map(_ => _.data)
+        this.allTableDataWithoutPaging = this.filterParams
+          ? noPagingRes.data.contents
+          : noPagingRes.data.contents.map(_ => _.data)
       }
     },
     handleSubmit (data) {
@@ -106,7 +108,9 @@ export default {
       let columns = []
       if (statusCode === 'OK') {
         columns = data
-          .filter(_ => _.status !== 'decommissioned' && _.status !== 'notCreated' && _.isDisplayed && _.isDisplayed !== 0)
+          .filter(
+            _ => _.status !== 'decommissioned' && _.status !== 'notCreated' && _.isDisplayed && _.isDisplayed !== 0
+          )
           .map(_ => {
             return {
               ..._,
@@ -216,15 +220,51 @@ export default {
 
     return (
       <div style="width:100%">
-        <Select onInput={v => (this.selected = v)} value={this.selected} multiple={!this.highlightRow} disabled={this.selectDisabled} style="width:100%" filterable clearable on-on-change={this.selectChangeHandler} on-on-open-change={this.getFilterRulesOptions} max-tag-count={2}>
+        <Select
+          onInput={v => (this.selected = v)}
+          value={this.selected}
+          multiple={!this.highlightRow}
+          disabled={this.selectDisabled}
+          style="width:100%"
+          filterable
+          clearable
+          on-on-change={this.selectChangeHandler}
+          on-on-open-change={this.getFilterRulesOptions}
+          max-tag-count={2}
+        >
           <span slot="prefix" onClick={e => this.showRefModal(e)}>
             @
           </span>
           {renderOptions}
         </Select>
-        <Modal title={this.ciType.name} value={this.visibleSwap} footer-hide={true} mask-closable={false} scrollable={true} width={1300} on-on-visible-change={status => this.hideRefModal(status)}>
+        <Modal
+          title={this.ciType.name}
+          value={this.visibleSwap}
+          footer-hide={true}
+          mask-closable={false}
+          scrollable={true}
+          width={1300}
+          on-on-visible-change={status => this.hideRefModal(status)}
+        >
           <div class="modalTable" style="padding:20px;">
-            {this.visibleSwap && <WeCMDBTable tableData={this.tableData} tableColumns={this.tableColumns} tableHeight={650} onGetSelectedRows={this.getTableValue} onHandleSubmit={this.handleSubmit} onPageChange={this.pageChange} onPageSizeChange={this.pageSizeChange} pagination={this.pagination} showCheckbox={true} highlightRow={this.highlightRow} tableOuterActions={null} tableInnerActions={null} ascOptions={{}} ref="refTable" />}
+            {this.visibleSwap && (
+              <WeCMDBTable
+                tableData={this.tableData}
+                tableColumns={this.tableColumns}
+                tableHeight={650}
+                onGetSelectedRows={this.getTableValue}
+                onHandleSubmit={this.handleSubmit}
+                onPageChange={this.pageChange}
+                onPageSizeChange={this.pageSizeChange}
+                pagination={this.pagination}
+                showCheckbox={true}
+                highlightRow={this.highlightRow}
+                tableOuterActions={null}
+                tableInnerActions={null}
+                ascOptions={{}}
+                ref="refTable"
+              />
+            )}
           </div>
           <div style="text-align:right;margin-top:40px">
             <span style="margin-right:20px">
