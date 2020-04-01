@@ -61,11 +61,6 @@
 import { queryCiData } from '@/api/server'
 import mermaid from 'mermaid'
 
-const SERVICE_INVOKE_DESIGN_SEQUENCE_CI_TYPE_ID = 35
-const INVOKE_UNIT_DESIGN = 'invoke_unit_design'
-const INVOKED_UNIT_DESIGN = 'invoked_unit_design'
-const SERVICE_DESIGN = 'service_design'
-
 export default {
   name: 'WeCMDBSequenceDiagram',
   data () {
@@ -82,7 +77,11 @@ export default {
     guid: {},
     value: {
       default: []
-    }
+    },
+    serviceInvokeDesignId: 0,
+    invokeUnitDesign: '',
+    invokedUnitDesign: '',
+    serviceDesign: ''
   },
   watch: {
     sequenceData: {
@@ -153,10 +152,10 @@ export default {
       if (this.selectedSequenceData.length > 0) {
         this.selectedSequenceData.forEach((_, index) => {
           graphNode.push(
-            `${_[INVOKE_UNIT_DESIGN].key_name.replace(/-/g, '&')}->>${_[INVOKED_UNIT_DESIGN].key_name.replace(
+            `${_[this.invokeUnitDesign].key_name.replace(/-/g, '&')}->>${_[this.invokedUnitDesign].key_name.replace(
               /-/g,
               '&'
-            )}:${index + 1} : ${_[SERVICE_DESIGN] && _[SERVICE_DESIGN].name ? _[SERVICE_DESIGN].name : ''}`
+            )}:${index + 1} : ${_[this.serviceDesign] && _[this.serviceDesign].name ? _[this.serviceDesign].name : ''}`
           )
         })
         this.graphString = graphNode.toString().replace(/,/g, ' \n')
@@ -202,7 +201,7 @@ export default {
     },
     async getSequenceData () {
       const payload = {
-        id: SERVICE_INVOKE_DESIGN_SEQUENCE_CI_TYPE_ID,
+        id: this.serviceInvokeDesignId,
         queryObject: {
           filters: [],
           pageable: { pageSize: 10, startIndex: 0 },
