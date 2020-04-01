@@ -25,8 +25,46 @@
           tableHeight="650"
           :ref="'table' + ci.id"
         ></WeCMDBTable>
+        <!-- 对比 -->
         <Modal footer-hide v-model="compareVisible" width="90" class-name="compare-modal">
           <Table :columns="ci.tableColumns.filter(x => x.isDisplayed || x.displaySeqNo)" :data="compareData" border />
+        </Modal>
+        <!-- 复制新增询问 -->
+        <Modal
+          v-model="copyVisible"
+          width="23"
+          class-name="copy-modal"
+          :title="$t('copyToNew')"
+          @on-ok="handleCopyToNew"
+        >
+          <div class="copy-form">
+            <div class="copy-label">{{ $t('input_set_of_copy') }}</div>
+            <div class="copy-input">
+              <InputNumber :min="1" :step="1" v-model="noOfCopy" />
+              <span>{{ $t('set') }}</span>
+            </div>
+          </div>
+        </Modal>
+        <!-- 复制新增编辑 -->
+        <Modal
+          v-model="copyTableVisible"
+          width="90"
+          class-name="copy-modal"
+          :title="$t('copyToNew')"
+          @on-ok="handleCopySubmit"
+        >
+          <WeCMDBTable
+            :tableColumns="ci.tableColumns"
+            :tableData="copyData"
+            :showCheckbox="false"
+            :filtersHidden="true"
+            :tableInnerActions="null"
+            :tableOuterActions="null"
+            :isColumnsFilterOn="false"
+            :isSortable="false"
+            :ref="'copy' + ci.id"
+            @getSelectedRows="handleCopyEditData"
+          />
         </Modal>
       </TabPane>
       <div slot="extra" class="history-query">
@@ -112,6 +150,11 @@ export default {
       queryType: '1', // 1 - 最新； 2 - 现实； 3 - 所有；
       queryDate: null,
       zoomLevelIdList: [],
+      copyVisible: false,
+      copyTableVisible: false,
+      noOfCopy: 1,
+      copyRows: [],
+      copyEditData: null,
       isHandleNodeClick: false
     }
   },
@@ -134,6 +177,14 @@ export default {
       } else {
         return null
       }
+    },
+    copyData () {
+      return Array(this.noOfCopy)
+        .fill(0)
+        .reduce(arr => {
+          arr = arr.concat(this.copyRows)
+          return arr
+        }, [])
     }
   },
   methods: {
@@ -467,7 +518,6 @@ export default {
         this.isHandleNodeClick = false
       }, 500)
     },
-
     onSelectedRowsChange (rows, checkoutBoxdisable) {
       if (rows.length > 0) {
         let isUpdateableAry = []
@@ -492,6 +542,9 @@ export default {
                   break
                 case 'delete':
                   _.props.disabled = !isDeleteableAry.every(isValueTrue)
+                  break
+                case 'copy':
+                  _.props.disabled = !rows.every(x => x.guid)
                   break
                 default:
                   break
@@ -536,9 +589,94 @@ export default {
         case 'compare':
           this.compareHandler(data)
           break
+        case 'copy':
+          this.copyHandler(data)
+          break
         default:
           this.defaultHandler(type, data)
           break
+      }
+    },
+    copyHandler (rows) {
+      this.copyRows = (rows || []).map(x => {
+        /* eslint-disable */
+        const {
+          code,
+          subsys_design,
+          unit_type,
+          resource_set_design,
+          name,
+          protocol,
+          across_resource_set,
+          description
+        } = x
+        /* eslint-enable */
+        return {
+          guid: '',
+          r_guid: '',
+          p_guid: null,
+          state: '',
+          fixed_date: '',
+          code,
+          subsys_design,
+          unit_type,
+          resource_set_design,
+          name,
+          protocol,
+          across_resource_set,
+          description,
+          isRowEditable: true,
+          forceEdit: true
+        }
+      })
+      this.copyVisible = true
+    },
+    handleCopyToNew () {
+      this.copyTableVisible = true
+      this.$refs['copy' + this.currentTab] && this.$refs['copy' + this.currentTab][0].pushAllRowsToSelections()
+    },
+    handleCopyEditData (rows) {
+      this.copyEditData = rows
+    },
+    async handleCopySubmit () {
+      let setBtnsStatus = () => {
+        this.tabList.forEach(ci => {
+          if (ci.id === this.currentTab) {
+            ci.outerActions.forEach(_ => {
+              _.props.disabled = resetButtonDisabled(_)
+            })
+          }
+        })
+        this.$refs[this.tableRef][0].setAllRowsUneditable()
+        this.$nextTick(() => {
+          /* to get iview original data to set _ischecked flag */
+          let objData = this.$refs[this.tableRef][0].$refs.table.$refs.tbody.objData
+          for (let obj in objData) {
+            objData[obj]._isChecked = false
+            objData[obj]._isDisabled = false
+          }
+        })
+      }
+      let payload = {
+        id: this.currentTab,
+        createData: this.copyEditData.map(x => {
+          delete x.isRowEditable
+          delete x.weTableForm
+          delete x.weTableRowId
+          delete x.isNewAddedRow
+          delete x.nextOperations
+          delete x.forceEdit
+          return x
+        })
+      }
+      const { statusCode, message } = await createCiDatas(payload)
+      if (statusCode === 'OK') {
+        this.$Notice.success({
+          title: 'Updated successfully',
+          desc: message
+        })
+        setBtnsStatus()
+        this.queryCiData()
       }
     },
     async compareHandler (row) {
@@ -937,6 +1075,30 @@ export default {
 }
 /deep/ .ivu-table td.highlight {
   color: rgba(#ff6600, 0.9);
+}
+
+/deep/ .copy-modal {
+  .ivu-modal-body {
+    max-height: 450px;
+    overflow-y: auto;
+  }
+
+  .copy-form {
+    display: flex;
+    flex-flow: column nowrap;
+  }
+
+  .copy-input {
+    display: flex;
+    flex-flow: row nowrap;
+    margin-top: 20px;
+    align-items: center;
+
+    .ivu-input-number {
+      flex: 1;
+      margin-right: 15px;
+    }
+  }
 }
 
 .history-query {
