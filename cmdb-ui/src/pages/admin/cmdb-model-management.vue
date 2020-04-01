@@ -1004,7 +1004,9 @@ export default {
         if (ciResponse.statusCode === 'OK' && _zoomLevelIdList.statusCode === 'OK') {
           if (_zoomLevelIdList.data.length) {
             this.zoomLevelIdList = _zoomLevelIdList.data
-            this.currentZoomLevelId = this.currentZoomLevelId.length ? this.currentZoomLevelId : [_zoomLevelIdList.data[0].codeId]
+            this.currentZoomLevelId = this.currentZoomLevelId.length
+              ? this.currentZoomLevelId
+              : [_zoomLevelIdList.data[0].codeId]
           }
           this.source = []
           this.source = ciResponse.data

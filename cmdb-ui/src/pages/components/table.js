@@ -73,7 +73,10 @@ export default {
       this.selectedRows.push(this.data[0])
       this.$emit('getSelectedRows', this.selectedRows, true)
     },
-
+    pushAllRowsToSelections () {
+      this.selectedRows = this.data
+      this.$emit('getSelectedRows', this.selectedRows, true)
+    },
     setAllRowsUneditable () {
       this.data.forEach(_ => (_.isRowEditable = false))
       this.selectedRows = []
@@ -132,7 +135,7 @@ export default {
         let result = {
           ..._,
           weTableRowId: index + 1,
-          isRowEditable: _.isRowEditable && index === 0 ? _.isRowEditable : false,
+          isRowEditable: _.forceEdit ? _.isRowEditable : _.isRowEditable && index === 0 ? _.isRowEditable : false,
           weTableForm: { ..._ }
         }
         if (_.guid && _.r_guid && _.r_guid !== _.guid) {
@@ -146,7 +149,8 @@ export default {
           if (
             typeof _['weTableForm'][i] === 'object' &&
             _['weTableForm'][i] !== null &&
-            !Array.isArray(_['weTableForm'][i])
+            !Array.isArray(_['weTableForm'][i]) &&
+            i !== 'weTableForm'
           ) {
             _[i] = _['weTableForm'][i].codeId || _['weTableForm'][i].guid
             _['weTableForm'][i] = _['weTableForm'][i].value || _['weTableForm'][i].key_name
