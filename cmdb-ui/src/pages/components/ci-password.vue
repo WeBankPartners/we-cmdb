@@ -8,8 +8,16 @@
       <Tooltip class="ci-password-cell-show-span" :content="isShowPassword ? value : '******'">
         <span>{{ isShowPassword ? value : '******' }}</span>
       </Tooltip>
-      <Tooltip class="ci-password-cell-show-span" :content="isShowPassword ? $t('hide') : $t('show')" placement="top-start">
-        <Button size="small" @click="isShowPassword = !isShowPassword" :icon="isShowPassword ? 'md-eye-off' : 'md-eye'"></Button>
+      <Tooltip
+        class="ci-password-cell-show-span"
+        :content="isShowPassword ? $t('hide') : $t('show')"
+        placement="top-start"
+      >
+        <Button
+          size="small"
+          @click="isShowPassword = !isShowPassword"
+          :icon="isShowPassword ? 'md-eye-off' : 'md-eye'"
+        ></Button>
       </Tooltip>
       <Tooltip class="ci-password-cell-show-span" :content="$t('edit')" placement="top-start">
         <Button size="small" @click="showEditModal" icon="md-build"></Button>
@@ -173,7 +181,7 @@ export default {
         guid: this.guid,
         field: this.propertyName,
         value: this.formData.newPassword,
-        originalValue: this.formData.originalValue 
+        originalValue: this.formData.originalValue
       }
       const { statusCode } = await updatePassword(this.ciTypeId, payload)
       this.formData = {
