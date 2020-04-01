@@ -947,6 +947,21 @@ public class CiServiceImpl implements CiService {
         entityManager.merge(entityHolder.getEntityObj());
         entityManager.flush();
     }
+    
+    @Override
+    public List<Map<String, Object>> filterOfPassword(int ciTypeId, List<Map<String, Object>> cis){
+        DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
+        PriorityEntityManager priEntityManager = getEntityManager();
+        EntityManager entityManager = priEntityManager.getEntityManager();
+
+        for (Map<String, Object> ci : cis) {
+            String guid = ci.get(GUID).toString();
+            Object entityBean = validateCi(ciTypeId, guid, entityMeta, entityManager, ACTION_MODIFICATION);
+            DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
+            ciDataInterceptorService.filterInputType(entityHolder, ci);
+        }
+        return cis;
+    }
 
     @OperationLogPointcut(operation = Modification, objectClass = CiData.class, ciTypeIdArgumentIndex = 0)
     @Override
@@ -2025,8 +2040,11 @@ public class CiServiceImpl implements CiService {
                     DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciId.getCiTypeId());
                     Object entityBean = validateCi(ciId.getCiTypeId(), ciId.getGuid(), entityMeta, entityManager, ACTION_MODIFICATION);
                     DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
-
                     Map<String, Object> result = stateTransEngine.process(entityManager, ciId.getCiTypeId(), ciId.getGuid(), operation, null, entityHolder, date);
+                    Map ci = new HashMap();
+                    ci.put(CmdbConstants.DEFAULT_FIELD_STATE,operation);
+                    ci.put(GUID, ciId);
+                    ciDataInterceptorService.handleReferenceAutoFill(entityHolder,entityManager,ci);
                     Map<String, Object> enhacedMap = enrichCiObject(entityMeta, result, entityManager);
                     results.add(enhacedMap);
                 }

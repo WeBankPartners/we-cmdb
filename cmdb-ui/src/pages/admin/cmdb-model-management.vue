@@ -4,7 +4,7 @@
       <div style="padding-right: 20px">
         <Card class="cmdb-model-management-left-card" style="height: calc(100vh - 108px);">
           <Row slot="title">
-            <Col span="8">
+            <Col span="6">
               <p>
                 {{ $t('architecture_diagram') }}
                 <span class="header-buttons-container margin-left">
@@ -14,21 +14,21 @@
                 </span>
               </p>
             </Col>
-            <Col span="10" offset="1">
+            <Col span="8" offset="1" class="filter-col">
               <span class="filter-title">{{ $t('state') }}</span>
               <Select
                 multiple
                 :max-tag-count="3"
                 v-model="selectedStatus"
                 @on-change="handleStatusChange"
-                style="width: 350px;"
+                style="flex: 1;"
               >
                 <Option v-for="item in statusList" :value="item" :key="item">
                   {{ item }}
                 </Option>
               </Select>
             </Col>
-            <Col span="4" offset="1" class="filter-col">
+            <Col span="8" offset="1" class="filter-col">
               <span class="filter-title">{{ $t('change_layer') }}</span>
               <Select
                 multiple
@@ -911,7 +911,8 @@ export default {
         applyAttr: false,
         saveAttr: false,
         addNewAttr: false
-      }
+      },
+      isHandleNodeClick: false
     }
   },
   methods: {
@@ -986,7 +987,6 @@ export default {
           })
       }
 
-      this.zoomLevelIdList = []
       let layerResponse = await getAllLayers()
       if (layerResponse.statusCode === 'OK') {
         let tempLayer = layerResponse.data
@@ -1004,7 +1004,9 @@ export default {
         if (ciResponse.statusCode === 'OK' && _zoomLevelIdList.statusCode === 'OK') {
           if (_zoomLevelIdList.data.length) {
             this.zoomLevelIdList = _zoomLevelIdList.data
-            this.currentZoomLevelId = [_zoomLevelIdList.data[0].codeId]
+            this.currentZoomLevelId = this.currentZoomLevelId.length
+              ? this.currentZoomLevelId
+              : [_zoomLevelIdList.data[0].codeId]
           }
           this.source = []
           this.source = ciResponse.data
@@ -1098,10 +1100,10 @@ export default {
         node.attributes &&
           node.attributes.forEach(attr => {
             if (attr.inputType === 'ref' || attr.inputType === 'multiRef') {
-              var target = nodes.find(_ => _.ciTypeId === attr.referenceId)
+              const target = nodes.find(_ => _.ciTypeId === attr.referenceId)
               if (
                 target &&
-                node.zoomLevelId === target.zoomLevelId &&
+                this.currentZoomLevelId.indexOf(target.zoomLevelId) >= 0 &&
                 this.currentZoomLevelId.indexOf(node.zoomLevelId) >= 0
               ) {
                 dots.push(this.genEdge(nodes, node, attr))
@@ -1182,9 +1184,14 @@ export default {
       this.colorNode(this.nodeName)
     },
     handleNodeClick (e) {
+      if (this.isHandleNodeClick) return
+      this.isHandleNodeClick = true
       this.n = e.currentTarget
       this.isLayerSelected = this.g.getAttribute('class').indexOf('layer') >= 0
       this.renderRightPanels()
+      setTimeout(() => {
+        this.isHandleNodeClick = false
+      }, 500)
     },
     renderRightPanels () {
       if (!this.nodeName) return

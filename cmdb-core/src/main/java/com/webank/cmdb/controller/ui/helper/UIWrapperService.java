@@ -5,6 +5,7 @@ import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,7 +15,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.webank.cmdb.config.ApplicationProperties;
 import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
+import com.webank.cmdb.util.JsonUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,6 +71,8 @@ import com.webank.cmdb.util.Sorting;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.PostConstruct;
+
 @Service
 @Slf4j
 @Transactional
@@ -109,6 +114,17 @@ public class UIWrapperService {
     private AdmRoleRepository admRoleRepository;
     @Autowired
     private AdmCiTypeAttrRepository admCiTypeAttrRepository;
+    @PostConstruct
+    public void initCiTypeId() throws IOException {
+        CategoryDto categoryDto = getEnumCategoryByName(uiProperties.getEnumCodeofView());
+        if (categoryDto == null) {
+            throw new CmdbException(String.format("The enum category name [%s] not found.", uiProperties.getEnumCodeofView()));
+        }
+        QueryRequest queryObject = defaultQueryObject().addEqualsFilter(CONSTANT_CAT_ID, categoryDto.getCatId());
+
+        QueryResponse<CatCodeDto> response = staticDtoService.query(CatCodeDto.class, queryObject);
+        propertiesAssignment(response);
+    }
 
     public void swapCiTypeLayerPosition(int layerId, int targetLayerId) {
         CatCodeDto enumCode = getEnumCodeById(layerId);
@@ -547,7 +563,8 @@ public class UIWrapperService {
     }
 
     public List<Map<String, Object>> updateCiData(Integer ciTypeId, List<Map<String, Object>> ciData) {
-        return ciService.update(ciTypeId, ciData);
+        List<Map<String,Object>> filterOfPassword = ciService.filterOfPassword(ciTypeId,ciData);
+        return ciService.update(ciTypeId, filterOfPassword);
     }
 
     public void deleteCiData(Integer ciTypeId, List<String> ids) {
@@ -1182,7 +1199,12 @@ public class UIWrapperService {
         List<String> guid = Arrays.asList(systemDesignGuid.split(","));
         CatCodeDto code = getEnumCodeById(codeId);
         Integer ciTypeId = Integer.parseInt(code.getCode());
-        Integer envEnumCat = getEnumCategoryByName(uiProperties.getEnumCategoryNameOfEnv()).getCatId();
+        CategoryDto enumCategoryByName = getEnumCategoryByName(uiProperties.getEnumCategoryNameOfEnv());
+        Integer envEnumCat = null;
+        if (enumCategoryByName != null){
+            envEnumCat = enumCategoryByName.getCatId();
+
+        }
         List<CatCodeDto> codeOfRoutines = getEnumCodesByGroupId(code.getCodeId());
         String routineForGetingSystemDesignGuid = null;
         if (codeOfRoutines.size() > 0) {
@@ -1194,7 +1216,7 @@ public class UIWrapperService {
             return queryCiData(ciTypeId, queryObject);
         }
 
-        List<Map<String, Object>> ciDatas = getAllCiDataOfRootCi(ciTypeId, envEnumCat, envCode, systemDesignCiTypeId,
+        List<Map<String, Object>> ciDatas = this.getAllCiDataOfRootCi(ciTypeId, envEnumCat, envCode, systemDesignCiTypeId,
                 guid, routineForGetingSystemDesignGuid, showHistory);
         if (queryObject == null) {
             queryObject = QueryRequest.defaultQueryObject();
@@ -1214,7 +1236,7 @@ public class UIWrapperService {
         return queryResult.getContents();
     }
    
-    private List<Map<String, Object>> getAllCiDataOfRootCi(int rootCiTypeId, int envEnumCat, String envEnumCode, int filterCiTypeId, List<String> guid, String routine, boolean showHistory) {
+    private List<Map<String, Object>> getAllCiDataOfRootCi(int rootCiTypeId, Integer envEnumCat, String envEnumCode, int filterCiTypeId, List<String> guid, String routine, boolean showHistory) {
         List<CiRoutineItem> routineItems = new ArrayList<>();
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -1269,7 +1291,7 @@ public class UIWrapperService {
         return ciService.adhocIntegrateQuery(rootDto).getContents();
     }
 
-    private String getEnumPropertyNameByCiTypeId(int ciTypeId, int enumCat) {
+    private String getEnumPropertyNameByCiTypeId(int ciTypeId, Integer enumCat) {
         List<CiTypeAttrDto> ciTypeAttributes = getCiTypeAttributesByCiTypeId(ciTypeId);
         for (int j = 0; j < ciTypeAttributes.size(); j++) {
             if (ciTypeAttributes.get(j).getInputType().equals(CONSTANT_SELECT) && ciTypeAttributes.get(j).getReferenceId() == enumCat) {
@@ -1280,7 +1302,7 @@ public class UIWrapperService {
         return null;
     }
 
-    private int getEnumCodeIdByCode(int enumCat, String enumCode) {
+    private int getEnumCodeIdByCode(Integer enumCat, String enumCode) {
         List<CatCodeDto> catCodeList = getEnumCodesByCategoryId(enumCat);
         for (CatCodeDto catCodeDto : catCodeList) {
             if (enumCode.equalsIgnoreCase(catCodeDto.getCode())) {
@@ -1301,7 +1323,7 @@ public class UIWrapperService {
         return null;
     }
 
-    private IntegrationQueryDto travelRoutine(List<CiRoutineItem> routines, int filterCiTypeId, AdhocIntegrationQueryDto rootDto, int position, String key, int envEnumCat, String envEnumCode) {
+    private IntegrationQueryDto travelRoutine(List<CiRoutineItem> routines, int filterCiTypeId, AdhocIntegrationQueryDto rootDto, int position, String key, Integer envEnumCat, String envEnumCode) {
         if (position >= routines.size()) {
             return null;
         }
@@ -1719,4 +1741,43 @@ public class UIWrapperService {
         return ystemDesignData;
     }
 
+    private void propertiesAssignment(QueryResponse<CatCodeDto> response) throws IOException {
+        if(response != null) {
+            StringBuilder sb = new StringBuilder("{");
+            response.getContents().stream().forEach(catCodeDto -> sb.append("\""+catCodeDto.getCode()).append("\":\"").append(catCodeDto.getValue()+"\"").append(","));
+            sb.deleteCharAt(sb.lastIndexOf(","));
+            sb.append("}");
+            UIProperties uiPropertiesFromDB = JsonUtil.toObject(sb.toString(), UIProperties.class);
+            this.uiProperties.setCiTypeIdOfSystemDesign(uiPropertiesFromDB.getCiTypeIdOfSystemDesign());
+            this.uiProperties.setCiTypeIdOfSubsystemDesign(uiPropertiesFromDB.getCiTypeIdOfSubsystemDesign());
+            this.uiProperties.setCiTypeIdOfUnitDesign(uiPropertiesFromDB.getCiTypeIdOfUnitDesign());
+            this.uiProperties.setCiTypeIdOfUnit(uiPropertiesFromDB.getCiTypeIdOfUnit());
+            this.uiProperties.setCiTypeIdOfSubsys(uiPropertiesFromDB.getCiTypeIdOfSubsys());
+            this.uiProperties.setCiTypeIdOfSystem(uiPropertiesFromDB.getCiTypeIdOfSystem());
+            this.uiProperties.setCiTypeIdOfHost(uiPropertiesFromDB.getCiTypeIdOfHost());
+            this.uiProperties.setCiTypeIdOfInstance(uiPropertiesFromDB.getCiTypeIdOfInstance());
+            this.uiProperties.setCiTypeIdOfIdc(uiPropertiesFromDB.getCiTypeIdOfIdc());
+            this.uiProperties.setCiTypeIdOfZone(uiPropertiesFromDB.getCiTypeIdOfZone());
+            this.uiProperties.setCiTypeIdOfZoneLink(uiPropertiesFromDB.getCiTypeIdOfZoneLink());
+            this.uiProperties.setCiTypeIdOfIdcDesign(uiPropertiesFromDB.getCiTypeIdOfIdcDesign());
+            this.uiProperties.setCiTypeIdOfZoneDesign(uiPropertiesFromDB.getCiTypeIdOfZoneDesign());
+            this.uiProperties.setCiTypeIdOfZoneLinkDesign(uiPropertiesFromDB.getCiTypeIdOfZoneLinkDesign());
+        }
+    }
+
+
+    public List<Map<String, Object>> updateCiDataForPassword(int ciTypeId, Map<String, Object> param) {
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put(param.get("field").toString(), param.get("value"));
+        data.put(CmdbConstants.GUID, param.get(CmdbConstants.GUID));
+
+        Map<String, Object> ciDataMap = ciService.getCi(ciTypeId, param.get(CmdbConstants.GUID).toString());
+        if(param.get("originalValue")==null||ciDataMap.get(param.get("field"))==null) {
+            throw new CmdbException(String.format("Password is null"));
+        }
+        if(!param.get("originalValue").toString().equals(ciDataMap.get(param.get("field")).toString())) {
+            throw new CmdbException(String.format("Password mistake"));
+        }
+        return ciService.update(ciTypeId, Arrays.asList(data));        
+    }
 }

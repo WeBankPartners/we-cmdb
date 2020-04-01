@@ -208,7 +208,6 @@ import {
   saveAllDesignTreeFromSystemDesign,
   getArchitectureDesignTabs,
   getArchitectureCiDatas,
-  getAllCITypes,
   operateCiState,
   getIdcDesignTreeByGuid,
   getAllZoneLinkDesignGroupByIdcDesign,
@@ -221,14 +220,15 @@ import { getExtraInnerActions } from '../util/state-operations.js'
 import PhysicalGraph from './physical-graph'
 import moment from 'moment'
 import { colors, stateColor } from '../../const/graph-configuration'
+import { VIEW_CONFIG_PARAMS } from '@/const/init-params.js'
 
-const LAST_LEVEL_CI_TYPE_ID = 3 // 单元设计的ciTypeId，也是两张图最小节点的ciTypeId
-const APP_INVOKE_LINES_CI_YTPE_ID = 5 // 调用设计的ciTypeId
-const SERVICE_INVOKE_LINES_CI_TYPE_ID = 35 // 服务调用设计的ciTypeId
-const LINK_TYPE_ENUM_ID = 28 // 链接类型的枚举ID
-const SERVICE_DESIGN = 'service_design' // 服务设计ci的code
-const SERVICE_TYPE = 'service_type' // 服务类型
-const SERVICE_INVOKE_SEQ_DESIGN = 'service_invoke_design_sequence' // 服务调用时序设计ci的code
+const UNIT_DESIGN_ID = 'appArchitectureDesignUnitDesignId' // 单元设计的ciTypeId，也是两张图最小节点的ciTypeId
+const INVOKE_DESIGN_ID = 'appArchitectureDesignInvokeDesignId' // 调用设计的ciTypeId
+const SERVICE_INVOKE_DESIGN_ID = 'appArchitectureDesignServiceInvokeDesignId' // 服务调用设计的ciTypeId
+const SERVICE_DESIGN = 'appArchitectureDesignServiceDesign' // 服务设计ci的code
+const SERVICE_TYPE = 'appArchitectureDesignServiceType' // 服务类型
+const SERVICE_INVOKE_SEQ_DESIGN = 'appArchitectureDesignServiceInvokeDesignSequence' // 服务调用时序设计ci的code
+const INVOKE_SEQUENCE_ID = 'appArchitectureDesignInvokeSequenceId'
 
 export default {
   components: {
@@ -265,7 +265,6 @@ export default {
       physicalSpin: false,
       invokeLines: [],
       isShowInvokeSequence: false,
-      invokeSequenceCode: '6',
       invokeSequenceForm: {
         isShowInvokeSequenceDetial: false,
         invokeSequenceData: [],
@@ -282,12 +281,12 @@ export default {
       allowFixVersion: false,
       isTableViewOnly: true,
       systemDesignFixedDate: 0,
-      linkTypes: [],
       allUnitDesign: [],
       buttonLoading: {
         fixVersion: false,
         fixVersionModal: false
-      }
+      },
+      initParams: {}
     }
   },
   computed: {
@@ -337,7 +336,8 @@ export default {
     },
     async getAllInvokeSequenceData () {
       this.invokeSequenceForm.invokeSequenceData = []
-      let found = this.tabList.find(i => i.code === this.invokeSequenceCode)
+      let found = this.tabList.find(i => i.code === this.initParams[INVOKE_SEQUENCE_ID] + '')
+      if (!found) return
       const { statusCode, data } = await getArchitectureCiDatas(
         found.codeId,
         this.systemDesignVersion,
@@ -354,7 +354,7 @@ export default {
         i => i.data.guid === this.invokeSequenceForm.selectedInvokeSequence
       )
       if (found) {
-        this.invokeSequenceForm.currentInvokeSequence = found.data[SERVICE_INVOKE_SEQ_DESIGN]
+        this.invokeSequenceForm.currentInvokeSequence = found.data[this.initParams[SERVICE_INVOKE_SEQ_DESIGN]]
         this.handleInvokeSquence(true)
       }
     },
@@ -429,19 +429,10 @@ export default {
     async queryGraphData (isTableViewOnly) {
       this.invokeSequenceForm.selectedInvokeSequence = ''
       this.invokeSequenceForm.isShowInvokeSequenceDetial = false
-      const { statusCode, data } = await getAllCITypes()
-      if (statusCode === 'OK') {
-        data.forEach(ci => {
-          if (ci.tableName === 'system_design') {
-            this.systemDesignCiTypeId = ci.ciTypeId + ''
-          }
-          if (ci.tableName === 'invoke_design') {
-            this.invokeDesignCiTypeId = ci.ciTypeId
-          }
-        })
-      }
 
-      if (this.systemDesignVersion === '') return
+      if (this.systemDesignVersion === '') {
+        return
+      }
       this.spinShow = true
       this.physicalSpin = true
       this.allowFixVersion = !isTableViewOnly
@@ -458,14 +449,7 @@ export default {
     },
     async getAllDesignTreeFromSystemDesign () {
       this.allUnitDesign = []
-      const promiseArray = [
-        getAllDesignTreeFromSystemDesign(this.systemDesignVersion),
-        getEnumCodesByCategoryId(0, LINK_TYPE_ENUM_ID)
-      ]
-      const [treeData, enumData] = await Promise.all(promiseArray)
-      if (enumData.statusCode === 'OK') {
-        this.linkTypes = enumData.data
-      }
+      const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
       if (treeData.statusCode === 'OK') {
         this.getAllInvokeSequenceData()
         this.appInvokeLines = {}
@@ -479,17 +463,17 @@ export default {
               data: _.data,
               fixedDate: +new Date(_.data.fixed_date)
             }
-            if (_.children instanceof Array && _.children.length && _.ciTypeId !== LAST_LEVEL_CI_TYPE_ID) {
+            if (_.children instanceof Array && _.children.length && _.ciTypeId !== this.initParams[UNIT_DESIGN_ID]) {
               result.children = formatAppLogicTree(_.children)
             }
-            if (_.ciTypeId === LAST_LEVEL_CI_TYPE_ID) {
+            if (_.ciTypeId === this.initParams[UNIT_DESIGN_ID]) {
               this.allUnitDesign.push(result)
             }
             return result
           })
         const formatAppLogicLine = array =>
           array.forEach(_ => {
-            if (_.ciTypeId === APP_INVOKE_LINES_CI_YTPE_ID) {
+            if (_.ciTypeId === this.initParams[INVOKE_DESIGN_ID]) {
               this.appInvokeLines[_.guid] = {
                 from: _.data.invoke_unit_design,
                 to: _.data.invoked_unit_design,
@@ -506,16 +490,15 @@ export default {
         let serviceDesignNodes = {}
         const formatServiceInvokeLine = array =>
           array.forEach(_ => {
-            if (_.ciTypeId === SERVICE_INVOKE_LINES_CI_TYPE_ID) {
-              const linkTypeName = this.linkTypes.find(item => item.codeId === _.data[SERVICE_DESIGN][SERVICE_TYPE])
-                .value
+            if (_.ciTypeId === this.initParams[SERVICE_INVOKE_DESIGN_ID]) {
+              const linkTypeName = _.data[this.initParams[SERVICE_DESIGN]][this.initParams[SERVICE_TYPE]]
               serviceDesignNodes[_.data.invoke_unit_design.guid] = true
               serviceDesignNodes[_.data.invoked_unit_design.guid] = true
               this.appServiceInvokeLines[_.guid] = {
                 from: _.data.invoke_unit_design,
                 to: _.data.invoked_unit_design,
                 id: _.guid,
-                label: `${_.data[SERVICE_DESIGN].name}:${linkTypeName}`,
+                label: `${_.data[this.initParams[SERVICE_DESIGN]].name}:${linkTypeName}`,
                 state: _.data.state.code,
                 fixedDate: +new Date(_.data.fixed_date)
               }
@@ -526,7 +509,7 @@ export default {
           })
         const formatServiceInvokeTree = array =>
           array
-            .filter(_ => _.ciTypeId !== LAST_LEVEL_CI_TYPE_ID || serviceDesignNodes[_.guid])
+            .filter(_ => _.ciTypeId !== this.initParams[UNIT_DESIGN_ID] || serviceDesignNodes[_.guid])
             .map(_ => {
               let result = {
                 ciTypeId: _.ciTypeId,
@@ -534,7 +517,7 @@ export default {
                 data: _.data,
                 fixedDate: +new Date(_.data.fixed_date)
               }
-              if (_.ciTypeId !== LAST_LEVEL_CI_TYPE_ID && _.children instanceof Array && _.children.length) {
+              if (_.ciTypeId !== this.initParams[UNIT_DESIGN_ID] && _.children instanceof Array && _.children.length) {
                 result.children = formatServiceInvokeTree(_.children)
               }
               return result
@@ -1193,6 +1176,7 @@ export default {
       })
 
       let found = this.tabList.find(i => i.code === this.currentTab)
+      if (!found) return
       const { statusCode, data } = await getArchitectureCiDatas(
         found.codeId,
         this.systemDesignVersion,
@@ -1224,7 +1208,7 @@ export default {
           let renderKey = _.propertyName
           if (_.status !== 'decommissioned' && _.status !== 'notCreated') {
             const com =
-              _.propertyName === SERVICE_INVOKE_SEQ_DESIGN
+              _.propertyName === this.initParams[SERVICE_INVOKE_SEQ_DESIGN]
                 ? { component: 'WeCMDBSequenceDiagram' }
                 : { ...components[_.inputType] }
             columns.push({
@@ -1333,11 +1317,21 @@ export default {
           callback()
         }
       }
+    },
+    async getConfigParams () {
+      const { statusCode, data } = await getEnumCodesByCategoryId(0, VIEW_CONFIG_PARAMS)
+      if (statusCode === 'OK') {
+        this.initParams = {}
+        data.forEach(_ => {
+          this.initParams[_.code] = Number(_.value) ? Number(_.value) : _.value
+        })
+        this.getArchitectureDesignTabs()
+        this.getSystemDesigns()
+      }
     }
   },
   created () {
-    this.getArchitectureDesignTabs()
-    this.getSystemDesigns()
+    this.getConfigParams()
   }
 }
 </script>
