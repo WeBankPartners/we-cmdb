@@ -229,6 +229,8 @@ const SERVICE_DESIGN = 'appArchitectureDesignServiceDesign' // 服务设计ci的
 const SERVICE_TYPE = 'appArchitectureDesignServiceType' // 服务类型
 const SERVICE_INVOKE_SEQ_DESIGN = 'appArchitectureDesignServiceInvokeDesignSequence' // 服务调用时序设计ci的code
 const INVOKE_SEQUENCE_ID = 'appArchitectureDesignInvokeSequenceId'
+const INVOKE_DIAGRAM_LINK_FROM = 'appArchitectureDesignInvokeDiagramLinkFrom'
+const INVOKE_DIAGRAM_LINK_TO = 'appArchitectureDesignInvokeDiagramLinkTo'
 
 export default {
   components: {
@@ -475,8 +477,8 @@ export default {
           array.forEach(_ => {
             if (_.ciTypeId === this.initParams[INVOKE_DESIGN_ID]) {
               this.appInvokeLines[_.guid] = {
-                from: _.data.invoke_unit_design,
-                to: _.data.invoked_unit_design,
+                from: _.data[this.initParams[INVOKE_DIAGRAM_LINK_FROM]],
+                to: _.data[this.initParams[INVOKE_DIAGRAM_LINK_TO]],
                 id: _.guid,
                 label: _.data.invoke_type.value,
                 state: _.data.state.code,
@@ -492,11 +494,11 @@ export default {
           array.forEach(_ => {
             if (_.ciTypeId === this.initParams[SERVICE_INVOKE_DESIGN_ID]) {
               const linkTypeName = _.data[this.initParams[SERVICE_DESIGN]][this.initParams[SERVICE_TYPE]]
-              serviceDesignNodes[_.data.invoke_unit_design.guid] = true
-              serviceDesignNodes[_.data.invoked_unit_design.guid] = true
+              serviceDesignNodes[_.data[this.initParams[INVOKE_DIAGRAM_LINK_FROM]].guid] = true
+              serviceDesignNodes[_.data[this.initParams[INVOKE_DIAGRAM_LINK_TO]].guid] = true
               this.appServiceInvokeLines[_.guid] = {
-                from: _.data.invoke_unit_design,
-                to: _.data.invoked_unit_design,
+                from: _.data[this.initParams[INVOKE_DIAGRAM_LINK_FROM]],
+                to: _.data[this.initParams[INVOKE_DIAGRAM_LINK_TO]],
                 id: _.guid,
                 label: `${_.data[this.initParams[SERVICE_DESIGN]].name}:${linkTypeName}`,
                 state: _.data.state.code,
@@ -1227,6 +1229,10 @@ export default {
               ciType: { id: _.referenceId, name: _.name },
               type: 'text',
               isMultiple: _.inputType === 'multiSelect',
+              serviceInvokeDesignId: this.initParams[SERVICE_INVOKE_DESIGN_ID],
+              invokeUnitDesign: this.initParams[INVOKE_DIAGRAM_LINK_FROM],
+              invokedUnitDesign: this.initParams[INVOKE_DIAGRAM_LINK_TO],
+              serviceDesign: this.initParams[SERVICE_DESIGN],
               ...com
             })
           }
