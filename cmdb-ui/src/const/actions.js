@@ -58,6 +58,16 @@ export const outerActions = [
     actionType: 'save'
   },
   {
+    label: window.vm ? pluginI18n('copyToNew') : Vue.t('copyToNew'),
+    props: {
+      type: 'success',
+      icon: 'md-add',
+      disabled: true,
+      loading: false
+    },
+    actionType: 'copy'
+  },
+  {
     label: window.vm ? pluginI18n('edit') : Vue.t('edit'),
     props: {
       type: 'info',
