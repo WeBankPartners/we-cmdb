@@ -76,10 +76,17 @@ import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
+import { VIEW_CONFIG_PARAMS } from '@/const/init-params.js'
+
+const REGIONAL_DATA_CENTER = 'resourcePlaningRegionalDataCenter'
+const NETWORK_SEGMENT = 'resourcePlaningNetworkSegmentDesign'
+const LINK_FROM = 'resourcePlaningLinkFrom'
+const LINK_TO = 'resourcePlaningLinkTo'
 
 export default {
   data () {
     return {
+      initParams: {},
       allIdcs: {},
       realIdcs: [],
       selectedIdcs: [],
@@ -117,8 +124,9 @@ export default {
       if (statusCode === 'OK') {
         this.allIdcs = {}
         this.realIdcs = []
+        const regional = this.initParams[REGIONAL_DATA_CENTER]
         data.forEach(_ => {
-          if (!_.data.regional_data_center) {
+          if (!_.data[regional]) {
             this.realIdcs.push({
               guid: _.data.guid,
               name: _.data.name,
@@ -128,14 +136,14 @@ export default {
         })
         data.forEach(_ => {
           this.realIdcs.find((idc, i) => {
-            if (_.data.regional_data_center && idc.guid === _.data.regional_data_center.guid) {
+            if (_.data[regional] && idc.guid === _.data[regional].guid) {
               this.realIdcs[i].logicIdcs.push({
                 guid: _.data.guid,
                 name: _.data.name,
                 realIdcGuid: idc.guid
               })
               return true
-            } else if (!_.data.regional_data_center && idc.guid === _.data.guid) {
+            } else if (!_.data[regional] && idc.guid === _.data.guid) {
               this.realIdcs[i].logicIdcs.unshift({
                 guid: _.data.guid,
                 name: _.data.name,
@@ -146,7 +154,7 @@ export default {
           this.allIdcs[_.data.guid] = {
             guid: _.data.guid,
             name: _.data.name,
-            realIdcGuid: _.data.regional_data_center ? _.data.regional_data_center.guid : _.data.guid
+            realIdcGuid: _.data[regional] ? _.data[regional].guid : _.data.guid
           }
         })
       }
@@ -173,49 +181,18 @@ export default {
         const promiseArray = [getIdcImplementTreeByGuid(selectedIdcs), getAllZoneLinkGroupByIdc()]
         const [idcData, links] = await Promise.all(promiseArray)
         if (idcData.statusCode === 'OK' && links.statusCode === 'OK') {
-          let _idcData = []
-          let logicNetZone = {}
-          idcData.data.forEach(_ => {
-            if (!_.data.regional_data_center) {
-              let obj = {
-                ciTypeId: _.ciTypeId,
-                guid: _.guid,
-                data: _.data
-              }
-              if (_.children instanceof Array) {
-                obj.children = _.children.filter(zone => zone.ciTypeId !== _.ciTypeId)
-              }
-              _idcData.push(obj)
-            } else if (_.data.regional_data_center && _.children instanceof Array) {
-              _.children.forEach(zone => {
-                zone.data.code = `${zone.data.code}(${zone.data.data_center.code})`
-                if (logicNetZone[zone.data.vpc_network_zone.guid]) {
-                  logicNetZone[zone.data.vpc_network_zone.guid].push(zone)
-                } else {
-                  logicNetZone[zone.data.vpc_network_zone.guid] = [zone]
-                }
-              })
-            }
-          })
-          _idcData.forEach(_ => {
-            if (_.children instanceof Array) {
-              _.children.map(zone => {
-                if (logicNetZone[zone.guid]) {
-                  zone.children = logicNetZone[zone.guid]
-                } else {
-                  zone.children = []
-                }
-                return zone
-              })
-            }
-          })
-
           const sortingTree = array => {
             let obj = {}
             array.forEach(_ => {
               _.text = [_.data.code]
-              if (_.data.network_segment) {
-                _.text.push(_.data.network_segment.code)
+              if (_.data[this.initParams[NETWORK_SEGMENT]] instanceof Array) {
+                let text = []
+                _.data[this.initParams[NETWORK_SEGMENT]].forEach(networkSegment => {
+                  text.push(networkSegment.code)
+                })
+                _.text.push(`[${text.join(', ')}]`)
+              } else if (typeof _.data[this.initParams[NETWORK_SEGMENT]] === 'object') {
+                _.text.push(_.data[this.initParams[NETWORK_SEGMENT]].code || '')
               }
               if (_.children instanceof Array) {
                 _.children = sortingTree(_.children)
@@ -226,7 +203,7 @@ export default {
               .sort()
               .map(_ => obj[_])
           }
-          this.idcData = sortingTree(_idcData)
+          this.idcData = sortingTree(idcData.data)
 
           let allZoneLinkObj = {}
           links.data.forEach(_ => {
@@ -240,8 +217,8 @@ export default {
           Object.keys(allZoneLinkObj).forEach(guid => {
             const line = {
               guid,
-              from: allZoneLinkObj[guid].network_zone_1.guid,
-              to: allZoneLinkObj[guid].network_zone_2.guid,
+              from: allZoneLinkObj[guid][this.initParams[LINK_FROM]].guid,
+              to: allZoneLinkObj[guid][this.initParams[LINK_TO]].guid,
               label: allZoneLinkObj[guid].code,
               state: allZoneLinkObj[guid].state.code
             }
@@ -305,7 +282,7 @@ export default {
             }
             const pw = parseInt(points[0].split(',')[0] - points[1].split(',')[0])
             const ph = parseInt(points[2].split(',')[1] - points[1].split(',')[1])
-            this.setChildren(zone, p, pw, ph, fontSize, 1, 1)
+            this.setChildren(zone, p, pw, ph, fontSize, 2, 1)
           }
         })
       })
@@ -356,8 +333,8 @@ export default {
           let ll = (width - 0.5 * layer.length) / layer.length
           layer.forEach(zone => {
             let label
-            if (zone.data.code && zone.data.code !== null && zone.data.code !== '') {
-              label = zone.data.code
+            if (zone.data.code) {
+              label = `${zone.data.code}\n${zone.data.network_segment ? zone.data.network_segment.code : ''}`
             } else {
               label = zone.data.key_name
             }
@@ -932,11 +909,21 @@ export default {
           }
         })
       }
+    },
+    async getConfigParams () {
+      const { statusCode, data } = await getEnumCodesByCategoryId(0, VIEW_CONFIG_PARAMS)
+      if (statusCode === 'OK') {
+        this.initParams = {}
+        data.forEach(_ => {
+          this.initParams[_.code] = _.value
+        })
+      }
+      this.getAllIdcData()
+      this.getTabList()
     }
   },
   created () {
-    this.getAllIdcData()
-    this.getTabList()
+    this.getConfigParams()
   }
 }
 </script>
