@@ -237,6 +237,7 @@ public class UICiDataManagementController {
     @PostMapping("/ci-types/{ci-type-id}/ci-data/batch-update")
     @ResponseBody
     public Object updateCiData(@PathVariable(value = "ci-type-id") int ciTypeId, @RequestBody List<Map<String, Object>> ciDatas) {
+        
         return wrapperService.updateCiData(ciTypeId, ciDatas);
     }
 
@@ -462,13 +463,10 @@ public class UICiDataManagementController {
     @RolesAllowed({ MENU_DESIGNING_CI_DATA_MANAGEMENT, MENU_DESIGNING_CI_DATA_ENQUIRY })
     @PostMapping("/ci-data/{ci-type-id}/change-password")
     @ResponseBody
-    public ResponseDto updatePassword(@PathVariable(value = "ci-type-id") int ciTypeId,@RequestBody Map<String, Object> param) {
-        ResponseDto responseDto = new ResponseDto();
-        Map<String, Object> data = new HashMap();
+    public ResponseDto<?> updatePassword(@PathVariable(value = "ci-type-id") int ciTypeId,@RequestBody Map<String, Object> param) {
+        ResponseDto<?> responseDto = new ResponseDto();
         try {
-            data.put(param.get("field").toString(), param.get("value"));
-            data.put(CmdbConstants.GUID, param.get(CmdbConstants.GUID));
-            wrapperService.updateCiData(ciTypeId, Arrays.asList(data));
+            wrapperService.updateCiDataForPassword(ciTypeId, param);
             responseDto.setStatusCode(ResponseDto.STATUS_OK);
         } catch (Exception e) {
             e.printStackTrace();
