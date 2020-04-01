@@ -508,7 +508,13 @@ export default {
       this.handleInput()
     },
     renderSpan (value, props) {
-      return <span {...props}>{value}</span>
+      const p = {
+        ...props,
+        domProps: {
+          innerHTML: value.replace(/\s/g, '&nbsp;').replace(/</g, '&lt;')
+        }
+      }
+      return <span {...p}></span>
     },
     formatClassName (classList) {
       return Object.keys(classList).map(key => {

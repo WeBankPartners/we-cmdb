@@ -154,7 +154,8 @@ export default {
       copyTableVisible: false,
       noOfCopy: 1,
       copyRows: [],
-      copyEditData: null
+      copyEditData: null,
+      isHandleNodeClick: false
     }
   },
   computed: {
@@ -462,6 +463,8 @@ export default {
       e.stopPropagation()
     },
     async handleNodeClick (e) {
+      if (this.isHandleNodeClick) return
+      this.isHandleNodeClick = true
       e.preventDefault()
       e.stopPropagation()
       var g = e.currentTarget
@@ -511,6 +514,9 @@ export default {
       } else {
         this.currentTab = g.id
       }
+      setTimeout(() => {
+        this.isHandleNodeClick = false
+      }, 500)
     },
     onSelectedRowsChange (rows, checkoutBoxdisable) {
       if (rows.length > 0) {

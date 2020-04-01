@@ -83,4 +83,6 @@ public interface CiService extends CmdbService {
     Object getCiBeanObject(EntityManager entityManager, int ciTypeId, String guid);
     
     List<CiKeyPair> retrieveKeyPairs(int ciTypeId);
+
+    List<Map<String, Object>> filterOfPassword(int ciTypeId, List<Map<String, Object>> cis);
 }

@@ -1,5 +1,6 @@
 package com.webank.cmdb.service.interceptor;
 
+import static com.webank.cmdb.constant.CmdbConstants.GUID;
 import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_CREATION;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ import com.webank.cmdb.constant.DynamicEntityType;
 import com.webank.cmdb.constant.EnumCodeAttr;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.InputType;
+import com.webank.cmdb.constant.StateOperation;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
@@ -618,6 +620,20 @@ public class CiDataInterceptorService {
             }
         });
     }
+    
+    public void filterInputType(DynamicEntityHolder entityHolder, Map ci) {
+        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(entityHolder.getEntityMeta().getCiTypeId());
+        attrs.forEach(attr -> {
+            String inputType = attr.getInputType();
+            String name = attr.getPropertyName();
+            Object value = ci.get(name);
+            if(value != null) {
+                if(InputType.Password.getCode().equals(inputType)) {
+                    ci.remove(name);
+                }
+            }
+        });
+    }
 
     // can not update not editable field
     private void validateNotEditable(DynamicEntityHolder entityHolder, Map<String, Object> ci) {
@@ -665,7 +681,7 @@ public class CiDataInterceptorService {
 
     }
 
-    private void handleReferenceAutoFill(DynamicEntityHolder entityHolder, EntityManager entityManager, Map<String, Object> ci) {
+    public void handleReferenceAutoFill(DynamicEntityHolder entityHolder, EntityManager entityManager, Map<String, Object> ci) {
         int ciTypeId = entityHolder.getEntityMeta().getCiTypeId();
         List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(ciTypeId);
         attrs.forEach(attr -> {
@@ -688,8 +704,10 @@ public class CiDataInterceptorService {
     }
 
     public void postDelete(DynamicEntityHolder entityHolder, EntityManager entityManager, int ciTypeId, String guid, DynamicEntityMeta entityMeta) {
-        //entityManager.flush();
-        //handleReferenceAutoFill(entityHolder, entityManager, entityHolder.getEntityBeanMap());
+        Map ci = new HashMap();
+        ci.put(CmdbConstants.DEFAULT_FIELD_STATE,StateOperation.Delete);
+        ci.put(GUID, guid);
+        handleReferenceAutoFill(entityHolder,entityManager,ci);
     }
 
 }
