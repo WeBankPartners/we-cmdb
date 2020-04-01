@@ -620,6 +620,20 @@ public class CiDataInterceptorService {
             }
         });
     }
+    
+    public void filterInputType(DynamicEntityHolder entityHolder, Map ci) {
+        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(entityHolder.getEntityMeta().getCiTypeId());
+        attrs.forEach(attr -> {
+            String inputType = attr.getInputType();
+            String name = attr.getPropertyName();
+            Object value = ci.get(name);
+            if(value != null) {
+                if(InputType.Password.getCode().equals(inputType)) {
+                    ci.remove(name);
+                }
+            }
+        });
+    }
 
     // can not update not editable field
     private void validateNotEditable(DynamicEntityHolder entityHolder, Map<String, Object> ci) {
@@ -694,8 +708,6 @@ public class CiDataInterceptorService {
         ci.put(CmdbConstants.DEFAULT_FIELD_STATE,StateOperation.Delete);
         ci.put(GUID, guid);
         handleReferenceAutoFill(entityHolder,entityManager,ci);
-        //entityManager.flush();
-        //handleReferenceAutoFill(entityHolder, entityManager, entityHolder.getEntityBeanMap());
     }
 
 }
