@@ -115,13 +115,14 @@ import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import PhysicalGraph from './physical-graph'
 import { colors, stateColor } from '../../const/graph-configuration'
+import { VIEW_CONFIG_PARAMS } from '@/const/init-params.js'
 
-const LAST_LEVEL_CI_TYPE_ID = 9
-const BUSINESS_APP_INSTANCE = 14
-const URL_ATTR_NAME = 'resource_instance'
-const LINE_CI_TYPE_ID = 11
-const LINE_FROM_ATTR = 'invoke_unit'
-const LINE_TO_ATTR = 'invoked_unit'
+const UNIT_ID = 'appDeploymentDesignUnitId'
+const BUSINESS_APP_INSTANCE_ID = 'appDeploymentDesignBusinessAppInstanceId'
+const RESOURCE_INSTANCE = 'appDeploymentDesignResourceInstance'
+const INVOKE_ID = 'appDeploymentDesignInvokeId'
+const INVOKE_UNIT = 'appDeploymentDesignInvokeUnit'
+const INVOKED_UNIT = 'appDeploymentDesignInvokedUnit'
 
 export default {
   components: {
@@ -129,6 +130,7 @@ export default {
   },
   data () {
     return {
+      initParams: {},
       isShowTabs: false,
       systems: [],
       systemVersion: '',
@@ -349,20 +351,23 @@ export default {
               tooltip: _.data.description || '',
               fixedDate: +new Date(_.data.fixed_date)
             }
-            if (_.children instanceof Array && _.children.length && _.ciTypeId !== LAST_LEVEL_CI_TYPE_ID) {
+            if (_.children instanceof Array && _.children.length && _.ciTypeId !== this.initParams[UNIT_ID]) {
               result.children = formatADData(_.children)
             }
-            if (_.ciTypeId === LAST_LEVEL_CI_TYPE_ID) {
+            if (_.ciTypeId === this.initParams[UNIT_ID]) {
               const label = [
                 '<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">',
                 `<TR><TD COLSPAN="3">${_.data.code}</TD></TR>`
               ]
               if (_.children instanceof Array && _.children.length) {
                 _.children.forEach(item => {
-                  if (item.ciTypeId === BUSINESS_APP_INSTANCE) {
+                  if (item.ciTypeId === this.initParams[BUSINESS_APP_INSTANCE_ID]) {
                     const code = item.data.code
                     const url =
-                      item.data[URL_ATTR_NAME] && item.data[URL_ATTR_NAME].code ? item.data[URL_ATTR_NAME].code : '-'
+                      item.data[this.initParams[RESOURCE_INSTANCE]] &&
+                      item.data[this.initParams[RESOURCE_INSTANCE]].code
+                        ? item.data[this.initParams[RESOURCE_INSTANCE]].code
+                        : '-'
                     const ip = item.data.port || '-'
                     label.push(`<TR><TD>${code}</TD><TD>${url}</TD><TD>${ip}</TD></TR>`)
                   }
@@ -376,10 +381,10 @@ export default {
         }
         const formatADLine = array =>
           array.forEach(_ => {
-            if (_.ciTypeId === LINE_CI_TYPE_ID) {
+            if (_.ciTypeId === this.initParams[INVOKE_ID]) {
               this.systemLines[_.guid] = {
-                from: _.data[LINE_FROM_ATTR].guid,
-                to: _.data[LINE_TO_ATTR].guid,
+                from: _.data[this.initParams[INVOKE_UNIT]].guid,
+                to: _.data[this.initParams[INVOKED_UNIT]].guid,
                 id: _.guid,
                 label: _.data.invoke_type.value,
                 state: _.data.state.code,
@@ -585,7 +590,7 @@ export default {
             })
           }
           if (_.children instanceof Array && _.children.length) {
-            if (_.ciTypeId !== LAST_LEVEL_CI_TYPE_ID) {
+            if (_.ciTypeId !== this.initParams[UNIT_ID]) {
               findLayerCi(_.children)
             } else {
               _.children.forEach(item => {
@@ -1129,12 +1134,22 @@ export default {
           this.allCiTypes[_.ciTypeId] = _
         })
       }
+    },
+    async getConfigParams () {
+      const { statusCode, data } = await getEnumCodesByCategoryId(0, VIEW_CONFIG_PARAMS)
+      if (statusCode === 'OK') {
+        this.initParams = {}
+        data.forEach(_ => {
+          this.initParams[_.code] = Number(_.value) ? Number(_.value) : _.value
+        })
+        this.getSystems()
+        this.getDeployDesignTabs()
+        this.queryTreeLayerData()
+      }
     }
   },
   created () {
-    this.getSystems()
-    this.getDeployDesignTabs()
-    this.queryTreeLayerData()
+    this.getConfigParams()
   }
 }
 </script>
