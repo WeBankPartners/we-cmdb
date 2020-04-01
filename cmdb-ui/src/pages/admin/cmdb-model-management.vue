@@ -403,7 +403,7 @@
                     :label="$t('reference_select')"
                   >
                     <Select v-model="item.form.referenceId" :disabled="item.form.status === 'decommissioned'">
-                      <Option v-for="item in allCiTypes" :value="item.ciTypeId" :key="item.ciTypeId">{{
+                      <Option v-for="item in allCiTypesWithAttr" :value="item.ciTypeId" :key="item.ciTypeId">{{
                         item.name
                       }}</Option>
                     </Select>
@@ -641,7 +641,7 @@
             :label="$t('reference_select')"
           >
             <Select v-model="addNewAttrForm.referenceId">
-              <Option v-for="item in allCiTypes" :value="item.ciTypeId" :key="item.ciTypeId">{{ item.name }}</Option>
+              <Option v-for="item in allCiTypesWithAttr" :value="item.ciTypeId" :key="item.ciTypeId">{{ item.name }}</Option>
             </Select>
           </FormItem>
           <FormItem
@@ -890,7 +890,6 @@ export default {
         isEditable: 'yes',
         isUnique: 'no'
       },
-      allCiTypes: [],
       allCiTypesWithAttr: [],
       specialDelimiters: [],
       allInputTypes: [],
@@ -1437,6 +1436,7 @@ export default {
           title: this.$t('revert_ci_type_success'),
           desc: res.message
         })
+        this.getAllCiTypeWithAttr()
         this.initGraph()
       }
     },
@@ -1449,6 +1449,7 @@ export default {
           title: this.$t('revert_ci_attribute_success'),
           desc: res.message
         })
+        this.getAllCiTypeWithAttr()
         this.initGraph()
       }
     },
@@ -1459,6 +1460,7 @@ export default {
           title: this.$t('update_ci_name_success'),
           desc: res.message
         })
+        this.getAllCiTypeWithAttr()
         this.initGraph()
       }
     },
@@ -1475,6 +1477,7 @@ export default {
               title: status === 'notCreated' ? 'CI delete' : 'CI decomission',
               desc: res.message
             })
+            this.getAllCiTypeWithAttr()
             this.initGraph()
           }
         },
@@ -1498,6 +1501,7 @@ export default {
               title: status === 'notCreated' ? 'Delete CI Attr Successful' : 'Deprecate CI Attr Successful',
               desc: res.message
             })
+            this.getAllCiTypeWithAttr()
             this.initGraph()
           }
         },
@@ -1522,6 +1526,7 @@ export default {
           title: this.$t('save_ci_success'),
           desc: res.message
         })
+        this.getAllCiTypeWithAttr()
         this.initGraph()
       }
     },
@@ -1540,6 +1545,7 @@ export default {
             this.resetAddNewCITypeForm()
             this.getAllReferenceTypesList()
             this.isAddNewCITypeModalVisible = false
+            this.getAllCiTypeWithAttr()
             this.initGraph()
             this.getAllEnumTypes()
           }
@@ -1575,6 +1581,7 @@ export default {
           title: this.$t('apply_ci_success'),
           desc: res.message
         })
+        this.getAllCiTypeWithAttr()
         this.initGraph()
       }
     },
@@ -1647,6 +1654,7 @@ export default {
         })
         this.resetAddAttrForm()
         this.isAddNewAttrModalVisible = false
+        this.getAllCiTypeWithAttr()
         this.initGraph()
       }
     },
@@ -1685,6 +1693,7 @@ export default {
           title: this.$t('save_ci_attr_success'),
           desc: res.message
         })
+        this.getAllCiTypeWithAttr()
         this.initGraph()
       }
     },
@@ -1714,6 +1723,7 @@ export default {
             title: this.$t('apply_ci_attr_success'),
             desc: applyRes.message
           })
+          this.getAllCiTypeWithAttr()
           this.initGraph()
         }
       } else {
@@ -1762,12 +1772,6 @@ export default {
         desc: formatString(this.$t('file_oversize_message'), file.name)
       })
     },
-    async getAllCITypesList () {
-      const res = await getAllCITypes()
-      if (res.statusCode === 'OK') {
-        this.allCiTypes = res.data
-      }
-    },
     async getAllCiTypeWithAttr () {
       const res = await getAllCITypesByLayerWithAttr(['notCreated', 'created', 'decommissioned', 'dirty'])
       if (res.statusCode === 'OK') {
@@ -1814,17 +1818,16 @@ export default {
       this.nodeName = ''
       this.currentSelectedLayer = {}
       this.currentSelectedCI = {}
-      this.getAllCITypesList()
+      this.getAllCiTypeWithAttr()
       this.initGraph()
     }
   },
   mounted () {
+    this.getAllCiTypeWithAttr()
     this.initGraph()
-    this.getAllCITypesList()
     this.getAllInputTypesList()
     this.getAllReferenceTypesList()
     this.getTableStatusList()
-    this.getAllCiTypeWithAttr()
     this.getSpecialConnector()
   },
   computed: {
