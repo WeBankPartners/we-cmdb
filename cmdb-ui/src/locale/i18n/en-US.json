@@ -246,5 +246,8 @@
   "zoom_level": "Layer",
   "show_key_name": "KeyName",
   "change_key_name": "Change KeyName",
-  "keyname_should_be_unique": "The keyName should unique and cannot be empty!"
+  "keyname_should_be_unique": "The keyName should unique and cannot be empty!",
+  "copyToNew": "Copy",
+  "input_set_of_copy": "Please input count of copy",
+  "set": "Copy"
 }
