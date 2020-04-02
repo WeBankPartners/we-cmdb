@@ -74,7 +74,7 @@ export const applyCiTypes = id => req.post(`/ci-types/${id}/apply`)
 export const updateCIType = (id, data) => req.put(`/ci-types/${id}`, data)
 export const createNewCIType = data => req.post(`/ci-types/create`, data)
 export const createNewCIAttr = (id, data) => req.post(`/ci-types/${id}/attributes/create`, data)
-export const updateCIAttr = (attrId, ciTypeId, data) => req.put(`/ci-types/${ciTypeId}/attributes/${attrId}`, data)
+export const updateCIAttr = (ciTypeId, attrId, data) => req.put(`/ci-types/${attrId}/attributes/${ciTypeId}`, data)
 export const applyCIAttr = (ciTypeId, attrIds) => req.post(`/ci-types/${ciTypeId}/ci-type-attributes/apply`, attrIds)
 export const swapCiTypeAttributePosition = (ciTypeId, attrId, targetAttrId) => {
   return req.post(`/ci-types/${ciTypeId}/attributes/${attrId}/swap-position?target-attribute-id=${targetAttrId}`)
