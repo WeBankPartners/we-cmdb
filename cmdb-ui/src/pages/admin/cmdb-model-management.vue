@@ -1623,6 +1623,9 @@ export default {
       }
     },
     async addNewAttr (id) {
+      if (!this.checkFillRule(this.addNewAttrForm)) {
+        return
+      }
       this.buttonLoading.addNewAttr = true
       const payload = {
         ...this.addNewAttrForm,
