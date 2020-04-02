@@ -1662,6 +1662,9 @@ export default {
       this.addNewAttrForm = {}
     },
     async saveAttr (ciTypeAttrId, form) {
+      if (!this.checkFillRule(form)) {
+        return
+      }
       this.buttonLoading.saveAttr = true
       const isSelectOrRef =
         form.inputType === 'select' ||
@@ -1693,6 +1696,9 @@ export default {
       }
     },
     async applyAttr (ciTypeAttrId, form) {
+      if (!this.checkFillRule(form)) {
+        return
+      }
       const isSelectOrRef =
         form.inputType === 'select' ||
         form.inputType === 'ref' ||
@@ -1725,7 +1731,17 @@ export default {
         this.buttonLoading.applyAttr = false
       }
     },
-
+    checkFillRule (form) {
+      if (form.isAuto === 'yes' && (form.autoFillRule === null || form.autoFillRule === undefined)) {
+        this.$Notice.error({
+          title: 'Error',
+          desc: this.$t('auto_fill_rule_incomplete')
+        })
+        return false
+      } else {
+        return true
+      }
+    },
     handleNewCITypeUploadImgSuccess (res, file) {
       if (res.statusCode === 'OK') {
         this.$Notice.success({
