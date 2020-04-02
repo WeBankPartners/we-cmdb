@@ -413,6 +413,7 @@ export default {
           let ruleArr = JSON.parse(this.autoFillArray[ruleIndex].value)
           ruleArr.splice(attrIndex, ruleArr.length - attrIndex)
           this.autoFillArray[ruleIndex].value = JSON.stringify(ruleArr)
+          this.$emit('input', null)
         }
       }
       this.optionsDisplay = false
@@ -877,6 +878,8 @@ export default {
       })
       if (isLegal) {
         this.$emit('input', value)
+      } else {
+        this.$emit('input', null)
       }
     }
   },
