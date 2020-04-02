@@ -47,7 +47,7 @@
         </Modal>
         <!-- 复制新增编辑 -->
         <Modal
-          v-if="copyTableVisible"
+          v-if="copyTableRender"
           v-model="copyTableVisible"
           width="90"
           class-name="copy-modal"
@@ -157,7 +157,8 @@ export default {
       noOfCopy: 1,
       copyRows: [],
       copyEditData: null,
-      isHandleNodeClick: false
+      isHandleNodeClick: false,
+      copyTableRender: false
     }
   },
   computed: {
@@ -601,39 +602,25 @@ export default {
     },
     copyHandler (rows) {
       this.copyRows = (rows || []).map(x => {
-        /* eslint-disable */
-        const {
-          code,
-          subsys_design,
-          unit_type,
-          resource_set_design,
-          name,
-          protocol,
-          across_resource_set,
-          description
-        } = x
-        /* eslint-enable */
-        return {
+        let result = {
+          ...x,
           guid: '',
           r_guid: '',
-          p_guid: null,
+          p_guid: '',
           state: '',
           fixed_date: '',
-          code,
-          subsys_design,
-          unit_type,
-          resource_set_design,
-          name,
-          protocol,
-          across_resource_set,
-          description,
           isRowEditable: true,
           forceEdit: true
         }
+        delete result.key_name
+        delete result.state_code
+        return result
       })
       this.copyVisible = true
+      this.copyTableRender = true
     },
     handleCopyToNew () {
+      this.copyVisible = false
       this.copyTableVisible = true
       this.$nextTick(() => {
         this.$refs['copy' + this.currentTab] && this.$refs['copy' + this.currentTab][0].pushAllRowsToSelections()
