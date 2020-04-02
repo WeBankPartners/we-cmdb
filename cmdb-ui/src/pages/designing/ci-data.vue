@@ -614,11 +614,9 @@ export default {
     },
     copyHandler (rows = [], cols) {
       const columns = cols.reduce((arr, x) => {
-        if (
-          x.key &&
-          !x.isAuto &&
-          !['guid', 'r_guid', 'p_guid', 'state', 'fixed_date', 'key_name', 'state_code'].some(k => k === x.key)
-        ) { arr.push(x.key) }
+        if (x.key && !x.isAuto && x.isEditable) {
+          arr.push(x.key)
+        }
         return arr
       }, [])
       this.copyRows = rows.map(row => {
