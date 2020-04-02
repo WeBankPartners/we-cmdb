@@ -249,5 +249,6 @@
   "keyname_should_be_unique": "The keyName should unique and cannot be empty!",
   "copyToNew": "Copy",
   "input_set_of_copy": "Please input count of copy",
-  "set": "Copy"
+  "set": "Copy",
+  "auto_fill_rule_incomplete": "Autofill Rule is incomplete!"
 }
