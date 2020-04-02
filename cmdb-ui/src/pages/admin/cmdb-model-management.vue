@@ -795,7 +795,6 @@ import { addEvent } from '../util/event.js'
 import { formatString } from '../util/format.js'
 import {
   getAllCITypesByLayerWithAttr,
-  getAllLayers,
   createLayer,
   deleteCITypeByID,
   deleteAttr,
@@ -808,7 +807,6 @@ import {
   updateCIAttr,
   deleteLayer,
   swapCiTypeAttributePosition,
-  getAllCITypes,
   getAllInputTypes,
   getEnumByCIType,
   getAllSystemEnumCodes,
@@ -820,7 +818,8 @@ import {
   implementCiType,
   implementCiAttr,
   getEnumCategoriesByTypeId,
-  getSpecialConnector
+  getSpecialConnector,
+  getCiTypeAttributes
 } from '@/api/server'
 import STATUS_LIST from '@/const/graph-status-list.js'
 import { PROPERTY_TYPE_MAP } from '@/const/data-types.js'
@@ -986,9 +985,12 @@ export default {
           })
       }
 
-      let layerResponse = await getAllLayers()
-      if (layerResponse.statusCode === 'OK') {
-        let tempLayer = layerResponse.data
+      let [ciResponse, _zoomLevelIdList] = await Promise.all([
+        getAllCITypesByLayerWithAttr(this.selectedStatus),
+        getEnumCodesByCategoryId(1, ZOOM_LEVEL_CAT)
+      ])
+      if (ciResponse.statusCode === 'OK' && _zoomLevelIdList.statusCode === 'OK') {
+        let tempLayer = ciResponse.data
           .filter(i => i.status === 'active')
           .map(_ => {
             return { name: _.value, layerId: _.codeId, ..._ }
@@ -996,56 +998,49 @@ export default {
         this.layers = tempLayer.sort((a, b) => {
           return a.seqNo - b.seqNo
         })
-        let [ciResponse, _zoomLevelIdList] = await Promise.all([
-          getAllCITypesByLayerWithAttr(this.selectedStatus),
-          getEnumCodesByCategoryId(1, ZOOM_LEVEL_CAT)
-        ])
-        if (ciResponse.statusCode === 'OK' && _zoomLevelIdList.statusCode === 'OK') {
-          if (_zoomLevelIdList.data.length) {
-            this.zoomLevelIdList = _zoomLevelIdList.data
-            this.currentZoomLevelId = this.currentZoomLevelId.length
-              ? this.currentZoomLevelId
-              : [_zoomLevelIdList.data[0].codeId]
-          }
-          this.source = []
-          this.source = ciResponse.data
-          this.source.forEach(_ => {
-            _.ciTypes &&
-              _.ciTypes.forEach(async i => {
-                let imgFileSource =
-                  i.imageFileId === 0 || i.imageFileId === undefined
-                    ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
-                    : `${baseURL}/files/${i.imageFileId}`
-                this.$set(i, 'form', {
-                  ...i,
-                  imgSource: imgFileSource,
-                  imgUploadURL: `${baseURL}/ci-types/${i.ciTypeId}/icon`
-                })
-                i.attributes &&
-                  i.attributes.forEach(j => {
-                    this.$set(j, 'form', {
-                      ...j,
-                      isRefreshable: j.isRefreshable ? 'yes' : 'no',
-                      isDisplayed: j.isDisplayed ? 'yes' : 'no',
-                      isAccessControlled: j.isAccessControlled ? 'yes' : 'no',
-                      isNullable: j.isNullable ? 'yes' : 'no',
-                      isAuto: j.inputType !== 'password' && j.isAuto ? 'yes' : 'no',
-                      isEditable: j.isEditable ? 'yes' : 'no',
-                      isUnique: j.isUnique ? 'yes' : 'no',
-                      searchSeqNo: j.inputType !== 'password' && j.searchSeqNo ? j.searchSeqNo : 0
-                    })
-                  })
-
-                this.renderRightPanels()
-              })
-          })
-          let uploadToken = document.cookie.split(';').find(i => i.indexOf('XSRF-TOKEN') !== -1)
-          setHeaders({
-            'X-XSRF-TOKEN': uploadToken && uploadToken.split('=')[1]
-          })
-          initEvent()
-          this.renderGraph(ciResponse.data)
+        if (_zoomLevelIdList.data.length) {
+          this.zoomLevelIdList = _zoomLevelIdList.data
+          this.currentZoomLevelId = this.currentZoomLevelId.length
+            ? this.currentZoomLevelId
+            : [_zoomLevelIdList.data[0].codeId]
         }
+        this.source = []
+        this.source = ciResponse.data
+        this.source.forEach(_ => {
+          _.ciTypes &&
+            _.ciTypes.forEach(async i => {
+              let imgFileSource =
+                i.imageFileId === 0 || i.imageFileId === undefined
+                  ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
+                  : `${baseURL}/files/${i.imageFileId}`
+              this.$set(i, 'form', {
+                ...i,
+                imgSource: imgFileSource,
+                imgUploadURL: `${baseURL}/ci-types/${i.ciTypeId}/icon`
+              })
+              i.attributes &&
+                i.attributes.forEach(j => {
+                  this.$set(j, 'form', {
+                    ...j,
+                    isRefreshable: j.isRefreshable ? 'yes' : 'no',
+                    isDisplayed: j.isDisplayed ? 'yes' : 'no',
+                    isAccessControlled: j.isAccessControlled ? 'yes' : 'no',
+                    isNullable: j.isNullable ? 'yes' : 'no',
+                    isAuto: j.inputType !== 'password' && j.isAuto ? 'yes' : 'no',
+                    isEditable: j.isEditable ? 'yes' : 'no',
+                    isUnique: j.isUnique ? 'yes' : 'no',
+                    searchSeqNo: j.inputType !== 'password' && j.searchSeqNo ? j.searchSeqNo : 0
+                  })
+                })
+              this.renderRightPanels()
+            })
+        })
+        let uploadToken = document.cookie.split(';').find(i => i.indexOf('XSRF-TOKEN') !== -1)
+        setHeaders({
+          'X-XSRF-TOKEN': uploadToken && uploadToken.split('=')[1]
+        })
+        initEvent()
+        this.renderGraph(ciResponse.data)
       }
     },
     genDOT (data) {
@@ -1449,7 +1444,7 @@ export default {
           title: this.$t('revert_ci_attribute_success'),
           desc: res.message
         })
-        this.getAllCiTypeWithAttr()
+        this.updateAttrByCiType(this.currentSelectedCI.ciTypeId)
         this.initGraph()
       }
     },
@@ -1501,7 +1496,7 @@ export default {
               title: status === 'notCreated' ? 'Delete CI Attr Successful' : 'Deprecate CI Attr Successful',
               desc: res.message
             })
-            this.getAllCiTypeWithAttr()
+            this.updateAttrByCiType(this.currentSelectedCI.ciTypeId)
             this.initGraph()
           }
         },
@@ -1654,7 +1649,7 @@ export default {
         })
         this.resetAddAttrForm()
         this.isAddNewAttrModalVisible = false
-        this.getAllCiTypeWithAttr()
+        this.updateAttrByCiType(this.currentSelectedCI.ciTypeId)
         this.initGraph()
       }
     },
@@ -1693,7 +1688,7 @@ export default {
           title: this.$t('save_ci_attr_success'),
           desc: res.message
         })
-        this.getAllCiTypeWithAttr()
+        this.updateAttrByCiType(this.currentSelectedCI.ciTypeId)
         this.initGraph()
       }
     },
@@ -1723,7 +1718,7 @@ export default {
             title: this.$t('apply_ci_attr_success'),
             desc: applyRes.message
           })
-          this.getAllCiTypeWithAttr()
+          this.updateAttrByCiType(this.currentSelectedCI.ciTypeId)
           this.initGraph()
         }
       } else {
@@ -1784,6 +1779,17 @@ export default {
             })
         })
         this.allCiTypesWithAttr = allCiTypesWithAttr
+      }
+    },
+    async updateAttrByCiType (ciTypeId) {
+      const res = await getCiTypeAttributes(ciTypeId)
+      if (res.statusCode === 'OK') {
+        this.allCiTypesWithAttr.find(_ => {
+          if (_.ciTypeId === ciTypeId) {
+            _.attributes = res.data
+            return true
+          }
+        })
       }
     },
     async getSpecialConnector () {
