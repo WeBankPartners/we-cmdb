@@ -317,7 +317,7 @@ export default {
                 style="margin-right: 10px"
                 {..._}
                 onClick={() => {
-                  this.$emit('actionFun', _.actionType, this.selectedRows)
+                  this.$emit('actionFun', _.actionType, this.selectedRows, this.columns)
                 }}
               >
                 {_.label}
