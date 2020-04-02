@@ -29,45 +29,6 @@
         <Modal footer-hide v-model="compareVisible" width="90" class-name="compare-modal">
           <Table :columns="ci.tableColumns.filter(x => x.isDisplayed || x.displaySeqNo)" :data="compareData" border />
         </Modal>
-        <!-- 复制新增询问 -->
-        <Modal
-          v-model="copyVisible"
-          width="23"
-          class-name="copy-modal"
-          :title="$t('copyToNew')"
-          @on-ok="handleCopyToNew"
-        >
-          <div class="copy-form">
-            <div class="copy-label">{{ $t('input_set_of_copy') }}</div>
-            <div class="copy-input">
-              <InputNumber :min="1" :step="1" v-model="noOfCopy" />
-              <span>{{ $t('set') }}</span>
-            </div>
-          </div>
-        </Modal>
-        <!-- 复制新增编辑 -->
-        <Modal
-          v-if="copyTableRender"
-          v-model="copyTableVisible"
-          width="90"
-          class-name="copy-modal"
-          :title="$t('copyToNew')"
-          @on-ok="handleCopySubmit"
-          :ok-text="$t('save')"
-        >
-          <WeCMDBTable
-            :tableColumns="ci.tableColumns"
-            :tableData="copyData"
-            :showCheckbox="false"
-            :filtersHidden="true"
-            :tableInnerActions="null"
-            :tableOuterActions="null"
-            :isColumnsFilterOn="false"
-            :isSortable="false"
-            :ref="'copy' + ci.id"
-            @getSelectedRows="handleCopyEditData"
-          />
-        </Modal>
       </TabPane>
       <div slot="extra" class="history-query">
         <span class="filter-title">{{ $t('change_layer') }}</span>
@@ -92,6 +53,46 @@
         </Select>
       </div>
     </Tabs>
+    <!-- 复制新增询问 -->
+    <Modal
+      v-model="copyVisible"
+      width="23"
+      class-name="copy-modal"
+      :title="$t('copyToNew')"
+      @on-ok="handleCopyToNew"
+      @on-cancel="copyVisible = false"
+    >
+      <div class="copy-form">
+        <div class="copy-label">{{ $t('input_set_of_copy') }}</div>
+        <div class="copy-input">
+          <InputNumber :min="1" :step="1" v-model="noOfCopy" />
+          <span>{{ $t('set') }}</span>
+        </div>
+      </div>
+    </Modal>
+    <!-- 复制新增编辑 -->
+    <Modal
+      v-model="copyTableVisible"
+      width="90"
+      class-name="copy-modal"
+      :title="$t('copyToNew')"
+      @on-ok="handleCopySubmit"
+      @on-cancel="copyTableVisible = false"
+      :ok-text="$t('save')"
+    >
+      <WeCMDBTable
+        :tableColumns="currentCols"
+        :tableData="copyData"
+        :showCheckbox="false"
+        :filtersHidden="true"
+        :tableInnerActions="null"
+        :tableOuterActions="null"
+        :isColumnsFilterOn="false"
+        :isSortable="false"
+        :ref="'copy' + currentTab"
+        @getSelectedRows="handleCopyEditData"
+      />
+    </Modal>
   </div>
 </template>
 <script>
@@ -157,8 +158,7 @@ export default {
       noOfCopy: 1,
       copyRows: [],
       copyEditData: null,
-      isHandleNodeClick: false,
-      copyTableRender: false
+      isHandleNodeClick: false
     }
   },
   computed: {
@@ -188,6 +188,18 @@ export default {
           arr = arr.concat(this.copyRows)
           return arr
         }, [])
+    },
+    currentCols () {
+      return (this.tabList.find(ci => ci.id === this.currentTab) || {}).tableColumns
+    }
+  },
+  watch: {
+    currentTab () {
+      this.copyVisible = false
+      this.copyTableVisible = false
+      this.noOfCopy = 1
+      this.copyRows = []
+      this.copyEditData = null
     }
   },
   methods: {
@@ -566,7 +578,7 @@ export default {
       }
       this.$refs[this.tableRef][0].setTableData(checkoutBoxdisable)
     },
-    actionFun (type, data) {
+    actionFun (type, data, cols) {
       switch (type) {
         case 'export':
           this.exportHandler()
@@ -593,43 +605,53 @@ export default {
           this.compareHandler(data)
           break
         case 'copy':
-          this.copyHandler(data)
+          this.copyHandler(data, cols)
           break
         default:
           this.defaultHandler(type, data)
           break
       }
     },
-    copyHandler (rows) {
-      this.copyRows = (rows || []).map(x => {
-        let result = {
-          ...x,
-          guid: '',
-          r_guid: '',
-          p_guid: '',
-          state: '',
-          fixed_date: '',
-          isRowEditable: true,
-          forceEdit: true
-        }
-        delete result.key_name
-        delete result.state_code
-        return result
+    copyHandler (rows = [], cols) {
+      const columns = cols.reduce((arr, x) => {
+        if (
+          x.key &&
+          !x.isAuto &&
+          !['guid', 'r_guid', 'p_guid', 'state', 'fixed_date', 'key_name', 'state_code'].some(k => k === x.key)
+        ) { arr.push(x.key) }
+        return arr
+      }, [])
+      this.copyRows = rows.map(row => {
+        return columns.reduce(
+          (obj, x) => {
+            obj[x] = row[x]
+            return obj
+          },
+          {
+            guid: '',
+            r_guid: '',
+            p_guid: '',
+            state: '',
+            fixed_date: '',
+            isRowEditable: true,
+            forceEdit: true
+          }
+        )
       })
       this.copyVisible = true
-      this.copyTableRender = true
     },
     handleCopyToNew () {
       this.copyVisible = false
       this.copyTableVisible = true
       this.$nextTick(() => {
-        this.$refs['copy' + this.currentTab] && this.$refs['copy' + this.currentTab][0].pushAllRowsToSelections()
+        this.$refs['copy' + this.currentTab] && this.$refs['copy' + this.currentTab].pushAllRowsToSelections()
       })
     },
     handleCopyEditData (rows) {
       this.copyEditData = rows
     },
     async handleCopySubmit () {
+      this.copyTableVisible = false
       let setBtnsStatus = () => {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
