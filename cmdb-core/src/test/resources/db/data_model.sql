@@ -54,6 +54,7 @@ INSERT INTO `adm_ci_type` (`id_adm_ci_type`, `name`, `description`, `id_adm_tene
 	(24, '安全区域连接设计', '安全区域连接设计', NULL, 'zone_link_design', 'created', 135, NULL, 3, 5, NULL, 24, NULL),
 	(25, '数据中心节点设计', '数据中心节点设计', NULL, 'DCN_desgin', 'dirty', 135, NULL, 4, 5, NULL, 25, NULL),
 	(26, '资源集设计', '资源集设计', NULL, 'resource_set_design', 'dirty', 135, NULL, 5, 5, NULL, 26, NULL),
+	(46, '子系统', '子系统', NULL, 'subsystem', 'created', 132, NULL, 1, 2, NULL, 7, NULL),
 	(50, 'Mult_Ref_CI_A', 'multiple reference CI', NULL, 'muti_ref_ci_a', 'notCreated', 135, NULL, 6, 5, NULL, 27, NULL),
 	(51, 'Mult_Ref_CI_B', 'multiple referenced CI', NULL, 'muti_ref_ci_b', 'notCreated', 135, NULL, 6, 5, NULL, 28, NULL);
 
@@ -96,7 +97,8 @@ INSERT INTO `adm_basekey_cat_type` (`id_adm_basekey_cat_type`, `name`, `descript
 	(25, 'zone_design', NULL, 23, 3),
 	(26, 'zone_link_design', NULL, 24, 3),
 	(27, 'DCN_desgin', NULL, 25, 3),
-	(28, 'resource_set_design', NULL, 26, 3);
+	(28, 'resource_set_design', NULL, 26, 3),
+	(29, 'subsystem', NULL, 7, 3);
 
 CREATE TABLE IF NOT EXISTS `adm_basekey_cat` (
   `id_adm_basekey_cat` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_basekey_cat',
@@ -931,6 +933,21 @@ INSERT INTO `adm_ci_type_attr` (`id_adm_ci_type_attr`, `id_adm_ci_type`, `name`,
 	(473, 21, '编排实例ID', '编排实例ID', 'text', 'biz_key', 'varchar', 50, NULL, NULL, NULL, NULL, NULL, 0, 20, 1, 0, 0, 1, 0, NULL, 'created', 0, 0, 0, NULL),
 	(474, 18, '编排实例ID', '编排实例ID', 'text', 'biz_key', 'varchar', 50, NULL, NULL, NULL, NULL, NULL, 0, 19, 1, 0, 0, 1, 0, NULL, 'created', 0, 0, 0, NULL),
 	(475, 19, '编排实例ID', '编排实例ID', 'text', 'biz_key', 'varchar', 50, NULL, NULL, NULL, NULL, NULL, 0, 16, 1, 0, 0, 1, 0, NULL, 'created', 0, 0, 0, NULL),
+    (497, 46, '全局唯一ID', '全局唯一ID', 'text', 'guid', 'varchar', 15, NULL, NULL, NULL, NULL, NULL, 0, 1, 0, 1, 1, 0, 0, NULL, 'created', 1, 0, 1, NULL),
+	(498, 46, '前全局唯一ID', '前一版本数据的guid', 'text', 'p_guid', 'varchar', 15, NULL, NULL, NULL, NULL, NULL, 0, 2, 1, 0, 1, 0, 0, NULL, 'created', 1, 0, 1, NULL),
+	(499, 46, '根全局唯一ID', '原始数据guid', 'text', 'r_guid', 'varchar', 15, NULL, NULL, NULL, NULL, NULL, 0, 3, 0, 0, 1, 0, 0, NULL, 'created', 1, 0, 1, NULL),
+	(500, 46, '更新用户', '更新用户', 'text', 'updated_by', 'varchar', 50, NULL, NULL, NULL, NULL, NULL, 0, 4, 0, 0, 1, 0, 0, NULL, 'created', 1, 0, 1, NULL),
+	(501, 46, '更新日期', '更新日期', 'date', 'updated_date', 'datetime', 1, NULL, NULL, NULL, NULL, NULL, 0, 5, 0, 0, 1, 0, 0, NULL, 'created', 1, 0, 1, NULL),
+	(502, 46, '创建用户', '创建用户', 'text', 'created_by', 'varchar', 50, NULL, NULL, NULL, NULL, NULL, 0, 6, 0, 0, 1, 0, 0, NULL, 'created', 1, 0, 1, NULL),
+	(503, 46, '创建日期', '创建日期', 'date', 'created_date', 'datetime', 1, NULL, NULL, NULL, NULL, 1, 0, 7, 0, 0, 1, 0, 0, NULL, 'created', 1, 0, 1, NULL),
+	(504, 46, '唯一名称', '唯一名称', 'text', 'key_name', 'varchar', 200, NULL, NULL, NULL, NULL, 2, 1, 8, 0, 1, 0, 0, 0, NULL, 'created', 1, 0, 1, '[{"type":"delimiter","value":""},{"type":"rule","value":"[{\"ciTypeId\":7},{\"ciTypeId\":2,\"parentRs\":{\"attrId\":109,\"isReferedFromParent\":1}},{\"ciTypeId\":2,\"parentRs\":{\"attrId\":22,\"isReferedFromParent\":1}}]"},{"type":"delimiter","value":"_"},{"type":"rule","value":"[{\"ciTypeId\":7},{\"ciTypeId\":7,\"parentRs\":{\"attrId\":110,\"isReferedFromParent\":1}}]"}]'),
+	(505, 46, '状态', '状态', 'select', 'state', 'int', 15, 9, NULL, NULL, NULL, 3, 1, 9, 0, 0, 0, 1, 0, NULL, 'created', 1, 0, 0, NULL),
+	(506, 46, '确认日期', '确认日期', 'text', 'fixed_date', 'varchar', 19, NULL, NULL, NULL, NULL, 4, 1, 10, 1, 0, 1, 0, 0, NULL, 'created', 1, 0, 1, NULL),
+	(507, 46, '编码', '编码', 'text', 'code', 'varchar', 50, NULL, NULL, NULL, NULL, 5, 1, 11, 0, 0, 0, 1, 0, NULL, 'created', 1, 0, 0, NULL),
+	(508, 46, '描述说明', '描述说明', 'textArea', 'description', 'varchar', 1000, NULL, NULL, NULL, NULL, NULL, 1, 12, 1, 0, 0, 1, 0, NULL, 'created', 1, 0, 0, NULL),
+	/*(109, 46, '子系统设计', '子系统设计', 'ref', 'subsys_design', 'varchar', 20, 2, '实现', 31, NULL, 6, 1, 13, 0, 0, 0, 1, 0, NULL, 'created', 0, 1, 0, NULL),
+	(510, 46, '环境', '环境', 'select', 'env', 'int', 15, 20, NULL, NULL, NULL, 7, 1, 14, 0, 0, 0, 1, 0, NULL, 'created', 0, 1, 0, NULL),
+	(511, 46, '运维人员', '运维人员', 'text', 'manager', 'varchar', 50, NULL, NULL, NULL, NULL, 8, 1, 15, 1, 0, 0, 1, 0, NULL, 'created', 0, 0, 0, NULL),*/
 -- multiple reference CI A
 -- `id_adm_ci_type_attr(1)`, `id_adm_ci_type(2)`, `name(3)`, `description`(4), `input_type`(5), `property_name`(6), `property_type`(7), `length`(8), `reference_id`(9), `reference_name`(10), `reference_type`(11), `filter_rule`(12), `search_seq_no`(13), `display_type`(14), `display_seq_no`(15), `edit_is_null`(16), `edit_is_only`, `edit_is_hiden`, `edit_is_editable`, `is_defunct`, `special_logic`, `status`, `is_system`, `is_access_controlled`, `is_auto`, `auto_fill_rule`
 	(800, 50, '全局唯一ID', '全局唯一ID', 'text', 'guid', 'varchar', 15, NULL, NULL, NULL, NULL, NULL, 0, 1, 0, 1, 0, 0, 0, NULL, 'notCreated', 1, 0, 1, NULL),
@@ -960,6 +977,22 @@ INSERT INTO `adm_ci_type_attr` (`id_adm_ci_type_attr`, `id_adm_ci_type`, `name`,
 	(830, 51, '描述说明', '描述说明', 'textArea', 'description', 'varchar', 1000, NULL, NULL, NULL, NULL, NULL, 1, 12, 1, 0, 0, 1, 0, NULL, 'notCreated', 1, 0, 0, NULL);
 
 
+CREATE TABLE IF NOT EXISTS `subsystem` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前全局唯一ID',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '根全局唯一ID',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `key_name` varchar(64) DEFAULT NULL COMMENT '唯一值',
+  `updated_by` varchar(64) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(64) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `business_group` int(15) DEFAULT NULL COMMENT '业务群组',
+  `code` varchar(50) DEFAULT NULL COMMENT '编码',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_group` (
   `id_adm_ci_type_attr_group` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type_attr_group',
