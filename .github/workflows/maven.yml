@@ -37,7 +37,5 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v1
     - name: Build with Maven
       run: mvn --file cmdb-core/pom.xml clean package
