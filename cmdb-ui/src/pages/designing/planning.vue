@@ -45,6 +45,7 @@
       <!-- 复制新增询问 -->
       <Modal
         v-model="copyVisible"
+        transfer
         width="23"
         class-name="copy-modal"
         :title="$t('copyToNew')"
@@ -62,6 +63,7 @@
       <!-- 复制新增编辑 -->
       <Modal
         v-model="copyTableVisible"
+        transfer
         width="90"
         class-name="copy-modal"
         :title="$t('copyToNew')"
@@ -70,6 +72,7 @@
         :ok-text="$t('save')"
       >
         <WeCMDBTable
+          v-if="copyTableVisible"
           :tableColumns="currentCols"
           :tableData="copyData"
           :showCheckbox="false"
