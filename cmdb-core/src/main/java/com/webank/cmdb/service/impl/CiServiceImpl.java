@@ -867,7 +867,7 @@ public class CiServiceImpl implements CiService {
     }
     
     @Cacheable("ciServiceImpl-getCacheableCi")
-    private Map<String, Object> getCacheableCi(int ciTypeId, String guid) {
+    Map<String, Object> getCacheableCi(int ciTypeId, String guid) {
         return getCi(ciTypeId,guid);
     }
 
