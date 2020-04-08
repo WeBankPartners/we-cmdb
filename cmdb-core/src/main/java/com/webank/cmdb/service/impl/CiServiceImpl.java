@@ -155,6 +155,7 @@ public class CiServiceImpl implements CiService {
     private AdmStateTransitionRepository stateTransitionRepository;
     @Autowired
     private AdmBasekeyCatRepository cateRepository;
+	
 
     @Autowired
     @Value("${spring.jpa.show-sql}")
@@ -866,7 +867,7 @@ public class CiServiceImpl implements CiService {
     }
     
     @Cacheable("ciServiceImpl-getCacheableCi")
-    private Map<String, Object> getCacheableCi(int ciTypeId, String guid) {
+    Map<String, Object> getCacheableCi(int ciTypeId, String guid) {
         return getCi(ciTypeId,guid);
     }
 

@@ -1,49 +1,11 @@
 package com.webank.cmdb.service.interceptor;
 
-import static com.webank.cmdb.constant.CmdbConstants.GUID;
-import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_CREATION;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Pattern;
-
-import javax.persistence.EntityManager;
-
-import com.webank.cmdb.Application;
-import org.apache.commons.beanutils.BeanMap;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.stereotype.Service;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.webank.cmdb.constant.AutoFillType;
-import com.webank.cmdb.constant.CiStatus;
-import com.webank.cmdb.constant.CmdbConstants;
-import com.webank.cmdb.constant.DynamicEntityType;
-import com.webank.cmdb.constant.EnumCodeAttr;
-import com.webank.cmdb.constant.FilterOperator;
-import com.webank.cmdb.constant.InputType;
-import com.webank.cmdb.constant.StateOperation;
+import com.webank.cmdb.constant.*;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
-import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
-import com.webank.cmdb.dto.AutoFillIntegrationQueryDto;
-import com.webank.cmdb.dto.AutoFillItem;
-import com.webank.cmdb.dto.CatCodeDto;
-import com.webank.cmdb.dto.Filter;
-import com.webank.cmdb.dto.IntegrationQueryDto;
-import com.webank.cmdb.dto.QueryRequest;
-import com.webank.cmdb.dto.QueryResponse;
-import com.webank.cmdb.dto.Relationship;
+import com.webank.cmdb.dto.*;
 import com.webank.cmdb.dynamicEntity.DynamicEntityHolder;
 import com.webank.cmdb.dynamicEntity.DynamicEntityMeta;
 import com.webank.cmdb.dynamicEntity.FieldNode;
@@ -53,11 +15,18 @@ import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
 import com.webank.cmdb.repository.AdmCiTypeRepository;
 import com.webank.cmdb.service.AuthorizationService;
 import com.webank.cmdb.service.CiService;
-import com.webank.cmdb.util.ClassUtils;
-import com.webank.cmdb.util.CmdbThreadLocal;
-import com.webank.cmdb.util.DateUtils;
-import com.webank.cmdb.util.JpaQueryUtils;
-import com.webank.cmdb.util.JsonUtil;
+import com.webank.cmdb.util.*;
+import org.apache.commons.beanutils.BeanMap;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.persistence.EntityManager;
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_CREATION;
 import static com.webank.cmdb.util.SpecialSymbolUtils.getAfterSpecialSymbol;
 
 @Service
@@ -702,12 +671,7 @@ public class CiDataInterceptorService {
             throw new InvalidArgumentException(String.format("Ci [%s] is referenced by other ci currently, can not be deleted.", guid), dependentCis);
         }
     }
-
     public void postDelete(DynamicEntityHolder entityHolder, EntityManager entityManager, int ciTypeId, String guid, DynamicEntityMeta entityMeta) {
-        Map ci = new HashMap();
-        ci.put(CmdbConstants.DEFAULT_FIELD_STATE,StateOperation.Delete);
-        ci.put(GUID, guid);
-        handleReferenceAutoFill(entityHolder,entityManager,ci);
     }
 
 }
