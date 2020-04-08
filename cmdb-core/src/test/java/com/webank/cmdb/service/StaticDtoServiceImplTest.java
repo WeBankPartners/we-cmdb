@@ -12,9 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.sql.DataSource;
-
-import org.junit.Before;
+import com.webank.cmdb.controller.LegacyAbstractBaseControllerTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +21,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.google.common.collect.ImmutableMap;
-import com.webank.cmdb.config.TestDatabase;
 import com.webank.cmdb.constant.CiStatus;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.dto.CatCodeDto;
@@ -36,18 +33,9 @@ import com.webank.cmdb.dto.QueryResponse;
 @SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
-public class StaticDtoServiceImplTest {
+public class StaticDtoServiceImplTest  extends LegacyAbstractBaseControllerTest {
     @Autowired
     private StaticDtoService staticDtoService;
-
-    @Autowired
-    private DataSource dataSource;
-
-    @Before
-    public void setup() {
-        TestDatabase.cleanUpDatabase(dataSource);
-        TestDatabase.prepareDatabaseOfLegacyModel(dataSource);
-    }
 
     @Test
     public void queryCiTypeDtoWithoutFilterThenResultAllResult() {
