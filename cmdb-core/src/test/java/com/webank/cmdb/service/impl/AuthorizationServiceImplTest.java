@@ -11,8 +11,7 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
-import org.junit.After;
-import org.junit.Before;
+import com.webank.cmdb.controller.LegacyAbstractBaseControllerTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +27,7 @@ import com.webank.cmdb.util.CmdbThreadLocal;
 @SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
-public class AuthorizationServiceImplTest {
+public class AuthorizationServiceImplTest extends LegacyAbstractBaseControllerTest {
 
     @Autowired
     private AuthorizationServiceImpl authorizationService;
@@ -36,10 +35,8 @@ public class AuthorizationServiceImplTest {
     @Autowired
     private DataSource dataSource;
 
-    @Before
-    public void setup() {
-        TestDatabase.cleanUpDatabase(dataSource);
-        TestDatabase.prepareDatabaseOfLegacyModel(dataSource);
+    @Override
+    protected void doSetup(DataSource dataSource){
         TestDatabase.executeSqlScript(dataSource, "db/test-data-for-access-control-scenarios.sql");
         TestDatabase.executeSql(dataSource, "delete from adm_role_ci_type;"
                 + "INSERT INTO adm_role_ci_type (id_adm_role_ci_type, id_adm_role,id_adm_ci_type,ci_type_name,creation_permission,removal_permission,modification_permission,enquiry_permission,execution_permission,grant_permission) VALUES"
@@ -53,8 +50,8 @@ public class AuthorizationServiceImplTest {
                 .putCurrentUser("mock_user1");
     }
 
-    @After
-    public void cleanup() {
+    @Override
+    protected void doCleanUp(DataSource dataSource){
         authorizationService.setSecurityEnabled(false);
     }
 
