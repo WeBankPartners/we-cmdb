@@ -48,10 +48,12 @@ html {
 .validation-form {
   .no-need-validation {
     .ivu-form-item-label:before {
-      content: ' ';
+      content: '*';
       display: inline-block;
       margin-right: 4px;
       line-height: 1;
+      font-size: 12px;
+      color: transparent;
     }
   }
   .ivu-form-item-label:before {

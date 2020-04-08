@@ -52,7 +52,7 @@
               <FormItem label="Value" prop="addNewLayerValue">
                 <Input v-model="newLayer.addNewLayerValue" />
               </FormItem>
-              <FormItem :label="$t('description')" prop="addNewLayerDescription">
+              <FormItem class="no-need-validation" :label="$t('description')" prop="addNewLayerDescription">
                 <Input v-model="newLayer.addNewLayerDescription" />
               </FormItem>
             </Form>
@@ -159,7 +159,7 @@
                       }}</Option>
                     </Select>
                   </FormItem>
-                  <FormItem :label="$t('description')" prop="description">
+                  <FormItem class="no-need-validation" :label="$t('description')" prop="description">
                     <Input v-model="item.form.description" :disabled="item.form.status === 'decommissioned'"></Input>
                   </FormItem>
                   <FormItem :label="$t('icon')">
@@ -233,7 +233,7 @@
                 <Option v-for="layer in layers" :value="layer.layerId" :key="layer.layerId">{{ layer.name }}</Option>
               </Select>
             </FormItem>
-            <FormItem :label="$t('description')" prop="description">
+            <FormItem class="no-need-validation" :label="$t('description')" prop="description">
               <Input v-model="addNewCITypeForm.description"></Input>
             </FormItem>
             <FormItem :label="$t('icon')">
@@ -338,7 +338,7 @@
                   <FormItem prop="name" :label="$t('ci_attribute_name')">
                     <Input v-model="item.form.name" :disabled="item.form.status === 'decommissioned'"></Input>
                   </FormItem>
-                  <FormItem prop="description" :label="$t('description')">
+                  <FormItem class="no-need-validation" prop="description" :label="$t('description')">
                     <Input
                       v-model="item.form.description"
                       :disabled="item.form.status === 'decommissioned'"
@@ -373,6 +373,7 @@
                         item.form.inputType === 'textArea' ||
                         item.form.inputType === 'password'
                     "
+                    class="no-need-validation"
                     prop="regularExpressionRule"
                     :label="$t('regular_rule')"
                   >
@@ -418,6 +419,7 @@
                   <FormItem
                     prop="referenceType"
                     v-if="item.form.inputType === 'ref' || item.form.inputType === 'multiRef'"
+                    class="no-need-validation"
                     :label="$t('reference_type')"
                   >
                     <Select v-model="item.form.referenceType" :disabled="item.form.status === 'decommissioned'">
@@ -595,7 +597,7 @@
           <FormItem :label="$t('ci_attribute_name')" prop="name">
             <Input v-model="addNewAttrForm.name"></Input>
           </FormItem>
-          <FormItem :label="$t('description')" prop="description">
+          <FormItem class="no-need-validation" :label="$t('description')" prop="description">
             <Input v-model="addNewAttrForm.description" type="textarea" :rows="1" :autosize="true" />
           </FormItem>
           <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
@@ -615,6 +617,7 @@
                 addNewAttrForm.inputType === 'textArea' ||
                 addNewAttrForm.inputType === 'password'
             "
+            class="no-need-validation"
             prop="regularExpressionRule"
             :label="$t('regular_rule')"
           >
@@ -654,6 +657,7 @@
           <FormItem
             prop="referenceType"
             v-if="addNewAttrForm.inputType === 'ref' || addNewAttrForm.inputType === 'multiRef'"
+            class="no-need-validation"
             :label="$t('reference_type')"
           >
             <Select v-model="addNewAttrForm.referenceType">
