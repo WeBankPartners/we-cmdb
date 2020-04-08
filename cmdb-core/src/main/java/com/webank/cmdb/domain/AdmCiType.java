@@ -171,7 +171,7 @@ public class AdmCiType implements Serializable {
     }
 
     // bi-directional many-to-one association to AdmCiTypeAttr
-    @OneToMany(mappedBy = "admCiType")
+    @OneToMany(mappedBy = "admCiType",fetch = FetchType.EAGER)
     public List<AdmCiTypeAttr> getAdmCiTypeAttrs() {
         return this.admCiTypeAttrs;
     }
@@ -275,9 +275,7 @@ public class AdmCiType implements Serializable {
     }
 
     public List<AdmCiTypeAttr> retrieveMultSelectionAttrs() {
-        return this.admCiTypeAttrs.stream().filter(x -> {
-            return InputType.MultSelDroplist.getCode().equals(x.getInputType());
-        }).collect(Collectors.toList());
+        return this.admCiTypeAttrs.stream().filter(x -> InputType.MultSelDroplist.getCode().equals(x.getInputType())).collect(Collectors.toList());
     }
 
     public List<AdmCiTypeAttr> retrieveMultReferenceAttrs() {

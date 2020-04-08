@@ -2,9 +2,7 @@ package com.webank.cmdb.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import javax.sql.DataSource;
-
-import org.junit.Before;
+import com.webank.cmdb.controller.LegacyAbstractBaseControllerTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,19 +15,10 @@ import com.webank.cmdb.config.TestDatabase;
 @SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
-public class UserRepositoryTest {
+public class UserRepositoryTest extends LegacyAbstractBaseControllerTest {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private DataSource dataSource;
-
-    @Before
-    public void setup() {
-        TestDatabase.cleanUpDatabase(dataSource);
-        TestDatabase.prepareDatabaseOfLegacyModel(dataSource);
-    }
 
     @Test
     public void whenFindRolesByUsernameTwiceThenTheSecondTimeShouldGetFromCache() {

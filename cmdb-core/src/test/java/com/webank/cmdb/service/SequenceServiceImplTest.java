@@ -3,9 +3,7 @@ package com.webank.cmdb.service;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import javax.sql.DataSource;
-
-import org.junit.Before;
+import com.webank.cmdb.controller.LegacyAbstractBaseControllerTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,27 +11,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.webank.cmdb.config.TestDatabase;
-
 @SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
-public class SequenceServiceImplTest {
+public class SequenceServiceImplTest  extends LegacyAbstractBaseControllerTest{
     @Autowired
     private SequenceService sequenceService;
-
-    @Autowired
-    private DataSource dataSource;
-
-    @Before
-    public void setup() {
-        TestDatabase.prepareDatabaseOfLegacyModel(dataSource);
-    }
-
-    @Before
-    public void cleanUp() {
-        TestDatabase.cleanUpDatabase(dataSource);
-    }
 
     @Test
     public void retrieveFirstGuidOfACiTypeThenShouldReturnTheInitGuid() {
