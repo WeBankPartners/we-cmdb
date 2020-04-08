@@ -7,6 +7,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.sql.DataSource;
 
+import com.webank.cmdb.controller.AbstractBaseControllerTest;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -24,18 +25,11 @@ import com.webank.cmdb.constant.DynamicEntityType;
 @SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
-public class DynamicEntityGeneratorTest {
-    @Autowired
-    private DataSource dataSource;
+public class DynamicEntityGeneratorTest extends AbstractBaseControllerTest {
     @Autowired
     private DynamicEntityClassLoader entityCL;
     @Autowired
     private DatasourceProperties datasourceProperties;
-
-    @Before
-    public void setup() {
-        TestDatabase.prepareDatabase(dataSource);
-    }
 
     @Test
     @Ignore
