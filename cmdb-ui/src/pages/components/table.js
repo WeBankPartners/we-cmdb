@@ -585,12 +585,12 @@ export default {
         let attrsWillReset = []
         _this.tableColumns.forEach(_ => {
           if (_.searchSeqNo > col.searchSeqNo && _.filterRule) {
-            if (col.inputType === 'multiSelect' || col.inputType === 'multiRef') {
+            if (_.inputType === 'multiSelect' || _.inputType === 'multiRef') {
               attrsWillReset.push({
                 propertyName: _.propertyName,
                 value: []
               })
-            } else if (col.inputType === 'select' || col.inputType === 'ref') {
+            } else if (_.inputType === 'select' || _.inputType === 'ref') {
               attrsWillReset.push({
                 propertyName: _.propertyName,
                 value: ''
