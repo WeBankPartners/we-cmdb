@@ -401,7 +401,12 @@ public class FilterRuleService {
             }
             Filter filter = null;
             if(valueOfFilter instanceof Collection) {
-                filter = new Filter(aliasName, "in", valueOfFilter);
+                if(((Collection) valueOfFilter).size()>0) {
+                    filter = new Filter(aliasName, "in", valueOfFilter);
+                }else {
+                    filter = new Filter(aliasName, "eq", "");
+
+                }
             }else {
                 filter = new Filter(aliasName, "eq", valueOfFilter);
             }
