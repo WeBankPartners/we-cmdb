@@ -114,7 +114,7 @@ public class UIWrapperService {
     private AdmRoleRepository admRoleRepository;
     @Autowired
     private AdmCiTypeAttrRepository admCiTypeAttrRepository;
-    @PostConstruct
+    //@PostConstruct
     public void initCiTypeId() throws IOException {
         CategoryDto categoryDto = getEnumCategoryByName(uiProperties.getEnumCodeofView());
         if (categoryDto == null) {
