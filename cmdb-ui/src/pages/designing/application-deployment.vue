@@ -159,7 +159,6 @@ import { VIEW_CONFIG_PARAMS } from '@/const/init-params.js'
 
 const UNIT_ID = 'appDeploymentDesignUnitId'
 const BUSINESS_APP_INSTANCE_ID = 'appDeploymentDesignBusinessAppInstanceId'
-const RESOURCE_INSTANCE = 'appDeploymentDesignResourceInstance'
 const INVOKE_ID = 'appDeploymentDesignInvokeId'
 const INVOKE_UNIT = 'appDeploymentDesignInvokeUnit'
 const INVOKED_UNIT = 'appDeploymentDesignInvokedUnit'
@@ -293,13 +292,6 @@ export default {
         this.genADLines(),
         '}'
       ]
-      console.log(
-        dots
-          .join('')
-          .replace(/\}/g, '}\n')
-          .replace(/;/g, ';\n')
-          .replace(/,/g, ',\n')
-      )
       return dots.join('')
     },
     genADChildrenDot (data, level) {
@@ -401,6 +393,7 @@ export default {
       // this.getPhysicalGraphData()
     },
     async getAllDeployTreesFromSystemCi () {
+      const { initParams } = this
       const { statusCode, data } = await getAllDeployTreesFromSystemCi(this.systemVersion)
       if (statusCode === 'OK') {
         this.isShowTabs = true
@@ -417,25 +410,18 @@ export default {
               tooltip: _.data.description || '',
               fixedDate: +new Date(_.data.fixed_date)
             }
-            if (_.children instanceof Array && _.children.length && _.ciTypeId !== this.initParams[UNIT_ID]) {
+            if (_.children instanceof Array && _.children.length && _.ciTypeId !== initParams[UNIT_ID]) {
               result.children = formatADData(_.children)
             }
-            if (_.ciTypeId === this.initParams[UNIT_ID]) {
-              const label = [
+            if (_.ciTypeId === initParams[UNIT_ID]) {
+              let label = [
                 '<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">',
-                `<TR><TD COLSPAN="3">${_.data.code}</TD></TR>`
+                `<TR><TD>${_.data.code}</TD></TR>`
               ]
               if (_.children instanceof Array && _.children.length) {
                 _.children.forEach(item => {
-                  if (item.ciTypeId === this.initParams[BUSINESS_APP_INSTANCE_ID]) {
-                    const code = item.data.code
-                    const url =
-                      item.data[this.initParams[RESOURCE_INSTANCE]] &&
-                      item.data[this.initParams[RESOURCE_INSTANCE]].code
-                        ? item.data[this.initParams[RESOURCE_INSTANCE]].code
-                        : '-'
-                    const ip = item.data.port || '-'
-                    label.push(`<TR><TD>${code}</TD><TD>${url}</TD><TD>${ip}</TD></TR>`)
+                  if (initParams[BUSINESS_APP_INSTANCE_ID].split(',').indexOf(item.ciTypeId + '') >= 0) {
+                    label.push(`<TR><TD>${item.data.code}</TD></TR>`)
                   }
                 })
               }
@@ -691,10 +677,10 @@ export default {
         dots = dots.concat([
           `"${_.guid}"`,
           `[id="n_${_.guid}";`,
-          `label="${_.data.code || _.data.key_name}";`,
+          `label="${_.data.code.substr(0, 21)}${_.data.code.length > 21 ? '...' : ''}";`,
           'shape=ellipse;',
           `style="filled";color="${colors[level]}";`,
-          `tooltip="${_.data.description || '-'}"];`
+          `tooltip="${_.data.code}"];`
         ])
         this.rankNodes[_.ciTypeId].push(`"${_.guid}"`)
         if (_.children instanceof Array && _.children.length) {
