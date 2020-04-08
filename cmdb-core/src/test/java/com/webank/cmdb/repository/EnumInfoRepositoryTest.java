@@ -5,9 +5,7 @@ import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
-import javax.sql.DataSource;
-
-import org.junit.Before;
+import com.webank.cmdb.controller.LegacyAbstractBaseControllerTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,24 +13,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.webank.cmdb.config.TestDatabase;
 import com.webank.cmdb.dto.EnumInfo;
 import com.webank.cmdb.dto.EnumInfoRequest;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
-public class EnumInfoRepositoryTest {
+public class EnumInfoRepositoryTest extends LegacyAbstractBaseControllerTest {
     @Autowired
     private EnumInfoRepository enumInfoRepository;
-    @Autowired
-    private DataSource dataSource;
-
-    @Before
-    public void setup() {
-        TestDatabase.cleanUpDatabase(dataSource);
-        TestDatabase.prepareDatabaseOfLegacyModel(dataSource);
-    }
 
     @Test
     public void queryEnumInfoWithoutFilterThenReturnAllEnumInfo() {
