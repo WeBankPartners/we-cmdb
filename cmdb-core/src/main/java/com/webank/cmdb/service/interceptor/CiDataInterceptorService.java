@@ -673,14 +673,6 @@ public class CiDataInterceptorService {
         }
     }
     public void postDelete(DynamicEntityHolder entityHolder, EntityManager entityManager, int ciTypeId, String guid, DynamicEntityMeta entityMeta) {
-        Map<String, Object> ciData = ciService.getCi(ciTypeId, guid);
-        if (ciData==null||ciData.isEmpty()){
-            return;
-        }
-        Map ci = new HashMap();
-        ci.put(CmdbConstants.DEFAULT_FIELD_STATE,StateOperation.Delete);
-        ci.put(GUID, guid);
-        handleReferenceAutoFill(entityHolder,entityManager,ci);
     }
 
 }
