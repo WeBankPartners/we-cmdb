@@ -38,11 +38,12 @@ export default {
       tableColumns: [],
       selected: [],
       tableValue: [],
-      selectDisabled: true
+      selectDisabled: true,
+      firstInput: true,
+      firstChange: true
     }
   },
   mounted () {
-    // this.queryCiData();
     this.getAllDataWithoutPaging()
   },
   methods: {
@@ -194,7 +195,18 @@ export default {
       this.$emit('input', this.selected)
       this.visibleSwap = false
     },
+    handleInput (v) {
+      if (!this.highlightRow && this.firstInput) {
+        this.firstInput = false
+        return
+      }
+      this.selected = v
+    },
     selectChangeHandler (val) {
+      if (!this.highlightRow && this.firstChange) {
+        this.firstChange = false
+        return
+      }
       if (Array.isArray(val)) {
         this.$emit('input', val)
       } else {
@@ -221,7 +233,7 @@ export default {
     return (
       <div style="width:100%">
         <Select
-          onInput={v => (this.selected = v)}
+          onInput={this.handleInput}
           value={this.selected}
           multiple={!this.highlightRow}
           disabled={this.selectDisabled}

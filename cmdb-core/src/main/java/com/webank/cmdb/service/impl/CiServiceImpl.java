@@ -951,15 +951,15 @@ public class CiServiceImpl implements CiService {
     
     @Override
     public List<Map<String, Object>> filterOfPassword(int ciTypeId, List<Map<String, Object>> cis){
-        DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
-        PriorityEntityManager priEntityManager = getEntityManager();
-        EntityManager entityManager = priEntityManager.getEntityManager();
-
+        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findByInputTypeAndCiTypeId(InputType.Password.getCode(), ciTypeId);
         for (Map<String, Object> ci : cis) {
-            String guid = ci.get(GUID).toString();
-            Object entityBean = validateCi(ciTypeId, guid, entityMeta, entityManager, ACTION_MODIFICATION);
-            DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
-            ciDataInterceptorService.filterInputType(entityHolder, ci);
+            attrs.forEach(attr -> {
+                String name = attr.getPropertyName();
+                Object value = ci.get(name);
+                if(value != null) {
+                     ci.remove(name);
+                }
+            });
         }
         return cis;
     }
