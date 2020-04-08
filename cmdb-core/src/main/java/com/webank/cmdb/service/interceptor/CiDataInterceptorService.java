@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static com.webank.cmdb.constant.CmdbConstants.GUID;
 import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_CREATION;
 import static com.webank.cmdb.util.SpecialSymbolUtils.getAfterSpecialSymbol;
 
@@ -48,7 +49,7 @@ public class CiDataInterceptorService {
 
     private static final List<String> systemFillFields = new ArrayList<>();
     static {
-        systemFillFields.add(CmdbConstants.GUID);
+        systemFillFields.add(GUID);
         systemFillFields.add(CmdbConstants.DEFAULT_FIELD_STATE);
         systemFillFields.add(CmdbConstants.DEFAULT_FIELD_FIXED_DATE);
         systemFillFields.add(CmdbConstants.DEFAULT_FIELD_PARENT_GUID);
