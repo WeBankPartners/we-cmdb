@@ -6,35 +6,22 @@ import static org.assertj.core.groups.Tuple.tuple;
 
 import java.util.List;
 
-import javax.sql.DataSource;
-
-import org.junit.Before;
+import com.webank.cmdb.controller.LegacyAbstractBaseControllerTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import com.webank.cmdb.config.TestDatabase;
 import com.webank.cmdb.domain.AdmRoleCiType;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
-public class RoleCiTypeRepositoryTest {
+public class RoleCiTypeRepositoryTest extends LegacyAbstractBaseControllerTest {
 
     @Autowired
     private RoleCiTypeRepository roleCiTypeRepository;
-
-    @Autowired
-    private DataSource dataSource;
-
-    @Before
-    public void setup() {
-        TestDatabase.cleanUpDatabase(dataSource);
-        TestDatabase.prepareDatabaseOfLegacyModel(dataSource);
-    }
 
     @Test
     public void findAdmRoleCiTypesByCiTypeIdAndRoleIds() {
