@@ -171,7 +171,7 @@ public class AdmCiType implements Serializable {
     }
 
     // bi-directional many-to-one association to AdmCiTypeAttr
-    @OneToMany(mappedBy = "admCiType",fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "admCiType")
     public List<AdmCiTypeAttr> getAdmCiTypeAttrs() {
         return this.admCiTypeAttrs;
     }
