@@ -25,6 +25,7 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: none
+    open-in-view: true
 
 cmdb:
   datasource:
