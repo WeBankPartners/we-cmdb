@@ -44,18 +44,28 @@ public abstract class LegacyAbstractBaseControllerTest {
     public void setup() {
         TestDatabase.cleanUpDatabase(dataSource);
         TestDatabase.prepareDatabaseOfLegacyModel(dataSource);
+        doSetup(dataSource);
         reload();
         Mockito.when(databaseService.isTableExisted(Mockito.anyString()))
                 .thenReturn(false);
     }
 
+    protected void doSetup(DataSource dataSource){
+
+    }
+
     @After
     public void cleanUp() {
         TestDatabase.cleanUpDatabase(dataSource);
+        doCleanUp(dataSource);
         try {
             cacheHandlerInterceptor.postHandle(null, null, null, null);
         } catch (Exception e) {
             System.out.println(e.toString());
         }
+    }
+
+    protected void doCleanUp(DataSource dataSource){
+
     }
 }

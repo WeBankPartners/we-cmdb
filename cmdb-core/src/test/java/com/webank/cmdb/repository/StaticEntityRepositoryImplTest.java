@@ -5,9 +5,7 @@ import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
 
-import javax.sql.DataSource;
-
-import org.junit.Before;
+import com.webank.cmdb.controller.LegacyAbstractBaseControllerTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +14,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.google.common.collect.Lists;
-import com.webank.cmdb.config.TestDatabase;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.dto.Filter;
@@ -29,18 +26,9 @@ import com.webank.cmdb.repository.impl.StaticEntityRepositoryImpl.JoinFilter;
 @SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
-public class StaticEntityRepositoryImplTest {
+public class StaticEntityRepositoryImplTest extends LegacyAbstractBaseControllerTest {
     @Autowired
     private StaticEntityRepositoryImpl staticEntityRepositoryImpl;
-
-    @Autowired
-    private DataSource dataSource;
-
-    @Before
-    public void setup() {
-        TestDatabase.cleanUpDatabase(dataSource);
-        TestDatabase.prepareDatabaseOfLegacyModel(dataSource);
-    }
 
     @Test
     public void queryCiTypeWithoutAnyFilterThenReturnAllRecords() {
