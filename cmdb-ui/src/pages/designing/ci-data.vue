@@ -1047,7 +1047,7 @@ export default {
               title: _.name,
               renderHeader: (h, params) => (
                 <Tooltip content={_.description} placement="top">
-                  <span>{_.name}</span>
+                  <span style="white-space:normal">{_.name}</span>
                 </Tooltip>
               ),
               key: renderKey,
