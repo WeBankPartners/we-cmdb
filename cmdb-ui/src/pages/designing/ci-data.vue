@@ -460,7 +460,7 @@ export default {
     renderGraph (data) {
       let nodesString = this.genDOT(data)
       this.loadImage(nodesString)
-      this.graph.graphviz.renderDot(nodesString)
+      this.graph.graphviz.renderDot(nodesString).transition()
       this.shadeAll()
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
       addEvent('svg', 'mouseover', this.handleSvgMouseover)
@@ -1047,7 +1047,7 @@ export default {
               title: _.name,
               renderHeader: (h, params) => (
                 <Tooltip content={_.description} placement="top">
-                  <span>{_.name}</span>
+                  <span style="white-space:normal">{_.name}</span>
                 </Tooltip>
               ),
               key: renderKey,
