@@ -215,6 +215,7 @@ export default {
         .width(window.innerWidth * 0.96)
         .height(window.innerHeight * 1.2)
         .zoom(true)
+        .fit(true)
       if (this.graph.has(this.idcDesignData.guid)) {
         this.graph[this.idcDesignData.guid] = graphZoom
       } else {
@@ -292,7 +293,7 @@ export default {
     },
     renderGraph (idcData) {
       let nodesString = this.genDOT(idcData, this.zoneLinkDesignData.get(idcData.guid))
-      this.graph.get(idcData.guid).renderDot(nodesString)
+      this.graph.get(idcData.guid).renderDot(nodesString).transition()
       let fsize = 16
       let divWidth = window.innerWidth
       let divHeight = window.innerHeight - 220
@@ -882,6 +883,11 @@ export default {
               ..._,
               tooltip: true,
               title: _.name,
+              renderHeader: (h, params) => (
+                <Tooltip content={_.description} placement="top">
+                  <span style="white-space:normal">{_.name}</span>
+                </Tooltip>
+              ),
               key: renderKey,
               inputKey: _.propertyName,
               inputType: _.inputType,
