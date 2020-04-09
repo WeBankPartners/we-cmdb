@@ -45,25 +45,6 @@ body {
 html {
   height: 100%;
 }
-.validation-form {
-  .no-need-validation {
-    .ivu-form-item-label:before {
-      content: ' ';
-      display: inline-block;
-      margin-right: 4px;
-      line-height: 1;
-    }
-  }
-  .ivu-form-item-label:before {
-    content: '*';
-    display: inline-block;
-    margin-right: 4px;
-    line-height: 1;
-    font-size: 12px;
-    color: #ed4014;
-  }
-}
-
 .ivu-table-fixed-body {
   height: auto !important;
 }
