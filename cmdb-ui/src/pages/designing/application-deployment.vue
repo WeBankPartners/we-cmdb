@@ -165,6 +165,7 @@ const BUSINESS_APP_INSTANCE_ID = 'appDeploymentDesignBusinessAppInstanceId'
 const INVOKE_ID = 'appDeploymentDesignInvokeId'
 const INVOKE_UNIT = 'appDeploymentDesignInvokeUnit'
 const INVOKED_UNIT = 'appDeploymentDesignInvokedUnit'
+const TREE_NODE_WIDTH = 1.8
 
 export default {
   components: {
@@ -255,10 +256,10 @@ export default {
           .on('mousewheel.zoom', null)
         this.graph.graphviz = graph
           .graphviz()
-          .scale(1.2)
           .width(window.innerWidth * 0.96)
           .height(window.innerHeight * 0.8)
           .zoom(true)
+          .fit(true)
       }
 
       initEvent()
@@ -267,7 +268,7 @@ export default {
     },
     renderADGraph (data) {
       let nodesString = this.genADDOT(data)
-      this.graph.graphviz.renderDot(nodesString)
+      this.graph.graphviz.renderDot(nodesString).transition()
       let svg = d3.select('#graph').select('svg')
       let width = svg.attr('width')
       let height = svg.attr('height')
@@ -282,9 +283,9 @@ export default {
       let height = 12
       let dots = [
         'digraph G{',
-        'rankdir=TB;nodesep=0.5;',
+        'rankdir=LR;nodesep=0.5;',
         'Node[fontname=Arial,fontsize=12,shape=box,style=filled];',
-        'Edge[fontname=Arial,minlen="2",fontsize=6,labeldistance=1.5];',
+        'Edge[fontname=Arial,minlen="1",fontsize=12,labeldistance=1.5];',
         `size="${width},${height}";`,
         `subgraph cluster_${data[0].guid}{`,
         `style="filled";color="${colors[0]}";`,
@@ -594,7 +595,6 @@ export default {
           .on('mousewheel.zoom', null)
         this.graphTree.graphviz = graph
           .graphviz()
-          .scale(1.2)
           .width(window.innerWidth * 0.96)
           .height(window.innerHeight * 0.8)
           .zoom(true)
@@ -607,7 +607,7 @@ export default {
     },
     renderTreeGraph (data) {
       let nodesString = this.genTreeDOT(data)
-      this.graphTree.graphviz.renderDot(nodesString)
+      this.graphTree.graphviz.renderDot(nodesString).transition()
       let svg = d3.select('#graphTree').select('svg')
       let width = svg.attr('width')
       let height = svg.attr('height')
@@ -624,8 +624,9 @@ export default {
         'rankdir=TB nodesep=0.5;',
         `size="${width},${height}";`,
         this.genlayerDot(data),
-        'Node [fontname=Arial, fontsize=12];',
-        'Edge [fontname=Arial, minlen="2", fontsize=10, arrowhead="t"];',
+        `Node [fontname=Arial, width=${TREE_NODE_WIDTH}, fixedsize=true, shape=ellipse;];`,
+        'Edge [fontname=Arial, fontsize=10, arrowhead="t"];',
+        `tooltip="${data[0].data.key_name}";`,
         ...this.genChildrenDot(data || [], 1),
         ...this.genRankNodeDot(),
         '}'
@@ -662,9 +663,13 @@ export default {
         layerData.push(childrenLayer[key])
       })
       let result = ['{', 'node[shape=plaintext,fontsize=16];']
+      this.rankNodes = {}
       layerData.forEach((_, i) => {
         if (i === layerData.length - 1) {
           result.push(`"title_${_.code}"`)
+          if (i === 0) {
+            result.push('->""')
+          }
         } else {
           result.push(`"title_${_.code}"->`)
         }
@@ -677,13 +682,20 @@ export default {
     genChildrenDot (data, level) {
       let dots = []
       data.forEach(_ => {
+        let _label = _.data.code
+        let _fontsize = Math.min((100 * TREE_NODE_WIDTH) / _label.length, 16)
+        if (_label.length > 21) {
+          const _middle = Math.floor(_label.length / 2)
+          _label = _label.slice(0, _middle) + '\n' + _label.slice(_middle)
+          _fontsize = Math.min((100 * TREE_NODE_WIDTH) / (_label.length / 2), 16)
+        }
         dots = dots.concat([
           `"${_.guid}"`,
           `[id="n_${_.guid}";`,
-          `label="${_.data.code.substr(0, 21)}${_.data.code.length > 21 ? '...' : ''}";`,
-          'shape=ellipse;',
+          `label="${_label}";`,
           `style="filled";color="${colors[level]}";`,
-          `tooltip="${_.data.code}"];`
+          `fontsize="${_fontsize}";`,
+          `tooltip="${_.data.description || '-'}"];`
         ])
         this.rankNodes[_.ciTypeId].push(`"${_.guid}"`)
         if (_.children instanceof Array && _.children.length) {
@@ -1165,6 +1177,11 @@ export default {
               ..._,
               tooltip: true,
               title: _.name,
+              renderHeader: (h, params) => (
+                <Tooltip content={_.description} placement="top">
+                  <span style="white-space:normal">{_.name}</span>
+                </Tooltip>
+              ),
               key: renderKey,
               inputKey: _.propertyName,
               inputType: _.inputType,
