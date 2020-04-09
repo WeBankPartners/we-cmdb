@@ -16,7 +16,7 @@ spring:
       spec: expireAfterWrite=30s
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://db-server:3306/db_schema?characterEncoding=utf8&serverTimezone=UTC
+    url: jdbc:mysql://db-server:3306/db_schema?characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: db_user
     password: db_password
   jpa:
