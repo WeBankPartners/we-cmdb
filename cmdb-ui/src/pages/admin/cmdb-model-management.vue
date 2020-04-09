@@ -52,7 +52,7 @@
               <FormItem label="Value" prop="addNewLayerValue">
                 <Input v-model="newLayer.addNewLayerValue" />
               </FormItem>
-              <FormItem :label="$t('description')" prop="addNewLayerDescription">
+              <FormItem class="no-need-validation" :label="$t('description')" prop="addNewLayerDescription">
                 <Input v-model="newLayer.addNewLayerDescription" />
               </FormItem>
             </Form>
@@ -159,7 +159,7 @@
                       }}</Option>
                     </Select>
                   </FormItem>
-                  <FormItem :label="$t('description')" prop="description">
+                  <FormItem class="no-need-validation" :label="$t('description')" prop="description">
                     <Input v-model="item.form.description" :disabled="item.form.status === 'decommissioned'"></Input>
                   </FormItem>
                   <FormItem :label="$t('icon')">
@@ -233,7 +233,7 @@
                 <Option v-for="layer in layers" :value="layer.layerId" :key="layer.layerId">{{ layer.name }}</Option>
               </Select>
             </FormItem>
-            <FormItem :label="$t('description')" prop="description">
+            <FormItem class="no-need-validation" :label="$t('description')" prop="description">
               <Input v-model="addNewCITypeForm.description"></Input>
             </FormItem>
             <FormItem :label="$t('icon')">
@@ -338,12 +338,12 @@
                   <FormItem prop="name" :label="$t('ci_attribute_name')">
                     <Input v-model="item.form.name" :disabled="item.form.status === 'decommissioned'"></Input>
                   </FormItem>
-                  <FormItem prop="description" :label="$t('description')">
+                  <FormItem class="no-need-validation" prop="description" :label="$t('description')">
                     <Input
                       v-model="item.form.description"
                       :disabled="item.form.status === 'decommissioned'"
                       type="textarea"
-                      :rows="1"
+                      :rows="2"
                       :autosize="true"
                     />
                   </FormItem>
@@ -595,8 +595,8 @@
           <FormItem :label="$t('ci_attribute_name')" prop="name">
             <Input v-model="addNewAttrForm.name"></Input>
           </FormItem>
-          <FormItem :label="$t('description')" prop="description">
-            <Input v-model="addNewAttrForm.description" type="textarea" :rows="1" :autosize="true" />
+          <FormItem class="no-need-validation" :label="$t('description')" prop="description">
+            <Input v-model="addNewAttrForm.description" type="textarea" :rows="2" :autosize="true" />
           </FormItem>
           <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
             <Input v-model="addNewAttrForm.propertyName"></Input>
@@ -1158,7 +1158,7 @@ export default {
     renderGraph (data) {
       let nodesString = this.genDOT(data)
       this.loadImage(nodesString)
-      this.graph.graphviz.renderDot(nodesString)
+      this.graph.graphviz.renderDot(nodesString).transition()
       addEvent('svg', 'mouseover', e => {
         this.shadeAll()
         e.preventDefault()
@@ -1943,4 +1943,23 @@ export default {
     margin-right: 5px;
   }
 }
+/deep/ .validation-form {
+  .no-need-validation {
+    .ivu-form-item-label:before {
+      content: ' ';
+      display: inline-block;
+      margin-right: 4px;
+      line-height: 1;
+    }
+  }
+  .ivu-form-item-label:before {
+    content: '*';
+    display: inline-block;
+    margin-right: 4px;
+    line-height: 1;
+    font-size: 12px;
+    color: #ed4014;
+  }
+}
+
 </style>
