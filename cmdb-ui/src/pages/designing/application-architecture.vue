@@ -726,9 +726,6 @@ export default {
           .graphviz()
           .fit(true)
           .zoom(true)
-          .scale(1.2)
-          .width(window.innerWidth * 0.96)
-          .height(window.innerHeight * 0.8)
       }
       // 应用逻辑图
       initEvent('#appLogicGraph')
@@ -740,7 +737,7 @@ export default {
     },
     renderGraph (id, data, linesData) {
       let nodesString = this.genDOT(id, data, linesData)
-      this.graph.graphviz.renderDot(nodesString)
+      this.graph.graphviz.renderDot(nodesString).transition()
       let svg = d3.select(id).select('svg')
       let width = svg.attr('width')
       let height = svg.attr('height')
@@ -1370,6 +1367,11 @@ export default {
               ..._,
               tooltip: true,
               title: _.name,
+              renderHeader: (h, params) => (
+                <Tooltip content={_.description} placement="top">
+                  <span style="white-space:normal">{_.name}</span>
+                </Tooltip>
+              ),
               key: renderKey,
               inputKey: _.propertyName,
               inputType: _.inputType,

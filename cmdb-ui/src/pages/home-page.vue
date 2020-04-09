@@ -114,7 +114,7 @@ export default {
     renderGraph (data) {
       let nodesString = this.genDOT(data)
       this.loadImage(nodesString)
-      this.graph.graphviz.renderDot(nodesString)
+      this.graph.graphviz.renderDot(nodesString).transition()
       let svg = d3.select('#graph').select('svg')
       svg.append('g').lower()
       addEvent('svg', 'mouseover', e => {
