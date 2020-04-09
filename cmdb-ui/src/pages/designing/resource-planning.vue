@@ -323,7 +323,7 @@ export default {
     },
     renderGraph () {
       const nodesString = this.genDOT(this.idcData)
-      this.graph.graphviz.renderDot(nodesString)
+      this.graph.graphviz.renderDot(nodesString).transition()
       let width = window.innerWidth
       let height = window.innerHeight
       let svg = d3.select('#resourcePlanningGraph').select('svg')
@@ -997,6 +997,11 @@ export default {
               ..._,
               tooltip: true,
               title: _.name,
+              renderHeader: (h, params) => (
+                <Tooltip content={_.description} placement="top">
+                  <span style="white-space:normal">{_.name}</span>
+                </Tooltip>
+              ),
               key: renderKey,
               inputKey: _.propertyName,
               inputType: _.inputType,

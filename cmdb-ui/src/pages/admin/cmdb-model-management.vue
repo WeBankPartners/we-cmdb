@@ -343,7 +343,7 @@
                       v-model="item.form.description"
                       :disabled="item.form.status === 'decommissioned'"
                       type="textarea"
-                      :rows="1"
+                      :rows="2"
                       :autosize="true"
                     />
                   </FormItem>
@@ -373,7 +373,6 @@
                         item.form.inputType === 'textArea' ||
                         item.form.inputType === 'password'
                     "
-                    class="no-need-validation"
                     prop="regularExpressionRule"
                     :label="$t('regular_rule')"
                   >
@@ -419,7 +418,6 @@
                   <FormItem
                     prop="referenceType"
                     v-if="item.form.inputType === 'ref' || item.form.inputType === 'multiRef'"
-                    class="no-need-validation"
                     :label="$t('reference_type')"
                   >
                     <Select v-model="item.form.referenceType" :disabled="item.form.status === 'decommissioned'">
@@ -598,7 +596,7 @@
             <Input v-model="addNewAttrForm.name"></Input>
           </FormItem>
           <FormItem class="no-need-validation" :label="$t('description')" prop="description">
-            <Input v-model="addNewAttrForm.description" type="textarea" :rows="1" :autosize="true" />
+            <Input v-model="addNewAttrForm.description" type="textarea" :rows="2" :autosize="true" />
           </FormItem>
           <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
             <Input v-model="addNewAttrForm.propertyName"></Input>
@@ -617,7 +615,6 @@
                 addNewAttrForm.inputType === 'textArea' ||
                 addNewAttrForm.inputType === 'password'
             "
-            class="no-need-validation"
             prop="regularExpressionRule"
             :label="$t('regular_rule')"
           >
@@ -657,7 +654,6 @@
           <FormItem
             prop="referenceType"
             v-if="addNewAttrForm.inputType === 'ref' || addNewAttrForm.inputType === 'multiRef'"
-            class="no-need-validation"
             :label="$t('reference_type')"
           >
             <Select v-model="addNewAttrForm.referenceType">
@@ -1162,7 +1158,7 @@ export default {
     renderGraph (data) {
       let nodesString = this.genDOT(data)
       this.loadImage(nodesString)
-      this.graph.graphviz.renderDot(nodesString)
+      this.graph.graphviz.renderDot(nodesString).transition()
       addEvent('svg', 'mouseover', e => {
         this.shadeAll()
         e.preventDefault()
@@ -1947,4 +1943,23 @@ export default {
     margin-right: 5px;
   }
 }
+/deep/ .validation-form {
+  .no-need-validation {
+    .ivu-form-item-label:before {
+      content: ' ';
+      display: inline-block;
+      margin-right: 4px;
+      line-height: 1;
+    }
+  }
+  .ivu-form-item-label:before {
+    content: '*';
+    display: inline-block;
+    margin-right: 4px;
+    line-height: 1;
+    font-size: 12px;
+    color: #ed4014;
+  }
+}
+
 </style>

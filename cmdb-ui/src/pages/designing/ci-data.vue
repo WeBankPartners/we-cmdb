@@ -460,7 +460,7 @@ export default {
     renderGraph (data) {
       let nodesString = this.genDOT(data)
       this.loadImage(nodesString)
-      this.graph.graphviz.renderDot(nodesString)
+      this.graph.graphviz.renderDot(nodesString).transition()
       this.shadeAll()
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
       addEvent('svg', 'mouseover', this.handleSvgMouseover)
