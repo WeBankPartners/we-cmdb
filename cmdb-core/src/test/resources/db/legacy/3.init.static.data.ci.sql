@@ -205,7 +205,7 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 ,('System ID','ref','System ID',2,'system_id','varchar',4,'1',3,'1','0','0','1','0','',15,2,'created',0,0)
 ,('Description','text','Description',2,'description','varchar',4,'1',4,'1','0','0',1,'0',NULL,200,0,'created',0,0)
 ,('System Type','select','System Type',2,'system_type','int',5,'1',5,'0','0','0',1,'0',NULL,45,2,'created',0,0)
-,('State','select','State',2,'state','int',4,'1',4,'0','0','0','0','0',NULL,45,10,'created',1,1)
+,('State','select','State',2,'state','int',4,'1',4,'0','0','0','1','0',NULL,45,10,'created',1,1)
 ,('全局唯一ID', 'text', '全局唯一ID', 2, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1 ,1)
 ,('唯一值', 'text', '唯一值', 2, 'key_name', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1,1)
 ,('更新用户', 'text', '更新用户', 2, 'updated_by', 'varchar', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1,1)
@@ -217,11 +217,11 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- Sub System
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system,is_auto,auto_fill_rule) VALUES
-('English Name','text','English Name',3,'name_en','varchar',1,'1',1,'0','1','0','0','0',NULL,45,0,'created','0',0,NULL)
-,('Chinese Name','text','Chinese Name',3,'name_cn','varchar',5,'1',5,'1','0','0','0','0',NULL,45,0,'created','0',0,NULL)
-,('System ID','ref','System ID',3,'system_id','varchar',2,'1',2,'0','0','0','0','0',NULL,15,2,'created','0',0,NULL)
-,('Zone ID','ref','Zone ID',3,'zone_id','varchar',3,'1',3,'0','0','0','0','0',NULL,15,4,'created','0',0,NULL)
-,('State','select','State',3,'state','int',4,'1',4,'0','0','0','0','0',NULL,45,10,'created',1,1,NULL)
+('English Name','text','English Name',3,'name_en','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0',0,NULL)
+,('Chinese Name','text','Chinese Name',3,'name_cn','varchar',5,'1',5,'1','0','0','1','0',NULL,45,0,'created','0',0,NULL)
+,('System ID','ref','System ID',3,'system_id','varchar',2,'1',2,'0','0','0','1','0',NULL,15,2,'created','0',0,NULL)
+,('Zone ID','ref','Zone ID',3,'zone_id','varchar',3,'1',3,'0','0','0','1','0',NULL,15,4,'created','0',0,NULL)
+,('State','select','State',3,'state','int',4,'1',4,'0','0','0','1','0',NULL,45,10,'created',1,1,NULL)
 ,('Description','text','Description',3,'description','varchar',6,'1',6,'1','0','0','1','0',NULL,200,0,'created','0',0,NULL)
 ,('全局唯一ID', 'text', '全局唯一ID', 3, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1,1,NULL)
 ,('唯一值', 'text', '唯一值', 3, 'key_name', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1,1,NULL)
@@ -235,9 +235,9 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- Zone
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
-('English Name','text','English Name',4,'name_en','varchar',1,'1',1,'0','1','0','0','0',NULL,45,0,'created','0')
-,('Chinese Name','text','Chinese Name',4,'name_cn','varchar',2,'1',2,'1','0','0','0','0',NULL,45,0,'decommissioned','0')
-,('Zone Type','select','Zone Type',4,'zone_type','int',3,'1',3,'0','0','0','0','0',NULL,45,25,'created','0')
+('English Name','text','English Name',4,'name_en','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0')
+,('Chinese Name','text','Chinese Name',4,'name_cn','varchar',2,'1',2,'1','0','0','1','0',NULL,45,0,'decommissioned','0')
+,('Zone Type','select','Zone Type',4,'zone_type','int',3,'1',3,'0','0','0','1','0',NULL,45,25,'created','0')
 ,('IDC Min','number','IDC Min',4,'idc_min','int',5,'1',4,'0','0','0','0','0',NULL,2,0,'created','0')
 ,('Description','text','Description',4,'description','varchar',5,'1',5,'1','0','0','0','0',NULL,200,0,'created','0')
 ,('全局唯一ID', 'text', '全局唯一ID', 4, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
@@ -252,14 +252,14 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- Unit
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
-('English Name','text','English Name',5,'name_en','varchar',1,'1',1,'0','1','0','0','0',NULL,45,0,'created','0')
-,('Chinese Name','text','Chinese Name',5,'name_cn','varchar',2,'1',2,'1','0','0','0','0',NULL,45,0,'created','0')
-,('Sub-System ID','ref','Sub-System ID',5,'subsystem_id','varchar',3,'1',3,'1','0','0','0','0','',15,3,'created','0')
-,('State','select','State',5,'state','int',4,'1',4,'0','0','0','0','0',NULL,45,4,'created','0')
-,('Unit Type','select','Unit Type',5,'unit_type','int',5,'1',5,'0','0','0','0','0',NULL,45,5,'created','0')
-,('Software','select','Software',5,'software','int',6,'1',6,'0','0','0','0','0',NULL,45,6,'created','0')
-,('Version','date','Version',5,'version','varchar',7,'1',7,'0','0','0','0','0',NULL,45,0,'created','0')
-,('Cluster','select','Cluster',5,'cluster','int',8,'1',8,'0','0','0','0','0',NULL,45,7,'created','0')
+('English Name','text','English Name',5,'name_en','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0')
+,('Chinese Name','text','Chinese Name',5,'name_cn','varchar',2,'1',2,'1','0','0','1','0',NULL,45,0,'created','0')
+,('Sub-System ID','ref','Sub-System ID',5,'subsystem_id','varchar',3,'1',3,'1','0','0','1','0','',15,3,'created','0')
+,('State','select','State',5,'state','int',4,'1',4,'0','0','0','1','0',NULL,45,4,'created','0')
+,('Unit Type','select','Unit Type',5,'unit_type','int',5,'1',5,'0','0','0','1','0',NULL,45,5,'created','0')
+,('Software','select','Software',5,'software','int',6,'1',6,'0','0','0','1','0',NULL,45,6,'created','0')
+,('Version','date','Version',5,'version','varchar',7,'1',7,'0','0','0','1','0',NULL,45,0,'created','0')
+,('Cluster','select','Cluster',5,'cluster','int',8,'1',8,'0','0','0','1','0',NULL,45,7,'created','0')
 ,('Description','text','Description',5,'description','varchar',9,'1',9,'1','0','0','0','0',NULL,200,0,'created','0')
 ,('全局唯一ID', 'text', '全局唯一ID', 5, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
 ,('唯一值', 'text', '唯一值', 5, 'key_name', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1)
@@ -273,12 +273,12 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- Service
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
-('English Name','text','English Name',6,'name_en','varchar',1,'1',1,'0','1','0','0','0',NULL,45,0,'created','0')
-,('Chinese Name','text','Chinese Name',6,'name_cn','varchar',2,'1',2,'1','0','0','0','0',NULL,45,0,'created','0')
+('English Name','text','English Name',6,'name_en','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0')
+,('Chinese Name','text','Chinese Name',6,'name_cn','varchar',2,'1',2,'1','0','0','1','0',NULL,45,0,'created','0')
 ,('Unit ID','ref','Unit ID',6,'unit_id','varchar',3,'1',3,'0','0','0','0','0','',15,5,'created','0')
 ,('Port','text','Port',6,'port','varchar',4,'1',4,'1','0','0','0','0',NULL,5,0,'created','0')
-,('Invokable','select','Invokable',6,'invokable','int',5,'1',5,'0','0','0','0','0',NULL,45,9,'created','0')
-,('Service Type','select','Service Type',6,'service_type','int',6,'1',6,'0','1','0','0','0',NULL,45,10,'created','0')
+,('Invokable','select','Invokable',6,'invokable','int',5,'1',5,'0','0','0','1','0',NULL,45,9,'created','0')
+,('Service Type','select','Service Type',6,'service_type','int',6,'1',6,'0','1','0','1','0',NULL,45,10,'created','0')
 ,('Context','select','Context',6,'context','int',7,'1',7,'0','0','0','0','0',NULL,200,11,'created','0')
 ,('Description','text','Description',6,'description','varchar',8,'1',8,'1','0','0','0','0',NULL,200,0,'created','0')
 ,('全局唯一ID', 'text', '全局唯一ID', 6, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
@@ -308,13 +308,13 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- IDC
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
-('English Name','text','English Name',8,'name_en','varchar',1,'1',1,'0','1','0','0','0',NULL,45,0,'created','0')
-,('Chinese Name','text','Chinese Name',8,'name_cn','varchar',2,'1',2,'1','0','0','0','0',NULL,45,0,'created','0')
-,('City','select','City',8,'city','int',3,'1',3,'0','0','0','0','0',NULL,45,18,'created','0')
+('English Name','text','English Name',8,'name_en','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0')
+,('Chinese Name','text','Chinese Name',8,'name_cn','varchar',2,'1',2,'1','0','0','1','0',NULL,45,0,'created','0')
+,('City','select','City',8,'city','int',3,'1',3,'0','0','0','1','0',NULL,45,18,'created','0')
 ,('Description','text','Description',8,'description','varchar',4,'1',4,'1','0','0','0','0',NULL,200,0,'created','0')
 ,('Address','select','Address',8,'address','int',5,'1',5,'1','0','0','0','0',NULL,100,19,'created','0')
 ,('Capacity','number','Capacity',8,'capacity','int',6,'1',6,'1','0','0','0','0',NULL,10,0,'created','0')
-,('IDC Type','select','IDC Type',8,'idc_type','int',7,'1',7,'1','0','0','0','0',NULL,45,20,'created','0')
+,('IDC Type','select','IDC Type',8,'idc_type','int',7,'1',7,'1','0','0','1','0',NULL,45,20,'created','0')
 ,('全局唯一ID', 'text', '全局唯一ID', 8, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
 ,('唯一值', 'text', '唯一值', 8, 'key_name', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1)
 ,('更新用户', 'text', '更新用户', 8, 'updated_by', 'varchar', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1)
@@ -327,10 +327,10 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- DCN
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
-('English Name','text','English Name',9,'name_en','varchar',1,'1',1,'0','1','0','0','0',NULL,45,0,'created','0')
-,('Chinese Name','text','Chinese Name',9,'name_cn','varchar',2,'1',2,'1','0','0','0','0',NULL,45,0,'created','0')
-,('Zone ID','ref','Zone ID',9,'zone_id','varchar',3,'1',3,'0','0','0','0','0',NULL,15,4,'created','0')
-,('DCN Type','select','DCN Type',9,'dcn_type','int',4,'1',4,'0','0','0','0','0',NULL,45,25,'created','0')
+('English Name','text','English Name',9,'name_en','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0')
+,('Chinese Name','text','Chinese Name',9,'name_cn','varchar',2,'1',2,'1','0','0','1','0',NULL,45,0,'created','0')
+,('Zone ID','ref','Zone ID',9,'zone_id','varchar',3,'1',3,'0','0','0','1','0',NULL,15,4,'created','0')
+,('DCN Type','select','DCN Type',9,'dcn_type','int',4,'1',4,'0','0','0','1','0',NULL,45,25,'created','0')
 ,('IDC Min','number','IDC Min',9,'idc_min','int',5,'1',5,'0','0','0','0','0',NULL,2,0,'created','0')
 ,('Description','text','Description',9,'description','varchar',6,'1',6,'1','0','0','0','0',NULL,200,0,'created','0')
 ,('全局唯一ID', 'text', '全局唯一ID', 9, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
@@ -345,11 +345,11 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- Zone Link
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
-('English Name','text','English Name',10,'name_en','varchar',1,'1',1,'0','1','0','0','0',NULL,45,0,'created','0')
-,('Chinese Name','text','Chinese Name',10,'name_cn','varchar',2,'1',2,'1','0','0','0','0',NULL,45,0,'created','0')
+('English Name','text','English Name',10,'name_en','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0')
+,('Chinese Name','text','Chinese Name',10,'name_cn','varchar',2,'1',2,'1','0','0','1','0',NULL,45,0,'created','0')
 ,('Zone A ID','ref','Zone A ID',10,'zone_a_id','varchar',3,'1',3,'0','0','0','0','0',NULL,15,4,'created','0')
 ,('Zone B ID','ref','Zone B ID',10,'zone_b_id','varchar',4,'1',4,'0','0','0','0','0',NULL,15,4,'created','0')
-,('Zone Link Type','select','Zone Link Type',10,'zone_link_type','int',5,'1',5,'0','0','0','0','0',NULL,45,26,'created','0')
+,('Zone Link Type','select','Zone Link Type',10,'zone_link_type','int',5,'1',5,'0','0','0','1','0',NULL,45,26,'created','0')
 ,('IDC Min','number','IDC Min',10,'idc_min','int',6,'1',6,'0','0','0','0','0',NULL,2,0,'created','0')
 ,('Description','text','Description',10,'description','varchar',7,'1',7,'1','0','0','0','0',NULL,200,0,'created','0')
 ,('全局唯一ID', 'text', '全局唯一ID', 10, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
@@ -364,10 +364,10 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- SET
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
-('English Name','text','English Name',11,'name_en','varchar',1,'1',1,'0','1','0','0','0',NULL,45,0,'created','0')
-,('Chinese Name','text','Chinese Name',11,'name_cn','varchar',2,'1',2,'1','0','0','0','0',NULL,45,0,'created','0')
+('English Name','text','English Name',11,'name_en','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0')
+,('Chinese Name','text','Chinese Name',11,'name_cn','varchar',2,'1',2,'1','0','0','1','0',NULL,45,0,'created','0')
 ,('DCN ID','ref','DCN ID',11,'dcn_id','varchar',3,'1',3,'0','0','0','0','0',NULL,15,9,'created','0')
-,('SET Type','select','SET Type',11,'set_type','int',4,'1',4,'0','0','0','0','0',NULL,45,28,'created','0')
+,('SET Type','select','SET Type',11,'set_type','int',4,'1',4,'0','0','0','1','0',NULL,45,28,'created','0')
 ,('IDC Min','number','IDC Min',11,'idc_min','int',5,'1',5,'0','0','0','0','0',NULL,2,0,'created','0')
 ,('Description','text','Description',11,'description','varchar',6,'1',6,'1','0','0','0','0',NULL,200,0,'created','0')
 ,('全局唯一ID', 'text', '全局唯一ID', 11, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
@@ -383,11 +383,11 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- SET Node
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
-('English Name','text','English Name',12,'name_en','varchar',1,'1',1,'0','1','0','0','0',NULL,45,0,'created','0')
-,('Chinese Name','text','Chinese Name',12,'name_cn','varchar',2,'1',2,'1','0','0','0','0',NULL,45,0,'created','0')
+('English Name','text','English Name',12,'name_en','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0')
+,('Chinese Name','text','Chinese Name',12,'name_cn','varchar',2,'1',2,'1','0','0','1','0',NULL,45,0,'created','0')
 ,('IDC ID','ref','IDC ID',12,'idc_id','varchar',3,'1',3,'0','0','0','0','0',NULL,15,8,'created','0')
 ,('SET ID','ref','SET ID',12,'set_id','varchar',4,'1',4,'0','0','0','0','0',NULL,15,11,'created','0')
-,('SET Node Type','select','SET Node Type',12,'set_node_type','int',5,'1',5,'0','0','0','0','0',NULL,45,24,'created','0')
+,('SET Node Type','select','SET Node Type',12,'set_node_type','int',5,'1',5,'0','0','0','1','0',NULL,45,24,'created','0')
 ,('Description','text','Description',12,'description','varchar',6,'1',6,'1','0','0','0','0',NULL,200,0,'created','0')
 ,('OS Min','number','OS Min',12,'os_min','int',7,'1',7,'0','0','0','0','0',NULL,5,0,'created','0')
 ,('OS Max','number','OS Max',12,'os_max','int',8,'1',8,'0','0','0','0','0',NULL,5,0,'created','0')
@@ -403,11 +403,11 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- DCN Node
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
-('English Name','text','English Name',13,'name_en','varchar',1,'1',1,'0','1','0','0','0',NULL,45,0,'created','0')
-,('Chinese Name','text','Chinese Name',13,'name_cn','varchar',2,'1',2,'1','0','0','0','0',NULL,45,0,'created','0')
+('English Name','text','English Name',13,'name_en','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0')
+,('Chinese Name','text','Chinese Name',13,'name_cn','varchar',2,'1',2,'1','0','0','1','0',NULL,45,0,'created','0')
 ,('IDC ID','ref','IDC ID',13,'idc_id','varchar',3,'1',3,'0','0','0','0','0',NULL,15,8,'created','0')
 ,('DCN ID','ref','DCN ID',13,'dcn_id','varchar',4,'1',4,'0','0','0','0','0',NULL,15,9,'created','0')
-,('DCN Node Type','select','DCN Node Type',13,'dcn_node_type','int',5,'1',5,'0','0','0','0','0',NULL,45,23,'created','0')
+,('DCN Node Type','select','DCN Node Type',13,'dcn_node_type','int',5,'1',5,'0','0','0','1','0',NULL,45,23,'created','0')
 ,('Description','text','Description',13,'description','varchar',6,'1',6,'1','0','0','0','0',NULL,200,0,'created','0')
 ,('全局唯一ID', 'text', '全局唯一ID', 13, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
 ,('唯一值', 'text', '唯一值', 13, 'key_name', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1)
@@ -421,11 +421,11 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- Zone Node
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
-('English Name','text','English Name',14,'name_en','varchar',1,'1',1,'0','1','0','0','0',NULL,45,0,'created','0')
-,('Chinese Name','text','Chinese Name',14,'name_cn','varchar',2,'1',2,'1','0','0','0','0',NULL,45,0,'created','0')
-,('Zone ID','ref','Zone ID',14,'zone_id','varchar',3,'1',3,'0','0','0','0','0',NULL,15,4,'created','0')
+('English Name','text','English Name',14,'name_en','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0')
+,('Chinese Name','text','Chinese Name',14,'name_cn','varchar',2,'1',2,'1','0','0','1','0',NULL,45,0,'created','0')
+,('Zone ID','ref','Zone ID',14,'zone_id','varchar',3,'1',3,'0','0','0','1','0',NULL,15,4,'created','0')
 ,('IDC ID','ref','IDC ID',14,'idc_id','varchar',4,'1',4,'0','0','0','0','0',NULL,15,8,'created','0')
-,('Zone Node Type','select','Zone Node Type',14,'zone_node_type','int',5,'1',5,'0','0','0','0','0',NULL,45,21,'created','0')
+,('Zone Node Type','select','Zone Node Type',14,'zone_node_type','int',5,'1',5,'0','0','0','1','0',NULL,45,21,'created','0')
 ,('Description','text','Description',14,'description','varchar',6,'1',6,'1','0','0','0','0',NULL,200,0,'created','0')
 ,('全局唯一ID', 'text', '全局唯一ID', 14, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
 ,('唯一值', 'text', '唯一值', 14, 'key_name', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1)
@@ -439,10 +439,10 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- Zone Node Link
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
-('English Name','text','English Name',15,'name_en','varchar',1,'1',1,'0','1','0','0','0',NULL,45,0,'created','0')
+('English Name','text','English Name',15,'name_en','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0')
 ,('Zone Node A ID','ref','Zone Node A ID',15,'zone_node_a_id','varchar',2,'1',2,'0','0','0','0','0',NULL,15,14,'created','0')
 ,('Zone Node B ID','ref','Zone Node B ID',15,'zone_node_b_id','varchar',3,'1',3,'0','0','0','0','0',NULL,15,14,'created','0')
-,('Zone Node Link Type','select','Zone Node Link Type',15,'zone_node_link_type','int',4,'1',4,'0','0','0','0','0',NULL,45,22,'created','0')
+,('Zone Node Link Type','select','Zone Node Link Type',15,'zone_node_link_type','int',4,'1',4,'0','0','0','1','0',NULL,45,22,'created','0')
 ,('Description','text','Description',15,'description','varchar',5,'1',5,'1','0','0','0','0',NULL,200,0,'created','0')
 ,('全局唯一ID', 'text', '全局唯一ID', 15, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
 ,('唯一值', 'text', '唯一值', 15, 'key_name', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1)
@@ -456,12 +456,12 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- IP Segment
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
-('Name','text','Name',16,'name','varchar',1,'1',1,'0','1','0','0','0',NULL,45,0,'created','0')
-,('Mask','select','Mask',16,'mask','int',2,'1',2,'1','1','0','0','0',NULL,45,14,'created','0')
+('Name','text','Name',16,'name','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0')
+,('Mask','select','Mask',16,'mask','int',2,'1',2,'1','1','0','1','0',NULL,45,14,'created','0')
 ,('IP Segment ID','ref','IP Segment ID',16,'ip_segment_id','varchar',3,'1',3,'1','0','0','0','0',NULL,15,16,'created','0')
 ,('Description','text','Description',16,'description','varchar',4,'1',4,'1','0','0','0','0',NULL,200,0,'created','0')
-,('Begin','text','Begin',16,'begin','varchar',5,'1',5,'1','0','0','0','0',NULL,45,0,'created','0')
-,('End','text','End',16,'end','varchar',6,'1',6,'1','0','0','0','0',NULL,45,0,'created','0')
+,('Begin','text','Begin',16,'begin','varchar',5,'1',5,'1','0','0','1','0',NULL,45,0,'created','0')
+,('End','text','End',16,'end','varchar',6,'1',6,'1','0','0','1','0',NULL,45,0,'created','0')
 ,('Zone Node ID','ref','Zone Node ID',16,'zone_node_id','varchar',7,'1',7,'1','0','0','0','0',NULL,15,14,'created','0')
 ,('DCN Node ID','ref','DCN Node ID',16,'dcn_node_id','varchar',8,'1',8,'1','0','0','0','0',NULL,15,13,'created','0')
 ,('SET Node ID','ref','SET Node ID',16,'set_node_id','varchar',9,'1',9,'1','0','0','0','0',NULL,15,12,'created','0')
@@ -480,8 +480,8 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
 ('Name','text','Name',17,'name','varchar',1,'1',1,'0','1','0','0','0',NULL,100,0,'created','0')
 ,('SET Node ID','ref','SET Node ID',17,'set_node_id','varchar',2,'1',2,'1','0','0','0','0',NULL,15,12,'created','0')
-,('OS Type','select','OS Type',17,'os_type','int',3,'1',3,'0','0','0','0','0',NULL,45,15,'created','0')
-,('Version','select','Version',17,'version','int',4,'1',4,'0','0','0','0','0',NULL,45,16,'created','0')
+,('OS Type','select','OS Type',17,'os_type','int',3,'1',3,'0','0','0','1','0',NULL,45,15,'created','0')
+,('Version','select','Version',17,'version','int',4,'1',4,'0','0','0','1','0',NULL,45,16,'created','0')
 ,('Description','text','Description',17,'description','varchar',5,'1',5,'1','0','0','0','0',NULL,200,0,'created','0')
 ,('Core Num','number','Core Num',17,'core_num','int',6,'1',6,'0','0','0','0','0',NULL,5,0,'created','0')
 ,('Mem Num','number','Mem Num',17,'mem_num','int',7,'1',7,'0','0','0','0','0',NULL,5,0,'created','0')
@@ -498,7 +498,7 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 -- Storage
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
 ('Capacity','number','Capacity',18,'capacity','int',1,'1',1,'0','0','0','0','0',NULL,10,0,'created','0')
-,('Storage Type','select','Storage Type',18,'storage_type','int',2,'1',2,'0','0','0','0','0',NULL,45,17,'created','0')
+,('Storage Type','select','Storage Type',18,'storage_type','int',2,'1',2,'0','0','0','1','0',NULL,45,17,'created','0')
 ,('OS ID','ref','OS ID',18,'os_id','varchar',3,'1',3,'0','0','0','0','0',NULL,15,17,'created','0')
 ,('全局唯一ID', 'text', '全局唯一ID', 18, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
 ,('唯一值', 'text', '唯一值', 18, 'key_name', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1)
@@ -527,8 +527,8 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- Mock Attr for wb_mock_ci_type_a
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system,is_auto) VALUES
-('Mock_Attr_A','text','Mock Attr A',21,'mock_attr_a','varchar',1,'1',1,'0','0','0','0','0',NULL,10,0,'notCreated','0',0)
-,('State','select','State',21,'state','int',4,'1',4,'0','0','0','0','0',NULL,45,10,'created',1,1)
+('Mock_Attr_A','text','Mock Attr A',21,'mock_attr_a','varchar',1,'1',1,'0','0','0','1','0',NULL,10,0,'notCreated','0',0)
+,('State','select','State',21,'state','int',4,'1',4,'0','0','0','1','0',NULL,45,10,'created',1,1)
 ,('全局唯一ID', 'text', '全局唯一ID', 21, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'notCreated', 1,1)
 ,('唯一值', 'text', '唯一值', 21, 'key_name', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 500, NULL, 'notCreated', 1,1)
 ,('更新用户', 'text', '更新用户', 21, 'updated_by', 'varchar', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, 64, NULL, 'notCreated', 1,1)
@@ -542,8 +542,8 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 
 -- Mock Attr for wb_mock_ci_type_b
 INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
-('Mock_Attr_B','text','Mock Attr B',22,'mock_attr_b','varchar',1,'1',1,'0','0','0','0','0',NULL,10,0,'notCreated','0')
-,('Mock_Attr_A','ref','Mock_Attr_A',22,'mock_attr_a','varchar',2,'1',2,'0','0','0','0','0',NULL,15,21,'notCreated','0')
+('Mock_Attr_B','text','Mock Attr B',22,'mock_attr_b','varchar',1,'1',1,'0','0','0','1','0',NULL,10,0,'notCreated','0')
+,('Mock_Attr_A','ref','Mock_Attr_A',22,'mock_attr_a','varchar',2,'1',2,'0','0','0','1','0',NULL,15,21,'notCreated','0')
 ,('Mock_Attr_B_Desc','text','Mock Attr B Desc',22,'mock_attr_b_desc','varchar',1,'1',1,'0','0','0','0','0',NULL,10,0,'notCreated','0')
 ,('全局唯一ID', 'text', '全局唯一ID', 22, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'notCreated', 1)
 ,('唯一值', 'text', '唯一值', 22, 'key_name', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 500, NULL, 'notCreated', 1)
