@@ -1136,8 +1136,8 @@ public class CiServiceImpl implements CiService {
 
                     try {
                         ci.remove(CALLBACK_ID);
-
                         validateCiType(ciTypeId);
+                        validateCiData(ciTypeId,ci,false);
                         // validateCiData(ciTypeId, ci, false);
                         // TODO: get operate user
 
