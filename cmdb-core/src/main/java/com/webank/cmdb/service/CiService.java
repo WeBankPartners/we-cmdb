@@ -54,6 +54,10 @@ public interface CiService extends CmdbService {
 
     QueryResponse integrateQuery(int intQueryId, QueryRequest intQueryReq);
 
+    QueryResponse integrateQuery(String queryName, QueryRequest intQueryReq);
+
+    List<IntQueryResponseHeader> integrateQueryHeader(String queryName);
+
     List<IntQueryResponseHeader> integrateQueryHeader(int queryId);
 
     HashSet<String> retrieveVersions(int ciTypeId);
@@ -85,4 +89,5 @@ public interface CiService extends CmdbService {
     List<CiKeyPair> retrieveKeyPairs(int ciTypeId);
 
     List<Map<String, Object>> filterOfPassword(int ciTypeId, List<Map<String, Object>> cis);
+
 }
