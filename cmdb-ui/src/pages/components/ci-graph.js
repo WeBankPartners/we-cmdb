@@ -381,17 +381,15 @@ export default {
           title: this.$t('all'),
           id: 'all',
           expand: true,
-          children: this.ciTypeAttrs
-            .filter(attr => attr.isDisplayed)
-            .map(_ => {
-              let found = currentAttrs && currentAttrs.find(i => i.ciTypeAttrId === _.ciTypeAttrId)
-              return {
-                id: _.ciTypeAttrId,
-                title: _.name,
-                propertyName: _.propertyName,
-                checked: !!found
-              }
-            })
+          children: this.ciTypeAttrs.map(_ => {
+            let found = currentAttrs && currentAttrs.find(i => i.ciTypeAttrId === _.ciTypeAttrId)
+            return {
+              id: _.ciTypeAttrId,
+              title: _.name,
+              propertyName: _.propertyName,
+              checked: !!found
+            }
+          })
         }
       ]
       return (
