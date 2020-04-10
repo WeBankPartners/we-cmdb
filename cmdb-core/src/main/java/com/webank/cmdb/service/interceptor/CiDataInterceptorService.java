@@ -85,7 +85,7 @@ public class CiDataInterceptorService {
             attrs.forEach(attr -> {
                 if ((InputType.Text.getCode().equals(attr.getInputType()) || InputType.TextArea.getCode().equals(attr.getInputType())) && !StringUtils.isBlank(attr.getRegularExpressionRule())) {
                     Object val = ciBeanMap.get(attr.getPropertyName());
-                    if (val != null && !Pattern.matches(attr.getRegularExpressionRule(), (String) val)) {
+                    if (val != null &&StringUtils.isNotEmpty(val.toString()) && !Pattern.matches(attr.getRegularExpressionRule(), (String) val)) {
                         throw new InvalidArgumentException(String.format("The input value [%s] is not match the regular expression rule [%s].", val, attr.getRegularExpressionRule()));
                     }
                 }
