@@ -45,6 +45,8 @@ import javax.persistence.criteria.Root;
 import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
+import com.webank.cmdb.domain.*;
+import com.webank.cmdb.repository.*;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -72,10 +74,6 @@ import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.FilterRelationship;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.constant.StateOperation;
-import com.webank.cmdb.domain.AdmBasekeyCat;
-import com.webank.cmdb.domain.AdmCiType;
-import com.webank.cmdb.domain.AdmCiTypeAttr;
-import com.webank.cmdb.domain.AdmStateTransition;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CiData;
@@ -105,10 +103,6 @@ import com.webank.cmdb.exception.CmdbAccessDeniedException;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.exception.InvalidArgumentException;
 import com.webank.cmdb.exception.ServiceException;
-import com.webank.cmdb.repository.AdmBasekeyCatRepository;
-import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
-import com.webank.cmdb.repository.AdmCiTypeRepository;
-import com.webank.cmdb.repository.AdmStateTransitionRepository;
 import com.webank.cmdb.service.AuthorizationService;
 import com.webank.cmdb.service.BaseKeyInfoService;
 import com.webank.cmdb.service.CiService;
@@ -155,6 +149,8 @@ public class CiServiceImpl implements CiService {
     private AdmStateTransitionRepository stateTransitionRepository;
     @Autowired
     private AdmBasekeyCatRepository cateRepository;
+    @Autowired
+    private AdmIntegrateTemplateRepository intTempRepository;
 	
 
     @Autowired
@@ -1263,6 +1259,24 @@ public class CiServiceImpl implements CiService {
             entityManager.remove(entityBean);
         }
         ciDataInterceptorService.postDelete(entityHolder, entityManager, ciTypeId, guid, entityMeta);
+    }
+
+    @Override
+    public QueryResponse integrateQuery(String queryName, QueryRequest intQueryReq) {
+        List<AdmIntegrateTemplate> intQueryTempls = intTempRepository.findAllByName(queryName);
+        if(intQueryTempls!=null && intQueryTempls.size()==0){
+            throw new InvalidArgumentException(String.format("Can not find out AdmIntegrateTemplate by given query name [%s].", queryName));
+        }else{
+            return  integrateQuery(intQueryTempls.get(0).getIdAdmIntegrateTemplate(),intQueryReq);
+        }
+    }
+
+    @Override
+    public List<IntQueryResponseHeader> integrateQueryHeader(String queryName) {
+        IntegrationQueryDto intQueryDto = intQueryService.getIntegrationQueryByName(queryName);
+
+        List<IntQueryResponseHeader> headers = new LinkedList<>();
+        return buildIntQuerHeader(intQueryDto, headers);
     }
 
     @Override
