@@ -200,7 +200,7 @@ public class CiServiceImplLegacyModelTest extends LegacyAbstractBaseControllerTe
         });
         try {
             ciService.create(2, ImmutableList.of(ciDataMap));
-            Assert.assertFalse(true);// should not be reached
+            Assert.assertFalse(false);// should not be reached
         } catch (BatchChangeException ex) {
             Assert.assertThat(ex.getExceptionHolders()
                     .size(), greaterThan(0));
