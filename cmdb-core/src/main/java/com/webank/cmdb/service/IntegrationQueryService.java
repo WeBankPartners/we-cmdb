@@ -24,6 +24,7 @@ public interface IntegrationQueryService extends CmdbService {
 
     List<IntQueryOperateAggResponseDto> operateAggregationQuery(int ciTypeId, List<IntQueryOperateAggRequetDto> aggRequest);
 
+    IntegrationQueryDto getIntegrationQueryByName(String intQueryName);
     // List<IntQueryOperateAggResponseDto> updateAggregationQuery(int ciTypeId,
     // List<IntQueryOperateAggRequetDto> aggRequest);
 
