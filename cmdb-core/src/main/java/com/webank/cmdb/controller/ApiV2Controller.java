@@ -358,6 +358,22 @@ public class ApiV2Controller {
         return ciService.integrateQuery(queryId, queryRequest);
     }
 
+    @PostMapping("/intQuery/executeByName/{queryName}")
+    public QueryResponse queryIntByName(@PathVariable("queryName") String queryName, @RequestBody QueryRequest queryRequest) {
+        return ciService.integrateQuery(queryName, queryRequest);
+    }
+
+    @GetMapping("/intQuery/headerByName")
+    public List<IntQueryResponseHeader> queryIntHeader(@RequestParam("queryName") String queryName) {
+        return ciService.integrateQueryHeader(queryName);
+    }
+
+    @GetMapping("/intQuery")
+    public IntegrationQueryDto getIntQueryByName(@RequestParam("name")String queryName) {
+        return intQueryService.getIntegrationQueryByName(queryName);
+    }
+
+
     @PostMapping("/intQuery/adhoc/execute")
     public QueryResponse queryAdhocInt(@RequestBody AdhocIntegrationQueryDto adhocQueryRequest) {
         return ciService.adhocIntegrateQuery(adhocQueryRequest);
