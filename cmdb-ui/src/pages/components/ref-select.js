@@ -214,6 +214,8 @@ export default {
       }
     },
     getFilterRulesOptions (val) {
+      this.firstInput = false
+      this.firstChange = false
       if (val) {
         this.pagination.currentPage = 1
         // this.queryCiData();
