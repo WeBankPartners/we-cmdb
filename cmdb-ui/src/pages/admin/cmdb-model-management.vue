@@ -641,7 +641,9 @@
             :label="$t('reference_select')"
           >
             <Select v-model="addNewAttrForm.referenceId">
-              <Option v-for="item in allCiTypesWithAttr" :value="item.ciTypeId" :key="item.ciTypeId">{{ item.name }}</Option>
+              <Option v-for="item in allCiTypesWithAttr" :value="item.ciTypeId" :key="item.ciTypeId">{{
+                item.name
+              }}</Option>
             </Select>
           </FormItem>
           <FormItem
@@ -1158,7 +1160,7 @@ export default {
     renderGraph (data) {
       let nodesString = this.genDOT(data)
       this.loadImage(nodesString)
-      this.graph.graphviz.renderDot(nodesString).transition()
+      this.graph.graphviz.transition().renderDot(nodesString)
       addEvent('svg', 'mouseover', e => {
         this.shadeAll()
         e.preventDefault()
@@ -1961,5 +1963,4 @@ export default {
     color: #ed4014;
   }
 }
-
 </style>
