@@ -581,16 +581,25 @@ export default {
     },
     renderCol (col, isLastCol = false) {
       let setValueHandler = (_this, v, col, params) => {
-        // 更新下拉框后，searchSeqNo大于当前属性并且受过滤规则影响的下拉框需要清空值
+        // 更新下拉框后，displaySeqNo大于当前属性并且受过滤规则影响的下拉框需要清空值
         let attrsWillReset = []
+        if (['select', 'ref', 'multiSelect', 'multiRef'].indexOf(col.inputType) === -1) {
+          _this.selectedRows.forEach(_ => {
+            if (_.weTableRowId === params.row.weTableRowId) {
+              _[col.inputKey] = v
+              params.row[col.inputKey] = v
+            }
+          })
+          return
+        }
         _this.tableColumns.forEach(_ => {
-          if (_.searchSeqNo > col.searchSeqNo && _.filterRule) {
-            if (_.inputType === 'multiSelect' || _.inputType === 'multiRef') {
+          if (_.displaySeqNo > col.displaySeqNo && _.filterRule) {
+            if (['multiSelect', 'multiRef'].indexOf(_.inputType) >= 0) {
               attrsWillReset.push({
                 propertyName: _.propertyName,
                 value: []
               })
-            } else if (_.inputType === 'select' || _.inputType === 'ref') {
+            } else if (['select', 'ref'].indexOf(_.inputType) >= 0) {
               attrsWillReset.push({
                 propertyName: _.propertyName,
                 value: ''
@@ -604,7 +613,7 @@ export default {
             params.row[col.inputKey] = v
             attrsWillReset.forEach(attr => {
               _[attr.propertyName] = attr.value
-              params.row[attr.propertyName] = v
+              params.row[attr.propertyName] = attr.value
             })
           }
         })
