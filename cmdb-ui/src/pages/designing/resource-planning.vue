@@ -21,7 +21,7 @@
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
         <div>{{ $t('loading') }}</div>
       </Spin>
-      <Tabs v-if="idcData.length" type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
+      <Tabs v-show="idcData.length" type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
         <TabPane :label="$t('resource_planning_diagram')" name="resource-design">
           <Alert show-icon closable v-if="isDataChanged">
             Data has beed changed, click Reload button to reload graph.
@@ -111,7 +111,7 @@ import {
   updateCiDatas,
   getEnumCodesByCategoryId,
   getResourcePlanningTabs,
-  getAllZoneLinkGroupByIdc,
+  queryCiData,
   operateCiState
 } from '@/api/server'
 import { outerActions, innerActions, pagination, components } from '@/const/actions.js'
@@ -123,6 +123,8 @@ import { VIEW_CONFIG_PARAMS } from '@/const/init-params.js'
 
 const REGIONAL_DATA_CENTER = 'resourcePlaningRegionalDataCenter'
 const NETWORK_SEGMENT = 'resourcePlaningNetworkSegmentDesign'
+const LAYER = 'idcPlanningLayer'
+const LINK_ID = 'resourcePlaningLinkId'
 const LINK_FROM = 'resourcePlaningLinkFrom'
 const LINK_TO = 'resourcePlaningLinkTo'
 
@@ -186,6 +188,9 @@ export default {
       this.copyEditData = null
     }
   },
+  mounted () {
+    this.initGraph()
+  },
   methods: {
     async getAllIdcData () {
       const { data, statusCode } = await getAllIdcData()
@@ -234,6 +239,7 @@ export default {
     async onIdcDataChange () {
       this.handleTabClick(this.currentTab)
       let willSelectIdc = {}
+      this.idcData = []
       this.selectedIdcs.forEach(_ => {
         const realIdcGuid = this.allIdcs[_].realIdcGuid
         if (!this.selectedIdcs.find(guid => realIdcGuid === guid)) {
@@ -246,9 +252,28 @@ export default {
       })
       if (selectedIdcs.length) {
         this.spinShow = true
-        const promiseArray = [getIdcImplementTreeByGuid(selectedIdcs), getAllZoneLinkGroupByIdc()]
+        const payload = {
+          id: this.initParams[LINK_ID],
+          queryObject: {}
+        }
+        const promiseArray = [getIdcImplementTreeByGuid(selectedIdcs), queryCiData(payload)]
         const [idcData, links] = await Promise.all(promiseArray)
         if (idcData.statusCode === 'OK' && links.statusCode === 'OK') {
+          const regional = this.initParams[REGIONAL_DATA_CENTER]
+          let _idcData = []
+          idcData.data.forEach(_ => {
+            if (!_.data[regional]) {
+              let obj = {
+                ciTypeId: _.ciTypeId,
+                guid: _.guid,
+                data: _.data
+              }
+              if (_.children instanceof Array) {
+                obj.children = _.children.filter(zone => zone.ciTypeId !== _.ciTypeId)
+              }
+              _idcData.push(obj)
+            }
+          })
           const sortingTree = array => {
             let obj = {}
             array.forEach(_ => {
@@ -271,26 +296,15 @@ export default {
               .sort()
               .map(_ => obj[_])
           }
-          this.idcData = sortingTree(idcData.data)
-
-          let allZoneLinkObj = {}
-          links.data.forEach(_ => {
-            if (_.linkList instanceof Array) {
-              _.linkList.forEach(link => {
-                allZoneLinkObj[link.data.guid] = link.data
-              })
+          this.idcData = sortingTree(_idcData)
+          this.lineData = links.data.contents.map(_ => {
+            return {
+              guid: _.data.guid,
+              from: _.data[this.initParams[LINK_FROM]].guid,
+              to: _.data[this.initParams[LINK_TO]].guid,
+              label: _.data.code,
+              state: _.data.state.code
             }
-          })
-          this.lineData = []
-          Object.keys(allZoneLinkObj).forEach(guid => {
-            const line = {
-              guid,
-              from: allZoneLinkObj[guid][this.initParams[LINK_FROM]].guid,
-              to: allZoneLinkObj[guid][this.initParams[LINK_TO]].guid,
-              label: allZoneLinkObj[guid].code,
-              state: allZoneLinkObj[guid].state.code
-            }
-            this.lineData.push(line)
           })
           this.$nextTick(() => {
             this.initGraph()
@@ -313,25 +327,14 @@ export default {
           .graphviz()
           .fit(true)
           .zoom(true)
-          .scale(1.2)
-          .width(window.innerWidth * 0.96)
-          .height(window.innerHeight * 0.8)
+          .width(window.innerWidth - 20)
+          .height(window.innerHeight - 230)
       }
       initEvent()
       this.renderGraph()
       this.spinShow = false
     },
-    renderGraph () {
-      const nodesString = this.genDOT(this.idcData)
-      this.graph.graphviz.renderDot(nodesString).transition()
-      let width = window.innerWidth
-      let height = window.innerHeight
-      let svg = d3.select('#resourcePlanningGraph').select('svg')
-      svg
-        .attr('width', width)
-        .attr('height', height)
-        .attr('viewBox', `0 0 ${width} ${height}`)
-
+    setChildrenNode () {
       this.idcData.forEach(_ => {
         const children = _.children || []
         children.forEach(zone => {
@@ -355,6 +358,20 @@ export default {
         })
       })
     },
+    renderGraph () {
+      const nodesString = this.genDOT(this.idcData)
+      this.graph.graphviz
+        .renderDot(nodesString)
+        .transition()
+        .on('end', this.setChildrenNode)
+      let width = window.innerWidth - 20
+      let height = window.innerHeight - 230
+      let svg = d3.select('#resourcePlanningGraph').select('svg')
+      svg
+        .attr('width', width)
+        .attr('height', height)
+        .attr('viewBox', `0 0 ${width} ${height}`)
+    },
     genDOT (data) {
       this.graphNodes = {}
       const width = 16
@@ -363,7 +380,7 @@ export default {
         'digraph G{',
         'rankdir=TB;nodesep=0.5;',
         `Node[shape=box,fontsize=${fontSize},labelloc=t,penwidth=2];`,
-        'Edge[fontsize=6,arrowhead="none"];',
+        'Edge[fontsize=12,arrowhead="none"];',
         `size="${width},${height}";`
       ]
       data.forEach(idc => {
@@ -385,7 +402,7 @@ export default {
       let dots = []
       let layers = {}
       data.forEach(_ => {
-        const layerCode = _.data.network_zone_layer ? _.data.network_zone_layer.code : 'otherLayer'
+        const layerCode = _.data[this.initParams[LAYER]] || 'otherLayer'
         if (layers[layerCode]) {
           layers[layerCode].push(_)
         } else {
@@ -402,7 +419,9 @@ export default {
           layer.forEach(zone => {
             let label
             if (zone.data.code) {
-              label = `${zone.data.code}\n${zone.data.network_segment ? zone.data.network_segment.code : ''}`
+              label = `${zone.data.code}\n${
+                zone.data[this.initParams[NETWORK_SEGMENT]] ? zone.data[this.initParams[NETWORK_SEGMENT]].code : ''
+              }`
             } else {
               label = zone.data.key_name
             }
@@ -420,10 +439,18 @@ export default {
     },
     genLines () {
       let dots = []
+      let newworkToNode = {}
+      Object.keys(this.graphNodes).forEach(guid => {
+        const networkSegment = this.graphNodes[guid].data[this.initParams[NETWORK_SEGMENT]]
+        if (networkSegment) {
+          newworkToNode[networkSegment.guid] = guid
+        }
+      })
       this.lineData.forEach(_ => {
-        if (this.graphNodes[_.from] && this.graphNodes[_.to]) {
+        if (newworkToNode[_.from] && newworkToNode[_.to]) {
           dots.push(
-            `n_${_.from} -> n_${_.to}[id=gl_${_.guid},tooltip="${_.label || ''}",taillabel="${_.label || ''}"];`
+            `n_${newworkToNode[_.from]} -> n_${newworkToNode[_.to]}[id=gl_${_.guid},tooltip="${_.label ||
+              ''}",taillabel="${_.label || ''}"];`
           )
         }
       })
