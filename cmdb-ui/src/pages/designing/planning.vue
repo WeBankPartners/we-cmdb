@@ -51,7 +51,7 @@
         :title="$t('copyToNew')"
         @on-ok="handleCopyToNew"
         @on-cancel="copyVisible = false"
-        :mask-closablei="false"
+        :mask-closable="false"
       >
         <div class="copy-form">
           <div class="copy-label">{{ $t('input_set_of_copy') }}</div>
@@ -71,7 +71,7 @@
         @on-ok="handleCopySubmit"
         @on-cancel="copyTableVisible = false"
         :ok-text="$t('save')"
-        :mask-closablei="false"
+        :mask-closable="false"
       >
         <WeCMDBTable
           v-if="copyTableVisible"
