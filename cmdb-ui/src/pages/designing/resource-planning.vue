@@ -361,8 +361,8 @@ export default {
     renderGraph () {
       const nodesString = this.genDOT(this.idcData)
       this.graph.graphviz
-        .renderDot(nodesString)
         .transition()
+        .renderDot(nodesString)
         .on('end', this.setChildrenNode)
       let width = window.innerWidth - 20
       let height = window.innerHeight - 230
