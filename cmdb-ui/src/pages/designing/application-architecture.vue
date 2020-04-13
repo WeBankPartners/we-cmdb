@@ -737,7 +737,7 @@ export default {
     },
     renderGraph (id, data, linesData) {
       let nodesString = this.genDOT(id, data, linesData)
-      this.graph.graphviz.renderDot(nodesString).transition()
+      this.graph.graphviz.transition().renderDot(nodesString)
       let svg = d3.select(id).select('svg')
       let width = svg.attr('width')
       let height = svg.attr('height')

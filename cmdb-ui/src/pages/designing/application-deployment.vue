@@ -268,7 +268,7 @@ export default {
     },
     renderADGraph (data) {
       let nodesString = this.genADDOT(data)
-      this.graph.graphviz.renderDot(nodesString).transition()
+      this.graph.graphviz.transition().renderDot(nodesString)
       let svg = d3.select('#graph').select('svg')
       let width = svg.attr('width')
       let height = svg.attr('height')
@@ -418,10 +418,7 @@ export default {
               result.children = formatADData(_.children)
             }
             if (_.ciTypeId === initParams[UNIT_ID]) {
-              let label = [
-                '<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">',
-                `<TR><TD>${_.data.code}</TD></TR>`
-              ]
+              let label = ['<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">', `<TR><TD>${_.data.code}</TD></TR>`]
               if (_.children instanceof Array && _.children.length) {
                 _.children.forEach(item => {
                   if (initParams[BUSINESS_APP_INSTANCE_ID].split(',').indexOf(item.ciTypeId + '') >= 0) {
@@ -607,7 +604,7 @@ export default {
     },
     renderTreeGraph (data) {
       let nodesString = this.genTreeDOT(data)
-      this.graphTree.graphviz.renderDot(nodesString).transition()
+      this.graphTree.graphviz.transition().renderDot(nodesString)
       let svg = d3.select('#graphTree').select('svg')
       let width = svg.attr('width')
       let height = svg.attr('height')
