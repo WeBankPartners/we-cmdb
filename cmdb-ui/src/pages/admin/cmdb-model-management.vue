@@ -1160,13 +1160,14 @@ export default {
     renderGraph (data) {
       let nodesString = this.genDOT(data)
       this.loadImage(nodesString)
-      this.graph.graphviz.transition().renderDot(nodesString)
+      this.graph.graphviz.transition().renderDot(nodesString).on('end', () => {
+        this.shadeAll()
+      })
       addEvent('svg', 'mouseover', e => {
         this.shadeAll()
         e.preventDefault()
         e.stopPropagation()
       })
-      this.shadeAll()
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
       addEvent('.node', 'click', this.handleNodeClick)
     },
