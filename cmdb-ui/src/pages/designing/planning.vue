@@ -293,7 +293,10 @@ export default {
     },
     renderGraph (idcData) {
       let nodesString = this.genDOT(idcData, this.zoneLinkDesignData.get(idcData.guid))
-      this.graph.get(idcData.guid).renderDot(nodesString).transition()
+      this.graph
+        .get(idcData.guid)
+        .transition()
+        .renderDot(nodesString)
       let fsize = 16
       let divWidth = window.innerWidth
       let divHeight = window.innerHeight - 220
