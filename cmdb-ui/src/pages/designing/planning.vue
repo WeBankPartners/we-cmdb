@@ -113,12 +113,13 @@ import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
-import { VIEW_CONFIG_PARAMS } from '@/const/init-params.js'
-
-const NETWORK_SEGMENT_DESIGN = 'idcPlanningNetworkSegmentDesign'
-const LINK_ID = 'idcPlanningLinkId'
-const LINK_FROM = 'idcPlanningLinkFrom'
-const LINK_TO = 'idcPlanningLinkTo'
+import {
+  VIEW_CONFIG_PARAMS,
+  NETWORK_SEGMENT_DESIGN,
+  IDC_PLANNING_LINK_ID,
+  IDC_PLANNING_LINK_FROM,
+  IDC_PLANNING_LINK_TO
+} from '@/const/init-params.js'
 
 export default {
   data () {
@@ -277,21 +278,24 @@ export default {
             let label
             if (zone.data.code) {
               label = `${zone.data.code}\n${
-                zone.data[this.initParams[NETWORK_SEGMENT_DESIGN]] ? zone.data[this.initParams[NETWORK_SEGMENT_DESIGN]].code : ''
+                zone.data[this.initParams[NETWORK_SEGMENT_DESIGN]]
+                  ? zone.data[this.initParams[NETWORK_SEGMENT_DESIGN]].code
+                  : ''
               }`
             } else {
               label = zone.data.key_name
             }
             this.graphNodes[zone.guid] = zone
             dots.push(
-              `g_${zone.guid}[id="g_${zone.guid}",color="${colors[1]}",label="${label}",width=${ll},height=${lg}];`
+              `g_${zone.guid}[id="g_${zone.guid}",style="filled",color="${colors[1]}",label="${label}",width=${ll},height=${lg}];`
             )
           })
           dots.push('}')
         })
       } else {
         dots.push(
-          `g_${idcData.data.guid}[label=" ";color="${colors[0]}";width="${width - 0.5}";height="${height - 3}"]`
+          `g_${idcData.data.guid}[label=" ";style="filled";color="${colors[1]}";width="${width -
+            0.5}";height="${height - 3}"]`
         )
       }
       return dots.join('')
@@ -317,9 +321,7 @@ export default {
     },
     renderGraph (idcData) {
       let nodesString = this.genDOT(idcData)
-      this.graph
-        .transition()
-        .renderDot(nodesString)
+      this.graph.transition().renderDot(nodesString)
       let divWidth = window.innerWidth - 20
       let divHeight = window.innerHeight - 220
       let children = idcData.children || []
@@ -959,7 +961,7 @@ export default {
     async getZoneLink () {
       this.idcLink = []
       const payload = {
-        id: this.initParams[LINK_ID],
+        id: this.initParams[IDC_PLANNING_LINK_ID],
         queryObject: {}
       }
       const { statusCode, data } = await queryCiData(payload)
@@ -967,8 +969,8 @@ export default {
         this.idcLink = data.contents.map(_ => {
           return {
             guid: _.data.guid,
-            from: _.data[this.initParams[LINK_FROM]].guid,
-            to: _.data[this.initParams[LINK_TO]].guid,
+            from: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
+            to: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
             label: _.data.code,
             state: _.data.state.code
           }
