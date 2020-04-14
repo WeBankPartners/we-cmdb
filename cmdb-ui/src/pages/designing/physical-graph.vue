@@ -6,10 +6,8 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import {
-  colors,
-  defaultFontSize as fontSize
-} from '../../const/graph-configuration'
+import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
+import { NETWORK_SEGMENT_DESIGN, LAYER } from '@/const/init-params.js'
 
 export default {
   data () {
@@ -27,6 +25,9 @@ export default {
     },
     callback: {
       type: Function
+    },
+    initParams: {
+      type: Object
     }
   },
   methods: {
@@ -36,15 +37,20 @@ export default {
         .on('dblclick.zoom', null)
         .on('wheel.zoom', null)
         .on('mousewheel.zoom', null)
-      this.graph = graph.graphviz().zoom(true)
+      this.graph = graph
+        .graphviz()
+        .width(window.innerWidth - 20)
+        .height(window.innerHeight - 230)
+        .zoom(true)
+        .fit(true)
       this.renderGraph(this.graphData)
     },
     renderGraph (idcData) {
       const children = idcData[0].children || []
       const DOTs = this.genDOT(idcData[0])
-      this.graph.renderDot(DOTs)
-      const divWidth = window.innerWidth
-      const divHeight = window.innerHeight
+      this.graph.transition().renderDot(DOTs)
+      const divWidth = window.innerWidth - 20
+      const divHeight = window.innerHeight - 230
       let svg = d3.select('#physicalGraph').select('svg')
       svg
         .attr('width', divWidth)
@@ -78,6 +84,7 @@ export default {
         'digraph G{',
         'rankdir=TB nodesep=0.5;',
         `node[shape=box;fontsize=${fontSize};labelloc=t;penwidth=2];`,
+        'Edge[fontsize=10,arrowhead="none"];',
         `subgraph cluster_${data.guid} {`,
         `style="filled";color="${colors[0]}";`,
         `tooltip="${tooltip}";`,
@@ -96,10 +103,10 @@ export default {
       const children = idcData.children || []
       let layers = new Map()
       children.forEach(zone => {
-        if (layers.has(zone.data.network_zone_layer.code)) {
-          layers.get(zone.data.network_zone_layer.code).push(zone)
+        if (layers.has(zone.data[this.initParams[LAYER]])) {
+          layers.get(zone.data[this.initParams[LAYER]]).push(zone)
         } else {
-          layers.set(zone.data.network_zone_layer.code, [zone])
+          layers.set(zone.data[this.initParams[LAYER]], [zone])
         }
       })
       if (layers.size) {
@@ -115,27 +122,41 @@ export default {
             } else {
               label = zone.data.key_name
             }
-            this.nodesGuid[zone.guid] = zone.guid
-            dots.push(`g_${zone.guid}[id="g_${zone.guid}", label="${label}", width=${ll},height=${lg}];`)
+            this.nodesGuid[zone.guid] = zone
+            dots.push(
+              `g_${zone.guid}[id="g_${zone.guid}", label="${label}", width=${ll},height=${lg},style="filled",color="${colors[1]}"];`
+            )
           })
           dots.push('}')
         })
       } else {
-        this.nodesGuid[idcData.data.guid] = idcData.data.guid
+        this.nodesGuid[idcData.data.guid] = idcData.data
         dots.push(
-          `g_${idcData.data.guid}[label=" ";color="${colors[0]}";width="${width - 0.5}";height="${height - 3}"]`
+          `g_${idcData.data.guid}[label=" ";style="filled";color="${colors[1]}";width="${width -
+            0.5}";height="${height - 3}"]`
         )
       }
       return dots.join('')
     },
     genLink () {
-      let result = ''
-      this.links.forEach(link => {
-        if (this.nodesGuid[link.from.guid] && this.nodesGuid[link.to.guid]) {
-          result += `g_${link.from.guid}->g_${link.to.guid}[arrowhead="none"];`
+      let dots = []
+      let newworkToNode = {}
+      const { nodesGuid, initParams } = this
+      if (!initParams[NETWORK_SEGMENT_DESIGN]) return
+      Object.keys(nodesGuid).forEach(guid => {
+        if (nodesGuid[guid].data[this.initParams[NETWORK_SEGMENT_DESIGN]]) {
+          newworkToNode[nodesGuid[guid].data[this.initParams[NETWORK_SEGMENT_DESIGN]].guid] = guid
         }
       })
-      return result
+      this.links.forEach(_ => {
+        if (newworkToNode[_.from] && newworkToNode[_.to]) {
+          dots.push(
+            `g_${newworkToNode[_.from]} -> g_${newworkToNode[_.to]}[id=gl_${_.guid},tooltip="${_.label ||
+              ''}",taillabel="${_.label || ''}"];`
+          )
+        }
+      })
+      return dots.join('')
     },
     setChildren (node, p1, pw, ph, tfsize, level) {
       let graph = d3.select('#physicalGraph').select(`#g_${node.guid}`)

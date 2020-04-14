@@ -121,14 +121,15 @@ import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
-import { VIEW_CONFIG_PARAMS } from '@/const/init-params.js'
-
-const REGIONAL_DATA_CENTER = 'resourcePlaningRegionalDataCenter'
-const NETWORK_SEGMENT = 'resourcePlaningNetworkSegmentDesign'
-const LAYER = 'idcPlanningLayer'
-const LINK_ID = 'resourcePlaningLinkId'
-const LINK_FROM = 'resourcePlaningLinkFrom'
-const LINK_TO = 'resourcePlaningLinkTo'
+import {
+  VIEW_CONFIG_PARAMS,
+  REGIONAL_DATA_CENTER,
+  NETWORK_SEGMENT,
+  LAYER,
+  RESOURCE_PLANNING_LINK_ID,
+  RESOURCE_PLANNING_LINK_FROM,
+  RESOURCE_PLANNING_LINK_TO
+} from '@/const/init-params.js'
 
 export default {
   data () {
@@ -256,7 +257,7 @@ export default {
       if (selectedIdcs.length) {
         this.spinShow = true
         const payload = {
-          id: this.initParams[LINK_ID],
+          id: this.initParams[RESOURCE_PLANNING_LINK_ID],
           queryObject: {}
         }
         const promiseArray = [getIdcImplementTreeByGuid(selectedIdcs), queryCiData(payload)]
@@ -303,8 +304,8 @@ export default {
           this.lineData = links.data.contents.map(_ => {
             return {
               guid: _.data.guid,
-              from: _.data[this.initParams[LINK_FROM]].guid,
-              to: _.data[this.initParams[LINK_TO]].guid,
+              from: _.data[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
+              to: _.data[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
               label: _.data.code,
               state: _.data.state.code
             }
