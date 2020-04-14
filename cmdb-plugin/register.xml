@@ -72,9 +72,9 @@
                     <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">cidata</parameter>
                 </inputParameters>
                 <outputParameters>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">resultCode</parameter>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">resultMessage</parameter>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">results</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">resultCode</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">resultMessage</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">results</parameter>
                 </outputParameters>
             </interface>
         </plugin>
@@ -85,9 +85,9 @@
                     <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">cidata</parameter>
                 </inputParameters>
                 <outputParameters>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">resultCode</parameter>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">resultMessage</parameter>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">results</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">resultCode</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">resultMessage</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">results</parameter>
                 </outputParameters>
             </interface>
         </plugin>
@@ -98,21 +98,21 @@
                     <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">cidata</parameter>
                 </inputParameters>
                 <outputParameters>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">resultCode</parameter>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">resultMessage</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">resultCode</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">resultMessage</parameter>
                 </outputParameters>
             </interface>
         </plugin>
         <plugin name="ci-data-query" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
-            <interface action="query" path="/wecmdb/entities" filterRule="" filterRule="">
+            <interface action="query" path="/wecmdb/entities" filterRule="">
                 <inputParameters>
                     <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">entity-name</parameter>
                     <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">queryObject</parameter>
                 </inputParameters>
                 <outputParameters>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">resultCode</parameter>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">resultMessage</parameter>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">results</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">resultCode</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">resultMessage</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">results</parameter>
                 </outputParameters>
             </interface>
         </plugin>
@@ -122,10 +122,10 @@
                     <parameter datatype="string" required="N" sensitiveData="N" mappingType="constant">guid</parameter>
                 </inputParameters>
                 <outputParameters>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">status</parameter>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">message</parameter>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">guid</parameter>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">fixed_date</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">status</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">message</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">guid</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">fixed_date</parameter>
                 </outputParameters>
             </interface>
         </plugin>
@@ -136,10 +136,10 @@
                     <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">guid</parameter>
                 </inputParameters>
                 <outputParameters>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">status</parameter>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">message</parameter>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">guid</parameter>
-                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">fixed_date</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">status</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">message</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">guid</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">fixed_date</parameter>
                 </outputParameters>
             </interface>
         </plugin>
