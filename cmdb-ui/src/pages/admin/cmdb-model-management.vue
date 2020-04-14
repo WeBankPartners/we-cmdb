@@ -1160,9 +1160,12 @@ export default {
     renderGraph (data) {
       let nodesString = this.genDOT(data)
       this.loadImage(nodesString)
-      this.graph.graphviz.transition().renderDot(nodesString).on('end', () => {
-        this.shadeAll()
-      })
+      this.graph.graphviz
+        .transition()
+        .renderDot(nodesString)
+        .on('end', () => {
+          this.shadeAll()
+        })
       addEvent('svg', 'mouseover', e => {
         this.shadeAll()
         e.preventDefault()
@@ -1242,9 +1245,10 @@ export default {
 
         this.graph.graphviz = graph
           .graphviz()
-          .zoom(true)
           .height(window.innerHeight - 178)
           .width(graphEl.offsetWidth)
+          .zoom(true)
+          .fit(true)
           .attributer(function (d) {
             if (d.attributes.class === 'edge') {
               const keys = d.key.split('->')

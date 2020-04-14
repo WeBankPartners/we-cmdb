@@ -115,7 +115,7 @@ export default {
           .map(_ => {
             return {
               ..._,
-              title: _.description,
+              title: _.name,
               key: _.propertyName,
               inputKey: _.propertyName,
               inputType: _.inputType,
