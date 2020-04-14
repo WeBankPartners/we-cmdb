@@ -36,10 +36,10 @@ export default {
 
         this.graph.graphviz = graph
           .graphviz()
-          .zoom(true)
-          .scale(1.2)
-          .width(window.innerWidth - 92)
+          .width(window.innerWidth - 20)
           .height(window.innerHeight - 92)
+          .zoom(true)
+          .fit(true)
           .attributer(function (d) {
             if (d.attributes.class === 'edge') {
               let keys = d.key.split('->')
@@ -72,7 +72,7 @@ export default {
         ])
         if (ciResponse.statusCode === 'OK' && _zoomLevelIdList.statusCode === 'OK') {
           if (_zoomLevelIdList.data.length) {
-            this.currentZoomLevelId = [_zoomLevelIdList.data[0].codeId]
+            this.currentZoomLevelId = _zoomLevelIdList.data.map(_ => _.codeId)
           }
           this.source = []
           this.source = ciResponse.data
@@ -114,7 +114,12 @@ export default {
     renderGraph (data) {
       let nodesString = this.genDOT(data)
       this.loadImage(nodesString)
-      this.graph.graphviz.transition().renderDot(nodesString)
+      this.graph.graphviz
+        .transition()
+        .renderDot(nodesString)
+        .on('end', () => {
+          this.shadeAll()
+        })
       let svg = d3.select('#graph').select('svg')
       svg.append('g').lower()
       addEvent('svg', 'mouseover', e => {
@@ -122,7 +127,6 @@ export default {
         e.preventDefault()
         e.stopPropagation()
       })
-      this.shadeAll()
       addEvent('.node', 'mouseover', async e => {
         e.preventDefault()
         e.stopPropagation()
