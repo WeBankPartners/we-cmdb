@@ -160,13 +160,14 @@ import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import PhysicalGraph from './physical-graph'
 import { colors, stateColor } from '../../const/graph-configuration'
-import { VIEW_CONFIG_PARAMS } from '@/const/init-params.js'
-
-const UNIT_ID = 'appDeploymentDesignUnitId'
-const BUSINESS_APP_INSTANCE_ID = 'appDeploymentDesignBusinessAppInstanceId'
-const INVOKE_ID = 'appDeploymentDesignInvokeId'
-const INVOKE_UNIT = 'appDeploymentDesignInvokeUnit'
-const INVOKED_UNIT = 'appDeploymentDesignInvokedUnit'
+import {
+  VIEW_CONFIG_PARAMS,
+  UNIT_ID,
+  BUSINESS_APP_INSTANCE_ID,
+  INVOKE_ID,
+  INVOKE_UNIT,
+  INVOKED_UNIT
+} from '@/const/init-params.js'
 const TREE_NODE_WIDTH = 1.8
 
 export default {
@@ -259,8 +260,8 @@ export default {
           .on('mousewheel.zoom', null)
         this.graph.graphviz = graph
           .graphviz()
-          .width(window.innerWidth * 0.96)
-          .height(window.innerHeight * 0.8)
+          .width(window.innerWidth - 60)
+          .height(window.innerHeight - 230)
           .zoom(true)
           .fit(true)
       }
@@ -595,8 +596,8 @@ export default {
           .on('mousewheel.zoom', null)
         this.graphTree.graphviz = graph
           .graphviz()
-          .width(window.innerWidth * 0.96)
-          .height(window.innerHeight * 0.8)
+          .width(window.innerWidth - 60)
+          .height(window.innerHeight - 230)
           .zoom(true)
           .fit(true)
       }
