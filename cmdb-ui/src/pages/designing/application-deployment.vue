@@ -168,7 +168,6 @@ import {
   INVOKE_UNIT,
   INVOKED_UNIT
 } from '@/const/init-params.js'
-const TREE_NODE_WIDTH = 1.8
 
 export default {
   components: {
@@ -625,8 +624,8 @@ export default {
         'rankdir=TB nodesep=0.5;',
         `size="${width},${height}";`,
         this.genlayerDot(data),
-        `Node [fontname=Arial, width=${TREE_NODE_WIDTH}, fixedsize=true, shape=ellipse;];`,
-        'Edge [fontname=Arial, fontsize=10, arrowhead="t"];',
+        `Node [fontname=Arial, shape=box;];`,
+        'Edge [fontname=Arial, arrowhead="t"];',
         `tooltip="${data[0].data.key_name}";`,
         ...this.genChildrenDot(data || [], 1),
         ...this.genRankNodeDot(),
@@ -684,20 +683,8 @@ export default {
       let dots = []
       data.forEach(_ => {
         let _label = _.data.code
-        let _fontsize = Math.min((100 * TREE_NODE_WIDTH) / _label.length, 16)
-        if (_label.length > 21) {
-          const _middle = Math.floor(_label.length / 2)
-          _label = _label.slice(0, _middle) + '\n' + _label.slice(_middle)
-          _fontsize = Math.min((100 * TREE_NODE_WIDTH) / (_label.length / 2), 16)
-        }
-        dots = dots.concat([
-          `"${_.guid}"`,
-          `[id="n_${_.guid}";`,
-          `label="${_label}";`,
-          `style="filled";color="${colors[level]}";`,
-          `fontsize="${_fontsize}";`,
-          `tooltip="${_.data.description || '-'}"];`
-        ])
+        _label = _label.length > 21 ? `${_label.slice(0, 1)}...${_label.slice(-20)}` : _label
+        dots = dots.concat([`"${_.guid}"`, `[id="n_${_.guid}";`, `label="${_label}";`, `tooltip="${_.data.code}"];`])
         this.rankNodes[_.ciTypeId].push(`"${_.guid}"`)
         if (_.children instanceof Array && _.children.length) {
           dots = dots.concat(this.genChildrenDot(_.children, level + 1))
