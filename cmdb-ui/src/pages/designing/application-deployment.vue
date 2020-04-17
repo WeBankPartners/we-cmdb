@@ -625,13 +625,12 @@ export default {
         `size="${width},${height}";`,
         this.genlayerDot(data),
         `Node [fontname=Arial, shape=box;];`,
-        'Edge [fontname=Arial, fontsize=10, arrowhead="t"];',
+        'Edge [fontname=Arial, arrowhead="t"];',
         `tooltip="${data[0].data.key_name}";`,
         ...this.genChildrenDot(data || [], 1),
         ...this.genRankNodeDot(),
         '}'
       ]
-      console.log(dots.join(' '))
       return dots.join(' ')
     },
     genlayerDot (data) {
