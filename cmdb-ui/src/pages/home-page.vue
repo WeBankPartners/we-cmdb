@@ -253,11 +253,7 @@ export default {
           node.attributes.forEach(attr => {
             if (attr.inputType === 'ref' || attr.inputType === 'multiRef') {
               const target = nodes.find(_ => _.ciTypeId === attr.referenceId)
-              if (
-                target &&
-                node.zoomLevelId === target.zoomLevelId &&
-                this.currentZoomLevelId.indexOf(node.zoomLevelId) >= 0
-              ) {
+              if (target) {
                 dots.push(this.genEdge(nodes, node, attr))
               }
             }
