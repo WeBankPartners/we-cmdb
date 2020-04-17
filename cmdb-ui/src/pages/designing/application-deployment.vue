@@ -684,13 +684,7 @@ export default {
       data.forEach(_ => {
         let _label = _.data.code
         _label = _label.length > 21 ? `${_label.slice(0, 1)}...${_label.slice(-20)}` : _label
-        dots = dots.concat([
-          `"${_.guid}"`,
-          `[id="n_${_.guid}";`,
-          `label="${_label}";`,
-          'fontsize="14";',
-          `tooltip="${_.data.code}"];`
-        ])
+        dots = dots.concat([`"${_.guid}"`, `[id="n_${_.guid}";`, `label="${_label}";`, `tooltip="${_.data.code}"];`])
         this.rankNodes[_.ciTypeId].push(`"${_.guid}"`)
         if (_.children instanceof Array && _.children.length) {
           dots = dots.concat(this.genChildrenDot(_.children, level + 1))
