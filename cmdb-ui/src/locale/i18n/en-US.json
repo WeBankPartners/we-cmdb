@@ -129,6 +129,7 @@
   "add_ci_attr_success": "New CI Type Attribute added successfully",
   "save_ci_attr_success": "CI Type Attribute saved successfully",
   "apply_ci_attr_success": "CI Type Attribute applied successfully",
+  "upload_icon_btn": "Upload Icon",
   "icon_upload_success": "Icon uploaded successfully",
   "icon_upload_failed": "Icon uploaded failed",
   "file_format_incorrect": "The file format is incorrect",
@@ -250,5 +251,6 @@
   "copyToNew": "Copy",
   "input_set_of_copy": "Please input count of copy",
   "set": "Copy",
-  "auto_fill_rule_incomplete": "Autofill Rule is incomplete!"
+  "auto_fill_rule_incomplete": "Autofill Rule is incomplete!",
+  "exceeding_file_size_limit": "Exceeding file size limit"
 }
