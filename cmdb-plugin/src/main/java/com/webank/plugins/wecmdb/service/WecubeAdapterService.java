@@ -89,7 +89,7 @@ public class WecubeAdapterService {
                 String errorMessage = "Field 'guid' is required for CI data confirmation.";
                 resultItem.put(ERROR_CODE, SUCCESS);
                 resultItem.put(ERROR_MESSAGE, errorMessage);
-                ExceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
+                //ExceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
                 results.add(resultItem);
                 return;
             }
@@ -115,7 +115,7 @@ public class WecubeAdapterService {
 
         return results;
     }
-
+    
     private int extractCiTypeIdFromGuid(String guid) {
         String ciTypeId = guid.split("_")[0].replaceAll("^(0+)", "");
         return Integer.valueOf(ciTypeId).intValue();
