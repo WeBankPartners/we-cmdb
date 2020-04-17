@@ -87,7 +87,7 @@ public class WecubeAdapterService {
 
             if (StringUtils.isBlank(operateCiDto.getGuid())) {
                 String errorMessage = "Field 'guid' is required for CI data confirmation.";
-                resultItem.put(ERROR_CODE, FAIL);
+                resultItem.put(ERROR_CODE, SUCCESS);
                 resultItem.put(ERROR_MESSAGE, errorMessage);
                 ExceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
                 results.add(resultItem);
