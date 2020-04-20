@@ -473,8 +473,8 @@ export default {
         }
         this.tabList.push(ci)
         this.currentTab = g.id
-        this.queryCiAttrs(g.id)
         this.$nextTick(() => {
+          this.queryCiAttrs(g.id)
           this.queryCiData(query)
         })
       } else {
