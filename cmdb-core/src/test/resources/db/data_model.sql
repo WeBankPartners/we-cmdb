@@ -165,7 +165,8 @@ INSERT INTO `adm_basekey_cat` (`id_adm_basekey_cat`, `cat_name`, `description`, 
 	(47, 'tmp', 'tmp', NULL, 1, NULL),
 	(48, 'deploy_user', '部署用户', NULL, 13, NULL),
 	(49, 'network_segment_type', NULL, NULL, 23, NULL),
-	(50, 'charge_period', NULL, NULL, 2, NULL);
+	(50, 'charge_period', NULL, NULL, 2, NULL),
+	(51, 'view_ci_type_id', '视图相关CI的ID', NULL, 1, NULL);
 
 CREATE TABLE IF NOT EXISTS `adm_basekey_code` (
   `id_adm_basekey` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_basekey',
@@ -376,8 +377,21 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(214, 48, 'app', 'tomcat应用用户', NULL, NULL, 1, 'active'),
 	(215, 46, 'guid_of_deploy_detail', '[{"ciTypeId": 7},{ "ciTypeId": 2, "parentRs": { "attrId": 109, "isReferedFromParent": 1}},{ "ciTypeId": 1,"parentRs": { "attrId": 27,"isReferedFromParent": 1}}]', NULL, NULL, 6, 'active'),
 	(216, 45, '15', '实例', NULL, NULL, 6, 'active'),
-	(217, 46, 'guid_of_instance', '[{"ciTypeId":15},{"ciTypeId":8,"parentRs":{"attrId":264,"isReferedFromParent":1}},{"ciTypeId":7,"parentRs":{"attrId":124,"isReferedFromParent":1}},{"ciTypeId":2,"parentRs":{"attrId":109,"isReferedFromParent":1}},{"ciTypeId":1,"parentRs":{"attrId":27,"isReferedFromParent":1}}]', 216, NULL, 7, 'active');
-
+	(217, 46, 'guid_of_instance', '[{"ciTypeId":15},{"ciTypeId":8,"parentRs":{"attrId":264,"isReferedFromParent":1}},{"ciTypeId":7,"parentRs":{"attrId":124,"isReferedFromParent":1}},{"ciTypeId":2,"parentRs":{"attrId":109,"isReferedFromParent":1}},{"ciTypeId":1,"parentRs":{"attrId":27,"isReferedFromParent":1}}]', 216, NULL, 7, 'active'),
+	(218, 51, 'ciTypeIdOfSystemDesign', '37', NULL, NULL, NULL, 'active'),
+	(219, 51, 'ciTypeIdOfSubsystemDesign', '38', NULL, NULL, NULL, 'active'),
+	(220, 51, 'ciTypeIdOfUnitDesign', '39', NULL, NULL, NULL, 'active'),
+	(221, 51, 'ciTypeIdOfUnit', '48', NULL, NULL, NULL, 'active'),
+	(222, 51, 'ciTypeIdOfSubsys', '47', NULL, NULL, NULL, 'active'),
+	(223, 51, 'ciTypeIdOfSystem', '46', NULL, NULL, NULL, 'active'),
+	(224, 51, 'ciTypeIdOfHost', '32', NULL, NULL, NULL, 'active'),
+	(225, 51, 'ciTypeIdOfInstance', '50', NULL, NULL, NULL, 'active'),
+	(226, 51, 'ciTypeIdOfIdc', '22', NULL, NULL, NULL, 'active'),
+	(227, 51, 'ciTypeIdOfZone', '24', NULL, NULL, NULL, 'active'),
+	(228, 51, 'ciTypeIdOfZoneLink', '26', NULL, NULL, NULL, 'active'),
+	(229, 51, 'ciTypeIdOfIdcDesign', '12', NULL, NULL, NULL, 'active'),
+	(230, 51, 'ciTypeIdOfZoneDesign', '14', NULL, NULL, NULL, 'active'),
+	(231, 51, 'ciTypeIdOfZoneLinkDesign', '16', NULL, NULL, NULL, 'active');
 CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_base` (
   `id_adm_ci_type_attr` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type_attr',
   `id_adm_ci_type` int(4) NOT NULL COMMENT 'id_adm_ci_type',
