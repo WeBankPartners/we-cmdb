@@ -43,7 +43,11 @@
               </Select>
             </Col>
           </Row>
-          <div class="graph-container" id="graph"></div>
+          <div class="graph-container" id="graph">
+            <Spin fix v-if="spinShow">
+              <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+            </Spin>
+          </div>
           <Modal v-model="isAddNewLayerModalVisible" :title="$t('add_layer')" @on-visible-change="addLayerModalToggle">
             <Form class="validation-form" ref="newLayerForm" :model="newLayer" label-position="left" :label-width="100">
               <FormItem label="Key" prop="addNewLayerCode">
@@ -163,20 +167,33 @@
                     <Input v-model="item.form.description" :disabled="item.form.status === 'decommissioned'"></Input>
                   </FormItem>
                   <FormItem :label="$t('icon')">
-                    <Select v-model="item.form.imageFileId">
-                      <img
-                        v-if="item.form.imageFileId"
-                        :src="`${baseURL}/files/${item.form.imageFileId}.png`"
-                        slot="prefix"
-                        height="24"
-                        width="24"
-                        style="margin-top:2px;"
-                      />
-                      <Option v-for="(item, i) in imgs" :key="i + 1" :value="i + 1">
-                        <img slot :src="`${baseURL}/files/${i + 1}.png`" width="30" height="30" />
-                        &nbsp;
-                      </Option>
-                    </Select>
+                    <img
+                      v-if="item.form.imageFileId"
+                      :src="`${baseURL}/files/${item.form.imageFileId}.png`"
+                      height="58"
+                      width="58"
+                    />
+                    <Button
+                      type="info"
+                      ghost
+                      icon="ios-cloud-upload-outline"
+                      style="display:block"
+                      @click="() => getHeaders(`editUploadButton-${item.form.ciTypeId}`)"
+                    >
+                      {{ $t('upload_icon_btn') }}
+                    </Button>
+                    <Upload
+                      :ref="`editUploadButton-${item.form.ciTypeId}`"
+                      show-upload-list
+                      :action="`${baseURL}/files/upload`"
+                      :headers="headers"
+                      :max-size="100"
+                      :on-exceeded-size="handleMaxSize"
+                      :on-success="(response, file, fileList) => onUploadSuccess(item.form, response)"
+                      :on-error="onUploadError"
+                    >
+                      <Button style="display:none" icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button>
+                    </Upload>
                   </FormItem>
                   <FormItem>
                     <Button
@@ -237,19 +254,33 @@
               <Input v-model="addNewCITypeForm.description"></Input>
             </FormItem>
             <FormItem :label="$t('icon')">
-              <Select v-model="addNewCITypeForm.imageFileId">
-                <img
-                  v-if="addNewCITypeForm.imageFileId"
-                  :src="`${baseURL}/files/${addNewCITypeForm.imageFileId}.png`"
-                  slot="prefix"
-                  height="24"
-                  width="24"
-                />
-                <Option v-for="(item, i) in imgs" :key="i + 1" :value="i + 1">
-                  <img slot :src="`${baseURL}/files/${i + 1}.png`" width="30" height="30" />
-                  &nbsp;
-                </Option>
-              </Select>
+              <img
+                v-if="addNewCITypeForm.imageFileId"
+                :src="`${baseURL}/files/${addNewCITypeForm.imageFileId}.png`"
+                height="58"
+                width="58"
+              />
+              <Button
+                type="info"
+                ghost
+                icon="ios-cloud-upload-outline"
+                style="display:block"
+                @click="() => getHeaders('addUploadButton')"
+              >
+                {{ $t('upload_icon_btn') }}
+              </Button>
+              <Upload
+                ref="addUploadButton"
+                show-upload-list
+                :action="`${baseURL}/files/upload`"
+                :headers="headers"
+                :max-size="100"
+                :on-exceeded-size="handleMaxSize"
+                :on-success="(response, file, fileList) => onUploadSuccess(addNewCITypeForm, response)"
+                :on-error="onUploadError"
+              >
+                <Button style="display:none" icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button>
+              </Upload>
             </FormItem>
             <FormItem>
               <Button
@@ -830,6 +861,8 @@ import enumGroupModal from './components/enum-group-modal'
 import AutoFill from '../components/auto-fill.js'
 import FilterRule from '../components/filter-rule'
 import { ZOOM_LEVEL_CAT } from '@/const/init-params.js'
+import { setCookie, getCookie } from '../util/cookie.js'
+import axios from 'axios'
 
 const defaultCiTypePNG = require('@/assets/ci-type-default.png')
 
@@ -842,7 +875,6 @@ export default {
   data () {
     return {
       baseURL,
-      imgs: new Array(26),
       currentZoomLevelId: [],
       zoomLevelIdList: [],
       source: [],
@@ -879,7 +911,7 @@ export default {
       currentSelectedCIChildren: [],
       addNewCITypeForm: {
         zoomLevelId: 1,
-        imageFileId: 1
+        imageFileId: 0
       },
       addNewAttrForm: {
         searchSeqNo: 0,
@@ -912,7 +944,9 @@ export default {
         saveAttr: false,
         addNewAttr: false
       },
-      isHandleNodeClick: false
+      isHandleNodeClick: false,
+      headers: {},
+      spinShow: false
     }
   },
   methods: {
@@ -930,7 +964,7 @@ export default {
         this.addNewCITypeForm = {
           zoomLevelId: 1,
           layerId: this.addNewCITypeForm.layerId,
-          imageFileId: 1
+          imageFileId: 0
         }
       }
     },
@@ -956,6 +990,7 @@ export default {
       this.enumGroupModalVisible = false
     },
     async initGraph (status = []) {
+      this.spinShow = true
       let graph
 
       const graphEl = document.getElementById('graph')
@@ -1173,6 +1208,7 @@ export default {
       })
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
       addEvent('.node', 'click', this.handleNodeClick)
+      this.spinShow = false
     },
     handleNodeMouseover (e) {
       e.preventDefault()
@@ -1234,6 +1270,7 @@ export default {
       }
     },
     changeLayer () {
+      this.spinShow = true
       let graph
       const graphEl = document.getElementById('graph')
       const initEvent = () => {
@@ -1561,7 +1598,7 @@ export default {
         zoomLevelId: 1,
         layerId: '',
         description: '',
-        imageFileId: 1
+        imageFileId: 0
       }
     },
     async submitCiType (id, form) {
@@ -1789,7 +1826,7 @@ export default {
     },
     handleMaxSize (file) {
       this.$Notice.warning({
-        title: 'Exceeding file size limit',
+        title: this.$t('exceeding_file_size_limit'),
         desc: formatString(this.$t('file_oversize_message'), file.name)
       })
     },
@@ -1852,6 +1889,74 @@ export default {
       this.currentSelectedCI = {}
       this.getAllCiTypeWithAttr()
       this.initGraph()
+    },
+    getHeaders (refId) {
+      if (!window.request) {
+        this.handleClick(refId)
+        return
+      }
+      let refreshRequest = null
+      const currentTime = new Date().getTime()
+      const accessToken = getCookie('accessToken')
+      if (accessToken) {
+        const expiration = getCookie('accessTokenExpirationTime') * 1 - currentTime
+        if (expiration < 1 * 60 * 1000 && !refreshRequest) {
+          refreshRequest = axios.get('/auth/v1/api/token', {
+            headers: {
+              Authorization: 'Bearer ' + getCookie('refreshToken')
+            }
+          })
+          refreshRequest.then(
+            res => {
+              setCookie(res.data.data)
+              this.setUploadActionHeader()
+              this.handleClick(refId)
+            },
+            // eslint-disable-next-line handle-callback-err
+            err => {
+              refreshRequest = null
+              window.location.href = window.location.origin + '/#/login'
+            }
+          )
+        } else {
+          this.setUploadActionHeader()
+          this.handleClick(refId)
+        }
+      } else {
+        window.location.href = window.location.origin + '/#/login'
+      }
+    },
+    handleClick (refId) {
+      if (this.$refs[refId] instanceof Array) {
+        this.$refs[refId][0].handleClick()
+      } else {
+        this.$refs[refId].handleClick()
+      }
+    },
+    setUploadActionHeader () {
+      this.headers = {
+        Authorization: 'Bearer ' + getCookie('accessToken')
+      }
+    },
+    onUploadSuccess (ci, response, file, fileList) {
+      if (response.statusCode === 'ERROR') {
+        this.$Notice.error({
+          title: 'Error',
+          desc: response.statusMessage || ''
+        })
+      } else {
+        this.$Notice.success({
+          title: 'Success',
+          desc: response.statusMessage || ''
+        })
+        ci.imageFileId = response.data.id
+      }
+    },
+    onUploadError (file, filelist) {
+      this.$Notice.error({
+        title: 'Error',
+        desc: file.statusMessage || ''
+      })
     }
   },
   mounted () {
@@ -1863,12 +1968,6 @@ export default {
     this.getSpecialConnector()
   },
   computed: {
-    setUploadActionHeader () {
-      let uploadToken = document.cookie.split(';').find(i => i.indexOf('XSRF-TOKEN') !== -1)
-      return {
-        'X-XSRF-TOKEN': uploadToken && uploadToken.split('=')[1]
-      }
-    },
     currentSelectLayerChildrenWithCurrentZoomLevelId () {
       if (this.currentSelectLayerChildren.ciTypes instanceof Array) {
         return this.currentSelectLayerChildren.ciTypes.filter(_ => this.currentZoomLevelId.indexOf(_.zoomLevelId) >= 0)
@@ -1891,6 +1990,10 @@ export default {
 .ivu-card-head p {
   height: 30px;
   line-height: 30px;
+}
+#graph {
+  position: relative;
+  height: calc(100vh - 200px);
 }
 .graph-container {
   overflow: hidden;
