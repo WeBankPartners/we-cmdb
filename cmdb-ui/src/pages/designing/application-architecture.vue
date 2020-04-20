@@ -159,6 +159,7 @@
                 :graphData="physicalGraphData"
                 :links="physicalGraphLinks"
                 :callback="graphCallback"
+                :initParams="initParams"
               ></PhysicalGraph>
               <div v-else class="no-data">{{ $t('no_data') }}</div>
               <Spin size="large" fix v-if="physicalSpin">
@@ -199,6 +200,7 @@
       :title="$t('copyToNew')"
       @on-ok="handleCopyToNew"
       @on-cancel="copyVisible = false"
+      :mask-closable="false"
     >
       <div class="copy-form">
         <div class="copy-label">{{ $t('input_set_of_copy') }}</div>
@@ -218,6 +220,7 @@
       @on-ok="handleCopySubmit"
       @on-cancel="copyTableVisible = false"
       :ok-text="$t('save')"
+      :mask-closable="false"
     >
       <WeCMDBTable
         v-if="copyTableVisible"
@@ -253,7 +256,7 @@ import {
   getArchitectureCiDatas,
   operateCiState,
   getIdcDesignTreeByGuid,
-  getAllZoneLinkDesignGroupByIdcDesign,
+  queryCiData,
   updateSystemDesign
 } from '@/api/server'
 import { outerActions, innerActions, pagination, components } from '@/const/actions.js'
@@ -263,17 +266,22 @@ import { getExtraInnerActions } from '../util/state-operations.js'
 import PhysicalGraph from './physical-graph'
 import moment from 'moment'
 import { colors, stateColor } from '../../const/graph-configuration'
-import { VIEW_CONFIG_PARAMS } from '@/const/init-params.js'
-
-const UNIT_DESIGN_ID = 'appArchitectureDesignUnitDesignId' // 单元设计的ciTypeId，也是两张图最小节点的ciTypeId
-const INVOKE_DESIGN_ID = 'appArchitectureDesignInvokeDesignId' // 调用设计的ciTypeId
-const SERVICE_INVOKE_DESIGN_ID = 'appArchitectureDesignServiceInvokeDesignId' // 服务调用设计的ciTypeId
-const SERVICE_DESIGN = 'appArchitectureDesignServiceDesign' // 服务设计ci的code
-const SERVICE_TYPE = 'appArchitectureDesignServiceType' // 服务类型
-const SERVICE_INVOKE_SEQ_DESIGN = 'appArchitectureDesignServiceInvokeDesignSequence' // 服务调用时序设计ci的code
-const INVOKE_SEQUENCE_ID = 'appArchitectureDesignInvokeSequenceId'
-const INVOKE_DIAGRAM_LINK_FROM = 'appArchitectureDesignInvokeDiagramLinkFrom'
-const INVOKE_DIAGRAM_LINK_TO = 'appArchitectureDesignInvokeDiagramLinkTo'
+import {
+  VIEW_CONFIG_PARAMS,
+  UNIT_DESIGN_ID,
+  INVOKE_DESIGN_ID,
+  SERVICE_INVOKE_DESIGN_ID,
+  SERVICE_DESIGN,
+  SERVICE_TYPE,
+  SERVICE_INVOKE_SEQ_DESIGN,
+  INVOKE_SEQUENCE_ID,
+  INVOKE_DIAGRAM_LINK_FROM,
+  INVOKE_DIAGRAM_LINK_TO,
+  INVOKE_TYPE,
+  IDC_PLANNING_LINK_ID,
+  IDC_PLANNING_LINK_FROM,
+  IDC_PLANNING_LINK_TO
+} from '@/const/init-params.js'
 
 export default {
   components: {
@@ -364,7 +372,8 @@ export default {
         }, [])
     },
     currentCols () {
-      return (this.tabList.find(ci => ci.id === this.currentTab) || {}).tableColumns
+      const cols = (this.tabList.find(ci => ci.id === this.currentTab) || {}).tableColumns || []
+      return cols.filter(col => !col.isAuto && col.isEditable)
     }
   },
   watch: {
@@ -549,7 +558,8 @@ export default {
                 from: _.data[this.initParams[INVOKE_DIAGRAM_LINK_FROM]],
                 to: _.data[this.initParams[INVOKE_DIAGRAM_LINK_TO]],
                 id: _.guid,
-                label: _.data.invoke_type.value,
+                label: _.data[this.initParams[INVOKE_TYPE]],
+                tooltip: _.data.description || '-',
                 state: _.data.state.code,
                 fixedDate: +new Date(_.data.fixed_date)
               }
@@ -570,6 +580,7 @@ export default {
                 to: _.data[this.initParams[INVOKE_DIAGRAM_LINK_TO]],
                 id: _.guid,
                 label: `${_.data[this.initParams[SERVICE_DESIGN]].name}:${linkTypeName}`,
+                tooltip: _.data.description || '-',
                 state: _.data.state.code,
                 fixedDate: +new Date(_.data.fixed_date)
               }
@@ -608,7 +619,11 @@ export default {
       if (!foundIdcGuid) {
         return
       }
-      const promiseArray = [getIdcDesignTreeByGuid([foundIdcGuid]), getAllZoneLinkDesignGroupByIdcDesign()]
+      const payload = {
+        id: this.initParams[IDC_PLANNING_LINK_ID],
+        queryObject: {}
+      }
+      const promiseArray = [getIdcDesignTreeByGuid([foundIdcGuid]), queryCiData(payload)]
       const [idcData, links] = await Promise.all(promiseArray)
       if (idcData.statusCode === 'OK') {
         let setDesigns = {}
@@ -646,16 +661,15 @@ export default {
         this.physicalSpin = false
       }
       if (links.statusCode === 'OK') {
-        const found = links.data.find(_ => _.idcGuid === foundIdcGuid)
-        this.physicalGraphLinks = found
-          ? found.linkList.map(_ => {
-            return {
-              ..._,
-              from: _.data.network_zone_design_1,
-              to: _.data.network_zone_design_2
-            }
-          })
-          : []
+        this.physicalGraphLinks = links.data.contents.map(_ => {
+          return {
+            guid: _.data.guid,
+            from: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
+            to: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
+            label: _.data.code,
+            state: _.data.state.code
+          }
+        })
       }
     },
     graphCallback () {
@@ -724,6 +738,8 @@ export default {
           .on('mousewheel.zoom', null)
         this.graph.graphviz = graph
           .graphviz()
+          .width(window.innerWidth - 20)
+          .height(window.innerHeight - 240)
           .fit(true)
           .zoom(true)
       }
@@ -825,18 +841,20 @@ export default {
         if (!this.graphNodes[id][node.to.guid]) {
           otherNodes.push(node.to)
         }
-        return `n_${node.from.guid} -> n_${node.to.guid}[id="gl_${node.id}",color="${color}",tooltip="${node.label ||
-          ''}",taillabel="${node.label || ''}"];`
+        return `n_${node.from.guid} -> n_${node.to.guid}[id="gl_${node.id}",color="${color}",tailtooltip="${
+          node.tooltip
+        }",taillabel="${node.label || ''}"];`
       })
       let nodes = []
       otherNodes.forEach(_ => {
         nodes = nodes.concat([
           `"n_${_.guid}"`,
           `[id="n_${_.guid}";`,
-          `label="${_.code || _.key_name}";`,
+          `label="${_.key_name}";`,
           'shape=box;',
           `style="filled";`,
-          `tooltip="${_.description || _.name}"];`
+          `title="${_.tooltip}"`,
+          `tooltip="${_.tooltip}"];`
         ])
       })
       return result.join('') + nodes.join('')
