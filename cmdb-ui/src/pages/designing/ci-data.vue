@@ -817,9 +817,9 @@ export default {
         queryObject: this.payload
       }
       const method = this.queryType === '2' ? queryCiDataByType : queryCiData
-      // this.$refs[this.tableRef][0].isTableLoading(true)
+      this.$refs[this.tableRef][0].isTableLoading(true)
       const { statusCode, data } = await method(query)
-      // this.$refs[this.tableRef][0].isTableLoading(false)
+      this.$refs[this.tableRef][0].isTableLoading(false)
       if (statusCode === 'OK') {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
