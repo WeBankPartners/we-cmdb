@@ -105,18 +105,18 @@ export const outerActions = [
       loading: false
     },
     actionType: 'export'
-  },
-  {
-    label: window.vm ? pluginI18n('column_filter') : Vue.t('column_filter'),
-    props: {
-      type: 'primary',
-      icon: 'ios-funnel',
-      shape: 'circle',
-      disabled: false,
-      loading: false
-    },
-    actionType: 'filterColumns'
   }
+  // {
+  //   label: window.vm ? pluginI18n('column_filter') : Vue.t('column_filter'),
+  //   props: {
+  //     type: 'primary',
+  //     icon: 'ios-funnel',
+  //     shape: 'circle',
+  //     disabled: false,
+  //     loading: false
+  //   },
+  //   actionType: 'filterColumns'
+  // }
 ]
 export const exportOuterActions = [
   {
