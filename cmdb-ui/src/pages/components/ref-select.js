@@ -115,7 +115,7 @@ export default {
           .map(_ => {
             return {
               ..._,
-              title: _.description,
+              title: _.name,
               key: _.propertyName,
               inputKey: _.propertyName,
               inputType: _.inputType,
@@ -214,6 +214,8 @@ export default {
       }
     },
     getFilterRulesOptions (val) {
+      this.firstInput = false
+      this.firstChange = false
       if (val) {
         this.pagination.currentPage = 1
         // this.queryCiData();

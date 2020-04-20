@@ -1,4 +1,5 @@
-SET FOREIGN_KEY_CHECKS=0;/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+SET FOREIGN_KEY_CHECKS=0;
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET NAMES utf8 */;
 /*!50503 SET NAMES utf8mb4 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
@@ -87,7 +88,9 @@ INSERT INTO `adm_basekey_cat_type` (`id_adm_basekey_cat_type`, `name`, `descript
 	(53, 'rdb_instance', '数据库实例', 51, 3),
 	(54, 'cache_instance', '缓存实例', 52, 3),
 	(55, 'lb_instance', '负载均衡实例', 53, 3),
-	(56, '节点类型', NULL, 54, 3);
+	(56, 'network_link_type', '网络连接类型', 54, 3),
+	(59, 'storage_type', '存储类型', 62, 3),
+	(60, 'charge_type', '计费模式', 63, 3);
 /*!40000 ALTER TABLE `adm_basekey_cat_type` ENABLE KEYS */;
 
 /*!40000 ALTER TABLE `adm_basekey_code` DISABLE KEYS */;
@@ -149,21 +152,22 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(55, 11, 'update-delete', '更新-删除', NULL, NULL, 4, 'active'),
 	(56, 11, 'update', '更新', NULL, NULL, 5, 'active'),
 	(57, 11, 'confirm', '确认', NULL, NULL, 6, 'active'),
-	(58, 20, 'idcPlanningLinkFrom', 'network_zone_design_1', NULL, NULL, 1, 'active'),
-	(59, 20, 'idcPlanningLinkTo', 'network_zone_design_2', NULL, NULL, 2, 'active'),
+	(58, 20, 'idcPlanningLinkFrom', 'network_segment_design_1', NULL, NULL, 1, 'active'),
+	(59, 20, 'idcPlanningLinkTo', 'network_segment_design_2', NULL, NULL, 2, 'active'),
 	(60, 20, 'idcPlanningLayer', 'network_zone_layer', NULL, NULL, 3, 'active'),
 	(61, 20, 'idcPlanningNetworkSegmentDesign', 'network_segment_design', NULL, NULL, 4, 'active'),
 	(62, 20, 'resourcePlaningRegionalDataCenter', 'regional_data_center', NULL, NULL, 5, 'active'),
 	(63, 20, 'resourcePlaningNetworkSegmentDesign', 'network_segment', NULL, NULL, 6, 'active'),
 	(64, 20, 'resourcePlaningDataCenter', 'data_center', NULL, NULL, 7, 'active'),
 	(65, 20, 'resourcePlaningVpcNetworkZone', 'vpc_network_zone', NULL, NULL, 8, 'active'),
-	(66, 20, 'resourcePlaningLinkFrom', 'network_zone_1', NULL, NULL, 9, 'active'),
-	(67, 20, 'resourcePlaningLinkTo', 'network_zone_2', NULL, NULL, 10, 'active'),
+	(66, 20, 'resourcePlaningLinkFrom', 'network_segment_1', NULL, NULL, 9, 'active'),
+	(67, 20, 'resourcePlaningLinkTo', 'network_segment_2', NULL, NULL, 10, 'active'),
 	(68, 20, 'appArchitectureDesignServiceDesign', 'service_design', NULL, NULL, 11, 'active'),
 	(69, 20, 'appArchitectureDesignServiceType', 'service_type', NULL, NULL, 12, 'active'),
 	(70, 20, 'appArchitectureDesignServiceInvokeDesignSequence', 'service_invoke_design_sequence', NULL, NULL, 13, 'active'),
 	(71, 20, 'appArchitectureDesignInvokeDiagramLinkFrom', 'invoke_unit_design', NULL, NULL, 14, 'active'),
 	(72, 20, 'appArchitectureDesignInvokeDiagramLinkTo', 'invoked_unit_design', NULL, NULL, 15, 'active'),
+	(73, 20, 'appDeploymentDesignResourceInstance', 'resource_instance', NULL, NULL, 16, 'active'),
 	(74, 20, 'appDeploymentDesignInvokeUnit', 'invoke_unit', NULL, NULL, 17, 'active'),
 	(75, 20, 'appDeploymentDesignInvokedUnit', 'invoked_unit', NULL, NULL, 18, 'active'),
 	(77, 20, 'appArchitectureDesignSyetemDesign', 'app_system_design', NULL, NULL, 19, 'active'),
@@ -190,7 +194,7 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(104, 12, '13', '网段设计', NULL, NULL, 1, 'active'),
 	(105, 12, '14', '网络区域设计', NULL, NULL, 2, 'active'),
 	(106, 12, '15', '默认安全策略设计', NULL, NULL, 3, 'active'),
-	(107, 12, '16', '网络区域连接设计', NULL, NULL, 4, 'active'),
+	(107, 12, '16', '网络连接设计', NULL, NULL, 4, 'active'),
 	(111, 12, '20', '路由设计', NULL, NULL, 5, 'active'),
 	(112, 12, '18', '业务区域设计', NULL, NULL, 6, 'active'),
 	(113, 12, '19', '资源集合设计', NULL, NULL, 7, 'active'),
@@ -198,7 +202,7 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(115, 13, 'network_segment_design', '[{"ciTypeId":13},{"ciTypeId":12,"parentRs":{"attrId":193,"isReferedFromParent":1}}]', 104, NULL, 1, 'active'),
 	(116, 13, 'network_zone_design', '[{"ciTypeId":14},{"ciTypeId":12,"parentRs":{"attrId":209,"isReferedFromParent":1}}]', 105, NULL, 2, 'active'),
 	(117, 13, 'default_security_policy_design', '[{"ciTypeId":15},{"ciTypeId":13,"parentRs":{"attrId":225,"isReferedFromParent":1}},{"ciTypeId":12,"parentRs":{"attrId":193,"isReferedFromParent":1}}]', 106, NULL, 3, 'active'),
-	(118, 13, 'network_zone_link_design', '[{"ciTypeId":16},{"ciTypeId":14,"parentRs":{"attrId":245,"isReferedFromParent":1}},{"ciTypeId":12,"parentRs":{"attrId":209,"isReferedFromParent":1}}]', 107, NULL, 4, 'active'),
+	(118, 13, 'network_link_design', '[{"ciTypeId":16},{"ciTypeId":13,"parentRs":{"attrId":245,"isReferedFromParent":1}},{"ciTypeId":12,"parentRs":{"attrId":193,"isReferedFromParent":1}}]', 107, NULL, 4, 'active'),
 	(119, 13, 'route_design', '[{"ciTypeId":20},{"ciTypeId":13,"parentRs":{"attrId":308,"isReferedFromParent":1}},{"ciTypeId":12,"parentRs":{"attrId":193,"isReferedFromParent":1}}]', 111, NULL, 5, 'active'),
 	(120, 13, 'business_zone_design', '[{"ciTypeId":18},{"ciTypeId":14,"parentRs":{"attrId":276,"isReferedFromParent":1}},{"ciTypeId":12,"parentRs":{"attrId":209,"isReferedFromParent":1}}]', 112, NULL, 6, 'active'),
 	(121, 13, 'resource_set_design', '[{"ciTypeId":19},{"ciTypeId":18,"parentRs":{"attrId":292,"isReferedFromParent":1}},{"ciTypeId":14,"parentRs":{"attrId":276,"isReferedFromParent":1}},{"ciTypeId":12,"parentRs":{"attrId":209,"isReferedFromParent":1}}]', 113, NULL, 7, 'active'),
@@ -214,7 +218,7 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(131, 15, 'network_segment', '[{"ciTypeId":23},{"ciTypeId":22,"parentRs":{"attrId":361,"isReferedFromParent":1}}]', 123, NULL, 1, 'active'),
 	(132, 15, 'network_zone', '[{"ciTypeId":24},{"ciTypeId":22,"parentRs":{"attrId":383,"isReferedFromParent":1}}]', 124, NULL, 2, 'active'),
 	(133, 15, 'default_security_policy', '[{"ciTypeId":25},{"ciTypeId":23,"parentRs":{"attrId":403,"isReferedFromParent":1}},{"ciTypeId":22,"parentRs":{"attrId":361,"isReferedFromParent":1}}]', 125, NULL, 3, 'active'),
-	(134, 15, 'network_zone_link', '[{"ciTypeId":26},{"ciTypeId":24,"parentRs":{"attrId":424,"isReferedFromParent":1}},{"ciTypeId":22,"parentRs":{"attrId":383,"isReferedFromParent":1}}]', 126, NULL, 4, 'active'),
+	(134, 15, 'network_link', '[{"ciTypeId":26},{"ciTypeId":23,"parentRs":{"attrId":424,"isReferedFromParent":1}},{"ciTypeId":22,"parentRs":{"attrId":361,"isReferedFromParent":1}}]', 126, NULL, 4, 'active'),
 	(135, 15, 'route', '[{"ciTypeId":30},{"ciTypeId":23,"parentRs":{"attrId":505,"isReferedFromParent":1}},{"ciTypeId":22,"parentRs":{"attrId":361,"isReferedFromParent":1}}]', 127, NULL, 5, 'active'),
 	(136, 15, 'business_zone', '[{"ciTypeId":28},{"ciTypeId":24,"parentRs":{"attrId":463,"isReferedFromParent":1}},{"ciTypeId":22,"parentRs":{"attrId":383,"isReferedFromParent":1}}]', 128, NULL, 6, 'active'),
 	(137, 15, 'resource_set', '[{"ciTypeId":29},{"ciTypeId":28,"parentRs":{"attrId":481,"isReferedFromParent":1}},{"ciTypeId":24,"parentRs":{"attrId":463,"isReferedFromParent":1}},{"ciTypeId":22,"parentRs":{"attrId":383,"isReferedFromParent":1}}]', 129, NULL, 7, 'active'),
@@ -257,7 +261,10 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(174, 19, 'lb_instance', '[{"ciTypeId":53},{"ciTypeId":48,"parentRs":{"attrId":1003,"isReferedFromParent":1}},{"ciTypeId":47,"parentRs":{"attrId":886,"isReferedFromParent":1}},{"ciTypeId":46,"parentRs":{"attrId":869,"isReferedFromParent":1}}]', 167, NULL, 15, 'active'),
 	(175, 20, 'appDeploymentDesignUnitId', '48', NULL, NULL, 25, 'active'),
 	(176, 20, 'appDeploymentDesignInvokeId', '49', NULL, NULL, 26, 'active'),
-	(177, 20, 'appDeploymentDesignBusinessAppInstanceId', '50,51,52,53', NULL, NULL, 27, 'active');
+	(177, 20, 'appDeploymentDesignBusinessAppInstanceId', '50,51,52,53', NULL, NULL, 27, 'active'),
+	(178, 20, 'resourcePlaningLinkId', '26', NULL, NULL, 28, 'active'),
+	(179, 20, 'idcPlanningLinkId', '16', NULL, NULL, 29, 'active'),
+	(180, 20, 'appArchitectureDesignInvokeType', 'invoke_type', NULL, NULL, 30, 'active');
 /*!40000 ALTER TABLE `adm_basekey_code` ENABLE KEYS */;
 
 /*!40000 ALTER TABLE `adm_ci_type` DISABLE KEYS */;
@@ -277,7 +284,7 @@ INSERT INTO `adm_ci_type` (`id_adm_ci_type`, `name`, `image_file_id`, `descripti
 	(13, '网段设计', 21, '网段设计', NULL, 'network_segment_design', 'created', 12, NULL, 3, 6, 14, NULL),
 	(14, '网络区域设计', 23, '网络区域设计', NULL, 'network_zone_design', 'created', 12, NULL, 4, 6, 13, NULL),
 	(15, '默认安全策略设计', 15, '默认安全策略设计', NULL, 'default_security_policy_design', 'created', 12, NULL, 5, 6, 14, NULL),
-	(16, '网络区域连接设计', 24, '网络区域连接设计', NULL, 'network_zone_link_design', 'created', 12, NULL, 6, 6, 14, NULL),
+	(16, '网络连接设计', 24, '网络连接设计', NULL, 'network_link_design', 'created', 12, NULL, 6, 6, 14, NULL),
 	(18, '业务区域设计', 25, '业务区域设计', NULL, 'business_zone_design', 'created', 12, NULL, 8, 6, 13, NULL),
 	(19, '资源集合设计', 26, '资源集合设计', NULL, 'resource_set_design', 'created', 12, NULL, 9, 6, 13, NULL),
 	(20, '路由设计', 10, '路由设计', NULL, 'route_design', 'created', 12, NULL, 10, 6, 14, NULL),
@@ -286,7 +293,7 @@ INSERT INTO `adm_ci_type` (`id_adm_ci_type`, `name`, `image_file_id`, `descripti
 	(23, '网段', 21, '网段', NULL, 'network_segment', 'created', 11, NULL, 4, 5, 14, NULL),
 	(24, '网络区域', 17, '网络区域', NULL, 'network_zone', 'created', 11, NULL, 5, 5, 13, NULL),
 	(25, '默认安全策略', 15, '默认安全策略', NULL, 'default_security_policy', 'created', 11, NULL, 6, 5, 14, NULL),
-	(26, '网络区域连接', 18, '网络区域连接', NULL, 'network_zone_link', 'created', 11, NULL, 7, 5, 14, NULL),
+	(26, '网络连接', 18, '网络连接', NULL, 'network_link', 'created', 11, NULL, 7, 5, 14, NULL),
 	(28, '业务区域', 19, '业务区域', NULL, 'business_zone', 'created', 11, NULL, 9, 5, 13, NULL),
 	(29, '资源集合', 20, '资源集合', NULL, 'resource_set', 'created', 11, NULL, 10, 5, 13, NULL),
 	(30, '路由', 10, '路由', NULL, 'route', 'created', 11, NULL, 11, 5, 14, NULL),
@@ -313,8 +320,11 @@ INSERT INTO `adm_ci_type` (`id_adm_ci_type`, `name`, `image_file_id`, `descripti
 	(51, '数据库实例', 15, '数据库实例', NULL, 'rdb_instance', 'created', 9, NULL, 8, 3, 13, NULL),
 	(52, '缓存实例', 15, '缓存实例', NULL, 'cache_instance', 'created', 9, NULL, 9, 3, 13, NULL),
 	(53, '负载均衡实例', 15, '负载均衡实例', NULL, 'lb_instance', 'created', 9, NULL, 10, 3, 13, NULL),
-	(54, '节点类型', 1, '业务区域和资源集合的类型', NULL, 'node_type', 'created', NULL, NULL, 1, 5, 15, NULL);
+	(54, '网络连接类型', 1, '网络连接类型', NULL, 'network_link_type', 'created', NULL, NULL, 1, 5, 15, NULL),
+	(62, '存储类型', 13, '存储类型', NULL, 'storage_type', 'created', NULL, NULL, 2, 4, 15, NULL),
+	(63, '计费模式', 19, '计费模式', NULL, 'charge_type', 'created', NULL, NULL, 3, 4, 15, NULL);
 /*!40000 ALTER TABLE `adm_ci_type` ENABLE KEYS */;
+
 
 /*!40000 ALTER TABLE `adm_ci_type_attr_base` DISABLE KEYS */;
 INSERT INTO `adm_ci_type_attr_base` (`id_adm_ci_type_attr`, `id_adm_ci_type`, `name`, `description`, `input_type`, `property_name`, `property_type`, `length`, `reference_id`, `reference_name`, `reference_type`, `filter_rule`, `search_seq_no`, `display_type`, `display_seq_no`, `edit_is_null`, `edit_is_only`, `edit_is_hiden`, `edit_is_editable`, `is_defunct`, `special_logic`, `status`, `is_system`, `is_access_controlled`, `is_auto`, `auto_fill_rule`, `regular_expression_rule`, `is_refreshable`) VALUES
@@ -554,7 +564,9 @@ INSERT INTO `adm_role_ci_type` (`id_adm_role_ci_type`, `id_adm_role`, `id_adm_ci
 	(519, 11, 51, '数据库实例', 'N', 'N', 'N', 'N', 'N', 'N'),
 	(520, 11, 52, '缓存实例', 'N', 'N', 'N', 'N', 'N', 'N'),
 	(521, 11, 53, '负载均衡实例', 'N', 'N', 'N', 'N', 'N', 'N'),
-	(522, 11, 54, '节点类型', 'N', 'N', 'N', 'N', 'N', 'N');
+	(522, 11, 54, '节点类型', 'N', 'N', 'N', 'N', 'N', 'N'),
+	(523, 1, 62, '存储类型', 'Y', 'Y', 'Y', 'Y', 'Y', 'N'),
+	(524, 1, 63, '计费模型', 'Y', 'Y', 'Y', 'Y', 'Y', 'N');
 /*!40000 ALTER TABLE `adm_role_ci_type` ENABLE KEYS */;
 
 /*!40000 ALTER TABLE `adm_role_ci_type_ctrl_attr` DISABLE KEYS */;
@@ -633,59 +645,62 @@ INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`, `
 
 /*!40000 ALTER TABLE `adm_sequence` DISABLE KEYS */;
 INSERT INTO `adm_sequence` (`id_adm_sequence`, `seq_name`, `current_val`, `increment_val`, `length_limitation`, `left_zero_padding`) VALUES
-	(2, 'manage_role', 1, 1, 8, 'N'),
-	(4, 'data_center_design', 9, 1, 8, 'N'),
-	(9, 'network_segment_design', 18, 1, 8, 'N'),
-	(10, 'network_zone_design', 5, 1, 8, 'N'),
-	(11, 'application_domain', 5, 1, 8, 'N'),
-	(12, 'business_zone_design', 3, 1, 8, 'N'),
-	(13, 'unit_type', 6, 1, 8, 'N'),
-	(14, 'resource_set_design', 9, 1, 8, 'N'),
-	(16, 'resource_set_invoke_design', 10, 1, 8, 'N'),
-	(18, 'network_zone_link_design', 3, 1, 8, 'N'),
-	(20, 'default_security_policy_design', 10, 1, 8, 'N'),
-	(22, 'network_zone_route_design', 3, 1, 8, 'N'),
-	(23, 'resource_set_route_design', 1, 1, 8, 'N'),
-	(24, 'cloud_vendor', 2, 1, 8, 'N'),
-	(25, 'deploy_environment', 4, 1, 8, 'N'),
-	(26, 'data_center', 3, 1, 8, 'N'),
-	(27, 'network_segment', 24, 1, 8, 'N'),
-	(28, 'network_zone', 7, 1, 8, 'N'),
-	(29, 'business_zone', 6, 1, 8, 'N'),
-	(30, 'cluster_type', 5, 1, 8, 'N'),
-	(31, 'cluster_node_type', 6, 1, 8, 'N'),
-	(33, 'resource_set', 18, 1, 8, 'N'),
-	(35, 'ip_address', 20, 1, 8, 'N'),
-	(36, 'resource_instance_type', 10, 1, 8, 'N'),
-	(37, 'resource_instance_system', 4, 1, 8, 'N'),
-	(38, 'resource_instance_spec', 6, 1, 8, 'N'),
-	(41, 'host_resource_instance', 4, 1, 8, 'N'),
-	(43, 'node_type', 2, 1, 8, 'N'),
-	(45, 'rdb_resource_instance', 1, 1, 8, 'N'),
-	(47, 'lb_resource_instance', 1, 1, 8, 'N'),
-	(48, 'app_system_design', 7, 1, 8, 'N'),
-	(49, 'subsys_design', 3, 1, 8, 'N'),
-	(50, 'unit_design', 6, 1, 8, 'N'),
-	(52, 'invoke_design', 4, 1, 8, 'N'),
-	(53, 'service_design', 1, 1, 8, 'N'),
-	(54, 'service_invoke_design', 2, 1, 8, 'N'),
-	(55, 'legal_person', 1, 1, 8, 'N'),
-	(56, 'app_system', 1, 1, 8, 'N'),
-	(57, 'subsys', 2, 1, 8, 'N'),
-	(65, 'unit', 4, 1, 8, 'N'),
-	(70, 'app_instance', 2, 1, 8, 'N'),
-	(71, 'network_zone_link', 3, 1, 8, 'N'),
-	(72, 'route_design', 6, 1, 8, 'N'),
-	(74, 'route', 6, 1, 8, 'N'),
-	(75, 'default_security_policy', 11, 1, 8, 'N'),
-	(78, 'rdb_instance', 1, 1, 8, 'N'),
-	(79, 'lb_instance', 1, 1, 8, 'N'),
-	(82, 'invoke', 3, 1, 8, 'N'),
-	(83, 'deploy_package', 2, 1, 8, 'N'),
-	(84, 'diff_configuration', 9, 1, 8, 'N'),
-	(86, 'cache_resource_instance', 1, 1, 8, 'N'),
-	(91, 'block_storage', 1, 1, 8, 'N'),
-	(92, 'service_invoke_seq_design', 1, 1, 8, 'N');
+	(1, 'manage_role', 1, 1, 8, 'N'),
+	(2, 'data_center_design', 1, 1, 8, 'N'),
+	(3, 'network_segment_design', 26, 1, 8, 'N'),
+	(4, 'network_zone_design', 7, 1, 8, 'N'),
+	(5, 'application_domain', 2, 1, 8, 'N'),
+	(6, 'business_zone_design', 6, 1, 8, 'N'),
+	(7, 'unit_type', 6, 1, 8, 'N'),
+	(8, 'resource_set_design', 19, 1, 8, 'N'),
+	(9, 'resource_set_invoke_design', 16, 1, 8, 'N'),
+	(10, 'network_link_design', 11, 1, 8, 'N'),
+	(11, 'default_security_policy_design', 24, 1, 8, 'N'),
+	(12, 'network_zone_route_design', 0, 1, 8, 'N'),
+	(13, 'resource_set_route_design', 0, 1, 8, 'N'),
+	(14, 'cloud_vendor', 2, 1, 8, 'N'),
+	(15, 'deploy_environment', 2, 1, 8, 'N'),
+	(16, 'data_center', 6, 1, 8, 'N'),
+	(17, 'network_segment', 45, 1, 8, 'N'),
+	(18, 'network_zone', 5, 1, 8, 'N'),
+	(19, 'business_zone', 9, 1, 8, 'N'),
+	(20, 'cluster_type', 6, 1, 8, 'N'),
+	(21, 'cluster_node_type', 4, 1, 8, 'N'),
+	(22, 'resource_set', 30, 1, 8, 'N'),
+	(23, 'ip_address', 114, 1, 8, 'N'),
+	(24, 'resource_instance_type', 8, 1, 8, 'N'),
+	(25, 'resource_instance_system', 5, 1, 8, 'N'),
+	(26, 'resource_instance_spec', 11, 1, 8, 'N'),
+	(27, 'host_resource_instance', 6, 1, 8, 'N'),
+	(28, 'network_link_type', 2, 1, 8, 'N'),
+	(29, 'rdb_resource_instance', 3, 1, 8, 'N'),
+	(30, 'lb_resource_instance', 2, 1, 8, 'N'),
+	(31, 'app_system_design', 4, 1, 8, 'N'),
+	(32, 'subsys_design', 13, 1, 8, 'N'),
+	(33, 'unit_design', 21, 1, 8, 'N'),
+	(34, 'invoke_design', 28, 1, 8, 'N'),
+	(35, 'service_design', 1, 1, 8, 'N'),
+	(36, 'service_invoke_design', 1, 1, 8, 'N'),
+	(37, 'legal_person', 1, 1, 8, 'N'),
+	(38, 'app_system', 4, 1, 8, 'N'),
+	(39, 'subsys', 13, 1, 8, 'N'),
+	(40, 'unit', 21, 1, 8, 'N'),
+	(41, 'app_instance', 10, 1, 8, 'N'),
+	(42, 'network_link', 6, 1, 8, 'N'),
+	(43, 'route_design', 15, 1, 8, 'N'),
+	(44, 'route', 2, 1, 8, 'N'),
+	(45, 'default_security_policy', 14, 1, 8, 'N'),
+	(46, 'rdb_instance', 3, 1, 8, 'N'),
+	(47, 'lb_instance', 4, 1, 8, 'N'),
+	(48, 'invoke', 28, 1, 8, 'N'),
+	(49, 'deploy_package', 1, 1, 8, 'N'),
+	(50, 'diff_configuration', 0, 1, 8, 'N'),
+	(51, 'cache_resource_instance', 1, 1, 8, 'N'),
+	(52, 'block_storage', 0, 1, 8, 'N'),
+	(53, 'service_invoke_seq_design', 0, 1, 8, 'N'),
+	(54, 'cache_instance', 1, 1, 8, 'N'),
+	(55, 'charge_type', 2, 1, 8, 'N'),
+	(56, 'storage_type', 8, 1, 8, 'N');
 /*!40000 ALTER TABLE `adm_sequence` ENABLE KEYS */;
 
 /*!40000 ALTER TABLE `adm_state_transition` DISABLE KEYS */;
@@ -750,8 +765,4 @@ INSERT INTO `adm_state_transition` (`id_adm_state_transition`, `current_state`, 
 	(58, 40, 1, 42, 0, 46, 53, 'active'),
 	(59, 42, 0, 40, 1, 47, 55, 'active');
 /*!40000 ALTER TABLE `adm_state_transition` ENABLE KEYS */;
-
-/*!40000 ALTER TABLE `adm_tenement` DISABLE KEYS */;
-/*!40000 ALTER TABLE `adm_tenement` ENABLE KEYS */;
-
 SET FOREIGN_KEY_CHECKS=1;
