@@ -7,7 +7,7 @@
         </card>
       </TabPane>
       <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name">
-        <WeCMDBTable
+        <CMDBTable
           :tableData="ci.tableData"
           :tableOuterActions="ci.outerActions"
           :tableInnerActions="ci.innerActions"
@@ -24,7 +24,7 @@
           @pageSizeChange="pageSizeChange"
           tableHeight="650"
           :ref="'table' + ci.id"
-        ></WeCMDBTable>
+        ></CMDBTable>
         <!-- 对比 -->
         <Modal footer-hide v-model="compareVisible" width="90" class-name="compare-modal">
           <Table :columns="ci.tableColumns.filter(x => x.isDisplayed || x.displaySeqNo)" :data="compareData" border />
@@ -463,9 +463,12 @@ export default {
     renderGraph (data) {
       let nodesString = this.genDOT(data)
       this.loadImage(nodesString)
-      this.graph.graphviz.transition().renderDot(nodesString).on('end', () => {
-        this.shadeAll()
-      })
+      this.graph.graphviz
+        .transition()
+        .renderDot(nodesString)
+        .on('end', () => {
+          this.shadeAll()
+        })
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
       addEvent('svg', 'mouseover', this.handleSvgMouseover)
       addEvent('.node', 'click', this.handleNodeClick)
@@ -583,7 +586,7 @@ export default {
           }
         })
       }
-      this.$refs[this.tableRef][0].setTableData(checkoutBoxdisable)
+      // this.$refs[this.tableRef][0].setTableData(checkoutBoxdisable)
     },
     actionFun (type, data, cols) {
       switch (type) {
@@ -602,9 +605,9 @@ export default {
         case 'delete':
           this.deleteHandler(data)
           break
-        case 'cancel':
-          this.cancelHandler()
-          break
+        // case 'cancel':
+        //   this.cancelHandler()
+        //   break
         case 'innerCancel':
           this.$refs[this.tableRef][0].rowCancelHandler(data.weTableRowId)
           break
@@ -620,30 +623,31 @@ export default {
       }
     },
     copyHandler (rows = [], cols) {
-      const columns = cols.reduce((arr, x) => {
-        if (x.key && !x.isAuto && x.isEditable) {
-          arr.push(x.key)
-        }
-        return arr
-      }, [])
-      this.copyRows = rows.map(row => {
-        return columns.reduce(
-          (obj, x) => {
-            obj[x] = row[x]
-            return obj
-          },
-          {
-            guid: '',
-            r_guid: '',
-            p_guid: '',
-            state: '',
-            fixed_date: '',
-            isRowEditable: true,
-            forceEdit: true
-          }
-        )
-      })
-      this.copyVisible = true
+      this.$refs[this.tableRef][0].showCopyModal()
+      // const columns = cols.reduce((arr, x) => {
+      //   if (x.key && !x.isAuto && x.isEditable) {
+      //     arr.push(x.key)
+      //   }
+      //   return arr
+      // }, [])
+      // this.copyRows = rows.map(row => {
+      //   return columns.reduce(
+      //     (obj, x) => {
+      //       obj[x] = row[x]
+      //       return obj
+      //     },
+      //     {
+      //       guid: '',
+      //       r_guid: '',
+      //       p_guid: '',
+      //       state: '',
+      //       fixed_date: '',
+      //       isRowEditable: true,
+      //       forceEdit: true
+      //     }
+      //   )
+      // })
+      // this.copyVisible = true
     },
     handleCopyToNew () {
       this.copyVisible = false
@@ -788,29 +792,29 @@ export default {
           emptyRowData['isNewAddedRow'] = true
           emptyRowData['weTableRowId'] = 1
           emptyRowData['nextOperations'] = []
-          ci.tableData.unshift(emptyRowData)
-          this.$nextTick(() => {
-            this.$refs[this.tableRef][0].pushNewAddedRowToSelections()
-            this.$refs[this.tableRef][0].setCheckoutStatus(true)
-          })
-          ci.outerActions.forEach(_ => {
-            _.props.disabled = _.actionType === 'add'
-          })
+          this.$refs[this.tableRef][0].pushNewAddedRowToSelections(emptyRowData)
+          // this.$refs[this.tableRef][0].setCheckoutStatus(true)
+          this.$refs[this.tableRef][0].showAddModal()
+          // this.$nextTick(() => {
+          // })
+          // ci.outerActions.forEach(_ => {
+          //   _.props.disabled = _.actionType === 'add'
+          // })
         }
       })
     },
-    cancelHandler () {
-      this.$refs[this.tableRef][0].setAllRowsUneditable()
-      this.$refs[this.tableRef][0].setCheckoutStatus()
-      this.tabList.forEach(ci => {
-        if (ci.id === this.currentTab) {
-          ci.outerActions.forEach(_ => {
-            _.props.disabled = resetButtonDisabled(_)
-          })
-        }
-      })
-      this.queryCiData()
-    },
+    // cancelHandler () {
+    //   this.$refs[this.tableRef][0].setAllRowsUneditable()
+    //   this.$refs[this.tableRef][0].setCheckoutStatus()
+    //   this.tabList.forEach(ci => {
+    //     if (ci.id === this.currentTab) {
+    //       ci.outerActions.forEach(_ => {
+    //         _.props.disabled = resetButtonDisabled(_)
+    //       })
+    //     }
+    //   })
+    //   this.queryCiData()
+    // },
     deleteHandler (deleteData) {
       this.$Modal.confirm({
         title: this.$t('delete_confirm'),
@@ -841,19 +845,20 @@ export default {
       document.querySelector('.ivu-modal-mask').click()
     },
     editHandler () {
-      this.$refs[this.tableRef][0].swapRowEditable(true)
-      this.tabList.forEach(ci => {
-        if (ci.id === this.currentTab) {
-          ci.outerActions.forEach(_ => {
-            if (_.actionType === 'save') {
-              _.props.disabled = false
-            }
-          })
-        }
-      })
-      this.$nextTick(() => {
-        this.$refs[this.tableRef][0].setCheckoutStatus(true)
-      })
+      // this.$refs[this.tableRef][0].swapRowEditable(true)
+      // this.tabList.forEach(ci => {
+      //   if (ci.id === this.currentTab) {
+      //     ci.outerActions.forEach(_ => {
+      //       if (_.actionType === 'save') {
+      //         _.props.disabled = false
+      //       }
+      //     })
+      //   }
+      // })
+      // this.$nextTick(() => {
+      //   this.$refs[this.tableRef][0].setCheckoutStatus(true)
+      // })
+      this.$refs[this.tableRef][0].showEditModal()
     },
     deleteAttr () {
       let attrs = []
