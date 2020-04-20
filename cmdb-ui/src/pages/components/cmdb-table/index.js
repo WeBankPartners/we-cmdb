@@ -34,7 +34,9 @@ export default {
         edit: this.$t('edit'),
         copy: this.$t('copyToNew')
       },
-      modalTitle: ''
+      modalTitle: '',
+      modalLoading: false,
+      tableLoading: false
     }
   },
   component: {
@@ -545,25 +547,39 @@ export default {
     closeEditModal (flag) {
       this.modalVisible = flag
     },
+    resetModalLoading () {
+      this.modalLoading = false
+    },
+    isTableLoading (flag) {
+      this.tableLoading = flag
+    },
     editModalOkHandler (data) {
+      this.modalLoading = true
       if (this.modalTitle === this.titles.edit) {
-        this.$emit('editHandler', data)
-      }
-      if (this.modalTitle === this.titles.add) {
-        this.$emit('addHandler', data)
-      }
-      if (this.modalTitle === this.titles.copy) {
-        this.$emit('copyHandler', data)
+        this.$emit('confirmEditHandler', data)
+      } else {
+        this.$emit('confirmAddHandler', data)
       }
     }
   },
   render (h) {
-    const { data, columns, pagination, highlightRow, filtersHidden, modalVisible, selectedRows } = this
+    const {
+      data,
+      columns,
+      pagination,
+      highlightRow,
+      filtersHidden,
+      modalVisible,
+      selectedRows,
+      modalLoading,
+      tableLoading
+    } = this
     return (
       <div>
         {!filtersHidden && <div>{this.getFormFilters()}</div>}
         <Row style="margin-bottom:10px">{this.getTableOuterActions()}</Row>
         <Table
+          loading={tableLoading}
           ref="table"
           border
           data={data}
@@ -596,6 +612,7 @@ export default {
           on-closeEditModal={this.closeEditModal}
           on-editModalOkHandler={this.editModalOkHandler}
           modalVisible={modalVisible}
+          modalLoading={modalLoading}
         ></EditModal>
       </div>
     )
