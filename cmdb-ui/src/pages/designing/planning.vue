@@ -13,7 +13,7 @@
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
         <div>{{ $t('loading') }}</div>
       </Spin>
-      <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
+      <Tabs v-show="idcDesignData" type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
         <TabPane :label="$t('planning_design_diagram')" name="resource-design">
           <Alert show-icon closable v-if="isDataChanged">
             Data has beed changed, click Reload button to reload graph.
@@ -51,6 +51,7 @@
         :title="$t('copyToNew')"
         @on-ok="handleCopyToNew"
         @on-cancel="copyVisible = false"
+        :mask-closable="false"
       >
         <div class="copy-form">
           <div class="copy-label">{{ $t('input_set_of_copy') }}</div>
@@ -70,6 +71,7 @@
         @on-ok="handleCopySubmit"
         @on-cancel="copyTableVisible = false"
         :ok-text="$t('save')"
+        :mask-closable="false"
       >
         <WeCMDBTable
           v-if="copyTableVisible"
@@ -103,19 +105,21 @@ import {
   getPlanningDesignTabs,
   getAllIdcDesignData,
   getIdcDesignTreeByGuid,
-  getAllZoneLinkDesignGroupByIdcDesign,
+  queryCiData,
   operateCiState
 } from '@/api/server'
 import { outerActions, innerActions, pagination, components } from '@/const/actions.js'
 import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
-import { colors } from '../../const/graph-configuration'
-import { VIEW_CONFIG_PARAMS } from '@/const/init-params.js'
-
-const NETWORK_SEGMENT_DESIGN = 'idcPlanningNetworkSegmentDesign'
-const LINK_FROM = 'idcPlanningLinkFrom'
-const LINK_TO = 'idcPlanningLinkTo'
+import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
+import {
+  VIEW_CONFIG_PARAMS,
+  NETWORK_SEGMENT_DESIGN,
+  IDC_PLANNING_LINK_ID,
+  IDC_PLANNING_LINK_FROM,
+  IDC_PLANNING_LINK_TO
+} from '@/const/init-params.js'
 
 export default {
   data () {
@@ -131,9 +135,9 @@ export default {
         },
         paging: true
       },
-      graph: new Map(),
+      graph: {},
       idcDesignData: null,
-      zoneLinkDesignData: new Map(),
+      idcLink: [],
       currentTab: 'resource-design',
       currentGraph: '',
       spinShow: false,
@@ -142,7 +146,8 @@ export default {
       copyTableVisible: false,
       noOfCopy: 1,
       copyRows: [],
-      copyEditData: null
+      copyEditData: null,
+      graphNodes: {}
     }
   },
   computed: {
@@ -161,7 +166,8 @@ export default {
         }, [])
     },
     currentCols () {
-      return (this.tabList.find(ci => ci.id === this.currentTab) || {}).tableColumns
+      const cols = (this.tabList.find(ci => ci.id === this.currentTab) || {}).tableColumns || []
+      return cols.filter(col => !col.isAuto && col.isEditable)
     }
   },
   watch: {
@@ -179,22 +185,29 @@ export default {
       this.spinShow = true
       const { data, statusCode } = await getIdcDesignTreeByGuid([guid])
       if (statusCode === 'OK') {
-        const formatTree = array =>
-          array.map(_ => {
-            let result = {
-              ..._
+        const sortingTree = array => {
+          let obj = {}
+          array.forEach(_ => {
+            _.text = [_.data.code]
+            if (_.data[this.initParams[NETWORK_SEGMENT_DESIGN]] instanceof Array) {
+              let text = []
+              _.data[this.initParams[NETWORK_SEGMENT_DESIGN]].forEach(networkSegmentDesign => {
+                text.push(networkSegmentDesign.code)
+              })
+              _.text.push(`[${text.join(', ')}]`)
+            } else if (typeof _.data[this.initParams[NETWORK_SEGMENT_DESIGN]] === 'object') {
+              _.text.push(_.data[this.initParams[NETWORK_SEGMENT_DESIGN]].code || '')
             }
-            if (_.data[this.initParams[NETWORK_SEGMENT_DESIGN]]) {
-              result.text = [_.data.code || '', _.data[this.initParams[NETWORK_SEGMENT_DESIGN]].code || '']
-            } else {
-              result.text = [_.data.code || '']
+            if (_.children instanceof Array) {
+              _.children = sortingTree(_.children)
             }
-            if (_.children instanceof Array && _.children.length) {
-              result.children = formatTree(_.children)
-            }
-            return result
+            obj[_.data.code + _.guid] = _
           })
-        this.idcDesignData = formatTree(data)[0]
+          return Object.keys(obj)
+            .sort()
+            .map(_ => obj[_])
+        }
+        this.idcDesignData = sortingTree(data)
         this.getZoneLink()
       }
     },
@@ -212,33 +225,30 @@ export default {
 
       let graphZoom = graph
         .graphviz()
-        .width(window.innerWidth * 0.96)
-        .height(window.innerHeight * 1.2)
+        .width(window.innerWidth - 20)
+        .height(window.innerHeight - 230)
         .zoom(true)
         .fit(true)
-      if (this.graph.has(this.idcDesignData.guid)) {
-        this.graph[this.idcDesignData.guid] = graphZoom
-      } else {
-        this.graph.set(this.idcDesignData.guid, graphZoom)
-      }
-      this.renderGraph(this.idcDesignData)
+      const idcData = this.idcDesignData[0]
+      this.graph = graphZoom
+      this.renderGraph(idcData)
       this.spinShow = false
     },
-    genDOT (idcData, linkData) {
-      let links = linkData || []
-      let fsize = 16
+    genDOT (idcData) {
+      this.graphNodes = {}
       let width = 16
       let height = 12
       let dots = [
         'digraph G {',
         'rankdir=TB nodesep=0.5;',
-        `node [shape="box", fontsize="${fsize}", labelloc="t", penwidth="2"];`,
+        `Node[shape=box,fontsize=${fontSize},labelloc=t,penwidth=2];`,
+        'Edge[fontsize=8,arrowhead="none"];',
         `subgraph cluster_${idcData.data.guid} {`,
         `style="filled";color="${colors[0]}";`,
         `label="${idcData.data.name || idcData.data.description || idcData.data.code}";`,
         `size="${width},${height}";`,
         this.genChildren(idcData),
-        this.genLink(links),
+        this.genLink(),
         '}}'
       ]
       return dots.join('')
@@ -266,39 +276,53 @@ export default {
           let ll = (width - 0.5 * layer.length) / layer.length
           layer.forEach(zone => {
             let label
-            if (zone.data.code && zone.data.code !== null && zone.data.code !== '') {
-              label = zone.data.code
+            if (zone.data.code) {
+              label = `${zone.data.code}\n${
+                zone.data[this.initParams[NETWORK_SEGMENT_DESIGN]]
+                  ? zone.data[this.initParams[NETWORK_SEGMENT_DESIGN]].code
+                  : ''
+              }`
             } else {
               label = zone.data.key_name
             }
+            this.graphNodes[zone.guid] = zone
             dots.push(
-              `g_${zone.guid}[id="g_${zone.guid}",color="${colors[1]}",label="${label}",width=${ll},height=${lg}];`
+              `g_${zone.guid}[id="g_${zone.guid}",style="filled",color="${colors[1]}",label="${label}",width=${ll},height=${lg}];`
             )
           })
           dots.push('}')
         })
       } else {
         dots.push(
-          `g_${idcData.data.guid}[label=" ";color="${colors[0]}";width="${width - 0.5}";height="${height - 3}"]`
+          `g_${idcData.data.guid}[label=" ";style="filled";color="${colors[1]}";width="${width -
+            0.5}";height="${height - 3}"]`
         )
       }
       return dots.join('')
     },
-    genLink (links) {
-      let result = ''
-      links.forEach(link => {
-        result += `${link.azone}->${link.bzone}[arrowhead="none"];`
+    genLink () {
+      let dots = []
+      let newworkToNode = {}
+      Object.keys(this.graphNodes).forEach(guid => {
+        const networkSegmentDesign = this.graphNodes[guid].data[this.initParams[NETWORK_SEGMENT_DESIGN]]
+        if (networkSegmentDesign) {
+          newworkToNode[networkSegmentDesign.guid] = guid
+        }
       })
-      return result
+      this.idcLink.forEach(_ => {
+        if (newworkToNode[_.from] && newworkToNode[_.to]) {
+          dots.push(
+            `g_${newworkToNode[_.from]} -> g_${newworkToNode[_.to]}[id=gl_${_.guid},tooltip="${_.label ||
+              ''}",taillabel="${_.label || ''}"];`
+          )
+        }
+      })
+      return dots.join('')
     },
     renderGraph (idcData) {
-      let nodesString = this.genDOT(idcData, this.zoneLinkDesignData.get(idcData.guid))
-      this.graph
-        .get(idcData.guid)
-        .transition()
-        .renderDot(nodesString)
-      let fsize = 16
-      let divWidth = window.innerWidth
+      let nodesString = this.genDOT(idcData)
+      this.graph.transition().renderDot(nodesString)
+      let divWidth = window.innerWidth - 20
       let divHeight = window.innerHeight - 220
       let children = idcData.children || []
       let svg = d3.select('#graph').select('svg')
@@ -321,7 +345,7 @@ export default {
           }
           let pw = parseInt(points[0].split(',')[0] - points[1].split(',')[0])
           let ph = parseInt(points[2].split(',')[1] - points[1].split(',')[1])
-          this.setChildren(zone, p, pw, ph, fsize, 1, 1)
+          this.setChildren(zone, p, pw, ph, fontSize, 2, 1)
         }
       })
     },
@@ -935,28 +959,22 @@ export default {
       this.queryCiData()
     },
     async getZoneLink () {
-      this.zoneLinkDesignData = new Map()
-      const { statusCode, data } = await getAllZoneLinkDesignGroupByIdcDesign()
+      this.idcLink = []
+      const payload = {
+        id: this.initParams[IDC_PLANNING_LINK_ID],
+        queryObject: {}
+      }
+      const { statusCode, data } = await queryCiData(payload)
       if (statusCode === 'OK') {
-        const idcLink = data.find(_ => _.idcGuid === this.selectedIdc)
-        if (idcLink && idcLink.linkList) {
-          idcLink.linkList.forEach(_ => {
-            let zoneLink = {}
-            if (
-              _.data[this.initParams[LINK_FROM]].data_center_design === this.selectedIdc &&
-              _.data[this.initParams[LINK_TO]].data_center_design === this.selectedIdc
-            ) {
-              zoneLink.azone = `g_${_.data[this.initParams[LINK_FROM]].guid}`
-              zoneLink.bzone = `g_${_.data[this.initParams[LINK_TO]].guid}`
-              const guid = this.idcDesignData.data.guid
-              if (this.zoneLinkDesignData.has(guid)) {
-                this.zoneLinkDesignData.get(guid).push(zoneLink)
-              } else {
-                this.zoneLinkDesignData.set(guid, [zoneLink])
-              }
-            }
-          })
-        }
+        this.idcLink = data.contents.map(_ => {
+          return {
+            guid: _.data.guid,
+            from: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
+            to: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
+            label: _.data.code,
+            state: _.data.state.code
+          }
+        })
       }
       this.initGraph()
     },
