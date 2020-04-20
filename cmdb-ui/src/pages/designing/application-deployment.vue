@@ -95,6 +95,7 @@
       :title="$t('copyToNew')"
       @on-ok="handleCopyToNew"
       @on-cancel="copyVisible = false"
+      :mask-closable="false"
     >
       <div class="copy-form">
         <div class="copy-label">{{ $t('input_set_of_copy') }}</div>
@@ -114,6 +115,7 @@
       @on-ok="handleCopySubmit"
       @on-cancel="copyTableVisible = false"
       :ok-text="$t('save')"
+      :mask-closable="false"
     >
       <WeCMDBTable
         v-if="copyTableVisible"
@@ -158,14 +160,14 @@ import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import PhysicalGraph from './physical-graph'
 import { colors, stateColor } from '../../const/graph-configuration'
-import { VIEW_CONFIG_PARAMS } from '@/const/init-params.js'
-
-const UNIT_ID = 'appDeploymentDesignUnitId'
-const BUSINESS_APP_INSTANCE_ID = 'appDeploymentDesignBusinessAppInstanceId'
-const INVOKE_ID = 'appDeploymentDesignInvokeId'
-const INVOKE_UNIT = 'appDeploymentDesignInvokeUnit'
-const INVOKED_UNIT = 'appDeploymentDesignInvokedUnit'
-const TREE_NODE_WIDTH = 1.8
+import {
+  VIEW_CONFIG_PARAMS,
+  UNIT_ID,
+  BUSINESS_APP_INSTANCE_ID,
+  INVOKE_ID,
+  INVOKE_UNIT,
+  INVOKED_UNIT
+} from '@/const/init-params.js'
 
 export default {
   components: {
@@ -232,7 +234,8 @@ export default {
         }, [])
     },
     currentCols () {
-      return (this.tabList.find(ci => ci.id === this.currentTab) || {}).tableColumns
+      const cols = (this.tabList.find(ci => ci.id === this.currentTab) || {}).tableColumns || []
+      return cols.filter(col => !col.isAuto && col.isEditable)
     }
   },
   watch: {
@@ -256,8 +259,8 @@ export default {
           .on('mousewheel.zoom', null)
         this.graph.graphviz = graph
           .graphviz()
-          .width(window.innerWidth * 0.96)
-          .height(window.innerHeight * 0.8)
+          .width(window.innerWidth - 60)
+          .height(window.innerHeight - 230)
           .zoom(true)
           .fit(true)
       }
@@ -592,8 +595,8 @@ export default {
           .on('mousewheel.zoom', null)
         this.graphTree.graphviz = graph
           .graphviz()
-          .width(window.innerWidth * 0.96)
-          .height(window.innerHeight * 0.8)
+          .width(window.innerWidth - 60)
+          .height(window.innerHeight - 230)
           .zoom(true)
           .fit(true)
       }
@@ -621,8 +624,8 @@ export default {
         'rankdir=TB nodesep=0.5;',
         `size="${width},${height}";`,
         this.genlayerDot(data),
-        `Node [fontname=Arial, width=${TREE_NODE_WIDTH}, fixedsize=true, shape=ellipse;];`,
-        'Edge [fontname=Arial, fontsize=10, arrowhead="t"];',
+        `Node [fontname=Arial, shape=box;];`,
+        'Edge [fontname=Arial, arrowhead="t"];',
         `tooltip="${data[0].data.key_name}";`,
         ...this.genChildrenDot(data || [], 1),
         ...this.genRankNodeDot(),
@@ -680,20 +683,8 @@ export default {
       let dots = []
       data.forEach(_ => {
         let _label = _.data.code
-        let _fontsize = Math.min((100 * TREE_NODE_WIDTH) / _label.length, 16)
-        if (_label.length > 21) {
-          const _middle = Math.floor(_label.length / 2)
-          _label = _label.slice(0, _middle) + '\n' + _label.slice(_middle)
-          _fontsize = Math.min((100 * TREE_NODE_WIDTH) / (_label.length / 2), 16)
-        }
-        dots = dots.concat([
-          `"${_.guid}"`,
-          `[id="n_${_.guid}";`,
-          `label="${_label}";`,
-          `style="filled";color="${colors[level]}";`,
-          `fontsize="${_fontsize}";`,
-          `tooltip="${_.data.description || '-'}"];`
-        ])
+        _label = _label.length > 21 ? `${_label.slice(0, 1)}...${_label.slice(-20)}` : _label
+        dots = dots.concat([`"${_.guid}"`, `[id="n_${_.guid}";`, `label="${_label}";`, `tooltip="${_.data.code}"];`])
         this.rankNodes[_.ciTypeId].push(`"${_.guid}"`)
         if (_.children instanceof Array && _.children.length) {
           dots = dots.concat(this.genChildrenDot(_.children, level + 1))
