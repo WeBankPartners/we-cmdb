@@ -7,6 +7,10 @@ export default {
     }
   },
   props: {
+    modalLoading: {
+      default: false,
+      type: Boolean
+    },
     isEdit: {},
     title: {
       type: String
@@ -47,7 +51,6 @@ export default {
   methods: {
     okHandler () {
       this.$emit('editModalOkHandler', this.editData)
-      this.$emit('closeEditModal', false)
     },
     cancelHandler () {
       this.$emit('closeEditModal', false)
@@ -66,9 +69,7 @@ export default {
         }
         return arr
       }, [])
-      let temData = JSON.parse(JSON.stringify(this.editData))
-      temData = Object.freeze(temData)
-      const copyRows = temData.map(row => {
+      const copyRows = this.editData.map(row => {
         let obj = {
           guid: '',
           r_guid: '',
@@ -81,17 +82,39 @@ export default {
         columns.forEach(x => {
           obj[x] = row[x]
         })
-        console.log(obj)
         return obj
       })
-      console.log(copyRows)
       this.editData = []
       for (let i = 0; i < this.noOfCopy; i++) {
-        this.editData = this.editData.concat(copyRows)
+        this.editData = this.editData.concat(JSON.parse(JSON.stringify(copyRows)))
         if (this.editData.length > 20) break
       }
     },
     renderDataRows () {
+      let setValueHandler = (v, col, row) => {
+        let attrsWillReset = []
+        if (['select', 'ref', 'multiSelect', 'multiRef'].indexOf(col.inputType) > -1) {
+          this.columns.forEach(_ => {
+            if (_.displaySeqNo > col.displaySeqNo && _.filterRule) {
+              if (['multiSelect', 'multiRef'].indexOf(_.inputType) >= 0) {
+                attrsWillReset.push({
+                  propertyName: _.propertyName,
+                  value: []
+                })
+              } else if (['select', 'ref'].indexOf(_.inputType) >= 0) {
+                attrsWillReset.push({
+                  propertyName: _.propertyName,
+                  value: ''
+                })
+              }
+            }
+          })
+        }
+        row[col.inputKey] = v
+        attrsWillReset.forEach(attr => {
+          row[attr.propertyName] = attr.value
+        })
+      }
       return (
         <div style={`width: ${this.tableWidth}px`}>
           {this.editData.map((d, index) => {
@@ -112,7 +135,7 @@ export default {
                           propertyName={column.propertyName}
                           value={d[column.propertyName]}
                           onInput={v => {
-                            d[column.propertyName] = v
+                            setValueHandler(v, column, d)
                           }}
                         />
                       </div>
@@ -160,7 +183,7 @@ export default {
                         }
                     const fun = {
                       input: v => {
-                        d[column.propertyName] = v
+                        setValueHandler(v, column, d)
                       }
                     }
                     const data = {
@@ -191,9 +214,8 @@ export default {
         title={this.title}
         width={90}
         value={this.modalVisible}
+        footer-hide={true}
         on-on-visible-change={this.visibleChange}
-        on-on-ok={this.okHandler}
-        on-on-cancel={this.cancelHandler}
       >
         {!this.isEdit && (
           <div style="margin-bottom: 20px">
@@ -226,6 +248,19 @@ export default {
             })}
           </div>
           {this.renderDataRows()}
+        </div>
+        <div style="margin-top:20px;height: 30px">
+          <Button
+            style="float: right;margin-right: 20px"
+            loading={this.modalLoading}
+            onClick={this.okHandler}
+            type="primary"
+          >
+            {this.$t('save')}
+          </Button>
+          <Button style="float: right;margin-right: 20px" onClick={this.cancelHandler}>
+            {this.$t('cancel')}
+          </Button>
         </div>
       </Modal>
     )
