@@ -36,6 +36,57 @@ export const components = {
     component: 'WeCMDBCIPassword'
   }
 }
+export const newOuterActions = [
+  {
+    label: window.vm ? pluginI18n('new') : Vue.t('new'),
+    props: {
+      type: 'success',
+      icon: 'md-add',
+      disabled: false,
+      loading: false
+    },
+    actionType: 'add'
+  },
+  {
+    label: window.vm ? pluginI18n('copyToNew') : Vue.t('copyToNew'),
+    props: {
+      type: 'success',
+      icon: 'md-add',
+      disabled: true,
+      loading: false
+    },
+    actionType: 'copy'
+  },
+  {
+    label: window.vm ? pluginI18n('edit') : Vue.t('edit'),
+    props: {
+      type: 'info',
+      icon: 'ios-build',
+      disabled: true,
+      loading: false
+    },
+    actionType: 'edit'
+  },
+  {
+    label: window.vm ? pluginI18n('delete') : Vue.t('delete'),
+    props: {
+      type: 'error',
+      icon: 'ios-trash-outline',
+      disabled: true,
+      loading: false
+    },
+    actionType: 'delete'
+  },
+  {
+    label: window.vm ? pluginI18n('export') : Vue.t('export'),
+    props: {
+      type: 'primary',
+      icon: 'ios-download-outline',
+      loading: false
+    },
+    actionType: 'export'
+  }
+]
 export const outerActions = [
   {
     label: window.vm ? pluginI18n('new') : Vue.t('new'),
@@ -105,18 +156,18 @@ export const outerActions = [
       loading: false
     },
     actionType: 'export'
-  },
-  {
-    label: window.vm ? pluginI18n('column_filter') : Vue.t('column_filter'),
-    props: {
-      type: 'primary',
-      icon: 'ios-funnel',
-      shape: 'circle',
-      disabled: false,
-      loading: false
-    },
-    actionType: 'filterColumns'
   }
+  // {
+  //   label: window.vm ? pluginI18n('column_filter') : Vue.t('column_filter'),
+  //   props: {
+  //     type: 'primary',
+  //     icon: 'ios-funnel',
+  //     shape: 'circle',
+  //     disabled: false,
+  //     loading: false
+  //   },
+  //   actionType: 'filterColumns'
+  // }
 ]
 export const exportOuterActions = [
   {
