@@ -7,7 +7,7 @@
         </card>
       </TabPane>
       <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name">
-        <WeCMDBTable
+        <CMDBTable
           :tableData="ci.tableData"
           :tableOuterActions="ci.outerActions"
           :tableInnerActions="ci.innerActions"
@@ -22,9 +22,11 @@
           @getSelectedRows="onSelectedRowsChange"
           @pageChange="pageChange"
           @pageSizeChange="pageSizeChange"
+          @confirmAddHandler="confirmAddHandler"
+          @confirmEditHandler="confirmEditHandler"
           tableHeight="650"
           :ref="'table' + ci.id"
-        ></WeCMDBTable>
+        ></CMDBTable>
         <!-- 对比 -->
         <Modal footer-hide v-model="compareVisible" width="90" class-name="compare-modal">
           <Table :columns="ci.tableColumns.filter(x => x.isDisplayed || x.displaySeqNo)" :data="compareData" border />
@@ -53,51 +55,6 @@
         </Select>
       </div>
     </Tabs>
-    <!-- 复制新增询问 -->
-    <Modal
-      v-model="copyVisible"
-      transfer
-      width="23"
-      class-name="copy-modal"
-      :title="$t('copyToNew')"
-      @on-ok="handleCopyToNew"
-      @on-cancel="copyVisible = false"
-      :mask-closable="false"
-    >
-      <div class="copy-form">
-        <div class="copy-label">{{ $t('input_set_of_copy') }}</div>
-        <div class="copy-input">
-          <InputNumber :min="1" :step="1" v-model="noOfCopy" />
-          <span>{{ $t('set') }}</span>
-        </div>
-      </div>
-    </Modal>
-    <!-- 复制新增编辑 -->
-    <Modal
-      v-model="copyTableVisible"
-      transfer
-      width="90"
-      class-name="copy-modal"
-      :title="$t('copyToNew')"
-      @on-ok="handleCopySubmit"
-      @on-cancel="copyTableVisible = false"
-      :ok-text="$t('save')"
-      :mask-closable="false"
-    >
-      <WeCMDBTable
-        v-if="copyTableVisible"
-        :tableColumns="currentCols"
-        :tableData="copyData"
-        :showCheckbox="false"
-        :filtersHidden="true"
-        :tableInnerActions="null"
-        :tableOuterActions="null"
-        :isColumnsFilterOn="false"
-        :isSortable="false"
-        :ref="'copy' + currentTab"
-        @getSelectedRows="handleCopyEditData"
-      />
-    </Modal>
   </div>
 </template>
 <script>
@@ -119,7 +76,7 @@ import {
   operateCiState
 } from '@/api/server'
 import { setHeaders, baseURL } from '@/api/base.js'
-import { outerActions, innerActions, pagination, components, exportOuterActions } from '@/const/actions.js'
+import { pagination, components, newExportOuterActions, newOuterActions } from '@/const/actions.js'
 import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
@@ -158,9 +115,6 @@ export default {
       queryType: '1', // 1 - 最新； 2 - 现实； 3 - 所有；
       queryDate: null,
       zoomLevelIdList: [],
-      copyVisible: false,
-      copyTableVisible: false,
-      noOfCopy: 1,
       copyRows: [],
       copyEditData: null,
       isHandleNodeClick: false
@@ -185,25 +139,10 @@ export default {
       } else {
         return null
       }
-    },
-    copyData () {
-      return Array(this.noOfCopy)
-        .fill(0)
-        .reduce(arr => {
-          arr = arr.concat(this.copyRows)
-          return arr
-        }, [])
-    },
-    currentCols () {
-      const cols = (this.tabList.find(ci => ci.id === this.currentTab) || {}).tableColumns || []
-      return cols.filter(col => !col.isAuto && col.isEditable)
     }
   },
   watch: {
     currentTab () {
-      this.copyVisible = false
-      this.copyTableVisible = false
-      this.noOfCopy = 1
       this.copyRows = []
       this.copyEditData = null
     }
@@ -463,9 +402,12 @@ export default {
     renderGraph (data) {
       let nodesString = this.genDOT(data)
       this.loadImage(nodesString)
-      this.graph.graphviz.transition().renderDot(nodesString).on('end', () => {
-        this.shadeAll()
-      })
+      this.graph.graphviz
+        .transition()
+        .renderDot(nodesString)
+        .on('end', () => {
+          this.shadeAll()
+        })
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
       addEvent('svg', 'mouseover', this.handleSvgMouseover)
       addEvent('.node', 'click', this.handleNodeClick)
@@ -502,13 +444,13 @@ export default {
           tableData: [],
           outerActions:
             this.$route.name === 'ciDataEnquiry'
-              ? JSON.parse(JSON.stringify(exportOuterActions))
-              : JSON.parse(JSON.stringify(outerActions)),
+              ? JSON.parse(JSON.stringify(newExportOuterActions))
+              : JSON.parse(JSON.stringify(newOuterActions)),
           innerActions:
             this.$route.name === 'ciDataEnquiry'
               ? null
               : deepClone(
-                innerActions.concat(await getExtraInnerActions()).concat([
+                [].concat(await getExtraInnerActions()).concat([
                   {
                     label: this.$t('compare'),
                     props: {
@@ -531,8 +473,10 @@ export default {
         }
         this.tabList.push(ci)
         this.currentTab = g.id
-        this.queryCiAttrs(g.id)
-        this.queryCiData(query)
+        this.$nextTick(() => {
+          this.queryCiAttrs(g.id)
+          this.queryCiData(query)
+        })
       } else {
         this.currentTab = g.id
       }
@@ -583,7 +527,6 @@ export default {
           }
         })
       }
-      this.$refs[this.tableRef][0].setTableData(checkoutBoxdisable)
     },
     actionFun (type, data, cols) {
       switch (type) {
@@ -596,14 +539,8 @@ export default {
         case 'edit':
           this.editHandler()
           break
-        case 'save':
-          this.saveHandler(data)
-          break
         case 'delete':
           this.deleteHandler(data)
-          break
-        case 'cancel':
-          this.cancelHandler()
           break
         case 'innerCancel':
           this.$refs[this.tableRef][0].rowCancelHandler(data.weTableRowId)
@@ -620,82 +557,7 @@ export default {
       }
     },
     copyHandler (rows = [], cols) {
-      const columns = cols.reduce((arr, x) => {
-        if (x.key && !x.isAuto && x.isEditable) {
-          arr.push(x.key)
-        }
-        return arr
-      }, [])
-      this.copyRows = rows.map(row => {
-        return columns.reduce(
-          (obj, x) => {
-            obj[x] = row[x]
-            return obj
-          },
-          {
-            guid: '',
-            r_guid: '',
-            p_guid: '',
-            state: '',
-            fixed_date: '',
-            isRowEditable: true,
-            forceEdit: true
-          }
-        )
-      })
-      this.copyVisible = true
-    },
-    handleCopyToNew () {
-      this.copyVisible = false
-      this.copyTableVisible = true
-      this.$nextTick(() => {
-        this.$refs['copy' + this.currentTab] && this.$refs['copy' + this.currentTab].pushAllRowsToSelections()
-      })
-    },
-    handleCopyEditData (rows) {
-      this.copyEditData = rows
-    },
-    async handleCopySubmit () {
-      this.copyTableVisible = false
-      let setBtnsStatus = () => {
-        this.tabList.forEach(ci => {
-          if (ci.id === this.currentTab) {
-            ci.outerActions.forEach(_ => {
-              _.props.disabled = resetButtonDisabled(_)
-            })
-          }
-        })
-        this.$refs[this.tableRef][0].setAllRowsUneditable()
-        this.$nextTick(() => {
-          /* to get iview original data to set _ischecked flag */
-          let objData = this.$refs[this.tableRef][0].$refs.table.$refs.tbody.objData
-          for (let obj in objData) {
-            objData[obj]._isChecked = false
-            objData[obj]._isDisabled = false
-          }
-        })
-      }
-      let payload = {
-        id: this.currentTab,
-        createData: this.copyEditData.map(x => {
-          delete x.isRowEditable
-          delete x.weTableForm
-          delete x.weTableRowId
-          delete x.isNewAddedRow
-          delete x.nextOperations
-          delete x.forceEdit
-          return x
-        })
-      }
-      const { statusCode, message } = await createCiDatas(payload)
-      if (statusCode === 'OK') {
-        this.$Notice.success({
-          title: 'Updated successfully',
-          desc: message
-        })
-        setBtnsStatus()
-        this.queryCiData()
-      }
+      this.$refs[this.tableRef][0].showCopyModal()
     },
     async compareHandler (row) {
       this.$set(row.weTableForm, 'compareLoading', true)
@@ -788,28 +650,10 @@ export default {
           emptyRowData['isNewAddedRow'] = true
           emptyRowData['weTableRowId'] = 1
           emptyRowData['nextOperations'] = []
-          ci.tableData.unshift(emptyRowData)
-          this.$nextTick(() => {
-            this.$refs[this.tableRef][0].pushNewAddedRowToSelections()
-            this.$refs[this.tableRef][0].setCheckoutStatus(true)
-          })
-          ci.outerActions.forEach(_ => {
-            _.props.disabled = _.actionType === 'add'
-          })
+          this.$refs[this.tableRef][0].pushNewAddedRowToSelections(emptyRowData)
+          this.$refs[this.tableRef][0].showAddModal()
         }
       })
-    },
-    cancelHandler () {
-      this.$refs[this.tableRef][0].setAllRowsUneditable()
-      this.$refs[this.tableRef][0].setCheckoutStatus()
-      this.tabList.forEach(ci => {
-        if (ci.id === this.currentTab) {
-          ci.outerActions.forEach(_ => {
-            _.props.disabled = resetButtonDisabled(_)
-          })
-        }
-      })
-      this.queryCiData()
     },
     deleteHandler (deleteData) {
       this.$Modal.confirm({
@@ -829,7 +673,7 @@ export default {
             this.tabList.forEach(ci => {
               if (ci.id === this.currentTab) {
                 ci.outerActions.forEach(_ => {
-                  _.props.disabled = _.actionType === 'save' || _.actionType === 'edit' || _.actionType === 'delete'
+                  _.props.disabled = _.actionType === 'copy' || _.actionType === 'edit' || _.actionType === 'delete'
                 })
               }
             })
@@ -841,19 +685,7 @@ export default {
       document.querySelector('.ivu-modal-mask').click()
     },
     editHandler () {
-      this.$refs[this.tableRef][0].swapRowEditable(true)
-      this.tabList.forEach(ci => {
-        if (ci.id === this.currentTab) {
-          ci.outerActions.forEach(_ => {
-            if (_.actionType === 'save') {
-              _.props.disabled = false
-            }
-          })
-        }
-      })
-      this.$nextTick(() => {
-        this.$refs[this.tableRef][0].setCheckoutStatus(true)
-      })
+      this.$refs[this.tableRef][0].showEditModal()
     },
     deleteAttr () {
       let attrs = []
@@ -865,106 +697,68 @@ export default {
       })
       return attrs
     },
-    async saveHandler (data) {
-      let setBtnsStatus = () => {
-        this.tabList.forEach(ci => {
-          if (ci.id === this.currentTab) {
-            ci.outerActions.forEach(_ => {
-              _.props.disabled = resetButtonDisabled(_)
-            })
-          }
+    async confirmAddHandler (data) {
+      const deleteAttrs = this.deleteAttr()
+      let addAry = JSON.parse(JSON.stringify(data))
+      addAry.forEach(_ => {
+        deleteAttrs.forEach(attr => {
+          delete _[attr]
         })
-        this.$refs[this.tableRef][0].setAllRowsUneditable()
-        this.$nextTick(() => {
-          /* to get iview original data to set _ischecked flag */
-          let objData = this.$refs[this.tableRef][0].$refs.table.$refs.tbody.objData
-          for (let obj in objData) {
-            objData[obj]._isChecked = false
-            objData[obj]._isDisabled = false
-          }
-        })
+        delete _.isRowEditable
+        delete _.weTableForm
+        delete _.weTableRowId
+        delete _.isNewAddedRow
+        delete _.nextOperations
+      })
+      let payload = {
+        id: this.currentTab,
+        createData: addAry
       }
-      let d = JSON.parse(JSON.stringify(data))
-      let addAry = d.filter(_ => _.isNewAddedRow)
-      let editAry = d.filter(_ => !_.isNewAddedRow)
-      if (addAry.length > 0) {
-        const found = this.tabList.find(_ => _.id === this.currentTab)
-        if (found) {
-          found.outerActions.forEach(_ => {
-            if (_.actionType === 'save') {
-              _.props.loading = true
-            }
-          })
-        }
-        const deleteAttrs = this.deleteAttr()
-        addAry.forEach(_ => {
-          deleteAttrs.forEach(attr => {
-            delete _[attr]
-          })
-          delete _.isRowEditable
-          delete _.weTableForm
-          delete _.weTableRowId
-          delete _.isNewAddedRow
-          delete _.nextOperations
+      const { statusCode, message } = await createCiDatas(payload)
+      this.$refs[this.tableRef][0].resetModalLoading()
+      if (statusCode === 'OK') {
+        this.$Notice.success({
+          title: 'Added successfully',
+          desc: message
         })
-        let payload = {
-          id: this.currentTab,
-          createData: addAry
-        }
-        const { statusCode, message } = await createCiDatas(payload)
-        if (found) {
-          found.outerActions.forEach(_ => {
-            if (_.actionType === 'save') {
-              _.props.loading = false
-            }
-          })
-        }
-        if (statusCode === 'OK') {
-          this.$Notice.success({
-            title: 'Added successfully',
-            desc: message
-          })
-          setBtnsStatus()
-          this.queryCiData()
-        }
+        this.setBtnsStatus()
+        this.queryCiData()
+        this.$refs[this.tableRef][0].closeEditModal(false)
       }
-      if (editAry.length > 0) {
-        const found = this.tabList.find(_ => _.id === this.currentTab)
-        if (found) {
-          found.outerActions.forEach(_ => {
-            if (_.actionType === 'save') {
-              _.props.loading = true
-            }
-          })
-        }
-        editAry.forEach(_ => {
-          delete _.isRowEditable
-          delete _.weTableForm
-          delete _.weTableRowId
-          delete _.isNewAddedRow
-          delete _.nextOperations
+    },
+    async confirmEditHandler (data) {
+      let editAry = JSON.parse(JSON.stringify(data))
+      editAry.forEach(_ => {
+        delete _.isRowEditable
+        delete _.weTableForm
+        delete _.weTableRowId
+        delete _.isNewAddedRow
+        delete _.nextOperations
+      })
+      let payload = {
+        id: this.currentTab,
+        updateData: editAry
+      }
+      const { statusCode, message } = await updateCiDatas(payload)
+      this.$refs[this.tableRef][0].resetModalLoading()
+      if (statusCode === 'OK') {
+        this.$Notice.success({
+          title: 'Updated successfully',
+          desc: message
         })
-        let payload = {
-          id: this.currentTab,
-          updateData: editAry
-        }
-        const { statusCode, message } = await updateCiDatas(payload)
-        if (found) {
-          found.outerActions.forEach(_ => {
-            if (_.actionType === 'save') {
-              _.props.loading = false
-            }
-          })
-        }
-        if (statusCode === 'OK') {
-          this.$Notice.success({
-            title: 'Updated successfully',
-            desc: message
-          })
-          setBtnsStatus()
-          this.queryCiData()
-        }
+        this.setBtnsStatus()
+        this.queryCiData()
+        this.$refs[this.tableRef][0].closeEditModal(false)
       }
+    },
+    setBtnsStatus () {
+      this.tabList.forEach(ci => {
+        if (ci.id === this.currentTab) {
+          ci.outerActions.forEach(_ => {
+            _.props.disabled = resetButtonDisabled(_)
+          })
+        }
+      })
     },
     async exportHandler () {
       const found = this.tabList.find(_ => _.id === this.currentTab)
@@ -1023,7 +817,9 @@ export default {
         queryObject: this.payload
       }
       const method = this.queryType === '2' ? queryCiDataByType : queryCiData
+      this.$refs[this.tableRef][0].isTableLoading(true)
       const { statusCode, data } = await method(query)
+      this.$refs[this.tableRef][0].isTableLoading(false)
       if (statusCode === 'OK') {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
@@ -1049,11 +845,19 @@ export default {
               ..._,
               tooltip: true,
               title: _.name,
-              renderHeader: (h, params) => (
-                <Tooltip content={_.description} placement="top">
-                  <span style="white-space:normal">{_.name}</span>
-                </Tooltip>
-              ),
+              renderHeader: (h, params) => {
+                const d = {
+                  props: {
+                    'min-width': '130px',
+                    'max-width': '500px'
+                  }
+                }
+                return (
+                  <Tooltip {...d} content={_.description} placement="top">
+                    <span style="white-space:normal">{_.name}</span>
+                  </Tooltip>
+                )
+              },
               key: renderKey,
               inputKey: _.propertyName,
               inputType: _.inputType,
