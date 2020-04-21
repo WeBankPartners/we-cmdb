@@ -1,11 +1,12 @@
-import './table.scss'
+import '../table.scss'
 import moment from 'moment'
+import EditModal from './edit-modal.js'
 const DEFAULT_FILTER_NUMBER = 5
 const MIN_WIDTH = 130
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 
 export default {
-  name: 'WeCMDBTable',
+  name: 'CMDBTable',
   props: {
     tableColumns: { default: () => [], require: true },
     tableData: { default: () => [] },
@@ -26,13 +27,23 @@ export default {
       selectedRows: [],
       data: [],
       isShowHiddenFilters: false,
-      showedColumns: [],
-      columns: []
+      columns: [],
+      modalVisible: false,
+      titles: {
+        add: this.$t('new'),
+        edit: this.$t('edit'),
+        copy: this.$t('copyToNew')
+      },
+      modalTitle: '',
+      modalLoading: false,
+      tableLoading: false
     }
+  },
+  component: {
+    EditModal
   },
   mounted () {
     this.formatTableData()
-    this.showedColumns = this.tableColumns.map(column => column.title)
   },
   watch: {
     tableData (val) {
@@ -54,7 +65,6 @@ export default {
             }
           }
         })
-        this.showedColumns = this.tableColumns.filter(_ => _.isDisplayed || _.displaySeqNo).map(column => column.title)
         this.calColumn()
       },
       immediate: true
@@ -69,66 +79,9 @@ export default {
   },
   computed: {},
   methods: {
-    pushNewAddedRowToSelections () {
-      this.selectedRows.push(this.data[0])
-      this.$emit('getSelectedRows', this.selectedRows, true)
-    },
-    pushAllRowsToSelections () {
-      this.selectedRows = this.data
-      this.$emit('getSelectedRows', this.selectedRows, true)
-    },
-    setAllRowsUneditable () {
-      this.data.forEach(_ => (_.isRowEditable = false))
-      this.selectedRows = []
-    },
-    setTableData (disable) {
-      // const keys = Object.keys(this.data[0])
-      // this.selectedRows.forEach(_ => {
-      //   this.data.forEach(i => {
-      //     if (i.weTableRowId === _.weTableRowId) {
-      //       keys.forEach(k => {
-      //         if (k !== 'isRowEditable') {
-      //           i[k] = _[k]
-      //         }
-      //       })
-      //     }
-      //   })
-      // })
-      // this.$nextTick(() => {
-      this.setCheckoutStatus(disable)
-      // })
-    },
-    setCheckoutStatus (disable) {
-      let objData = this.$refs.table.$refs.tbody.objData
-      for (let obj in objData) {
-        objData[obj]._isChecked = false
-        objData[obj]._isDisabled = false
-      }
-      this.selectedRows.forEach(_ => {
-        const index = this.data.findIndex(el => el.weTableRowId === _.weTableRowId)
-        objData[index]._isChecked = true
-        objData[index]._isDisabled = disable
-      })
-    },
-    rowCancelHandler (weId) {
-      const index = this.selectedRows.findIndex(el => el.weTableRowId === weId)
-      this.selectedRows.splice(index, 1)
-      this.data.forEach(_ => {
-        if (_.weTableRowId === weId) {
-          _.isRowEditable = false
-        }
-      })
-      this.$nextTick(() => this.setCheckoutStatus(true))
-      this.$emit('getSelectedRows', this.selectedRows, true)
-    },
-    swapRowEditable (status) {
-      this.selectedRows.forEach(row => {
-        this.data.forEach(_ => {
-          if (_.weTableRowId === row.weTableRowId) {
-            _.isRowEditable = status
-          }
-        })
-      })
+    pushNewAddedRowToSelections (data) {
+      this.selectedRows.push(data)
+      // this.$emit('getSelectedRows', this.selectedRows, true)
     },
     formatTableData () {
       this.data = this.tableData.map((_, index) => {
@@ -158,7 +111,6 @@ export default {
             if (Array.isArray(_['weTableForm'][i]) && i !== 'nextOperations') {
               _['weTableForm'][i] = _['weTableForm'][i]
               const found = this.tableColumns.find(q => q.inputKey === i)
-
               if (found && found.inputType === 'multiSelect') {
                 _[i] = _['weTableForm'][i].map(j => j.codeId)
               }
@@ -275,55 +227,18 @@ export default {
     },
     getTableOuterActions () {
       if (this.tableOuterActions) {
-        if (this.isColumnsFilterOn) {
-          this.tableOuterActions.forEach(action => {
-            if (action.actionType === 'filterColumns') {
-              action.props.disabled = false
-            }
-          })
-        }
-
-        let columnsTitles = this.tableColumns.filter(_ => _.isDisplayed || _.displaySeqNo).map(column => column.title)
-
         return this.tableOuterActions.map(_ => {
-          if (_.actionType === 'filterColumns') {
-            return (
-              <Poptip placement="bottom-end" style="float: right;margin-right: 10px">
-                <Tooltip content={this.$t('column_filter')} placement="top">
-                  <Button {..._} />
-                </Tooltip>
-                <CheckboxGroup
-                  slot="content"
-                  value={this.showedColumns}
-                  on-input={values => {
-                    this.showedColumns = values
-                    this.calColumn()
-                  }}
-                  style="display: grid;"
-                >
-                  {columnsTitles.map(_ => {
-                    return (
-                      <Checkbox label={_}>
-                        <span>{_}</span>
-                      </Checkbox>
-                    )
-                  })}
-                </CheckboxGroup>
-              </Poptip>
-            )
-          } else {
-            return (
-              <Button
-                style="margin-right: 10px"
-                {..._}
-                onClick={() => {
-                  this.$emit('actionFun', _.actionType, this.selectedRows, this.columns)
-                }}
-              >
-                {_.label}
-              </Button>
-            )
-          }
+          return (
+            <Button
+              style="margin-right: 10px"
+              {..._}
+              onClick={() => {
+                this.$emit('actionFun', _.actionType, this.selectedRows, this.columns)
+              }}
+            >
+              {_.label}
+            </Button>
+          )
         })
       }
     },
@@ -338,7 +253,6 @@ export default {
           width: '100%'
         }
       }
-
       let renders = item => {
         switch (item.component) {
           case 'WeCMDBSelect':
@@ -474,10 +388,10 @@ export default {
     onRadioSelect (current, old) {
       this.$emit('getSelectedRows', [current], false)
     },
-    cancelSelected () {
-      this.$refs['table'].selectAll(false)
-      this.selectedRows = []
-    },
+    // cancelSelected () {
+    //   this.$refs['table'].selectAll(false)
+    //   this.selectedRows = []
+    // },
     sortHandler (sort) {
       this.$emit('sortHandler', sort)
     },
@@ -569,50 +483,8 @@ export default {
             )
           }
         })
-      if (this.isColumnsFilterOn) {
-        this.columns = this.columns.filter(column => {
-          return (
-            column.type === 'selection' ||
-            column.key === 'actions' ||
-            !!this.showedColumns.find(_ => _ === column.title)
-          )
-        })
-      }
     },
     renderCol (col, isLastCol = false) {
-      let setValueHandler = (_this, v, col, params) => {
-        // 更新下拉框后，displaySeqNo大于当前属性并且受过滤规则影响的下拉框需要清空值
-        let attrsWillReset = []
-        if (['select', 'ref', 'multiSelect', 'multiRef'].indexOf(col.inputType) > -1) {
-          _this.tableColumns.forEach(_ => {
-            if (_.displaySeqNo > col.displaySeqNo && _.filterRule) {
-              if (['multiSelect', 'multiRef'].indexOf(_.inputType) >= 0) {
-                attrsWillReset.push({
-                  propertyName: _.propertyName,
-                  value: []
-                })
-              } else if (['select', 'ref'].indexOf(_.inputType) >= 0) {
-                attrsWillReset.push({
-                  propertyName: _.propertyName,
-                  value: ''
-                })
-              }
-            }
-          })
-        }
-        _this.selectedRows.forEach(_ => {
-          if (_.weTableRowId === params.row.weTableRowId) {
-            _[col.inputKey] = v
-            params.row[col.inputKey] = v
-            attrsWillReset.forEach(attr => {
-              _[attr.propertyName] = attr.value
-              params.row[attr.propertyName] = attr.value
-            })
-          }
-        })
-        this.$emit('getSelectedRows', _this.selectedRows, true)
-      }
-
       return {
         ...col,
         tooltip: true,
@@ -621,137 +493,93 @@ export default {
         resizable: !isLastCol, // 除最后一列，该属性都为true
         sortable: this.isSortable ? 'custom' : false,
         render: (h, params) => {
-          const _this = this
-
-          const isEdit =
-            params.row.isRowEditable &&
-            (!params.column.disEditor || params.row.isNewAddedRow) &&
-            !params.column.disAdded
-          if (params.column.component === 'WeCMDBCIPassword') {
-            return (
-              <params.column.component
-                ciTypeId={params.column.ciTypeId}
-                guid={params.row.guid}
-                isEdit={isEdit}
-                isNewAddedRow={params.row.isNewAddedRow || false}
-                propertyName={params.column.propertyName}
-                value={params.row[params.column.propertyName]}
-                onInput={v => {
-                  setValueHandler(_this, v, col, params)
-                }}
-              />
-            )
-          }
-          if (isEdit) {
-            const props =
-              params.column.component === 'WeCMDBSelect'
-                ? {
-                  value: params.column.isRefreshable
-                    ? params.column.inputType === 'multiSelect'
-                      ? []
-                      : ''
-                    : params.column.inputType === 'multiSelect'
-                      ? Array.isArray(params.row[col.inputKey])
-                        ? params.row[col.inputKey]
-                        : ''
-                      : params.row[col.inputKey],
-                  filterParams: params.column.filterRule
-                    ? {
-                      attrId: params.column.ciTypeAttrId,
-                      params: params.row
-                    }
-                    : null,
-                  isMultiple: params.column.isMultiple,
-                  options: params.column.optionKey
-                    ? _this.ascOptions[params.row[col.optionKey]]
-                    : params.column.options,
-                  enumId: params.column.referenceId ? params.column.referenceId : null
-                }
-                : {
-                  value: params.column.isRefreshable
-                    ? ''
-                    : params.column.inputType === 'multiRef'
-                      ? Array.isArray(params.row[col.inputKey])
-                        ? params.row[col.inputKey]
-                        : ''
-                      : params.row[col.inputKey] || '',
-                  filterParams: params.column.filterRule
-                    ? {
-                      attrId: params.column.ciTypeAttrId,
-                      params: params.row
-                    }
-                    : null,
-                  ciType: params.column.component === 'WeCMDBRefSelect' ? params.column.ciType : null,
-                  ...params.column,
-                  type: params.column.component === 'DatePicker' ? 'date' : params.column.type,
-                  guid: params.row.guid ? params.row.guid : '123'
-                }
-            const fun =
-              params.column.component === 'DatePicker'
-                ? {
-                  'on-change': v => {
-                    setValueHandler(_this, v, col, params)
-                  }
-                }
-                : {
-                  input: v => {
-                    setValueHandler(_this, v, col, params)
-                  }
-                }
-            const data = {
-              props,
-              on: fun
+          let content = ''
+          if (Array.isArray(params.row.weTableForm[col.key])) {
+            if (params.column.inputType === 'multiSelect') {
+              content = params.row.weTableForm[col.key].map(_ => _.value).toString()
             }
-            return <params.column.component {...data} />
+            if (params.column.inputType === 'multiRef') {
+              content = params.row.weTableForm[col.key].map(_ => _.key_name).toString()
+            }
           } else {
-            let content = ''
-            if (Array.isArray(params.row.weTableForm[col.key])) {
-              if (params.column.inputType === 'multiSelect') {
-                content = params.row.weTableForm[col.key].map(_ => _.value).toString()
-              }
-              if (params.column.inputType === 'multiRef') {
-                content = params.row.weTableForm[col.key].map(_ => _.key_name).toString()
-              }
-            } else {
-              content = params.row.weTableForm[col.key]
-            }
-
-            const len = content ? content.toString().length : 0
-            const d = {
-              props: {
-                disabled: len < 10,
-                content: content,
-                'min-width': '130px',
-                'max-width': '500px'
-              }
-            }
-
-            return (
-              <Tooltip {...d}>
-                <div class="ivu-table-cell-tooltip ivu-tooltip">
-                  <div class="ivu-tooltip-rel">
-                    <span class="ivu-table-cell-tooltip-content">
-                      {content}{' '}
-                      {params.column.propertyName === 'orchestration' && this.$route.name === 'workflowExecution' && (
-                        <WeCMDBOrchestration onHandleSubmit={this.handleSubmit} col={params.column} row={params.row} />
-                      )}
-                    </span>
-                  </div>
-                </div>
-              </Tooltip>
-            )
+            content = params.row.weTableForm[col.key]
           }
+
+          const len = content ? content.toString().length : 0
+          const d = {
+            props: {
+              disabled: len < 10,
+              content: content,
+              'min-width': '130px',
+              'max-width': '500px'
+            }
+          }
+
+          return (
+            <Tooltip {...d}>
+              <div class="ivu-table-cell-tooltip ivu-tooltip">
+                <div class="ivu-tooltip-rel">
+                  <span class="ivu-table-cell-tooltip-content">
+                    {content}{' '}
+                    {params.column.propertyName === 'orchestration' && this.$route.name === 'workflowExecution' && (
+                      <WeCMDBOrchestration onHandleSubmit={this.handleSubmit} col={params.column} row={params.row} />
+                    )}
+                  </span>
+                </div>
+              </div>
+            </Tooltip>
+          )
         }
+      }
+    },
+    showEditModal () {
+      this.modalTitle = this.titles.edit
+      this.modalVisible = true
+    },
+    showAddModal () {
+      this.modalTitle = this.titles.add
+      this.modalVisible = true
+    },
+    showCopyModal () {
+      this.modalTitle = this.titles.copy
+      this.modalVisible = true
+    },
+    closeEditModal (flag) {
+      this.modalVisible = flag
+    },
+    resetModalLoading () {
+      this.modalLoading = false
+    },
+    isTableLoading (flag) {
+      this.tableLoading = flag
+    },
+    editModalOkHandler (data) {
+      this.modalLoading = true
+      if (this.modalTitle === this.titles.edit) {
+        this.$emit('confirmEditHandler', data)
+      } else {
+        this.$emit('confirmAddHandler', data)
       }
     }
   },
   render (h) {
-    const { data, columns, pagination, highlightRow, filtersHidden } = this
+    const {
+      data,
+      columns,
+      pagination,
+      highlightRow,
+      filtersHidden,
+      modalVisible,
+      selectedRows,
+      modalLoading,
+      tableLoading
+    } = this
     return (
       <div>
         {!filtersHidden && <div>{this.getFormFilters()}</div>}
         <Row style="margin-bottom:10px">{this.getTableOuterActions()}</Row>
         <Table
+          loading={tableLoading}
           ref="table"
           border
           data={data}
@@ -776,6 +604,16 @@ export default {
             style="float: right; margin: 10px 0;"
           />
         )}
+        <EditModal
+          isEdit={this.modalTitle === this.titles.edit}
+          title={this.modalTitle}
+          columns={columns.filter(col => !col.isAuto && col.isEditable)}
+          data={selectedRows}
+          on-closeEditModal={this.closeEditModal}
+          on-editModalOkHandler={this.editModalOkHandler}
+          modalVisible={modalVisible}
+          modalLoading={modalLoading}
+        ></EditModal>
       </div>
     )
   }
