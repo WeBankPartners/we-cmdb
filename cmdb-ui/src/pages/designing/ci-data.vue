@@ -76,7 +76,7 @@ import {
   operateCiState
 } from '@/api/server'
 import { setHeaders, baseURL } from '@/api/base.js'
-import { innerActions, pagination, components, exportOuterActions, newOuterActions } from '@/const/actions.js'
+import { pagination, components, newExportOuterActions, newOuterActions } from '@/const/actions.js'
 import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
@@ -444,13 +444,13 @@ export default {
           tableData: [],
           outerActions:
             this.$route.name === 'ciDataEnquiry'
-              ? JSON.parse(JSON.stringify(exportOuterActions))
+              ? JSON.parse(JSON.stringify(newExportOuterActions))
               : JSON.parse(JSON.stringify(newOuterActions)),
           innerActions:
             this.$route.name === 'ciDataEnquiry'
               ? null
               : deepClone(
-                innerActions.concat(await getExtraInnerActions()).concat([
+                [].concat(await getExtraInnerActions()).concat([
                   {
                     label: this.$t('compare'),
                     props: {
@@ -845,11 +845,19 @@ export default {
               ..._,
               tooltip: true,
               title: _.name,
-              renderHeader: (h, params) => (
-                <Tooltip content={_.description} placement="top">
-                  <span style="white-space:normal">{_.name}</span>
-                </Tooltip>
-              ),
+              renderHeader: (h, params) => {
+                const d = {
+                  props: {
+                    'min-width': '130px',
+                    'max-width': '500px'
+                  }
+                }
+                return (
+                  <Tooltip {...d} content={_.description} placement="top">
+                    <span style="white-space:normal">{_.name}</span>
+                  </Tooltip>
+                )
+              },
               key: renderKey,
               inputKey: _.propertyName,
               inputType: _.inputType,
