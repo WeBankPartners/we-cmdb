@@ -468,11 +468,11 @@ CREATE TABLE IF NOT EXISTS `app_system` (
 
 CREATE TABLE IF NOT EXISTS `app_system$data_center` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `from_guid` varchar(15)  NOT NULL,
+  `to_guid` varchar(15)  NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `app_system_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -546,11 +546,11 @@ CREATE TABLE IF NOT EXISTS `business_zone` (
 
 CREATE TABLE IF NOT EXISTS `business_zone$network_segment` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `from_guid` varchar(15)  NOT NULL,
+  `to_guid` varchar(15)  NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=282 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=282 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `business_zone_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -572,19 +572,19 @@ CREATE TABLE IF NOT EXISTS `business_zone_design` (
 
 CREATE TABLE IF NOT EXISTS `business_zone_design$application_domain` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `from_guid` varchar(15)  NOT NULL,
+  `to_guid` varchar(15)  NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `business_zone_design$network_segment_design` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `from_guid` varchar(15)  NOT NULL,
+  `to_guid` varchar(15)  NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=136 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=136 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `cache_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -747,11 +747,11 @@ CREATE TABLE IF NOT EXISTS `data_center` (
 
 CREATE TABLE IF NOT EXISTS `data_center$deploy_environment` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `from_guid` varchar(15)  NOT NULL,
+  `to_guid` varchar(15)  NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `data_center_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -867,11 +867,11 @@ CREATE TABLE IF NOT EXISTS `deploy_package` (
 
 CREATE TABLE IF NOT EXISTS `deploy_package$diff_conf_variable` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `from_guid` varchar(15)  NOT NULL,
+  `to_guid` varchar(15)  NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=114 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=114 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `diff_configuration` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1114,11 +1114,11 @@ CREATE TABLE IF NOT EXISTS `network_link` (
 
 CREATE TABLE IF NOT EXISTS `network_link$internet_ip` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `from_guid` varchar(15)  NOT NULL,
+  `to_guid` varchar(15)  NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `network_link_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1415,19 +1415,19 @@ CREATE TABLE IF NOT EXISTS `resource_set` (
 
 CREATE TABLE IF NOT EXISTS `resource_set$deploy_environment` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `from_guid` varchar(15)  NOT NULL,
+  `to_guid` varchar(15)  NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=146 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=146 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `resource_set$network_segment` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `from_guid` varchar(15)  NOT NULL,
+  `to_guid` varchar(15)  NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=213 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=213 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `resource_set_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1573,11 +1573,11 @@ CREATE TABLE IF NOT EXISTS `service_invoke_seq_design` (
 
 CREATE TABLE IF NOT EXISTS `service_invoke_seq_design$service_invoke_design_sequence` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `from_guid` varchar(15)  NOT NULL,
+  `to_guid` varchar(15)  NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `storage_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1621,11 +1621,11 @@ CREATE TABLE IF NOT EXISTS `subsys` (
 
 CREATE TABLE IF NOT EXISTS `subsys$business_zone` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `from_guid` varchar(15)  NOT NULL,
+  `to_guid` varchar(15)  NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `subsys_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1649,11 +1649,11 @@ CREATE TABLE IF NOT EXISTS `subsys_design` (
 
 CREATE TABLE IF NOT EXISTS `subsys_design$business_zone_design` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `from_guid` varchar(15)  NOT NULL,
+  `to_guid` varchar(15)  NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `unit` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1683,11 +1683,11 @@ CREATE TABLE IF NOT EXISTS `unit` (
 
 CREATE TABLE IF NOT EXISTS `unit$deploy_package` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `to_guid` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `seq_no` int(5) DEFAULT '0',
+  `from_guid` varchar(15)  NOT NULL,
+  `to_guid` varchar(15)  NOT NULL,
+  `seq_no` int(5) DEFAULT 0,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `unit_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
