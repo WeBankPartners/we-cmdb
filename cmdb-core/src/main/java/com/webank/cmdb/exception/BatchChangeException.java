@@ -5,7 +5,9 @@ import java.util.List;
 
 import javax.persistence.PersistenceException;
 
+import org.hibernate.JDBCException;
 import org.hibernate.exception.DataException;
+import org.hibernate.exception.SQLGrammarException;
 
 import com.google.common.collect.Lists;
 
@@ -73,8 +75,12 @@ public class BatchChangeException extends CmdbException {
                 Throwable cause = ((UndeclaredThrowableException) e).getUndeclaredThrowable().getCause();
                 if (cause instanceof PersistenceException) {
                     cause = ((PersistenceException) cause).getCause();
-                    if (cause instanceof DataException)
+                    if (cause instanceof DataException) {
                         return ((DataException) cause).getSQLException().getMessage();
+                        
+                    }else if(cause instanceof SQLGrammarException) {
+                        return ((SQLGrammarException) cause).getSQLException().getMessage();
+                    }
                 }
             }
             return e.getMessage();
