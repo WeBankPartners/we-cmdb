@@ -595,16 +595,18 @@ export default {
             style="float: right; margin: 10px 0;"
           />
         )}
-        <EditModal
-          isEdit={this.modalTitle === this.titles.edit}
-          title={this.modalTitle}
-          columns={columns.filter(col => !col.isAuto && col.isEditable)}
-          data={selectedRows}
-          on-closeEditModal={this.closeEditModal}
-          on-editModalOkHandler={this.editModalOkHandler}
-          modalVisible={modalVisible}
-          modalLoading={modalLoading}
-        ></EditModal>
+        {modalVisible && (
+          <EditModal
+            isEdit={this.modalTitle === this.titles.edit}
+            title={this.modalTitle}
+            columns={columns.filter(col => !col.isAuto && col.isEditable)}
+            data={selectedRows}
+            on-closeEditModal={this.closeEditModal}
+            on-editModalOkHandler={this.editModalOkHandler}
+            modalVisible={modalVisible}
+            modalLoading={modalLoading}
+          ></EditModal>
+        )}
       </div>
     )
   }
