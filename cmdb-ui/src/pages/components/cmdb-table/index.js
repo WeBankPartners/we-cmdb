@@ -81,13 +81,11 @@ export default {
   methods: {
     pushNewAddedRowToSelections (data) {
       this.selectedRows.push(data)
-      // this.$emit('getSelectedRows', this.selectedRows, true)
     },
     formatTableData () {
       this.data = this.tableData.map((_, index) => {
         let result = {
           ..._,
-          weTableRowId: index + 1,
           isRowEditable: _.forceEdit ? _.isRowEditable : _.isRowEditable && index === 0 ? _.isRowEditable : false,
           weTableForm: { ..._ }
         }
@@ -456,14 +454,7 @@ export default {
             return (
               <div>
                 {this.tableInnerActions.map(_ => {
-                  if (
-                    _.visible
-                      ? _.visible.key === 'nextOperations'
-                        ? !!params.row[_.visible.key].find(op => op === _.actionType) &&
-                          _.visible.value === !params.row['isRowEditable']
-                        : _.visible.value === !!params.row[_.visible.key]
-                      : true
-                  ) {
+                  if (_.visible ? _.visible.value === !!params.row[_.visible.key] : true) {
                     return (
                       <Button
                         {...{ props: { ..._.props } }}
