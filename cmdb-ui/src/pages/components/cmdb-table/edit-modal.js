@@ -76,7 +76,6 @@ export default {
           p_guid: '',
           state: '',
           fixed_date: '',
-          isRowEditable: true,
           forceEdit: true
         }
         columns.forEach(x => {
@@ -235,19 +234,21 @@ export default {
           </div>
         )}
         <div style="overflow: auto">
-          <div style={`width: ${this.tableWidth}px`}>
-            {this.columns.map(column => {
-              return (
-                <div
-                  style={`width:${WIDTH}px;display:inline-block;padding:5px;height: 30px;font-weight:600;background-color: #e8eaec`}
-                  key={column.ciTypeAttrId}
-                >
-                  {column.name}
-                </div>
-              )
-            })}
-          </div>
-          {this.renderDataRows()}
+          {this.modalVisible && (
+            <div style={`width: ${this.tableWidth}px`}>
+              {this.columns.map(column => {
+                return (
+                  <div
+                    style={`width:${WIDTH}px;display:inline-block;padding:5px;height: 30px;font-weight:600;background-color: #e8eaec`}
+                    key={column.ciTypeAttrId}
+                  >
+                    {column.name}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          {this.modalVisible && this.renderDataRows()}
         </div>
         <div style="margin-top:20px;height: 30px">
           <Button
