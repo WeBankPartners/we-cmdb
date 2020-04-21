@@ -75,8 +75,7 @@ export default {
           r_guid: '',
           p_guid: '',
           state: '',
-          fixed_date: '',
-          forceEdit: true
+          fixed_date: ''
         }
         columns.forEach(x => {
           obj[x] = row[x]
