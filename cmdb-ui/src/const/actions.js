@@ -169,6 +169,16 @@ export const outerActions = [
   //   actionType: 'filterColumns'
   // }
 ]
+export const newExportOuterActions = [
+  {
+    label: window.vm ? pluginI18n('export') : Vue.t('export'),
+    props: {
+      type: 'primary',
+      icon: 'ios-download-outline'
+    },
+    actionType: 'export'
+  }
+]
 export const exportOuterActions = [
   {
     label: window.vm ? pluginI18n('export') : Vue.t('export'),
