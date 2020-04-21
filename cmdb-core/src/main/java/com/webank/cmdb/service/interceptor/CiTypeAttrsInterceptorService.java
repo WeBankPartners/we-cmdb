@@ -285,7 +285,7 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
         if (propertyName != null) {
             String propertyNameStr = (String)propertyName;
             if (CmdbConstants.MYSQL_SCHEMA_KEYWORDS.contains(propertyNameStr.trim().toUpperCase())) {
-              //  throw new InvalidArgumentException(String.format("Invalid property name [%s] as it is database key words.", propertyNameStr));
+                throw new InvalidArgumentException(String.format("Invalid property name [%s] as it is database key words.", propertyNameStr));
             }
 
             if (!propertyNameStr.equals(oldPropertyName) && ciTypeAttrRepository.existsByPropertyNameAndCiTypeId(propertyNameStr, ciTypeId)) {
