@@ -18,7 +18,7 @@ export const getExtraInnerActions = async () => {
   })
   if (statusCode === 'OK') {
     return data.contents
-      .filter(_ => _.code !== 'insert' && _.code !== 'update' && _.code !== 'delete')
+      .filter(_ => _.code !== 'insert' && _.code !== 'update' && _.code !== 'delete') // update delete 表示可编辑和可删除，
       .map(item => {
         return {
           label: item.value,
