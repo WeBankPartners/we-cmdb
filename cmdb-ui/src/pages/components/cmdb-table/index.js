@@ -542,6 +542,9 @@ export default {
       this.modalVisible = true
     },
     closeEditModal (flag) {
+      if (this.modalTitle === this.titles.add) {
+        this.selectedRows = []
+      }
       this.modalVisible = flag
     },
     resetModalLoading () {
