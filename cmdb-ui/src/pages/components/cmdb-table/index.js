@@ -454,7 +454,13 @@ export default {
             return (
               <div>
                 {this.tableInnerActions.map(_ => {
-                  if (_.visible ? _.visible.value === !!params.row[_.visible.key] : true) {
+                  if (
+                    _.visible
+                      ? _.visible.key === 'nextOperations'
+                        ? !!params.row[_.visible.key].find(op => op === _.actionType)
+                        : _.visible.value === !!params.row[_.visible.key]
+                      : true
+                  ) {
                     return (
                       <Button
                         {...{ props: { ..._.props } }}
