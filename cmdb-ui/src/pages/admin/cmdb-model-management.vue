@@ -1077,7 +1077,10 @@ export default {
           'X-XSRF-TOKEN': uploadToken && uploadToken.split('=')[1]
         })
         initEvent()
-        this.renderGraph(ciResponse.data)
+        this.renderGraph([])
+        this.$nextTick(() => {
+          this.renderGraph(ciResponse.data)
+        })
       }
     },
     genDOT (data) {
