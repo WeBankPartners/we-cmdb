@@ -264,7 +264,11 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(177, 20, 'appDeploymentDesignBusinessAppInstanceId', '50,51,52,53', NULL, NULL, 27, 'active'),
 	(178, 20, 'resourcePlaningLinkId', '26', NULL, NULL, 28, 'active'),
 	(179, 20, 'idcPlanningLinkId', '16', NULL, NULL, 29, 'active'),
-	(180, 20, 'appArchitectureDesignInvokeType', 'invoke_type', NULL, NULL, 30, 'active');
+	(180, 20, 'appArchitectureDesignInvokeType', 'invoke_type', NULL, NULL, 30, 'active'),
+	(181, 20, 'resourcePlaningRouterCode', '30', NULL, NULL, 31, 'active'),
+	(182, 20, 'defaultSecurityPolicyCode', '25', NULL, NULL, 32, 'active'),
+	(183, 20, 'defaultSecurityPolicyDesignCode', '15', NULL, NULL, 33, 'active'),
+	(184, 20, 'idcPlaningRouterDesignCode', '20', NULL, NULL, 34, 'active');
 /*!40000 ALTER TABLE `adm_basekey_code` ENABLE KEYS */;
 
 /*!40000 ALTER TABLE `adm_ci_type` DISABLE KEYS */;
