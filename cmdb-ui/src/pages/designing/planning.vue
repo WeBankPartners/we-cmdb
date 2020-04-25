@@ -22,7 +22,33 @@
           <div class="graph-container-big" id="graph"></div>
         </TabPane>
         <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name">
+          <div
+            style="margin-bottom:20px"
+            v-if="
+              ci.id === initParams['idcPlaningRouterDesignCode'] ||
+                ci.id === initParams['defaultSecurityPolicyDesignCode']
+            "
+          >
+            <Button v-show="ci.showGraph" size="small" type="primary" ghost @click="showTable(ci)">管理数据</Button>
+            <Button
+              v-show="ci.id === initParams['idcPlaningRouterDesignCode'] && !ci.showGraph"
+              size="small"
+              type="primary"
+              ghost
+              @click="showGraph(ci)"
+              >路由设计关系图</Button
+            >
+            <Button
+              v-show="ci.id === initParams['defaultSecurityPolicyDesignCode'] && !ci.showGraph"
+              size="small"
+              type="primary"
+              ghost
+              @click="showGraph(ci)"
+              >安全策略设计关系图</Button
+            >
+          </div>
           <WeCMDBTable
+            v-show="!ci.showGraph"
             :tableData="ci.tableData"
             :tableOuterActions="ci.outerActions"
             :tableInnerActions="ci.innerActions"
@@ -40,6 +66,16 @@
             tableHeight="650"
             :ref="'table' + ci.id"
           ></WeCMDBTable>
+          <div
+            v-show="ci.id === initParams['idcPlaningRouterDesignCode'] && ci.showGraph"
+            class="graph-container-big"
+            :id="'idcPlanningRouterGraph' + ci.id"
+          ></div>
+          <div
+            v-show="ci.id === initParams['defaultSecurityPolicyDesignCode'] && ci.showGraph"
+            class="graph-container-big"
+            :id="'idcPlanningSecurityPolicyGraph' + ci.id"
+          ></div>
         </TabPane>
       </Tabs>
       <!-- 复制新增询问 -->
@@ -118,7 +154,9 @@ import {
   NETWORK_SEGMENT_DESIGN,
   IDC_PLANNING_LINK_ID,
   IDC_PLANNING_LINK_FROM,
-  IDC_PLANNING_LINK_TO
+  IDC_PLANNING_LINK_TO,
+  IDC_PLANNING_ROUTER_DESIGN_CODE,
+  DEFAULT_SECURITY_POLICY_DESIGN_CODE
 } from '@/const/init-params.js'
 
 export default {
@@ -880,24 +918,110 @@ export default {
         }
       })
       const found = this.tabList.find(_ => _.code === this.currentTab)
-      const { statusCode, data } = await getPlanningDesignsCiData({
-        idcGuid: this.selectedIdc,
-        id: found.codeId,
-        queryObject: this.payload
-      })
-      if (statusCode === 'OK') {
-        this.tabList.forEach(ci => {
-          if (ci.id === this.currentTab) {
-            ci.tableData = data.contents.map(_ => {
-              return {
-                ..._.data,
-                ..._.meta
-              }
-            })
-            ci.pagination.total = data.pageInfo.totalRows
-          }
+      if (
+        this.currentTab === this.initParams[IDC_PLANNING_ROUTER_DESIGN_CODE] ||
+        this.currentTab === this.initParams[DEFAULT_SECURITY_POLICY_DESIGN_CODE]
+      ) {
+        const payload = JSON.parse(JSON.stringify(this.payload))
+        payload.paging = false
+        const [data, allData] = await Promise.all([
+          getPlanningDesignsCiData({
+            idcGuid: this.selectedIdc,
+            id: found.codeId,
+            queryObject: this.payload
+          }),
+          getPlanningDesignsCiData({
+            idcGuid: this.selectedIdc,
+            id: found.codeId,
+            queryObject: payload
+          })
+        ])
+        if (data.statusCode === 'OK') {
+          this.tabList.forEach(ci => {
+            if (ci.id === this.currentTab) {
+              ci.tableData = data.data.contents.map(_ => {
+                return {
+                  ..._.data,
+                  ..._.meta
+                }
+              })
+              ci.pagination.total = data.data.pageInfo.totalRows
+            }
+          })
+        }
+        if (allData.statusCode === 'OK') {
+          this.$nextTick(() => {
+            if (this.currentTab === this.initParams[IDC_PLANNING_ROUTER_DESIGN_CODE]) {
+              this.initRouterGraph(allData.data.contents)
+            }
+            if (this.currentTab === this.initParams[DEFAULT_SECURITY_POLICY_DESIGN_CODE]) {
+              this.initSecurityPolicyGraph(allData.data.contents)
+            }
+          })
+        }
+      } else {
+        const { statusCode, data } = await getPlanningDesignsCiData({
+          idcGuid: this.selectedIdc,
+          id: found.codeId,
+          queryObject: this.payload
         })
+        if (statusCode === 'OK') {
+          this.tabList.forEach(ci => {
+            if (ci.id === this.currentTab) {
+              ci.tableData = data.contents.map(_ => {
+                return {
+                  ..._.data,
+                  ..._.meta
+                }
+              })
+              ci.pagination.total = data.pageInfo.totalRows
+            }
+          })
+        }
       }
+    },
+    initRouterGraph (data) {
+      const nodes = data.map(_ => _.data.key_name.replace('-->>--', '->') + ';')
+      const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
+      let graph = d3.select(`#idcPlanningRouterGraph${this.initParams[IDC_PLANNING_ROUTER_DESIGN_CODE]}`)
+      graph
+        .on('dblclick.zoom', null)
+        .on('wheel.zoom', null)
+        .on('mousewheel.zoom', null)
+        .graphviz()
+        .fit(true)
+        .zoom(true)
+        .width(window.innerWidth - 60)
+        .height(window.innerHeight - 230)
+        .renderDot(nodesString)
+    },
+    initSecurityPolicyGraph (data) {
+      const nodes = data.map(_ => {
+        const d = _.data.key_name.split(' ')
+        const type = {
+          ingress: '[arrowhead=inv]',
+          egress: '[arrowhead=normal]'
+        }
+        return `${d[0]} -> ${d[2]} ${type[_.data.security_policy_type]};`
+      })
+      const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
+      let graph = d3.select(`#idcPlanningSecurityPolicyGraph${this.initParams[DEFAULT_SECURITY_POLICY_DESIGN_CODE]}`)
+      graph
+        .on('dblclick.zoom', null)
+        .on('wheel.zoom', null)
+        .on('mousewheel.zoom', null)
+        .graphviz()
+        .fit(true)
+        .zoom(true)
+        .width(window.innerWidth - 60)
+        .height(window.innerHeight - 230)
+        .renderDot(nodesString)
+    },
+    showTable (ci) {
+      ci.showGraph = false
+    },
+    showGraph (ci) {
+      ci.showGraph = true
     },
     async queryCiAttrs (id) {
       const { statusCode, data } = await getCiTypeAttributes(id)
@@ -992,7 +1116,8 @@ export default {
             outerActions: JSON.parse(JSON.stringify(outerActions)),
             innerActions: innerActions.concat(allInnerActions),
             pagination: JSON.parse(JSON.stringify(pagination)),
-            ascOptions: {}
+            ascOptions: {},
+            showGraph: false
           }
         })
         this.tabList = this.tabList.filter(tab => tab)
