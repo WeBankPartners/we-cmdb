@@ -1101,7 +1101,18 @@ export default {
       }
     },
     initRouterGraph (data) {
-      const nodes = data.map(_ => _.data.key_name.replace('-->>--', '->') + ';')
+      let nodes = []
+      data.forEach(_ => {
+        nodes.push(
+          `"${_.data.owner_network_segment.guid}"[id="${_.data.owner_network_segment.guid}",label="${_.data.owner_network_segment.name}"];`
+        )
+        nodes.push(
+          `"${_.data.dest_network_segment.guid}"[id="${_.data.dest_network_segment.guid}",label="${_.data.dest_network_segment.name}"];`
+        )
+        nodes.push(
+          `"${_.data.owner_network_segment.guid}" -> "${_.data.dest_network_segment.guid}"[taillabel="${_.data.code}",labeldistance="4", fontcolor="#7f8fa6", fontsize="5"];`
+        )
+      })
       const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
       let graph = d3.select(`#resourcePlanningRouterGraph${this.initParams[RESOURCE_PLANNING_ROUTER_CODE]}`)
       graph
@@ -1116,13 +1127,23 @@ export default {
         .renderDot(nodesString)
     },
     initSecurityPolicyGraph (data) {
-      const nodes = data.map(_ => {
-        const d = _.data.key_name.split(' ')
-        const type = {
-          ingress: '[arrowhead=inv]',
-          egress: '[arrowhead=normal]'
-        }
-        return `${d[0]} -> ${d[2]} ${type[_.data.security_policy_type]};`
+      const nodes = []
+      const type = {
+        ingress: 'inv',
+        egress: 'normal'
+      }
+      data.forEach(_ => {
+        nodes.push(
+          `"${_.data.owner_network_segment.guid}"[id="${_.data.owner_network_segment.guid}",label="${_.data.owner_network_segment.name}"];`
+        )
+        nodes.push(
+          `"${_.data.policy_network_segment.guid}"[id="${_.data.policy_network_segment.guid}",label="${_.data.policy_network_segment.name}"];`
+        )
+        nodes.push(
+          `"${_.data.owner_network_segment.guid}" -> "${_.data.policy_network_segment.guid}"[taillabel="${
+            _.data.code
+          }",arrowhead=${type[_.data.security_policy_type]},fontcolor="#7f8fa6",labeldistance="4", fontsize="5"];`
+        )
       })
       const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
       let graph = d3.select(`#resourcePlanningSecurityPolicyGraph${this.initParams[DEFAULT_SECURITY_POLICY_CODE]}`)
