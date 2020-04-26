@@ -156,6 +156,7 @@ export default {
                             }
                             : null,
                           isMultiple: column.isMultiple,
+                          options: column.options,
                           enumId: column.referenceId ? column.referenceId : null
                         }
                         : {
