@@ -983,7 +983,18 @@ export default {
       }
     },
     initRouterGraph (data) {
-      const nodes = data.map(_ => _.data.key_name.replace('-->>--', '->') + ';')
+      let nodes = []
+      data.forEach(_ => {
+        nodes.push(
+          `"${_.data.owner_network_segment_design.guid}"[id="${_.data.owner_network_segment_design.guid}",label="${_.data.owner_network_segment_design.name}"];`
+        )
+        nodes.push(
+          `"${_.data.dest_network_segment_design.guid}"[id="${_.data.dest_network_segment_design.guid}",label="${_.data.dest_network_segment_design.name}"];`
+        )
+        nodes.push(
+          `"${_.data.owner_network_segment_design.guid}" -> "${_.data.dest_network_segment_design.guid}"[taillabel="${_.data.code}",labeldistance="4",fontcolor="#7f8fa6", fontsize="5"];`
+        )
+      })
       const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
       let graph = d3.select(`#idcPlanningRouterGraph${this.initParams[IDC_PLANNING_ROUTER_DESIGN_CODE]}`)
       graph
@@ -998,13 +1009,23 @@ export default {
         .renderDot(nodesString)
     },
     initSecurityPolicyGraph (data) {
-      const nodes = data.map(_ => {
-        const d = _.data.key_name.split(' ')
-        const type = {
-          ingress: '[arrowhead=inv]',
-          egress: '[arrowhead=normal]'
-        }
-        return `${d[0]} -> ${d[2]} ${type[_.data.security_policy_type]};`
+      const nodes = []
+      const type = {
+        ingress: 'inv',
+        egress: 'normal'
+      }
+      data.forEach(_ => {
+        nodes.push(
+          `"${_.data.owner_network_segment_design.guid}"[id="${_.data.owner_network_segment_design.guid}",label="${_.data.owner_network_segment_design.name}"];`
+        )
+        nodes.push(
+          `"${_.data.policy_network_segment_design.guid}"[id="${_.data.policy_network_segment_design.guid}",label="${_.data.policy_network_segment_design.name}"];`
+        )
+        nodes.push(
+          `"${_.data.owner_network_segment_design.guid}" -> "${_.data.policy_network_segment_design.guid}"[taillabel="${
+            _.data.code
+          }",arrowhead=${type[_.data.security_policy_type]},labeldistance="4",fontcolor="#7f8fa6", fontsize="5"];`
+        )
       })
       const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
       let graph = d3.select(`#idcPlanningSecurityPolicyGraph${this.initParams[DEFAULT_SECURITY_POLICY_DESIGN_CODE]}`)
