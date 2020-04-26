@@ -59,12 +59,12 @@
         </div>
       </TabPane> -->
       <TabPane
-        v-for="(ci, index) in tabList"
+        v-for="ci in tabList"
         :key="ci.id"
         :name="ci.id"
         :label="ci.name"
         v-if="isShowTabs"
-        :index="index + 5"
+        :index="ci.seqNo + 3"
       >
         <WeCMDBTable
           :tableData="ci.tableData"
