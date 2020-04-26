@@ -252,5 +252,10 @@
   "input_set_of_copy": "Please input count of copy",
   "set": "Copy",
   "auto_fill_rule_incomplete": "Autofill Rule is incomplete!",
-  "exceeding_file_size_limit": "Exceeding file size limit"
+  "exceeding_file_size_limit": "Exceeding file size limit",
+  "data_manage": "Data",
+  "routing_design_diagram": "Routing Design Diagram",
+  "security_policy_design_diagram": "Security Policy Design Diagram",
+  "routing_diagram": "Routing Diagram",
+  "security_policy_diagram": "Security Policy Diagram"
 }
