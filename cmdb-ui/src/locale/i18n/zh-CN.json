@@ -252,5 +252,10 @@
   "input_set_of_copy": "请输入新增的数量",
   "set": "份",
   "auto_fill_rule_incomplete": "填充规则不完整！",
-  "exceeding_file_size_limit": "超出文件大小限制"
+  "exceeding_file_size_limit": "超出文件大小限制",
+  "data_manage": "管理数据",
+  "routing_design_diagram": "路由设计关系图",
+  "security_policy_design_diagram": "安全策略设计关系图",
+  "routing_diagram": "路由关系图",
+  "security_policy_diagram": "安全策略关系图"
 }
