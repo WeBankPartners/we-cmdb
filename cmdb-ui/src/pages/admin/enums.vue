@@ -269,7 +269,7 @@ export default {
       }
     },
 
-    actionFun (type, data) {
+    actionFun (type, data, cols) {
       switch (type) {
         case 'export':
           this.exportHandler()
@@ -282,6 +282,9 @@ export default {
           break
         case 'delete':
           this.deleteHandler(data)
+          break
+        case 'copy':
+          this.copyHandler(data, cols)
           break
         case 'innerCancel':
           this.$refs.table.rowCancelHandler(data.weTableRowId)
@@ -330,6 +333,9 @@ export default {
         onCancel: () => {}
       })
       document.querySelector('.ivu-modal-mask').click()
+    },
+    copyHandler (rows = [], cols) {
+      this.$refs.table.showCopyModal()
     },
     deleteAttr () {
       let attrs = []
