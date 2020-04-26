@@ -275,9 +275,6 @@ export default {
         case 'delete':
           this.deleteHandler(data)
           break
-        case 'innerCancel':
-          this.$refs.table.rowCancelHandler(data.weTableRowId)
-          break
         default:
           break
       }

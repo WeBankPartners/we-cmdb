@@ -118,13 +118,10 @@ export default {
           {this.editData.map((d, index) => {
             return (
               <div key={index} style={`width: ${this.tableWidth}px`}>
-                {this.columns.map(column => {
+                {this.columns.map((column, i) => {
                   if (column.component === 'WeCMDBCIPassword') {
                     return (
-                      <div
-                        key={column.propertyName + index}
-                        style={`width:${WIDTH}px;display:inline-block;padding:5px`}
-                      >
+                      <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
                         <column.component
                           ciTypeId={column.ciTypeId}
                           guid={d.guid}
@@ -142,6 +139,7 @@ export default {
                     const props =
                       column.component === 'WeCMDBSelect'
                         ? {
+                          ...column,
                           value: column.isRefreshable
                             ? column.inputType === 'multiSelect'
                               ? []
@@ -161,6 +159,7 @@ export default {
                           enumId: column.referenceId ? column.referenceId : null
                         }
                         : {
+                          ...column,
                           value: column.isRefreshable
                             ? ''
                             : column.inputType === 'multiRef'
@@ -189,10 +188,7 @@ export default {
                       on: fun
                     }
                     return (
-                      <div
-                        key={column.propertyName + index}
-                        style={`width:${WIDTH}px;display:inline-block;padding:5px`}
-                      >
+                      <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
                         <column.component {...data} />
                       </div>
                     )
@@ -235,13 +231,13 @@ export default {
         <div style="overflow: auto">
           {this.modalVisible && (
             <div style={`width: ${this.tableWidth}px`}>
-              {this.columns.map(column => {
+              {this.columns.map((column, index) => {
                 return (
                   <div
                     style={`width:${WIDTH}px;display:inline-block;padding:5px;height: 30px;font-weight:600;background-color: #e8eaec`}
-                    key={column.ciTypeAttrId}
+                    key={column.ciTypeAttrId || index}
                   >
-                    {column.name}
+                    {column.name || column.title}
                   </div>
                 )
               })}
