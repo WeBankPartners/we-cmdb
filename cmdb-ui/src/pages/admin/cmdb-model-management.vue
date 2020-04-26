@@ -1203,14 +1203,14 @@ export default {
         .renderDot(nodesString)
         .on('end', () => {
           this.shadeAll()
+          addEvent('svg', 'mouseover', e => {
+            this.shadeAll()
+            e.preventDefault()
+            e.stopPropagation()
+          })
+          addEvent('.node', 'mouseover', this.handleNodeMouseover)
+          addEvent('.node', 'click', this.handleNodeClick)
         })
-      addEvent('svg', 'mouseover', e => {
-        this.shadeAll()
-        e.preventDefault()
-        e.stopPropagation()
-      })
-      addEvent('.node', 'mouseover', this.handleNodeMouseover)
-      addEvent('.node', 'click', this.handleNodeClick)
       this.spinShow = false
     },
     handleNodeMouseover (e) {
