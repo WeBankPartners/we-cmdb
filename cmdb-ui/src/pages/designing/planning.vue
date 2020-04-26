@@ -29,14 +29,16 @@
                 ci.id === initParams['defaultSecurityPolicyDesignCode']
             "
           >
-            <Button v-show="ci.showGraph" size="small" type="primary" ghost @click="showTable(ci)">管理数据</Button>
+            <Button v-show="ci.showGraph" size="small" type="primary" ghost @click="showTable(ci)">{{
+              $t('data_manage')
+            }}</Button>
             <Button
               v-show="ci.id === initParams['idcPlaningRouterDesignCode'] && !ci.showGraph"
               size="small"
               type="primary"
               ghost
               @click="showGraph(ci)"
-              >路由设计关系图</Button
+              >{{ $t('routing_design_diagram') }}</Button
             >
             <Button
               v-show="ci.id === initParams['defaultSecurityPolicyDesignCode'] && !ci.showGraph"
@@ -44,7 +46,7 @@
               type="primary"
               ghost
               @click="showGraph(ci)"
-              >安全策略设计关系图</Button
+              >{{ $t('security_policy_design_diagram') }}</Button
             >
           </div>
           <WeCMDBTable
