@@ -22,14 +22,14 @@
         <div>{{ $t('loading') }}</div>
       </Spin>
       <Tabs v-show="idcData.length" type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
-        <TabPane :label="$t('resource_planning_diagram')" name="resource-design">
+        <TabPane :label="$t('resource_planning_diagram')" name="resource-design" :index="1">
           <Alert show-icon closable v-if="isDataChanged">
             Data has beed changed, click Reload button to reload graph.
             <Button slot="desc" @click="reloadHandler">Reload</Button>
           </Alert>
           <div class="graph-container-big" id="resourcePlanningGraph"></div>
         </TabPane>
-        <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name">
+        <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name" :index="ci.seqNo + 1">
           <div
             style="margin-bottom:20px"
             v-if="
