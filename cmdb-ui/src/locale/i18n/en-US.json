@@ -254,8 +254,8 @@
   "auto_fill_rule_incomplete": "Autofill Rule is incomplete!",
   "exceeding_file_size_limit": "Exceeding file size limit",
   "data_manage": "Data",
-  "routing_design_diagram": "Routing Design Diagram",
+  "routing_design_diagram": "Routers Design Diagram",
   "security_policy_design_diagram": "Security Policy Design Diagram",
-  "routing_diagram": "Routing Diagram",
+  "routing_diagram": "Routers Diagram",
   "security_policy_diagram": "Security Policy Diagram"
 }
