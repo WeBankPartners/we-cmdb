@@ -386,10 +386,6 @@ export default {
     onRadioSelect (current, old) {
       this.$emit('getSelectedRows', [current], false)
     },
-    // cancelSelected () {
-    //   this.$refs['table'].selectAll(false)
-    //   this.selectedRows = []
-    // },
     sortHandler (sort) {
       this.$emit('sortHandler', sort)
     },
