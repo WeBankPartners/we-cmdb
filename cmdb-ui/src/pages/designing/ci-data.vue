@@ -542,9 +542,6 @@ export default {
         case 'delete':
           this.deleteHandler(data)
           break
-        case 'innerCancel':
-          this.$refs[this.tableRef][0].rowCancelHandler(data.weTableRowId)
-          break
         case 'compare':
           this.compareHandler(data)
           break
