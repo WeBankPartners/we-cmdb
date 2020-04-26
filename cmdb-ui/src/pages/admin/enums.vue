@@ -31,8 +31,7 @@ import {
   updateEnumCode,
   getGroupListByCodeId,
   deleteEnumCodes,
-  getAllNonSystemEnumCodes,
-  getNonSystemCategories
+  getAllNonSystemEnumCodes
 } from '@/api/server.js'
 import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { newExportOuterActions, newOuterActions } from '@/const/actions.js'
@@ -49,6 +48,7 @@ export default {
           title: this.$t('table_enum_name'),
           key: 'catName',
           inputKey: 'catId',
+          propertyName: 'catId',
           searchSeqNo: 1,
           displaySeqNo: 1,
           component: 'WeCMDBSelect',
@@ -56,61 +56,78 @@ export default {
           disEditor: true, // 枚举名称不可改
           inputType: 'select',
           placeholder: 'catName',
-          options: []
+          options: [],
+          isEditable: true,
+          isAuto: false
         },
         {
           title: this.$t('table_enum_key'),
           key: 'code',
           inputKey: 'code',
+          propertyName: 'code',
           searchSeqNo: 2,
           displaySeqNo: 2,
           component: 'Input',
           inputType: 'text',
-          placeholder: 'code'
+          placeholder: 'code',
+          isEditable: true,
+          isAuto: false
         },
         {
           title: this.$t('table_enum_value'),
           key: 'value',
           inputKey: 'value',
+          propertyName: 'value',
           searchSeqNo: 3,
           displaySeqNo: 3,
           component: 'Input',
           inputType: 'text',
-          placeholder: 'value'
+          placeholder: 'value',
+          isEditable: true,
+          isAuto: false
         },
         {
           title: this.$t('form_enum_type'),
           key: 'catTypeName',
           inputKey: 'cat.catType.catTypeName',
+          propertyName: 'catTypeName',
           searchSeqNo: 0, // 不可作为搜索条件
           displaySeqNo: 4,
           component: 'Input',
           disEditor: true, // 枚举类型不可改
           disAdded: true,
           inputType: 'text',
-          placeholder: 'catTypeName'
+          placeholder: 'catTypeName',
+          isEditable: false,
+          isAuto: false
         },
         {
           title: this.$t('table_enum_group'),
           key: 'groupCodeId',
           inputKey: 'groupCodeId',
+          propertyName: 'groupCodeId',
           searchSeqNo: 5,
           displaySeqNo: 5,
           component: 'WeCMDBSelect',
           inputType: 'select',
           placeholder: 'groupCodeId',
-          optionKey: 'catId'
+          optionKey: 'catId',
+          isEditable: true,
+          isAuto: false
         },
         {
           title: this.$t('state'),
           key: 'status',
           inputKey: 'status',
+          propertyName: 'status',
           searchSeqNo: 6,
           displaySeqNo: 6,
           component: 'WeCMDBSelect',
           inputType: 'select',
           placeholder: 'status',
-          options: []
+          options: [],
+          isEditable: true,
+          isAuto: false
         }
       ],
       pagination: {
@@ -192,14 +209,6 @@ export default {
       }
       this.$refs.table.form.groupCodeId = ''
     },
-    getAsyncOptions (rows, disable) {
-      rows.forEach(async _ => {
-        if (!this.ascOptions[_.catId] && _.catId > 0) {
-          this.getGroupList(_.catId)
-        }
-      })
-      this.$refs.table.setTableData(disable)
-    },
     async queryData () {
       this.payload.pageable.pageSize = this.pagination.pageSize
       this.payload.pageable.startIndex = (this.pagination.currentPage - 1) * this.pagination.pageSize
@@ -238,8 +247,7 @@ export default {
       // this.$refs.table.isTableLoading(true)
     },
     async getEnumNames () {
-      const { statusCode, data } =
-        this.$route.name === 'baseData' ? await getSystemCategories() : await getNonSystemCategories()
+      const { statusCode, data } = await getSystemCategories()
       if (statusCode === 'OK') {
         this.tableColumns[0].options = data.map(_ => {
           return {
@@ -274,6 +282,9 @@ export default {
           break
         case 'delete':
           this.deleteHandler(data)
+          break
+        case 'innerCancel':
+          this.$refs.table.rowCancelHandler(data.weTableRowId)
           break
         default:
           break
@@ -320,6 +331,15 @@ export default {
       })
       document.querySelector('.ivu-modal-mask').click()
     },
+    deleteAttr () {
+      let attrs = []
+      this.tableColumns.forEach(i => {
+        if (i.isAuto) {
+          attrs.push(i.propertyName)
+        }
+      })
+      return attrs
+    },
     async confirmAddHandler (data) {
       const deleteAttrs = this.deleteAttr()
       let addAry = JSON.parse(JSON.stringify(data))
@@ -333,10 +353,16 @@ export default {
         delete _.isNewAddedRow
         delete _.nextOperations
       })
-      let payload = {
-        id: this.currentTab,
-        createData: addAry
-      }
+      const payload = addAry.map(_ => {
+        return {
+          callbackId: _.weTableRowId,
+          catId: _.catId,
+          code: _.code,
+          groupCodeId: _.groupCodeId,
+          status: _.status,
+          value: _.value
+        }
+      })
       const { statusCode, message } = await createEnumCode(payload)
       this.$refs.table.resetModalLoading()
       if (statusCode === 'OK') {
@@ -346,7 +372,7 @@ export default {
         })
         this.setBtnsStatus()
         this.queryData()
-        this.$refs[this.tableRef][0].closeEditModal(false)
+        this.$refs.table.closeEditModal(false)
       }
     },
     async confirmEditHandler (data) {
@@ -358,12 +384,19 @@ export default {
         delete _.isNewAddedRow
         delete _.nextOperations
       })
-      let payload = {
-        id: this.currentTab,
-        updateData: editAry
-      }
+      const payload = editAry.map(_ => {
+        return {
+          callbackId: _.weTableRowId,
+          catId: _.catId,
+          code: _.code,
+          codeId: _.codeId,
+          groupCodeId: _.groupCodeId,
+          status: _.status,
+          value: _.value
+        }
+      })
       const { statusCode, message } = await updateEnumCode(payload)
-      this.$refs[this.tableRef][0].resetModalLoading()
+      this.$refs.table.resetModalLoading()
       if (statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('update_enum_success_message'),
@@ -371,8 +404,13 @@ export default {
         })
         this.setBtnsStatus()
         this.queryData()
-        this.$refs[this.tableRef][0].closeEditModal(false)
+        this.$refs.table.closeEditModal(false)
       }
+    },
+    setBtnsStatus () {
+      this.outerActions.forEach(_ => {
+        _.props.disabled = resetButtonDisabled(_)
+      })
     },
     onSelectedRowsChange (rows, checkoutBoxdisable) {
       if (rows.length > 0) {
@@ -384,8 +422,6 @@ export default {
           _.props.disabled = resetButtonDisabled(_)
         })
       }
-      this.seletedRows = rows
-      this.getAsyncOptions(rows, checkoutBoxdisable)
     },
     async exportHandler () {
       this.outerActions.forEach(_ => {
