@@ -11,7 +11,6 @@ export default {
   watch: {
     value: {
       handler (val) {
-        console(val, this.highlightRow)
         this.selected = val
       },
       immediate: true
