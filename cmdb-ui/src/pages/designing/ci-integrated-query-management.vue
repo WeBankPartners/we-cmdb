@@ -275,37 +275,35 @@ export default {
       const key = Object.keys(ciGraphResult).filter(key => ciGraphResult[key].node.index === 1)
       const rootNode = ciGraphResult[key]
       function treefiy (root) {
+        const attrs = attrsObject[root.node.label]
         if (!root.from.length && !root.to.length) {
           return {
             ciTypeId: root.node.ciTypeId,
             name: root.node.label,
-            attrs: attrsObject[root.node.label].map(_ => _.ciTypeAttrId),
-            attrAliases: attrsObject[root.node.label].map(_ => _.name),
-            attrKeyNames: attrsObject[root.node.label][0].attrKeyName
-              ? attrsObject[root.node.label].map(_ => _.attrKeyName)
-              : []
+            attrs: attrs ? attrs.map(_ => _.ciTypeAttrId) : [],
+            attrAliases: attrs ? attrs.map(_ => _.name) : [],
+            attrKeyNames: attrs && attrs[0].attrKeyName ? attrs.map(_ => _.attrKeyName) : []
           }
         }
         const t = {
           children: [],
           ciTypeId: root.node.ciTypeId,
           name: root.node.label,
-          attrs: attrsObject[root.node.label].map(_ => _.ciTypeAttrId),
-          attrAliases: attrsObject[root.node.label].map(_ => _.name),
-          attrKeyNames: attrsObject[root.node.label][0].attrKeyName
-            ? attrsObject[root.node.label].map(_ => _.attrKeyName)
-            : []
+          attrs: attrs ? attrs.map(_ => _.ciTypeAttrId) : [],
+          attrAliases: attrs ? attrs.map(_ => _.name) : [],
+          attrKeyNames: attrs && attrs[0].attrKeyName ? attrs.map(_ => _.attrKeyName) : []
         }
 
         if (root.to) {
           t.children = [].concat(
             root.to.map(_ => {
+              const label = attrsObject[_.label]
               if (ciGraphResult[_.label]) {
                 const ret = treefiy(ciGraphResult[_.label])
                 return {
-                  attrs: attrsObject[_.label].map(_ => _.ciTypeAttrId),
-                  attrAliases: attrsObject[_.label].map(_ => _.name),
-                  attrKeyNames: attrsObject[_.label][0].attrKeyName ? attrsObject[_.label].map(_ => _.attrKeyName) : [],
+                  attrs: label ? label.map(_ => _.ciTypeAttrId) : [],
+                  attrAliases: label ? label.map(_ => _.name) : [],
+                  attrKeyNames: label && label[0].attrKeyName ? label.map(_ => _.attrKeyName) : [],
                   ...ret,
                   parentRs: {
                     attrId: _.refPropertyId,
@@ -316,9 +314,9 @@ export default {
                 return {
                   ciTypeId: _.ciTypeId,
                   name: _.label,
-                  attrs: attrsObject[_.label].map(_ => _.ciTypeAttrId),
-                  attrAliases: attrsObject[_.label].map(_ => _.name),
-                  attrKeyNames: attrsObject[_.label][0].attrKeyName ? attrsObject[_.label].map(_ => _.attrKeyName) : [],
+                  attrs: label ? label.map(_ => _.ciTypeAttrId) : [],
+                  attrAliases: label ? label.map(_ => _.name) : [],
+                  attrKeyNames: label && label[0].attrKeyName ? label.map(_ => _.attrKeyName) : [],
                   parentRs: {
                     attrId: _.refPropertyId,
                     isReferedFromParent: true
@@ -332,12 +330,13 @@ export default {
         if (root.from) {
           t.children = t.children.concat(
             root.from.map(_ => {
+              const label = attrsObject[_.label]
               if (ciGraphResult[_.label]) {
                 const ret = treefiy(ciGraphResult[_.label])
                 return {
-                  attrs: attrsObject[_.label].map(_ => _.ciTypeAttrId),
-                  attrAliases: attrsObject[_.label].map(_ => _.name),
-                  attrKeyNames: attrsObject[_.label][0].attrKeyName ? attrsObject[_.label].map(_ => _.attrKeyName) : [],
+                  attrs: label ? label.map(_ => _.ciTypeAttrId) : [],
+                  attrAliases: label ? label.map(_ => _.name) : [],
+                  attrKeyNames: label && label[0].attrKeyName ? label.map(_ => _.attrKeyName) : [],
                   ...ret,
                   parentRs: {
                     attrId: _.refPropertyId,
@@ -348,9 +347,9 @@ export default {
                 return {
                   ciTypeId: _.ciTypeId,
                   name: _.label,
-                  attrs: attrsObject[_.label].map(_ => _.ciTypeAttrId),
-                  attrAliases: attrsObject[_.label].map(_ => _.name),
-                  attrKeyNames: attrsObject[_.label][0].attrKeyName ? attrsObject[_.label].map(_ => _.attrKeyName) : [],
+                  attrs: label ? label.map(_ => _.ciTypeAttrId) : [],
+                  attrAliases: label ? label.map(_ => _.name) : [],
+                  attrKeyNames: label && label[0].attrKeyName ? label.map(_ => _.attrKeyName) : [],
                   parentRs: {
                     attrId: _.refPropertyId,
                     isReferedFromParent: false
