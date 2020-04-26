@@ -54,7 +54,7 @@
     <Card style="margin-top: 20px">
       <div>
         <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
-          <TabPane :label="$t('application_logic_diagram')" name="architectureDesign" class="app-tab">
+          <TabPane :label="$t('application_logic_diagram')" name="architectureDesign" class="app-tab" :index="1">
             <Alert show-icon closable v-if="isDataChanged">
               Data has beed changed, click Reload button to reload graph.
               <Button slot="desc" @click="reloadHandler">Reload</Button>
@@ -70,7 +70,7 @@
               <div class="graph-container" id="appLogicGraph"></div>
             </div>
           </TabPane>
-          <TabPane :label="$t('service_invoke_diagram')" name="serviceInvoke" class="app-tab">
+          <TabPane :label="$t('service_invoke_diagram')" name="serviceInvoke" class="app-tab" :index="2">
             <Alert show-icon closable v-if="isDataChanged">
               Data has beed changed, click Reload button to reload graph.
               <Button slot="desc" @click="reloadHandler">Reload</Button>
@@ -152,7 +152,7 @@
             </Row>
           </TabPane>
 
-          <TabPane :label="$t('physical_deployment_diagram')" name="physicalGraph" class="app-tab">
+          <TabPane :label="$t('physical_deployment_diagram')" name="physicalGraph" class="app-tab" :index="3">
             <div>
               <PhysicalGraph
                 v-if="physicalGraphData.length"
@@ -168,7 +168,14 @@
               </Spin>
             </div>
           </TabPane>
-          <TabPane v-if="!!systemDesignVersion" v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name">
+          <TabPane
+            v-if="!!systemDesignVersion"
+            v-for="ci in tabList"
+            :key="ci.id"
+            :name="ci.id"
+            :label="ci.name"
+            :index="ci.seqNo + 3"
+          >
             <WeCMDBTable
               :tableData="ci.tableData"
               :tableOuterActions="isTableViewOnly ? null : ci.outerActions"
