@@ -36,14 +36,16 @@
               ci.id === initParams['resourcePlaningRouterCode'] || ci.id === initParams['defaultSecurityPolicyCode']
             "
           >
-            <Button v-show="ci.showGraph" size="small" type="primary" ghost @click="showTable(ci)">管理数据</Button>
+            <Button v-show="ci.showGraph" size="small" type="primary" ghost @click="showTable(ci)">{{
+              $t('data_manage')
+            }}</Button>
             <Button
               v-show="ci.id === initParams['resourcePlaningRouterCode'] && !ci.showGraph"
               size="small"
               type="primary"
               ghost
               @click="showGraph(ci)"
-              >路由关系图</Button
+              >{{ $t('routing_diagram') }}</Button
             >
             <Button
               v-show="ci.id === initParams['defaultSecurityPolicyCode'] && !ci.showGraph"
@@ -51,7 +53,7 @@
               type="primary"
               ghost
               @click="showGraph(ci)"
-              >安全策略关系图</Button
+              >{{ $t('security_policy_diagram') }}</Button
             >
           </div>
           <WeCMDBTable
