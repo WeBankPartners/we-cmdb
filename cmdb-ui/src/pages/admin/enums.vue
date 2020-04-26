@@ -1,8 +1,8 @@
 <template>
-  <WeCMDBTable
+  <CMDBTable
     :tableData="tableData"
     :tableOuterActions="outerActions"
-    :tableInnerActions="innerActions"
+    :tableInnerActions="null"
     :tableColumns="tableColumns"
     :pagination="pagination"
     :ascOptions="ascOptions"
@@ -15,9 +15,11 @@
     @pageChange="pageChange"
     @pageSizeChange="pageSizeChange"
     @getGroupList="getGroupList"
+    @confirmAddHandler="confirmAddHandler"
+    @confirmEditHandler="confirmEditHandler"
     tableHeight="650"
     ref="table"
-  ></WeCMDBTable>
+  ></CMDBTable>
 </template>
 
 <script>
@@ -33,13 +35,12 @@ import {
   getNonSystemCategories
 } from '@/api/server.js'
 import { resetButtonDisabled } from '@/const/tableActionFun.js'
-import { outerActions, innerActions, exportOuterActions } from '@/const/actions.js'
+import { newExportOuterActions, newOuterActions } from '@/const/actions.js'
 
 export default {
   data () {
     return {
-      outerActions,
-      innerActions,
+      outerActions: [],
       showCheckbox: true,
       tableData: [],
       seachFilters: {},
@@ -214,6 +215,7 @@ export default {
           })
         }
       }
+      // this.$refs.table.isTableLoading(true)
       const { statusCode, data } =
         this.$route.name === 'baseData'
           ? await getAllSystemEnumCodes(this.payload)
@@ -233,6 +235,7 @@ export default {
           }
         })
       }
+      // this.$refs.table.isTableLoading(true)
     },
     async getEnumNames () {
       const { statusCode, data } =
@@ -269,14 +272,8 @@ export default {
         case 'edit':
           this.editHandler()
           break
-        case 'save':
-          this.saveHandler(data)
-          break
         case 'delete':
           this.deleteHandler(data)
-          break
-        case 'cancel':
-          this.cancelHandler()
           break
         case 'innerCancel':
           this.$refs.table.rowCancelHandler(data.weTableRowId)
@@ -284,14 +281,6 @@ export default {
         default:
           break
       }
-    },
-    cancelHandler () {
-      this.$refs.table.setAllRowsUneditable()
-      this.$refs.table.setCheckoutStatus()
-      this.outerActions &&
-        this.outerActions.forEach(_ => {
-          _.props.disabled = resetButtonDisabled(_)
-        })
     },
     addHandler () {
       let emptyRowData = {}
@@ -306,25 +295,11 @@ export default {
       emptyRowData['isNewAddedRow'] = true
       emptyRowData['weTableRowId'] = new Date().getTime()
       emptyRowData['catId'] = this.catId ? this.catId : ''
-      this.tableData.unshift(emptyRowData)
-      this.$nextTick(() => {
-        this.$refs.table.pushNewAddedRowToSelections()
-        this.$refs.table.setCheckoutStatus(true)
-      })
-      this.outerActions.forEach(_ => {
-        _.props.disabled = _.actionType === 'add'
-      })
+      this.$refs.table.pushNewAddedRowToSelections(emptyRowData)
+      this.$refs.table.showAddModal(emptyRowData)
     },
     editHandler () {
-      this.$refs.table.swapRowEditable(true)
-      this.outerActions.forEach(_ => {
-        if (_.actionType === 'save') {
-          _.props.disabled = false
-        }
-      })
-      this.$nextTick(() => {
-        this.$refs.table.setCheckoutStatus(true)
-      })
+      this.$refs.table.showEditModal()
     },
     deleteHandler (deleteData) {
       this.$Modal.confirm({
@@ -339,7 +314,7 @@ export default {
               desc: message
             })
             this.outerActions.forEach(_ => {
-              _.props.disabled = _.actionType === 'save' || _.actionType === 'edit' || _.actionType === 'delete'
+              _.props.disabled = _.actionType === 'copy' || _.actionType === 'edit' || _.actionType === 'delete'
             })
             this.queryData()
           }
@@ -348,84 +323,58 @@ export default {
       })
       document.querySelector('.ivu-modal-mask').click()
     },
-    async saveHandler (data) {
-      let setBtnsStatus = () => {
-        this.outerActions.forEach(_ => {
-          _.props.disabled = resetButtonDisabled(_)
+    async confirmAddHandler (data) {
+      const deleteAttrs = this.deleteAttr()
+      let addAry = JSON.parse(JSON.stringify(data))
+      addAry.forEach(_ => {
+        deleteAttrs.forEach(attr => {
+          delete _[attr]
         })
-        this.$refs.table.setAllRowsUneditable()
-        this.$nextTick(() => {
-          /* to get iview original data to set _ischecked flag */
-          let objData = this.$refs.table.$refs.table.$refs.tbody.objData
-          for (let obj in objData) {
-            objData[obj]._isChecked = false
-            objData[obj]._isDisabled = false
-          }
-        })
+        delete _.isRowEditable
+        delete _.weTableForm
+        delete _.weTableRowId
+        delete _.isNewAddedRow
+        delete _.nextOperations
+      })
+      let payload = {
+        id: this.currentTab,
+        createData: addAry
       }
-      let d = JSON.parse(JSON.stringify(data))
-      let addObj = d.find(_ => _.isNewAddedRow)
-      let editAry = d.filter(_ => !_.isNewAddedRow)
-      if (addObj) {
-        this.outerActions.forEach(_ => {
-          if (_.actionType === 'save') {
-            _.props.loading = true
-          }
+      const { statusCode, message } = await createEnumCode(payload)
+      this.$refs.table.resetModalLoading()
+      if (statusCode === 'OK') {
+        this.$Notice.success({
+          title: this.$t('add_enum_success_message'),
+          desc: message
         })
-        let payload = {
-          callbackId: 1,
-          catId: addObj.catId || this.catId,
-          code: addObj.code,
-          status: addObj.status,
-          value: addObj.value,
-          groupCodeId: addObj.groupCodeId
-        }
-        const { statusCode, message } = await createEnumCode(payload)
-        this.outerActions.forEach(_ => {
-          if (_.actionType === 'save') {
-            _.props.loading = false
-          }
-        })
-        if (statusCode === 'OK') {
-          this.$Notice.success({
-            title: this.$t('add_enum_success_message'),
-            desc: message
-          })
-          setBtnsStatus()
-          this.queryData()
-        }
+        this.setBtnsStatus()
+        this.queryData()
+        this.$refs[this.tableRef][0].closeEditModal(false)
       }
-      if (editAry.length > 0) {
-        this.outerActions.forEach(_ => {
-          if (_.actionType === 'save') {
-            _.props.loading = true
-          }
+    },
+    async confirmEditHandler (data) {
+      let editAry = JSON.parse(JSON.stringify(data))
+      editAry.forEach(_ => {
+        delete _.isRowEditable
+        delete _.weTableForm
+        delete _.weTableRowId
+        delete _.isNewAddedRow
+        delete _.nextOperations
+      })
+      let payload = {
+        id: this.currentTab,
+        updateData: editAry
+      }
+      const { statusCode, message } = await updateEnumCode(payload)
+      this.$refs[this.tableRef][0].resetModalLoading()
+      if (statusCode === 'OK') {
+        this.$Notice.success({
+          title: this.$t('update_enum_success_message'),
+          desc: message
         })
-        let payload = editAry.map(_ => {
-          return {
-            callbackId: _.weTableRowId,
-            catId: _.catId,
-            code: _.code,
-            codeId: _.codeId,
-            groupCodeId: _.groupCodeId,
-            status: _.status,
-            value: _.value
-          }
-        })
-        const { statusCode, message } = await updateEnumCode(payload)
-        this.outerActions.forEach(_ => {
-          if (_.actionType === 'save') {
-            _.props.loading = false
-          }
-        })
-        if (statusCode === 'OK') {
-          this.$Notice.success({
-            title: this.$t('update_enum_success_message'),
-            desc: message
-          })
-          setBtnsStatus()
-          this.queryData()
-        }
+        this.setBtnsStatus()
+        this.queryData()
+        this.$refs[this.tableRef][0].closeEditModal(false)
       }
     },
     onSelectedRowsChange (rows, checkoutBoxdisable) {
@@ -473,14 +422,13 @@ export default {
         })
       }
     },
-    setActionsParams () {
+    async setActionsParams () {
       const routerFlag = this.$route.name === 'enumEnquiry'
-      this.outerActions = routerFlag ? exportOuterActions : outerActions
-      this.innerActions = routerFlag ? null : innerActions
+      this.outerActions = routerFlag ? newExportOuterActions : newOuterActions
       this.showCheckbox = !routerFlag
     }
   },
-  created () {
+  mounted () {
     if (this.catId) {
       this.tableColumns.shift()
     } else {
@@ -489,9 +437,6 @@ export default {
     }
     this.queryData()
     this.getEnumsStatus()
-  },
-  mounted () {
-    this.cancelHandler()
   }
 }
 </script>
