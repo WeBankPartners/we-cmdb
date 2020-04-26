@@ -304,11 +304,6 @@ export default {
         fixVersionModal: false
       },
       initParams: {},
-      // copyVisible: false,
-      // copyTableVisible: false,
-      // noOfCopy: 1,
-      // copyRows: [],
-      // copyEditData: null,
       isHandleNodeClick: false
     }
   },
@@ -327,27 +322,9 @@ export default {
         return ''
       }
     }
-    // copyData () {
-    //   return Array(this.noOfCopy)
-    //     .fill(0)
-    //     .reduce(arr => {
-    //       arr = arr.concat(this.copyRows)
-    //       return arr
-    //     }, [])
-    // },
-    // currentCols () {
-    //   const cols = (this.tabList.find(ci => ci.id === this.currentTab) || {}).tableColumns || []
-    //   return cols.filter(col => !col.isAuto && col.isEditable)
-    // }
   },
   watch: {
-    currentTab () {
-      // this.copyVisible = false
-      // this.copyTableVisible = false
-      // this.noOfCopy = 1
-      // this.copyRows = []
-      // this.copyEditData = null
-    }
+    currentTab () {}
   },
   methods: {
     closeInvokeSquence () {
