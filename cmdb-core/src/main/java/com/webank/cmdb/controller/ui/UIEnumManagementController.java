@@ -162,6 +162,13 @@ public class UIEnumManagementController {
     }
 
     @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT })
+    @PostMapping("/enum/codes/create")
+    @ResponseBody
+    public Object createEnumCodes(@RequestBody List<CatCodeDto> catCodeDto) {
+        return wrapperService.createEnumCodes(catCodeDto);
+    }
+
+    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT })
     @PostMapping("/enum/codes/update")
     @ResponseBody
     public Object updateEnumCodes(@RequestBody List<Map<String, Object>> catCodeDtos) {
