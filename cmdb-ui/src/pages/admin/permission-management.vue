@@ -123,25 +123,27 @@
       @on-cancel="cancelEdit"
       width="80"
     >
-      <WeCMDBTable
+      <CMDBTable
         :tableData="ciTypeAttrsPermissions"
         :filtersHidden="true"
-        :tableOuterActions="outerActions"
-        :tableInnerActions="innerActions"
+        :tableOuterActions="newOuterActions"
+        :tableInnerActions="null"
         :tableColumns="attrsPermissionsColumns"
         :ascOptions="permissionsTableOptions"
         :showCheckbox="true"
         @actionFun="actionFun"
         @getSelectedRows="onSelectedRowsChange"
+        @confirmAddHandler="confirmAddHandler"
+        @confirmEditHandler="confirmEditHandler"
         tableHeight="650"
         ref="table"
-      ></WeCMDBTable>
+      ></CMDBTable>
     </Modal>
   </Row>
 </template>
 <script>
 import { resetButtonDisabled } from '@/const/tableActionFun.js'
-import { outerActions, innerActions, components } from '@/const/actions.js'
+import { newOuterActions, components } from '@/const/actions.js'
 import {
   getAllUsers,
   getAllRoles,
@@ -170,6 +172,17 @@ import { MENUS } from '@/const/menus.js'
 export default {
   data () {
     return {
+      defaultKey: [
+        'creationPermission',
+        'enquiryPermission',
+        'executionPermission',
+        'grantPermission',
+        'modificationPermission',
+        'removalPermission',
+        'roleCiTypeId',
+        'roleCiTypeCtrlAttrId',
+        'callbackId'
+      ],
       actionsType: [
         {
           actionCode: 'creationPermission',
@@ -224,8 +237,7 @@ export default {
       transferStyle: { width: '300px' },
       currentRoleCiTypeId: '',
       // for WeCMDBTable
-      outerActions,
-      innerActions,
+      newOuterActions,
       ciTypeAttrsPermissions: [],
       ciTypeAttrsPermissionsBackUp: [],
       attrsPermissionsColumns: [],
@@ -247,7 +259,9 @@ export default {
               label: this.$t('no'),
               value: 'N'
             }
-          ]
+          ],
+          isEditable: true,
+          isAuto: false
         },
         {
           title: this.$t('new'),
@@ -265,7 +279,9 @@ export default {
               label: this.$t('no'),
               value: 'N'
             }
-          ]
+          ],
+          isEditable: true,
+          isAuto: false
         },
         {
           title: this.$t('modify'),
@@ -283,7 +299,9 @@ export default {
               label: this.$t('no'),
               value: 'N'
             }
-          ]
+          ],
+          isEditable: true,
+          isAuto: false
         },
         {
           title: this.$t('execute'),
@@ -301,7 +319,9 @@ export default {
               label: this.$t('no'),
               value: 'N'
             }
-          ]
+          ],
+          isEditable: true,
+          isAuto: false
         },
         {
           title: this.$t('delete'),
@@ -319,10 +339,11 @@ export default {
               label: this.$t('no'),
               value: 'N'
             }
-          ]
+          ],
+          isEditable: true,
+          isAuto: false
         }
       ],
-      seletedRows: [],
       addedUser: {},
       spinShow: false
     }
@@ -426,128 +447,81 @@ export default {
         case 'edit':
           this.editHandler()
           break
-        case 'save':
-          this.saveHandler(data)
+        case 'copy':
+          this.copyHandler()
           break
         case 'delete':
           this.deleteHandler(data)
-          break
-        case 'cancel':
-          this.cancelHandler()
-          break
-        case 'innerCancel':
-          this.$refs.table.rowCancelHandler(data.weTableRowId)
           break
         default:
           break
       }
     },
-    async saveHandler (data) {
-      let setBtnsStatus = () => {
-        this.outerActions.forEach(_ => {
-          _.props.disabled = resetButtonDisabled(_)
-        })
-        this.$refs.table.setAllRowsUneditable()
-        this.$nextTick(() => {
-          /* to get iview original data to set _ischecked flag */
-          let objData = this.$refs.table.$refs.table.$refs.tbody.objData
-          for (let obj in objData) {
-            objData[obj]._isChecked = false
-            objData[obj]._isDisabled = false
+    copyHandler (rows = [], cols) {
+      this.$refs.table.showCopyModal()
+    },
+    async confirmAddHandler (data) {
+      let addAry = JSON.parse(JSON.stringify(data))
+      addAry.forEach(_ => {
+        _.callbackId = _['weTableRowId']
+        delete _.isNewAddedRow
+        delete _.isRowEditable
+        delete _.weTableForm
+        delete _.weTableRowId
+        for (let i in _) {
+          const found = this.defaultKey.find(k => k === i)
+          if (!found) {
+            _[i] = { conditionValue: _[i].toString() }
           }
+        }
+      })
+      const { statusCode, message } = await createRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, addAry)
+      if (statusCode === 'OK') {
+        this.$Notice.success({
+          title: this.$t('add_permission_success'),
+          desc: message
         })
+        this.getAttrPermissions()
+        this.getPermissions(false, true, this.currentRoleName)
+        this.setBtnsStatus()
+        this.$refs.table.closeEditModal(false)
       }
-      let d = JSON.parse(JSON.stringify(data))
-      let addAry = d.filter(_ => _.isNewAddedRow)
-      let editAry = d.filter(_ => !_.isNewAddedRow)
-      const defaultKey = [
-        'creationPermission',
-        'enquiryPermission',
-        'executionPermission',
-        'grantPermission',
-        'modificationPermission',
-        'removalPermission',
-        'roleCiTypeId',
-        'roleCiTypeCtrlAttrId',
-        'callbackId'
-      ]
-      if (addAry.length > 0) {
-        this.outerActions.forEach(_ => {
-          if (_.actionType === 'save') {
-            _.props.loading = true
-          }
-        })
-        addAry.forEach(_ => {
-          _.callbackId = _['weTableRowId']
-          delete _.isNewAddedRow
-          delete _.isRowEditable
-          delete _.weTableForm
-          delete _.weTableRowId
-          for (let i in _) {
-            const found = defaultKey.find(k => k === i)
-            if (!found) {
-              _[i] = { conditionValue: _[i].toString() }
+    },
+    async confirmEditHandler (data) {
+      let editAry = JSON.parse(JSON.stringify(data))
+      editAry.forEach(_ => {
+        _.callbackId = _['weTableRowId']
+        delete _.isNewAddedRow
+        delete _.isRowEditable
+        delete _.weTableForm
+        delete _.weTableRowId
+        const foundRow = this.ciTypeAttrsPermissionsBackUp.find(p => p.roleCiTypeCtrlAttrId === _.roleCiTypeCtrlAttrId)
+        for (let i in _) {
+          const found = this.defaultKey.find(k => k === i)
+          if (!found) {
+            _[i] = {
+              conditionValue: _[i].toString(),
+              conditionId: foundRow[i].conditionId
             }
           }
-        })
-        const { statusCode, message } = await createRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, addAry)
-        this.outerActions.forEach(_ => {
-          if (_.actionType === 'save') {
-            _.props.loading = false
-          }
-        })
-        if (statusCode === 'OK') {
-          this.$Notice.success({
-            title: this.$t('add_permission_success'),
-            desc: message
-          })
-
-          this.getAttrPermissions()
-          this.getPermissions(false, true, this.currentRoleName)
-          setBtnsStatus()
         }
+      })
+      const { statusCode, message } = await updateRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, editAry)
+      if (statusCode === 'OK') {
+        this.$Notice.success({
+          title: this.$t('update_permission_success'),
+          desc: message
+        })
+        this.getAttrPermissions()
+        this.getPermissions(false, true, this.currentRoleName)
+        this.setBtnsStatus()
+        this.$refs.table.closeEditModal(false)
       }
-      if (editAry.length > 0) {
-        this.outerActions.forEach(_ => {
-          if (_.actionType === 'save') {
-            _.props.loading = true
-          }
-        })
-        editAry.forEach(_ => {
-          _.callbackId = _['weTableRowId']
-          delete _.isNewAddedRow
-          delete _.isRowEditable
-          delete _.weTableForm
-          delete _.weTableRowId
-          const foundRow = this.ciTypeAttrsPermissionsBackUp.find(
-            p => p.roleCiTypeCtrlAttrId === _.roleCiTypeCtrlAttrId
-          )
-          for (let i in _) {
-            const found = defaultKey.find(k => k === i)
-            if (!found) {
-              _[i] = {
-                conditionValue: _[i].toString(),
-                conditionId: foundRow[i].conditionId
-              }
-            }
-          }
-        })
-        const { statusCode, message } = await updateRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, editAry)
-        this.outerActions.forEach(_ => {
-          if (_.actionType === 'save') {
-            _.props.loading = false
-          }
-        })
-        if (statusCode === 'OK') {
-          this.$Notice.success({
-            title: this.$t('update_permission_success'),
-            desc: message
-          })
-          this.getAttrPermissions()
-          this.getPermissions(false, true, this.currentRoleName)
-          setBtnsStatus()
-        }
-      }
+    },
+    setBtnsStatus () {
+      this.newOuterActions.forEach(_ => {
+        _.props.disabled = resetButtonDisabled(_)
+      })
     },
     deleteHandler (deleteData) {
       this.$Modal.confirm({
@@ -561,7 +535,7 @@ export default {
               title: this.$t('delete_permission_success'),
               desc: message
             })
-            this.outerActions.forEach(_ => {
+            this.newOuterActions.forEach(_ => {
               _.props.disabled = _.actionType === 'save' || _.actionType === 'edit' || _.actionType === 'delete'
             })
             this.getAttrPermissions()
@@ -583,49 +557,25 @@ export default {
       emptyRowData['isRowEditable'] = true
       emptyRowData['isNewAddedRow'] = true
       emptyRowData['weTableRowId'] = new Date().getTime()
-      this.ciTypeAttrsPermissions.unshift(emptyRowData)
-      this.$nextTick(() => {
-        this.$refs.table.pushNewAddedRowToSelections()
-        this.$refs.table.setCheckoutStatus(true)
-      })
-      this.outerActions.forEach(_ => {
-        _.props.disabled = _.actionType === 'add'
-      })
+      this.$refs.table.pushNewAddedRowToSelections(emptyRowData)
+      this.$refs.table.showAddModal()
     },
     editHandler () {
-      this.$refs.table.swapRowEditable(true)
-      this.outerActions.forEach(_ => {
-        if (_.actionType === 'save') {
-          _.props.disabled = false
-        }
-      })
-      this.$nextTick(() => {
-        this.$refs.table.setCheckoutStatus(true)
-      })
-    },
-    cancelHandler () {
-      this.$refs.table.setAllRowsUneditable()
-      this.$refs.table.setCheckoutStatus()
-      this.outerActions &&
-        this.outerActions.forEach(_ => {
-          _.props.disabled = resetButtonDisabled(_)
-        })
+      this.$refs.table.showEditModal()
     },
     onSelectedRowsChange (rows, checkoutBoxdisable) {
       if (rows.length > 0) {
-        this.outerActions.forEach(_ => {
+        this.newOuterActions.forEach(_ => {
           _.props.disabled = _.actionType === 'add'
         })
       } else {
-        this.outerActions.forEach(_ => {
+        this.newOuterActions.forEach(_ => {
           _.props.disabled = resetButtonDisabled(_)
         })
       }
-      this.seletedRows = rows
     },
     cancelEdit () {
       this.permissionEntryPointsForEdit = []
-      this.cancelHandler()
     },
     ciTypesPermissionsHandler (ci, code, type) {
       this.setPermissionAction(!(ci[code] === 'Y'), type, ci.ciTypeId)
