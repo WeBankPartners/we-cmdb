@@ -321,14 +321,15 @@ export default {
       }
     },
     renderTos () {
-      const currentTos = this.savedRenderedNodes[this.savedClickedNode.node.label].to
       let data = [
         {
           title: this.$t('all'),
           id: 'all',
           expand: true,
           children: this.referTos.map(_ => {
-            let found = currentTos && currentTos.find(i => i.referenceId === _.referenceId && i.name === _.name)
+            let found =
+              this.savedSelectedRefs.tos &&
+              this.savedSelectedRefs.tos.find(i => i.ciTypeId === _.referenceId && i.name === _.name)
             return {
               id: _.referenceId,
               title: _.name,
@@ -348,14 +349,13 @@ export default {
       )
     },
     renderBys () {
-      const currentBys = this.savedRenderedNodes[this.savedClickedNode.node.label].from
       let data = [
         {
           title: this.$t('all'),
           id: 'all',
           expand: true,
           children: this.referBys.map(_ => {
-            let found = currentBys && currentBys.find(i => i.ciTypeId === _.ciTypeId)
+            let found = this.savedSelectedRefs.bys && this.savedSelectedRefs.bys.find(i => i.ciTypeId === _.ciTypeId)
             return {
               id: _.ciTypeId,
               title: _.name,
