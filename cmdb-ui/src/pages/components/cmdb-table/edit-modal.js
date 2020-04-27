@@ -7,6 +7,7 @@ export default {
     }
   },
   props: {
+    ascOptions: {},
     modalLoading: {
       default: false,
       type: Boolean
@@ -173,7 +174,7 @@ export default {
                             }
                             : null,
                           isMultiple: column.isMultiple,
-                          options: column.options,
+                          options: column.optionKey ? this.ascOptions[column.optionKey] : column.options,
                           enumId: column.referenceId ? column.referenceId : null
                         }
                         : {
