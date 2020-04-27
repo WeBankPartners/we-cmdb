@@ -57,6 +57,7 @@ export default {
           inputType: 'select',
           placeholder: 'catName',
           options: [],
+          optionKey: 'catOpts',
           isEditable: true,
           isAuto: false
         },
@@ -125,6 +126,7 @@ export default {
           component: 'WeCMDBSelect',
           inputType: 'select',
           placeholder: 'status',
+          optionKey: 'statusOpts',
           options: [],
           isEditable: true,
           isAuto: false
@@ -249,23 +251,25 @@ export default {
     async getEnumNames () {
       const { statusCode, data } = await getSystemCategories()
       if (statusCode === 'OK') {
-        this.tableColumns[0].options = data.map(_ => {
+        const catOpt = data.map(_ => {
           return {
             value: _.catId,
             label: _.catName
           }
         })
+        this.$set(this.ascOptions, 'catOpts', catOpt)
       }
     },
     async getEnumsStatus () {
       const { statusCode, data } = await getEffectiveStatus()
       if (statusCode === 'OK') {
-        this.tableColumns[this.tableColumns.length - 1].options = data.map(_ => {
+        const status = data.map(_ => {
           return {
             value: _,
             label: _
           }
         })
+        this.$set(this.ascOptions, 'statusOpts', status)
       }
     },
 
