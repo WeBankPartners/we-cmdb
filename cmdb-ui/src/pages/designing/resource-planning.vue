@@ -2,17 +2,14 @@
   <div>
     <Row class="graph-select-row">
       <Col span="6" class="resource-planning-title">
-        <Select
-          class="resource-planning-select"
-          multiple
+        <TreeSelect
           v-model="selectedIdcs"
-          :max-tag-count="2"
+          :maxTagCount="3"
           :placeholder="$t('select_idc')"
-        >
-          <OptionGroup v-for="idc in realIdcs" :key="idc.guuid" :label="idc.name">
-            <Option v-for="item in idc.logicIdcs" :value="item.guid" :key="item.guid">{{ item.name }}</Option>
-          </OptionGroup>
-        </Select>
+          :data="treeIdcs"
+          :clearable="true"
+          width="400"
+        ></TreeSelect>
       </Col>
       <Button @click="onIdcDataChange" type="primary">{{ $t('query') }}</Button>
     </Row>
@@ -158,6 +155,7 @@ import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
+import TreeSelect from '../components/tree-select.vue'
 import { addEvent } from '../util/event.js'
 import {
   VIEW_CONFIG_PARAMS,
@@ -172,11 +170,14 @@ import {
 } from '@/const/init-params.js'
 
 export default {
+  components: {
+    TreeSelect
+  },
   data () {
     return {
       initParams: {},
+      treeIdcs: [],
       allIdcs: {},
-      realIdcs: [],
       selectedIdcs: [],
       tabList: [],
       payload: {
@@ -241,30 +242,23 @@ export default {
       const { data, statusCode } = await getAllIdcData()
       if (statusCode === 'OK') {
         this.allIdcs = {}
-        this.realIdcs = []
         const regional = this.initParams[REGIONAL_DATA_CENTER]
         data.forEach(_ => {
           if (!_.data[regional]) {
-            this.realIdcs.push({
+            this.treeIdcs.push({
               guid: _.data.guid,
-              name: _.data.name,
-              logicIdcs: []
+              title: _.data.name,
+              expand: true,
+              children: []
             })
           }
         })
         data.forEach(_ => {
-          this.realIdcs.find((idc, i) => {
+          this.treeIdcs.forEach((idc, i) => {
             if (_.data[regional] && idc.guid === _.data[regional].guid) {
-              this.realIdcs[i].logicIdcs.push({
+              this.treeIdcs[i].children.push({
                 guid: _.data.guid,
-                name: _.data.name,
-                realIdcGuid: idc.guid
-              })
-              return true
-            } else if (!_.data[regional] && idc.guid === _.data.guid) {
-              this.realIdcs[i].logicIdcs.unshift({
-                guid: _.data.guid,
-                name: _.data.name,
+                title: _.data.name,
                 realIdcGuid: idc.guid
               })
             }
@@ -1142,6 +1136,7 @@ export default {
         e.stopPropagation()
       })
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
+      addEvent('.edge', 'mouseover', this.handleEdgeMouseover)
     },
     initSecurityPolicyGraph (data) {
       const nodes = []
@@ -1190,6 +1185,21 @@ export default {
         e.stopPropagation()
       })
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
+      addEvent('.edge', 'mouseover', this.handleEdgeMouseover)
+    },
+    handleEdgeMouseover (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      const id = e.currentTarget.id
+      d3.selectAll('g[id="' + id + '"] path')
+        .attr('stroke', '#eb8221')
+        .attr('stroke-opacity', '1')
+      d3.selectAll('g[id="' + id + '"] text').attr('fill', '#eb8221')
+      d3.selectAll('g[id="' + id + '"] polygon')
+        .attr('stroke', '#eb8221')
+        .attr('fill', '#eb8221')
+        .attr('fill-opacity', '1')
+        .attr('stroke-opacity', '1')
     },
     shadeAll () {
       d3.selectAll('g path')
