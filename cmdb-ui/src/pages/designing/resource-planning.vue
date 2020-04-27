@@ -1142,6 +1142,7 @@ export default {
         e.stopPropagation()
       })
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
+      addEvent('.edge', 'mouseover', this.handleEdgeMouseover)
     },
     initSecurityPolicyGraph (data) {
       const nodes = []
@@ -1190,6 +1191,21 @@ export default {
         e.stopPropagation()
       })
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
+      addEvent('.edge', 'mouseover', this.handleEdgeMouseover)
+    },
+    handleEdgeMouseover (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      const id = e.currentTarget.id
+      d3.selectAll('g[id="' + id + '"] path')
+        .attr('stroke', '#eb8221')
+        .attr('stroke-opacity', '1')
+      d3.selectAll('g[id="' + id + '"] text').attr('fill', '#eb8221')
+      d3.selectAll('g[id="' + id + '"] polygon')
+        .attr('stroke', '#eb8221')
+        .attr('fill', '#eb8221')
+        .attr('fill-opacity', '1')
+        .attr('stroke-opacity', '1')
     },
     shadeAll () {
       d3.selectAll('g path')
