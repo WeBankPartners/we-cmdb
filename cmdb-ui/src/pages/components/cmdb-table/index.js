@@ -568,7 +568,8 @@ export default {
       modalVisible,
       selectedRows,
       modalLoading,
-      tableLoading
+      tableLoading,
+      ascOptions
     } = this
     return (
       <div>
@@ -605,6 +606,7 @@ export default {
           title={this.modalTitle}
           columns={columns.filter(col => !col.isAuto && col.isEditable)}
           data={selectedRows}
+          ascOptions={ascOptions}
           on-closeEditModal={this.closeEditModal}
           on-editModalOkHandler={this.editModalOkHandler}
           modalVisible={modalVisible}
