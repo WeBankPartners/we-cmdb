@@ -51,7 +51,6 @@ export default {
       this.selectedRows = []
     },
     tableColumns: {
-      deep: true,
       handler (val, oldval) {
         this.tableColumns.forEach(_ => {
           if (_.children) {
