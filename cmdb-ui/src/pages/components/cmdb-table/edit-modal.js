@@ -36,19 +36,36 @@ export default {
   watch: {
     data: {
       handler (val) {
-        this.editData = JSON.parse(JSON.stringify(val))
+        this.editData = this.resetPassword(JSON.parse(JSON.stringify(val)))
       },
       immediate: true
     },
     modalVisible: {
       handler (val) {
         if (val) {
-          this.editData = JSON.parse(JSON.stringify(this.data))
+          this.editData = this.resetPassword(JSON.parse(JSON.stringify(this.data)))
         }
       }
     }
   },
   methods: {
+    resetPassword (data) {
+      let needResets = []
+      this.columns.forEach(col => {
+        if (col.inputType === 'password') {
+          needResets.push(col.propertyName)
+        }
+      })
+      data.forEach(d => {
+        needResets.forEach(p => {
+          if (!this.isEdit) {
+            d[p] = null
+            d['isNewAddedRow'] = true
+          }
+        })
+      })
+      return data
+    },
     okHandler () {
       this.$emit('editModalOkHandler', this.editData)
     },
@@ -128,7 +145,7 @@ export default {
                         <column.component
                           ciTypeId={column.ciTypeId}
                           guid={d.guid}
-                          isEdit={true}
+                          isEdit={this.isEdit}
                           isNewAddedRow={d.isNewAddedRow || false}
                           propertyName={column.propertyName}
                           value={d[column.propertyName]}
