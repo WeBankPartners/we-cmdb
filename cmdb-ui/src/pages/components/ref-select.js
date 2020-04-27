@@ -262,7 +262,7 @@ export default {
         >
           <div class="modalTable" style="padding:20px;">
             {this.visibleSwap && (
-              <WeCMDBTable
+              <CMDBTable
                 tableData={this.tableData}
                 tableColumns={this.tableColumns}
                 tableHeight={650}
