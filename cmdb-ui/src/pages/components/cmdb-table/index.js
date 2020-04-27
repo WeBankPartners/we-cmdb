@@ -386,10 +386,6 @@ export default {
     onRadioSelect (current, old) {
       this.$emit('getSelectedRows', [current], false)
     },
-    // cancelSelected () {
-    //   this.$refs['table'].selectAll(false)
-    //   this.selectedRows = []
-    // },
     sortHandler (sort) {
       this.$emit('sortHandler', sort)
     },
@@ -604,18 +600,16 @@ export default {
             style="float: right; margin: 10px 0;"
           />
         )}
-        {modalVisible && (
-          <EditModal
-            isEdit={this.modalTitle === this.titles.edit}
-            title={this.modalTitle}
-            columns={columns.filter(col => !col.isAuto && col.isEditable)}
-            data={selectedRows}
-            on-closeEditModal={this.closeEditModal}
-            on-editModalOkHandler={this.editModalOkHandler}
-            modalVisible={modalVisible}
-            modalLoading={modalLoading}
-          ></EditModal>
-        )}
+        <EditModal
+          isEdit={this.modalTitle === this.titles.edit}
+          title={this.modalTitle}
+          columns={columns.filter(col => !col.isAuto && col.isEditable)}
+          data={selectedRows}
+          on-closeEditModal={this.closeEditModal}
+          on-editModalOkHandler={this.editModalOkHandler}
+          modalVisible={modalVisible}
+          modalLoading={modalLoading}
+        ></EditModal>
       </div>
     )
   }
