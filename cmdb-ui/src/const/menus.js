@@ -17,38 +17,26 @@ export const MENUS = [
   {
     code: 'DESIGNING_CI_DATA_MANAGEMENT',
     cnName: 'CI数据管理',
-    enName: 'Configuration Items',
+    enName: 'CI Data Management',
     link: '/wecmdb/designing/ci-data-management'
   },
   {
     code: 'DESIGNING_CI_DATA_ENQUIRY',
     cnName: 'CI数据查询',
-    enName: 'Configuration Items',
+    enName: 'CI Data Enquiry',
     link: '/wecmdb/designing/ci-data-enquiry'
   },
   {
     code: 'DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT',
     cnName: 'CI综合查询管理',
-    enName: 'Customization Report',
+    enName: 'CI Integrated Enquiry Management',
     link: '/wecmdb/designing/ci-integrated-query-management'
   },
   {
     code: 'DESIGNING_CI_INTEGRATED_QUERY_EXECUTION',
-    cnName: 'CI数据综合查询',
-    enName: 'Customization Report',
+    cnName: 'CI综合查询',
+    enName: 'CI Integrated Enquiry',
     link: '/wecmdb/designing/ci-integrated-query-execution'
-  },
-  {
-    code: 'CMDB_DESIGNING_ENUM_MANAGEMENT',
-    cnName: '枚举数据管理',
-    enName: 'Enumeration',
-    link: '/wecmdb/designing/enum-management'
-  },
-  {
-    code: 'CMDB_DESIGNING_ENUM_ENQUIRY',
-    cnName: '枚举数据查询',
-    enName: 'Enumeration',
-    link: '/wecmdb/designing/enum-enquiry'
   },
   {
     code: 'ADMIN_CMDB_MODEL_MANAGEMENT',
@@ -118,26 +106,26 @@ export const MENUS = [
   },
   {
     code: 'IDC_PLANNING_DESIGN',
-    cnName: 'IDC规划设计',
-    enName: 'IDC Design',
+    cnName: '机房规划设计',
+    enName: 'IDC Planning Design',
     link: '/wecmdb/view-management/idc-planning-design'
   },
   {
     code: 'IDC_RESOURCE_PLANNING',
-    cnName: 'IDC资源规划',
-    enName: 'IDC Resource',
+    cnName: '机房资源规划',
+    enName: 'IDC Resource Plan',
     link: '/wecmdb/view-management/idc-resource-planning'
   },
   {
     code: 'APPLICATION_ARCHITECTURE_DESIGN',
     cnName: '应用架构设计',
-    enName: 'App Architecture',
+    enName: 'App Architecture Design',
     link: '/wecmdb/view-management/application-architecture-design'
   },
   {
     code: 'APPLICATION_DEPLOYMENT_DESIGN',
     cnName: '应用部署设计',
-    enName: 'App Deployment',
+    enName: 'App Deployment Design',
     link: '/wecmdb/view-management/application-deployment-design'
   }
 ]
