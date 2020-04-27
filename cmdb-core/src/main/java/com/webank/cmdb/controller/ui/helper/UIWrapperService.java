@@ -262,6 +262,21 @@ public class UIWrapperService {
 
         return staticDtoService.create(CatCodeDto.class, Arrays.asList(catCode));
     }
+    public List<CatCodeDto> createEnumCodes(List<CatCodeDto> catCodes) {
+        catCodes.stream().forEach(catCode -> {
+            if (catCode == null || catCode.getCatId().equals(0)) {
+                throw new CmdbException("Category Id is required");
+            }
+            if (catCode.getCatId().equals(getLayerCategoryId())) {
+                catCode.setSeqNo(getMaxLayerSeqNumber() + 1);
+            }
+            if (catCode.getGroupCodeId() != null && !(catCode.getGroupCodeId() instanceof Integer)) {
+                catCode.setGroupCodeId(null);
+            }
+        });
+
+        return staticDtoService.create(CatCodeDto.class, catCodes);
+    }
 
     private List<CatCodeDto> getCiTypesInGroups(String categoryName, boolean withAttributes, String status, Function<CiTypeDto, Object> parentMapperOfElement) {
         List<CatCodeDto> ciTypeGroups = getEnumCodesByCategoryName(categoryName);
