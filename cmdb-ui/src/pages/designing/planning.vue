@@ -151,6 +151,7 @@ import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
+import { addEvent } from '../util/event.js'
 import {
   VIEW_CONFIG_PARAMS,
   NETWORK_SEGMENT_DESIGN,
@@ -992,7 +993,7 @@ export default {
           `"${_.data.dest_network_segment_design.guid}"[id="${_.data.dest_network_segment_design.guid}",label="${_.data.dest_network_segment_design.name}"];`
         )
         nodes.push(
-          `"${_.data.owner_network_segment_design.guid}" -> "${_.data.dest_network_segment_design.guid}"[taillabel="${_.data.code}",labeldistance="4",fontcolor="#7f8fa6", fontsize="5"];`
+          `"${_.data.owner_network_segment_design.guid}" -> "${_.data.dest_network_segment_design.guid}"[taillabel="${_.data.code}",labeldistance="4",fontcolor="#7f8fa6", fontsize="8"];`
         )
       })
       const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
@@ -1006,7 +1007,23 @@ export default {
         .zoom(true)
         .width(window.innerWidth - 60)
         .height(window.innerHeight - 230)
+        .attributer(function (d) {
+          if (d.attributes.class === 'edge') {
+            const keys = d.key.split('->')
+            const from = keys[0].trim()
+            const to = keys[1].trim()
+            d.attributes.from = from
+            d.attributes.to = to
+          }
+        })
         .renderDot(nodesString)
+      this.shadeAll()
+      addEvent('svg', 'mouseover', e => {
+        this.shadeAll()
+        e.preventDefault()
+        e.stopPropagation()
+      })
+      addEvent('.node', 'mouseover', this.handleNodeMouseover)
     },
     initSecurityPolicyGraph (data) {
       const nodes = []
@@ -1024,7 +1041,7 @@ export default {
         nodes.push(
           `"${_.data.owner_network_segment_design.guid}" -> "${_.data.policy_network_segment_design.guid}"[taillabel="${
             _.data.code
-          }",arrowhead=${type[_.data.security_policy_type]},labeldistance="4",fontcolor="#7f8fa6", fontsize="5"];`
+          }",arrowhead=${type[_.data.security_policy_type]},labeldistance="4",fontcolor="#7f8fa6", fontsize="8"];`
         )
       })
       const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
@@ -1038,7 +1055,62 @@ export default {
         .zoom(true)
         .width(window.innerWidth - 60)
         .height(window.innerHeight - 230)
+        .attributer(function (d) {
+          if (d.attributes.class === 'edge') {
+            const keys = d.key.split('->')
+            const from = keys[0].trim()
+            const to = keys[1].trim()
+            d.attributes.from = from
+            d.attributes.to = to
+          }
+        })
         .renderDot(nodesString)
+      this.shadeAll()
+      addEvent('svg', 'mouseover', e => {
+        this.shadeAll()
+        e.preventDefault()
+        e.stopPropagation()
+      })
+      addEvent('.node', 'mouseover', this.handleNodeMouseover)
+    },
+    shadeAll () {
+      d3.selectAll('g path')
+        .attr('stroke', '#7f8fa6')
+        .attr('stroke-opacity', '.2')
+      d3.selectAll('g g polygon')
+        .attr('stroke', '#7f8fa6')
+        .attr('stroke-opacity', '.2')
+        .attr('fill', '#7f8fa6')
+        .attr('fill-opacity', '.2')
+      d3.selectAll('.edge text').attr('fill', '#7f8fa6')
+    },
+    colorNode (nodeName) {
+      d3.selectAll('g[from="' + nodeName + '"] path')
+        .attr('stroke', 'green')
+        .attr('stroke-opacity', '1')
+      d3.selectAll('g[from="' + nodeName + '"] text').attr('fill', 'green')
+      d3.selectAll('g[from="' + nodeName + '"] polygon')
+        .attr('stroke', 'green')
+        .attr('fill', 'green')
+        .attr('fill-opacity', '1')
+        .attr('stroke-opacity', '1')
+      d3.selectAll('g[to="' + nodeName + '"] path')
+        .attr('stroke', 'red')
+        .attr('stroke-opacity', '1')
+      d3.selectAll('g[to="' + nodeName + '"] text').attr('fill', 'red')
+      d3.selectAll('g[to="' + nodeName + '"] polygon')
+        .attr('stroke', 'red')
+        .attr('fill', 'red')
+        .attr('fill-opacity', '1')
+        .attr('stroke-opacity', '1')
+    },
+    handleNodeMouseover (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      d3.selectAll('g').attr('cursor', 'pointer')
+      const nodeName = e.currentTarget.children[0].innerHTML.trim()
+      this.shadeAll()
+      this.colorNode(nodeName)
     },
     showTable (ci) {
       ci.showGraph = false
