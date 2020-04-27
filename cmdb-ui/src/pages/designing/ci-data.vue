@@ -581,7 +581,7 @@ export default {
         this.compareData = this.compareData
           .map(x => {
             for (let k in x) {
-              if (typeof x[k] === 'object' && x[k] !== null) x[k] = x[k].value
+              if (typeof x[k] === 'object' && x[k] !== null) x[k] = x[k].value || x[k].key_name
             }
             return x
           })
