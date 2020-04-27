@@ -2,17 +2,14 @@
   <div>
     <Row class="graph-select-row">
       <Col span="6" class="resource-planning-title">
-        <Select
-          class="resource-planning-select"
-          multiple
+        <TreeSelect
           v-model="selectedIdcs"
-          :max-tag-count="2"
+          :maxTagCount="3"
           :placeholder="$t('select_idc')"
-        >
-          <OptionGroup v-for="idc in realIdcs" :key="idc.guuid" :label="idc.name">
-            <Option v-for="item in idc.logicIdcs" :value="item.guid" :key="item.guid">{{ item.name }}</Option>
-          </OptionGroup>
-        </Select>
+          :data="treeIdcs"
+          :clearable="true"
+          width="400"
+        ></TreeSelect>
       </Col>
       <Button @click="onIdcDataChange" type="primary">{{ $t('query') }}</Button>
     </Row>
@@ -115,6 +112,8 @@ import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
+import TreeSelect from '../components/tree-select.vue'
+import { addEvent } from '../util/event.js'
 import {
   VIEW_CONFIG_PARAMS,
   REGIONAL_DATA_CENTER,
@@ -128,11 +127,14 @@ import {
 } from '@/const/init-params.js'
 
 export default {
+  components: {
+    TreeSelect
+  },
   data () {
     return {
       initParams: {},
+      treeIdcs: [],
       allIdcs: {},
-      realIdcs: [],
       selectedIdcs: [],
       tabList: [],
       payload: {
@@ -182,30 +184,23 @@ export default {
       const { data, statusCode } = await getAllIdcData()
       if (statusCode === 'OK') {
         this.allIdcs = {}
-        this.realIdcs = []
         const regional = this.initParams[REGIONAL_DATA_CENTER]
         data.forEach(_ => {
           if (!_.data[regional]) {
-            this.realIdcs.push({
+            this.treeIdcs.push({
               guid: _.data.guid,
-              name: _.data.name,
-              logicIdcs: []
+              title: _.data.name,
+              expand: true,
+              children: []
             })
           }
         })
         data.forEach(_ => {
-          this.realIdcs.find((idc, i) => {
+          this.treeIdcs.forEach((idc, i) => {
             if (_.data[regional] && idc.guid === _.data[regional].guid) {
-              this.realIdcs[i].logicIdcs.push({
+              this.treeIdcs[i].children.push({
                 guid: _.data.guid,
-                name: _.data.name,
-                realIdcGuid: idc.guid
-              })
-              return true
-            } else if (!_.data[regional] && idc.guid === _.data.guid) {
-              this.realIdcs[i].logicIdcs.unshift({
-                guid: _.data.guid,
-                name: _.data.name,
+                title: _.data.name,
                 realIdcGuid: idc.guid
               })
             }
@@ -949,7 +944,18 @@ export default {
       }
     },
     initRouterGraph (data) {
-      const nodes = data.map(_ => _.data.key_name.replace('-->>--', '->') + ';')
+      let nodes = []
+      data.forEach(_ => {
+        nodes.push(
+          `"${_.data.owner_network_segment.guid}"[id="${_.data.owner_network_segment.guid}",label="${_.data.owner_network_segment.name}"];`
+        )
+        nodes.push(
+          `"${_.data.dest_network_segment.guid}"[id="${_.data.dest_network_segment.guid}",label="${_.data.dest_network_segment.name}"];`
+        )
+        nodes.push(
+          `"${_.data.owner_network_segment.guid}" -> "${_.data.dest_network_segment.guid}"[taillabel="${_.data.code}",labeldistance="4", fontcolor="#7f8fa6", fontsize="8"];`
+        )
+      })
       const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
       let graph = d3.select(`#resourcePlanningRouterGraph${this.initParams[RESOURCE_PLANNING_ROUTER_CODE]}`)
       graph
@@ -961,16 +967,43 @@ export default {
         .zoom(true)
         .width(window.innerWidth - 60)
         .height(window.innerHeight - 230)
+        .attributer(function (d) {
+          if (d.attributes.class === 'edge') {
+            const keys = d.key.split('->')
+            const from = keys[0].trim()
+            const to = keys[1].trim()
+            d.attributes.from = from
+            d.attributes.to = to
+          }
+        })
         .renderDot(nodesString)
+      this.shadeAll()
+      addEvent('svg', 'mouseover', e => {
+        this.shadeAll()
+        e.preventDefault()
+        e.stopPropagation()
+      })
+      addEvent('.node', 'mouseover', this.handleNodeMouseover)
+      addEvent('.edge', 'mouseover', this.handleEdgeMouseover)
     },
     initSecurityPolicyGraph (data) {
-      const nodes = data.map(_ => {
-        const d = _.data.key_name.split(' ')
-        const type = {
-          ingress: '[arrowhead=inv]',
-          egress: '[arrowhead=normal]'
-        }
-        return `${d[0]} -> ${d[2]} ${type[_.data.security_policy_type]};`
+      const nodes = []
+      const type = {
+        ingress: 'inv',
+        egress: 'normal'
+      }
+      data.forEach(_ => {
+        nodes.push(
+          `"${_.data.owner_network_segment.guid}"[id="${_.data.owner_network_segment.guid}",label="${_.data.owner_network_segment.name}"];`
+        )
+        nodes.push(
+          `"${_.data.policy_network_segment.guid}"[id="${_.data.policy_network_segment.guid}",label="${_.data.policy_network_segment.name}"];`
+        )
+        nodes.push(
+          `"${_.data.owner_network_segment.guid}" -> "${_.data.policy_network_segment.guid}"[taillabel="${
+            _.data.code
+          }",arrowhead=${type[_.data.security_policy_type]},fontcolor="#7f8fa6",labeldistance="4", fontsize="8"];`
+        )
       })
       const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
       let graph = d3.select(`#resourcePlanningSecurityPolicyGraph${this.initParams[DEFAULT_SECURITY_POLICY_CODE]}`)
@@ -983,7 +1016,77 @@ export default {
         .zoom(true)
         .width(window.innerWidth - 60)
         .height(window.innerHeight - 230)
+        .attributer(function (d) {
+          if (d.attributes.class === 'edge') {
+            const keys = d.key.split('->')
+            const from = keys[0].trim()
+            const to = keys[1].trim()
+            d.attributes.from = from
+            d.attributes.to = to
+          }
+        })
         .renderDot(nodesString)
+      this.shadeAll()
+      addEvent('svg', 'mouseover', e => {
+        this.shadeAll()
+        e.preventDefault()
+        e.stopPropagation()
+      })
+      addEvent('.node', 'mouseover', this.handleNodeMouseover)
+      addEvent('.edge', 'mouseover', this.handleEdgeMouseover)
+    },
+    handleEdgeMouseover (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      const id = e.currentTarget.id
+      d3.selectAll('g[id="' + id + '"] path')
+        .attr('stroke', '#eb8221')
+        .attr('stroke-opacity', '1')
+      d3.selectAll('g[id="' + id + '"] text').attr('fill', '#eb8221')
+      d3.selectAll('g[id="' + id + '"] polygon')
+        .attr('stroke', '#eb8221')
+        .attr('fill', '#eb8221')
+        .attr('fill-opacity', '1')
+        .attr('stroke-opacity', '1')
+    },
+    shadeAll () {
+      d3.selectAll('g path')
+        .attr('stroke', '#7f8fa6')
+        .attr('stroke-opacity', '.2')
+      d3.selectAll('g g polygon')
+        .attr('stroke', '#7f8fa6')
+        .attr('stroke-opacity', '.2')
+        .attr('fill', '#7f8fa6')
+        .attr('fill-opacity', '.2')
+      d3.selectAll('.edge text').attr('fill', '#7f8fa6')
+    },
+    colorNode (nodeName) {
+      d3.selectAll('g[from="' + nodeName + '"] path')
+        .attr('stroke', 'green')
+        .attr('stroke-opacity', '1')
+      d3.selectAll('g[from="' + nodeName + '"] text').attr('fill', 'green')
+      d3.selectAll('g[from="' + nodeName + '"] polygon')
+        .attr('stroke', 'green')
+        .attr('fill', 'green')
+        .attr('fill-opacity', '1')
+        .attr('stroke-opacity', '1')
+      d3.selectAll('g[to="' + nodeName + '"] path')
+        .attr('stroke', 'red')
+        .attr('stroke-opacity', '1')
+      d3.selectAll('g[to="' + nodeName + '"] text').attr('fill', 'red')
+      d3.selectAll('g[to="' + nodeName + '"] polygon')
+        .attr('stroke', 'red')
+        .attr('fill', 'red')
+        .attr('fill-opacity', '1')
+        .attr('stroke-opacity', '1')
+    },
+    handleNodeMouseover (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      d3.selectAll('g').attr('cursor', 'pointer')
+      const nodeName = e.currentTarget.children[0].innerHTML.trim()
+      this.shadeAll()
+      this.colorNode(nodeName)
     },
     showTable (ci) {
       ci.showGraph = false
