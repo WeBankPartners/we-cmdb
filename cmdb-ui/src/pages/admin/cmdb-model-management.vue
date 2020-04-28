@@ -176,6 +176,7 @@
                     <Button
                       type="info"
                       ghost
+                      size="small"
                       icon="ios-cloud-upload-outline"
                       style="display:block"
                       @click="() => getHeaders(`editUploadButton-${item.form.ciTypeId}`)"
@@ -192,26 +193,26 @@
                       :on-success="(response, file, fileList) => onUploadSuccess(item.form, response)"
                       :on-error="onUploadError"
                     >
-                      <Button style="display:none" icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button>
                     </Upload>
                   </FormItem>
-                  <FormItem>
+                  <FormItem :label-width="20">
                     <Button
                       type="primary"
-                      small
+                      size="small"
+                      @click="submitCiType(item.ciTypeId, item.form)"
+                      :loading="buttonLoading.submitCiType"
+                      style="float: right"
+                      :disabled="item.form.status === 'decommissioned'"
+                      >{{ $t('submit') }}</Button
+                    >
+                    <Button
+                      type="primary"
+                      size="small"
+                      style="float: right;margin-right: 10px"
                       @click="saveCiType(item.ciTypeId, item.form)"
                       :loading="buttonLoading.saveCiType"
                       :disabled="item.form.status !== 'notCreated'"
                       >{{ $t('save_draft') }}</Button
-                    >
-                    <Button
-                      type="primary"
-                      small
-                      @click="submitCiType(item.ciTypeId, item.form)"
-                      :loading="buttonLoading.submitCiType"
-                      style="margin-left: 8px"
-                      :disabled="item.form.status === 'decommissioned'"
-                      >{{ $t('submit') }}</Button
                     >
                   </FormItem>
                 </Form>
@@ -265,6 +266,7 @@
                 ghost
                 icon="ios-cloud-upload-outline"
                 style="display:block"
+                size="small"
                 @click="() => getHeaders('addUploadButton')"
               >
                 {{ $t('upload_icon_btn') }}
@@ -279,7 +281,6 @@
                 :on-success="(response, file, fileList) => onUploadSuccess(addNewCITypeForm, response)"
                 :on-error="onUploadError"
               >
-                <Button style="display:none" icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button>
               </Upload>
             </FormItem>
             <FormItem>
@@ -554,19 +555,19 @@
                       :disabled="item.form.status === 'decommissioned'"
                     ></FilterRule>
                   </FormItem>
-                  <FormItem>
+                  <FormItem :label-width="20">
                     <Button
                       type="primary"
-                      small
                       @click="applyAttr(item.ciTypeAttrId, item.form)"
                       :loading="buttonLoading.applyAttr"
                       style="float: right"
+                      size="small"
                       :disabled="item.form.status === 'decommissioned'"
                       >{{ $t('submit') }}</Button
                     >
                     <Button
                       type="primary"
-                      small
+                      size="small"
                       @click="saveAttr(item.ciTypeAttrId, item.form)"
                       :loading="buttonLoading.saveAttr"
                       style="float: right; margin-right: 20px"
