@@ -251,12 +251,18 @@ export default {
           {this.modalVisible && (
             <div style={`width: ${this.tableWidth}px`}>
               {this.columns.map((column, index) => {
+                const d = {
+                  props: {
+                    'min-width': '130px',
+                    'max-width': '500px'
+                  }
+                }
                 return (
                   <div
                     style={`width:${WIDTH}px;display:inline-block;padding:5px;height: 30px;font-weight:600;background-color: #e8eaec`}
                     key={column.ciTypeAttrId || index}
                   >
-                    <Tooltip disabled={!column.description} content={column.description} placement="top">
+                    <Tooltip {...d} disabled={!column.description} content={column.description} placement="top">
                       {column.name || column.title}
                     </Tooltip>
                   </div>
