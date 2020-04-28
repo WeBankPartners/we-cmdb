@@ -262,7 +262,7 @@ export default {
                 filterable
                 clearable
                 {...data}
-                options={item.optionKey ? this.ascOptions[this.form[item.optionKey]] : item.options}
+                options={item.optionKey ? this.ascOptions[item.optionKey] : item.options}
               />
             )
           case 'WeCMDBRefSelect':
@@ -323,12 +323,24 @@ export default {
                         {_.children
                           .filter(_ => !!_.searchSeqNo)
                           .sort(compare)
-                          .map(j => this.renderFormItem(j))}
+                          .map(j => {
+                            const o = {
+                              ...j,
+                              optionKey: null,
+                              options: this.ascOptions[j.optionKey]
+                            }
+                            this.renderFormItem(o)
+                          })}
                       </Col>
                     </Row>
                   )
                 }
-                return this.renderFormItem(_, index)
+                const obj = {
+                  ..._,
+                  optionKey: null,
+                  options: this.ascOptions[_.optionKey]
+                }
+                return this.renderFormItem(obj, index)
               })}
             <Col span={6}>
               <div style="display: flex; margin-bottom: 20px">
