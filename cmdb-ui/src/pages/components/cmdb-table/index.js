@@ -324,10 +324,13 @@ export default {
                           .filter(_ => !!_.searchSeqNo)
                           .sort(compare)
                           .map(j => {
-                            const o = {
-                              ...j,
-                              optionKey: null,
-                              options: this.ascOptions[j.optionKey]
+                            let o = { ...j }
+                            if (j.optionKey) {
+                              o = {
+                                ...j,
+                                optionKey: null,
+                                options: this.ascOptions[j.optionKey]
+                              }
                             }
                             this.renderFormItem(o)
                           })}
@@ -335,10 +338,13 @@ export default {
                     </Row>
                   )
                 }
-                const obj = {
-                  ..._,
-                  optionKey: null,
-                  options: this.ascOptions[_.optionKey]
+                let obj = { ..._ }
+                if (_.optionKey) {
+                  obj = {
+                    ..._,
+                    optionKey: null,
+                    options: this.ascOptions[_.optionKey]
+                  }
                 }
                 return this.renderFormItem(obj, index)
               })}
@@ -434,8 +440,8 @@ export default {
           return {
             ..._,
             children: children.map((j, index) => {
-              const isChildLast = isLast && children.length - 1 === index
-              return this.renderCol(j, isChildLast)
+              // const isChildLast = isLast && children.length - 1 === index
+              return this.renderCol(j, true)
             })
           }
         } else {
