@@ -1,17 +1,19 @@
 <template>
   <div>
     <Row class="graph-select-row">
-      <Col span="6" class="resource-planning-title">
+      <Col span="8" offset="1" class="resource-planning-title">
         <TreeSelect
           v-model="selectedIdcs"
           :maxTagCount="3"
           :placeholder="$t('select_idc')"
           :data="treeIdcs"
           :clearable="true"
-          width="400"
+          style="width:100%"
         ></TreeSelect>
       </Col>
-      <Button @click="onIdcDataChange" type="primary">{{ $t('query') }}</Button>
+      <Col span="6">
+        <Button @click="onIdcDataChange" type="primary">{{ $t('query') }}</Button>
+      </Col>
     </Row>
     <Row class="graph-tabs">
       <Spin fix v-if="spinShow">
@@ -953,7 +955,7 @@ export default {
           `"${_.data.dest_network_segment.guid}"[id="${_.data.dest_network_segment.guid}",label="${_.data.dest_network_segment.name}"];`
         )
         nodes.push(
-          `"${_.data.owner_network_segment.guid}" -> "${_.data.dest_network_segment.guid}"[taillabel="${_.data.code}",labeldistance="4", fontcolor="#7f8fa6", fontsize="8"];`
+          `"${_.data.owner_network_segment.guid}" -> "${_.data.dest_network_segment.guid}"[taillabel="${_.data.code}",labeldistance="4",penwidth="2", fontcolor="#7f8fa6", fontsize="8"];`
         )
       })
       const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
@@ -1002,7 +1004,9 @@ export default {
         nodes.push(
           `"${_.data.owner_network_segment.guid}" -> "${_.data.policy_network_segment.guid}"[taillabel="${
             _.data.code
-          }",arrowhead=${type[_.data.security_policy_type]},fontcolor="#7f8fa6",labeldistance="4", fontsize="8"];`
+          }",arrowhead=${
+            type[_.data.security_policy_type]
+          },fontcolor="#7f8fa6",labeldistance="4",penwidth="2", fontsize="8"];`
         )
       })
       const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
@@ -1234,6 +1238,7 @@ export default {
 .resource-planning-title {
   display: flex;
   margin-right: 10px;
+  margin-left: 0;
   & > span {
     line-height: 32px;
   }
