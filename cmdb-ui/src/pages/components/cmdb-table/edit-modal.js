@@ -256,7 +256,9 @@ export default {
                     style={`width:${WIDTH}px;display:inline-block;padding:5px;height: 30px;font-weight:600;background-color: #e8eaec`}
                     key={column.ciTypeAttrId || index}
                   >
-                    {column.name || column.title}
+                    <Tooltip disabled={!column.description} content={column.description} placement="top">
+                      {column.name || column.title}
+                    </Tooltip>
                   </div>
                 )
               })}
