@@ -55,7 +55,6 @@ export default {
   methods: {
     createNodes (nodes) {
       let t = []
-
       Object.keys(nodes).forEach(id => {
         t.push(this.createNode(nodes[id].node))
         if (nodes[id].from) {
@@ -121,7 +120,6 @@ export default {
           )
         }
       })
-
       return t
     },
     deduplicate (data) {
@@ -311,6 +309,7 @@ export default {
           return {
             ..._.ciType,
             referenceName: _.name,
+            ciTypeAttrId: _.ciTypeAttrId,
             refPropertyId: _.ciTypeAttrId
           }
         })
@@ -355,12 +354,15 @@ export default {
           id: 'all',
           expand: true,
           children: this.referBys.map(_ => {
-            let found = this.savedSelectedRefs.bys && this.savedSelectedRefs.bys.find(i => i.ciTypeId === _.ciTypeId)
+            let found =
+              this.savedSelectedRefs.bys &&
+              this.savedSelectedRefs.bys.find(i => i.ciTypeId === _.ciTypeId && i.ciTypeAttrId === _.ciTypeAttrId)
             return {
               id: _.ciTypeId,
               title: _.name,
               propertyName: _.propertyName,
-              checked: !!found
+              checked: !!found,
+              ciTypeAttrId: _.ciTypeAttrId
             }
           })
         }
@@ -406,7 +408,8 @@ export default {
       let data = all.map(_ => {
         return {
           ciTypeId: _.id,
-          name: _.title
+          name: _.title,
+          ciTypeAttrId: _.ciTypeAttrId
         }
       })
       data && data.length > 0 && data[0].ciTypeId === 'all' && data.splice(0, 1)
@@ -464,12 +467,13 @@ export default {
               }
 
               // 如果已经存在froms中 则不重复计算
-              const existNode = this.savedClickedNode.from.find(_ => _.ciTypeId === by.ciTypeId)
-
+              const existNode = this.savedClickedNode.from.find(
+                _ => _.ciTypeId === by.ciTypeId && _.ciTypeAttrId === by.ciTypeAttrId
+              )
               if (existNode) {
                 return existNode
               }
-              if (_.ciTypeId === by.ciTypeId) {
+              if (_.ciTypeId === by.ciTypeId && _.ciTypeAttrId === by.ciTypeAttrId) {
                 indexMap[childIndexBase] = Number(indexMap[childIndexBase] || 0) + 1
 
                 const label = `${currentIndex}-${_.name}-${_.referenceName}`
