@@ -888,7 +888,7 @@ export default {
           `"${_.data.dest_network_segment_design.guid}"[id="${_.data.dest_network_segment_design.guid}",label="${_.data.dest_network_segment_design.name}"];`
         )
         nodes.push(
-          `"${_.data.owner_network_segment_design.guid}" -> "${_.data.dest_network_segment_design.guid}"[taillabel="${_.data.code}",labeldistance="4",fontcolor="#7f8fa6", fontsize="8"];`
+          `"${_.data.owner_network_segment_design.guid}" -> "${_.data.dest_network_segment_design.guid}"[taillabel="${_.data.code}",labeldistance="4",fontcolor="#7f8fa6",penwidth="2", fontsize="8"];`
         )
       })
       const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
@@ -937,7 +937,9 @@ export default {
         nodes.push(
           `"${_.data.owner_network_segment_design.guid}" -> "${_.data.policy_network_segment_design.guid}"[taillabel="${
             _.data.code
-          }",arrowhead=${type[_.data.security_policy_type]},labeldistance="4",fontcolor="#7f8fa6", fontsize="8"];`
+          }",arrowhead=${
+            type[_.data.security_policy_type]
+          },labeldistance="4",fontcolor="#7f8fa6",penwidth="2", fontsize="8"];`
         )
       })
       const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
