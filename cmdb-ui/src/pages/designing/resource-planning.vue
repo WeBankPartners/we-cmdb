@@ -949,13 +949,13 @@ export default {
       let nodes = []
       data.forEach(_ => {
         nodes.push(
-          `"${_.data.owner_network_segment.guid}"[id="${_.data.owner_network_segment.guid}",label="${_.data.owner_network_segment.name}"];`
+          `"${_.data.owner_network_segment.guid}"[id="${_.data.owner_network_segment.guid}",tooltip="${_.data.owner_network_segment.name}",label="${_.data.owner_network_segment.name}"];`
         )
         nodes.push(
-          `"${_.data.dest_network_segment.guid}"[id="${_.data.dest_network_segment.guid}",label="${_.data.dest_network_segment.name}"];`
+          `"${_.data.dest_network_segment.guid}"[id="${_.data.dest_network_segment.guid}",tooltip="${_.data.dest_network_segment.name}",label="${_.data.dest_network_segment.name}"];`
         )
         nodes.push(
-          `"${_.data.owner_network_segment.guid}" -> "${_.data.dest_network_segment.guid}"[taillabel="${_.data.code}",labeldistance="4",penwidth="2", fontcolor="#7f8fa6", fontsize="8"];`
+          `"${_.data.owner_network_segment.guid}" -> "${_.data.dest_network_segment.guid}"[edgetooltip="${_.data.code}",taillabel="${_.data.code}",labeldistance="4",penwidth="2", fontcolor="#7f8fa6", fontsize="8"];`
         )
       })
       const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
@@ -996,15 +996,15 @@ export default {
       }
       data.forEach(_ => {
         nodes.push(
-          `"${_.data.owner_network_segment.guid}"[id="${_.data.owner_network_segment.guid}",label="${_.data.owner_network_segment.name}"];`
+          `"${_.data.owner_network_segment.guid}"[id="${_.data.owner_network_segment.guid}",tooltip="${_.data.owner_network_segment.name}",label="${_.data.owner_network_segment.name}"];`
         )
         nodes.push(
-          `"${_.data.policy_network_segment.guid}"[id="${_.data.policy_network_segment.guid}",label="${_.data.policy_network_segment.name}"];`
+          `"${_.data.policy_network_segment.guid}"[id="${_.data.policy_network_segment.guid}",tooltip="${_.data.policy_network_segment.name}",label="${_.data.policy_network_segment.name}"];`
         )
         nodes.push(
-          `"${_.data.owner_network_segment.guid}" -> "${_.data.policy_network_segment.guid}"[taillabel="${
+          `"${_.data.owner_network_segment.guid}" -> "${_.data.policy_network_segment.guid}"[edgetooltip="${
             _.data.code
-          }",arrowhead=${
+          }",taillabel="${_.data.code}",arrowhead=${
             type[_.data.security_policy_type]
           },fontcolor="#7f8fa6",labeldistance="4",penwidth="2", fontsize="8"];`
         )
