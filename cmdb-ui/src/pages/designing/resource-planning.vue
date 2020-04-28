@@ -978,6 +978,7 @@ export default {
             d.attributes.to = to
           }
         })
+        .transition()
         .renderDot(nodesString)
       this.shadeAll()
       addEvent('svg', 'mouseover', e => {
@@ -1029,6 +1030,7 @@ export default {
             d.attributes.to = to
           }
         })
+        .transition()
         .renderDot(nodesString)
       this.shadeAll()
       addEvent('svg', 'mouseover', e => {
