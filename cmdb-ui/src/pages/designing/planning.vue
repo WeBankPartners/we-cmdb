@@ -882,13 +882,13 @@ export default {
       let nodes = []
       data.forEach(_ => {
         nodes.push(
-          `"${_.data.owner_network_segment_design.guid}"[id="${_.data.owner_network_segment_design.guid}",label="${_.data.owner_network_segment_design.name}"];`
+          `"${_.data.owner_network_segment_design.guid}"[id="${_.data.owner_network_segment_design.guid}",tooltip="${_.data.owner_network_segment_design.name}",label="${_.data.owner_network_segment_design.name}"];`
         )
         nodes.push(
-          `"${_.data.dest_network_segment_design.guid}"[id="${_.data.dest_network_segment_design.guid}",label="${_.data.dest_network_segment_design.name}"];`
+          `"${_.data.dest_network_segment_design.guid}"[id="${_.data.dest_network_segment_design.guid}",tooltip="${_.data.dest_network_segment_design.name}",label="${_.data.dest_network_segment_design.name}"];`
         )
         nodes.push(
-          `"${_.data.owner_network_segment_design.guid}" -> "${_.data.dest_network_segment_design.guid}"[taillabel="${_.data.code}",labeldistance="4",fontcolor="#7f8fa6",penwidth="2", fontsize="8"];`
+          `"${_.data.owner_network_segment_design.guid}" -> "${_.data.dest_network_segment_design.guid}"[edgetooltip="${_.data.code}",taillabel="${_.data.code}",labeldistance="4",fontcolor="#7f8fa6",penwidth="2", fontsize="8"];`
         )
       })
       const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
@@ -929,15 +929,15 @@ export default {
       }
       data.forEach(_ => {
         nodes.push(
-          `"${_.data.owner_network_segment_design.guid}"[id="${_.data.owner_network_segment_design.guid}",label="${_.data.owner_network_segment_design.name}"];`
+          `"${_.data.owner_network_segment_design.guid}"[id="${_.data.owner_network_segment_design.guid}",tooltip="${_.data.owner_network_segment_design.name}",label="${_.data.owner_network_segment_design.name}"];`
         )
         nodes.push(
-          `"${_.data.policy_network_segment_design.guid}"[id="${_.data.policy_network_segment_design.guid}",label="${_.data.policy_network_segment_design.name}"];`
+          `"${_.data.policy_network_segment_design.guid}"[id="${_.data.policy_network_segment_design.guid}",tooltip="${_.data.policy_network_segment_design.name}",label="${_.data.policy_network_segment_design.name}"];`
         )
         nodes.push(
-          `"${_.data.owner_network_segment_design.guid}" -> "${_.data.policy_network_segment_design.guid}"[taillabel="${
-            _.data.code
-          }",arrowhead=${
+          `"${_.data.owner_network_segment_design.guid}" -> "${
+            _.data.policy_network_segment_design.guid
+          }"[edgetooltip="${_.data.code}",taillabel="${_.data.code}",arrowhead=${
             type[_.data.security_policy_type]
           },labeldistance="4",fontcolor="#7f8fa6",penwidth="2", fontsize="8"];`
         )
