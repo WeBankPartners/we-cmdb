@@ -605,6 +605,7 @@ export default {
           title: 'Updated successfully',
           desc: message
         })
+        this.isDataChanged = true
         setBtnsStatus()
         this.queryCiData()
       }
@@ -724,6 +725,7 @@ export default {
           title: this.$t('add_data_success'),
           desc: message
         })
+        this.isDataChanged = true
         this.queryCiData()
         this.setBtnsStatus()
         this.$refs[this.tableRef][0].closeEditModal(false)
@@ -749,6 +751,7 @@ export default {
           title: this.$t('update_data_success'),
           desc: message
         })
+        this.isDataChanged = true
         this.setBtnsStatus()
         this.queryCiData()
         this.$refs[this.tableRef][0].closeEditModal(false)
