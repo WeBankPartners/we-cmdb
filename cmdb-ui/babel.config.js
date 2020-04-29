@@ -1,4 +1,4 @@
 module.exports = {
-  presets: ["@vue/app"],
-  ignore: ["src/bpmn/*"]
-};
+  presets: [['@vue/app', { useBuiltIns: 'entry' }]],
+  ignore: ['src/bpmn/*']
+}

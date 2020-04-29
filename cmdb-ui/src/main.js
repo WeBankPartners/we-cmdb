@@ -1,3 +1,5 @@
+import 'core-js'
+import 'regenerator-runtime/runtime'
 import Vue from 'vue'
 import VueHighlightJS from 'vue-highlight.js'
 import 'vue-highlight.js/lib/allLanguages'
