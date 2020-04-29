@@ -1,8 +1,8 @@
 <template>
-  <WeCMDBTable
+  <CMDBTable
     :tableData="tableData"
     :tableColumns="columns"
-    :tableOuterActions="outerActions"
+    :tableOuterActions="null"
     :tableInnerActions="null"
     :showCheckbox="false"
     :pagination="pageInfo"
@@ -11,7 +11,7 @@
     @pageSizeChange="pageSizeChange"
     @handleSubmit="handleSubmit"
     ref="table"
-  ></WeCMDBTable>
+  ></CMDBTable>
 </template>
 
 <script>
@@ -28,19 +28,7 @@ export default {
         total: 0
       },
       filters: [],
-      sorting: null,
-      outerActions: [
-        {
-          label: this.$t('column_filter'),
-          props: {
-            type: 'primary',
-            icon: 'ios-funnel',
-            shape: 'circle',
-            disabled: false
-          },
-          actionType: 'filterColumns'
-        }
-      ]
+      sorting: null
     }
   },
   methods: {

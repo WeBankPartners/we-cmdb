@@ -15,7 +15,7 @@
       </Col>
     </Row>
     <Row v-if="!!selectedQueryName" style="margin-top: 20px;">
-      <WeCMDBTable
+      <CMDBTable
         :tableData="tableData"
         :tableOuterActions="outerActions"
         :tableInnerActions="innerActions"
@@ -30,7 +30,7 @@
         @handleSubmit="handleSubmit"
         tableHeight="650"
         ref="table"
-      ></WeCMDBTable>
+      ></CMDBTable>
 
       <Modal v-model="originDataModal" :title="$t('basic_data')" footer-hide>
         <highlight-code lang="json">{{ showRowOriginData }}</highlight-code>
