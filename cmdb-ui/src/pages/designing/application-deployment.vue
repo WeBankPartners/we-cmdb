@@ -786,6 +786,7 @@ export default {
           title: 'Updated successfully',
           desc: message
         })
+        this.isDataChanged = true
         setBtnsStatus()
         this.queryCiData()
       }
