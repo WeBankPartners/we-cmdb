@@ -332,7 +332,7 @@ export default {
                                 options: this.ascOptions[j.optionKey]
                               }
                             }
-                            this.renderFormItem(o)
+                            return this.renderFormItem(o)
                           })}
                       </Col>
                     </Row>
