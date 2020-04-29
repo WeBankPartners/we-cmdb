@@ -476,6 +476,7 @@ export default {
         }
       })
       const { statusCode, message } = await createRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, addAry)
+      this.$refs.table.resetModalLoading()
       if (statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('add_permission_success'),
