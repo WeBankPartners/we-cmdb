@@ -119,9 +119,7 @@ export const getSystemCategories = () => req.get(`/enum/system-categories`)
 export const getAllNonSystemEnumCodes = data => req.post(`/enum/non-system/codes`, data)
 export const getNonSystemCategories = () => req.get(`/enum/non-system-categories`)
 export const getEffectiveStatus = () => req.get(`/static-data/effective-status`)
-export const createEnumCode = data => {
-  return req.post(`/enum/category-types/0/categories/${data.catId}/codes/create`, data)
-}
+export const createEnumCode = data => req.post('/enum/codes/create', data)
 export const updateEnumCode = data => req.post(`/enum/codes/update`, data)
 export const getGroupListByCodeId = id => req.get(`/enum/categories/${id}/group-list`)
 export const deleteEnumCodes = data => req.post(`/enum/codes/delete`, data)
