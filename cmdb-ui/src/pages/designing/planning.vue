@@ -198,6 +198,12 @@ export default {
       }
     },
     async reloadHandler () {
+      let parentNode = document.querySelector('#graph').parentNode
+      parentNode.removeChild(document.querySelector('#graph'))
+      let div = document.createElement('div')
+      div.setAttribute('id', 'graph')
+      div.setAttribute('class', 'graph-container-big')
+      parentNode.appendChild(div)
       this.onIdcDataChange(this.selectedIdc)
       this.isDataChanged = false
     },
