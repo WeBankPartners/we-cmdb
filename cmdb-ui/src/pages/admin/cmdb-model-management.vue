@@ -1724,21 +1724,6 @@ export default {
         return true
       }
     },
-    handleNewCITypeUploadImgSuccess (res, file) {
-      if (res.statusCode === 'OK') {
-        this.$Notice.success({
-          title: this.$t('icon_upload_success'),
-          desc: res.message
-        })
-
-        this.addNewCITypeForm.imageFileId = res.data.id
-      } else {
-        this.$Notice.warning({
-          title: this.$t('icon_upload_failed'),
-          desc: res.message
-        })
-      }
-    },
     handleUploadImgSuccess (res, file) {
       if (res.statusCode === 'OK') {
         this.$Notice.success({
@@ -1882,7 +1867,7 @@ export default {
       } else {
         this.$Notice.success({
           title: 'Success',
-          desc: response.statusMessage || ''
+          desc: this.$t('icon_upload_success')
         })
         ci.imageFileId = response.data.id
       }
