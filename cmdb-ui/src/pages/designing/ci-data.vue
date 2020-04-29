@@ -27,10 +27,6 @@
           tableHeight="650"
           :ref="'table' + ci.id"
         ></CMDBTable>
-        <!-- 对比 -->
-        <Modal footer-hide v-model="compareVisible" width="90" class-name="compare-modal">
-          <Table :columns="ci.tableColumns.filter(x => x.isDisplayed || x.displaySeqNo)" :data="compareData" border />
-        </Modal>
       </TabPane>
       <div slot="extra" class="history-query">
         <span class="filter-title">{{ $t('change_layer') }}</span>
@@ -55,6 +51,10 @@
         </Select>
       </div>
     </Tabs>
+    <!-- 对比 -->
+    <Modal footer-hide v-model="compareVisible" width="90" class-name="compare-modal">
+      <Table :columns="compareColumns.filter(x => x.isDisplayed || x.displaySeqNo)" :data="compareData" border />
+    </Modal>
   </div>
 </template>
 <script>
@@ -105,6 +105,7 @@ export default {
       layers: [],
       graph: {},
       ciTypesName: {},
+      compareColumns: [],
       compareVisible: false,
       compareData: [],
       options: {
@@ -542,9 +543,6 @@ export default {
         case 'delete':
           this.deleteHandler(data)
           break
-        case 'innerCancel':
-          this.$refs[this.tableRef][0].rowCancelHandler(data.weTableRowId)
-          break
         case 'compare':
           this.compareHandler(data)
           break
@@ -561,6 +559,10 @@ export default {
     },
     async compareHandler (row) {
       this.$set(row.weTableForm, 'compareLoading', true)
+      const found = this.tabList.find(_ => _.id === this.currentTab)
+      if (found) {
+        this.compareColumns = found.tableColumns
+      }
       const query = {
         id: this.currentTab,
         queryObject: {
@@ -581,7 +583,7 @@ export default {
         this.compareData = this.compareData
           .map(x => {
             for (let k in x) {
-              if (typeof x[k] === 'object' && x[k] !== null) x[k] = x[k].value
+              if (typeof x[k] === 'object' && x[k] !== null) x[k] = x[k].value || x[k].key_name
             }
             return x
           })
@@ -718,7 +720,7 @@ export default {
       this.$refs[this.tableRef][0].resetModalLoading()
       if (statusCode === 'OK') {
         this.$Notice.success({
-          title: 'Added successfully',
+          title: this.$t('add_data_success'),
           desc: message
         })
         this.setBtnsStatus()
@@ -743,7 +745,7 @@ export default {
       this.$refs[this.tableRef][0].resetModalLoading()
       if (statusCode === 'OK') {
         this.$Notice.success({
-          title: 'Updated successfully',
+          title: this.$t('update_data_success'),
           desc: message
         })
         this.setBtnsStatus()
