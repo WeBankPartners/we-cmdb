@@ -262,7 +262,7 @@ export default {
                 filterable
                 clearable
                 {...data}
-                options={item.optionKey ? this.ascOptions[this.form[item.optionKey]] : item.options}
+                options={item.optionKey ? this.ascOptions[item.optionKey] : item.options}
               />
             )
           case 'WeCMDBRefSelect':
@@ -323,12 +323,30 @@ export default {
                         {_.children
                           .filter(_ => !!_.searchSeqNo)
                           .sort(compare)
-                          .map(j => this.renderFormItem(j))}
+                          .map(j => {
+                            let o = { ...j }
+                            if (j.optionKey) {
+                              o = {
+                                ...j,
+                                optionKey: null,
+                                options: this.ascOptions[j.optionKey]
+                              }
+                            }
+                            this.renderFormItem(o)
+                          })}
                       </Col>
                     </Row>
                   )
                 }
-                return this.renderFormItem(_, index)
+                let obj = { ..._ }
+                if (_.optionKey) {
+                  obj = {
+                    ..._,
+                    optionKey: null,
+                    options: this.ascOptions[_.optionKey]
+                  }
+                }
+                return this.renderFormItem(obj, index)
               })}
             <Col span={6}>
               <div style="display: flex; margin-bottom: 20px">
@@ -386,10 +404,6 @@ export default {
     onRadioSelect (current, old) {
       this.$emit('getSelectedRows', [current], false)
     },
-    // cancelSelected () {
-    //   this.$refs['table'].selectAll(false)
-    //   this.selectedRows = []
-    // },
     sortHandler (sort) {
       this.$emit('sortHandler', sort)
     },
@@ -426,8 +440,8 @@ export default {
           return {
             ..._,
             children: children.map((j, index) => {
-              const isChildLast = isLast && children.length - 1 === index
-              return this.renderCol(j, isChildLast)
+              // const isChildLast = isLast && children.length - 1 === index
+              return this.renderCol(j, true)
             })
           }
         } else {
@@ -572,7 +586,8 @@ export default {
       modalVisible,
       selectedRows,
       modalLoading,
-      tableLoading
+      tableLoading,
+      ascOptions
     } = this
     return (
       <div>
@@ -604,18 +619,17 @@ export default {
             style="float: right; margin: 10px 0;"
           />
         )}
-        {modalVisible && (
-          <EditModal
-            isEdit={this.modalTitle === this.titles.edit}
-            title={this.modalTitle}
-            columns={columns.filter(col => !col.isAuto && col.isEditable)}
-            data={selectedRows}
-            on-closeEditModal={this.closeEditModal}
-            on-editModalOkHandler={this.editModalOkHandler}
-            modalVisible={modalVisible}
-            modalLoading={modalLoading}
-          ></EditModal>
-        )}
+        <EditModal
+          isEdit={this.modalTitle === this.titles.edit}
+          title={this.modalTitle}
+          columns={columns.filter(col => !col.isAuto && col.isEditable)}
+          data={selectedRows}
+          ascOptions={ascOptions}
+          on-closeEditModal={this.closeEditModal}
+          on-editModalOkHandler={this.editModalOkHandler}
+          modalVisible={modalVisible}
+          modalLoading={modalLoading}
+        ></EditModal>
       </div>
     )
   }
