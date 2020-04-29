@@ -222,19 +222,21 @@ export default {
       return data.map(_ => {
         let result = {
           ..._,
-          attributeList: _.attrs.map((attrId, index) => {
-            let _result = {
-              ciTypeAttrId: attrId
-            }
-            if (_.attrAliases instanceof Array && _.attrAliases[index]) {
-              _result.name = _.attrAliases[index]
-            }
-            if (_.attrKeyNames instanceof Array && _.attrKeyNames[index]) {
-              _result.attrKeyName = _.attrKeyNames[index]
-            }
-            this.attributeObject[attrId] = _result
-            return _result
-          })
+          attributeList: _.attrs
+            ? _.attrs.map((attrId, index) => {
+              let _result = {
+                ciTypeAttrId: attrId
+              }
+              if (_.attrAliases instanceof Array && _.attrAliases[index]) {
+                _result.name = _.attrAliases[index]
+              }
+              if (_.attrKeyNames instanceof Array && _.attrKeyNames[index]) {
+                _result.attrKeyName = _.attrKeyNames[index]
+              }
+              this.attributeObject[attrId] = _result
+              return _result
+            })
+            : []
         }
         if (_.children instanceof Array) {
           result.children = this.formatAttr(_.children)

@@ -13,7 +13,6 @@
             this.showClear = false
           }
         "
-        :style="{ width: `${width}px` }"
       >
         <div class="tag-box">
           <span style="color: #c5c8ce" v-if="selectNodes.length < 1">{{ placeholder }}</span>
@@ -69,11 +68,6 @@ export default {
     clearable: {
       type: Boolean,
       default: false,
-      required: false
-    },
-    width: {
-      type: [String, Number],
-      default: 300,
       required: false
     },
     value: {
@@ -194,11 +188,13 @@ export default {
 .tech-sel-wrapper {
   display: inline-block;
   text-align: left;
+  width: 100%;
   .select-box {
     position: relative;
     min-height: 32px;
     border-radius: 5px;
     border: 1px solid #ccc;
+    width: 100%;
     transition: 0.3s;
     .clear-btn {
       position: absolute;

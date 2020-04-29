@@ -7,6 +7,7 @@ export default {
     }
   },
   props: {
+    ascOptions: {},
     modalLoading: {
       default: false,
       type: Boolean
@@ -36,19 +37,36 @@ export default {
   watch: {
     data: {
       handler (val) {
-        this.editData = JSON.parse(JSON.stringify(val))
+        this.editData = this.resetPassword(JSON.parse(JSON.stringify(val)))
       },
       immediate: true
     },
     modalVisible: {
       handler (val) {
         if (val) {
-          this.editData = JSON.parse(JSON.stringify(this.data))
+          this.editData = this.resetPassword(JSON.parse(JSON.stringify(this.data)))
         }
       }
     }
   },
   methods: {
+    resetPassword (data) {
+      let needResets = []
+      this.columns.forEach(col => {
+        if (col.inputType === 'password') {
+          needResets.push(col.propertyName)
+        }
+      })
+      data.forEach(d => {
+        needResets.forEach(p => {
+          if (!this.isEdit) {
+            d[p] = null
+            d['isNewAddedRow'] = true
+          }
+        })
+      })
+      return data
+    },
     okHandler () {
       this.$emit('editModalOkHandler', this.editData)
     },
@@ -118,17 +136,14 @@ export default {
           {this.editData.map((d, index) => {
             return (
               <div key={index} style={`width: ${this.tableWidth}px`}>
-                {this.columns.map(column => {
+                {this.columns.map((column, i) => {
                   if (column.component === 'WeCMDBCIPassword') {
                     return (
-                      <div
-                        key={column.propertyName + index}
-                        style={`width:${WIDTH}px;display:inline-block;padding:5px`}
-                      >
+                      <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
                         <column.component
                           ciTypeId={column.ciTypeId}
                           guid={d.guid}
-                          isEdit={true}
+                          isEdit={this.isEdit}
                           isNewAddedRow={d.isNewAddedRow || false}
                           propertyName={column.propertyName}
                           value={d[column.propertyName]}
@@ -142,6 +157,7 @@ export default {
                     const props =
                       column.component === 'WeCMDBSelect'
                         ? {
+                          ...column,
                           value: column.isRefreshable
                             ? column.inputType === 'multiSelect'
                               ? []
@@ -158,9 +174,11 @@ export default {
                             }
                             : null,
                           isMultiple: column.isMultiple,
+                          options: column.optionKey ? this.ascOptions[column.optionKey] : column.options,
                           enumId: column.referenceId ? column.referenceId : null
                         }
                         : {
+                          ...column,
                           value: column.isRefreshable
                             ? ''
                             : column.inputType === 'multiRef'
@@ -189,10 +207,7 @@ export default {
                       on: fun
                     }
                     return (
-                      <div
-                        key={column.propertyName + index}
-                        style={`width:${WIDTH}px;display:inline-block;padding:5px`}
-                      >
+                      <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
                         <column.component {...data} />
                       </div>
                     )
@@ -235,13 +250,21 @@ export default {
         <div style="overflow: auto">
           {this.modalVisible && (
             <div style={`width: ${this.tableWidth}px`}>
-              {this.columns.map(column => {
+              {this.columns.map((column, index) => {
+                const d = {
+                  props: {
+                    'min-width': '130px',
+                    'max-width': '500px'
+                  }
+                }
                 return (
                   <div
                     style={`width:${WIDTH}px;display:inline-block;padding:5px;height: 30px;font-weight:600;background-color: #e8eaec`}
-                    key={column.ciTypeAttrId}
+                    key={column.ciTypeAttrId || index}
                   >
-                    {column.name}
+                    <Tooltip {...d} disabled={!column.description} content={column.description} placement="top">
+                      {column.name || column.title}
+                    </Tooltip>
                   </div>
                 )
               })}
