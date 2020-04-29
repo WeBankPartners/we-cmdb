@@ -338,27 +338,25 @@ export default {
             type: 'line'
           })
         this.options = this.options.concat(
-          ciAttrs.data
-            .filter(_ => _.inputType !== 'password')
-            .map(_ => {
-              const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
-              const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].name : this.ciTypesObj[_.ciTypeId].name
-              const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId].name
-              const nodeName = isRef ? `->(${ciTypeName})${attrName}` : `.${attrName}`
-              const nodeObj = {
-                ciTypeId: isRef ? _.referenceId : _.ciTypeId,
-                parentRs: {
-                  attrId: _.ciTypeAttrId,
-                  isReferedFromParent: 1
-                }
+          ciAttrs.data.map(_ => {
+            const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
+            const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].name : this.ciTypesObj[_.ciTypeId].name
+            const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId].name
+            const nodeName = isRef ? `->(${ciTypeName})${attrName}` : `.${attrName}`
+            const nodeObj = {
+              ciTypeId: isRef ? _.referenceId : _.ciTypeId,
+              parentRs: {
+                attrId: _.ciTypeAttrId,
+                isReferedFromParent: 1
               }
-              return {
-                type: 'option',
-                class: 'auto-fill-li auto-fill-li-ref auto-fill-li-ref-to',
-                nodeName,
-                fn: () => this.addNode(ruleIndex, attrIndex, nodeObj)
-              }
-            })
+            }
+            return {
+              type: 'option',
+              class: 'auto-fill-li auto-fill-li-ref auto-fill-li-ref-to',
+              nodeName,
+              fn: () => this.addNode(ruleIndex, attrIndex, nodeObj)
+            }
+          })
         )
       }
     },
