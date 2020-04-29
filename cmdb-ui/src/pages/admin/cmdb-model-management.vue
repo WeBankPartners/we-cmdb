@@ -176,6 +176,7 @@
                     <Button
                       type="info"
                       ghost
+                      size="small"
                       icon="ios-cloud-upload-outline"
                       style="display:block"
                       @click="() => getHeaders(`editUploadButton-${item.form.ciTypeId}`)"
@@ -192,26 +193,26 @@
                       :on-success="(response, file, fileList) => onUploadSuccess(item.form, response)"
                       :on-error="onUploadError"
                     >
-                      <Button style="display:none" icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button>
                     </Upload>
                   </FormItem>
-                  <FormItem>
+                  <FormItem :label-width="20">
                     <Button
                       type="primary"
-                      small
+                      size="small"
+                      @click="submitCiType(item.ciTypeId, item.form)"
+                      :loading="buttonLoading.submitCiType"
+                      style="float: right"
+                      :disabled="item.form.status === 'decommissioned'"
+                      >{{ $t('submit') }}</Button
+                    >
+                    <Button
+                      type="primary"
+                      size="small"
+                      style="float: right;margin-right: 10px"
                       @click="saveCiType(item.ciTypeId, item.form)"
                       :loading="buttonLoading.saveCiType"
                       :disabled="item.form.status !== 'notCreated'"
                       >{{ $t('save_draft') }}</Button
-                    >
-                    <Button
-                      type="primary"
-                      small
-                      @click="submitCiType(item.ciTypeId, item.form)"
-                      :loading="buttonLoading.submitCiType"
-                      style="margin-left: 8px"
-                      :disabled="item.form.status === 'decommissioned'"
-                      >{{ $t('submit') }}</Button
                     >
                   </FormItem>
                 </Form>
@@ -265,6 +266,7 @@
                 ghost
                 icon="ios-cloud-upload-outline"
                 style="display:block"
+                size="small"
                 @click="() => getHeaders('addUploadButton')"
               >
                 {{ $t('upload_icon_btn') }}
@@ -279,7 +281,6 @@
                 :on-success="(response, file, fileList) => onUploadSuccess(addNewCITypeForm, response)"
                 :on-error="onUploadError"
               >
-                <Button style="display:none" icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button>
               </Upload>
             </FormItem>
             <FormItem>
@@ -462,44 +463,14 @@
                     v-if="item.form.inputType === 'select' || item.form.inputType === 'multiSelect'"
                     :label="$t('select')"
                   >
-                    <Select
-                      v-if="item.form.isSystem === true"
-                      clearable
-                      v-model="item.form.referenceId"
-                      :disabled="item.form.status === 'decommissioned'"
-                    >
+                    <Select clearable v-model="item.form.referenceId" :disabled="item.form.status === 'decommissioned'">
                       <Option
                         v-for="enumItem in currentSelectedCIAttrEnum"
                         :value="enumItem.catId"
                         :key="enumItem.catId"
                         style="max-width: 300px"
-                        >{{ `[${'system'}] ${enumItem.catName}` }}</Option
+                        >{{ enumItem.catName }}</Option
                       >
-                    </Select>
-
-                    <Select
-                      v-else
-                      clearable
-                      v-model="item.form.referenceId"
-                      :disabled="item.form.status === 'decommissioned'"
-                    >
-                      <span slot="prefix" @click.stop.prevent="openEnumGroupModal(null)">@+</span>
-                      <Option
-                        v-for="enumItem in currentSelectedCIAttrEnum"
-                        :value="enumItem.catId"
-                        :key="enumItem.catId"
-                        style="max-width: 300px"
-                      >
-                        {{ `[${enumItem.catTypeId === 2 ? 'common' : 'private'}] ${enumItem.catName}` }}
-                        <span style="float:right">
-                          <Button
-                            @click.stop.prevent="openEnumGroupModal(enumItem)"
-                            icon="ios-build"
-                            type="primary"
-                            size="small"
-                          ></Button>
-                        </span>
-                      </Option>
                     </Select>
                   </FormItem>
                   <FormItem prop="isRefreshable" :label="$t('is_refreshable')">
@@ -584,19 +555,19 @@
                       :disabled="item.form.status === 'decommissioned'"
                     ></FilterRule>
                   </FormItem>
-                  <FormItem>
+                  <FormItem :label-width="20">
                     <Button
                       type="primary"
-                      small
                       @click="applyAttr(item.ciTypeAttrId, item.form)"
                       :loading="buttonLoading.applyAttr"
                       style="float: right"
+                      size="small"
                       :disabled="item.form.status === 'decommissioned'"
                       >{{ $t('submit') }}</Button
                     >
                     <Button
                       type="primary"
-                      small
+                      size="small"
                       @click="saveAttr(item.ciTypeAttrId, item.form)"
                       :loading="buttonLoading.saveAttr"
                       style="float: right; margin-right: 20px"
@@ -701,18 +672,9 @@
             :label="$t('select')"
           >
             <Select clearable v-model="addNewAttrForm.referenceId">
-              <span slot="prefix" @click.stop.prevent="openEnumGroupModal(null)">@+</span>
-              <Option v-for="item in currentSelectedCIAttrEnum" :value="item.catId" :key="item.catId">
-                {{ `[${item.catTypeId === 2 ? 'common' : 'private'}] ${item.catName}` }}
-                <span style="float:right">
-                  <Button
-                    @click.stop.prevent="openEnumGroupModal(item)"
-                    icon="ios-build"
-                    type="primary"
-                    size="small"
-                  ></Button>
-                </span>
-              </Option>
+              <Option v-for="item in currentSelectedCIAttrEnum" :value="item.catId" :key="item.catId">{{
+                item.catName
+              }}</Option>
             </Select>
           </FormItem>
           <FormItem prop="isRefreshable" :label="$t('is_refreshable')">
@@ -798,15 +760,6 @@
       <Modal v-model="isEditCINameModalVisible" :title="$t('edit_ci_name')" @on-ok="editCIName" @on-cancel="() => {}">
         <Input v-model="updatedCINameValue.name" :placeholder="$t('input_placeholder')" />
       </Modal>
-      <enumGroupModal
-        @hideHandler="hideEnumGroupModal"
-        @getAllEnums="getEnum"
-        :allEnumCategoryTypes="allEnumCategoryTypes"
-        :enumGroupVisible="enumGroupModalVisible"
-        :currentCiType="currentSelectedCI"
-        :category="currentCategory"
-        :allCategory="allEnumCategories"
-      ></enumGroupModal>
     </Col>
     <!-- eslint-disable-next-line -->
     <Col span="6" offset="0" class="func-wrapper" v-else>
@@ -841,7 +794,6 @@ import {
   deleteLayer,
   swapCiTypeAttributePosition,
   getAllInputTypes,
-  getEnumByCIType,
   getAllSystemEnumCodes,
   getTableStatus,
   applyCIAttr,
@@ -850,14 +802,12 @@ import {
   getAllEnumCategories,
   implementCiType,
   implementCiAttr,
-  getEnumCategoriesByTypeId,
   getSpecialConnector,
   getCiTypeAttributes
 } from '@/api/server'
 import STATUS_LIST from '@/const/graph-status-list.js'
 import { PROPERTY_TYPE_MAP } from '@/const/data-types.js'
 import { setHeaders, baseURL } from '@/api/base.js'
-import enumGroupModal from './components/enum-group-modal'
 import AutoFill from '../components/auto-fill.js'
 import FilterRule from '../components/filter-rule'
 import { ZOOM_LEVEL_CAT } from '@/const/init-params.js'
@@ -868,7 +818,6 @@ const defaultCiTypePNG = require('@/assets/ci-type-default.png')
 
 export default {
   components: {
-    enumGroupModal,
     AutoFill,
     FilterRule
   },
@@ -904,7 +853,6 @@ export default {
       isAddNewCITypeModalVisible: false,
       isEditCINameModalVisible: false,
       isAddNewAttrModalVisible: false,
-      enumGroupModalVisible: false,
       updatedLayerNameValue: {},
       updatedCINameValue: {},
       currentSelectLayerChildren: [],
@@ -927,7 +875,6 @@ export default {
       specialDelimiters: [],
       allInputTypes: [],
       allReferenceTypes: [],
-      selectedCIAttrIsSystem: false,
       buttonLoading: {
         newLayer: false,
         upLayer: false,
@@ -981,13 +928,6 @@ export default {
           searchSeqNo: 0
         }
       }
-    },
-    openEnumGroupModal (val) {
-      this.currentCategory = val
-      this.enumGroupModalVisible = true
-    },
-    hideEnumGroupModal (val) {
-      this.enumGroupModalVisible = false
     },
     async initGraph (status = []) {
       this.spinShow = true
@@ -1343,31 +1283,23 @@ export default {
     onCIAttrCollapeOpen (val) {
       this.currentSelectedCIChildren.forEach((_, index) => {
         if (_.ciTypeAttrId === +val[0] && (_.inputType === 'select' || _.inputType === 'multiSelect')) {
-          this.selectedCIAttrIsSystem = _.isSystem
           this.getEnum()
         }
       })
     },
-    async getEnum (isNewAdd = false) {
-      const SYS_ENUM_TYPE_ID = 1
-      const res =
-        this.selectedCIAttrIsSystem && !isNewAdd
-          ? await getEnumCategoriesByTypeId(SYS_ENUM_TYPE_ID)
-          : await getEnumByCIType(this.currentSelectedCI.ciTypeId)
+    async getEnum () {
+      const res = await getAllEnumCategories()
       this.buttonLoading.addNewAttrHandler = false
       if (res.statusCode === 'OK') {
         let enumList = []
-        enumList =
-          this.selectedCIAttrIsSystem && !isNewAdd
-            ? res.data
-            : enumList.concat(res.data.private || []).concat(res.data.common || [])
+        enumList = res.data.contents
         this.currentSelectedCIAttrEnum = enumList
       }
     },
     async onInputTypeChange (value, isDiabled) {
       this.addNewAttrForm.propertyType = PROPERTY_TYPE_MAP[value]
       if (value === 'select' || (value === 'multiSelect' && !isDiabled)) {
-        this.getEnum(true)
+        this.getEnum()
       }
     },
     addNewLayer (formName) {
@@ -1705,7 +1637,7 @@ export default {
     },
     addNewAttrHandler () {
       this.buttonLoading.addNewAttrHandler = true
-      this.getEnum(true)
+      this.getEnum()
       this.isAddNewAttrModalVisible = true
     },
     resetAddAttrForm () {
@@ -1964,6 +1896,7 @@ export default {
   },
   mounted () {
     this.getAllCiTypeWithAttr()
+    this.getEnum()
     this.initGraph()
     this.getAllInputTypesList()
     this.getAllReferenceTypesList()

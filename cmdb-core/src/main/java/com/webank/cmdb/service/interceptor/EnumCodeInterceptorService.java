@@ -265,7 +265,11 @@ public class EnumCodeInterceptorService extends BasicInterceptorService<CatCodeD
         if (lastCodeSeqNo == null) {
             domainBean.setSeqNo(1);
         } else {
-            domainBean.setSeqNo(lastCodeSeqNo.getSeqNo() + 1);
+            if (lastCodeSeqNo.getSeqNo()==null){
+                domainBean.setSeqNo(1);
+            }else{
+                domainBean.setSeqNo(lastCodeSeqNo.getSeqNo() + 1);
+            }
         }
     }
 
