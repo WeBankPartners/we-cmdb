@@ -919,9 +919,9 @@ export default {
         })
         .transition()
         .renderDot(nodesString)
-      this.shadeAll()
+      this.shadeAll(`#idcPlanningRouterGraph${this.initParams[IDC_PLANNING_ROUTER_DESIGN_CODE]}`)
       addEvent('svg', 'mouseover', e => {
-        this.shadeAll()
+        this.shadeAll(`#idcPlanningRouterGraph${this.initParams[IDC_PLANNING_ROUTER_DESIGN_CODE]}`)
         e.preventDefault()
         e.stopPropagation()
       })
@@ -971,9 +971,9 @@ export default {
         })
         .transition()
         .renderDot(nodesString)
-      this.shadeAll()
+      this.shadeAll(`#idcPlanningSecurityPolicyGraph${this.initParams[DEFAULT_SECURITY_POLICY_DESIGN_CODE]}`)
       addEvent('svg', 'mouseover', e => {
-        this.shadeAll()
+        this.shadeAll(`#idcPlanningSecurityPolicyGraph${this.initParams[DEFAULT_SECURITY_POLICY_DESIGN_CODE]}`)
         e.preventDefault()
         e.stopPropagation()
       })
@@ -994,16 +994,16 @@ export default {
         .attr('fill-opacity', '1')
         .attr('stroke-opacity', '1')
     },
-    shadeAll () {
-      d3.selectAll('g path')
+    shadeAll (id) {
+      d3.selectAll(`${id} g path`)
         .attr('stroke', '#7f8fa6')
         .attr('stroke-opacity', '.2')
-      d3.selectAll('g g polygon')
+      d3.selectAll(`${id} g g polygon`)
         .attr('stroke', '#7f8fa6')
         .attr('stroke-opacity', '.2')
         .attr('fill', '#7f8fa6')
         .attr('fill-opacity', '.2')
-      d3.selectAll('.edge text').attr('fill', '#7f8fa6')
+      d3.selectAll(`${id} .edge text`).attr('fill', '#7f8fa6')
     },
     colorNode (nodeName) {
       d3.selectAll('g[from="' + nodeName + '"] path')
