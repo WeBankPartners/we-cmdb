@@ -402,7 +402,8 @@ export default {
               type: 'text',
               ...components[h.inputType],
               isMultiple: h.inputType === 'select',
-              filterRule: null
+              filterRule: null,
+              isEditable: true
             }
           })
           .concat(this.defaultColumns)
