@@ -990,7 +990,9 @@ export default {
         e.stopPropagation()
       })
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
-      addEvent('.edge', 'mouseover', this.handleEdgeMouseover)
+      addEvent('.edge', 'mouseover', e => {
+        this.handleEdgeMouseover(e, `#resourcePlanningRouterGraph${this.initParams[RESOURCE_PLANNING_ROUTER_CODE]}`)
+      })
     },
     initSecurityPolicyGraph (data) {
       const nodes = []
@@ -1042,17 +1044,22 @@ export default {
         e.stopPropagation()
       })
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
-      addEvent('.edge', 'mouseover', this.handleEdgeMouseover)
+      addEvent('.edge', 'mouseover', e => {
+        this.handleEdgeMouseover(
+          e,
+          `#resourcePlanningSecurityPolicyGraph${this.initParams[DEFAULT_SECURITY_POLICY_CODE]}`
+        )
+      })
     },
-    handleEdgeMouseover (e) {
+    handleEdgeMouseover (e, parentNode) {
       e.preventDefault()
       e.stopPropagation()
       const id = e.currentTarget.id
-      d3.selectAll('g[id="' + id + '"] path')
+      d3.selectAll(parentNode + ' g[id="' + id + '"] path')
         .attr('stroke', '#eb8221')
         .attr('stroke-opacity', '1')
-      d3.selectAll('g[id="' + id + '"] text').attr('fill', '#eb8221')
-      d3.selectAll('g[id="' + id + '"] polygon')
+      d3.selectAll(parentNode + ' g[id="' + id + '"] text').attr('fill', '#eb8221')
+      d3.selectAll(parentNode + ' g[id="' + id + '"] polygon')
         .attr('stroke', '#eb8221')
         .attr('fill', '#eb8221')
         .attr('fill-opacity', '1')
