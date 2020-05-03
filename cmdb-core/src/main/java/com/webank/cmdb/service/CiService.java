@@ -36,6 +36,8 @@ public interface CiService extends CmdbService {
 
     DynamicEntityMeta getDynamicEntityMeta(int ciTypeId);
 
+    Map<String, DynamicEntityMeta> getTableDynamicEntityMetaMap();
+
     DynamicEntityHolder getCiHolder(int ciType, String guid);
 
     List<DynamicEntityHolder> filterBy(int ciType, List<FilterInfo> filterInfos, Pageable pageable, Sorting sorting);

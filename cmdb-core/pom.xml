@@ -144,6 +144,11 @@
 			<version>1.3.2</version>
 		</dependency>
 		<dependency>
+			<groupId>org.antlr</groupId>
+			<artifactId>antlr4-runtime</artifactId>
+			<version>4.7.2</version>
+		</dependency>
+		<dependency>
 			<groupId>org.easetech</groupId>
 			<artifactId>easytest</artifactId>
 			<version>0.6.1</version>
