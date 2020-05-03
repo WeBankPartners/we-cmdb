@@ -300,6 +300,17 @@ public class CiServiceImpl implements CiService {
     }
 
     @Override
+    public Map<String, DynamicEntityMeta> getTableDynamicEntityMetaMap(){
+        Map<Integer, DynamicEntityMeta> entityMetaMap = getDynamicEntityMetaMap();
+        Map<String, DynamicEntityMeta> tableEntityMetaMap = new HashMap<>();
+        for(Map.Entry<Integer, DynamicEntityMeta> entry:entityMetaMap.entrySet()){
+            String tableName = entry.getValue().getTableName();
+            tableEntityMetaMap.put(tableName,entry.getValue());
+        }
+        return tableEntityMetaMap;
+    }
+
+    @Override
     public synchronized Map<Integer, DynamicEntityMeta> getMultSelectMetaMap() {
         if (!isLoaded) {
             reload();
