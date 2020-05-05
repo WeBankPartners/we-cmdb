@@ -1,13 +1,14 @@
-package com.webank.cmdb.express;
+package com.webank.cmdb.expression;
 
 import com.webank.cmdb.constant.FilterOperator;
+import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dto.IntegrationQueryDto;
 import com.webank.cmdb.dto.Relationship;
 import com.webank.cmdb.dynamicEntity.DynamicEntityMeta;
 import com.webank.cmdb.dynamicEntity.FieldNode;
-import com.webank.cmdb.express.antlr4.RouteQueryBaseListener;
-import com.webank.cmdb.express.antlr4.RouteQueryParser;
+import com.webank.cmdb.expression.antlr4.RouteQueryBaseListener;
+import com.webank.cmdb.expression.antlr4.RouteQueryParser;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -16,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-public class RouteQueryExpressListener extends RouteQueryBaseListener {
+public class RouteQueryExpressionListener extends RouteQueryBaseListener {
     private Stack<Filter> conditions = new Stack<>();
     private Stack<Object> values = new Stack<>();
     private Stack<String> entities = new Stack<>();
@@ -34,14 +35,16 @@ public class RouteQueryExpressListener extends RouteQueryBaseListener {
 
     //integration query chain
     private List<IntegrationQueryDto> integrationChain = new LinkedList<>();
+    private AdhocIntegrationQueryDto adhocIntegrationQuery = new AdhocIntegrationQueryDto();
 
-    public RouteQueryExpressListener(Map<String,DynamicEntityMeta> entityMap){
+    public RouteQueryExpressionListener(Map<String,DynamicEntityMeta> entityMap){
         this.entityMap = entityMap;
     }
 
-    public IntegrationQueryDto getRootIntegrateQuery() {
+    public AdhocIntegrationQueryDto getAdhocIntegrationQuery(){
         if(integrationChain.size()>0){
-            return integrationChain.get(0);
+            adhocIntegrationQuery.setCriteria(integrationChain.get(0));
+            return adhocIntegrationQuery;
         }else{
             return null;
         }
@@ -69,7 +72,9 @@ public class RouteQueryExpressListener extends RouteQueryBaseListener {
             DynamicEntityMeta meta = entityMap.get(tableName);
             FieldNode fieldNode = meta.getFieldNode(attr);
             intQuery.getAttrs().add(fieldNode.getAttrId());
-            intQuery.getAttrKeyNames().add(getAttrKeyname(tableName,attr));
+            String fetchAttrName = getAttrKeyname(tableName,attr);
+            intQuery.getAttrKeyNames().add(fetchAttrName);
+            adhocIntegrationQuery.getQueryRequest().getResultColumns().add(fetchAttrName);
         }
     }
 
@@ -169,7 +174,7 @@ public class RouteQueryExpressListener extends RouteQueryBaseListener {
             if (fieldNode == null) {
                 throw new CmdbExpressException(String.format("Can't find field (%s) for ci type ('%s')", attrName, tableName));
             }
-            intQuery.getFilters().add(filter);
+            adhocIntegrationQuery.getQueryRequest().getFilters().add(filter);
         }
         integrationChain.add(intQuery);
     }
