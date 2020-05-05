@@ -1,9 +1,6 @@
 package com.webank.cmdb.dto;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.webank.cmdb.constant.FilterRelationship;
 import com.webank.cmdb.util.Pageable;
@@ -17,7 +14,7 @@ public class QueryRequest {
     protected Sorting sorting = new Sorting();
     protected List<String> groupBys = new LinkedList<>();
     protected List<String> refResources = new LinkedList<>();
-    protected List<String> resultColumns;
+    protected List<String> resultColumns = new ArrayList<>();
     protected Dialect dialect = new Dialect();
     protected Map<String, String> aggregationFuction = new HashMap<>();
     
