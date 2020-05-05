@@ -147,8 +147,13 @@ public class IntegrationQueryDto {
         return ciTypeId;
     }
 
-    public void setCiTypeId(Integer ciTypeId) {
+    public void setCiTypeId(int ciTypeId) {
         this.ciTypeId = ciTypeId;
+    }
+
+    public IntegrationQueryDto withCiTypeId(int ciTypeId){
+        setCiTypeId(ciTypeId);
+        return this;
     }
 
     public List<Integer> getAttrs() {
@@ -159,6 +164,11 @@ public class IntegrationQueryDto {
         this.attrs = attrs;
     }
 
+    public IntegrationQueryDto withAttrs(List<Integer> attrs){
+        setAttrs(attrs);
+        return this;
+    }
+
     public Relationship getParentRs() {
         return parentRs;
     }
@@ -167,12 +177,22 @@ public class IntegrationQueryDto {
         this.parentRs = parentRs;
     }
 
+    public IntegrationQueryDto withParentRs(Relationship parentRs){
+        setParentRs(parentRs);
+        return this;
+    }
+
     public List<IntegrationQueryDto> getChildren() {
         return children;
     }
 
     public void setChildren(List<IntegrationQueryDto> children) {
         this.children = children;
+    }
+
+    public IntegrationQueryDto withChildren(List<IntegrationQueryDto> children){
+        setChildren(children);
+        return this;
     }
 
     public void addChild(IntegrationQueryDto child) {
@@ -201,6 +221,11 @@ public class IntegrationQueryDto {
 
     public void setAttrKeyNames(List<String> attrKeyNames) {
         this.attrKeyNames = attrKeyNames;
+    }
+
+    public IntegrationQueryDto withAttrKeyNames(List<String> attrKeyNames){
+        setAttrKeyNames(attrKeyNames);
+        return this;
     }
 
     public List<String> getAggKeyNames() {
