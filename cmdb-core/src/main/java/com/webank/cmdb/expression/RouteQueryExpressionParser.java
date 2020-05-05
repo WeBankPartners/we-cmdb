@@ -1,25 +1,25 @@
-package com.webank.cmdb.express;
+package com.webank.cmdb.expression;
 
-import com.webank.cmdb.dto.IntegrationQueryDto;
+import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dynamicEntity.DynamicEntityMeta;
-import com.webank.cmdb.express.antlr4.RouteQueryLexer;
-import com.webank.cmdb.express.antlr4.RouteQueryParser;
+import com.webank.cmdb.expression.antlr4.RouteQueryLexer;
+import com.webank.cmdb.expression.antlr4.RouteQueryParser;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.util.Map;
 
-public class RouteQueryExpressParser {
+public class RouteQueryExpressionParser {
     //table name -> meta
     private Map<String, DynamicEntityMeta> entityMap;
 
-    public RouteQueryExpressParser(Map<String, DynamicEntityMeta> entityMap){
+    public RouteQueryExpressionParser(Map<String, DynamicEntityMeta> entityMap){
         this.entityMap = entityMap;
     }
 
-    public IntegrationQueryDto parse(String expression){
-        RouteQueryExpressListener routeQueryExpressListener = new RouteQueryExpressListener(entityMap);
+    public AdhocIntegrationQueryDto parse(String expression){
+        RouteQueryExpressionListener routeQueryExpressListener = new RouteQueryExpressionListener(entityMap);
         CharStream inputStream = CharStreams.fromString(expression);
         RouteQueryLexer routeQueryLexer = new RouteQueryLexer(inputStream);
         CommonTokenStream tokens = new CommonTokenStream(routeQueryLexer);
@@ -34,6 +34,6 @@ public class RouteQueryExpressParser {
         ParseTree tree = parser.route();
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk(routeQueryExpressListener, tree);
-        return routeQueryExpressListener.getRootIntegrateQuery();
+        return routeQueryExpressListener.getAdhocIntegrationQuery();
     }
 }

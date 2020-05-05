@@ -1,9 +1,12 @@
-package com.webank.cmdb.express;
+package com.webank.cmdb.expression;
 
 import com.webank.cmdb.controller.AbstractBaseControllerTest;
+import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dto.IntegrationQueryDto;
+import com.webank.cmdb.dto.QueryResponse;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,23 +22,23 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
-    private RouteQueryExpressParser expressParser = null;
+    private RouteQueryExpressionParser expressParser = null;
 
     @Before
     public void setup() {
-        expressParser = new RouteQueryExpressParser(ciService.getTableDynamicEntityMetaMap());
+        expressParser = new RouteQueryExpressionParser(ciService.getTableDynamicEntityMetaMap());
     }
 
     @Test
     @Transactional
     public void testRouteQueryParseForOneNode() {
         String expression = "system_design.code";
-        IntegrationQueryDto intQuery = expressParser.parse(expression);
+        IntegrationQueryDto intQuery = expressParser.parse(expression).getCriteria();
         assertThat(intQuery,notNullValue());
         assertThat(intQuery.getAttrs().size(),equalTo(1));
 
         expression = "system_design.[code,key_name]";
-        intQuery = expressParser.parse(expression);
+        intQuery = expressParser.parse(expression).getCriteria();
         assertThat(intQuery,notNullValue());
         assertThat(intQuery.getAttrs().size(),equalTo(2));
     }
@@ -44,23 +47,26 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Transactional
     public void testRouteQueryParseForMultiConditions() {
         String expression = "system_design[{key_name eq 'EDP'},{state eq 'start'}].code";
-        IntegrationQueryDto intQuery = expressParser.parse(expression);
+        AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
+        IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
         assertNotNull(intQuery);
-        assertThat(intQuery.getFilters().size(),equalTo(2));
-        assertThat(intQuery.getFilters().get(1),equalTo(new Filter("system_design:key_name","eq","EDP")));
+        assertThat(adhocIntegrationQueryDto.getQueryRequest().getFilters().size(),equalTo(2));
+        assertThat(adhocIntegrationQueryDto.getQueryRequest().getFilters().get(1),equalTo(new Filter("system_design:key_name","eq","EDP")));
     }
 
     @Test
     @Transactional
     public void testRouteQueryParseForFwdChain() {
         String expression = "subsys_design{key_name eq 'EDP'}.system_design>system_design.guid";
-        IntegrationQueryDto intQuery = expressParser.parse(expression);
+        AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
+        IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
         assertNotNull(intQuery);
         assertTrue(intQuery.getChildren().size() > 0);
         assertTrue(intQuery.getChildren().get(0).getCiTypeId() == 1);
 
         expression = "unit_design{key_name eq 'EDP'}.subsys_design>subsys_design.system_design>system_design.state";
-        intQuery = expressParser.parse(expression);
+        adhocIntegrationQueryDto = expressParser.parse(expression);
+        intQuery = adhocIntegrationQueryDto.getCriteria();
         assertNotNull(intQuery);
         assertThat(intQuery.getCiTypeId(),equalTo(3));
         assertThat(intQuery.getChildren().get(0),notNullValue());
@@ -73,7 +79,8 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Transactional
     public void testRouteQueryParseForBwdChain() {
         String expression = "system_design~(system_design)subsys_design.key_name";
-        IntegrationQueryDto intQuery = expressParser.parse(expression);
+        AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
+        IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
         assertThat(intQuery, notNullValue());
         assertThat(intQuery.getChildren().size(), equalTo(1));
         IntegrationQueryDto query_l2 = intQuery.getChildren().get(0);
@@ -84,7 +91,8 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
 
 
         expression = "system_design~(system_design)subsys_design~(subsys_design)unit_design.key_name";
-        intQuery = expressParser.parse(expression);
+        adhocIntegrationQueryDto = expressParser.parse(expression);
+        intQuery = adhocIntegrationQueryDto.getCriteria();
         assertThat(intQuery, notNullValue());
         assertThat(intQuery.getChildren().size(), equalTo(1));
         query_l2 = intQuery.getChildren().get(0);
@@ -104,7 +112,8 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Transactional
     public void testRouteQueryParseForMixedChain() {
         String expression = "system_design~(system_design)subsys_design.system_design>system_design.key_name";
-        IntegrationQueryDto intQuery = expressParser.parse(expression);
+        AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
+        IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
         assertThat(intQuery, notNullValue());
         assertThat(intQuery.getChildren().size(),equalTo(1));
         IntegrationQueryDto query_l2 = intQuery.getChildren().get(0);
@@ -115,6 +124,16 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
         assertThat(query_l3.getParentRs(),notNullValue());
         assertThat(query_l3.getParentRs().getIsReferedFromParent(),equalTo(true));
         assertThat(query_l3.getChildren().size(),equalTo(0));
+    }
 
+    @Ignore
+    @Test
+    @Transactional
+    public void testQueryWithExpression(){
+        String expression = "system_design.code";
+        AdhocIntegrationQueryDto adhocQuery = expressParser.parse(expression);
+        QueryResponse response = ciService.adhocIntegrateQuery(adhocQuery);
+        assertThat(response, notNullValue());
+        assertThat(response.getContents().size(),equalTo(4));
     }
 }
