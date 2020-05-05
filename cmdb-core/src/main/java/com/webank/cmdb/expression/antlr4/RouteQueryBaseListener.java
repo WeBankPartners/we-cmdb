@@ -1,5 +1,5 @@
 // Generated from .\RouteQuery.g4 by ANTLR 4.8
-package com.webank.cmdb.express.antlr4;
+package com.webank.cmdb.expression.antlr4;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
