@@ -6,6 +6,7 @@ import com.webank.cmdb.controller.AbstractBaseControllerTest;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.IntegrationQueryDto;
 import com.webank.cmdb.dto.QueryRequest;
+import com.webank.cmdb.dto.Relationship;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,10 +35,11 @@ public class RouteQueryExpressionFormatterTest extends AbstractBaseControllerTes
     public void testOneNodeFormat(){
         AdhocIntegrationQueryDto adhocIntegrationQuery = new AdhocIntegrationQueryDto();
         adhocIntegrationQuery.setCriteria(new IntegrationQueryDto("system_design",1, ImmutableList.of(1),
-                ImmutableList.of("system_design:guid"),null));
+                ImmutableList.of("system_design:guid"),null)
+                .withAttrKeyNames(Lists.newArrayList("system_design:guid")));
         adhocIntegrationQuery.setQueryRequest(new QueryRequest().withResultColumns(ImmutableList.of("system_design:guid")));
         String expression = routeQueryExpressionFormatter.format(adhocIntegrationQuery);
-        assertThat(expression, equalTo("system_design.[system_design:guid]"));
+        assertThat(expression, equalTo("system_design.[guid]"));
 
         //with one filter
         adhocIntegrationQuery.setCriteria(new IntegrationQueryDto("system_design",1, ImmutableList.of(1,8),
@@ -47,7 +49,7 @@ public class RouteQueryExpressionFormatterTest extends AbstractBaseControllerTes
                 .withResultColumns(ImmutableList.of("system_design:guid"))
                 .addEqualsFilter("system_design:key_name","EDP"));
         expression = routeQueryExpressionFormatter.format(adhocIntegrationQuery);
-        assertThat(expression, equalTo("system_design[{key_name eq 'EDP'}].[system_design:guid]"));
+        assertThat(expression, equalTo("system_design[{key_name eq 'EDP'}].[guid]"));
 
         //with tow filters
         adhocIntegrationQuery.setCriteria(new IntegrationQueryDto("system_design",1, ImmutableList.of(1,8,11),
@@ -58,9 +60,53 @@ public class RouteQueryExpressionFormatterTest extends AbstractBaseControllerTes
                 .addEqualsFilter("system_design:key_name","EDP")
                 .addEqualsFilter("system_design:code","HATS"));
         expression = routeQueryExpressionFormatter.format(adhocIntegrationQuery);
-        assertThat(expression, equalTo("system_design[{key_name eq 'EDP'}{code eq 'HATS'}].[system_design:guid]"));
+        assertThat(expression, equalTo("system_design[{key_name eq 'EDP'}{code eq 'HATS'}].[guid]"));
 
     }
 
+    @Test
+    @Transactional
+    public void formatBackwardNodeIntegrateQuery(){
+        IntegrationQueryDto subSystemDesignQuery = new IntegrationQueryDto()
+                .withCiTypeId(2)
+                .withAttrs(Lists.newArrayList(15,22))
+                .withAttrKeyNames(Lists.newArrayList("subsys_design:guid","subsys_design:key_name"))
+                .withParentRs(new Relationship(27,false));
+
+        IntegrationQueryDto systemDesignQuery = new IntegrationQueryDto()
+                .withCiTypeId(1)
+                .withAttrs(Lists.newArrayList(1,8,11))
+                .withAttrKeyNames(Lists.newArrayList("system_design:guid","system_design:key_name","system_design:code"))
+                .withChildren(Lists.newArrayList(subSystemDesignQuery));
+
+        AdhocIntegrationQueryDto adhocQuery = new AdhocIntegrationQueryDto(systemDesignQuery,
+                new QueryRequest().withResultColumns(Lists.newArrayList("subsys_design:key_name")));
+
+        String expression = routeQueryExpressionFormatter.format(adhocQuery);
+        assertThat(expression, equalTo("system_design~(system_design)subsys_design.[key_name]"));
+    }
+
+    @Test
+    @Transactional
+    public void formatForwardNodeIntegrateQuery(){
+        IntegrationQueryDto systemDesignQuery = new IntegrationQueryDto()
+                .withCiTypeId(1)
+                .withAttrs(Lists.newArrayList(1,8,11))
+                .withAttrKeyNames(Lists.newArrayList("system_design:guid","system_design:key_name","system_design:code"))
+                .withParentRs(new Relationship(27,true));
+
+        IntegrationQueryDto subSystemDesignQuery = new IntegrationQueryDto()
+                .withCiTypeId(2)
+                .withAttrs(Lists.newArrayList(15,22))
+                .withAttrKeyNames(Lists.newArrayList("subsys_design:guid","subsys_design:key_name"))
+                .withChildren(Lists.newArrayList(systemDesignQuery));
+
+
+        AdhocIntegrationQueryDto adhocQuery = new AdhocIntegrationQueryDto(subSystemDesignQuery,
+                new QueryRequest().withResultColumns(Lists.newArrayList("subsys_design:key_name")));
+
+        String expression = routeQueryExpressionFormatter.format(adhocQuery);
+        assertThat(expression, equalTo("subsys_design.system_design>system_design.[key_name]"));
+    }
 
 }
