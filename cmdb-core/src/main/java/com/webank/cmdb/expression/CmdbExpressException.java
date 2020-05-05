@@ -1,4 +1,4 @@
-package com.webank.cmdb.express;
+package com.webank.cmdb.expression;
 
 import com.webank.cmdb.exception.CmdbException;
 

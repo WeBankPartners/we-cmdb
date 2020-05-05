@@ -1406,6 +1406,12 @@ public class CiServiceImpl implements CiService {
                         if (kv.getKey().endsWith(".guid") || kv.getKey().endsWith(".r_guid")) {
                             continue;
                         }
+                        if(intQueryReq!=null && intQueryReq.getResultColumns() !=null && intQueryReq.getResultColumns().size()>0){
+                            if(!intQueryReq.getResultColumns().contains(kv.getKey())){
+                                continue;
+                            }
+                        }
+
                         selectedFields.add(kv.getValue());
                         if (!selections.contains(kv.getValue().getExpression())) {
                             selections.add(kv.getValue().getExpression());
@@ -1972,8 +1978,8 @@ public class CiServiceImpl implements CiService {
             }
         } else {
             List<Object> rows = resultList;
-            if (rows != null && rows.size() > 0) {
-                results.add(convertResponse(selections, rows.toArray(), selectedFields));
+            for (int i = 0; i < rows.size(); i++) {
+                results.add(convertResponse(selections, new Object[]{rows.get(i)}, selectedFields));
             }
         }
 
