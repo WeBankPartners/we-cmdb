@@ -1430,7 +1430,21 @@ public class UIWrapperService {
         recursiveGetChildrenDataFilterState(uiProperties.getCiTypeIdOfSystem(), stateEnumCatOfSubsys, stateEnumCode, resourceTrees, defaultQueryRequest, null);
         deployTrees.addAll(resourceTrees);
 
+        enrichResourceTree(deployTrees);
         return deployTrees;
+    }
+
+    private void enrichResourceTree(List<ResourceTreeDto> resourceTrees){
+        if(resourceTrees == null || resourceTrees.size()==0){
+            return;
+        }
+
+        resourceTrees.forEach(tree -> {
+            CiTypeDto ciTypeDto =  ciTypeService.getCiType(tree.getCiTypeId());
+            Integer imageFieldId = ciTypeDto.getImageFileId();
+            tree.setImageFileId(imageFieldId);
+            enrichResourceTree(tree.getChildren());
+        });
     }
 
     private List<CatCodeDto> getEnumCodeByCodeAndCategoryName(String code, String categoryName) {
