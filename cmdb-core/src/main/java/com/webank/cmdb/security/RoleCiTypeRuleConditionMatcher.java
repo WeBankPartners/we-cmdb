@@ -4,10 +4,15 @@ import static com.webank.cmdb.constant.FieldType.fromCode;
 import static com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrCondition.TYPE_EXPRESSION;
 import static java.util.Collections.emptySet;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrExpression;
+import com.webank.cmdb.service.RouteQueryExpressionService;
+import com.webank.cmdb.util.ServiceRegistry;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,6 +21,7 @@ import com.webank.cmdb.constant.FieldType;
 import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrCondition;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
 class RoleCiTypeRuleConditionMatcher {
@@ -24,9 +30,13 @@ class RoleCiTypeRuleConditionMatcher {
 
     private String propertyName;
 
+    @Autowired
+    private RouteQueryExpressionService routeQueryExpressionService;
+
     RoleCiTypeRuleConditionMatcher(AdmRoleCiTypeCtrlAttrCondition condition) {
         this.condition = condition;
         this.propertyName = condition.getAdmCiTypeAttr().getPropertyName();
+        routeQueryExpressionService = ServiceRegistry.getInstance().getService(RouteQueryExpressionService.SERVICE_NAME);
     }
 
     boolean match(Object data) {
@@ -49,7 +59,7 @@ class RoleCiTypeRuleConditionMatcher {
             return emptySet();
 
         if (TYPE_EXPRESSION.equalsIgnoreCase(condition.getConditionValueType())) {
-            return evaluateExpression(conditionValue);
+            return evaluateExpression();
         } else {
             if (fromCode(condition.getAdmCiTypeAttr().getPropertyType()) == FieldType.Int) {
                 if (conditionValue.contains(",")) {
@@ -67,9 +77,15 @@ class RoleCiTypeRuleConditionMatcher {
         }
     }
 
-    // TODO: to evaluate expression
-    private Set<String> evaluateExpression(String expression) {
-        System.out.println("TODO: to evaluate the expression - " + expression);
+    private Set<String> evaluateExpression() {
+        Set<String> resultGuids = new HashSet<>();
+        Set<AdmRoleCiTypeCtrlAttrExpression> roleCiTypeCtrlAttrExpressions = condition.getAdmRoleCiTypeCtrlAttrExpressions();
+        roleCiTypeCtrlAttrExpressions.forEach(ctrlAttrExpression -> {
+            String expression = ctrlAttrExpression.getExpression();
+            List result = routeQueryExpressionService.executeQuery(expression);
+            resultGuids.addAll(result);
+        });
+
         return Sets.newHashSet();
     }
 
