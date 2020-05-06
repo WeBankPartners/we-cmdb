@@ -66,7 +66,10 @@ class RoleCiTypeRuleAuthority implements Authority {
         if (roleCiTypeRule.isActionPermissionEnabled(action)) {
             if (isNotEmpty(conditionMatchers)) {
                 for (RoleCiTypeRuleConditionMatcher conditionMatcher : conditionMatchers) {
-                    permittedData.put(conditionMatcher.getPropertyName(), conditionMatcher.getMatchedData());
+                    Set matchedData = conditionMatcher.getMatchedData();
+                    if(matchedData != null && matchedData.size()>0){
+                        permittedData.put(conditionMatcher.getPropertyName(), conditionMatcher.getMatchedData());
+                    }
                 }
             }
         }
