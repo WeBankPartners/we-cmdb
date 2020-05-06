@@ -174,6 +174,8 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
             if (fieldNode == null) {
                 throw new CmdbExpressException(String.format("Can't find field (%s) for ci type ('%s')", attrName, tableName));
             }
+            intQuery.getAttrs().add(fieldNode.getAttrId());
+            intQuery.getAttrKeyNames().add(tableName + ":" + attrName);
             adhocIntegrationQuery.getQueryRequest().getFilters().add(filter);
         }
         integrationChain.add(intQuery);
