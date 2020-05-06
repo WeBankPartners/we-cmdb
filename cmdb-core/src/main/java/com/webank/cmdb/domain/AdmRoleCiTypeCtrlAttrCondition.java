@@ -1,17 +1,10 @@
 package com.webank.cmdb.domain;
 
 import java.io.Serializable;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import com.google.common.base.MoreObjects;
 
@@ -37,6 +30,8 @@ public class AdmRoleCiTypeCtrlAttrCondition implements Serializable {
     private String ciTypeAttrName;
     private String conditionValue;
     private String conditionValueType;
+
+    private Set<AdmRoleCiTypeCtrlAttrExpression> admRoleCiTypeCtrlAttrExpressions = new LinkedHashSet<>();
 
     public AdmRoleCiTypeCtrlAttrCondition() {
     }
@@ -119,6 +114,15 @@ public class AdmRoleCiTypeCtrlAttrCondition implements Serializable {
         this.conditionValueType = conditionValueType;
     }
 
+    @OneToMany(mappedBy = "admRoleCiTypeCtrlAttrCondition")
+    public Set<AdmRoleCiTypeCtrlAttrExpression> getAdmRoleCiTypeCtrlAttrExpressions() {
+        return admRoleCiTypeCtrlAttrExpressions;
+    }
+
+    public void setAdmRoleCiTypeCtrlAttrExpressions(Set<AdmRoleCiTypeCtrlAttrExpression> admRoleCiTypeCtrlAttrExpressions) {
+        this.admRoleCiTypeCtrlAttrExpressions = admRoleCiTypeCtrlAttrExpressions;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -127,6 +131,7 @@ public class AdmRoleCiTypeCtrlAttrCondition implements Serializable {
                 .add("ciTypeAttrName", ciTypeAttrName)
                 .add("conditionValue", conditionValue)
                 .add("conditionValueType", conditionValueType)
+                .add("admRoleCiTypeCtrlAttrExpressions", admRoleCiTypeCtrlAttrExpressions)
                 .toString();
     }
 }
