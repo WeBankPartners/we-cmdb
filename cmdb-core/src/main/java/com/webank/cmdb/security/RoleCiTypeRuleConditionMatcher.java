@@ -86,7 +86,7 @@ class RoleCiTypeRuleConditionMatcher {
             resultGuids.addAll(result);
         });
 
-        return Sets.newHashSet();
+        return resultGuids;
     }
 
     private Object getProperty(Object data, String propertyName) {
