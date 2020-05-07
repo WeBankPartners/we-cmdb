@@ -51,7 +51,7 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
         IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
         assertNotNull(intQuery);
         assertThat(adhocIntegrationQueryDto.getQueryRequest().getFilters().size(),equalTo(2));
-        assertThat(adhocIntegrationQueryDto.getQueryRequest().getFilters().get(1),equalTo(new Filter("system_design:key_name","eq","EDP")));
+        assertThat(adhocIntegrationQueryDto.getQueryRequest().getFilters().get(1),equalTo(new Filter("system_design.key_name","eq","EDP")));
     }
 
     @Test

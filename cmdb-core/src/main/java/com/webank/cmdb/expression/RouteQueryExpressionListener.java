@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.Stack;
 
 public class RouteQueryExpressionListener extends RouteQueryBaseListener {
+    public static final String ATTR_DELIMITER = ".";
+    public static final String ATTR_REG_SPLITTER = "\\"+ATTR_DELIMITER;
+
     private Stack<Filter> conditions = new Stack<>();
     private Stack<Object> values = new Stack<>();
     private Stack<String> entities = new Stack<>();
@@ -56,7 +59,7 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
     }
 
     private String getAttrKeyname(String entityName,String attrName){
-        return entityName + ":" + attrName;
+        return entityName + ATTR_DELIMITER + attrName;
     }
 
     @Override
@@ -168,14 +171,14 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
         while(conditions.size()>0) {
             Filter filter = conditions.pop();
             String filterName = filter.getName();
-            String[] frags = filterName.split(":");
+            String[] frags = filterName.split(ATTR_REG_SPLITTER);
             String attrName = frags[1];
             FieldNode fieldNode = meta.getFieldNode(attrName);
             if (fieldNode == null) {
                 throw new CmdbExpressException(String.format("Can't find field (%s) for ci type ('%s')", attrName, tableName));
             }
             intQuery.getAttrs().add(fieldNode.getAttrId());
-            intQuery.getAttrKeyNames().add(tableName + ":" + attrName);
+            intQuery.getAttrKeyNames().add(tableName + ATTR_DELIMITER + attrName);
             adhocIntegrationQuery.getQueryRequest().getFilters().add(filter);
         }
         integrationChain.add(intQuery);
