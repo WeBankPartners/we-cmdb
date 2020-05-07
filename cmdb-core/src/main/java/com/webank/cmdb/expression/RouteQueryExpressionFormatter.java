@@ -70,7 +70,7 @@ public class RouteQueryExpressionFormatter {
             Iterator<Filter> filterIterator = filters.iterator();
             while(filterIterator.hasNext()){
                 Filter filter = filterIterator.next();
-                if(filter.getName().indexOf(integrationQuery.getName()+":")==0) {
+                if(filter.getName().indexOf(integrationQuery.getName() + RouteQueryExpressionListener.ATTR_DELIMITER)==0) {
                     exprBuilder.append(formatFilter(integrationQuery, filter, entityMeta));
                 }
             }
