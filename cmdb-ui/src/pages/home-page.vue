@@ -133,7 +133,7 @@ export default {
         d3.selectAll('g').attr('cursor', 'pointer')
 
         this.g = e.currentTarget
-        this.nodeName = this.g.children[0].innerHTML.trim()
+        this.nodeName = this.g.firstElementChild.textContent.trim()
         this.shadeAll()
         this.colorNode(this.nodeName)
       })
