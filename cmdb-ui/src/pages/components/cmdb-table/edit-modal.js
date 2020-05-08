@@ -1,3 +1,4 @@
+import './edit-modal.scss'
 const WIDTH = 300
 export default {
   data () {
@@ -208,7 +209,9 @@ export default {
                     }
                     return (
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
-                        <column.component {...data} />
+                        <div class={!column.isNullable ? 'is-nullable' : ''}>
+                          <column.component {...data} />
+                        </div>
                       </div>
                     )
                   }
