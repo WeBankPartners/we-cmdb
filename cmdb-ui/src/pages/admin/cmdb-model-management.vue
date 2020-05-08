@@ -1158,7 +1158,7 @@ export default {
       e.stopPropagation()
       d3.selectAll('g').attr('cursor', 'pointer')
       this.g = e.currentTarget
-      this.nodeName = this.g.children[0].innerHTML.trim()
+      this.nodeName = this.g.firstElementChild.textContent.trim()
       this.shadeAll()
       this.colorNode(this.nodeName)
     },
@@ -1724,21 +1724,6 @@ export default {
         return true
       }
     },
-    handleNewCITypeUploadImgSuccess (res, file) {
-      if (res.statusCode === 'OK') {
-        this.$Notice.success({
-          title: this.$t('icon_upload_success'),
-          desc: res.message
-        })
-
-        this.addNewCITypeForm.imageFileId = res.data.id
-      } else {
-        this.$Notice.warning({
-          title: this.$t('icon_upload_failed'),
-          desc: res.message
-        })
-      }
-    },
     handleUploadImgSuccess (res, file) {
       if (res.statusCode === 'OK') {
         this.$Notice.success({
@@ -1882,7 +1867,7 @@ export default {
       } else {
         this.$Notice.success({
           title: 'Success',
-          desc: response.statusMessage || ''
+          desc: this.$t('icon_upload_success')
         })
         ci.imageFileId = response.data.id
       }

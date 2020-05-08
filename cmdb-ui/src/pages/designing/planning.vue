@@ -605,6 +605,7 @@ export default {
           title: 'Updated successfully',
           desc: message
         })
+        this.isDataChanged = true
         setBtnsStatus()
         this.queryCiData()
       }
@@ -724,6 +725,7 @@ export default {
           title: this.$t('add_data_success'),
           desc: message
         })
+        this.isDataChanged = true
         this.queryCiData()
         this.setBtnsStatus()
         this.$refs[this.tableRef][0].closeEditModal(false)
@@ -749,6 +751,7 @@ export default {
           title: this.$t('update_data_success'),
           desc: message
         })
+        this.isDataChanged = true
         this.setBtnsStatus()
         this.queryCiData()
         this.$refs[this.tableRef][0].closeEditModal(false)
@@ -926,7 +929,9 @@ export default {
         e.stopPropagation()
       })
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
-      addEvent('.edge', 'mouseover', this.handleEdgeMouseover)
+      addEvent('.edge', 'mouseover', e => {
+        this.handleEdgeMouseover(e, `#idcPlanningRouterGraph${this.initParams[IDC_PLANNING_ROUTER_DESIGN_CODE]}`)
+      })
     },
     initSecurityPolicyGraph (data) {
       const nodes = []
@@ -978,17 +983,22 @@ export default {
         e.stopPropagation()
       })
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
-      addEvent('.edge', 'mouseover', this.handleEdgeMouseover)
+      addEvent('.edge', 'mouseover', e => {
+        this.handleEdgeMouseover(
+          e,
+          `#idcPlanningSecurityPolicyGraph${this.initParams[DEFAULT_SECURITY_POLICY_DESIGN_CODE]}`
+        )
+      })
     },
-    handleEdgeMouseover (e) {
+    handleEdgeMouseover (e, parentNode) {
       e.preventDefault()
       e.stopPropagation()
       const id = e.currentTarget.id
-      d3.selectAll('g[id="' + id + '"] path')
+      d3.selectAll(parentNode + ' g[id="' + id + '"] path')
         .attr('stroke', '#eb8221')
         .attr('stroke-opacity', '1')
-      d3.selectAll('g[id="' + id + '"] text').attr('fill', '#eb8221')
-      d3.selectAll('g[id="' + id + '"] polygon')
+      d3.selectAll(parentNode + ' g[id="' + id + '"] text').attr('fill', '#eb8221')
+      d3.selectAll(parentNode + ' g[id="' + id + '"] polygon')
         .attr('stroke', '#eb8221')
         .attr('fill', '#eb8221')
         .attr('fill-opacity', '1')

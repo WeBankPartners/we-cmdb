@@ -20,6 +20,7 @@ public class ResourceTreeDto {
     private String flag;
     private Object attrs;
     private Object data;
+    private Integer imageFileId;
 
     private List<CiTypeAttrDto> referenceByAttributesWithBelongType;
 

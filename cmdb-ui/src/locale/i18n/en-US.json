@@ -130,7 +130,7 @@
   "save_ci_attr_success": "CI Type Attribute saved successfully",
   "apply_ci_attr_success": "CI Type Attribute applied successfully",
   "upload_icon_btn": "Upload Icon",
-  "icon_upload_success": "Icon uploaded successfully",
+  "icon_upload_success": "The icon upload is complete and will take effect after submission",
   "icon_upload_failed": "Icon uploaded failed",
   "file_format_incorrect": "The file format is incorrect",
   "file_format_incorrect_message": "File format of {0} is incorrect, please select 'png' file type.",
