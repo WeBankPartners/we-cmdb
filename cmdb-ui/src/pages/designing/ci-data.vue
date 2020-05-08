@@ -418,7 +418,7 @@ export default {
       e.stopPropagation()
       d3.selectAll('g').attr('cursor', 'pointer')
       var g = e.currentTarget
-      var nodeName = g.children[0].innerHTML.trim()
+      var nodeName = g.firstElementChild.textContent.trim()
       this.shadeAll()
       this.colorNode(nodeName)
     },
@@ -440,7 +440,7 @@ export default {
       const found = this.tabList.find(_ => _.id === g.id)
       if (!found) {
         const ci = {
-          name: g.children[1].children[0].getAttribute('title'),
+          name: g.firstElementChild.nextElementSibling.firstElementChild.getAttribute('title'),
           id: g.id,
           tableData: [],
           outerActions:
