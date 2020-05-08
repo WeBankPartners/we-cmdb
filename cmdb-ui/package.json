@@ -22,7 +22,7 @@
   "dependencies": {
     "axios": "^0.18.0",
     "bpmn-js": "^2.5.1",
-    "core-js": "^2.6.11",
+    "core-js": "^3.6.5",
     "d3-graphviz": "^2.6.1",
     "highlight.js": "^9.15.8",
     "less-loader": "^4.1.0",
