@@ -1,16 +1,12 @@
 <template>
   <div>
     <Row>
-      <Col span="7" class="header-query">
-        <span>{{ $t('root_ci_type') }}</span>
-        <Select v-model="selectedCI" filterable @on-change="onCITypeChange">
-          <Option v-for="item in allCiTypes" :value="item.ciTypeId" :key="item.ciTypeId">{{ item.name }}</Option>
-        </Select>
-      </Col>
-      <Col span="16" offset="1" class="header-query">
+      <Col span="10" class="header-query">
         <span>{{ $t('integrated_query_name') }}</span>
-        <Select v-model="selectedQueryName" filterable :disabled="!selectedCI" @on-change="onQueryNameSelectChange">
-          <Option v-for="item in queryNameList" :value="item.id" :key="item.id">{{ item.name }}</Option>
+        <Select v-model="selectedQueryName" filterable @on-change="onQueryNameSelectChange">
+          <OptionGroup v-for="ci in queryNameListByCiTypes" :key="ci.id" :label="ci.name">
+            <Option v-for="item in ci.children" :value="item.id" :key="item.id">{{ item.name }}</Option>
+          </OptionGroup>
         </Select>
       </Col>
     </Row>
@@ -88,10 +84,9 @@ export default {
   components: {},
   data () {
     return {
-      selectedCI: '',
       allCiTypes: [],
       selectedQueryName: '',
-      queryNameList: [],
+      queryNameListByCiTypes: [],
       tableData: [],
       tableColumns: [],
       innerActions,
@@ -136,10 +131,25 @@ export default {
       let { statusCode, data } = await getAllCITypes()
       if (statusCode === 'OK') {
         this.allCiTypes = data
+        this.getAllQueryName()
       }
     },
-    onCITypeChange (value) {
-      value && this.getQueryNameList(value)
+    async getAllQueryName () {
+      let allRequest = []
+      this.allCiTypes.forEach(Ci => {
+        allRequest.push(getQueryNames(Ci.ciTypeId))
+      })
+      const allRes = await Promise.all(allRequest)
+      allRes.forEach((query, index) => {
+        if (query.statusCode === 'OK' && query.data.length > 0) {
+          const obj = {
+            id: this.allCiTypes[index].ciTypeId,
+            name: this.allCiTypes[index].name,
+            children: query.data
+          }
+          this.queryNameListByCiTypes.push(obj)
+        }
+      })
     },
     onQueryNameSelectChange (value) {
       if (value) {
@@ -216,17 +226,6 @@ export default {
       if (statusCode === 'OK') {
         this.tableData = data.contents
         this.pagination.total = data.pageInfo.totalRows
-      }
-    },
-    reset () {
-      this.queryNameList = []
-      this.selectedQueryName = ''
-    },
-    async getQueryNameList (ciTypeId) {
-      this.reset()
-      let { statusCode, data } = await getQueryNames(ciTypeId)
-      if (statusCode === 'OK') {
-        this.queryNameList = data
       }
     },
     sortHandler (data) {
