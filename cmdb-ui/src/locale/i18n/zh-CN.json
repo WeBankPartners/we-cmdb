@@ -130,7 +130,7 @@
   "save_ci_attr_success": "保存ci属性成功",
   "apply_ci_attr_success": "提交ci属性成功",
   "upload_icon_btn": "上传图标",
-  "icon_upload_success": "图标上传成功",
+  "icon_upload_success": "图标上传完成，提交后生效",
   "icon_upload_failed": "图标上传失败",
   "file_format_incorrect": "文件格式不正确",
   "file_format_incorrect_message": "文件 {0} 格式不正确，请上传png格式。",

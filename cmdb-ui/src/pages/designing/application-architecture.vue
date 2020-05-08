@@ -1037,6 +1037,7 @@ export default {
           title: 'Added successfully',
           desc: message
         })
+        this.isDataChanged = true
         this.setBtnsStatus()
         this.queryCiData()
         this.$refs[this.tableRef][0].closeEditModal(false)
@@ -1062,6 +1063,7 @@ export default {
           title: 'Updated successfully',
           desc: message
         })
+        this.isDataChanged = true
         this.setBtnsStatus()
         this.queryCiData()
         this.$refs[this.tableRef][0].closeEditModal(false)
