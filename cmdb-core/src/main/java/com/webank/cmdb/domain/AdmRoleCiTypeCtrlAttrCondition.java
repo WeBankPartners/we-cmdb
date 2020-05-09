@@ -32,6 +32,7 @@ public class AdmRoleCiTypeCtrlAttrCondition implements Serializable {
     private String conditionValueType;
 
     private Set<AdmRoleCiTypeCtrlAttrExpression> admRoleCiTypeCtrlAttrExpressions = new LinkedHashSet<>();
+    private Set<AdmRoleCiTypeCtrlAttrSelect> admRoleCiTypeCtrlAttrSelects = new LinkedHashSet<>();
 
     public AdmRoleCiTypeCtrlAttrCondition() {
     }
@@ -117,6 +118,15 @@ public class AdmRoleCiTypeCtrlAttrCondition implements Serializable {
     @OneToMany(mappedBy = "admRoleCiTypeCtrlAttrCondition")
     public Set<AdmRoleCiTypeCtrlAttrExpression> getAdmRoleCiTypeCtrlAttrExpressions() {
         return admRoleCiTypeCtrlAttrExpressions;
+    }
+
+    @OneToMany(mappedBy = "admRoleCiTypeCtrlAttrCondition")
+    public Set<AdmRoleCiTypeCtrlAttrSelect> getAdmRoleCiTypeCtrlAttrSelects() {
+        return admRoleCiTypeCtrlAttrSelects;
+    }
+
+    public void setAdmRoleCiTypeCtrlAttrSelects(Set<AdmRoleCiTypeCtrlAttrSelect> admRoleCiTypeCtrlAttrSelects) {
+        this.admRoleCiTypeCtrlAttrSelects = admRoleCiTypeCtrlAttrSelects;
     }
 
     public void setAdmRoleCiTypeCtrlAttrExpressions(Set<AdmRoleCiTypeCtrlAttrExpression> admRoleCiTypeCtrlAttrExpressions) {

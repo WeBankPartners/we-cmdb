@@ -1,11 +1,15 @@
 package com.webank.cmdb.dto;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.MoreObjects;
 import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrCondition;
+import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrExpression;
+import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrSelect;
 import com.webank.cmdb.util.CollectionUtils;
 import com.webank.cmdb.util.DtoField;
 import com.webank.cmdb.util.DtoId;
@@ -19,8 +23,10 @@ public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeC
     private Integer ciTypeAttrId;
     private String ciTypeAttrName;
     private String conditionValue;
-    private String conditionValueType;
+    private String conditionType;
     private Object conditionValueObject;
+    private List<String> conditionValueExprs = new ArrayList<>();
+    private List<Integer> conditionValueEnums = new ArrayList<>();
 
     @DtoField(domainField = "admRoleCiTypeCtrlAttr", updatable = false)
     private RoleCiTypeCtrlAttrDto roleCiTypeCtrlAttr = new RoleCiTypeCtrlAttrDto();
@@ -29,6 +35,22 @@ public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeC
     private CiTypeAttrDto ciTypeAttr = new CiTypeAttrDto();
 
     public RoleCiTypeCtrlAttrConditionDto() {
+    }
+
+    public List<Integer> getConditionValueEnums() {
+        return conditionValueEnums;
+    }
+
+    public void setConditionValueEnums(List<Integer> conditionValueEnums) {
+        this.conditionValueEnums = conditionValueEnums;
+    }
+
+    public List<String> getConditionValueExprs() {
+        return conditionValueExprs;
+    }
+
+    public void setConditionValueExprs(List<String> conditionValueExprs) {
+        this.conditionValueExprs = conditionValueExprs;
     }
 
     @Override
@@ -60,10 +82,21 @@ public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeC
         dto.setCiTypeAttrId(domain.getCiTypeAttrId());
         dto.setCiTypeAttrName(domain.getCiTypeAttrName());
         dto.setConditionValue(domain.getConditionValue());
-        dto.setConditionValueType(domain.getConditionValueType());
+        dto.setConditionType(domain.getConditionValueType());
         if (withChild) {
             dto.roleCiTypeCtrlAttr = RoleCiTypeCtrlAttrDto.from(domain.getAdmRoleCiTypeCtrlAttr(), false);
             dto.ciTypeAttr = CiTypeAttrDto.fromAdmCiTypeAttrs(domain.getAdmCiTypeAttr());
+        }
+        if("Expression".equalsIgnoreCase(domain.getConditionValueType())){
+            Set<AdmRoleCiTypeCtrlAttrExpression> expressions = domain.getAdmRoleCiTypeCtrlAttrExpressions();
+            for (AdmRoleCiTypeCtrlAttrExpression expressionDomain : expressions) {
+                dto.conditionValueExprs.add(expressionDomain.getExpression());
+            }
+        }else if("Select".equalsIgnoreCase(domain.getConditionValueType())){
+            Set<AdmRoleCiTypeCtrlAttrSelect> selects = domain.getAdmRoleCiTypeCtrlAttrSelects();
+            for (AdmRoleCiTypeCtrlAttrSelect select : selects) {
+                dto.conditionValueEnums.add(select.getIdAdmRoleCiTypeCtrlAttrSelect());
+            }
         }
         return dto;
     }
@@ -124,12 +157,12 @@ public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeC
         this.ciTypeAttrName = ciTypeAttrName;
     }
 
-    public String getConditionValueType() {
-        return conditionValueType;
+    public String getConditionType() {
+        return conditionType;
     }
 
-    public void setConditionValueType(String conditionValueType) {
-        this.conditionValueType = conditionValueType;
+    public void setConditionType(String conditionType) {
+        this.conditionType = conditionType;
     }
 
     @Override
@@ -140,7 +173,7 @@ public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeC
                 .add("ciTypeAttrId", ciTypeAttrId)
                 .add("ciTypeAttrName", ciTypeAttrName)
                 .add("conditionValue", conditionValue)
-                .add("conditionValueType", conditionValueType)
+                .add("conditionValueType", conditionType)
                 .toString();
     }
 
