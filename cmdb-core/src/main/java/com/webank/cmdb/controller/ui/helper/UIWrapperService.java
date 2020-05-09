@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import com.webank.cmdb.config.ApplicationProperties;
 import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
+import com.webank.cmdb.service.*;
 import com.webank.cmdb.util.JsonUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,11 +59,6 @@ import com.webank.cmdb.dto.UserDto;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.repository.AdmRoleRepository;
 import com.webank.cmdb.repository.StaticEntityRepository;
-import com.webank.cmdb.service.BaseKeyInfoService;
-import com.webank.cmdb.service.CiService;
-import com.webank.cmdb.service.CiTypeService;
-import com.webank.cmdb.service.IntegrationQueryService;
-import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.service.impl.FilterRuleService;
 import com.webank.cmdb.util.BeanMapUtils;
 import com.webank.cmdb.util.ResourceDto;
@@ -114,6 +110,9 @@ public class UIWrapperService {
     private AdmRoleRepository admRoleRepository;
     @Autowired
     private AdmCiTypeAttrRepository admCiTypeAttrRepository;
+    @Autowired
+    private RoleCiTypeAccessCtrlService roleCiTypeAccessCtrlService;
+
     @PostConstruct
     public void initCiTypeId() throws IOException {
         CategoryDto categoryDto = getEnumCategoryByName(uiProperties.getEnumCodeofView());
@@ -770,6 +769,17 @@ public class UIWrapperService {
     }
 
     public void deleteRoleCiTypeCtrlAttributes(Integer... ids) {
+        if(ids == null){
+            return;
+        }
+
+        for (Integer id : ids) {
+            RoleCiTypeCtrlAttrDto roleCiTypeCtrlAttrDto = staticDtoService.getOne(RoleCiTypeCtrlAttrDto.class,id);
+            List<RoleCiTypeCtrlAttrConditionDto> conditionDtos = roleCiTypeCtrlAttrDto.getConditions();
+            List<Integer> contionsIds = conditionDtos.stream().map(RoleCiTypeCtrlAttrConditionDto::getConditionId)
+                    .collect(Collectors.toList());
+            roleCiTypeAccessCtrlService.deleteRoleCiTypeCtrlAttrConditions(contionsIds);
+        }
         staticDtoService.delete(RoleCiTypeCtrlAttrDto.class, Arrays.asList(ids));
     }
 
