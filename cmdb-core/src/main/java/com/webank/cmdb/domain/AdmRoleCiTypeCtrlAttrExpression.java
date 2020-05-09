@@ -1,5 +1,7 @@
 package com.webank.cmdb.domain;
 
+import org.checkerframework.checker.units.qual.C;
+
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -11,6 +13,7 @@ public class AdmRoleCiTypeCtrlAttrExpression implements Serializable {
 
     private Integer idAdmRoleCiTypeCtrlAttrExpression;
     private AdmRoleCiTypeCtrlAttrCondition admRoleCiTypeCtrlAttrCondition;
+    private Integer idAdmRoleCiTypeCtrlAttrCondition;
     private String expression;
 
     @Id
@@ -33,6 +36,15 @@ public class AdmRoleCiTypeCtrlAttrExpression implements Serializable {
 
     public void setAdmRoleCiTypeCtrlAttrCondition(AdmRoleCiTypeCtrlAttrCondition admRoleCiTypeCtrlAttrCondition) {
         this.admRoleCiTypeCtrlAttrCondition = admRoleCiTypeCtrlAttrCondition;
+    }
+
+    @Column(name = "id_adm_role_ci_type_ctrl_attr_condition")
+    public Integer getIdAdmRoleCiTypeCtrlAttrCondition() {
+        return idAdmRoleCiTypeCtrlAttrCondition;
+    }
+
+    public void setIdAdmRoleCiTypeCtrlAttrCondition(Integer idAdmRoleCiTypeCtrlAttrCondition) {
+        this.idAdmRoleCiTypeCtrlAttrCondition = idAdmRoleCiTypeCtrlAttrCondition;
     }
 
     @Column(name = "expression")
