@@ -1,10 +1,13 @@
-// Generated from .\RouteQuery.g4 by ANTLR 4.8
+// Generated from RouteQuery.g4 by ANTLR 4.8
 package com.webank.cmdb.expression.antlr4;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.*;
 import org.antlr.v4.runtime.tree.*;
 import java.util.List;
+import java.util.Iterator;
+import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class RouteQueryParser extends Parser {
@@ -19,13 +22,13 @@ public class RouteQueryParser extends Parser {
 		OP_NN=20, OP_NL=21, OPERATOR=22, STRING=23, NUMBER=24, BOOLEAN=25, ID=26, 
 		PKG_ID=27, WS=28;
 	public static final int
-		RULE_route = 0, RULE_link = 1, RULE_fetch = 2, RULE_to = 3, RULE_by = 4, 
-		RULE_fwd_node = 5, RULE_bwd_node = 6, RULE_entity_node = 7, RULE_entity = 8, 
+		RULE_route = 0, RULE_link = 1, RULE_to = 2, RULE_by = 3, RULE_fwd_node = 4, 
+		RULE_bwd_node = 5, RULE_entity_node = 6, RULE_fetch = 7, RULE_entity = 8, 
 		RULE_attr = 9, RULE_attr_array = 10, RULE_cond_array = 11, RULE_condition = 12, 
 		RULE_array = 13, RULE_value = 14;
 	private static String[] makeRuleNames() {
 		return new String[] {
-			"route", "link", "fetch", "to", "by", "fwd_node", "bwd_node", "entity_node", 
+			"route", "link", "to", "by", "fwd_node", "bwd_node", "entity_node", "fetch", 
 			"entity", "attr", "attr_array", "cond_array", "condition", "array", "value"
 		};
 	}
@@ -109,38 +112,32 @@ public class RouteQueryParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
-	public static class EntityFetchContext extends RouteContext {
+	public static class EntityRouteContext extends RouteContext {
 		public Entity_nodeContext entity_node() {
 			return getRuleContext(Entity_nodeContext.class,0);
 		}
-		public FetchContext fetch() {
-			return getRuleContext(FetchContext.class,0);
-		}
-		public EntityFetchContext(RouteContext ctx) { copyFrom(ctx); }
+		public EntityRouteContext(RouteContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RouteQueryListener ) ((RouteQueryListener)listener).enterEntityFetch(this);
+			if ( listener instanceof RouteQueryListener ) ((RouteQueryListener)listener).enterEntityRoute(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RouteQueryListener ) ((RouteQueryListener)listener).exitEntityFetch(this);
+			if ( listener instanceof RouteQueryListener ) ((RouteQueryListener)listener).exitEntityRoute(this);
 		}
 	}
-	public static class LinkFetchContext extends RouteContext {
+	public static class LinkRouteContext extends RouteContext {
 		public LinkContext link() {
 			return getRuleContext(LinkContext.class,0);
 		}
-		public FetchContext fetch() {
-			return getRuleContext(FetchContext.class,0);
-		}
-		public LinkFetchContext(RouteContext ctx) { copyFrom(ctx); }
+		public LinkRouteContext(RouteContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RouteQueryListener ) ((RouteQueryListener)listener).enterLinkFetch(this);
+			if ( listener instanceof RouteQueryListener ) ((RouteQueryListener)listener).enterLinkRoute(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RouteQueryListener ) ((RouteQueryListener)listener).exitLinkFetch(this);
+			if ( listener instanceof RouteQueryListener ) ((RouteQueryListener)listener).exitLinkRoute(this);
 		}
 	}
 
@@ -148,27 +145,23 @@ public class RouteQueryParser extends Parser {
 		RouteContext _localctx = new RouteContext(_ctx, getState());
 		enterRule(_localctx, 0, RULE_route);
 		try {
-			setState(36);
+			setState(32);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,0,_ctx) ) {
 			case 1:
-				_localctx = new LinkFetchContext(_localctx);
+				_localctx = new LinkRouteContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(30);
 				link(0);
-				setState(31);
-				fetch();
 				}
 				break;
 			case 2:
-				_localctx = new EntityFetchContext(_localctx);
+				_localctx = new EntityRouteContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(33);
+				setState(31);
 				entity_node();
-				setState(34);
-				fetch();
 				}
 				break;
 			}
@@ -295,7 +288,7 @@ public class RouteQueryParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(47);
+			setState(43);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,1,_ctx) ) {
 			case 1:
@@ -304,11 +297,11 @@ public class RouteQueryParser extends Parser {
 				_ctx = _localctx;
 				_prevctx = _localctx;
 
-				setState(39);
+				setState(35);
 				entity_node();
-				setState(40);
+				setState(36);
 				by();
-				setState(41);
+				setState(37);
 				bwd_node();
 				}
 				break;
@@ -317,17 +310,17 @@ public class RouteQueryParser extends Parser {
 				_localctx = new FwdNodeToEntityContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(43);
+				setState(39);
 				fwd_node();
-				setState(44);
+				setState(40);
 				to();
-				setState(45);
+				setState(41);
 				entity_node();
 				}
 				break;
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(61);
+			setState(57);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,3,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
@@ -335,22 +328,22 @@ public class RouteQueryParser extends Parser {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
 					_prevctx = _localctx;
 					{
-					setState(59);
+					setState(55);
 					_errHandler.sync(this);
 					switch ( getInterpreter().adaptivePredict(_input,2,_ctx) ) {
 					case 1:
 						{
 						_localctx = new LinkToEntityContext(new LinkContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_link);
-						setState(49);
+						setState(45);
 						if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
-						setState(50);
+						setState(46);
 						match(DOT);
-						setState(51);
+						setState(47);
 						attr();
-						setState(52);
+						setState(48);
 						to();
-						setState(53);
+						setState(49);
 						entity_node();
 						}
 						break;
@@ -358,18 +351,18 @@ public class RouteQueryParser extends Parser {
 						{
 						_localctx = new LinkByBwdNodeContext(new LinkContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_link);
-						setState(55);
+						setState(51);
 						if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
-						setState(56);
+						setState(52);
 						by();
-						setState(57);
+						setState(53);
 						bwd_node();
 						}
 						break;
 					}
 					} 
 				}
-				setState(63);
+				setState(59);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,3,_ctx);
 			}
@@ -382,66 +375,6 @@ public class RouteQueryParser extends Parser {
 		}
 		finally {
 			unrollRecursionContexts(_parentctx);
-		}
-		return _localctx;
-	}
-
-	public static class FetchContext extends ParserRuleContext {
-		public TerminalNode DOT() { return getToken(RouteQueryParser.DOT, 0); }
-		public AttrContext attr() {
-			return getRuleContext(AttrContext.class,0);
-		}
-		public Attr_arrayContext attr_array() {
-			return getRuleContext(Attr_arrayContext.class,0);
-		}
-		public FetchContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_fetch; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RouteQueryListener ) ((RouteQueryListener)listener).enterFetch(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RouteQueryListener ) ((RouteQueryListener)listener).exitFetch(this);
-		}
-	}
-
-	public final FetchContext fetch() throws RecognitionException {
-		FetchContext _localctx = new FetchContext(_ctx, getState());
-		enterRule(_localctx, 4, RULE_fetch);
-		try {
-			setState(68);
-			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,4,_ctx) ) {
-			case 1:
-				enterOuterAlt(_localctx, 1);
-				{
-				setState(64);
-				match(DOT);
-				setState(65);
-				attr();
-				}
-				break;
-			case 2:
-				enterOuterAlt(_localctx, 2);
-				{
-				setState(66);
-				match(DOT);
-				setState(67);
-				attr_array();
-				}
-				break;
-			}
-		}
-		catch (RecognitionException re) {
-			_localctx.exception = re;
-			_errHandler.reportError(this, re);
-			_errHandler.recover(this, re);
-		}
-		finally {
-			exitRule();
 		}
 		return _localctx;
 	}
@@ -464,11 +397,11 @@ public class RouteQueryParser extends Parser {
 
 	public final ToContext to() throws RecognitionException {
 		ToContext _localctx = new ToContext(_ctx, getState());
-		enterRule(_localctx, 6, RULE_to);
+		enterRule(_localctx, 4, RULE_to);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(70);
+			setState(60);
 			match(GT);
 			}
 		}
@@ -501,11 +434,11 @@ public class RouteQueryParser extends Parser {
 
 	public final ByContext by() throws RecognitionException {
 		ByContext _localctx = new ByContext(_ctx, getState());
-		enterRule(_localctx, 8, RULE_by);
+		enterRule(_localctx, 6, RULE_by);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(72);
+			setState(62);
 			match(TILDE);
 			}
 		}
@@ -544,15 +477,15 @@ public class RouteQueryParser extends Parser {
 
 	public final Fwd_nodeContext fwd_node() throws RecognitionException {
 		Fwd_nodeContext _localctx = new Fwd_nodeContext(_ctx, getState());
-		enterRule(_localctx, 10, RULE_fwd_node);
+		enterRule(_localctx, 8, RULE_fwd_node);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(74);
+			setState(64);
 			entity_node();
-			setState(75);
+			setState(65);
 			match(DOT);
-			setState(76);
+			setState(66);
 			attr();
 			}
 		}
@@ -592,17 +525,17 @@ public class RouteQueryParser extends Parser {
 
 	public final Bwd_nodeContext bwd_node() throws RecognitionException {
 		Bwd_nodeContext _localctx = new Bwd_nodeContext(_ctx, getState());
-		enterRule(_localctx, 12, RULE_bwd_node);
+		enterRule(_localctx, 10, RULE_bwd_node);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(78);
+			setState(68);
 			match(LP);
-			setState(79);
+			setState(69);
 			attr();
-			setState(80);
+			setState(70);
 			match(RP);
-			setState(81);
+			setState(71);
 			entity_node();
 			}
 		}
@@ -620,6 +553,9 @@ public class RouteQueryParser extends Parser {
 	public static class Entity_nodeContext extends ParserRuleContext {
 		public EntityContext entity() {
 			return getRuleContext(EntityContext.class,0);
+		}
+		public FetchContext fetch() {
+			return getRuleContext(FetchContext.class,0);
 		}
 		public ConditionContext condition() {
 			return getRuleContext(ConditionContext.class,0);
@@ -643,34 +579,124 @@ public class RouteQueryParser extends Parser {
 
 	public final Entity_nodeContext entity_node() throws RecognitionException {
 		Entity_nodeContext _localctx = new Entity_nodeContext(_ctx, getState());
-		enterRule(_localctx, 14, RULE_entity_node);
+		enterRule(_localctx, 12, RULE_entity_node);
 		try {
-			setState(90);
+			setState(87);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,5,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,7,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(83);
+				setState(73);
 				entity();
+				setState(75);
+				_errHandler.sync(this);
+				switch ( getInterpreter().adaptivePredict(_input,4,_ctx) ) {
+				case 1:
+					{
+					setState(74);
+					fetch();
+					}
+					break;
+				}
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(84);
+				setState(77);
 				entity();
-				setState(85);
+				setState(78);
 				condition();
+				setState(80);
+				_errHandler.sync(this);
+				switch ( getInterpreter().adaptivePredict(_input,5,_ctx) ) {
+				case 1:
+					{
+					setState(79);
+					fetch();
+					}
+					break;
+				}
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(87);
+				setState(82);
 				entity();
-				setState(88);
+				setState(83);
 				cond_array();
+				setState(85);
+				_errHandler.sync(this);
+				switch ( getInterpreter().adaptivePredict(_input,6,_ctx) ) {
+				case 1:
+					{
+					setState(84);
+					fetch();
+					}
+					break;
+				}
+				}
+				break;
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	public static class FetchContext extends ParserRuleContext {
+		public TerminalNode SC() { return getToken(RouteQueryParser.SC, 0); }
+		public AttrContext attr() {
+			return getRuleContext(AttrContext.class,0);
+		}
+		public Attr_arrayContext attr_array() {
+			return getRuleContext(Attr_arrayContext.class,0);
+		}
+		public FetchContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_fetch; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RouteQueryListener ) ((RouteQueryListener)listener).enterFetch(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RouteQueryListener ) ((RouteQueryListener)listener).exitFetch(this);
+		}
+	}
+
+	public final FetchContext fetch() throws RecognitionException {
+		FetchContext _localctx = new FetchContext(_ctx, getState());
+		enterRule(_localctx, 14, RULE_fetch);
+		try {
+			setState(93);
+			_errHandler.sync(this);
+			switch ( getInterpreter().adaptivePredict(_input,8,_ctx) ) {
+			case 1:
+				enterOuterAlt(_localctx, 1);
+				{
+				setState(89);
+				match(SC);
+				setState(90);
+				attr();
+				}
+				break;
+			case 2:
+				enterOuterAlt(_localctx, 2);
+				{
+				setState(91);
+				match(SC);
+				setState(92);
+				attr_array();
 				}
 				break;
 			}
@@ -708,7 +734,7 @@ public class RouteQueryParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(92);
+			setState(95);
 			match(ID);
 			}
 		}
@@ -745,7 +771,7 @@ public class RouteQueryParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(94);
+			setState(97);
 			match(ID);
 			}
 		}
@@ -790,27 +816,27 @@ public class RouteQueryParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(96);
+			setState(99);
 			match(LSB);
-			setState(97);
+			setState(100);
 			attr();
-			setState(102);
+			setState(105);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==T__0) {
 				{
 				{
-				setState(98);
+				setState(101);
 				match(T__0);
-				setState(99);
+				setState(102);
 				attr();
 				}
 				}
-				setState(104);
+				setState(107);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(105);
+			setState(108);
 			match(RSB);
 			}
 		}
@@ -855,27 +881,27 @@ public class RouteQueryParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(107);
+			setState(110);
 			match(LSB);
-			setState(108);
+			setState(111);
 			condition();
-			setState(113);
+			setState(116);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==T__0) {
 				{
 				{
-				setState(109);
+				setState(112);
 				match(T__0);
-				setState(110);
+				setState(113);
 				condition();
 				}
 				}
-				setState(115);
+				setState(118);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(116);
+			setState(119);
 			match(RSB);
 			}
 		}
@@ -1056,22 +1082,22 @@ public class RouteQueryParser extends Parser {
 		ConditionContext _localctx = new ConditionContext(_ctx, getState());
 		enterRule(_localctx, 24, RULE_condition);
 		try {
-			setState(164);
+			setState(167);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,8,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,11,_ctx) ) {
 			case 1:
 				_localctx = new ConditionEqContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(118);
-				match(BL);
-				setState(119);
-				attr();
-				setState(120);
-				match(OP_EQ);
 				setState(121);
-				value();
+				match(BL);
 				setState(122);
+				attr();
+				setState(123);
+				match(OP_EQ);
+				setState(124);
+				value();
+				setState(125);
 				match(BR);
 				}
 				break;
@@ -1079,17 +1105,17 @@ public class RouteQueryParser extends Parser {
 				_localctx = new ConditionGtContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(124);
-				match(BL);
-				setState(125);
-				attr();
-				setState(126);
-				match(ID);
 				setState(127);
-				match(OP_GT);
+				match(BL);
 				setState(128);
-				value();
+				attr();
 				setState(129);
+				match(ID);
+				setState(130);
+				match(OP_GT);
+				setState(131);
+				value();
+				setState(132);
 				match(BR);
 				}
 				break;
@@ -1097,15 +1123,15 @@ public class RouteQueryParser extends Parser {
 				_localctx = new ConditionLtContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(131);
-				match(BL);
-				setState(132);
-				attr();
-				setState(133);
-				match(OP_LT);
 				setState(134);
-				value();
+				match(BL);
 				setState(135);
+				attr();
+				setState(136);
+				match(OP_LT);
+				setState(137);
+				value();
+				setState(138);
 				match(BR);
 				}
 				break;
@@ -1113,13 +1139,13 @@ public class RouteQueryParser extends Parser {
 				_localctx = new ConditionNeContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(137);
-				match(BL);
-				setState(138);
-				attr();
-				setState(139);
-				match(OP_NE);
 				setState(140);
+				match(BL);
+				setState(141);
+				attr();
+				setState(142);
+				match(OP_NE);
+				setState(143);
 				match(BR);
 				}
 				break;
@@ -1127,15 +1153,15 @@ public class RouteQueryParser extends Parser {
 				_localctx = new ConditionInContext(_localctx);
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(142);
-				match(BL);
-				setState(143);
-				attr();
-				setState(144);
-				match(OP_IN);
 				setState(145);
-				array();
+				match(BL);
 				setState(146);
+				attr();
+				setState(147);
+				match(OP_IN);
+				setState(148);
+				array();
+				setState(149);
 				match(BR);
 				}
 				break;
@@ -1143,15 +1169,15 @@ public class RouteQueryParser extends Parser {
 				_localctx = new ConditionContainsContext(_localctx);
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(148);
-				match(BL);
-				setState(149);
-				attr();
-				setState(150);
-				match(OP_CTAN);
 				setState(151);
-				match(STRING);
+				match(BL);
 				setState(152);
+				attr();
+				setState(153);
+				match(OP_CTAN);
+				setState(154);
+				match(STRING);
+				setState(155);
 				match(BR);
 				}
 				break;
@@ -1159,13 +1185,13 @@ public class RouteQueryParser extends Parser {
 				_localctx = new ConditionNotNullContext(_localctx);
 				enterOuterAlt(_localctx, 7);
 				{
-				setState(154);
-				match(BL);
-				setState(155);
-				attr();
-				setState(156);
-				match(OP_NN);
 				setState(157);
+				match(BL);
+				setState(158);
+				attr();
+				setState(159);
+				match(OP_NN);
+				setState(160);
 				match(BR);
 				}
 				break;
@@ -1173,13 +1199,13 @@ public class RouteQueryParser extends Parser {
 				_localctx = new ConditionIsNullContext(_localctx);
 				enterOuterAlt(_localctx, 8);
 				{
-				setState(159);
-				match(BL);
-				setState(160);
-				attr();
-				setState(161);
-				match(OP_NL);
 				setState(162);
+				match(BL);
+				setState(163);
+				attr();
+				setState(164);
+				match(OP_NL);
+				setState(165);
 				match(BR);
 				}
 				break;
@@ -1226,27 +1252,27 @@ public class RouteQueryParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(166);
+			setState(169);
 			match(LSB);
-			setState(167);
+			setState(170);
 			value();
-			setState(172);
+			setState(175);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==T__0) {
 				{
 				{
-				setState(168);
+				setState(171);
 				match(T__0);
-				setState(169);
+				setState(172);
 				value();
 				}
 				}
-				setState(174);
+				setState(177);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(175);
+			setState(178);
 			match(RSB);
 			}
 		}
@@ -1325,14 +1351,14 @@ public class RouteQueryParser extends Parser {
 		ValueContext _localctx = new ValueContext(_ctx, getState());
 		enterRule(_localctx, 28, RULE_value);
 		try {
-			setState(181);
+			setState(184);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case STRING:
 				_localctx = new ValStringContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(177);
+				setState(180);
 				match(STRING);
 				}
 				break;
@@ -1340,7 +1366,7 @@ public class RouteQueryParser extends Parser {
 				_localctx = new ValNumberContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(178);
+				setState(181);
 				match(NUMBER);
 				}
 				break;
@@ -1348,7 +1374,7 @@ public class RouteQueryParser extends Parser {
 				_localctx = new ValBoolContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(179);
+				setState(182);
 				match(BOOLEAN);
 				}
 				break;
@@ -1356,7 +1382,7 @@ public class RouteQueryParser extends Parser {
 				_localctx = new ValNullContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(180);
+				setState(183);
 				match(OP_NL);
 				}
 				break;
@@ -1393,60 +1419,61 @@ public class RouteQueryParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\36\u00ba\4\2\t\2"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\36\u00bd\4\2\t\2"+
 		"\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13"+
-		"\t\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\3\2\3\2\3\2\3\2\3"+
-		"\2\3\2\5\2\'\n\2\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\5\3\62\n\3\3\3\3"+
-		"\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\7\3>\n\3\f\3\16\3A\13\3\3\4\3\4\3\4"+
-		"\3\4\5\4G\n\4\3\5\3\5\3\6\3\6\3\7\3\7\3\7\3\7\3\b\3\b\3\b\3\b\3\b\3\t"+
-		"\3\t\3\t\3\t\3\t\3\t\3\t\5\t]\n\t\3\n\3\n\3\13\3\13\3\f\3\f\3\f\3\f\7"+
-		"\fg\n\f\f\f\16\fj\13\f\3\f\3\f\3\r\3\r\3\r\3\r\7\rr\n\r\f\r\16\ru\13\r"+
-		"\3\r\3\r\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3"+
-		"\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3"+
-		"\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3"+
-		"\16\3\16\3\16\3\16\3\16\3\16\5\16\u00a7\n\16\3\17\3\17\3\17\3\17\7\17"+
-		"\u00ad\n\17\f\17\16\17\u00b0\13\17\3\17\3\17\3\20\3\20\3\20\3\20\5\20"+
-		"\u00b8\n\20\3\20\2\3\4\21\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36\2\2\2"+
-		"\u00be\2&\3\2\2\2\4\61\3\2\2\2\6F\3\2\2\2\bH\3\2\2\2\nJ\3\2\2\2\fL\3\2"+
-		"\2\2\16P\3\2\2\2\20\\\3\2\2\2\22^\3\2\2\2\24`\3\2\2\2\26b\3\2\2\2\30m"+
-		"\3\2\2\2\32\u00a6\3\2\2\2\34\u00a8\3\2\2\2\36\u00b7\3\2\2\2 !\5\4\3\2"+
-		"!\"\5\6\4\2\"\'\3\2\2\2#$\5\20\t\2$%\5\6\4\2%\'\3\2\2\2& \3\2\2\2&#\3"+
-		"\2\2\2\'\3\3\2\2\2()\b\3\1\2)*\5\20\t\2*+\5\n\6\2+,\5\16\b\2,\62\3\2\2"+
-		"\2-.\5\f\7\2./\5\b\5\2/\60\5\20\t\2\60\62\3\2\2\2\61(\3\2\2\2\61-\3\2"+
-		"\2\2\62?\3\2\2\2\63\64\f\4\2\2\64\65\7\6\2\2\65\66\5\24\13\2\66\67\5\b"+
-		"\5\2\678\5\20\t\28>\3\2\2\29:\f\3\2\2:;\5\n\6\2;<\5\16\b\2<>\3\2\2\2="+
-		"\63\3\2\2\2=9\3\2\2\2>A\3\2\2\2?=\3\2\2\2?@\3\2\2\2@\5\3\2\2\2A?\3\2\2"+
-		"\2BC\7\6\2\2CG\5\24\13\2DE\7\6\2\2EG\5\26\f\2FB\3\2\2\2FD\3\2\2\2G\7\3"+
-		"\2\2\2HI\7\5\2\2I\t\3\2\2\2JK\7\4\2\2K\13\3\2\2\2LM\5\20\t\2MN\7\6\2\2"+
-		"NO\5\24\13\2O\r\3\2\2\2PQ\7\7\2\2QR\5\24\13\2RS\7\b\2\2ST\5\20\t\2T\17"+
-		"\3\2\2\2U]\5\22\n\2VW\5\22\n\2WX\5\32\16\2X]\3\2\2\2YZ\5\22\n\2Z[\5\30"+
-		"\r\2[]\3\2\2\2\\U\3\2\2\2\\V\3\2\2\2\\Y\3\2\2\2]\21\3\2\2\2^_\7\34\2\2"+
-		"_\23\3\2\2\2`a\7\34\2\2a\25\3\2\2\2bc\7\16\2\2ch\5\24\13\2de\7\3\2\2e"+
-		"g\5\24\13\2fd\3\2\2\2gj\3\2\2\2hf\3\2\2\2hi\3\2\2\2ik\3\2\2\2jh\3\2\2"+
-		"\2kl\7\17\2\2l\27\3\2\2\2mn\7\16\2\2ns\5\32\16\2op\7\3\2\2pr\5\32\16\2"+
-		"qo\3\2\2\2ru\3\2\2\2sq\3\2\2\2st\3\2\2\2tv\3\2\2\2us\3\2\2\2vw\7\17\2"+
-		"\2w\31\3\2\2\2xy\7\f\2\2yz\5\24\13\2z{\7\20\2\2{|\5\36\20\2|}\7\r\2\2"+
-		"}\u00a7\3\2\2\2~\177\7\f\2\2\177\u0080\5\24\13\2\u0080\u0081\7\34\2\2"+
-		"\u0081\u0082\7\21\2\2\u0082\u0083\5\36\20\2\u0083\u0084\7\r\2\2\u0084"+
-		"\u00a7\3\2\2\2\u0085\u0086\7\f\2\2\u0086\u0087\5\24\13\2\u0087\u0088\7"+
-		"\22\2\2\u0088\u0089\5\36\20\2\u0089\u008a\7\r\2\2\u008a\u00a7\3\2\2\2"+
-		"\u008b\u008c\7\f\2\2\u008c\u008d\5\24\13\2\u008d\u008e\7\23\2\2\u008e"+
-		"\u008f\7\r\2\2\u008f\u00a7\3\2\2\2\u0090\u0091\7\f\2\2\u0091\u0092\5\24"+
-		"\13\2\u0092\u0093\7\24\2\2\u0093\u0094\5\34\17\2\u0094\u0095\7\r\2\2\u0095"+
-		"\u00a7\3\2\2\2\u0096\u0097\7\f\2\2\u0097\u0098\5\24\13\2\u0098\u0099\7"+
-		"\25\2\2\u0099\u009a\7\31\2\2\u009a\u009b\7\r\2\2\u009b\u00a7\3\2\2\2\u009c"+
-		"\u009d\7\f\2\2\u009d\u009e\5\24\13\2\u009e\u009f\7\26\2\2\u009f\u00a0"+
-		"\7\r\2\2\u00a0\u00a7\3\2\2\2\u00a1\u00a2\7\f\2\2\u00a2\u00a3\5\24\13\2"+
-		"\u00a3\u00a4\7\27\2\2\u00a4\u00a5\7\r\2\2\u00a5\u00a7\3\2\2\2\u00a6x\3"+
-		"\2\2\2\u00a6~\3\2\2\2\u00a6\u0085\3\2\2\2\u00a6\u008b\3\2\2\2\u00a6\u0090"+
-		"\3\2\2\2\u00a6\u0096\3\2\2\2\u00a6\u009c\3\2\2\2\u00a6\u00a1\3\2\2\2\u00a7"+
-		"\33\3\2\2\2\u00a8\u00a9\7\16\2\2\u00a9\u00ae\5\36\20\2\u00aa\u00ab\7\3"+
-		"\2\2\u00ab\u00ad\5\36\20\2\u00ac\u00aa\3\2\2\2\u00ad\u00b0\3\2\2\2\u00ae"+
-		"\u00ac\3\2\2\2\u00ae\u00af\3\2\2\2\u00af\u00b1\3\2\2\2\u00b0\u00ae\3\2"+
-		"\2\2\u00b1\u00b2\7\17\2\2\u00b2\35\3\2\2\2\u00b3\u00b8\7\31\2\2\u00b4"+
-		"\u00b8\7\32\2\2\u00b5\u00b8\7\33\2\2\u00b6\u00b8\7\27\2\2\u00b7\u00b3"+
-		"\3\2\2\2\u00b7\u00b4\3\2\2\2\u00b7\u00b5\3\2\2\2\u00b7\u00b6\3\2\2\2\u00b8"+
-		"\37\3\2\2\2\r&\61=?F\\hs\u00a6\u00ae\u00b7";
+		"\t\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\3\2\3\2\5\2#\n\2\3"+
+		"\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\5\3.\n\3\3\3\3\3\3\3\3\3\3\3\3\3\3"+
+		"\3\3\3\3\3\3\3\7\3:\n\3\f\3\16\3=\13\3\3\4\3\4\3\5\3\5\3\6\3\6\3\6\3\6"+
+		"\3\7\3\7\3\7\3\7\3\7\3\b\3\b\5\bN\n\b\3\b\3\b\3\b\5\bS\n\b\3\b\3\b\3\b"+
+		"\5\bX\n\b\5\bZ\n\b\3\t\3\t\3\t\3\t\5\t`\n\t\3\n\3\n\3\13\3\13\3\f\3\f"+
+		"\3\f\3\f\7\fj\n\f\f\f\16\fm\13\f\3\f\3\f\3\r\3\r\3\r\3\r\7\ru\n\r\f\r"+
+		"\16\rx\13\r\3\r\3\r\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16"+
+		"\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16"+
+		"\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16"+
+		"\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\5\16\u00aa\n\16\3\17\3\17\3\17"+
+		"\3\17\7\17\u00b0\n\17\f\17\16\17\u00b3\13\17\3\17\3\17\3\20\3\20\3\20"+
+		"\3\20\5\20\u00bb\n\20\3\20\2\3\4\21\2\4\6\b\n\f\16\20\22\24\26\30\32\34"+
+		"\36\2\2\2\u00c4\2\"\3\2\2\2\4-\3\2\2\2\6>\3\2\2\2\b@\3\2\2\2\nB\3\2\2"+
+		"\2\fF\3\2\2\2\16Y\3\2\2\2\20_\3\2\2\2\22a\3\2\2\2\24c\3\2\2\2\26e\3\2"+
+		"\2\2\30p\3\2\2\2\32\u00a9\3\2\2\2\34\u00ab\3\2\2\2\36\u00ba\3\2\2\2 #"+
+		"\5\4\3\2!#\5\16\b\2\" \3\2\2\2\"!\3\2\2\2#\3\3\2\2\2$%\b\3\1\2%&\5\16"+
+		"\b\2&\'\5\b\5\2\'(\5\f\7\2(.\3\2\2\2)*\5\n\6\2*+\5\6\4\2+,\5\16\b\2,."+
+		"\3\2\2\2-$\3\2\2\2-)\3\2\2\2.;\3\2\2\2/\60\f\4\2\2\60\61\7\6\2\2\61\62"+
+		"\5\24\13\2\62\63\5\6\4\2\63\64\5\16\b\2\64:\3\2\2\2\65\66\f\3\2\2\66\67"+
+		"\5\b\5\2\678\5\f\7\28:\3\2\2\29/\3\2\2\29\65\3\2\2\2:=\3\2\2\2;9\3\2\2"+
+		"\2;<\3\2\2\2<\5\3\2\2\2=;\3\2\2\2>?\7\5\2\2?\7\3\2\2\2@A\7\4\2\2A\t\3"+
+		"\2\2\2BC\5\16\b\2CD\7\6\2\2DE\5\24\13\2E\13\3\2\2\2FG\7\7\2\2GH\5\24\13"+
+		"\2HI\7\b\2\2IJ\5\16\b\2J\r\3\2\2\2KM\5\22\n\2LN\5\20\t\2ML\3\2\2\2MN\3"+
+		"\2\2\2NZ\3\2\2\2OP\5\22\n\2PR\5\32\16\2QS\5\20\t\2RQ\3\2\2\2RS\3\2\2\2"+
+		"SZ\3\2\2\2TU\5\22\n\2UW\5\30\r\2VX\5\20\t\2WV\3\2\2\2WX\3\2\2\2XZ\3\2"+
+		"\2\2YK\3\2\2\2YO\3\2\2\2YT\3\2\2\2Z\17\3\2\2\2[\\\7\n\2\2\\`\5\24\13\2"+
+		"]^\7\n\2\2^`\5\26\f\2_[\3\2\2\2_]\3\2\2\2`\21\3\2\2\2ab\7\34\2\2b\23\3"+
+		"\2\2\2cd\7\34\2\2d\25\3\2\2\2ef\7\16\2\2fk\5\24\13\2gh\7\3\2\2hj\5\24"+
+		"\13\2ig\3\2\2\2jm\3\2\2\2ki\3\2\2\2kl\3\2\2\2ln\3\2\2\2mk\3\2\2\2no\7"+
+		"\17\2\2o\27\3\2\2\2pq\7\16\2\2qv\5\32\16\2rs\7\3\2\2su\5\32\16\2tr\3\2"+
+		"\2\2ux\3\2\2\2vt\3\2\2\2vw\3\2\2\2wy\3\2\2\2xv\3\2\2\2yz\7\17\2\2z\31"+
+		"\3\2\2\2{|\7\f\2\2|}\5\24\13\2}~\7\20\2\2~\177\5\36\20\2\177\u0080\7\r"+
+		"\2\2\u0080\u00aa\3\2\2\2\u0081\u0082\7\f\2\2\u0082\u0083\5\24\13\2\u0083"+
+		"\u0084\7\34\2\2\u0084\u0085\7\21\2\2\u0085\u0086\5\36\20\2\u0086\u0087"+
+		"\7\r\2\2\u0087\u00aa\3\2\2\2\u0088\u0089\7\f\2\2\u0089\u008a\5\24\13\2"+
+		"\u008a\u008b\7\22\2\2\u008b\u008c\5\36\20\2\u008c\u008d\7\r\2\2\u008d"+
+		"\u00aa\3\2\2\2\u008e\u008f\7\f\2\2\u008f\u0090\5\24\13\2\u0090\u0091\7"+
+		"\23\2\2\u0091\u0092\7\r\2\2\u0092\u00aa\3\2\2\2\u0093\u0094\7\f\2\2\u0094"+
+		"\u0095\5\24\13\2\u0095\u0096\7\24\2\2\u0096\u0097\5\34\17\2\u0097\u0098"+
+		"\7\r\2\2\u0098\u00aa\3\2\2\2\u0099\u009a\7\f\2\2\u009a\u009b\5\24\13\2"+
+		"\u009b\u009c\7\25\2\2\u009c\u009d\7\31\2\2\u009d\u009e\7\r\2\2\u009e\u00aa"+
+		"\3\2\2\2\u009f\u00a0\7\f\2\2\u00a0\u00a1\5\24\13\2\u00a1\u00a2\7\26\2"+
+		"\2\u00a2\u00a3\7\r\2\2\u00a3\u00aa\3\2\2\2\u00a4\u00a5\7\f\2\2\u00a5\u00a6"+
+		"\5\24\13\2\u00a6\u00a7\7\27\2\2\u00a7\u00a8\7\r\2\2\u00a8\u00aa\3\2\2"+
+		"\2\u00a9{\3\2\2\2\u00a9\u0081\3\2\2\2\u00a9\u0088\3\2\2\2\u00a9\u008e"+
+		"\3\2\2\2\u00a9\u0093\3\2\2\2\u00a9\u0099\3\2\2\2\u00a9\u009f\3\2\2\2\u00a9"+
+		"\u00a4\3\2\2\2\u00aa\33\3\2\2\2\u00ab\u00ac\7\16\2\2\u00ac\u00b1\5\36"+
+		"\20\2\u00ad\u00ae\7\3\2\2\u00ae\u00b0\5\36\20\2\u00af\u00ad\3\2\2\2\u00b0"+
+		"\u00b3\3\2\2\2\u00b1\u00af\3\2\2\2\u00b1\u00b2\3\2\2\2\u00b2\u00b4\3\2"+
+		"\2\2\u00b3\u00b1\3\2\2\2\u00b4\u00b5\7\17\2\2\u00b5\35\3\2\2\2\u00b6\u00bb"+
+		"\7\31\2\2\u00b7\u00bb\7\32\2\2\u00b8\u00bb\7\33\2\2\u00b9\u00bb\7\27\2"+
+		"\2\u00ba\u00b6\3\2\2\2\u00ba\u00b7\3\2\2\2\u00ba\u00b8\3\2\2\2\u00ba\u00b9"+
+		"\3\2\2\2\u00bb\37\3\2\2\2\20\"-9;MRWY_kv\u00a9\u00b1\u00ba";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {
