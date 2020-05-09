@@ -20,6 +20,7 @@ import java.util.Stack;
 public class RouteQueryExpressionListener extends RouteQueryBaseListener {
     public static final String ATTR_DELIMITER = ".";
     public static final String ATTR_REG_SPLITTER = "\\"+ATTR_DELIMITER;
+    public static final String FETCH_DELIMITER = ":";
 
     private Stack<Filter> conditions = new Stack<>();
     private Stack<Object> values = new Stack<>();
@@ -54,8 +55,8 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
     }
 
     @Override
-    public void exitLinkFetch(RouteQueryParser.LinkFetchContext ctx) {
-        processFetch();
+    public void exitLinkRoute(RouteQueryParser.LinkRouteContext ctx) {
+//        processFetch();
     }
 
     private String getAttrKeyname(String entityName,String attrName){
@@ -63,8 +64,8 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
     }
 
     @Override
-    public void exitEntityFetch(RouteQueryParser.EntityFetchContext ctx) {
-        processFetch();
+    public void exitEntityRoute(RouteQueryParser.EntityRouteContext ctx) {
+//        processFetch();
     }
 
     private void processFetch(){
@@ -79,6 +80,7 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
             intQuery.getAttrKeyNames().add(fetchAttrName);
             adhocIntegrationQuery.getQueryRequest().getResultColumns().add(fetchAttrName);
         }
+        fetchAttrs.clear();
     }
 
     private IntegrationQueryDto getIntegrationInChain(int index){
@@ -182,6 +184,7 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
             adhocIntegrationQuery.getQueryRequest().getFilters().add(filter);
         }
         integrationChain.add(intQuery);
+        processFetch();
     }
 
     private FieldNode getFieldNode(String tableName,String attrName){

@@ -39,7 +39,7 @@ public class RouteQueryExpressionFormatterTest extends AbstractBaseControllerTes
                 .withAttrKeyNames(Lists.newArrayList("system_design:guid")));
         adhocIntegrationQuery.setQueryRequest(new QueryRequest().withResultColumns(ImmutableList.of("system_design:guid")));
         String expression = routeQueryExpressionFormatter.format(adhocIntegrationQuery);
-        assertThat(expression, equalTo("system_design.[guid]"));
+        assertThat(expression, equalTo("system_design:[guid]"));
 
         //with one filter
         adhocIntegrationQuery.setCriteria(new IntegrationQueryDto("system_design",1, ImmutableList.of(1,8),
@@ -49,7 +49,7 @@ public class RouteQueryExpressionFormatterTest extends AbstractBaseControllerTes
                 .withResultColumns(ImmutableList.of("system_design.guid"))
                 .addEqualsFilter("system_design.key_name","EDP"));
         expression = routeQueryExpressionFormatter.format(adhocIntegrationQuery);
-        assertThat(expression, equalTo("system_design[{key_name eq 'EDP'}].[guid]"));
+        assertThat(expression, equalTo("system_design[{key_name eq 'EDP'}]:[guid]"));
 
         //with tow filters
         adhocIntegrationQuery.setCriteria(new IntegrationQueryDto("system_design",1, ImmutableList.of(1,8,11),
@@ -60,7 +60,7 @@ public class RouteQueryExpressionFormatterTest extends AbstractBaseControllerTes
                 .addEqualsFilter("system_design.key_name","EDP")
                 .addEqualsFilter("system_design.code","HATS"));
         expression = routeQueryExpressionFormatter.format(adhocIntegrationQuery);
-        assertThat(expression, equalTo("system_design[{key_name eq 'EDP'}{code eq 'HATS'}].[guid]"));
+        assertThat(expression, equalTo("system_design[{key_name eq 'EDP'}{code eq 'HATS'}]:[guid]"));
 
     }
 
@@ -83,7 +83,7 @@ public class RouteQueryExpressionFormatterTest extends AbstractBaseControllerTes
                 new QueryRequest().withResultColumns(Lists.newArrayList("subsys_design.key_name")));
 
         String expression = routeQueryExpressionFormatter.format(adhocQuery);
-        assertThat(expression, equalTo("system_design~(system_design)subsys_design.[key_name]"));
+        assertThat(expression, equalTo("system_design~(system_design)subsys_design:[key_name]"));
     }
 
     @Test
@@ -106,7 +106,7 @@ public class RouteQueryExpressionFormatterTest extends AbstractBaseControllerTes
                 new QueryRequest().withResultColumns(Lists.newArrayList("subsys_design.key_name")));
 
         String expression = routeQueryExpressionFormatter.format(adhocQuery);
-        assertThat(expression, equalTo("subsys_design.system_design>system_design.[key_name]"));
+        assertThat(expression, equalTo("subsys_design:[key_name].system_design>system_design"));
     }
 
 }

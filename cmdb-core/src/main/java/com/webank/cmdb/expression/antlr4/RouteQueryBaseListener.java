@@ -1,4 +1,4 @@
-// Generated from .\RouteQuery.g4 by ANTLR 4.8
+// Generated from RouteQuery.g4 by ANTLR 4.8
 package com.webank.cmdb.expression.antlr4;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -16,25 +16,25 @@ public class RouteQueryBaseListener implements RouteQueryListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterLinkFetch(RouteQueryParser.LinkFetchContext ctx) { }
+	@Override public void enterLinkRoute(RouteQueryParser.LinkRouteContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitLinkFetch(RouteQueryParser.LinkFetchContext ctx) { }
+	@Override public void exitLinkRoute(RouteQueryParser.LinkRouteContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterEntityFetch(RouteQueryParser.EntityFetchContext ctx) { }
+	@Override public void enterEntityRoute(RouteQueryParser.EntityRouteContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitEntityFetch(RouteQueryParser.EntityFetchContext ctx) { }
+	@Override public void exitEntityRoute(RouteQueryParser.EntityRouteContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -83,18 +83,6 @@ public class RouteQueryBaseListener implements RouteQueryListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitEntityByBwdNode(RouteQueryParser.EntityByBwdNodeContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterFetch(RouteQueryParser.FetchContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitFetch(RouteQueryParser.FetchContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -155,6 +143,18 @@ public class RouteQueryBaseListener implements RouteQueryListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitEntity_node(RouteQueryParser.Entity_nodeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFetch(RouteQueryParser.FetchContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFetch(RouteQueryParser.FetchContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

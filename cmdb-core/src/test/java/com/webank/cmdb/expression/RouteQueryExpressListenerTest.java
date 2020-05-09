@@ -1,10 +1,7 @@
 package com.webank.cmdb.expression;
 
 import com.webank.cmdb.controller.AbstractBaseControllerTest;
-import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
-import com.webank.cmdb.dto.Filter;
-import com.webank.cmdb.dto.IntegrationQueryDto;
-import com.webank.cmdb.dto.QueryResponse;
+import com.webank.cmdb.dto.*;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.management.Query;
 import javax.transaction.Transactional;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -32,12 +30,12 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Test
     @Transactional
     public void testRouteQueryParseForOneNode() {
-        String expression = "system_design.code";
+        String expression = "system_design:code";
         IntegrationQueryDto intQuery = expressParser.parse(expression).getCriteria();
         assertThat(intQuery,notNullValue());
         assertThat(intQuery.getAttrs().size(),equalTo(1));
 
-        expression = "system_design.[code,key_name]";
+        expression = "system_design:[code,key_name]";
         intQuery = expressParser.parse(expression).getCriteria();
         assertThat(intQuery,notNullValue());
         assertThat(intQuery.getAttrs().size(),equalTo(2));
@@ -46,7 +44,7 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Test
     @Transactional
     public void testRouteQueryParseForMultiConditions() {
-        String expression = "system_design[{key_name eq 'EDP'},{state eq 'start'}].code";
+        String expression = "system_design[{key_name eq 'EDP'},{state eq 'start'}]:code";
         AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
         IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
         assertNotNull(intQuery);
@@ -57,14 +55,16 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Test
     @Transactional
     public void testRouteQueryParseForFwdChain() {
-        String expression = "subsys_design{key_name eq 'EDP'}.system_design>system_design.guid";
+        String expression = "subsys_design{key_name eq 'EDP'}:[key_name].system_design>system_design:guid";
         AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
         IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
+        QueryRequest queryRequest = adhocIntegrationQueryDto.getQueryRequest();
         assertNotNull(intQuery);
         assertTrue(intQuery.getChildren().size() > 0);
         assertTrue(intQuery.getChildren().get(0).getCiTypeId() == 1);
+        assertThat(queryRequest.getResultColumns().size(), equalTo(2));
 
-        expression = "unit_design{key_name eq 'EDP'}.subsys_design>subsys_design.system_design>system_design.state";
+        expression = "unit_design{key_name eq 'EDP'}.subsys_design>subsys_design.system_design>system_design:state";
         adhocIntegrationQueryDto = expressParser.parse(expression);
         intQuery = adhocIntegrationQueryDto.getCriteria();
         assertNotNull(intQuery);
@@ -78,7 +78,7 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Test
     @Transactional
     public void testRouteQueryParseForBwdChain() {
-        String expression = "system_design~(system_design)subsys_design.key_name";
+        String expression = "system_design~(system_design)subsys_design:key_name";
         AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
         IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
         assertThat(intQuery, notNullValue());
@@ -90,7 +90,7 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
         assertThat(query_l2.getParentRs().getIsReferedFromParent(), is(false));
 
 
-        expression = "system_design~(system_design)subsys_design~(subsys_design)unit_design.key_name";
+        expression = "system_design~(system_design)subsys_design~(subsys_design)unit_design:key_name";
         adhocIntegrationQueryDto = expressParser.parse(expression);
         intQuery = adhocIntegrationQueryDto.getCriteria();
         assertThat(intQuery, notNullValue());
@@ -111,7 +111,7 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Test
     @Transactional
     public void testRouteQueryParseForMixedChain() {
-        String expression = "system_design~(system_design)subsys_design.system_design>system_design.key_name";
+        String expression = "system_design~(system_design)subsys_design.system_design>system_design:key_name";
         AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
         IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
         assertThat(intQuery, notNullValue());
@@ -130,7 +130,7 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Test
     @Transactional
     public void testQueryWithExpression(){
-        String expression = "system_design.code";
+        String expression = "system_design:code";
         AdhocIntegrationQueryDto adhocQuery = expressParser.parse(expression);
         QueryResponse response = ciService.adhocIntegrateQuery(adhocQuery);
         assertThat(response, notNullValue());

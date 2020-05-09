@@ -1,4 +1,4 @@
-// Generated from .\RouteQuery.g4 by ANTLR 4.8
+// Generated from RouteQuery.g4 by ANTLR 4.8
 package com.webank.cmdb.expression.antlr4;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -8,29 +8,29 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface RouteQueryListener extends ParseTreeListener {
 	/**
-	 * Enter a parse tree produced by the {@code LinkFetch}
+	 * Enter a parse tree produced by the {@code LinkRoute}
 	 * labeled alternative in {@link RouteQueryParser#route}.
 	 * @param ctx the parse tree
 	 */
-	void enterLinkFetch(RouteQueryParser.LinkFetchContext ctx);
+	void enterLinkRoute(RouteQueryParser.LinkRouteContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code LinkFetch}
+	 * Exit a parse tree produced by the {@code LinkRoute}
 	 * labeled alternative in {@link RouteQueryParser#route}.
 	 * @param ctx the parse tree
 	 */
-	void exitLinkFetch(RouteQueryParser.LinkFetchContext ctx);
+	void exitLinkRoute(RouteQueryParser.LinkRouteContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code EntityFetch}
+	 * Enter a parse tree produced by the {@code EntityRoute}
 	 * labeled alternative in {@link RouteQueryParser#route}.
 	 * @param ctx the parse tree
 	 */
-	void enterEntityFetch(RouteQueryParser.EntityFetchContext ctx);
+	void enterEntityRoute(RouteQueryParser.EntityRouteContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code EntityFetch}
+	 * Exit a parse tree produced by the {@code EntityRoute}
 	 * labeled alternative in {@link RouteQueryParser#route}.
 	 * @param ctx the parse tree
 	 */
-	void exitEntityFetch(RouteQueryParser.EntityFetchContext ctx);
+	void exitEntityRoute(RouteQueryParser.EntityRouteContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code LinkToEntity}
 	 * labeled alternative in {@link RouteQueryParser#link}.
@@ -79,16 +79,6 @@ public interface RouteQueryListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitEntityByBwdNode(RouteQueryParser.EntityByBwdNodeContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RouteQueryParser#fetch}.
-	 * @param ctx the parse tree
-	 */
-	void enterFetch(RouteQueryParser.FetchContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RouteQueryParser#fetch}.
-	 * @param ctx the parse tree
-	 */
-	void exitFetch(RouteQueryParser.FetchContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link RouteQueryParser#to}.
 	 * @param ctx the parse tree
@@ -139,6 +129,16 @@ public interface RouteQueryListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitEntity_node(RouteQueryParser.Entity_nodeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link RouteQueryParser#fetch}.
+	 * @param ctx the parse tree
+	 */
+	void enterFetch(RouteQueryParser.FetchContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RouteQueryParser#fetch}.
+	 * @param ctx the parse tree
+	 */
+	void exitFetch(RouteQueryParser.FetchContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link RouteQueryParser#entity}.
 	 * @param ctx the parse tree
