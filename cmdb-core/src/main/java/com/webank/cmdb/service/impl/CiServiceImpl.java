@@ -1406,10 +1406,9 @@ public class CiServiceImpl implements CiService {
                         if (kv.getKey().endsWith(".guid") || kv.getKey().endsWith(".r_guid")) {
                             continue;
                         }
-                        if(intQueryReq!=null && intQueryReq.getResultColumns() !=null && intQueryReq.getResultColumns().size()>0){
-                            if(!intQueryReq.getResultColumns().contains(kv.getKey())){
-                                continue;
-                            }
+
+                        if(!isRequestField(intQueryReq,kv)){
+                            continue;
                         }
 
                         selectedFields.add(kv.getValue());

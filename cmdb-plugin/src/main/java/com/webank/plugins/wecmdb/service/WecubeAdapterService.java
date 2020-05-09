@@ -314,7 +314,7 @@ public class WecubeAdapterService {
                 Map<String, Object> originCiData = ci.getData();
 
                 originCiData.forEach((name, value) -> {
-                    if (queryObject.getResultColumns() == null || queryObject.getResultColumns().contains(name)) {
+                    if (isRequestField(queryObject, name)) {
                         populateSelectedAttrs(ciTypeAttrDtos, convertedMap, name, value);
                     }
                 });
@@ -322,6 +322,10 @@ public class WecubeAdapterService {
             });
         }
         return convertedCiData;
+    }
+
+    private boolean isRequestField(QueryRequest queryObject, String name) {
+        return queryObject.getResultColumns() == null || queryObject.getResultColumns().size()==0 || queryObject.getResultColumns().contains(name);
     }
 
     private void populateSelectedAttrs(List<CiTypeAttrDto> ciTypeAttrDtos, Map<String, Object> convertedMap, String dataAttrName, Object value) {
