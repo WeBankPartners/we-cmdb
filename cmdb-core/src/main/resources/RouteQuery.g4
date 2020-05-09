@@ -5,7 +5,7 @@
 
 grammar RouteQuery;
 
-route: link fetch # LinkFetch | entity_node fetch # EntityFetch;
+route: link # LinkRoute | entity_node # EntityRoute;
 
 link:
 	entity_node by bwd_node			# EntityByBwdNode
@@ -13,14 +13,17 @@ link:
 	| link DOT attr to entity_node	# LinkToEntity
 	| link by bwd_node				# LinkByBwdNode;
 
-fetch: DOT attr | DOT attr_array;
 to: GT;
 by: TILDE;
 fwd_node: entity_node DOT attr;
 bwd_node: LP attr RP entity_node;
-//entity
-// : ety ; pkg : ID | DQM ;
-entity_node: entity | entity condition | entity cond_array;
+
+entity_node:
+	entity fetch
+	| entity condition (fetch)?
+	| entity cond_array (fetch)?;
+
+fetch: SC attr | SC attr_array;
 entity: ID;
 attr: ID;
 attr_array: '[' attr (',' attr)* ']';
