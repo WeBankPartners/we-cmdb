@@ -26,7 +26,7 @@ public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeC
     private String conditionType;
     private Object conditionValueObject;
     private List<String> conditionValueExprs = new ArrayList<>();
-    private List<Integer> conditionValueEnums = new ArrayList<>();
+    private List<Integer> conditionValueSelects = new ArrayList<>();
 
     @DtoField(domainField = "admRoleCiTypeCtrlAttr", updatable = false)
     private RoleCiTypeCtrlAttrDto roleCiTypeCtrlAttr = null;
@@ -37,12 +37,12 @@ public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeC
     public RoleCiTypeCtrlAttrConditionDto() {
     }
 
-    public List<Integer> getConditionValueEnums() {
-        return conditionValueEnums;
+    public List<Integer> getConditionValueSelects() {
+        return conditionValueSelects;
     }
 
-    public void setConditionValueEnums(List<Integer> conditionValueEnums) {
-        this.conditionValueEnums = conditionValueEnums;
+    public void setConditionValueSelects(List<Integer> conditionValueSelects) {
+        this.conditionValueSelects = conditionValueSelects;
     }
 
     public List<String> getConditionValueExprs() {
@@ -95,7 +95,7 @@ public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeC
         }else if("Select".equalsIgnoreCase(domain.getConditionValueType())){
             Set<AdmRoleCiTypeCtrlAttrSelect> selects = domain.getAdmRoleCiTypeCtrlAttrSelects();
             for (AdmRoleCiTypeCtrlAttrSelect select : selects) {
-                dto.conditionValueEnums.add(select.getIdAdmRoleCiTypeCtrlAttrSelect());
+                dto.conditionValueSelects.add(select.getIdAdmBaseKey());
             }
         }
         return dto;
