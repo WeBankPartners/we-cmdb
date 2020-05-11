@@ -36,6 +36,7 @@ public class AdmRoleCiTypeCtrlAttrExpression implements Serializable {
 
     public void setAdmRoleCiTypeCtrlAttrCondition(AdmRoleCiTypeCtrlAttrCondition admRoleCiTypeCtrlAttrCondition) {
         this.admRoleCiTypeCtrlAttrCondition = admRoleCiTypeCtrlAttrCondition;
+        admRoleCiTypeCtrlAttrCondition.getAdmRoleCiTypeCtrlAttrExpressions().add(this);
     }
 
     @Column(name = "id_adm_role_ci_type_ctrl_attr_condition")
