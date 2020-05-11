@@ -11,7 +11,7 @@ public interface RoleCiTypeAccessCtrlService extends CmdbService {
 
     List<RoleCiTypeCtrlAttrConditionDto> updateRoleCiTypeCtrlAttrConditions(List<RoleCiTypeCtrlAttrConditionDto> attrConditions);
 
-    void deleteRoleCiTypeCtrlAttrConditions(List<Integer> attrConditionIds);
+    void deleteRoleCiTypeCtrlAttributes(List<Integer> attrIds);
 
     RoleCiTypeCtrlAttrConditionDto queryRoleCiTypeCtrlAttrCondition(Integer ctlAttrId, Integer ciTypeAttrId);
 }

@@ -43,6 +43,7 @@ public class AdmRoleCiTypeCtrlAttrSelect {
 
     public void setAdmRoleCiTypeCtrlAttrCondition(AdmRoleCiTypeCtrlAttrCondition admRoleCiTypeCtrlAttrCondition) {
         this.admRoleCiTypeCtrlAttrCondition = admRoleCiTypeCtrlAttrCondition;
+        admRoleCiTypeCtrlAttrCondition.getAdmRoleCiTypeCtrlAttrSelects().add(this);
     }
 
     @Column(name = "id_adm_basekey")

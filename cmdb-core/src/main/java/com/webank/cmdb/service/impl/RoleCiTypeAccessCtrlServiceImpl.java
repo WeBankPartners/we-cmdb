@@ -1,10 +1,13 @@
 package com.webank.cmdb.service.impl;
 
+import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttr;
 import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrCondition;
 import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrExpression;
 import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrSelect;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrConditionDto;
+import com.webank.cmdb.dto.RoleCiTypeCtrlAttrDto;
 import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.repository.AdmRoleCiTypeAttrRepository;
 import com.webank.cmdb.repository.AdmRoleCiTypeAttrSelectRepository;
 import com.webank.cmdb.repository.AdmRoleCiTypeCtrlAttrConditionRepository;
 import com.webank.cmdb.repository.AdmRoleCiTypeCtrlAttrExpressionRepository;
@@ -13,9 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlService {
@@ -26,6 +28,8 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
     private AdmRoleCiTypeCtrlAttrExpressionRepository roleCiTypeCtrlAttrExpressionRepository;
     @Autowired
     private AdmRoleCiTypeAttrSelectRepository roleCiTypeAttrSelectRepository;
+    @Autowired
+    private AdmRoleCiTypeAttrRepository admRoleCiTypeAttrRepository;
 
     @Override
     public String getName() {
@@ -35,6 +39,7 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
     @Transactional
     @Override
     public List<RoleCiTypeCtrlAttrConditionDto> createRoleCiTypeCtrlAttrConditions(List<RoleCiTypeCtrlAttrConditionDto> attrConditions) {
+        List<RoleCiTypeCtrlAttrConditionDto> addedConditions = new LinkedList<>();
         for (RoleCiTypeCtrlAttrConditionDto attrCondition : attrConditions) {
             AdmRoleCiTypeCtrlAttrCondition admAttrCondition = new AdmRoleCiTypeCtrlAttrCondition();
             updateConditionWithDto(attrCondition, admAttrCondition);
@@ -42,8 +47,10 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
             attrCondition.setConditionId(admAttrCondition.getIdAdmRoleCiTypeCtrlAttrCondition());
 
             createConditionValues(attrCondition, admAttrCondition);
+            RoleCiTypeCtrlAttrConditionDto conditionDto = RoleCiTypeCtrlAttrConditionDto.from(admAttrCondition,false);
+            addedConditions.add(conditionDto);
         }
-        return attrConditions;
+        return addedConditions;
     }
 
     private void updateConditionWithDto(RoleCiTypeCtrlAttrConditionDto attrCondition, AdmRoleCiTypeCtrlAttrCondition admAttrCondition) {
@@ -61,15 +68,17 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
                 AdmRoleCiTypeCtrlAttrExpression admAttrExpression = new AdmRoleCiTypeCtrlAttrExpression();
                 admAttrExpression.setIdAdmRoleCiTypeCtrlAttrCondition(admAttrCondition.getIdAdmRoleCiTypeCtrlAttrCondition());
                 admAttrExpression.setExpression(conditionValueExpr);
+                admAttrExpression.setAdmRoleCiTypeCtrlAttrCondition(admAttrCondition);
                 roleCiTypeCtrlAttrExpressionRepository.save(admAttrExpression);
             }
         }else if("Select".equalsIgnoreCase(conditionType)){
             List<Integer> catCodes = attrCondition.getConditionValueEnums();
             for (Integer catCode : catCodes) {
-                AdmRoleCiTypeCtrlAttrSelect attrSelect = new AdmRoleCiTypeCtrlAttrSelect();
-                attrSelect.setIdAdmRoleCiTypeCtrlAttrCondition(admAttrCondition.getIdAdmRoleCiTypeCtrlAttrCondition());
-                attrSelect.setIdAdmBaseKey(catCode);
-                roleCiTypeAttrSelectRepository.save(attrSelect);
+                AdmRoleCiTypeCtrlAttrSelect admAttrSelect = new AdmRoleCiTypeCtrlAttrSelect();
+                admAttrSelect.setIdAdmRoleCiTypeCtrlAttrCondition(admAttrCondition.getIdAdmRoleCiTypeCtrlAttrCondition());
+                admAttrSelect.setIdAdmBaseKey(catCode);
+                admAttrSelect.setAdmRoleCiTypeCtrlAttrCondition(admAttrCondition);
+                roleCiTypeAttrSelectRepository.save(admAttrSelect);
             }
         }
     }
@@ -109,18 +118,29 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
         }
     }
 
+    public void deleteRoleCiTypeCtrlAttrConditions(Set<AdmRoleCiTypeCtrlAttrCondition> attrConditions){
+        for (AdmRoleCiTypeCtrlAttrCondition attrCondition : attrConditions) {
+            deleteConditionValues(attrCondition);
+            roleCiTypeCtrlAttrConditionRepository.delete(attrCondition);
+        }
+    }
+
     @Transactional
     @Override
-    public void deleteRoleCiTypeCtrlAttrConditions(List<Integer> attrConditionIds){
-        for (Integer conditionId : attrConditionIds) {
-            Optional<AdmRoleCiTypeCtrlAttrCondition> conditionOpt = roleCiTypeCtrlAttrConditionRepository.findById(conditionId);
-            if(!conditionOpt.isPresent()){
-                throw new CmdbException(String.format("AdmRoleCiTypeCtrlAttrCondition is not existed for id (%d).",conditionId));
-            }
-
-            deleteConditionValues(conditionOpt.get());
-            roleCiTypeCtrlAttrConditionRepository.deleteById(conditionId);
+    public void deleteRoleCiTypeCtrlAttributes(List<Integer> attrIds){
+        if(attrIds == null){
+            return;
         }
+
+        for (Integer id : attrIds) {
+            Optional<AdmRoleCiTypeCtrlAttr> admRoleCiTypeAttr = admRoleCiTypeAttrRepository.findById(id);
+            if(!admRoleCiTypeAttr.isPresent()){
+                throw new CmdbException(String.format("RoleCiTypeCtrlAttr (id:%d) is not existed.",id));
+            }
+            deleteRoleCiTypeCtrlAttrConditions(admRoleCiTypeAttr.get().getAdmRoleCiTypeCtrlAttrConditions());
+            admRoleCiTypeAttrRepository.delete(admRoleCiTypeAttr.get());
+        }
+
     }
 
     @Override

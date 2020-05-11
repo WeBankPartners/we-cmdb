@@ -29,10 +29,10 @@ public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeC
     private List<Integer> conditionValueEnums = new ArrayList<>();
 
     @DtoField(domainField = "admRoleCiTypeCtrlAttr", updatable = false)
-    private RoleCiTypeCtrlAttrDto roleCiTypeCtrlAttr = new RoleCiTypeCtrlAttrDto();
+    private RoleCiTypeCtrlAttrDto roleCiTypeCtrlAttr = null;
 
     @DtoField(domainField = "admCiTypeAttr", updatable = false)
-    private CiTypeAttrDto ciTypeAttr = new CiTypeAttrDto();
+    private CiTypeAttrDto ciTypeAttr = null;
 
     public RoleCiTypeCtrlAttrConditionDto() {
     }

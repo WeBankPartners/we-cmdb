@@ -207,8 +207,10 @@ public class UIUserManagerService {
         if (isNotEmpty(accessControlAttributes)) {
             Map<Integer, RoleCiTypeCtrlAttrConditionDto> conditionMap = asMap(roleCiTypeCtrlAttr.getConditions(), RoleCiTypeCtrlAttrConditionDto::getCiTypeAttrId);
             accessControlAttributes.forEach(attr -> {
+/*
                 RoleCiTypeCtrlAttrConditionDto attrConditionDto = roleCiTypeAccessCtrlService
                         .queryRoleCiTypeCtrlAttrCondition(roleCiTypeCtrlAttr.getRoleCiTypeCtrlAttrId(),attr.getCiTypeAttrId());
+*/
 /*
                 RoleCiTypeCtrlAttrConditionDto condition = conditionMap.get(attr.getCiTypeAttrId());
                 if (condition == null) {
@@ -220,7 +222,8 @@ public class UIUserManagerService {
                 }
                 enrichConditionValueObject(condition, attr);
 */
-                model.put(attr.getPropertyName(), attrConditionDto);
+                RoleCiTypeCtrlAttrConditionDto condition = conditionMap.get(attr.getCiTypeAttrId());
+                model.put(attr.getPropertyName(), condition);
             });
         }
         model.put(CONSTANT_CREATION_PERMISSION, roleCiTypeCtrlAttr.getCreationPermission());
@@ -317,7 +320,7 @@ public class UIUserManagerService {
             condition.setConditionId((Integer) model.get("conditionId"));
         if (model.containsKey("conditionValue")) {
             if("Expression".equalsIgnoreCase(condition.getConditionType())) {
-                List conditionValExprs = (List)model.get("conditionVal");
+                List conditionValExprs = (List)model.get("conditionValueExprs");
                 condition.setConditionValueExprs(conditionValExprs);
             }else if("Select".equalsIgnoreCase(condition.getConditionType())){
                 List conditionEnums = (List)model.get("conditionVal");
@@ -330,6 +333,7 @@ public class UIUserManagerService {
         return condition;
     }
 
+    @Transactional
     public List<Map<String, Object>> createRoleCiTypeCtrlAttributes(int roleCiTypeId, List<Map<String, Object>> roleCiTypeCtrlAttributes) {
         RoleCiTypeDto roleCiType = uiWrapperService.getRoleCiTypeById(roleCiTypeId);
         List<CiTypeAttrDto> accessControlAttributes = uiWrapperService.getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
