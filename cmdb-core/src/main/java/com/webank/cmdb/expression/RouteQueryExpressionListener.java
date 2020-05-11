@@ -54,18 +54,8 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
         }
     }
 
-    @Override
-    public void exitLinkRoute(RouteQueryParser.LinkRouteContext ctx) {
-//        processFetch();
-    }
-
     private String getAttrKeyname(String entityName,String attrName){
         return entityName + ATTR_DELIMITER + attrName;
-    }
-
-    @Override
-    public void exitEntityRoute(RouteQueryParser.EntityRouteContext ctx) {
-//        processFetch();
     }
 
     private void processFetch(){
@@ -74,7 +64,15 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
             IntegrationQueryDto intQuery = getIntegrationInChain(-1);
             String tableName = intQuery.getName();
             DynamicEntityMeta meta = entityMap.get(tableName);
+            if(meta == null){
+                throw new CmdbExpressException(String.format("CiType (%s) is not existed.",tableName));
+            }
+
             FieldNode fieldNode = meta.getFieldNode(attr);
+            if(fieldNode == null){
+                throw new CmdbExpressException(String.format("Attribute (%s) is not existed for CiType (%s).",attr,tableName));
+            }
+
             intQuery.getAttrs().add(fieldNode.getAttrId());
             String fetchAttrName = getAttrKeyname(tableName,attr);
             intQuery.getAttrKeyNames().add(fetchAttrName);
@@ -135,25 +133,6 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
         fetchBegan = false;
     }
 
-    @Override
-    public void exitTo(RouteQueryParser.ToContext ctx){
-
-    }
-
-    @Override
-    public void exitBy(RouteQueryParser.ByContext ctx){
-
-    }
-
-    @Override
-    public void exitFwd_node(RouteQueryParser.Fwd_nodeContext ctx){
-
-    }
-
-    @Override
-    public void exitBwd_node(RouteQueryParser.Bwd_nodeContext ctx){
-
-    }
     @Override public void exitEntity(RouteQueryParser.EntityContext ctx) {
         String tableName = ctx.getText();
         entities.push(tableName);
@@ -166,7 +145,7 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
         intQuery.setName(tableName);
         DynamicEntityMeta meta = entityMap.get(tableName);
         if(meta == null){
-            throw new CmdbExpressException(String.format("Can't find ci type for '%s'",tableName));
+            throw new CmdbExpressException(String.format("CiType (%s) is not existed.",tableName));
         }
         intQuery.setCiTypeId(meta.getCiTypeId());
 
@@ -210,11 +189,6 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
     }
 
     @Override
-    public void exitAttr_array(RouteQueryParser.Attr_arrayContext ctx){
-
-    }
-
-    @Override
     public void exitConditionEq(RouteQueryParser.ConditionEqContext ctx){
         Object val = values.pop();
         conditions.push(new Filter(getAttrKeyname(entities.peek(),ctx.attr().getText()), FilterOperator.Equal.getCode(),val));
@@ -255,11 +229,6 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
     public void exitConditionNe(RouteQueryParser.ConditionNeContext ctx){
         Object val = values.pop();
         conditions.push(new Filter(getAttrKeyname(entities.peek(),ctx.attr().getText()), FilterOperator.NotEqual.getCode(),val));
-    }
-
-    @Override
-    public void exitConditionIn(RouteQueryParser.ConditionInContext ctx){
-
     }
 
     @Override
@@ -312,13 +281,4 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
         values.push(number);
     }
 
-    @Override
-    public void exitValBool(RouteQueryParser.ValBoolContext ctx){
-
-    }
-
-    @Override
-    public void exitValNull(RouteQueryParser.ValNullContext ctx){
-
-    }
 }

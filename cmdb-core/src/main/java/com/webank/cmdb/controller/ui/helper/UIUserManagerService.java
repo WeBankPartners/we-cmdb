@@ -323,8 +323,8 @@ public class UIUserManagerService {
                 List conditionValExprs = (List)model.get("conditionValueExprs");
                 condition.setConditionValueExprs(conditionValExprs);
             }else if("Select".equalsIgnoreCase(condition.getConditionType())){
-                List conditionEnums = (List)model.get("conditionVal");
-                condition.setConditionValueEnums(conditionEnums);
+                List conditionSelects = (List)model.get("conditionValueSelects");
+                condition.setConditionValueSelects(conditionSelects);
             }
         }
 

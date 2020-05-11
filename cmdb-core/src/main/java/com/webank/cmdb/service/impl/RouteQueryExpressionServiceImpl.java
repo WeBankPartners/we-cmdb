@@ -38,4 +38,11 @@ public class RouteQueryExpressionServiceImpl implements RouteQueryExpressionServ
         }
         return queryResult;
     }
+
+    @Override
+    public AdhocIntegrationQueryDto parseRouteExpression(String routeExpression){
+        RouteQueryExpressionParser expressionParser = new RouteQueryExpressionParser(ciService.getTableDynamicEntityMetaMap());
+        AdhocIntegrationQueryDto adhocIntegrationQuery = expressionParser.parse(routeExpression);
+        return adhocIntegrationQuery;
+    }
 }

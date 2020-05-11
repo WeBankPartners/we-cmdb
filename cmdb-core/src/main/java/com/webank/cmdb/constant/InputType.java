@@ -37,4 +37,8 @@ public enum InputType {
         }
         return None;
     }
+
+    public boolean codeEquals(String anCode){
+        return this.code.equalsIgnoreCase(anCode);
+    }
 }

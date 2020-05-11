@@ -1,5 +1,7 @@
 package com.webank.cmdb.service;
 
+import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
+
 import java.util.List;
 
 public interface RouteQueryExpressionService extends CmdbService{
@@ -11,4 +13,6 @@ public interface RouteQueryExpressionService extends CmdbService{
     }
 
     List executeQuery(String expression);
+
+    AdhocIntegrationQueryDto parseRouteExpression(String routeExpression);
 }
