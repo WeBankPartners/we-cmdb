@@ -15,6 +15,7 @@ import javax.transaction.Transactional;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
@@ -39,6 +40,18 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
         intQuery = expressParser.parse(expression).getCriteria();
         assertThat(intQuery,notNullValue());
         assertThat(intQuery.getAttrs().size(),equalTo(2));
+
+    }
+
+    @Test
+    @Transactional
+    public void testRoutQueryParseWithCondition(){
+        String expression = "subsys_design{key_name eq 'UM_CLIENT'}:guid";
+        AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
+        IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
+        assertThat(intQuery,notNullValue());
+        assertThat(intQuery.getAttrs().size(),equalTo(2));
+        assertThat(adhocIntegrationQueryDto.getQueryRequest().getFilters().size(),equalTo(1));
     }
 
     @Test
@@ -130,10 +143,9 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Test
     @Transactional
     public void testQueryWithExpression(){
-        String expression = "system_design:code";
+        String expression = "subsys_design{key_name eq 'UM_CLIENT'}:guid";
         AdhocIntegrationQueryDto adhocQuery = expressParser.parse(expression);
         QueryResponse response = ciService.adhocIntegrateQuery(adhocQuery);
         assertThat(response, notNullValue());
-        assertThat(response.getContents().size(),equalTo(4));
     }
 }
