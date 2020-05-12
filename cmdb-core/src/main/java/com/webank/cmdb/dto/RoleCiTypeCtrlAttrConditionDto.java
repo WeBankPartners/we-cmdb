@@ -23,6 +23,7 @@ public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeC
     private Integer ciTypeAttrId;
     private String ciTypeAttrName;
     private String conditionValue;
+    @DtoField(domainField = "conditionValueType")
     private String conditionType;
     private Object conditionValueObject;
     private List<String> conditionValueExprs = new ArrayList<>();
