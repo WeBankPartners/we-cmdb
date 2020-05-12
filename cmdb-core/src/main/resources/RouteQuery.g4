@@ -33,7 +33,7 @@ condition:
 	BL attr OP_EQ value BR		# ConditionEq
 	| BL attr ID OP_GT value BR	# ConditionGt
 	| BL attr OP_LT value BR	# ConditionLt
-	| BL attr OP_NE BR			# ConditionNe
+	| BL attr OP_NE value BR			# ConditionNe
 	| BL attr OP_IN array BR	# ConditionIn
 	| BL attr OP_CTAN STRING BR	# ConditionContains
 	| BL attr OP_NN BR			# ConditionNotNull

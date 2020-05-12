@@ -318,7 +318,7 @@ public class UIUserManagerService {
         }
         if (model.containsKey("conditionId"))
             condition.setConditionId((Integer) model.get("conditionId"));
-        if (model.containsKey("conditionValue")) {
+        if (model.containsKey("conditionType")) {
             if("Expression".equalsIgnoreCase(condition.getConditionType())) {
                 List conditionValExprs = (List)model.get("conditionValueExprs");
                 condition.setConditionValueExprs(conditionValExprs);
