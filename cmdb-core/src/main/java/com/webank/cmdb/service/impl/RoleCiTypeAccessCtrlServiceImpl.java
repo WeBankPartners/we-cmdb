@@ -92,7 +92,7 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
 
                     int resultAttrId = getResultAttrId(adhocIntegrationQuery.getCriteria(),resultColumns.get(0));
                     Optional<AdmCiTypeAttr> resultAttrOpt = admCiTypeAttrRepository.findById(resultAttrId);
-                    if(resultAttrOpt.get().getAdmCiType().getIdAdmCiType() != referencedCiTypeId){
+                    if(referenceCiTypeNotMatched(referencedCiTypeId, resultAttrOpt)){
                         Optional<AdmCiType> referedCiTypeOpt = admCiTypeRepository.findById(referencedCiTypeId);
                         throw new CmdbException(String.format("Result column (%s) dose not reference to CiType (%s)",resultColumns.get(0),
                                 referedCiTypeOpt.get().getTableName()));
@@ -106,6 +106,11 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
 
             }
         }
+    }
+
+    private boolean referenceCiTypeNotMatched(Integer referencedCiTypeId, Optional<AdmCiTypeAttr> resultAttrOpt) {
+        return !resultAttrOpt.isPresent() || resultAttrOpt.get().getAdmCiType() == null ||
+                !referencedCiTypeId.equals(resultAttrOpt.get().getAdmCiType().getIdAdmCiType());
     }
 
     private int getResultAttrId(IntegrationQueryDto integrationQuery,String resultColumn){
