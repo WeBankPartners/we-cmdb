@@ -1404,11 +1404,11 @@ public class CiServiceImpl implements CiService {
                             continue;
                         }
 
-/*
                         if (kv.getKey().endsWith(".guid") || kv.getKey().endsWith(".r_guid")) {
-                            continue;
+                            if(!isRequestExplicitly(intQueryReq, (Map.Entry<String, FieldInfo>) kv)) {
+                                continue;
+                            }
                         }
-*/
 
 /*
                         if(!isRequestField(intQueryReq,kv)){
@@ -1458,6 +1458,10 @@ public class CiServiceImpl implements CiService {
         } finally {
             priEntityManager.close();
         }
+    }
+
+    private boolean isRequestExplicitly(QueryRequest intQueryReq, Map.Entry<String, FieldInfo> kv) {
+        return intQueryReq.getResultColumns().contains(kv.getKey());
     }
 
     private boolean requestGuid(QueryRequest intQueryReq){

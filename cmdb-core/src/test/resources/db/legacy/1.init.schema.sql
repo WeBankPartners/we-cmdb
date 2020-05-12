@@ -173,6 +173,27 @@ CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr_condition` (
   CONSTRAINT `fk_adm_role_ci_type_attr_adm_role_ci_type_attr_1` FOREIGN KEY (`id_adm_role_ci_type_ctrl_attr`) REFERENCES `adm_role_ci_type_ctrl_attr` (`id_adm_role_ci_type_ctrl_attr`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `adm_role_ci_type_ctrl_attr_expression`;
+
+CREATE TABLE `adm_role_ci_type_ctrl_attr_expression` (
+  `id_adm_role_ci_type_ctrl_attr_expression` int(11) NOT NULL AUTO_INCREMENT,
+  `id_adm_role_ci_type_ctrl_attr_condition` int(11) DEFAULT NULL,
+  `expression` varchar(500) DEFAULT NULL,
+  PRIMARY KEY (`id_adm_role_ci_type_ctrl_attr_expression`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_role_ci_type_ctrl_attr_select` */
+
+DROP TABLE IF EXISTS `adm_role_ci_type_ctrl_attr_select`;
+
+CREATE TABLE `adm_role_ci_type_ctrl_attr_select` (
+  `id_adm_role_ci_type_ctrl_attr_select` int(11) NOT NULL AUTO_INCREMENT,
+  `id_adm_role_ci_type_ctrl_attr_condition` int(11) NOT NULL,
+  `id_adm_basekey` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id_adm_role_ci_type_ctrl_attr_select`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
 DROP TABLE IF EXISTS `adm_basekey_cat_type`;
 CREATE TABLE `adm_basekey_cat_type` (
   `id_adm_basekey_cat_type` int(11) NOT NULL AUTO_INCREMENT,

@@ -10,6 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 
+import com.webank.cmdb.config.TestDatabase;
+import com.webank.cmdb.util.CmdbThreadLocal;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 
@@ -21,17 +23,25 @@ import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.util.JsonUtil;
 
+import javax.sql.DataSource;
+
 public class ApiV2ControllerRoleCiTypeCtrlAttrConditionTest extends LegacyAbstractBaseControllerTest {
+    @Override
+    protected void doSetup(DataSource dataSource){
+        TestDatabase.executeSqlScript(dataSource, "db/test-data-for-access-control-scenarios.sql");
+        CmdbThreadLocal.getIntance()
+                .putCurrentUser("mock_user1");
+    }
 
     @Test
     public void whenCreateRoleCiTypeCtrlAttrConditionShouldReturnRoleId() throws Exception {
         List<?> jsonList = ImmutableList.builder()
                 .add(ImmutableMap.builder()
                         .put("callbackId", "123456")
-                        .put("roleCiTypeCtrlAttrId", 1)
-                        .put("ciTypeAttrId", 1)
-                        .put("conditionValue", "mockConditionValue")
-                        .put("conditionValueType", "ID")
+                        .put("roleCiTypeCtrlAttrId", 3)
+                        .put("ciTypeAttrId", 10109)
+                        .put("conditionValueExprs", Lists.newArrayList("subsys_design[{key_name eq 'WECUBE-DEMO'}]:guid"))
+                        .put("conditionType", "Expression")
                         .build())
                 .build();
         String reqJson = JsonUtil.toJson(jsonList);
@@ -39,7 +49,7 @@ public class ApiV2ControllerRoleCiTypeCtrlAttrConditionTest extends LegacyAbstra
                 .content(reqJson))
                 .andExpect(jsonPath("$.statusCode", is("OK")))
                 .andExpect(jsonPath("$.data[0].conditionId", greaterThanOrEqualTo(1)))
-                .andExpect(jsonPath("$.data[0].conditionValueType", is(TYPE_ID)));
+                .andExpect(jsonPath("$.data[0].conditionType", is("Expression")));
     }
 
     @Test
@@ -49,7 +59,7 @@ public class ApiV2ControllerRoleCiTypeCtrlAttrConditionTest extends LegacyAbstra
                         .put("callbackId", "123456")
                         .put("conditionId", 1)
                         .put("conditionValue", "updatedConditionValue")
-                        .put("conditionValueType", "Expression")
+                        .put("conditionType", "Expression")
                         .build())
                 .build();
         String reqJson = JsonUtil.toJson(jsonList);
@@ -58,7 +68,7 @@ public class ApiV2ControllerRoleCiTypeCtrlAttrConditionTest extends LegacyAbstra
                 .andExpect(jsonPath("$.statusCode", is("OK")))
                 .andExpect(jsonPath("$.data[0].conditionId", is(1)))
                 .andExpect(jsonPath("$.data[0].conditionValue", is("updatedConditionValue")))
-                .andExpect(jsonPath("$.data[0].conditionValueType", is(TYPE_EXPRESSION)));
+                .andExpect(jsonPath("$.data[0].conditionType", is(TYPE_EXPRESSION)));
     }
 
     @Test

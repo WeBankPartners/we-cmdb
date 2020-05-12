@@ -1,5 +1,6 @@
 package com.webank.cmdb.expression;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.Filter;
@@ -12,10 +13,7 @@ import com.webank.cmdb.expression.antlr4.RouteQueryParser;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 
 public class RouteQueryExpressionListener extends RouteQueryBaseListener {
     public static final String ATTR_DELIMITER = ".";
@@ -73,10 +71,16 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
                 throw new CmdbExpressException(String.format("Attribute (%s) is not existed for CiType (%s).",attr,tableName));
             }
 
-            intQuery.getAttrs().add(fieldNode.getAttrId());
             String fetchAttrName = getAttrKeyname(tableName,attr);
-            intQuery.getAttrKeyNames().add(fetchAttrName);
-            adhocIntegrationQuery.getQueryRequest().getResultColumns().add(fetchAttrName);
+            if(!intQuery.getAttrs().contains(fieldNode.getAttrId())){
+                intQuery.getAttrs().add(fieldNode.getAttrId());
+                intQuery.getAttrKeyNames().add(fetchAttrName);
+            }
+
+            List<String> resultColumns = adhocIntegrationQuery.getQueryRequest().getResultColumns();
+            if(!resultColumns.contains(fetchAttrName)){
+                resultColumns.add(fetchAttrName);
+            }
         }
         fetchAttrs.clear();
     }
@@ -194,6 +198,13 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
         conditions.push(new Filter(getAttrKeyname(entities.peek(),ctx.attr().getText()), FilterOperator.Equal.getCode(),val));
     }
 
+    @Override
+    public void exitConditionIn(RouteQueryParser.ConditionInContext ctx) {
+        List<Object> inValues = new ArrayList<>(arrValues);
+        arrValues.clear();
+        conditions.push(new Filter(getAttrKeyname(entities.peek(),ctx.attr().getText()), FilterOperator.In.getCode(),inValues));
+    }
+
     private String trimStringVal(String val){
         if(val.length()>0){
             if(val.charAt(0) == '\'' || val.charAt(0) == '"'){
@@ -265,7 +276,12 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
 
     @Override
     public void exitValString(RouteQueryParser.ValStringContext ctx){
-        values.push(trimStringVal(ctx.getText()));
+        String strVal = trimStringVal(ctx.getText());
+        if(isArrayBegan){
+            arrValues.push(strVal);
+        }else {
+            values.push(trimStringVal(ctx.getText()));
+        }
     }
 
     @Override
@@ -278,7 +294,22 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
         } catch (ParseException e) {
             throw new CmdbExpressException(String.format("Failed to convert text '%s' to number.",txt));
         }
-        values.push(number);
-    }
 
+        if(isArrayBegan){
+            arrValues.push(number);
+        }else {
+            values.push(number);
+        }
+    }
+    @Override
+    public void exitValBool(RouteQueryParser.ValBoolContext ctx) {
+        String strBool = ctx.getText();
+        Boolean boolVal = Boolean.valueOf(strBool);
+        if(isArrayBegan){
+            arrValues.push(boolVal);
+        }else {
+            values.push(boolVal);
+        }
+
+    }
 }
