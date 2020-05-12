@@ -60,15 +60,18 @@ class RoleCiTypeRuleConditionMatcher {
     }
 
     Set<?> getMatchedData() {
-        String conditionValue = condition.getConditionValue();
-        if (StringUtils.isEmpty(conditionValue))
+        String conditionValueType = condition.getConditionValueType();
+        if (StringUtils.isEmpty(conditionValueType))
             return emptySet();
 
-        if (AttrConditionType.Expression.codeEquals(condition.getConditionValueType())) {
+        if (AttrConditionType.Expression.codeEquals(conditionValueType)) {
             return evaluateExpression();
-        }else if(AttrConditionType.Select.codeEquals(condition.getConditionValueType())){
+        }else if(AttrConditionType.Select.codeEquals(conditionValueType)){
             return evaluateSelect();
         }else{
+            return emptySet();
+        }
+        /*else{
             if (fromCode(condition.getAdmCiTypeAttr().getPropertyType()) == FieldType.Int) {
                 if (conditionValue.contains(",")) {
                     return Stream.of(conditionValue.split(",")).map(String::trim).map(Integer::valueOf).collect(Collectors.toSet());
@@ -82,7 +85,7 @@ class RoleCiTypeRuleConditionMatcher {
                     return Sets.newHashSet(conditionValue.trim());
                 }
             }
-        }
+        }*/
     }
 
     /**
