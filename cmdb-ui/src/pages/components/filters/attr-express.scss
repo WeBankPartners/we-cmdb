@@ -1,0 +1,38 @@
+.attr-express {
+  span {
+    white-space: pre-wrap;
+    word-break: break-all;
+    word-wrap: break-word;
+  }
+
+  &-node {
+    border-bottom: 1px solid transparent;
+    cursor: pointer;
+
+    &:not(.read-only):hover {
+      color: #27a6f0;
+    }
+
+    &.error {
+      border-bottom: 1px solid #f00;
+    }
+  }
+
+  &-li {
+    cursor: pointer;
+    height: 25px;
+    line-height: 25px;
+    width: 100%;
+
+    &-ref-from {
+      color: rgb(22, 206, 22);
+    }
+    &-ref-to {
+      color: rgb(206, 13, 13);
+    }
+
+    &:hover {
+      background-color: rgb(227, 231, 235);
+    }
+  }
+}

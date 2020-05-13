@@ -257,5 +257,7 @@
   "routing_design_diagram": "Routers Design Diagram",
   "security_policy_design_diagram": "Security Policy Design Diagram",
   "routing_diagram": "Routers Diagram",
-  "security_policy_diagram": "Security Policy Diagram"
+  "security_policy_diagram": "Security Policy Diagram",
+  "express": "express",
+  "add_expression": "Add Expression"
 }
