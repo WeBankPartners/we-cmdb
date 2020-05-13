@@ -257,5 +257,7 @@
   "routing_design_diagram": "路由设计关系图",
   "security_policy_design_diagram": "安全策略设计关系图",
   "routing_diagram": "路由关系图",
-  "security_policy_diagram": "安全策略关系图"
+  "security_policy_diagram": "安全策略关系图",
+  "express": "表达式",
+  "add_expression": "新增表达式"
 }
