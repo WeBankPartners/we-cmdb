@@ -207,21 +207,6 @@ public class UIUserManagerService {
         if (isNotEmpty(accessControlAttributes)) {
             Map<Integer, RoleCiTypeCtrlAttrConditionDto> conditionMap = asMap(roleCiTypeCtrlAttr.getConditions(), RoleCiTypeCtrlAttrConditionDto::getCiTypeAttrId);
             accessControlAttributes.forEach(attr -> {
-/*
-                RoleCiTypeCtrlAttrConditionDto attrConditionDto = roleCiTypeAccessCtrlService
-                        .queryRoleCiTypeCtrlAttrCondition(roleCiTypeCtrlAttr.getRoleCiTypeCtrlAttrId(),attr.getCiTypeAttrId());
-*/
-/*
-                RoleCiTypeCtrlAttrConditionDto condition = conditionMap.get(attr.getCiTypeAttrId());
-                if (condition == null) {
-                    condition = new RoleCiTypeCtrlAttrConditionDto();
-                    condition.setRoleCiTypeCtrlAttrId(roleCiTypeCtrlAttr.getRoleCiTypeCtrlAttrId());
-                    condition.setCiTypeAttrId(attr.getCiTypeAttrId());
-                    condition.setCiTypeAttrName(attr.getName());
-                    condition = uiWrapperService.createRoleCiTypeCtrlAttrCondition(condition);
-                }
-                enrichConditionValueObject(condition, attr);
-*/
                 RoleCiTypeCtrlAttrConditionDto condition = conditionMap.get(attr.getCiTypeAttrId());
                 model.put(attr.getPropertyName(), condition);
             });
@@ -345,8 +330,6 @@ public class UIUserManagerService {
                 RoleCiTypeCtrlAttrDto addedCtrlAttr = uiWrapperService.createRoleCiTypeCtrlAttribute(ctrlAttrDto);
                 if (isNotEmpty(ctrlAttrDto.getConditions())) {
                     ctrlAttrDto.getConditions().forEach(condition -> condition.setRoleCiTypeCtrlAttrId(addedCtrlAttr.getRoleCiTypeCtrlAttrId()));
-//                    List<RoleCiTypeCtrlAttrConditionDto> addedConditions = uiWrapperService
-//                            .createRoleCiTypeCtrlAttrConditions(ctrlAttrDto.getConditions().toArray(new RoleCiTypeCtrlAttrConditionDto[ctrlAttrDto.getConditions().size()]));
                     List<RoleCiTypeCtrlAttrConditionDto> addedConditions = roleCiTypeAccessCtrlService.createRoleCiTypeCtrlAttrConditions(ctrlAttrDto.getConditions());
                     addedCtrlAttr.setConditions(addedConditions);
                 }
@@ -367,8 +350,6 @@ public class UIUserManagerService {
                 RoleCiTypeCtrlAttrDto updatedCtrlAttr = uiWrapperService.updateRoleCiTypeCtrlAttribute(ctrlAttrDto);
                 if (isNotEmpty(ctrlAttrDto.getConditions())) {
                     ctrlAttrDto.getConditions().forEach(condition -> condition.setRoleCiTypeCtrlAttrId(updatedCtrlAttr.getRoleCiTypeCtrlAttrId()));
-//                    List<RoleCiTypeCtrlAttrConditionDto> updatedConditions = uiWrapperService
-//                            .updateRoleCiTypeCtrlAttrConditions(ctrlAttrDto.getConditions().toArray(new RoleCiTypeCtrlAttrConditionDto[ctrlAttrDto.getConditions().size()]));
                     List<RoleCiTypeCtrlAttrConditionDto> updatedConditions = roleCiTypeAccessCtrlService
                             .updateRoleCiTypeCtrlAttrConditions(ctrlAttrDto.getConditions());
 
