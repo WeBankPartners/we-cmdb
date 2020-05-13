@@ -296,7 +296,6 @@ public class CiServiceImpl implements CiService {
         if (!isLoaded) {
             reload();
         }
-        logger.info("dynamicEntityMetaMap: "+ dynamicEntityMetaMap.toString());
         return dynamicEntityMetaMap;
     }
 
