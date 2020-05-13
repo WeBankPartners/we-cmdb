@@ -7,9 +7,11 @@ import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.IntegrationQueryDto;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.Relationship;
+import com.webank.cmdb.service.CiService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -23,6 +25,9 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 public class RouteQueryExpressionFormatterTest extends AbstractBaseControllerTest {
+    @Autowired
+    private CiService ciService;
+    
     private RouteQueryExpressionFormatter routeQueryExpressionFormatter;
 
 //    @Before
