@@ -19,6 +19,7 @@ import WeCMDBAttrInput from '../src/pages/components/attr-input'
 import WeCMDBSequenceDiagram from '../src/pages/components/sequence-diagram.vue'
 import WeCMDBOrchestration from '../src/pages/components/orchestration.vue'
 import WeCMDBCIPassword from '../src/pages/components/ci-password.vue'
+import CMDBPermissionFilters from '../src/pages/components/filters'
 
 Vue.component('WeCMDBSelect', WeCMDBSelect)
 Vue.component('WeCMDBRefSelect', WeCMDBRefSelect)
@@ -29,6 +30,7 @@ Vue.component('WeCMDBAttrInput', WeCMDBAttrInput)
 Vue.component('WeCMDBSequenceDiagram', WeCMDBSequenceDiagram)
 Vue.component('WeCMDBOrchestration', WeCMDBOrchestration)
 Vue.component('WeCMDBCIPassword', WeCMDBCIPassword)
+Vue.component('CMDBPermissionFilters', CMDBPermissionFilters)
 Vue.config.productionTip = false
 
 Vue.use(ViewUI, {
