@@ -153,6 +153,21 @@ export default {
                         />
                       </div>
                     )
+                  } else if (column.component === 'CMDBPermissionFilters') {
+                    return (
+                      <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
+                        <column.component
+                          allCiTypes={column.allCiTypes}
+                          isFilterAttr={true}
+                          displayAttrType={column.displayAttrType}
+                          rootCis={column.rootCis}
+                          value={d[column.propertyName]}
+                          onInput={v => {
+                            setValueHandler(v, column, d)
+                          }}
+                        />
+                      </div>
+                    )
                   } else {
                     const props =
                       column.component === 'WeCMDBSelect'

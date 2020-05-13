@@ -11,6 +11,7 @@ import WeCMDBAttrInput from '../src/pages/components/attr-input'
 import WeCMDBSequenceDiagram from '../src/pages/components/sequence-diagram.vue'
 import WeCMDBOrchestration from '../src/pages/components/orchestration.vue'
 import WeCMDBCIPassword from '../src/pages/components/ci-password.vue'
+import CMDBPermissionFilters from '../src/pages/components/filters'
 
 window.component('WeCMDBSelect', WeCMDBSelect)
 window.component('WeCMDBRefSelect', WeCMDBRefSelect)
@@ -21,6 +22,7 @@ window.component('WeCMDBAttrInput', WeCMDBAttrInput)
 window.component('WeCMDBSequenceDiagram', WeCMDBSequenceDiagram)
 window.component('WeCMDBOrchestration', WeCMDBOrchestration)
 window.component('WeCMDBCIPassword', WeCMDBCIPassword)
+window.component('CMDBPermissionFilters', CMDBPermissionFilters)
 
 window.locale('zh-CN', zhCN)
 window.locale('en-US', enUS)

@@ -39,7 +39,7 @@
               icon="ios-build"
               type="dashed"
               size="small"
-              :disabled="dataPermissionDisabled"
+              :disabled="dataPermissionDisabled || !ciTypesWithAccessControlledAttr[ci.ciTypeId]"
               @click="openPermissionManageModal(ci.roleCiTypeId)"
             >
               {{ $t('details') }}
@@ -75,7 +75,7 @@
 </template>
 
 <script>
-import { newOuterActions, components } from '@/const/actions.js'
+import { newOuterActions } from '@/const/actions.js'
 import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import {
   getRoleCiTypeCtrlAttributesByRoleCiTypeId,
@@ -86,11 +86,14 @@ import {
   getPermissionsByRole,
   getWecubeRoles,
   addDataPermissionAction,
-  removeDataPermissionAction
+  removeDataPermissionAction,
+  getAllCITypesByLayerWithAttr
 } from '@/api/server.js'
 export default {
   data () {
     return {
+      allCiTypes: [],
+      ciTypesWithAccessControlledAttr: {},
       defaultKey: [
         'creationPermission',
         'enquiryPermission',
@@ -258,19 +261,12 @@ export default {
           let obj = {}
           for (let i in _) {
             const found = data.header.find(p => p.propertyName === i)
-            const isRef = found && found.inputType === 'ref'
-            if (typeof _[i] === 'object' && _[i] !== null) {
-              obj[i] = {
-                codeId:
-                  _[i].conditionValue && isRef ? _[i].conditionValue : _[i].conditionValue.split(',').map(n => n * 1),
-                value:
-                  (_[i].conditionValueObject &&
-                    _[i].conditionValueObject
-                      .map(s => (isRef ? s.data.key_name : s.value))
-                      .toString()
-                      .replace(',', ';')) ||
-                  []
-              }
+            const isRef = found && ['ref', 'multiRef'].indexOf(found.inputType) >= 0
+            const isSelect = found && ['select', 'multiSelect'].indexOf(found.inputType) >= 0
+            if (isRef) {
+              obj[i] = _[i] ? _[i].conditionValueExprs : []
+            } else if (isSelect) {
+              obj[i] = _[i] ? _[i].conditionValueSelects : []
             } else {
               obj[i] = {
                 codeId: _[i],
@@ -293,8 +289,16 @@ export default {
               placeholder: h.name,
               ciType: { id: h.referenceId, name: h.name },
               type: 'text',
-              ...components[h.inputType],
-              isMultiple: h.inputType === 'select'
+              component: h.inputType === 'select' ? 'WeCMDBSelect' : 'CMDBPermissionFilters',
+              isMultiple: h.inputType === 'select',
+              options: [],
+              filterRule: null,
+              isEditable: true,
+              // PermissionFilters需要的参数
+              allCiTypes: this.allCiTypes,
+              isFilterAttr: true,
+              displayAttrType: ['ref', 'multiRef'],
+              rootCis: [h.propertyName]
             }
           })
           .concat(this.defaultColumns)
@@ -360,9 +364,24 @@ export default {
         delete _.weTableForm
         delete _.weTableRowId
         for (let i in _) {
+          const foundCi = this.attrsPermissionsColumns.find(k => k.inputKey === i)
           const found = this.defaultKey.find(k => k === i)
-          if (!found) {
-            _[i] = { conditionValue: _[i].toString() }
+          if (!found && foundCi) {
+            if (['ref', 'multiRef'].indexOf(foundCi.inputType) >= 0) {
+              _[i] = _[i].length
+                ? {
+                  conditionType: 'Expression',
+                  conditionValueExprs: _[i]
+                }
+                : null
+            } else if (['select', 'multiSelect'].indexOf(foundCi.inputType) >= 0) {
+              _[i] = _[i].length
+                ? {
+                  conditionType: 'Select',
+                  conditionValueSelects: _[i]
+                }
+                : null
+            }
           }
         }
       })
@@ -389,10 +408,20 @@ export default {
         const foundRow = this.ciTypeAttrsPermissionsBackUp.find(p => p.roleCiTypeCtrlAttrId === _.roleCiTypeCtrlAttrId)
         for (let i in _) {
           const found = this.defaultKey.find(k => k === i)
-          if (!found) {
-            _[i] = {
-              conditionValue: _[i].toString(),
-              conditionId: foundRow[i].conditionId
+          const foundCi = this.attrsPermissionsColumns.find(k => k.inputKey === i)
+          if (!found && foundCi) {
+            if (['ref', 'multiRef'].indexOf(foundCi.inputType) >= 0) {
+              _[i] = {
+                conditionType: 'Expression',
+                conditionId: foundRow[i].conditionId || null,
+                conditionValueExprs: _[i]
+              }
+            } else if (['select', 'multiSelect'].indexOf(foundCi.inputType) >= 0) {
+              _[i] = {
+                conditionType: 'Select',
+                conditionId: foundRow[i].conditionId || null,
+                conditionValueSelects: _[i]
+              }
             }
           }
         }
@@ -439,7 +468,7 @@ export default {
     addHandler () {
       let emptyRowData = {}
       this.attrsPermissionsColumns.forEach(_ => {
-        if (_.inputType === 'multiSelect' || _.inputType === 'multiRef') {
+        if (['ref', 'multiRef', 'select', 'multiSelect'].indexOf(_.inputType) >= 0) {
           emptyRowData[_.inputKey] = []
         } else {
           emptyRowData[_.inputKey] = ''
@@ -513,6 +542,29 @@ export default {
         })
       }
     },
+    async getAllCis () {
+      const res = await getAllCITypesByLayerWithAttr(['notCreated', 'created', 'decommissioned', 'dirty'])
+      if (res.statusCode === 'OK') {
+        let _allCiTypes = []
+        let _ciTypesWithAccessControlledAttr = {}
+        res.data.forEach(layer => {
+          layer.ciTypes &&
+            layer.ciTypes.forEach(_ => {
+              _allCiTypes.push(_)
+              if (Array.isArray(_.attributes)) {
+                _.attributes.find(attr => {
+                  if (attr.isAccessControlled) {
+                    _ciTypesWithAccessControlledAttr[_.ciTypeId] = _
+                    return true
+                  }
+                })
+              }
+            })
+        })
+        this.allCiTypes = _allCiTypes
+        this.ciTypesWithAccessControlledAttr = _ciTypesWithAccessControlledAttr
+      }
+    },
     permissionResponseHandeler (res) {
       this.getPermissions(true, true, this.currentRoleName)
     },
@@ -529,6 +581,7 @@ export default {
   },
   created () {
     this.getAllRoles()
+    this.getAllCis()
   }
 }
 </script>
