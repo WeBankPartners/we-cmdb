@@ -25,7 +25,7 @@ import static org.junit.Assert.*;
 public class RouteQueryExpressionFormatterTest extends AbstractBaseControllerTest {
     private RouteQueryExpressionFormatter routeQueryExpressionFormatter;
 
-    @Before
+//    @Before
     public void setup() {
         routeQueryExpressionFormatter = new RouteQueryExpressionFormatter(ciService.getDynamicEntityMetaMap());
     }
@@ -33,6 +33,7 @@ public class RouteQueryExpressionFormatterTest extends AbstractBaseControllerTes
     @Test
     @Transactional
     public void testOneNodeFormat(){
+        setup();
         AdhocIntegrationQueryDto adhocIntegrationQuery = new AdhocIntegrationQueryDto();
         adhocIntegrationQuery.setCriteria(new IntegrationQueryDto("system_design",1, ImmutableList.of(1),
                 ImmutableList.of("system_design:guid"),null)
@@ -67,6 +68,7 @@ public class RouteQueryExpressionFormatterTest extends AbstractBaseControllerTes
     @Test
     @Transactional
     public void formatBackwardNodeIntegrateQuery(){
+        setup();
         IntegrationQueryDto subSystemDesignQuery = new IntegrationQueryDto()
                 .withCiTypeId(2)
                 .withAttrs(Lists.newArrayList(15,22))
@@ -89,6 +91,7 @@ public class RouteQueryExpressionFormatterTest extends AbstractBaseControllerTes
     @Test
     @Transactional
     public void formatForwardNodeIntegrateQuery(){
+        setup();
         IntegrationQueryDto systemDesignQuery = new IntegrationQueryDto()
                 .withCiTypeId(1)
                 .withAttrs(Lists.newArrayList(1,8,11))
