@@ -23,7 +23,7 @@ import static org.junit.Assert.assertThat;
 public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     private RouteQueryExpressionParser expressParser = null;
 
-    @Before
+//    @Before
     public void setup() {
         expressParser = new RouteQueryExpressionParser(ciService.getTableDynamicEntityMetaMap());
     }
@@ -31,6 +31,7 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Test
     @Transactional
     public void testRouteQueryParseForOneNode() {
+        setup();
         String expression = "system_design:code";
         IntegrationQueryDto intQuery = expressParser.parse(expression).getCriteria();
         assertThat(intQuery,notNullValue());
@@ -46,6 +47,7 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Test
     @Transactional
     public void testRoutQueryParseWithCondition(){
+        setup();
         String expression = "subsys_design{key_name eq 'UM_CLIENT'}:guid";
         AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
         IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
@@ -57,6 +59,7 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Test
     @Transactional
     public void testRouteQueryParseForMultiConditions() {
+        setup();
         String expression = "system_design[{key_name eq 'EDP'},{state eq 'start'}]:code";
         AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
         IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
@@ -68,6 +71,7 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Test
     @Transactional
     public void testRouteQueryParseForFwdChain() {
+        setup();
         String expression = "subsys_design{key_name eq 'EDP'}:[key_name].system_design>system_design:guid";
         AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
         IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
@@ -91,6 +95,7 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Test
     @Transactional
     public void testRouteQueryParseForBwdChain() {
+        setup();
         String expression = "system_design~(system_design)subsys_design:key_name";
         AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
         IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
@@ -124,6 +129,7 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Test
     @Transactional
     public void testRouteQueryParseForMixedChain() {
+        setup();
         String expression = "system_design~(system_design)subsys_design.system_design>system_design:key_name";
         AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
         IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
@@ -143,6 +149,7 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
     @Test
     @Transactional
     public void testQueryWithExpression(){
+        setup();
         String expression = "subsys_design{key_name eq 'UM_CLIENT'}:guid";
         AdhocIntegrationQueryDto adhocQuery = expressParser.parse(expression);
         QueryResponse response = ciService.adhocIntegrateQuery(adhocQuery);
