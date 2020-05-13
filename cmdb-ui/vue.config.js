@@ -77,5 +77,6 @@ module.exports = {
         ]
       }
     }
-  }
+  },
+  transpileDependencies: ['detect-indent', 'redent', 'strip-indent', 'indent-string', 'crypto-random-string']
 }
