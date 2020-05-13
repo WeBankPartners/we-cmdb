@@ -1,0 +1,36 @@
+.filters-modal {
+  width: 100%;
+  position: relative;
+
+  &-filter-li {
+    align-items: center;
+    display: flex;
+    margin: 5px 0;
+    min-height: 32px;
+
+    &-icon {
+      cursor: pointer;
+      margin-right: 5px;
+    }
+
+    &-select {
+      margin-right: 5px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      
+      &.title {
+        width: 150px;
+      }
+      &.operator {
+        width: 95px;
+      }
+      &.type {
+        width: 110px;
+      }
+    }
+
+    &-input {
+      flex: 1;
+    }
+  }
+}
