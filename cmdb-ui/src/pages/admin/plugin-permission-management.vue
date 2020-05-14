@@ -651,6 +651,10 @@ export default {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
+  &:hover {
+    background-color: rgb(227, 231, 235);
+  }
 }
 .ciTypes-options {
   float: right;
