@@ -250,17 +250,18 @@ export default {
           title: this.$t('query'),
           key: 'enquiryPermission',
           inputKey: 'enquiryPermission',
-          displaySeqNo: 1,
+          defaultDisplaySeqNo: 1,
           placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBSelect',
+          component: 'WeCMDBRadioRroup',
+          defaultValue: 'Y',
           options: [
             {
-              label: this.$t('yes'),
-              value: 'Y'
+              text: this.$t('yes'),
+              label: 'Y'
             },
             {
-              label: this.$t('no'),
-              value: 'N'
+              text: this.$t('no'),
+              label: 'N'
             }
           ],
           isEditable: true,
@@ -270,17 +271,18 @@ export default {
           title: this.$t('new'),
           key: 'creationPermission',
           inputKey: 'creationPermission',
-          displaySeqNo: 2,
+          defaultDisplaySeqNo: 2,
           placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBSelect',
+          component: 'WeCMDBRadioRroup',
+          defaultValue: 'Y',
           options: [
             {
-              label: this.$t('yes'),
-              value: 'Y'
+              text: this.$t('yes'),
+              label: 'Y'
             },
             {
-              label: this.$t('no'),
-              value: 'N'
+              text: this.$t('no'),
+              label: 'N'
             }
           ],
           isEditable: true,
@@ -290,17 +292,18 @@ export default {
           title: this.$t('modify'),
           key: 'modificationPermission',
           inputKey: 'modificationPermission',
-          displaySeqNo: 3,
+          defaultDisplaySeqNo: 3,
           placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBSelect',
+          component: 'WeCMDBRadioRroup',
+          defaultValue: 'Y',
           options: [
             {
-              label: this.$t('yes'),
-              value: 'Y'
+              text: this.$t('yes'),
+              label: 'Y'
             },
             {
-              label: this.$t('no'),
-              value: 'N'
+              text: this.$t('no'),
+              label: 'N'
             }
           ],
           isEditable: true,
@@ -310,17 +313,18 @@ export default {
           title: this.$t('execute'),
           key: 'executionPermission',
           inputKey: 'executionPermission',
-          displaySeqNo: 4,
+          defaultDisplaySeqNo: 4,
           placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBSelect',
+          component: 'WeCMDBRadioRroup',
+          defaultValue: 'Y',
           options: [
             {
-              label: this.$t('yes'),
-              value: 'Y'
+              text: this.$t('yes'),
+              label: 'Y'
             },
             {
-              label: this.$t('no'),
-              value: 'N'
+              text: this.$t('no'),
+              label: 'N'
             }
           ],
           isEditable: true,
@@ -330,17 +334,18 @@ export default {
           title: this.$t('delete'),
           key: 'removalPermission',
           inputKey: 'removalPermission',
-          displaySeqNo: 5,
+          defaultDisplaySeqNo: 5,
           placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBSelect',
+          component: 'WeCMDBRadioRroup',
+          defaultValue: 'Y',
           options: [
             {
-              label: this.$t('yes'),
-              value: 'Y'
+              text: this.$t('yes'),
+              label: 'Y'
             },
             {
-              label: this.$t('no'),
-              value: 'N'
+              text: this.$t('no'),
+              label: 'N'
             }
           ],
           isEditable: true,
@@ -361,10 +366,47 @@ export default {
       this.getAttrPermissions()
     },
     async getAttrPermissions () {
+      this.$refs.table.isTableLoading(true)
       let { statusCode, data } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(this.currentRoleCiTypeId)
       if (statusCode === 'OK') {
+        let enumsArray = []
+        let _attrsPermissionsColumns = data.header
+          .map((h, index) => {
+            if (['select', 'multiSelect'].indexOf(h.inputType) >= 0) {
+              enumsArray.push({ enumKey: h.propertyName, referenceId: h.referenceId, index: index })
+            } else {
+              enumsArray.push(null)
+            }
+            return {
+              ...h,
+              title: h.name,
+              key: h.propertyName,
+              inputKey: h.propertyName,
+              displaySeqNo: index + 1,
+              inputType: h.inputType,
+              referenceId: h.referenceId,
+              placeholder: h.name,
+              ciType: { id: h.referenceId, name: h.name },
+              component: h.inputType === 'select' ? 'WeCMDBSelect' : 'CMDBPermissionFilters',
+              isMultiple: h.inputType === 'select',
+              options: [],
+              filterRule: null,
+              isEditable: true,
+              // PermissionFilters需要的参数
+              allCiTypes: this.allCiTypes,
+              isFilterAttr: true,
+              displayAttrType: ['ref', 'multiRef'],
+              rootCis: [h.propertyName]
+            }
+          })
+          .concat(
+            this.defaultColumns.map(_ => {
+              _.displaySeqNo = _.defaultDisplaySeqNo + data.header.length
+              return _
+            })
+          )
         this.ciTypeAttrsPermissionsBackUp = data.body
-        this.ciTypeAttrsPermissions = data.body.map(_ => {
+        let _ciTypeAttrsPermissions = data.body.map(_ => {
           let obj = {}
           for (let i in _) {
             const found = data.header.find(p => p.propertyName === i)
@@ -383,46 +425,28 @@ export default {
           }
           return obj
         })
-        this.attrsPermissionsColumns = data.header
-          .map((h, index) => {
-            return {
-              ...h,
-              title: h.name,
-              key: h.propertyName,
-              inputKey: h.propertyName,
-              displaySeqNo: index + 6,
-              inputType: h.inputType,
-              referenceId: h.referenceId,
-              placeholder: h.name,
-              ciType: { id: h.referenceId, name: h.name },
-              component: h.inputType === 'select' ? 'WeCMDBSelect' : 'CMDBPermissionFilters',
-              isMultiple: h.inputType === 'select',
-              options: [],
-              filterRule: null,
-              isEditable: true,
-              // PermissionFilters需要的参数
-              allCiTypes: this.allCiTypes,
-              isFilterAttr: true,
-              displayAttrType: ['ref', 'multiRef'],
-              rootCis: [h.propertyName]
+        const enumOptionsArray = await Promise.all(
+          enumsArray.map(_ => {
+            if (_) {
+              return getEnumCodesByCategoryId(0, _.referenceId)
+            } else {
+              return null
             }
           })
-          .concat(this.defaultColumns)
-        this.attrsPermissionsColumns.forEach(async i => {
-          if (i.inputType === 'select') {
-            const enumOptions = await getEnumCodesByCategoryId(0, i.referenceId)
-            let opts = []
-            if (enumOptions.statusCode === 'OK') {
-              opts = enumOptions.data.map(_ => {
-                return {
-                  value: _.codeId,
-                  label: _.value
-                }
-              })
-              this.$set(i, 'options', opts)
-            }
+        )
+        this.$refs.table.isTableLoading(false)
+        enumOptionsArray.forEach((_, i) => {
+          if (_) {
+            _attrsPermissionsColumns[i].options = _.data.map(item => {
+              return {
+                value: item.codeId,
+                label: item.value
+              }
+            })
           }
         })
+        this.attrsPermissionsColumns = _attrsPermissionsColumns
+        this.ciTypeAttrsPermissions = _ciTypeAttrsPermissions
       }
     },
 
@@ -493,6 +517,7 @@ export default {
         }
       })
       const { statusCode, message } = await createRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, addAry)
+      this.$refs.table.closeEditModal(false)
       this.$refs.table.resetModalLoading()
       if (statusCode === 'OK') {
         this.$Notice.success({
@@ -502,7 +527,6 @@ export default {
         this.getAttrPermissions()
         this.getPermissions(false, true, this.currentRoleName)
         this.setBtnsStatus()
-        this.$refs.table.closeEditModal(false)
       }
     },
     async confirmEditHandler (data) {
@@ -519,22 +543,28 @@ export default {
           const foundCi = this.attrsPermissionsColumns.find(k => k.inputKey === i)
           if (!found && foundCi) {
             if (['ref', 'multiRef'].indexOf(foundCi.inputType) >= 0) {
-              _[i] = {
-                conditionType: 'Expression',
-                conditionId: foundRow[i].conditionId || null,
-                conditionValueExprs: _[i]
-              }
+              _[i] = foundRow[i]
+                ? {
+                  conditionType: 'Expression',
+                  conditionId: foundRow[i].conditionId,
+                  conditionValueExprs: _[i]
+                }
+                : null
             } else if (['select', 'multiSelect'].indexOf(foundCi.inputType) >= 0) {
-              _[i] = {
-                conditionType: 'Select',
-                conditionId: foundRow[i].conditionId || null,
-                conditionValueSelects: _[i]
-              }
+              _[i] = foundRow[i]
+                ? {
+                  conditionType: 'Select',
+                  conditionId: foundRow[i].conditionId,
+                  conditionValueSelects: _[i]
+                }
+                : null
             }
           }
         }
       })
       const { statusCode, message } = await updateRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, editAry)
+      this.$refs.table.closeEditModal(false)
+      this.$refs.table.resetModalLoading()
       if (statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('update_permission_success'),
@@ -543,7 +573,6 @@ export default {
         this.getAttrPermissions()
         this.getPermissions(false, true, this.currentRoleName)
         this.setBtnsStatus()
-        this.$refs.table.closeEditModal(false)
       }
     },
     setBtnsStatus () {

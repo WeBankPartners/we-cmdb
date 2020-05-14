@@ -6,6 +6,7 @@ import enUS from './locale/i18n/en-US.json'
 
 import WeCMDBSelect from '../src/pages/components/select.vue'
 import WeCMDBRefSelect from './pages/components/ref-select.js'
+import WeCMDBRadioRroup from '../src/pages/components/radio-group.vue'
 import WeCMDBTable from './pages/components/table.js'
 import CMDBTable from '../src/pages/components/cmdb-table/index.js'
 import WeCMDBSimpleTable from '../src/pages/components/simple-table.vue'
@@ -17,6 +18,7 @@ import CMDBPermissionFilters from '../src/pages/components/filters'
 
 window.component('WeCMDBSelect', WeCMDBSelect)
 window.component('WeCMDBRefSelect', WeCMDBRefSelect)
+window.component('WeCMDBRadioRroup', WeCMDBRadioRroup)
 window.component('WeCMDBTable', WeCMDBTable)
 window.component('CMDBTable', CMDBTable)
 window.component('WeCMDBSimpleTable', WeCMDBSimpleTable)

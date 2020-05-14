@@ -1,4 +1,3 @@
-import './edit-modal.scss'
 const WIDTH = 300
 export default {
   data () {
@@ -169,6 +168,18 @@ export default {
                         />
                       </div>
                     )
+                  } else if (column.component === 'WeCMDBRadioRroup') {
+                    return (
+                      <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
+                        <column.component
+                          value={d[column.inputKey] || column.defaultValue}
+                          options={column.optionKey ? this.ascOptions[column.optionKey] : column.options}
+                          onInput={v => {
+                            setValueHandler(v, column, d)
+                          }}
+                        />
+                      </div>
+                    )
                   } else {
                     const props =
                       column.component === 'WeCMDBSelect'
@@ -224,9 +235,7 @@ export default {
                     }
                     return (
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
-                        <div class={!column.isNullable ? 'is-nullable' : ''}>
-                          <column.component {...data} />
-                        </div>
+                        <column.component {...data} />
                       </div>
                     )
                   }
