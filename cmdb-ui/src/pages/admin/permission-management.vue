@@ -837,7 +837,6 @@ export default {
     },
     menusResponseHandeler (data, disabled = true) {
       let menus = []
-      return []
       data.forEach(_ => {
         if (!_.parentId) {
           let menuObj = MENUS.find(m => m.code === _.code)
