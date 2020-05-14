@@ -837,6 +837,7 @@ export default {
     },
     menusResponseHandeler (data, disabled = true) {
       let menus = []
+      return []
       data.forEach(_ => {
         if (!_.parentId) {
           let menuObj = MENUS.find(m => m.code === _.code)
@@ -992,6 +993,10 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  &:hover {
+    background-color: rgb(227, 231, 235);
   }
 }
 .ciTypes-options {
