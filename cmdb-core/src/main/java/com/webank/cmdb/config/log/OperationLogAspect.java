@@ -10,6 +10,8 @@ import static com.webank.cmdb.constant.LogOperation.RemovalFailure;
 import static com.webank.cmdb.constant.LogOperation.RemovalSuccess;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,7 @@ import com.webank.cmdb.util.CmdbThreadLocal;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.http.HttpServletRequest;
 
 @Component
@@ -82,11 +85,9 @@ public class OperationLogAspect {
         Class objectClass = deriveObjectClass(annotation, firstArgument);
 
         Annotation[][] methodAnnotations = methodSignature.getMethod().getParameterAnnotations();
-        Integer ciTypeId = getCiTypeId(methodAnnotations,args);
-        String ciTypeName = Strings.EMPTY;
-        if(ciTypeId != null){
-            ciTypeName = getCiTypeName(ciTypeId);
-        }
+
+        List<Integer> ciTypeIds = getCiTypeId(methodAnnotations,args);
+
 
         String requestUrl = getRequestUrl();
         String clientHost = getClientHost();
@@ -97,15 +98,21 @@ public class OperationLogAspect {
             if(result instanceof List){
                 ciGuids = getGuidFromList((List) result);
             }
-            doLog(user, method, args, annotation, objectClass, ciTypeId, ciTypeName, requestUrl, clientHost, ciGuids);
+                doLog(user, method, args, annotation, objectClass, ciTypeIds, requestUrl, clientHost, ciGuids);
             return result;
         }else{
             ciGuids = getCiGuid(methodAnnotations, args);
+            doLog(user, method, args, annotation, objectClass, ciTypeIds, requestUrl, clientHost, ciGuids);
+
             try {
                 Object result = pjp.proceed();
-                doLog(user, method, args, annotation, objectClass, ciTypeId, ciTypeName, requestUrl, clientHost, ciGuids);
                 return result;
             } catch (Throwable throwable) {
+                Integer ciTypeId = null;
+                if(ciTypeIds.size()>0){
+                    ciTypeId = ciTypeIds.get(0);
+                }
+                String ciTypeName = getCiTypeName(ciTypeId);
                 logService.log(logCategory(objectClass), user, failureOps(annotation), logContent(objectClass, args, method),
                         errorMessage(throwable), requestUrl,Strings.EMPTY, Strings.EMPTY, ciTypeId, ciTypeName,clientHost);
                 throw throwable;
@@ -114,13 +121,31 @@ public class OperationLogAspect {
 
     }
 
-    private void doLog(String user, String method, Object[] args, OperationLogPointcut annotation, Class objectClass, Integer ciTypeId, String ciTypeName, String requestUrl, String clientHost, List<String> ciGuids) {
-        for (String ciGuid : ciGuids) {
-            if(Strings.isEmpty(ciGuid))
-                continue;
-            String keyName = getKeyName(ciTypeId, ciGuid);
+    private void doLog(String user, String method, Object[] args, OperationLogPointcut annotation, Class objectClass, List<Integer> ciTypeIds,
+                       String requestUrl, String clientHost, List<String> ciGuids) {
+        if(ciTypeIds.size()>1) {
+            for (Integer ciTypeId : ciTypeIds) {
+                String ciTypeName = Strings.EMPTY;
+                if (ciTypeId != null) {
+                    ciTypeName = getCiTypeName(ciTypeId);
+                }
+                logService.log(logCategory(objectClass), user, successOps(annotation), logContent(objectClass, args, method),
+                        null, requestUrl, Strings.EMPTY, Strings.EMPTY, ciTypeId, ciTypeName, clientHost);
+            }
+        }else if(ciTypeIds.size()==1){
+            Integer ciTypeId = ciTypeIds.get(0);
+            String ciTypeName = getCiTypeName(ciTypeId);
+
+            for (String ciGuid : ciGuids) {
+                if (Strings.isEmpty(ciGuid))
+                    continue;
+                String keyName = getKeyName(ciTypeId, ciGuid);
+                logService.log(logCategory(objectClass), user, successOps(annotation), logContent(objectClass, args, method),
+                        null, requestUrl, ciGuid, keyName, ciTypeId, ciTypeName, clientHost);
+            }
+        }else{
             logService.log(logCategory(objectClass), user, successOps(annotation), logContent(objectClass, args, method),
-                    null, requestUrl, ciGuid, keyName, ciTypeId, ciTypeName,clientHost);
+                    null, requestUrl, Strings.EMPTY, Strings.EMPTY, null, Strings.EMPTY, clientHost);
         }
     }
 
@@ -202,20 +227,30 @@ public class OperationLogAspect {
         return args;
     }
 
-    private Integer getCiTypeId(Annotation[][] methodParamAnnotations, Object[] args) {
+    private List<Integer> getCiTypeId(Annotation[][] methodParamAnnotations,Object[] args) {
+        List<Integer> ciTypeIds = Lists.newArrayList();
         if(args == null)
-            return null;
+            return ciTypeIds;
 
         int index = getIndexOf(methodParamAnnotations,CiTypeId.class);
         if(index >=0 ){
             Class argClazz = args[index].getClass();
             if( argClazz == Integer.class){
-                return (Integer)args[index];
+                ciTypeIds.add((Integer) args[index]);
             }else if(args[index].getClass() == int.class){
-                return Integer.valueOf((int)args[index]);
+                ciTypeIds.add((int)args[index]);
+            }else if(args[index] instanceof List){
+                List vals = (List)args[index];
+                for (Object val : vals) {
+                    Map valMap = (Map)val;
+                    Object ciTypeIdObj = valMap.get("ciTypeId");
+                    if(ciTypeIdObj != null && ciTypeIdObj instanceof  Integer) {
+                        ciTypeIds.add((Integer) ciTypeIdObj);
+                    }
+                }
             }
         }
-        return null;
+        return ciTypeIds;
     }
 
     private int getIndexOf(Annotation[][] methodParamAnnotations, Class targetAnnClazz){
