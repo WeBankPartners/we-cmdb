@@ -29,6 +29,8 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -46,6 +48,7 @@ import javax.servlet.http.HttpServletRequest;
 @Component
 @Aspect
 public class OperationLogAspect {
+    private static final Logger logger = LoggerFactory.getLogger(OperationLogAspect.class);
 
     private static final String LOG_CONTENT_FORMAT = "【%s】 %s";
 
@@ -150,6 +153,9 @@ public class OperationLogAspect {
     }
 
     private String getCiTypeName(Integer ciTypeId) {
+        if(ciTypeId == null)
+            return Strings.EMPTY;
+
         DynamicEntityMeta meta = ciService.getDynamicEntityMeta(ciTypeId);
         if (meta != null){
             return meta.getName();
@@ -242,10 +248,17 @@ public class OperationLogAspect {
             }else if(args[index] instanceof List){
                 List vals = (List)args[index];
                 for (Object val : vals) {
-                    Map valMap = (Map)val;
-                    Object ciTypeIdObj = valMap.get("ciTypeId");
-                    if(ciTypeIdObj != null && ciTypeIdObj instanceof  Integer) {
-                        ciTypeIds.add((Integer) ciTypeIdObj);
+                    if(val instanceof  Map){
+                        Map valMap = (Map)val;
+                        Object ciTypeIdObj = valMap.get("ciTypeId");
+                        if(ciTypeIdObj != null && ciTypeIdObj instanceof  Integer) {
+                            ciTypeIds.add((Integer) ciTypeIdObj);
+                        }
+                    }else if(val instanceof Integer){
+                        Integer ciTypeId = (Integer) val;
+                        ciTypeIds.add(ciTypeId);
+                    }else{
+                        logger.warn("Can not get ciTypeId from {}",val);
                     }
                 }
             }

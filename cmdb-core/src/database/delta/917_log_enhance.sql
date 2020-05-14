@@ -1,3 +1,13 @@
 ALTER TABLE adm_log
-ADD COLUMN request_url varchar(500),
-ADD COLUMN client_host varchar(20);
+MODIFY COLUMN guid VARCHAR(20) DEFAULT NULL;
+
+ALTER TABLE adm_log DROP PRIMARY KEY;
+
+ALTER TABLE adm_log ADD PRIMARY KEY(`id_log`);
+
+ALTER TABLE adm_log
+MODIFY COLUMN `id_log` INT(11) NOT NULL AUTO_INCREMENT,
+ADD COLUMN request_url VARCHAR(500),
+ADD COLUMN client_host VARCHAR(20);
+
+
