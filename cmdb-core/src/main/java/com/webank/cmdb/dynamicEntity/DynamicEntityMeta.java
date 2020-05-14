@@ -19,6 +19,7 @@ import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.exception.AttributeNotFoundException;
 import com.webank.cmdb.exception.ServiceException;
 import com.webank.cmdb.repository.AdmCiTypeRepository;
+import org.apache.logging.log4j.util.Strings;
 
 /**
  * Hold meta information for dynamic entity
@@ -34,6 +35,7 @@ public class DynamicEntityMeta {
     private String tableName;
     private SortedMap<String, FieldNode> fieldMap = new TreeMap<String, FieldNode>();
     private Class<?> entityClazz;
+    private String name = Strings.EMPTY;
 
     DynamicEntityMeta() {
     }
@@ -69,6 +71,7 @@ public class DynamicEntityMeta {
         meta.qulifiedName = DynamicEntityUtils.getEntityQuanlifiedName(ciType.getTableName());
         meta.tableName = ciType.getTableName();
         meta.ciTypeId = ciType.getIdAdmCiType();
+        meta.name = ciType.getName();
 
         final AtomicInteger curDisplaySeqNo = new AtomicInteger(-1);
         ciType.getAdmCiTypeAttrs().forEach(attr -> {
@@ -274,4 +277,15 @@ public class DynamicEntityMeta {
         this.fieldMap = fieldMap;
     }
 
+    public String getName() {
+        if(Strings.isNotEmpty(name)){
+            return name;
+        }else{
+            return tableName;
+        }
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }
