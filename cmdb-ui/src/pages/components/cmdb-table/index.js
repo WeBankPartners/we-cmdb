@@ -273,22 +273,12 @@ export default {
                 {...data}
               />
             )
-          case 'CMDBPermissionFilters':
-            return (
-              <item.component
-                onInput={v => {
-                  this.form[item.inputKey] = v
-                }}
-                value={this.form[item.inputKey]}
-                isReadOnly={true}
-                {...data}
-              />
-            )
           default:
             return (
               <item.component
                 value={this.form[item.inputKey]}
                 onInput={v => (this.form[item.inputKey] = v)}
+                isReadOnly={item.component === 'CMDBPermissionFilters'}
                 {...data}
               />
             )
