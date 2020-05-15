@@ -50,12 +50,14 @@ public class LogServiceImpl implements LogService {
     public List<QueryHeader> queryHeader() {
         List<QueryHeader> headers = new LinkedList<>();
         headers.add(new QueryHeader("Guid", "guid", InputType.Text.getCode()));
+        headers.add(new QueryHeader("Key Name", "ciName", InputType.Text.getCode()));
         headers.add(new QueryHeader("Created Date", CREATED_DATE, InputType.Date.getCode()));
         headers.add(new QueryHeader("User", "user", InputType.Text.getCode()));
+        headers.add(new QueryHeader("Client Host", "clientHost", InputType.Text.getCode()));
         headers.add(new QueryHeader("Category", "logCat", InputType.Droplist.getCode(), LogCategory.codes()));
         headers.add(new QueryHeader("Content", "logContent", InputType.Text.getCode()));
         headers.add(new QueryHeader("Operation", "operation", InputType.Droplist.getCode(), LogOperation.codes()));
-        headers.add(new QueryHeader("Remark", "remark", InputType.Text.getCode()));
+        headers.add(new QueryHeader("Request Url", "requestUrl", InputType.Text.getCode()));
         return headers;
     }
 
@@ -68,12 +70,15 @@ public class LogServiceImpl implements LogService {
 
     @Transactional(value = Transactional.TxType.REQUIRES_NEW)
     @Override
-    public AdmLog log(LogCategory category, String user, LogOperation operation, String logContent, String remark, String ciGuid, String ciName, Integer ciTypeId, String ciTypeName) {
+    public AdmLog log(LogCategory category, String user, LogOperation operation, String logContent, String remark, String requestUrl,
+                      String ciGuid, String ciName, Integer ciTypeId, String ciTypeName, String clientHost) {
         AdmLog admLog = createAdmLog(category, user, operation, logContent, remark);
-        admLog.setCiTypeInstanceGuid(ciGuid);
         admLog.setCiName(ciName);
         admLog.setCiTypeId(ciTypeId);
         admLog.setCiTypeName(ciTypeName);
+        admLog.setGuid(ciGuid);
+        admLog.setRequestUrl(requestUrl);
+        admLog.setClientHost(clientHost);
         return staticEntityRepository.create(admLog);
     }
 
