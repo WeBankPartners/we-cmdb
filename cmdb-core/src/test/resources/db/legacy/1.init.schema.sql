@@ -413,13 +413,13 @@ CREATE TABLE `adm_state_transition` (
 
 DROP TABLE IF EXISTS `adm_log`;
 CREATE TABLE `adm_log` (
-  `id_log` int(11) DEFAULT NULL,
+  `id_log` int(11) NOT NULL AUTO_INCREMENT,
   `log_cat` varchar(50) DEFAULT NULL,
   `id_adm_user` varchar(50) DEFAULT NULL,
   `operation` varchar(50) DEFAULT NULL,
   `log_content` longtext,
   `created_at` varchar(19) DEFAULT NULL,
-  `guid` bigint(20) NOT NULL AUTO_INCREMENT,
+  `guid` varchar(20) DEFAULT NULL ,
   `updated_by` varchar(64) DEFAULT NULL,
   `updated_date` varchar(64) DEFAULT NULL,
   `created_by` varchar(64) DEFAULT NULL,
@@ -430,7 +430,9 @@ CREATE TABLE `adm_log` (
   `ci_name` varchar(100) DEFAULT NULL,
   `status` int(2) DEFAULT '0',
   `ci_type_id` int(10) DEFAULT NULL,
-  PRIMARY KEY (`guid`),
+  `client_host` varchar(20) DEFAULT NULL,
+  `request_url` varchar(500) DEFAULT NULL,
+  PRIMARY KEY (`id_log`),
   KEY `idx_created_at` (`created_at`),
   KEY `idx_ci_guid` (`ci_type_instance_guid`),
   KEY `NewIndex1` (`log_cat`),

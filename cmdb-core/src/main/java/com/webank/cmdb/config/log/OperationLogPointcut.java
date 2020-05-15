@@ -15,14 +15,6 @@ public @interface OperationLogPointcut {
 
     Class objectClass() default Object.class;
 
-    int ciTypeIdArgumentIndex() default -1;
-
-    int ciTypeNameArgumentIndex() default -1;
-
-    int ciGuidArgumentIndex() default -1;
-
-    int ciNameArgumentIndex() default -1;
-
     enum Operation {
         Creation, Modification, Removal, Implementation
     }

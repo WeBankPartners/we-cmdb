@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import com.webank.cmdb.config.log.CiTypeId;
 import org.apache.commons.beanutils.BeanMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -181,10 +182,10 @@ public class CiTypeServiceImpl implements CiTypeService {
         logger.info(String.format("Updated CI type sucessfully. (CI type id:%d)", ciTypeId));
     }
 
-    @OperationLogPointcut(operation = Creation, objectClass = CiTypeAttrDto.class, ciTypeIdArgumentIndex = 0)
+    @OperationLogPointcut(operation = Creation, objectClass = CiTypeAttrDto.class)
     @Transactional
     @Override
-    public CiTypeAttrDto addCiTypeAttribute(int ciTypeId, CiTypeAttrDto ciTypeAttr) {
+    public CiTypeAttrDto addCiTypeAttribute(@CiTypeId int ciTypeId, CiTypeAttrDto ciTypeAttr) {
         validateCiType(ciTypeId);
 
         AdmCiType existingAdmCiType = ciTypeRepository.getOne(ciTypeId);
@@ -213,9 +214,9 @@ public class CiTypeServiceImpl implements CiTypeService {
         return optCiType;
     }
 
-    @OperationLogPointcut(operation = Modification, objectClass = CiTypeAttrDto.class, ciTypeIdArgumentIndex = 0)
+    @OperationLogPointcut(operation = Modification, objectClass = CiTypeAttrDto.class)
     @Override
-    public void updateCiTypeAttribute(int ciTypeId, int ciTypeAttrId, CiTypeAttrDto ciTypeAttr) {
+    public void updateCiTypeAttribute(@CiTypeId int ciTypeId, int ciTypeAttrId, CiTypeAttrDto ciTypeAttr) {
         validateCiType(ciTypeId);
         validateCiTypeAttr(ciTypeAttrId);
 
@@ -233,9 +234,9 @@ public class CiTypeServiceImpl implements CiTypeService {
         return optCiTypeAttr.get();
     }
 
-    @OperationLogPointcut(operation = Removal, objectClass = CiTypeAttrDto.class, ciTypeIdArgumentIndex = 0)
+    @OperationLogPointcut(operation = Removal, objectClass = CiTypeAttrDto.class)
     @Override
-    public void deleteCiTypeAttribute(int ciTypeId, int ciTypeAttrId) {
+    public void deleteCiTypeAttribute(@CiTypeId int ciTypeId, int ciTypeAttrId) {
         validateCiType(ciTypeId);
         validateCiTypeAttr(ciTypeAttrId);
 
@@ -243,9 +244,9 @@ public class CiTypeServiceImpl implements CiTypeService {
         logger.info(String.format("Deleted CI type attribute sucessfully. (CI type id:%d, attribute id:%d)", ciTypeId, ciTypeAttrId));
     }
 
-    @OperationLogPointcut(operation = Implementation, objectClass = CiTypeDto.class, ciTypeIdArgumentIndex = 0)
+    @OperationLogPointcut(operation = Implementation, objectClass = CiTypeDto.class)
     @Override
-    public void createCiTypeTable(int ciTypeId) {
+    public void createCiTypeTable(@CiTypeId int ciTypeId) {
         validateCiType(ciTypeId);
 
         AdmCiType admCiType = ciTypeRepository.getOne(ciTypeId);
@@ -306,7 +307,7 @@ public class CiTypeServiceImpl implements CiTypeService {
     @OperationLogPointcut(operation = Creation, objectClass = CiTypeAttrGroupDto.class)
     @Transactional
     @Override
-    public void addAttrGroup(CiTypeAttrGroupDto attrGroup) {
+    public void addAttrGroup(@CiTypeId CiTypeAttrGroupDto attrGroup) {
         if (attrGroupRepository.countByName(attrGroup.getName()) > 0) {
             throw new InvalidArgumentException("The unique group name is existed.", "name", attrGroup.getName());
         }
@@ -344,10 +345,10 @@ public class CiTypeServiceImpl implements CiTypeService {
         ;
     }
 
-    @OperationLogPointcut(operation = Modification, objectClass = CiTypeDto.class, ciTypeIdArgumentIndex = 0)
+    @OperationLogPointcut(operation = Modification, objectClass = CiTypeDto.class)
     @Transactional
     @Override
-    public void updateCiTypePriority(int ciTypeId, PriorityUpdateOper priorityOper) {
+    public void updateCiTypePriority(@CiTypeId int ciTypeId, PriorityUpdateOper priorityOper) {
         validateCiType(ciTypeId);
         AdmCiType ciType = ciTypeRepository.getOne(ciTypeId);
         AdmCiType exchangeCiType = null;
@@ -507,7 +508,7 @@ public class CiTypeServiceImpl implements CiTypeService {
     @OperationLogPointcut(operation = Implementation, objectClass = CiTypeDto.class)
     @Transactional
     @Override
-    public void applyCiType(List<Integer> ids) {
+    public void applyCiType(@CiTypeId List<Integer> ids) {
         if (logger.isDebugEnabled()) {
             logger.debug("Apply request, ids:{}", ids);
         }
@@ -622,9 +623,9 @@ public class CiTypeServiceImpl implements CiTypeService {
         ciService.invalidate();
     }
 
-    @OperationLogPointcut(operation = Implementation, objectClass = CiTypeDto.class, ciTypeIdArgumentIndex = 0)
+    @OperationLogPointcut(operation = Implementation, objectClass = CiTypeDto.class)
     @Override
-    public void implementCiType(int ciTypeId, ImplementOperation operation) {
+    public void implementCiType(@CiTypeId int ciTypeId, ImplementOperation operation) {
         AdmCiType ciType = validateCiType(ciTypeId).get();
         CiStatus ciStatus = CiStatus.fromCode(ciType.getStatus());
         if (!ciStatus.isImplementOperationSupported(operation)) {
