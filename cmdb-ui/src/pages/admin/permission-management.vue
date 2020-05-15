@@ -388,7 +388,7 @@ export default {
               placeholder: h.name,
               ciType: { id: h.referenceId, name: h.name },
               component: h.inputType === 'select' ? 'WeCMDBSelect' : 'CMDBPermissionFilters',
-              isMultiple: h.inputType === 'select',
+              isMultiple: true,
               options: [],
               filterRule: null,
               isEditable: true,
