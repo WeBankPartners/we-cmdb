@@ -9,10 +9,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttr;
 import com.webank.cmdb.exception.CmdbException;
 
+import io.jsonwebtoken.lang.Collections;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -66,7 +68,10 @@ class RoleCiTypeRuleAuthority implements Authority {
         if (roleCiTypeRule.isActionPermissionEnabled(action)) {
             if (isNotEmpty(conditionMatchers)) {
                 for (RoleCiTypeRuleConditionMatcher conditionMatcher : conditionMatchers) {
-                    permittedData.put(conditionMatcher.getPropertyName(), conditionMatcher.getMatchedData());
+                    Set matchedData = conditionMatcher.getMatchedData();
+                    if(!Collections.isEmpty(matchedData)) {
+                        permittedData.put(conditionMatcher.getPropertyName(), matchedData);
+                    }
                 }
             }
         }
