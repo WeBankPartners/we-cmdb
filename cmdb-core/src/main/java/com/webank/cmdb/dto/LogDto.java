@@ -18,6 +18,9 @@ public class LogDto extends BasicResourceDto<LogDto, AdmLog> {
     private String operation;
     private String remark;
     private int status;
+    private String requestUrl;
+    private String clientHost;
+    private String ciName;
 
     public Date getCreatedDate() {
         return createdDate;
@@ -83,6 +86,30 @@ public class LogDto extends BasicResourceDto<LogDto, AdmLog> {
         this.guid = guid;
     }
 
+    public String getRequestUrl() {
+        return requestUrl;
+    }
+
+    public void setRequestUrl(String requestUrl) {
+        this.requestUrl = requestUrl;
+    }
+
+    public String getClientHost() {
+        return clientHost;
+    }
+
+    public void setClientHost(String clientHost) {
+        this.clientHost = clientHost;
+    }
+
+    public String getCiName() {
+        return ciName;
+    }
+
+    public void setCiName(String ciName) {
+        this.ciName = ciName;
+    }
+
     @Override
     public LogDto fromDomain(AdmLog domain, List<String> refResource) {
         LogDto dto = new LogDto();
@@ -94,6 +121,9 @@ public class LogDto extends BasicResourceDto<LogDto, AdmLog> {
         dto.setRemark(domain.getRemark());
         dto.setStatus(domain.getStatus());
         dto.setUser(domain.getIdAdmUser());
+        dto.setRequestUrl(domain.getRequestUrl());
+        dto.setClientHost(domain.getClientHost());
+        dto.setCiName(domain.getCiName());
         return dto;
     }
 
