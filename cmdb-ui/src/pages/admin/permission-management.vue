@@ -245,111 +245,57 @@ export default {
       ciTypeAttrsPermissionsBackUp: [],
       attrsPermissionsColumns: [],
       permissionsTableOptions: {},
+      defaultOptionAttrs: {
+        component: 'WeCMDBRadioRroup',
+        defaultValue: 'Y',
+        options: [
+          {
+            text: this.$t('yes'),
+            label: 'Y'
+          },
+          {
+            text: this.$t('no'),
+            label: 'N'
+          }
+        ],
+        isEditable: true,
+        isAuto: false
+      },
       defaultColumns: [
         {
           title: this.$t('query'),
           key: 'enquiryPermission',
           inputKey: 'enquiryPermission',
           defaultDisplaySeqNo: 1,
-          placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBRadioRroup',
-          defaultValue: 'Y',
-          options: [
-            {
-              text: this.$t('yes'),
-              label: 'Y'
-            },
-            {
-              text: this.$t('no'),
-              label: 'N'
-            }
-          ],
-          isEditable: true,
-          isAuto: false
+          ...this.defaultOptionAttrs
         },
         {
           title: this.$t('new'),
           key: 'creationPermission',
           inputKey: 'creationPermission',
           defaultDisplaySeqNo: 2,
-          placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBRadioRroup',
-          defaultValue: 'Y',
-          options: [
-            {
-              text: this.$t('yes'),
-              label: 'Y'
-            },
-            {
-              text: this.$t('no'),
-              label: 'N'
-            }
-          ],
-          isEditable: true,
-          isAuto: false
+          ...this.defaultOptionAttrs
         },
         {
           title: this.$t('modify'),
           key: 'modificationPermission',
           inputKey: 'modificationPermission',
           defaultDisplaySeqNo: 3,
-          placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBRadioRroup',
-          defaultValue: 'Y',
-          options: [
-            {
-              text: this.$t('yes'),
-              label: 'Y'
-            },
-            {
-              text: this.$t('no'),
-              label: 'N'
-            }
-          ],
-          isEditable: true,
-          isAuto: false
+          ...this.defaultOptionAttrs
         },
         {
           title: this.$t('execute'),
           key: 'executionPermission',
           inputKey: 'executionPermission',
           defaultDisplaySeqNo: 4,
-          placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBRadioRroup',
-          defaultValue: 'Y',
-          options: [
-            {
-              text: this.$t('yes'),
-              label: 'Y'
-            },
-            {
-              text: this.$t('no'),
-              label: 'N'
-            }
-          ],
-          isEditable: true,
-          isAuto: false
+          ...this.defaultOptionAttrs
         },
         {
           title: this.$t('delete'),
           key: 'removalPermission',
           inputKey: 'removalPermission',
           defaultDisplaySeqNo: 5,
-          placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBRadioRroup',
-          defaultValue: 'Y',
-          options: [
-            {
-              text: this.$t('yes'),
-              label: 'Y'
-            },
-            {
-              text: this.$t('no'),
-              label: 'N'
-            }
-          ],
-          isEditable: true,
-          isAuto: false
+          ...this.defaultOptionAttrs
         }
       ],
       addedUser: {},
@@ -370,6 +316,7 @@ export default {
       let { statusCode, data } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(this.currentRoleCiTypeId)
       if (statusCode === 'OK') {
         let enumsArray = []
+        const headerLength = data.header.length
         let _attrsPermissionsColumns = data.header
           .map((h, index) => {
             if (['select', 'multiSelect'].indexOf(h.inputType) >= 0) {
@@ -401,7 +348,7 @@ export default {
           })
           .concat(
             this.defaultColumns.map(_ => {
-              _.displaySeqNo = _.defaultDisplaySeqNo + data.header.length
+              _.displaySeqNo = _.defaultDisplaySeqNo + headerLength
               return _
             })
           )
