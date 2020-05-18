@@ -36,21 +36,29 @@ export default {
       this.$emit('input', _value)
     },
     renderAddIcon () {
-      if (this.isReadOnly) {
+      if (this.isReadOnly || this.value.length) {
         return null
       } else {
-        return (
-          <Poptip v-model={this.optionsDisplay}>
-            <div slot="content" class="filters-rule-options">
-              {this.rootCis.map(_ => (
-                <div onClick={() => this.addExpression(_)}>{_}</div>
-              ))}
-            </div>
-            <Button class="filters-rule-add" size="small">
+        if (this.rootCis.length > 1) {
+          return (
+            <Poptip v-model={this.optionsDisplay}>
+              <div slot="content" class="filters-rule-options">
+                {this.rootCis.map(_ => (
+                  <div onClick={() => this.addExpression(_)}>{_}</div>
+                ))}
+              </div>
+              <Button class="filters-rule-add" size="small">
+                {this.$t('add_expression')}
+              </Button>
+            </Poptip>
+          )
+        } else {
+          return (
+            <Button class="filters-rule-add" size="small" onClick={() => this.addExpression(this.rootCis[0])}>
               {this.$t('add_expression')}
             </Button>
-          </Poptip>
-        )
+          )
+        }
       }
     }
   },
@@ -59,10 +67,11 @@ export default {
       return null
     } else {
       return (
-        <div class="filters-rule" filterIndex>
+        <div class="filters-rule" filterIndex ref="zsf">
           {this.value.map((_, i) => [
             i > 0 ? <span> | </span> : null,
             <AttrExpress
+              ref={`attrExpress-${0}`}
               value={_}
               onInput={v => this.handleInput(v, i)}
               allCiTypes={this.allCiTypes}
