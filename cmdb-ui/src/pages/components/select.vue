@@ -45,7 +45,7 @@ export default {
   data () {
     return {
       filterOpts: [],
-      enumOpts: null
+      enumOpts: []
     }
   },
   watch: {},
@@ -53,7 +53,7 @@ export default {
     opts () {
       if (this.filterParams) {
         return this.filterOpts
-      } else if (this.enumOpts) {
+      } else if (this.enumId) {
         return this.enumOpts
       } else {
         return this.options
