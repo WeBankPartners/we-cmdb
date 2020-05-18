@@ -13,6 +13,8 @@ import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrSelect;
 import com.webank.cmdb.util.CollectionUtils;
 import com.webank.cmdb.util.DtoField;
 import com.webank.cmdb.util.DtoId;
+import com.webank.cmdb.dto.CatCodeDto;
+
 
 @JsonInclude(Include.NON_EMPTY)
 public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeCtrlAttrConditionDto, AdmRoleCiTypeCtrlAttrCondition> {
@@ -27,7 +29,11 @@ public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeC
     private String conditionType;
     private Object conditionValueObject;
     private List<String> conditionValueExprs = new ArrayList<>();
-    private List<Integer> conditionValueSelects = new ArrayList<>();
+
+    /**
+     Accept cat code id as Integer from client and output to client as {@code CatCodeDto} Object
+     */
+    private List<Object> conditionValueSelects = new ArrayList<>();
 
     @DtoField(domainField = "admRoleCiTypeCtrlAttr", updatable = false)
     private RoleCiTypeCtrlAttrDto roleCiTypeCtrlAttr = null;
@@ -38,11 +44,11 @@ public class RoleCiTypeCtrlAttrConditionDto extends BasicResourceDto<RoleCiTypeC
     public RoleCiTypeCtrlAttrConditionDto() {
     }
 
-    public List<Integer> getConditionValueSelects() {
+    public List<Object> getConditionValueSelects() {
         return conditionValueSelects;
     }
 
-    public void setConditionValueSelects(List<Integer> conditionValueSelects) {
+    public void setConditionValueSelects(List<Object> conditionValueSelects) {
         this.conditionValueSelects = conditionValueSelects;
     }
 
