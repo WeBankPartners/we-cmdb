@@ -235,7 +235,9 @@ export default {
                     }
                     return (
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
-                        <column.component {...data} />
+                        <div class={!column.isNullable ? 'is-nullable' : ''}>
+                          <column.component {...data} />
+                        </div>
                       </div>
                     )
                   }
