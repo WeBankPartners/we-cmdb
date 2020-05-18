@@ -9,7 +9,7 @@ import com.google.common.collect.Maps;
 
 public class CmdbThreadLocal extends ThreadLocal<Map<String, Object>> {
     private static final String CURRENT_USER = "current_user";
-    private Set<String> grantedAuthorities = new HashSet<String>();
+    private static final String GRANTED_AUTH = "granted_auth";
 
     private static CmdbThreadLocal instance = new CmdbThreadLocal();
 
@@ -40,16 +40,16 @@ public class CmdbThreadLocal extends ThreadLocal<Map<String, Object>> {
     }
 
     public Set<String> getAuthorities() {
-        return Collections.unmodifiableSet(this.grantedAuthorities);
+        return Collections.unmodifiableSet((Set<String>)getOrCreate().get(GRANTED_AUTH));
     }
 
-    public CmdbThreadLocal withAuthorities(String... authorities) {
+    public void setAuthorities(String... authorities) {
+        Set<String> grantedAuthorities = new HashSet<String>();
         for (String authority : authorities) {
             if (!grantedAuthorities.contains(authority)) {
                 grantedAuthorities.add(authority);
             }
         }
-
-        return this;
+        getOrCreate().put(GRANTED_AUTH,grantedAuthorities);
     }
 }
