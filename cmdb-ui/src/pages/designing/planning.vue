@@ -421,7 +421,7 @@ export default {
           ry = p1.y + tfsize * tlength + (h + mgap) * i + mgap
           tx = p1.x + w * 0.5 + mgap
           if (Array.isArray(node.children[i].children)) {
-            ty = p1.y + tfsize + (h + mgap) * i + fontsize + mgap
+            ty = p1.y + _tlength * tfsize + (h + mgap) * i + fontsize + mgap
           } else {
             ty = p1.y + mgap + fontsize * (tlength + 1) + (h + mgap) * i + h * 0.5
           }
