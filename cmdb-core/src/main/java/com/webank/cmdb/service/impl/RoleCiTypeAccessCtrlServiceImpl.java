@@ -151,11 +151,11 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
                 roleCiTypeCtrlAttrExpressionRepository.save(admAttrExpression);
             }
         }else if(AttrConditionType.Select.codeEquals(conditionType)){
-            List<Integer> catCodes = attrCondition.getConditionValueSelects();
-            for (Integer catCode : catCodes) {
+            List<?> catCodes = attrCondition.getConditionValueSelects();
+            for (Object catCode : catCodes) {
                 AdmRoleCiTypeCtrlAttrSelect admAttrSelect = new AdmRoleCiTypeCtrlAttrSelect();
                 admAttrSelect.setIdAdmRoleCiTypeCtrlAttrCondition(admAttrCondition.getIdAdmRoleCiTypeCtrlAttrCondition());
-                admAttrSelect.setIdAdmBaseKey(catCode);
+                admAttrSelect.setIdAdmBaseKey((Integer) catCode);
                 admAttrSelect.setAdmRoleCiTypeCtrlAttrCondition(admAttrCondition);
                 roleCiTypeAttrSelectRepository.save(admAttrSelect);
             }
