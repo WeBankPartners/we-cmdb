@@ -508,16 +508,20 @@ export default {
           let content = ''
           if (Array.isArray(params.row.weTableForm[col.key])) {
             if (['select', 'multiSelect'].indexOf(params.column.inputType) >= 0) {
-              content = params.row.weTableForm[col.key]
-                .map(_ => {
-                  const found = params.column.options.find(item => item.value === _)
-                  if (found) {
-                    return found.label
-                  } else {
-                    return _
-                  }
-                })
-                .toString()
+              if (Array.isArray(params.column.options) && params.column.options.length) {
+                content = params.row.weTableForm[col.key]
+                  .map(_ => {
+                    const found = params.column.options.find(item => item.value === _)
+                    if (found) {
+                      return found.label
+                    } else {
+                      return _
+                    }
+                  })
+                  .toString()
+              } else {
+                content = params.row.weTableForm[col.key].toString()
+              }
             } else if (params.column.inputType === 'multiRef') {
               content = params.row.weTableForm[col.key].map(_ => _.key_name).toString()
             }
