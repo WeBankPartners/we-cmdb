@@ -161,7 +161,6 @@ import {
   addDataPermissionAction,
   removeDataPermissionAction,
   getRoleCiTypeCtrlAttributesByRoleCiTypeId,
-  getEnumCodesByCategoryId,
   createRoleCiTypeCtrlAttributes,
   updateRoleCiTypeCtrlAttributes,
   deleteRoleCiTypeCtrlAttributes,
@@ -318,23 +317,18 @@ export default {
     async getAttrPermissions () {
       this.$refs.table.isTableLoading(true)
       let { statusCode, data } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(this.currentRoleCiTypeId)
+      this.$refs.table.isTableLoading(false)
       if (statusCode === 'OK') {
-        let enumsArray = []
         const headerLength = data.header.length
         let _attrsPermissionsColumns = data.header
           .map((h, index) => {
-            if (['select', 'multiSelect'].indexOf(h.inputType) >= 0) {
-              enumsArray.push({ enumKey: h.propertyName, referenceId: h.referenceId, index: index })
-            } else {
-              enumsArray.push(null)
-            }
             return {
               ...h,
               title: h.name,
               key: h.propertyName,
               inputKey: h.propertyName,
               displaySeqNo: index + 1,
-              inputType: h.inputType,
+              inputType: h.inputType === 'select' ? 'multiSelect' : h.inputType,
               referenceId: h.referenceId,
               placeholder: h.name,
               ciType: { id: h.referenceId, name: h.name },
@@ -375,26 +369,6 @@ export default {
             }
           }
           return obj
-        })
-        const enumOptionsArray = await Promise.all(
-          enumsArray.map(_ => {
-            if (_) {
-              return getEnumCodesByCategoryId(0, _.referenceId)
-            } else {
-              return null
-            }
-          })
-        )
-        this.$refs.table.isTableLoading(false)
-        enumOptionsArray.forEach((_, i) => {
-          if (_) {
-            _attrsPermissionsColumns[i].options = _.data.map(item => {
-              return {
-                value: item.codeId,
-                label: item.value
-              }
-            })
-          }
         })
         this.attrsPermissionsColumns = _attrsPermissionsColumns
         this.ciTypeAttrsPermissions = _ciTypeAttrsPermissions
