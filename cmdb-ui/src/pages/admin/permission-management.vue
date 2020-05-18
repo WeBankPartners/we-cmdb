@@ -261,7 +261,13 @@ export default {
         isEditable: true,
         isAuto: false
       },
-      defaultColumns: [
+      addedUser: {},
+      spinShow: false
+    }
+  },
+  computed: {
+    defaultColumns () {
+      return [
         {
           title: this.$t('query'),
           key: 'enquiryPermission',
@@ -297,9 +303,7 @@ export default {
           defaultDisplaySeqNo: 5,
           ...this.defaultOptionAttrs
         }
-      ],
-      addedUser: {},
-      spinShow: false
+      ]
     }
   },
   methods: {
