@@ -45,7 +45,7 @@ public class HttpAccessUsernameInterceptor implements HandlerInterceptor {
             }
         }
 
-        CmdbThreadLocal.getIntance().withAuthorities(authorities);
+        CmdbThreadLocal.getIntance().setAuthorities(authorities);
         return true;
     }
 
