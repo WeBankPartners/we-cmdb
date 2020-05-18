@@ -82,11 +82,6 @@ public class RoleCiTypeCtrlAttrDto extends BasicResourceDto<RoleCiTypeCtrlAttrDt
 
         if (withChild) {
             dto.roleCiType = RoleCiTypeDto.from(domain.getAdmRoleCiType(), false);
-/*
-            domain.getAdmRoleCiTypeCtrlAttrConditions().forEach(x -> {
-                dto.conditions.add(RoleCiTypeCtrlAttrConditionDto.from(x, false));
-            });
-*/
         }
         return dto;
     }
