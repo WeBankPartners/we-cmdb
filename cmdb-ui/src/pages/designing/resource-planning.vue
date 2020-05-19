@@ -35,9 +35,9 @@
               ci.id === initParams['resourcePlaningRouterCode'] || ci.id === initParams['defaultSecurityPolicyCode']
             "
           >
-            <Button v-show="ci.showGraph" size="small" type="primary" ghost @click="showTable(ci)">{{
-              $t('data_manage')
-            }}</Button>
+            <Button v-show="ci.showGraph" size="small" type="primary" ghost @click="showTable(ci)">
+              {{ $t('data_manage') }}
+            </Button>
             <Button
               v-show="ci.id === initParams['resourcePlaningRouterCode'] && !ci.showGraph"
               size="small"
@@ -196,22 +196,36 @@ export default {
               children: []
             })
           }
-        })
-        data.forEach(_ => {
-          this.treeIdcs.forEach((idc, i) => {
-            if (_.data[regional] && idc.guid === _.data[regional].guid) {
-              this.treeIdcs[i].children.push({
-                guid: _.data.guid,
-                title: _.data.name,
-                realIdcGuid: idc.guid
-              })
-            }
-          })
           this.allIdcs[_.data.guid] = {
             guid: _.data.guid,
             name: _.data.name,
             realIdcGuid: _.data[regional] ? _.data[regional].guid : _.data.guid
           }
+        })
+        const deep = (idcObj, idc) => {
+          if (idc.data[regional] && idcObj.guid === idc.data[regional].guid) {
+            const found = idcObj.children.find(_ => _.guid === idc.data.guid)
+            if (!found) {
+              idcObj.children.push({
+                guid: idc.data.guid,
+                title: idc.data.name,
+                realIdcGuid: idcObj.guid,
+                expand: true,
+                children: []
+              })
+            }
+          } else {
+            idcObj.children.forEach(child => {
+              data.forEach(i => {
+                deep(child, i)
+              })
+            })
+          }
+        }
+        this.treeIdcs.forEach(_ => {
+          data.forEach(idc => {
+            deep(_, idc)
+          })
         })
       }
     },
