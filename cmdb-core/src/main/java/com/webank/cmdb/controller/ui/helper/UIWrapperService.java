@@ -6,17 +6,15 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.webank.cmdb.config.ApplicationProperties;
+import com.webank.cmdb.domain.*;
 import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
+import com.webank.cmdb.repository.AdmRoleCiTypeAttrRepository;
+import com.webank.cmdb.service.*;
 import com.webank.cmdb.util.JsonUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +31,6 @@ import com.webank.cmdb.constant.AggregationFuction;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.ImplementOperation;
-import com.webank.cmdb.domain.AdmCiType;
-import com.webank.cmdb.domain.AdmCiTypeAttr;
-import com.webank.cmdb.domain.AdmRole;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
@@ -58,11 +53,6 @@ import com.webank.cmdb.dto.UserDto;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.repository.AdmRoleRepository;
 import com.webank.cmdb.repository.StaticEntityRepository;
-import com.webank.cmdb.service.BaseKeyInfoService;
-import com.webank.cmdb.service.CiService;
-import com.webank.cmdb.service.CiTypeService;
-import com.webank.cmdb.service.IntegrationQueryService;
-import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.service.impl.FilterRuleService;
 import com.webank.cmdb.util.BeanMapUtils;
 import com.webank.cmdb.util.ResourceDto;
@@ -114,6 +104,9 @@ public class UIWrapperService {
     private AdmRoleRepository admRoleRepository;
     @Autowired
     private AdmCiTypeAttrRepository admCiTypeAttrRepository;
+    @Autowired
+    private RoleCiTypeAccessCtrlService roleCiTypeAccessCtrlService;
+
     @PostConstruct
     public void initCiTypeId() throws IOException {
         CategoryDto categoryDto = getEnumCategoryByName(uiProperties.getEnumCodeofView());
@@ -769,8 +762,9 @@ public class UIWrapperService {
         return staticDtoService.update(RoleCiTypeCtrlAttrDto.class, roleCiTypeCtrlAttrs);
     }
 
-    public void deleteRoleCiTypeCtrlAttributes(Integer... ids) {
-        staticDtoService.delete(RoleCiTypeCtrlAttrDto.class, Arrays.asList(ids));
+    @Transactional
+    public void deleteRoleCiTypeCtrlAttributes(List<Integer> ids) {
+        roleCiTypeAccessCtrlService.deleteRoleCiTypeCtrlAttributes(ids);
     }
 
     public RoleCiTypeCtrlAttrConditionDto getRoleCiTypeCtrlAttributeConditionById(Integer conditionId) {
