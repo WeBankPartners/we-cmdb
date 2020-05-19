@@ -813,10 +813,9 @@ export default {
             layer.ciTypes.forEach(_ => {
               _allCiTypes.push(_)
               if (Array.isArray(_.attributes)) {
-                _.attributes.find(attr => {
+                _.attributes.forEach(attr => {
                   if (attr.isAccessControlled) {
                     _ciTypesWithAccessControlledAttr[_.ciTypeId] = _
-                    return true
                   }
                 })
               }

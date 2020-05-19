@@ -79,7 +79,6 @@ import { newOuterActions } from '@/const/actions.js'
 import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import {
   getRoleCiTypeCtrlAttributesByRoleCiTypeId,
-  getEnumCodesByCategoryId,
   createRoleCiTypeCtrlAttributes,
   updateRoleCiTypeCtrlAttributes,
   deleteRoleCiTypeCtrlAttributes,
@@ -143,111 +142,61 @@ export default {
       ciTypeAttrsPermissionsBackUp: [],
       attrsPermissionsColumns: [],
       permissionsTableOptions: {},
-      defaultColumns: [
+      defaultOptionAttrs: {
+        component: 'WeCMDBRadioRroup',
+        defaultValue: 'Y',
+        options: [
+          {
+            text: this.$t('yes'),
+            label: 'Y'
+          },
+          {
+            text: this.$t('no'),
+            label: 'N'
+          }
+        ],
+        isEditable: true,
+        isAuto: false
+      }
+    }
+  },
+  computed: {
+    defaultColumns () {
+      return [
         {
           title: this.$t('query'),
           key: 'enquiryPermission',
           inputKey: 'enquiryPermission',
           defaultDisplaySeqNo: 1,
-          placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBRadioRroup',
-          defaultValue: 'Y',
-          options: [
-            {
-              text: this.$t('yes'),
-              label: 'Y'
-            },
-            {
-              text: this.$t('no'),
-              label: 'N'
-            }
-          ],
-          isEditable: true,
-          isAuto: false
+          ...this.defaultOptionAttrs
         },
         {
           title: this.$t('new'),
           key: 'creationPermission',
           inputKey: 'creationPermission',
           defaultDisplaySeqNo: 2,
-          placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBRadioRroup',
-          defaultValue: 'Y',
-          options: [
-            {
-              text: this.$t('yes'),
-              label: 'Y'
-            },
-            {
-              text: this.$t('no'),
-              label: 'N'
-            }
-          ],
-          isEditable: true,
-          isAuto: false
+          ...this.defaultOptionAttrs
         },
         {
           title: this.$t('modify'),
           key: 'modificationPermission',
           inputKey: 'modificationPermission',
           defaultDisplaySeqNo: 3,
-          placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBRadioRroup',
-          defaultValue: 'Y',
-          options: [
-            {
-              text: this.$t('yes'),
-              label: 'Y'
-            },
-            {
-              text: this.$t('no'),
-              label: 'N'
-            }
-          ],
-          isEditable: true,
-          isAuto: false
+          ...this.defaultOptionAttrs
         },
         {
           title: this.$t('execute'),
           key: 'executionPermission',
           inputKey: 'executionPermission',
           defaultDisplaySeqNo: 4,
-          placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBRadioRroup',
-          defaultValue: 'Y',
-          options: [
-            {
-              text: this.$t('yes'),
-              label: 'Y'
-            },
-            {
-              text: this.$t('no'),
-              label: 'N'
-            }
-          ],
-          isEditable: true,
-          isAuto: false
+          ...this.defaultOptionAttrs
         },
         {
           title: this.$t('delete'),
           key: 'removalPermission',
           inputKey: 'removalPermission',
           defaultDisplaySeqNo: 5,
-          placeholder: this.$t('select_placeholder'),
-          component: 'WeCMDBRadioRroup',
-          defaultValue: 'Y',
-          options: [
-            {
-              text: this.$t('yes'),
-              label: 'Y'
-            },
-            {
-              text: this.$t('no'),
-              label: 'N'
-            }
-          ],
-          isEditable: true,
-          isAuto: false
+          ...this.defaultOptionAttrs
         }
       ]
     }
@@ -260,23 +209,19 @@ export default {
     },
     async getAttrPermissions () {
       this.$refs.table.isTableLoading(true)
-      const { statusCode, data } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(this.currentRoleCiTypeId)
+      let { statusCode, data } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(this.currentRoleCiTypeId)
+      this.$refs.table.isTableLoading(false)
       if (statusCode === 'OK') {
-        let enumsArray = []
+        const headerLength = data.header.length
         let _attrsPermissionsColumns = data.header
           .map((h, index) => {
-            if (['select', 'multiSelect'].indexOf(h.inputType) >= 0) {
-              enumsArray.push({ enumKey: h.propertyName, referenceId: h.referenceId, index: index })
-            } else {
-              enumsArray.push(null)
-            }
             return {
               ...h,
               title: h.name,
               key: h.propertyName,
               inputKey: h.propertyName,
               displaySeqNo: index + 1,
-              inputType: h.inputType,
+              inputType: h.inputType === 'select' ? 'multiSelect' : h.inputType,
               referenceId: h.referenceId,
               placeholder: h.name,
               ciType: { id: h.referenceId, name: h.name },
@@ -294,7 +239,7 @@ export default {
           })
           .concat(
             this.defaultColumns.map(_ => {
-              _.displaySeqNo = _.defaultDisplaySeqNo + data.header.length
+              _.displaySeqNo = _.defaultDisplaySeqNo + headerLength
               return _
             })
           )
@@ -317,26 +262,6 @@ export default {
             }
           }
           return obj
-        })
-        const enumOptionsArray = await Promise.all(
-          enumsArray.map(_ => {
-            if (_) {
-              return getEnumCodesByCategoryId(0, _.referenceId)
-            } else {
-              return null
-            }
-          })
-        )
-        this.$refs.table.isTableLoading(false)
-        enumOptionsArray.forEach((_, i) => {
-          if (_) {
-            _attrsPermissionsColumns[i].options = _.data.map(item => {
-              return {
-                value: item.codeId,
-                label: item.value
-              }
-            })
-          }
         })
         this.attrsPermissionsColumns = _attrsPermissionsColumns
         this.ciTypeAttrsPermissions = _ciTypeAttrsPermissions
@@ -581,10 +506,9 @@ export default {
             layer.ciTypes.forEach(_ => {
               _allCiTypes.push(_)
               if (Array.isArray(_.attributes)) {
-                _.attributes.find(attr => {
+                _.attributes.forEach(attr => {
                   if (attr.isAccessControlled) {
                     _ciTypesWithAccessControlledAttr[_.ciTypeId] = _
-                    return true
                   }
                 })
               }
