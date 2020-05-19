@@ -281,18 +281,29 @@ export default {
       const result = []
       Object.keys(this.systemLines).forEach(guid => {
         const node = this.systemLines[guid]
-        if (this.graphNodes[node.from] && this.graphNodes[node.to]) {
-          let color = '#000'
-          if (!node.fixedDate) {
-            color = stateColor[node.state]
-          }
+
+        let color = '#000'
+        if (!node.fixedDate) {
+          color = stateColor[node.state]
+        }
+        result.push(
+          `n_${node.from}->n_${node.to}`,
+          `[id="gl_${node.id}",`,
+          `color="${color}"`,
+          `tooltip="${node.label || ''}",`,
+          `taillabel="${node.label || ''}"];`
+        )
+
+        if (!this.graphNodes[node.from]) {
+          const _fromNode = node.data[this.initParams[INVOKE_UNIT]]
           result.push(
-            `n_${node.from}->n_${node.to}`,
-            `[id="gl_${node.id}",`,
-            `color="${color}"`,
-            `tooltip="${node.label || ''}",`,
-            `taillabel="${node.label || ''}"];`
+            `n_${_fromNode.guid}`,
+            `[label="${_fromNode.key_name}",`,
+            `tooltip="${_fromNode.key_name || ''}"];`
           )
+        } else if (!this.graphNodes[node.to]) {
+          const _fromTo = node.data[this.initParams[INVOKED_UNIT]]
+          result.push(`n_${_fromTo.guid}`, `[label="${_fromTo.key_name}",`, `tooltip="${_fromTo.key_name || ''}"];`)
         }
       })
       return result.join('')
@@ -378,10 +389,11 @@ export default {
           array.forEach(_ => {
             if (_.ciTypeId === this.initParams[INVOKE_ID]) {
               this.systemLines[_.guid] = {
+                ..._,
                 from: _.data[this.initParams[INVOKE_UNIT]].guid,
                 to: _.data[this.initParams[INVOKED_UNIT]].guid,
                 id: _.guid,
-                label: _.data.invoke_type.value,
+                label: _.data.invoke_type,
                 state: _.data.state.code,
                 fixedDate: +new Date(_.data.fixed_date)
               }
