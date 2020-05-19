@@ -2185,7 +2185,12 @@ public class CiServiceImpl implements CiService {
                     };
 
                     Map ciMap = Maps.newHashMap();
-                    MapUtils.putAll(ciMap, new Object[] { "ciTypeId", attr.getCiTypeId(), "guid", data.get("guid"), "propertyName", attr.getPropertyName() });
+                    MapUtils.putAll(ciMap, new Object[] {
+                            "ciTypeId", attr.getCiTypeId(),
+                            "guid", data.get("guid"),
+                            "keyName", data.get("key_name"),
+                            "propertyName", attr.getPropertyName()
+                    });
                     dependentCis.add(ciMap);
                 });
             }
