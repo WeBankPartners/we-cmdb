@@ -278,6 +278,7 @@ export default {
               <item.component
                 value={this.form[item.inputKey]}
                 onInput={v => (this.form[item.inputKey] = v)}
+                isReadOnly={item.component === 'CMDBPermissionFilters'}
                 {...data}
               />
             )
@@ -506,11 +507,13 @@ export default {
         render: (h, params) => {
           let content = ''
           if (Array.isArray(params.row.weTableForm[col.key])) {
-            if (params.column.inputType === 'multiSelect') {
+            if (['select', 'multiSelect'].indexOf(params.column.inputType) >= 0) {
               content = params.row.weTableForm[col.key].map(_ => _.value).toString()
-            }
-            if (params.column.inputType === 'multiRef') {
+            } else if (params.column.inputType === 'multiRef') {
               content = params.row.weTableForm[col.key].map(_ => _.key_name).toString()
+            }
+            if (params.column.component === 'CMDBPermissionFilters') {
+              content = params.row.weTableForm[col.key].join(' | ')
             }
           } else {
             content = params.row.weTableForm[col.key]

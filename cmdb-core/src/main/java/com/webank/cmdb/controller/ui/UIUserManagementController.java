@@ -252,7 +252,7 @@ public class UIUserManagementController {
     @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
     @PostMapping("/role-citypes/{role-citype-id}/ctrl-attributes/delete")
     @ResponseBody
-    public void deleteRoleCiTypeCtrlAttributes(@PathVariable(value = "role-citype-id") int roleCiTypeId, @RequestBody Integer[] roleCiTypeCtrlAttrIds) {
+    public void deleteRoleCiTypeCtrlAttributes(@PathVariable(value = "role-citype-id") int roleCiTypeId, @RequestBody List<Integer> roleCiTypeCtrlAttrIds) {
         wrapperService.deleteRoleCiTypeCtrlAttributes(roleCiTypeCtrlAttrIds);
     }
 
