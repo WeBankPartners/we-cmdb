@@ -88,12 +88,14 @@ CREATE TABLE `subsys` (
 INSERT INTO subsys_design (guid,p_guid,r_guid,description,fixed_date,key_name,updated_by,updated_date,created_by,created_date,business_group,code,dcn_design_type,name,state,system_design) VALUES
  ('1002_1000000013',NULL,'1002_1000000013','mock sub system','2019-07-03 20:54:42','WECUBE-DEMO','umadm','2019-07-05 04:31:24.000','umadmin','2019-07-03 08:19:53.000',141,'DEMO',141,'mock sub system',141,NULL)
 ,('1002_1000000014',NULL,'1002_1000000014','客户端','2019-07-04 15:46:32','EDP-CLIENT','umadm','2019-07-08 01:58:33.000','umadmin','2019-07-04 04:06:15.000',141,'CLIENT',141,'微信存款-客户端',141,NULL)
+,('1002_1000000015', NULL, '1002_1000000015', '', '2019-07-04 15:46:32', 'EDP-ETL', 'umadm', '2019-07-05 03:38:02', 'umadmin', '2019-07-02 11:59:53', 43, 'ETL', 63, 'dd', 141, '0001_0000000001')
 ;
 
 INSERT INTO subsys (guid,p_guid,r_guid,description,fixed_date,key_name,updated_by,updated_date,created_by,created_date,code,env,manager,state,subsys_design,biz_key) VALUES
  ('1007_1000000001',NULL,'1007_1000000001','mock sub system',NULL,'WECUBE-DEMO1','umadmin','2019-07-03 08:39:46.000','umadmin','2019-07-03 08:24:22.000','WECUBE-DEMO',141,'',141,'1002_1000000013',NULL)
 ,('1007_1000000002',NULL,'1007_1000000002','mock sub system',NULL,'WECUBE-DEMO2','umadmin','2019-07-03 08:39:46.000','umadmin','2019-07-03 08:24:22.000','WECUBE-DEMO',142,'',141,'1002_1000000014',NULL)
 ,('1007_1000000003',NULL,'1007_1000000003','mock sub system',NULL,'WECUBE-DEMO3','umadmin','2019-07-03 08:39:46.000','umadmin','2019-07-03 08:24:22.000','WECUBE-DEMO',NULL,'',141,'1002_1000000013',NULL)
+,('1007_1000000004',NULL,'1007_1000000004','mock sub system',NULL,'WECUBE-DEMO4','umadmin','2019-07-03 08:39:46.000','umadmin','2019-07-03 08:24:22.000','WECUBE-DEMO',NULL,'',141,'1002_1000000015',NULL)
 ;
 
 
@@ -110,3 +112,35 @@ INSERT INTO `adm_integrate_template_alias_attr` (`id_attr`, `id_alias`, `id_ci_t
 
 INSERT INTO `adm_integrate_template_relation` (`id_relation`, `child_alias_id`, `child_ref_attr_id`, `parent_alias_id`, `is_refered_from_parent`) VALUES
 	(100001, 102, 10109, 101, 0);
+
+delete from adm_role_ci_type;
+INSERT INTO adm_role_ci_type (id_adm_role_ci_type, id_adm_role,id_adm_ci_type,ci_type_name,creation_permission,removal_permission,modification_permission,enquiry_permission,execution_permission,grant_permission)
+VALUES
+(1, 1,1007,'子系统','Y','Y','N','N','N','N'),
+(2, 2,1007,'子系统','N','N','N','Y','N','N'),
+(3, 1,1002,'子系统设计','Y','Y','Y','Y','Y','Y');
+
+INSERT INTO adm_role_ci_type_ctrl_attr (id_adm_role_ci_type_ctrl_attr, id_adm_role_ci_type,creation_permission,removal_permission,modification_permission,enquiry_permission,execution_permission,grant_permission)
+VALUES
+(1, 1,'Y','Y','Y','Y','Y','N'),
+(2, 1,'Y','Y','Y','Y','Y','N'),
+(3, 2,'Y','Y','Y','Y','Y','N');
+
+INSERT INTO adm_role_ci_type_ctrl_attr_condition (id_adm_role_ci_type_ctrl_attr_condition,id_adm_role_ci_type_ctrl_attr,id_adm_ci_type_attr,ci_type_attr_name,condition_value, condition_value_type)
+VALUES
+(1,1,10109,'子系统设计','', 'Expression'),
+(2,1,10110,'环境','', 'Select'),
+(3,2,10109,'子系统设计','', 'Expression'),
+(4,2,10110,'环境','', 'Select');
+
+INSERT INTO adm_role_ci_type_ctrl_attr_expression (id_adm_role_ci_type_ctrl_attr_expression,id_adm_role_ci_type_ctrl_attr_condition,expression)
+VALUES
+(1,1,'subsys_design[{guid in ["1002_1000000013","1002_1000000014"]}]:[guid]'),
+(2,3,'subsys_design[{guid eq "1002_1000000015"}]:[guid]');
+
+INSERT INTO adm_role_ci_type_ctrl_attr_select (id_adm_role_ci_type_ctrl_attr_select,id_adm_role_ci_type_ctrl_attr_condition,id_adm_basekey)
+VALUES
+(1,2,141),
+(2,4,142);
+
+commit;
