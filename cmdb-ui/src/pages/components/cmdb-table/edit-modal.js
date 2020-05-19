@@ -1,4 +1,7 @@
+import './edit-modal.scss'
+import moment from 'moment'
 const WIDTH = 300
+const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 export default {
   data () {
     return {
@@ -125,6 +128,8 @@ export default {
               }
             }
           })
+        } else if (['date'].indexOf(col.inputType) >= 0) {
+          v = moment(v).format(DATE_FORMAT)
         }
         row[col.inputKey] = v
         attrsWillReset.forEach(attr => {
