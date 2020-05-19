@@ -1,5 +1,7 @@
 package com.webank.cmdb.dto;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+
 import javax.validation.constraints.NotNull;
 
 public class Filter {
@@ -54,4 +56,19 @@ public class Filter {
     public void setType(Object type) {
         this.type = type;
     }
-}
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        Filter rhs = (Filter) obj;
+        return new EqualsBuilder()
+                .append(name, rhs.name)
+                .append(operator, rhs.operator)
+                .append(value, rhs.value)
+                //.append(type, rhs.type)
+                .isEquals();
+    }}

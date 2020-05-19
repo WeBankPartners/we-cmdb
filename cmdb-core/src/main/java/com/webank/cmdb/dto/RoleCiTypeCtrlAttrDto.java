@@ -54,6 +54,7 @@ public class RoleCiTypeCtrlAttrDto extends BasicResourceDto<RoleCiTypeCtrlAttrDt
             dto.roleCiType = new RoleCiTypeDto().fromDomain(domain.getAdmRoleCiType(), fields);
         }
 
+
         if (refResource != null && refResource.contains("conditions")) {
             List<String> fields = CollectionUtils.filterCurrentResourceLevel(refResource, "conditions");
             domain.getAdmRoleCiTypeCtrlAttrConditions().forEach(x -> {
@@ -81,9 +82,6 @@ public class RoleCiTypeCtrlAttrDto extends BasicResourceDto<RoleCiTypeCtrlAttrDt
 
         if (withChild) {
             dto.roleCiType = RoleCiTypeDto.from(domain.getAdmRoleCiType(), false);
-            domain.getAdmRoleCiTypeCtrlAttrConditions().forEach(x -> {
-                dto.conditions.add(RoleCiTypeCtrlAttrConditionDto.from(x, false));
-            });
         }
         return dto;
     }
