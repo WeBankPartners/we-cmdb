@@ -5,11 +5,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.Filter;
+import javax.servlet.ServletRequestListener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jasig.cas.client.validation.Cas20ServiceTicketValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +31,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -257,6 +260,12 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
         return new CustomRolesPrefixPostProcessor();
     }
 
+    @Bean
+    public ServletListenerRegistrationBean<ServletRequestListener> registerRequestListener() {
+        ServletListenerRegistrationBean<ServletRequestListener> servletListenerRegistrationBean = new ServletListenerRegistrationBean<>();
+        servletListenerRegistrationBean.setListener(new RequestContextListener());
+        return servletListenerRegistrationBean;
+    }
     private ServiceProperties serviceProperties() {
         ServiceProperties properties = new ServiceProperties();
         properties.setService(getServerUrl() + "/login/cas");
