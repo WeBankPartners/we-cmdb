@@ -39,6 +39,10 @@ public class CiData {
         return data;
     }
 
+    public Object getValue(String name){
+        return data.get(name);
+    }
+
     public void setData(Map<String, Object> data) {
         this.data = data;
     }
