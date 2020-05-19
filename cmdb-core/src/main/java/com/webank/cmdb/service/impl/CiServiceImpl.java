@@ -45,6 +45,9 @@ import javax.persistence.criteria.Root;
 import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
+import com.webank.cmdb.config.log.CiDataType;
+import com.webank.cmdb.config.log.CiTypeId;
+import com.webank.cmdb.config.log.Guid;
 import com.webank.cmdb.domain.*;
 import com.webank.cmdb.repository.*;
 import org.apache.commons.beanutils.BeanMap;
@@ -867,9 +870,9 @@ public class CiServiceImpl implements CiService {
         return getCi(ciTypeId,guid);
     }
 
-    @OperationLogPointcut(operation = Removal, objectClass = CiData.class, ciTypeIdArgumentIndex = 0, ciGuidArgumentIndex = 1)
+    @OperationLogPointcut(operation = Removal, objectClass = CiData.class)
     @Override
-    public void deleteCi(int ciTypeId, String guid) {
+    public void deleteCi(@CiTypeId int ciTypeId, @Guid String guid) {
         validateCiType(ciTypeId);
         validateDynamicEntityManager();
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
@@ -904,9 +907,9 @@ public class CiServiceImpl implements CiService {
         return entityBean;
     }
 
-    @OperationLogPointcut(operation = Modification, objectClass = CiData.class, ciTypeIdArgumentIndex = 0, ciGuidArgumentIndex = 1, ciNameArgumentIndex = 2)
+    @OperationLogPointcut(operation = Modification, objectClass = CiData.class)
     @Override
-    public void update(int ciTypeId, String guid, Map<String, Object> ciData) {
+    public void update(@CiTypeId int ciTypeId, @Guid String guid, Map<String, Object> ciData) {
         validateCiType(ciTypeId);
         validateCiData(ciTypeId, ciData, true);
         validateDynamicEntityManager();
@@ -960,9 +963,9 @@ public class CiServiceImpl implements CiService {
         return cis;
     }
 
-    @OperationLogPointcut(operation = Modification, objectClass = CiData.class, ciTypeIdArgumentIndex = 0)
+    @OperationLogPointcut(operation = Modification, objectClass = CiData.class)
     @Override
-    public List<Map<String, Object>> update(int ciTypeId, List<Map<String, Object>> cis) {
+    public List<Map<String, Object>> update(@CiTypeId int ciTypeId,@CiDataType List<Map<String, Object>> cis) {
         if (logger.isDebugEnabled()) {
             logger.debug("CIs update request, ciTypeId:{}, query request:{}", ciTypeId, JsonUtil.toJsonString(cis));
         }
@@ -1079,9 +1082,9 @@ public class CiServiceImpl implements CiService {
         }
     }
 
-    @OperationLogPointcut(operation = Creation, objectClass = CiData.class, ciTypeIdArgumentIndex = 0, ciNameArgumentIndex = 1)
+    @OperationLogPointcut(operation = Creation, objectClass = CiData.class)
     @Override
-    public String create(int ciTypeId, Map<String, Object> ciData) {
+    public String create(@CiTypeId int ciTypeId, @CiDataType Map<String, Object> ciData) {
 
         validateCiType(ciTypeId);
         validateCiData(ciTypeId, ciData, false);
@@ -1109,9 +1112,9 @@ public class CiServiceImpl implements CiService {
         }
     }
 
-    @OperationLogPointcut(operation = Creation, objectClass = CiData.class, ciTypeIdArgumentIndex = 0)
+    @OperationLogPointcut(operation = Creation, objectClass = CiData.class)
     @Override
-    public List<Map<String, Object>> create(int ciTypeId, List<Map<String, Object>> cis) {
+    public List<Map<String, Object>> create(@CiTypeId int ciTypeId,@CiDataType List<Map<String, Object>> cis) {
         List<Map<String, Object>> rtnCis = new LinkedList<Map<String, Object>>();
         // List<Map<String, Object>> failedRtnCis = new LinkedList<Map<String,
         // Object>>();
@@ -1201,9 +1204,9 @@ public class CiServiceImpl implements CiService {
         ciDataInterceptorService.postCreate(entityHolder, ci, multRefMetaMap, entityManager);
         return entityHolder;
     }
-    @OperationLogPointcut(operation = Removal, objectClass = CiData.class, ciTypeIdArgumentIndex = 0)
+    @OperationLogPointcut(operation = Removal, objectClass = CiData.class)
     @Override
-    public void delete(int ciTypeId, List<String> ids) {
+    public void delete(@CiTypeId int ciTypeId,@Guid List<String> ids) {
         List<String> rtnIds = new LinkedList<String>();
         List<ExceptionHolder> exceptionHolders = new LinkedList<ExceptionHolder>();
 
@@ -2037,9 +2040,9 @@ public class CiServiceImpl implements CiService {
         });
         return resultList;
     }
-    @OperationLogPointcut(operation = Modification, objectClass = CiData.class, ciTypeIdArgumentIndex = 0)
+    @OperationLogPointcut(operation = Modification, objectClass = CiData.class)
     @Override
-    public List<Map<String, Object>> operateState(List<CiIndentity> ciIds, String operation) {
+    public List<Map<String, Object>> operateState(@Guid List<CiIndentity> ciIds, String operation) {
         StateOperation stateOperation = StateOperation.fromCode(operation);
 
         if (StateOperation.Confirm.equals(stateOperation) || StateOperation.Discard.equals(stateOperation) || StateOperation.Startup.equals(stateOperation) || StateOperation.Stop.equals(stateOperation)) {
@@ -2148,7 +2151,12 @@ public class CiServiceImpl implements CiService {
                     };
 
                     Map ciMap = Maps.newHashMap();
-                    MapUtils.putAll(ciMap, new Object[] { "ciTypeId", attr.getCiTypeId(), "guid", data.get("guid"), "propertyName", attr.getPropertyName() });
+                    MapUtils.putAll(ciMap, new Object[] {
+                            "ciTypeId", attr.getCiTypeId(),
+                            "guid", data.get("guid"),
+                            "keyName", data.get("key_name"),
+                            "propertyName", attr.getPropertyName()
+                    });
                     dependentCis.add(ciMap);
                 });
             }

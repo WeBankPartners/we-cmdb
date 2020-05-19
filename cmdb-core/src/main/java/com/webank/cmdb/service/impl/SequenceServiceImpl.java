@@ -9,6 +9,8 @@ import com.webank.cmdb.domain.AdmSequence;
 import com.webank.cmdb.repository.AdmSequenceRepository;
 import com.webank.cmdb.service.SequenceService;
 
+import javax.transaction.Transactional;
+
 @Service
 public class SequenceServiceImpl implements SequenceService {
     private static final int DEFAULT_VAL = 1;
@@ -24,6 +26,7 @@ public class SequenceServiceImpl implements SequenceService {
     @Autowired
     private AdmSequenceRepository sequenceRepository;
 
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
     @Override
     public synchronized String getNextGuid(String seqName, Integer ciTypeId) {
         AdmSequence sequence = sequenceRepository.findBySeqName(seqName);

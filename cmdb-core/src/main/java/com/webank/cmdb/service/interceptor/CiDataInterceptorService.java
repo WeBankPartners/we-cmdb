@@ -18,6 +18,8 @@ import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.util.*;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +35,8 @@ import static com.webank.cmdb.util.SpecialSymbolUtils.getAfterSpecialSymbol;
 @Service
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class CiDataInterceptorService {
+    private static final Logger logger = LoggerFactory.getLogger(CiDataInterceptorService.class);
+
     private static final String TARGET_DEFAULT_VALUE = "";
     private static final String TARGET_NAME = "targetName";
 
@@ -655,18 +659,21 @@ public class CiDataInterceptorService {
     public void preDelete(int ciTypeId, String guid, boolean checkFinalState, DynamicEntityMeta entityMeta) {
         List<Map<String, Object>> dependentCis = ciService.lookupReferenceByCis(ciTypeId, guid, checkFinalState);
         if (!dependentCis.isEmpty()) {
-            throw new InvalidArgumentException(String.format("Ci [%s] is referenced by other ci currently, can not be deleted.", guid), dependentCis);
+            Map<String,Object> depCiData = dependentCis.get(0);
+            throw new InvalidArgumentException(String.format("Ci [%s] is referenced by other ci ( guid:%s, keyName:%s ) currently, can not be deleted.",
+                    guid,depCiData.get("guid"),depCiData.get("keyName")), dependentCis);
         }
     }
     public void postDelete(DynamicEntityHolder entityHolder, EntityManager entityManager, int ciTypeId, String guid, DynamicEntityMeta entityMeta) {
         try {
+            //TODO: fix citype can not be found after deletion
             Map<String, Object> ciData = ciService.getCi(ciTypeId, guid);
             Map ci = new HashMap();
             ci.put(CmdbConstants.DEFAULT_FIELD_STATE,StateOperation.Delete);
             ci.put(GUID, guid);
             handleReferenceAutoFill(entityHolder,entityManager,ci);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(String.format("Exception happen for auto fill after ci type (%s) deletion.",ciTypeId));
         }
     }
 }

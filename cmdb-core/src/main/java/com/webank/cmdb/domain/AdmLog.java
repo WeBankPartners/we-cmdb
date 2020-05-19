@@ -21,6 +21,8 @@ import javax.persistence.Table;
 @NamedQuery(name = "AdmLog.findAll", query = "SELECT a FROM AdmLog a")
 public class AdmLog implements Serializable {
     private static final long serialVersionUID = 1L;
+    private Integer idLog;
+    private String requestUrl;
     private String guid;
     private String ciName;
     private Integer ciTypeId;
@@ -30,7 +32,6 @@ public class AdmLog implements Serializable {
     private String createdBy;
     private Timestamp createdDate;
     private String idAdmUser;
-    private Integer idLog;
     private String logCat;
     private String logContent;
     private String operation;
@@ -38,12 +39,23 @@ public class AdmLog implements Serializable {
     private Integer status;
     private String updatedBy;
     private String updatedDate;
+    private String clientHost;
 
     public AdmLog() {
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_log")
+    public Integer getIdLog() {
+        return this.idLog;
+    }
+
+    public void setIdLog(Integer idLog) {
+        this.idLog = idLog;
+    }
+
+    @Column(name = "guid")
     public String getGuid() {
         return this.guid;
     }
@@ -124,15 +136,6 @@ public class AdmLog implements Serializable {
         this.idAdmUser = idAdmUser;
     }
 
-    @Column(name = "id_log")
-    public Integer getIdLog() {
-        return this.idLog;
-    }
-
-    public void setIdLog(Integer idLog) {
-        this.idLog = idLog;
-    }
-
     @Column(name = "log_cat")
     public String getLogCat() {
         return this.logCat;
@@ -194,4 +197,21 @@ public class AdmLog implements Serializable {
         this.updatedDate = updatedDate;
     }
 
+    @Column(name = "request_url")
+    public String getRequestUrl() {
+        return requestUrl;
+    }
+
+    public void setRequestUrl(String requestUrl) {
+        this.requestUrl = requestUrl;
+    }
+
+    @Column(name = "client_host")
+    public String getClientHost() {
+        return clientHost;
+    }
+
+    public void setClientHost(String clientHost) {
+        this.clientHost = clientHost;
+    }
 }

@@ -212,13 +212,13 @@ CREATE TABLE IF NOT EXISTS `adm_integrate_template_relation` (
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `adm_log` (
-  `id_log` int(11) DEFAULT NULL,
+  `id_log` int(11) NOT NULL AUTO_INCREMENT,
   `log_cat` varchar(50) DEFAULT NULL,
   `id_adm_user` varchar(20) DEFAULT NULL,
   `operation` varchar(50) DEFAULT NULL,
   `log_content` longtext,
   `created_at` varchar(19) DEFAULT NULL,
-  `guid` bigint(20) NOT NULL AUTO_INCREMENT,
+  `guid` varchar(15) DEFAULT NULL,
   `updated_by` varchar(64) DEFAULT NULL,
   `updated_date` varchar(64) DEFAULT NULL,
   `created_by` varchar(64) DEFAULT NULL,
@@ -229,13 +229,16 @@ CREATE TABLE IF NOT EXISTS `adm_log` (
   `ci_name` varchar(100) DEFAULT NULL COMMENT '操作ci名称',
   `status` int(2) DEFAULT '0',
   `ci_type_id` int(10) DEFAULT NULL COMMENT 'ci类型id',
-  PRIMARY KEY (`guid`),
+  `request_url` varchar(500) DEFAULT NULL,
+  `client_host` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id_log`),
   KEY `idx_created_at` (`created_at`),
   KEY `idx_ci_guid` (`ci_type_instance_guid`),
   KEY `NewIndex1` (`log_cat`),
   KEY `NewIndex2` (`ci_type_name`),
   KEY `NewIndex3` (`ci_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=964 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
 
 CREATE TABLE IF NOT EXISTS `adm_menu` (
   `id_adm_menu` int(11) NOT NULL AUTO_INCREMENT,

@@ -19,5 +19,5 @@ public interface LogService extends CmdbService {
 
     AdmLog log(LogCategory category, String user, LogOperation operation, String logContent, String remark);
 
-    AdmLog log(LogCategory category, String user, LogOperation operation, String logContent, String remark, String ciGuid, String ciName, Integer ciTypeId, String ciTypeName);
+    AdmLog log(LogCategory category, String user, LogOperation operation, String logContent, String remark, String requestUrl, String ciGuid, String ciName, Integer ciTypeId, String ciTypeName, String clientHost);
 }
