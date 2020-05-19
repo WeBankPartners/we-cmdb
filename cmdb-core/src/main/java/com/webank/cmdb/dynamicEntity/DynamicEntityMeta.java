@@ -1,11 +1,6 @@
 package com.webank.cmdb.dynamicEntity;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.webank.cmdb.constant.CiStatus;
@@ -34,6 +29,9 @@ public class DynamicEntityMeta {
     private String qulifiedName;
     private String tableName;
     private SortedMap<String, FieldNode> fieldMap = new TreeMap<String, FieldNode>();
+
+    //attribute id -> FieldNode, lazy creation
+    private Map<Integer,FieldNode> attrIdfieldMap;
     private Class<?> entityClazz;
     private String name = Strings.EMPTY;
 
@@ -200,6 +198,16 @@ public class DynamicEntityMeta {
 
     public FieldNode getFieldNode(String fieldName) {
         return fieldMap.get(fieldName);
+    }
+
+    public FieldNode getFieldNode(int attrId){
+        if(attrIdfieldMap == null){
+            attrIdfieldMap = new HashMap<>();
+            fieldMap.forEach((name,node)->{
+                attrIdfieldMap.put(node.getAttrId(),node);
+            });
+        }
+        return attrIdfieldMap.get(attrId);
     }
 
     public Collection<FieldNode> getAllFieldNodes(boolean includeJoinNode) {

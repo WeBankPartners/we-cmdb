@@ -15,5 +15,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AdhocIntegrationQueryDto {
     private IntegrationQueryDto criteria;
-    private QueryRequest queryRequest;
+    private QueryRequest queryRequest = new QueryRequest();
 }
