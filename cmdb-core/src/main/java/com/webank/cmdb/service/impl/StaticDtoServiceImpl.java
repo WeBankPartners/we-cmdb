@@ -14,6 +14,7 @@ import java.util.Map;
 
 import javax.transaction.Transactional;
 
+import com.webank.cmdb.config.log.CiTypeId;
 import org.apache.commons.beanutils.BeanMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -320,7 +321,7 @@ public class StaticDtoServiceImpl implements StaticDtoService {
     @OperationLogPointcut(operation = Modification)
     @Transactional
     @Override
-    public <T extends ResourceDto<T, D>, D> List<T> update(Class<T> dtoClzz, List<Map<String, Object>> updateRequests) {
+    public <T extends ResourceDto<T, D>, D> List<T> update(Class<T> dtoClzz, @CiTypeId List<Map<String, Object>> updateRequests) {
         if (logger.isDebugEnabled()) {
             logger.debug("Update request list, dto class:{}, values:{}", dtoClzz, JsonUtil.toJson(updateRequests));
         }
