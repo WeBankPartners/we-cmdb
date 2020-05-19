@@ -125,6 +125,7 @@ import {
   INVOKE_UNIT,
   INVOKED_UNIT
 } from '@/const/init-params.js'
+import { baseURL } from '@/api/base.js'
 
 export default {
   components: {
@@ -556,8 +557,19 @@ export default {
       this.renderTreeGraph(this.systemTreeData)
       this.treeSpinShow = false
     },
+    loadImage (nodesString) {
+      ;(nodesString.match(/image=[^ ;]*(files\/\d*|png)/g) || [])
+        .filter((value, index, self) => {
+          return self.indexOf(value) === index
+        })
+        .map(keyvaluepaire => keyvaluepaire.substr(7))
+        .forEach(image => {
+          this.graphTree.graphviz.addImage(image, '48px', '48px')
+        })
+    },
     renderTreeGraph (data) {
       let nodesString = this.genTreeDOT(data)
+      this.loadImage(nodesString)
       this.graphTree.graphviz.transition().renderDot(nodesString)
       let svg = d3.select('#graphTree').select('svg')
       let width = svg.attr('width')
@@ -575,7 +587,7 @@ export default {
         'rankdir=TB nodesep=0.5;',
         `size="${width},${height}";`,
         this.genlayerDot(data),
-        `Node [fontname=Arial, shape=box;];`,
+        'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.3", height="1.1", color="transparent" ,fontsize=10];',
         'Edge [fontname=Arial, arrowhead="t"];',
         `tooltip="${data[0].data.key_name}";`,
         ...this.genChildrenDot(data || [], 1),
@@ -634,8 +646,15 @@ export default {
       let dots = []
       data.forEach(_ => {
         let _label = _.data.code
-        _label = _label.length > 21 ? `${_label.slice(0, 1)}...${_label.slice(-20)}` : _label
-        dots = dots.concat([`"${_.guid}"`, `[id="n_${_.guid}";`, `label="${_label}";`, `tooltip="${_.data.code}"];`])
+        _label = _label.length > 21 ? `${_label.slice(0, 1)}...${_label.slice(-15)}` : _label
+        dots = dots.concat([
+          `"${_.guid}"`,
+          `[id="n_${_.guid}";`,
+          `label="${_label}";`,
+          `image="${baseURL}/files/${_.imageFileId}.png";`,
+          'labelloc="b"',
+          `tooltip="${_.data.code}"];`
+        ])
         this.rankNodes[_.ciTypeId].push(`"${_.guid}"`)
         if (_.children instanceof Array && _.children.length) {
           dots = dots.concat(this.genChildrenDot(_.children, level + 1))
