@@ -5,12 +5,14 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import com.webank.cmdb.service.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,12 +52,6 @@ import com.webank.cmdb.dto.RoleUserDto;
 import com.webank.cmdb.dto.UserDto;
 import com.webank.cmdb.exception.InvalidArgumentException;
 import com.webank.cmdb.exception.ServiceException;
-import com.webank.cmdb.service.CiService;
-import com.webank.cmdb.service.CiTypeService;
-import com.webank.cmdb.service.ImageService;
-import com.webank.cmdb.service.IntegrationQueryService;
-import com.webank.cmdb.service.StateTransitionService;
-import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.service.impl.ConstantService;
 import com.webank.cmdb.service.impl.FilterRuleService;
 import com.webank.cmdb.util.JsonUtil;
@@ -83,6 +79,8 @@ public class ApiV2Controller {
     private ConstantService constantService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private RoleCiTypeAccessCtrlService roleCiTypeAccessCtrlService;
 
     // Enum code
     @PostMapping("/enum/codes/retrieve")
@@ -509,7 +507,8 @@ public class ApiV2Controller {
 
     @PostMapping("/role-citype-ctrl-attr-conditions/create")
     public List<RoleCiTypeCtrlAttrConditionDto> createRoleCiTypeCtrlAttrConditions(@Valid @RequestBody List<RoleCiTypeCtrlAttrConditionDto> roleCiTypeCtrlAttrConditions) {
-        return staticDtoService.create(RoleCiTypeCtrlAttrConditionDto.class, roleCiTypeCtrlAttrConditions);
+        return roleCiTypeAccessCtrlService.createRoleCiTypeCtrlAttrConditions(roleCiTypeCtrlAttrConditions);
+
     }
 
     @PostMapping("/role-citype-ctrl-attr-conditions/update")

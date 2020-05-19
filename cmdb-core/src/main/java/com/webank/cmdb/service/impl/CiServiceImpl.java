@@ -303,6 +303,17 @@ public class CiServiceImpl implements CiService {
     }
 
     @Override
+    public Map<String, DynamicEntityMeta> getTableDynamicEntityMetaMap(){
+        Map<Integer, DynamicEntityMeta> entityMetaMap = getDynamicEntityMetaMap();
+        Map<String, DynamicEntityMeta> tableEntityMetaMap = new HashMap<>();
+        for(Map.Entry<Integer, DynamicEntityMeta> entry:entityMetaMap.entrySet()){
+            String tableName = entry.getValue().getTableName();
+            tableEntityMetaMap.put(tableName,entry.getValue());
+        }
+        return tableEntityMetaMap;
+    }
+
+    @Override
     public synchronized Map<Integer, DynamicEntityMeta> getMultSelectMetaMap() {
         if (!isLoaded) {
             reload();
@@ -1395,9 +1406,19 @@ public class CiServiceImpl implements CiService {
                         if (kv.getKey().startsWith(ACCESS_CONTROL_ATTRIBUTE_PREFIX)) {
                             continue;
                         }
+
                         if (kv.getKey().endsWith(".guid") || kv.getKey().endsWith(".r_guid")) {
+                            if(!isRequestExplicitly(intQueryReq, (Map.Entry<String, FieldInfo>) kv)) {
+                                continue;
+                            }
+                        }
+
+/*
+                        if(!isRequestField(intQueryReq,kv)){
                             continue;
                         }
+*/
+
                         selectedFields.add(kv.getValue());
                         if (!selections.contains(kv.getValue().getExpression())) {
                             selections.add(kv.getValue().getExpression());
@@ -1440,6 +1461,19 @@ public class CiServiceImpl implements CiService {
         } finally {
             priEntityManager.close();
         }
+    }
+
+    private boolean isRequestExplicitly(QueryRequest intQueryReq, Map.Entry<String, FieldInfo> kv) {
+        return intQueryReq.getResultColumns().contains(kv.getKey());
+    }
+
+    private boolean requestGuid(QueryRequest intQueryReq){
+        for (String resultColumn : intQueryReq.getResultColumns()) {
+            if(resultColumn.endsWith(".guid")){
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isRequestField(QueryRequest intQueryReq, Map.Entry<String, FieldInfo> kv) {
@@ -1681,7 +1715,7 @@ public class CiServiceImpl implements CiService {
         if (CiStatus.NotCreated.getCode().equals(curCiType.getStatus())) {
             throw new InvalidArgumentException(String.format("Can not build integration as the given CiType [%s], status is [%s].", curCiType.getName(), curCiType.getStatus()));
         }
-        path.push(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, curCiType.getTableName()));
+        path.push(curCiType.getTableName());
 
         Map<String, FieldInfo> currentCiTypeAttrExprMap = new HashMap<>();
         From curFrom = null;
@@ -1964,8 +1998,8 @@ public class CiServiceImpl implements CiService {
             }
         } else {
             List<Object> rows = resultList;
-            if (rows != null && rows.size() > 0) {
-                results.add(convertResponse(selections, rows.toArray(), selectedFields));
+            for (int i = 0; i < rows.size(); i++) {
+                results.add(convertResponse(selections, new Object[]{rows.get(i)}, selectedFields));
             }
         }
 
