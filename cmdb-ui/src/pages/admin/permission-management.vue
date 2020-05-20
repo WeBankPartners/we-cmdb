@@ -377,10 +377,23 @@ export default {
 
     async exportHandler () {
       const data = this.ciTypeAttrsPermissions.map(_ => {
+        let result = {}
         for (let i in _) {
-          _[i] = _[i].value
+          if (Array.isArray(_[i])) {
+            result[i] = _[i]
+              .map(item => {
+                if (typeof item === 'object') {
+                  return item.value
+                } else if (typeof item === 'string') {
+                  return item.replace(/,/g, ';')
+                }
+              })
+              .join(' | ')
+          } else {
+            result[i] = _[i].value
+          }
         }
-        return _
+        return result
       })
       this.$refs.table.export({
         filename: 'Permission Data',
