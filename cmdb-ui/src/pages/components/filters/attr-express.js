@@ -186,7 +186,8 @@ export default {
                 attrs: {
                   'attr-index': +attrIndex + 1,
                   filter: false,
-                  citype: ciType
+                  citype: ciType,
+                  nodeType: 'node'
                 }
               },
               data: {
@@ -224,7 +225,8 @@ export default {
                 attrs: {
                   'attr-index': +attrIndex + 1,
                   filter: false,
-                  citype: ciType
+                  citype: ciType,
+                  nodeType: 'node'
                 }
               },
               data: {
@@ -268,7 +270,8 @@ export default {
           attrs: {
             'attr-index': _attrIndex,
             filter: false,
-            citype: ''
+            citype: '',
+            nodeType: 'enum'
           }
         }
       }
