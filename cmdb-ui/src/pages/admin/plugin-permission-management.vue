@@ -208,6 +208,8 @@ export default {
       this.getAttrPermissions()
     },
     async getAttrPermissions () {
+      this.attrsPermissionsColumns = []
+      this.ciTypeAttrsPermissions = []
       this.$refs.table.isTableLoading(true)
       let { statusCode, data } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(this.currentRoleCiTypeId)
       this.$refs.table.isTableLoading(false)
@@ -373,21 +375,29 @@ export default {
           const foundCi = this.attrsPermissionsColumns.find(k => k.inputKey === i)
           if (!found && foundCi) {
             if (['ref', 'multiRef'].indexOf(foundCi.inputType) >= 0) {
-              _[i] = foundRow[i]
-                ? {
-                  conditionType: 'Expression',
-                  conditionId: foundRow[i].conditionId,
-                  conditionValueExprs: _[i]
-                }
-                : null
+              let result =
+                Array.isArray(_[i]) && _[i].length
+                  ? {
+                    conditionType: 'Expression',
+                    conditionValueExprs: _[i]
+                  }
+                  : null
+              if (foundRow[i]) {
+                result.conditionId = foundRow[i].conditionId
+              }
+              _[i] = result
             } else if (['select', 'multiSelect'].indexOf(foundCi.inputType) >= 0) {
-              _[i] = foundRow[i]
-                ? {
-                  conditionType: 'Select',
-                  conditionId: foundRow[i].conditionId,
-                  conditionValueSelects: _[i]
-                }
-                : null
+              let result =
+                Array.isArray(_[i]) && _[i].length
+                  ? {
+                    conditionType: 'Select',
+                    conditionValueSelects: _[i]
+                  }
+                  : null
+              if (foundRow[i]) {
+                result.conditionId = foundRow[i].conditionId
+              }
+              _[i] = result
             }
           }
         }
