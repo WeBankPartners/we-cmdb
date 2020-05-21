@@ -162,11 +162,13 @@ export default {
 
           case 'multiSelect':
           case 'multiRef':
-            filters.push({
-              name: i,
-              operator: 'in',
-              value: this.form[i]
-            })
+            if (Array.isArray(this.form[i]) && this.form[i].length) {
+              filters.push({
+                name: i,
+                operator: 'in',
+                value: this.form[i]
+              })
+            }
             break
           case 'number':
             filters.push({
