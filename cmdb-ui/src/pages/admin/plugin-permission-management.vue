@@ -48,13 +48,7 @@
         </div>
       </Card>
     </Col>
-    <Modal
-      v-model="permissionManageModal"
-      :title="$t('edit_data_authority')"
-      @on-ok="cancelEdit"
-      @on-cancel="cancelEdit"
-      width="80"
-    >
+    <Modal v-model="permissionManageModal" :title="$t('edit_data_authority')" @on-cancel="cancelEdit" width="80">
       <CMDBTable
         :tableData="ciTypeAttrsPermissions"
         :filtersHidden="true"
@@ -70,6 +64,9 @@
         tableHeight="650"
         ref="table"
       ></CMDBTable>
+      <div slot="footer">
+        <Button @click="cancelEdit">{{ $t('close') }}</Button>
+      </div>
     </Modal>
   </Row>
 </template>
@@ -463,6 +460,7 @@ export default {
       }
     },
     cancelEdit () {
+      this.permissionManageModal = false
       this.permissionEntryPointsForEdit = []
     },
     ciTypesPermissionsHandler (ci, code, type) {
