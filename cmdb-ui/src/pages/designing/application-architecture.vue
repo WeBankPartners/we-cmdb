@@ -394,7 +394,6 @@ export default {
       this.reColorInvokeSequence()
     },
     reColorInvokeSequence () {
-      this.initGraph()
       this.shadeAll()
 
       this.invokeSequenceForm.currentInvokeSequence.forEach(_ => {
