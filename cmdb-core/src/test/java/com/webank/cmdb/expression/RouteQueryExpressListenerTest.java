@@ -63,7 +63,7 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
         IntegrationQueryDto intQuery = adhocIntegrationQueryDto.getCriteria();
         assertNotNull(intQuery);
         assertThat(adhocIntegrationQueryDto.getQueryRequest().getFilters().size(),equalTo(2));
-        assertThat(adhocIntegrationQueryDto.getQueryRequest().getFilters().get(1),equalTo(new Filter("system_design.key_name","eq","EDP")));
+        assertThat(adhocIntegrationQueryDto.getQueryRequest().getFilters().get(1),equalTo(new Filter("0_system_design.key_name","eq","EDP")));
     }
 
     @Test
@@ -138,6 +138,32 @@ public class RouteQueryExpressListenerTest extends AbstractBaseControllerTest {
         assertThat(query_l3.getParentRs(),notNullValue());
         assertThat(query_l3.getParentRs().getIsReferedFromParent(),equalTo(true));
         assertThat(query_l3.getChildren().size(),equalTo(0));
+    }
+
+    @Test
+    @Transactional
+    public void testRouteQueryParseForChainWithTailedCondition(){
+        String expression = "subsys_design:guid.system_design>system_design[{guid eq '0001_0000000001'}]:key_name";
+        AdhocIntegrationQueryDto adhocIntegrationQueryDto = expressParser.parse(expression);
+        IntegrationQueryDto query_l2 = adhocIntegrationQueryDto.getCriteria();;
+        assertThat(query_l2.getParentRs(),nullValue());
+        assertThat(query_l2.getChildren().size(),equalTo(1));
+        IntegrationQueryDto query_l3 = query_l2.getChildren().get(0);
+        assertThat(query_l3.getParentRs(),notNullValue());
+        assertThat(query_l3.getParentRs().getIsReferedFromParent(),equalTo(true));
+        assertThat(query_l3.getParentRs().getAttrId(),equalTo(27));
+        assertThat(query_l3.getChildren().size(),equalTo(0));
+
+        assertThat(query_l2.getAttrKeyNames().size(),equalTo(1));
+        assertThat(query_l2.getAttrKeyNames().get(0),equalTo("0_subsys_design.guid"));
+        assertThat(query_l3.getAttrKeyNames().size(),equalTo(2));
+        assertThat(query_l3.getAttrKeyNames().get(0),equalTo("1_system_design.guid"));
+        assertThat(query_l3.getAttrKeyNames().get(1),equalTo("1_system_design.key_name"));
+
+        QueryRequest request = adhocIntegrationQueryDto.getQueryRequest();
+        assertThat(request.getFilters().size(),equalTo(1));
+        assertThat(request.getFilters().get(0).getName(),equalTo("1_system_design.guid"));
+        assertThat(request.getFilters().get(0).getValue(),equalTo("0001_0000000001"));
     }
 
     @Ignore

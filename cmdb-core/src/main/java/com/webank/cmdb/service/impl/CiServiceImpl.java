@@ -1788,12 +1788,13 @@ public class CiServiceImpl implements CiService {
             }
         }
 
-        attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "guid");
-        attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "r_guid");
+        String curQueryKeyName = curQuery.getKeyName();
+        attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "guid", curQueryKeyName);
+        attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "r_guid",curQueryKeyName);
      
         if (enableBiz) {
-            attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "biz_key");
-            attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "state");
+            attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "biz_key",curQueryKeyName);
+            attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "state",curQueryKeyName);
         }
 
         List<AdmCiTypeAttr> accessControlledAttributes = ciTypeAttrRepository.findAllByCiTypeIdAndIsAccessControlled(curCiTypeId, 1);
@@ -1825,14 +1826,20 @@ public class CiServiceImpl implements CiService {
         }
     }
 
-    private void attachAdditionalAttr(Map<String, FieldInfo> attrExprMap, Stack<String> path, int curCiTypeId, From curFrom, String propertyName) {
+    private void attachAdditionalAttr(Map<String, FieldInfo> attrExprMap, Stack<String> path, int curCiTypeId, From curFrom, String propertyName,String curQueryKeyName) {
         AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId, propertyName);
         validateStatusOfCiTypeAttr(attr);
         if (attr == null) {
             throw new ServiceException(String.format("Can not find out [%s] for CI Type [%d].", propertyName, curCiTypeId));
         }
 
-        String alias = getTemplAlias(path) + "." + propertyName;
+        String alias = null;
+        if(Strings.isNullOrEmpty(curQueryKeyName)) {
+            alias = getTemplAlias(path) + "." + propertyName;
+        }else{
+            alias = curQueryKeyName + "." + propertyName;
+        }
+
         Expression expression = curFrom.get(attr.getPropertyName());
         if (expression.getAlias() == null) {
             expression.alias(alias);
