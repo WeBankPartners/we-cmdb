@@ -7,10 +7,12 @@ import com.webank.cmdb.config.log.OperationLogPointcut;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.domain.AdmMenu;
+import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttr;
 import com.webank.cmdb.domain.AdmRoleMenu;
 import com.webank.cmdb.dto.*;
 import com.webank.cmdb.exception.CmdbException;
 import com.webank.cmdb.repository.AdmMenusRepository;
+import com.webank.cmdb.repository.AdmRoleCiTypeAttrRepository;
 import com.webank.cmdb.repository.UserRepository;
 import com.webank.cmdb.service.BaseKeyInfoService;
 import com.webank.cmdb.service.RoleCiTypeAccessCtrlService;
@@ -69,6 +71,9 @@ public class UIUserManagerService {
 
     @Autowired
     private BaseKeyInfoService basekeyInfoService;
+
+    @Autowired
+    private AdmRoleCiTypeAttrRepository roleCiTypeAttrRepository;
 
     public void deleteRole(int roleId) {
         List<UserDto> users = uiWrapperService.getUsersByRoleId(roleId);
@@ -337,14 +342,21 @@ public class UIUserManagerService {
         if (isNotEmpty(roleCiTypeCtrlAttributes)) {
             roleCiTypeCtrlAttributes.forEach(roleCiTypeCtrlAttribute -> {
                 RoleCiTypeCtrlAttrDto ctrlAttrDto = convertMapToRoleCiTypeCtrlAttrDto(roleCiTypeId, roleCiTypeCtrlAttribute, accessControlAttributes);
+
+                Optional<AdmRoleCiTypeCtrlAttr> admRoleCiTypeAttr = roleCiTypeAttrRepository.findById(ctrlAttrDto.getRoleCiTypeCtrlAttrId());
+                if(!admRoleCiTypeAttr.isPresent()){
+                    throw new CmdbException(String.format("RoleCiTypeCtrlAttr (id:%d) is not existed.",ctrlAttrDto.getRoleCiTypeCtrlAttrId()));
+                }
+                roleCiTypeAccessCtrlService.deleteRoleCiTypeCtrlAttrConditions(admRoleCiTypeAttr.get().getAdmRoleCiTypeCtrlAttrConditions());
+
                 RoleCiTypeCtrlAttrDto updatedCtrlAttr = uiWrapperService.updateRoleCiTypeCtrlAttribute(ctrlAttrDto);
+
                 if (isNotEmpty(ctrlAttrDto.getConditions())) {
                     ctrlAttrDto.getConditions().forEach(condition -> condition.setRoleCiTypeCtrlAttrId(updatedCtrlAttr.getRoleCiTypeCtrlAttrId()));
-                    List<RoleCiTypeCtrlAttrConditionDto> updatedConditions = roleCiTypeAccessCtrlService
-                            .updateRoleCiTypeCtrlAttrConditions(ctrlAttrDto.getConditions());
-
-                    updatedCtrlAttr.setConditions(updatedConditions);
+                    List<RoleCiTypeCtrlAttrConditionDto> addedConditions = roleCiTypeAccessCtrlService.createRoleCiTypeCtrlAttrConditions(ctrlAttrDto.getConditions());
+                    updatedCtrlAttr.setConditions(addedConditions);
                 }
+
                 updateCtrlAttrDtos.add(convertRoleCiTypeCtrlAttrDtoToMap(updatedCtrlAttr, accessControlAttributes));
             });
         }
