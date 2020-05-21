@@ -34,6 +34,8 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
 
     //'table name' -> 'entity meta'
     private Map<String, DynamicEntityMeta> entityMap;
+    //CiType Id -> entity meta
+    private Map<Integer,DynamicEntityMeta> entityIdMap = new HashMap<>();
 
     //integration query chain
     private List<IntegrationQueryDto> integrationChain = new LinkedList<>();
@@ -41,6 +43,8 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
 
     public RouteQueryExpressionListener(Map<String,DynamicEntityMeta> entityMap){
         this.entityMap = entityMap;
+        entityMap.forEach((tableName,meta)-> entityIdMap.put(meta.getCiTypeId(),meta)
+        );
     }
 
     public AdhocIntegrationQueryDto getAdhocIntegrationQuery(){
@@ -52,26 +56,27 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
         }
     }
 
-    private String getAttrKeyname(String entityName,String attrName){
-        return entityName + ATTR_DELIMITER + attrName;
+    private String getAttrKeyname(String intQueryName,String attrName){
+        return intQueryName + ATTR_DELIMITER + attrName;
     }
 
     private void processFetch(){
         while(fetchAttrs.size()>0){
             String attr = fetchAttrs.pop();
             IntegrationQueryDto intQuery = getIntegrationInChain(-1);
-            String tableName = intQuery.getName();
-            DynamicEntityMeta meta = entityMap.get(tableName);
+            String intQueryName = intQuery.getKeyName();
+            Integer ciTypeId = intQuery.getCiTypeId();
+            DynamicEntityMeta meta = entityIdMap.get(ciTypeId);
             if(meta == null){
-                throw new CmdbExpressException(String.format("CiType (%s) is not existed.",tableName));
+                throw new CmdbExpressException(String.format("CiType (%d, %s) is not existed.",ciTypeId, intQueryName));
             }
 
             FieldNode fieldNode = meta.getFieldNode(attr);
             if(fieldNode == null){
-                throw new CmdbExpressException(String.format("Attribute (%s) is not existed for CiType (%s).",attr,tableName));
+                throw new CmdbExpressException(String.format("Attribute (%s) is not existed for CiType (%d, %s).",attr,ciTypeId, intQueryName));
             }
 
-            String fetchAttrName = getAttrKeyname(tableName,attr);
+            String fetchAttrName = getAttrKeyname(intQueryName,attr);
             if(!intQuery.getAttrs().contains(fieldNode.getAttrId())){
                 intQuery.getAttrs().add(fieldNode.getAttrId());
                 intQuery.getAttrKeyNames().add(fetchAttrName);
@@ -103,10 +108,10 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
         IntegrationQueryDto curNode = getIntegrationInChain(-1);
         String fwdNodeAttr = attrs.pop();
         if(isForword){//reference to
-            FieldNode fwdField = getFieldNode(fwdNode.getName(),fwdNodeAttr);
+            FieldNode fwdField = getFieldNode(fwdNode.getCiTypeId(),fwdNodeAttr);
             curNode.setParentRs(new Relationship(fwdField.getAttrId(),true));
         }else{//referenced by
-            FieldNode bwdField = getFieldNode(curNode.getName(),fwdNodeAttr);
+            FieldNode bwdField = getFieldNode(curNode.getCiTypeId(),fwdNodeAttr);
             curNode.setParentRs(new Relationship(bwdField.getAttrId(),false));
         }
         fwdNode.getChildren().add(curNode);
@@ -146,7 +151,8 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
     public void exitEntity_node(RouteQueryParser.Entity_nodeContext ctx){
         IntegrationQueryDto intQuery = new IntegrationQueryDto();
         String tableName = entities.pop();
-        intQuery.setName(tableName);
+        String intQueryName = genCurIntQueryName(tableName);
+        intQuery.setKeyName(intQueryName);
         DynamicEntityMeta meta = entityMap.get(tableName);
         if(meta == null){
             throw new CmdbExpressException(String.format("CiType (%s) is not existed.",tableName));
@@ -155,29 +161,39 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
 
         while(conditions.size()>0) {
             Filter filter = conditions.pop();
-            String filterName = filter.getName();
-            String[] frags = filterName.split(ATTR_REG_SPLITTER);
-            String attrName = frags[1];
+            String attrName = filter.getName();
             FieldNode fieldNode = meta.getFieldNode(attrName);
             if (fieldNode == null) {
                 throw new CmdbExpressException(String.format("Can't find field (%s) for ci type ('%s')", attrName, tableName));
             }
             intQuery.getAttrs().add(fieldNode.getAttrId());
-            intQuery.getAttrKeyNames().add(tableName + ATTR_DELIMITER + attrName);
+            String attrKeyName = getAttrKeyname(intQueryName , attrName);
+            filter.setName(attrKeyName);
+            if(!intQuery.getAttrKeyNames().contains(attrKeyName)) {
+                intQuery.getAttrKeyNames().add(attrKeyName);
+            }
             adhocIntegrationQuery.getQueryRequest().getFilters().add(filter);
         }
         integrationChain.add(intQuery);
         processFetch();
     }
 
-    private FieldNode getFieldNode(String tableName,String attrName){
-        DynamicEntityMeta meta = entityMap.get(tableName);
+    private String genCurIntQueryName(String tableName) {
+        return String.format("%s_%s",currentEntityIndex(),tableName);
+    }
+
+    private int currentEntityIndex(){
+        return integrationChain.size();
+    }
+
+    private FieldNode getFieldNode(Integer ciTypeId,String attrName){
+        DynamicEntityMeta meta = entityIdMap.get(ciTypeId);
         if(meta == null){
-            throw new CmdbExpressException(String.format("Can't find ci type for '%s'",tableName));
+            throw new CmdbExpressException(String.format("Can't find ci type for '%d'",ciTypeId));
         }
         FieldNode fieldNode = meta.getFieldNode(attrName);
         if (fieldNode == null) {
-            throw new CmdbExpressException(String.format("Can't find field (%s) for ci type ('%s')", attrName, tableName));
+            throw new CmdbExpressException(String.format("Can't find field (%s) for ci type ('%d')", attrName, ciTypeId));
         }
         return fieldNode;
     }
@@ -195,14 +211,14 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
     @Override
     public void exitConditionEq(RouteQueryParser.ConditionEqContext ctx){
         Object val = values.pop();
-        conditions.push(new Filter(getAttrKeyname(entities.peek(),ctx.attr().getText()), FilterOperator.Equal.getCode(),val));
+        conditions.push(new Filter(attrs.pop(), FilterOperator.Equal.getCode(),val));
     }
 
     @Override
     public void exitConditionIn(RouteQueryParser.ConditionInContext ctx) {
         List<Object> inValues = new ArrayList<>(arrValues);
         arrValues.clear();
-        conditions.push(new Filter(getAttrKeyname(entities.peek(),ctx.attr().getText()), FilterOperator.In.getCode(),inValues));
+        conditions.push(new Filter(attrs.pop(), FilterOperator.In.getCode(),inValues));
     }
 
     private String trimStringVal(String val){
@@ -222,7 +238,7 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
     public void exitConditionGt(RouteQueryParser.ConditionGtContext ctx){
         Object val = values.pop();
         if(val instanceof  Number){
-            conditions.push(new Filter(getAttrKeyname(entities.peek(),ctx.attr().getText()), FilterOperator.Greater.getCode(),val));
+            conditions.push(new Filter(attrs.pop(), FilterOperator.Greater.getCode(),val));
         }else{
             throw new CmdbExpressException(String.format("gt operator should apply on number (not %s).",String.valueOf(val)));
         }
@@ -232,21 +248,21 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
     public void exitConditionLt(RouteQueryParser.ConditionLtContext ctx){
         Object val = values.pop();
         if(val instanceof  Number){
-            conditions.push(new Filter(getAttrKeyname(entities.peek(),ctx.attr().getText()), FilterOperator.Less.getCode(),val));
+            conditions.push(new Filter(attrs.pop(), FilterOperator.Less.getCode(),val));
         }else{
             throw new CmdbExpressException(String.format("lt operator should apply on number (not %s).",String.valueOf(val)));
         }
     }
     public void exitConditionNe(RouteQueryParser.ConditionNeContext ctx){
         Object val = values.pop();
-        conditions.push(new Filter(getAttrKeyname(entities.peek(),ctx.attr().getText()), FilterOperator.NotEqual.getCode(),val));
+        conditions.push(new Filter(attrs.pop(), FilterOperator.NotEqual.getCode(),val));
     }
 
     @Override
     public void exitConditionContains(RouteQueryParser.ConditionContainsContext ctx){
         Object val = values.pop();
         if(val instanceof  String){
-            conditions.push(new Filter(getAttrKeyname(entities.peek(),ctx.attr().getText()), FilterOperator.Contains.getCode(),val));
+            conditions.push(new Filter(attrs.pop(), FilterOperator.Contains.getCode(),val));
         }else{
             throw new CmdbExpressException(String.format("contains operator should apply on number (not %s).",String.valueOf(val)));
         }
@@ -255,12 +271,12 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
 
     @Override
     public void exitConditionNotNull(RouteQueryParser.ConditionNotNullContext ctx){
-        conditions.push(new Filter(getAttrKeyname(entities.peek(),ctx.attr().getText()), FilterOperator.NotNull.getCode(),null));
+        conditions.push(new Filter(attrs.pop(), FilterOperator.NotNull.getCode(),null));
     }
 
     @Override
     public void exitConditionIsNull(RouteQueryParser.ConditionIsNullContext ctx){
-        conditions.push(new Filter(getAttrKeyname(entities.peek(),ctx.attr().getText()), FilterOperator.Null.getCode(),null));
+        conditions.push(new Filter(attrs.pop(), FilterOperator.Null.getCode(),null));
     }
 
     @Override
