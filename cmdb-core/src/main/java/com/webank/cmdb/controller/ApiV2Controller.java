@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import com.webank.cmdb.dto.*;
 import com.webank.cmdb.service.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,28 +29,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.webank.cmdb.constant.ImplementOperation;
-import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
-import com.webank.cmdb.dto.CatCodeDto;
-import com.webank.cmdb.dto.CatTypeDto;
-import com.webank.cmdb.dto.CategoryDto;
-import com.webank.cmdb.dto.CiDataTreeDto;
-import com.webank.cmdb.dto.CiIndentity;
-import com.webank.cmdb.dto.CiTypeAttrDto;
-import com.webank.cmdb.dto.CiTypeDto;
-import com.webank.cmdb.dto.IdNamePairDto;
-import com.webank.cmdb.dto.ImageInfoDto;
-import com.webank.cmdb.dto.IntQueryOperateAggRequetDto;
-import com.webank.cmdb.dto.IntQueryOperateAggResponseDto;
-import com.webank.cmdb.dto.IntQueryResponseHeader;
-import com.webank.cmdb.dto.IntegrationQueryDto;
-import com.webank.cmdb.dto.QueryRequest;
-import com.webank.cmdb.dto.QueryResponse;
-import com.webank.cmdb.dto.RoleCiTypeCtrlAttrConditionDto;
-import com.webank.cmdb.dto.RoleCiTypeCtrlAttrDto;
-import com.webank.cmdb.dto.RoleCiTypeDto;
-import com.webank.cmdb.dto.RoleDto;
-import com.webank.cmdb.dto.RoleUserDto;
-import com.webank.cmdb.dto.UserDto;
 import com.webank.cmdb.exception.InvalidArgumentException;
 import com.webank.cmdb.exception.ServiceException;
 import com.webank.cmdb.service.impl.ConstantService;
@@ -81,6 +60,8 @@ public class ApiV2Controller {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private RoleCiTypeAccessCtrlService roleCiTypeAccessCtrlService;
+    @Autowired
+    private RouteQueryExpressionService routeQueryExpressionService;
 
     // Enum code
     @PostMapping("/enum/codes/retrieve")
@@ -520,9 +501,14 @@ public class ApiV2Controller {
     public void deleteRoleCiTypeCtrlAttrConditions(@Valid @RequestBody List<Integer> requestIds) {
         staticDtoService.delete(RoleCiTypeCtrlAttrConditionDto.class, requestIds);
     }
-    
+
     @GetMapping("/static-data/special-connector")
     public Object getSpecialConnector() {
         return constantService.getSpecialConnector();
+    }
+
+    @PostMapping("/routeExpression/execute")
+    public List executeRouteExpression(@RequestBody RouteQueryDto routeQueryDto ){
+        return routeQueryExpressionService.executeQuery(routeQueryDto.getExpression());
     }
 }
