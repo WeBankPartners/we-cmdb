@@ -477,35 +477,26 @@ export default {
         delete _.isRowEditable
         delete _.weTableForm
         delete _.weTableRowId
-        const foundRow = this.ciTypeAttrsPermissionsBackUp.find(p => p.roleCiTypeCtrlAttrId === _.roleCiTypeCtrlAttrId)
         for (let i in _) {
           const found = this.defaultKey.find(k => k === i)
           const foundCi = this.attrsPermissionsColumns.find(k => k.inputKey === i)
           if (!found && foundCi) {
             if (['ref', 'multiRef'].indexOf(foundCi.inputType) >= 0) {
-              let result =
+              _[i] =
                 Array.isArray(_[i]) && _[i].length
                   ? {
                     conditionType: 'Expression',
                     conditionValueExprs: _[i]
                   }
                   : null
-              if (foundRow[i]) {
-                result.conditionId = foundRow[i].conditionId
-              }
-              _[i] = result
             } else if (['select', 'multiSelect'].indexOf(foundCi.inputType) >= 0) {
-              let result =
+              _[i] =
                 Array.isArray(_[i]) && _[i].length
                   ? {
                     conditionType: 'Select',
                     conditionValueSelects: _[i]
                   }
                   : null
-              if (foundRow[i]) {
-                result.conditionId = foundRow[i].conditionId
-              }
-              _[i] = result
             }
           }
         }
