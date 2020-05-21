@@ -60,12 +60,19 @@ export default {
       }
     }
   },
-  mounted () {},
+  mounted () {
+    this.fetchEnumOptions()
+  },
   methods: {
     formatOptions () {},
     changeValue (val) {
       this.$emit('input', val || null)
       this.$emit('change', val || null)
+    },
+    fetchEnumOptions () {
+      if (this.enumId) {
+        this.getFilterRulesOptions(true)
+      }
     },
     async getFilterRulesOptions (val) {
       if (val && this.filterParams) {

@@ -48,13 +48,7 @@
         </div>
       </Card>
     </Col>
-    <Modal
-      v-model="permissionManageModal"
-      :title="$t('edit_data_authority')"
-      @on-ok="cancelEdit"
-      @on-cancel="cancelEdit"
-      width="80"
-    >
+    <Modal v-model="permissionManageModal" :title="$t('edit_data_authority')" @on-cancel="cancelEdit" width="80">
       <CMDBTable
         :tableData="ciTypeAttrsPermissions"
         :filtersHidden="true"
@@ -70,6 +64,9 @@
         tableHeight="650"
         ref="table"
       ></CMDBTable>
+      <div slot="footer">
+        <Button @click="cancelEdit">{{ $t('close') }}</Button>
+      </div>
     </Modal>
   </Row>
 </template>
@@ -208,6 +205,8 @@ export default {
       this.getAttrPermissions()
     },
     async getAttrPermissions () {
+      this.attrsPermissionsColumns = []
+      this.ciTypeAttrsPermissions = []
       this.$refs.table.isTableLoading(true)
       let { statusCode, data } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(this.currentRoleCiTypeId)
       this.$refs.table.isTableLoading(false)
@@ -269,10 +268,23 @@ export default {
     },
     async exportHandler () {
       const data = this.ciTypeAttrsPermissions.map(_ => {
+        let result = {}
         for (let i in _) {
-          _[i] = _[i].value
+          if (Array.isArray(_[i])) {
+            result[i] = _[i]
+              .map(item => {
+                if (typeof item === 'object') {
+                  return item.value
+                } else if (typeof item === 'string') {
+                  return item.replace(/,/g, ';')
+                }
+              })
+              .join(' | ')
+          } else {
+            result[i] = _[i].value
+          }
         }
-        return _
+        return result
       })
       this.$refs.table.export({
         filename: 'Permission Data',
@@ -354,27 +366,26 @@ export default {
         delete _.isRowEditable
         delete _.weTableForm
         delete _.weTableRowId
-        const foundRow = this.ciTypeAttrsPermissionsBackUp.find(p => p.roleCiTypeCtrlAttrId === _.roleCiTypeCtrlAttrId)
         for (let i in _) {
           const found = this.defaultKey.find(k => k === i)
           const foundCi = this.attrsPermissionsColumns.find(k => k.inputKey === i)
           if (!found && foundCi) {
             if (['ref', 'multiRef'].indexOf(foundCi.inputType) >= 0) {
-              _[i] = foundRow[i]
-                ? {
-                  conditionType: 'Expression',
-                  conditionId: foundRow[i].conditionId,
-                  conditionValueExprs: _[i]
-                }
-                : null
+              _[i] =
+                Array.isArray(_[i]) && _[i].length
+                  ? {
+                    conditionType: 'Expression',
+                    conditionValueExprs: _[i]
+                  }
+                  : null
             } else if (['select', 'multiSelect'].indexOf(foundCi.inputType) >= 0) {
-              _[i] = foundRow[i]
-                ? {
-                  conditionType: 'Select',
-                  conditionId: foundRow[i].conditionId,
-                  conditionValueSelects: _[i]
-                }
-                : null
+              _[i] =
+                Array.isArray(_[i]) && _[i].length
+                  ? {
+                    conditionType: 'Select',
+                    conditionValueSelects: _[i]
+                  }
+                  : null
             }
           }
         }
@@ -449,6 +460,7 @@ export default {
       }
     },
     cancelEdit () {
+      this.permissionManageModal = false
       this.permissionEntryPointsForEdit = []
     },
     ciTypesPermissionsHandler (ci, code, type) {

@@ -186,7 +186,8 @@ export default {
                 attrs: {
                   'attr-index': +attrIndex + 1,
                   filter: false,
-                  citype: ciType
+                  citype: ciType,
+                  nodeType: 'node'
                 }
               },
               data: {
@@ -224,7 +225,8 @@ export default {
                 attrs: {
                   'attr-index': +attrIndex + 1,
                   filter: false,
-                  citype: ciType
+                  citype: ciType,
+                  nodeType: 'node'
                 }
               },
               data: {
@@ -268,7 +270,8 @@ export default {
           attrs: {
             'attr-index': _attrIndex,
             filter: false,
-            citype: ''
+            citype: '',
+            nodeType: 'enum'
           }
         }
       }
@@ -409,7 +412,8 @@ export default {
           }
         })
       const _innerText = this.expression[this.currentNodeIndex].innerText.split(/[[:]/)[0]
-      this.expression[this.currentNodeIndex].innerText = `${_innerText}[${_filters.map(_ => `{${_}}`).join(',')}]${
+      const filterExpress = _filters.length ? `[${_filters.map(_ => `{${_}}`).join(',')}]` : ''
+      this.expression[this.currentNodeIndex].innerText = `${_innerText}${filterExpress}${
         +this.currentNodeIndex === 0 ? ':[guid]' : ''
       }`
       this.cancelFilter()
