@@ -95,6 +95,9 @@ public class JpaQueryUtils {
             case Null:
                 predicates.add(cb.isNull(filterExpr));
                 break;
+            case LIKE:
+                predicates.add(cb.like(cb.upper(filterExpr), "%" + (String) filter.getValue().toString().toUpperCase() + "%"));
+                break;
             case NotEmpty:
                 filter.setValue("");
                 processNotEqualsOperator(cb, predicates, filter, filterExpr);
