@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<package name="wecmdb" version="v1.4.4.13"
+<package name="wecmdb" version="{{VERSION}}"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="plugin-config-v2.xsd">
 
@@ -57,7 +57,7 @@
 
     <!-- 6.运行资源 - 描述部署运行本插件包需要的基础资源(如主机、虚拟机、容器、数据库等) -->
     <resourceDependencies>
-        <docker imageName="wecube-plugins-wecmdb:v1.4.4.13" containerName="wecube-plugins-wecmdb-v1.4.4.13" portBindings="{{ALLOCATE_PORT}}:8081" volumeBindings="{{BASE_MOUNT_PATH}}/wecmdb/log:/log,/etc/localtime:/etc/localtime" envVariables="DB_HOST={{DB_HOST}},DB_PORT={{DB_PORT}},DB_SCHEMA={{DB_SCHEMA}},DB_USER={{DB_USER}},DB_PWD={{DB_PWD}}"/>
+        <docker imageName="{REPOSITORY}}:{{VERSION}}" containerName="{REPOSITORY}}:{{VERSION}}" portBindings="{{ALLOCATE_PORT}}:8081" volumeBindings="{{BASE_MOUNT_PATH}}/wecmdb/log:/log,/etc/localtime:/etc/localtime" envVariables="DB_HOST={{DB_HOST}},DB_PORT={{DB_PORT}},DB_SCHEMA={{DB_SCHEMA}},DB_USER={{DB_USER}},DB_PWD={{DB_PWD}}"/>
         <mysql schema="wecmdb_embedded" initFileName="init.sql" upgradeFileName="upgrade.sql"/>
     </resourceDependencies>
 
