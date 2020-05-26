@@ -5,7 +5,18 @@
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
         <div>{{ $t('loading') }}</div>
       </Spin>
-      <div class="graph-container-big" id="graph"></div>
+      <Row>
+        <Col span="18">
+          <Card>
+            <div class="graph-container-big" id="graph"></div>
+          </Card>
+        </Col>
+        <Col span="6" class="operation-zone">
+          <Card>
+            <Operation ref="transferData"></Operation>
+          </Card>
+        </Col>
+      </Row>
     </Row>
   </div>
 </template>
@@ -18,6 +29,7 @@ import { getEnumCodesByCategoryId, getIdcDesignTreeByGuid } from '@/api/server'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
 import { addEvent } from '../util/event.js'
 import { VIEW_CONFIG_PARAMS, NETWORK_SEGMENT_DESIGN } from '@/const/init-params.js'
+import Operation from './operation'
 
 export default {
   data () {
@@ -28,6 +40,7 @@ export default {
       spinShow: false,
       graphNodes: {},
       graphData: [], // 缓存所有接口返回数据
+      operateData: [], // 操作区数据
       firstChildrenGroup: [], // 第一层子节点id
       idPath: [] // 缓存点击图形区域从内向外容器ID值
     }
@@ -40,6 +53,8 @@ export default {
       this.graphData[0].children.forEach(_ => {
         this.firstChildrenGroup.push(`g_${_.guid}`)
       })
+      this.operateData = this.graphData[0]
+      this.$refs.transferData.managementData(this.operateData)
       if (statusCode === 'OK') {
         const sortingTree = array => {
           let obj = {}
@@ -74,10 +89,10 @@ export default {
         .on('dblclick.zoom', null)
         .on('wheel.zoom', null)
         .on('mousewheel.zoom', null)
-
+      const width = (window.innerWidth / 24) * 18
       let graphZoom = graph
         .graphviz()
-        .width(window.innerWidth - 20)
+        .width(width - 80)
         .height(window.innerHeight - 230)
         .zoom(true)
         .fit(true)
@@ -181,7 +196,8 @@ export default {
           })
         })
         this.idPath = []
-        console.log(tmp)
+        this.operateData = tmp
+        this.$refs.transferData.managementData(this.operateData)
       }
     },
     renderGraph (idcData) {
@@ -351,12 +367,19 @@ export default {
   mounted () {
     this.onIdcDataChange()
     this.getConfigParams()
+  },
+  components: {
+    Operation
   }
 }
 </script>
 
 <style lang="scss" scoped>
 .graph-container-big {
-  margin-top: 20px;
+  // margin-top: 20px;
+  // border: 1px solid red;
+}
+.operation-zone {
+  // margin-top: 20px;
 }
 </style>
