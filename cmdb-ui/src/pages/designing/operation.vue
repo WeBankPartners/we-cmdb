@@ -4,7 +4,7 @@
       <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
         {{ panal.data.code }}{{ panalIndex === 0 ? '(父)' : '(子)' }}
         <div slot="content">
-          <Form :label-width="80">
+          <Form :label-width="80" v-if="defaultPanal[0] === panalIndex + 1 + ''">
             <template v-for="(formData, formDataIndex) in panalForm">
               <FormItem v-if="formData.inputType === 'text'" :key="formDataIndex" :label="formData.name">
                 <Input v-model="panal.data[formData.propertyName]"></Input>
@@ -13,7 +13,7 @@
                 <textArea v-model="panal.data[formData.propertyName]" class="textArea-style"></textArea>
               </FormItem>
               <FormItem v-if="formData.inputType === 'ref'" :key="formDataIndex" :label="formData.name">
-                ref
+                <Ref :formData="formData" :panalData="panal.data"></Ref>
               </FormItem>
               <FormItem v-if="formData.inputType === 'multiRef'" :key="formDataIndex" :label="formData.name">
                 multiRef
@@ -34,6 +34,7 @@
 
 <script>
 import { getCiTypeAttributes } from '@/api/server'
+import Ref from './ref'
 export default {
   name: '',
   data () {
@@ -41,17 +42,7 @@ export default {
       defaultPanal: '1',
       operateData: null, // 选中数据集合
       panalData: [], // 格式化后panal数据
-      panalForm: [], // panal表单信息
-      cityList: [
-        {
-          value: 'New York',
-          label: 'New York'
-        },
-        {
-          value: 'London',
-          label: 'London'
-        }
-      ]
+      panalForm: [] // panal表单信息
     }
   },
   mounted () {},
@@ -87,7 +78,9 @@ export default {
       }
     }
   },
-  components: {}
+  components: {
+    Ref
+  }
 }
 </script>
 
