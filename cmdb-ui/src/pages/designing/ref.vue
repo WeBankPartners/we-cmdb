@@ -1,7 +1,7 @@
 <template>
   <div>
-    {{ selectedOption }}
-    <Select v-model="selectedOption" @on-open-change="openOptions">
+    {{ panalData[formData.propertyName].guid }}
+    <Select v-model="panalData[formData.propertyName].guid" @on-open-change="openOptions">
       <Option v-for="item in options" :value="item.value" :key="item.value">{{ item.label }}</Option>
     </Select>
   </div>
@@ -11,26 +11,42 @@ import { queryReferenceCiData, queryCiData } from '@/api/server'
 export default {
   data () {
     return {
-      options: [],
-      selectedOption: ''
+      options: []
     }
   },
-  props: ['formData', 'panalData'],
+  props: ['formData', 'panalData', 'panalForm'],
   mounted () {
-    // this.openOptions(true)
+    this.openOptions(true)
   },
   methods: {
     async openOptions (val) {
       if (val) {
-        console.log(this.formData)
-        console.log(this.panalData[this.formData.propertyName].guid)
+        console.log(this.panalForm)
         // // 取panalData
-        console.log(this.panalData)
-        // console.log(this.formData.name)
-        console.log(this.formData.filterRule)
         if (this.formData.filterRule) {
-          console.log(222)
+          // console.log(this.formData.filterRule)
           console.log(this.panalData)
+          // const keys = Object.keys(this.panalData)
+          let params = JSON.parse(JSON.stringify(this.panalData))
+          for (let key in this.panalData) {
+            // console.log(key, this.panalData[key])
+            if (this.panalData[key] && typeof this.panalData[key] === 'object') {
+              const xx = this.panalForm.find(_ => {
+                console.log(_.propertyName, key)
+                return _.propertyName === key
+              })
+              if (xx) {
+                if (xx.inputType === 'ref') {
+                  params[key] = this.panalData[key].guid
+                }
+                if (xx.inputType === 'select') {
+                  params[key] = this.panalData[key].codeId
+                }
+              }
+            }
+          }
+          console.log(params)
+          // console.log(this.formData)
           // let dialect = {
           //   data:
           // }
@@ -62,7 +78,6 @@ export default {
             })
           }
         }
-        this.selectedOption = this.panalData[this.formData.propertyName].guid
       }
     }
   }
