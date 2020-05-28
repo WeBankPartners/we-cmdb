@@ -13,7 +13,7 @@
                 <textArea v-model="panal.data[formData.propertyName]" class="textArea-style"></textArea>
               </FormItem>
               <FormItem v-if="formData.inputType === 'ref'" :key="formDataIndex" :label="formData.name">
-                <Ref :formData="formData" :panalData="panal.data"></Ref>
+                <Ref :formData="formData" :panalData="panal.data" :panalForm="panalForm"></Ref>
               </FormItem>
               <FormItem v-if="formData.inputType === 'multiRef'" :key="formDataIndex" :label="formData.name">
                 multiRef
