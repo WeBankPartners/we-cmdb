@@ -540,10 +540,9 @@ export default {
           ry = p1.y + tfsize * tlength + (h + mgap) * i + mgap
           tx = p1.x + w * 0.5 + mgap
           if (Array.isArray(node.children[i].children)) {
-            ty = p1.y + tfsize * tlength + (h + mgap) * i + fontsize + mgap
+            ty = p1.y + tfsize * _tlength + (h + mgap) * i + mgap + fontsize
           } else {
-            // TODO
-            ty = p1.y + mgap + fontsize * (tlength + 1) + (h + mgap) * i + h * 0.5
+            ty = p1.y + tfsize * _tlength + (h + mgap) * i + mgap + h * 0.5
           }
           g = graph
             .append('g')
