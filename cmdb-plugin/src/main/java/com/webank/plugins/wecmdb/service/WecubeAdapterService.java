@@ -77,7 +77,7 @@ public class WecubeAdapterService {
     }
 
     @Transactional
-    public List<Map<String, Object>> confirmBatchCiData(List<OperateCiDto> operateCiDtos, List<ExceptionHolder> ExceptionHolders) {
+    public List<Map<String, Object>> confirmBatchCiData(List<OperateCiDto> operateCiDtos, List<ExceptionHolder> exceptionHolders) {
         List<Map<String, Object>> results = new ArrayList<>();
         operateCiDtos.forEach(operateCiDto -> {
             Map<String, Object> resultItem = new HashMap<>();
@@ -106,7 +106,7 @@ public class WecubeAdapterService {
                     String errorMessage = String.format("Failed to confirm CI [guid = %s], error = %s", guid, e.getMessage());
                     resultItem.put(ERROR_CODE, FAIL);
                     resultItem.put(ERROR_MESSAGE, errorMessage);
-                    ExceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
+                    exceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
                     results.add(resultItem);
                     return;
                 }
@@ -405,5 +405,43 @@ public class WecubeAdapterService {
                 throw new PluginException(String.format("Field 'id' is required for deletion, request [%s]", request));
             }
         });
+    }
+
+    public List<Map<String, Object>> refreshBatchCiData(List<OperateCiDto> operateCiDtos, List<ExceptionHolder> exceptionHolders) {
+        List<Map<String, Object>> results = new ArrayList<>();
+        operateCiDtos.forEach(operateCiDto -> {
+            Map<String, Object> resultItem = new HashMap<>();
+            resultItem.put(CALLBACK_PARAMETER, operateCiDto.getCallbackParameter());
+            resultItem.put(ERROR_CODE, SUCCESS);
+            resultItem.put(ERROR_MESSAGE, "");
+
+            if (StringUtils.isBlank(operateCiDto.getGuid())) {
+                String errorMessage = "Field 'guid' is required for CI data refreshing.";
+                resultItem.put(ERROR_CODE, SUCCESS);
+                resultItem.put(ERROR_MESSAGE, errorMessage);
+                results.add(resultItem);
+                return;
+            }
+
+            List<String> guids = ConfirmHelper.parseGuid(operateCiDto.getGuid());
+            List<CiIndentity> ciIds = new ArrayList<>();
+            guids.forEach(guid -> {
+                try {
+                    ciIds.add(new CiIndentity(extractCiTypeIdFromGuid(guid), guid));
+                    List<Map<String, Object>> refreshedCis = ciService.refresh(ciIds);
+                    resultItem.putAll(refreshedCis.get(0));
+                    results.add(resultItem);
+                } catch (Exception e) {
+                    String errorMessage = String.format("Failed to refresh CI [guid = %s], error = %s", guid, e.getMessage());
+                    resultItem.put(ERROR_CODE, FAIL);
+                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                    exceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
+                    results.add(resultItem);
+                    return;
+                }
+            });
+        });
+
+        return results;
     }
 }
