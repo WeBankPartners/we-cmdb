@@ -21,44 +21,36 @@ export default {
   methods: {
     async openOptions (val) {
       if (val) {
-        console.log(this.panalForm)
-        // // 取panalData
         if (this.formData.filterRule) {
-          // console.log(this.formData.filterRule)
-          console.log(this.panalData)
-          // const keys = Object.keys(this.panalData)
           let params = JSON.parse(JSON.stringify(this.panalData))
           for (let key in this.panalData) {
-            // console.log(key, this.panalData[key])
             if (this.panalData[key] && typeof this.panalData[key] === 'object') {
-              const xx = this.panalForm.find(_ => {
-                console.log(_.propertyName, key)
-                return _.propertyName === key
-              })
-              if (xx) {
-                if (xx.inputType === 'ref') {
-                  params[key] = this.panalData[key].guid
-                }
-                if (xx.inputType === 'select') {
-                  params[key] = this.panalData[key].codeId
-                }
-              }
+              params[key] = this.panalData[key].codeId || this.panalData[key].guid
+              // const xx = this.panalForm.find(_ => {
+              //   return _.propertyName === key
+              // })
+              // console.log(key, xx)
+              // if (xx) {
+              //   if (xx.inputType === 'ref') {
+              //     params[key] = this.panalData[key].guid
+              //   }
+              //   if (xx.inputType === 'select') {
+              //     params[key] = this.panalData[key].codeId
+              //   }
+              // } else {
+              //   params[key] = this.panalData[key].catId
+              // }
             }
           }
-          console.log(params)
-          // console.log(this.formData)
-          // let dialect = {
-          //   data:
-          // }
           const { statusCode, data } = await queryReferenceCiData({
             attrId: this.formData.ciTypeAttrId,
-            queryObject: { filters: [], paging: false }
+            queryObject: { filters: [], paging: false, dialect: { data: params } }
           })
           if (statusCode === 'OK') {
             this.options = data.contents.map(_ => {
               return {
-                label: _.data.key_name,
-                value: _.data.guid
+                label: _.key_name,
+                value: _.guid
               }
             })
           }
