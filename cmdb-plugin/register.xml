@@ -114,6 +114,18 @@
                 </outputParameters>
             </interface>
         </plugin>
+        <plugin name="ci-data-refresh" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+            <interface action="refresh" path="/wecmdb/data/refresh" filterRule="">
+                <inputParameters>
+                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="constant">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">status</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">message</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">guid</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
         <plugin name="ci-data-confirm" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
             <interface action="confirm" path="/wecmdb/data/confirm" filterRule="">
                 <inputParameters>
