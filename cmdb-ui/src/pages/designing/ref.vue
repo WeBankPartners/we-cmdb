@@ -1,6 +1,5 @@
 <template>
   <div>
-    {{ panalData[formData.propertyName].guid }}
     <Select v-model="panalData[formData.propertyName].guid" @on-open-change="openOptions">
       <Option v-for="item in options" :value="item.value" :key="item.value">{{ item.label }}</Option>
     </Select>
@@ -37,11 +36,10 @@ export default {
               //   if (xx.inputType === 'select') {
               //     params[key] = this.panalData[key].codeId
               //   }
-              // } else {
-              //   params[key] = this.panalData[key].catId
               // }
             }
           }
+          console.log(params)
           const { statusCode, data } = await queryReferenceCiData({
             attrId: this.formData.ciTypeAttrId,
             queryObject: { filters: [], paging: false, dialect: { data: params } }
