@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Strings;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,8 @@ import com.webank.cmdb.exception.InvalidArgumentException;
 import com.webank.cmdb.repository.AdmBasekeyCodeRepository;
 import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
 import com.webank.cmdb.util.JsonUtil;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 @Service
 public class FilterRuleService {
@@ -224,18 +227,49 @@ public class FilterRuleService {
 
 
     private List<Object> queryCiDataDatas(AdmCiTypeAttr lastLeftAttr, FilterRuleExpression ruleExpr, QueryRequest orignRequest, List<Object> rightValues, List<AutoFillIntegrationQueryDto> leftRoutines) {
+        IntegrationQueryDto rootIntQuery = new IntegrationQueryDto();
+        rootIntQuery.setCiTypeId(leftRoutines.get(0).getCiTypeId());
+        IntegrationQueryDto lastIntQuery = rootIntQuery;
+
+        AdhocIntegrationQueryDto adhocIntegrationQuery = new AdhocIntegrationQueryDto();
+        adhocIntegrationQuery.setCriteria(rootIntQuery);
+        Integer rootGuidAttrId = getGuidAttrIdByCiTypeId(rootIntQuery.getCiTypeId());
+        rootIntQuery.getAttrs().add(rootGuidAttrId);
+        rootIntQuery.getAttrKeyNames().add("root$guid");
+        adhocIntegrationQuery.getQueryRequest().getResultColumns().add("root$guid");
+
+        int i=1;
+        for (;i<leftRoutines.size();i++){
+            AutoFillIntegrationQueryDto autoFillIntQuery = leftRoutines.get(i);
+            IntegrationQueryDto childQuery = new IntegrationQueryDto();
+            childQuery.setCiTypeId(autoFillIntQuery.getCiTypeId());
+            lastIntQuery.getChildren().add(childQuery);
+            lastIntQuery = childQuery;
+        }
+
+        Integer lastGuidAttrId = getGuidAttrIdByCiTypeId(lastIntQuery.getCiTypeId());
+        lastIntQuery.getAttrs().add(lastGuidAttrId);
+        lastIntQuery.getAttrKeyNames().add("last$guid");
+
+
         List<Object> results = new LinkedList<>();
 
         List<Filter> filters = new ArrayList<>();
         switch (ruleExpr.getOperator()) {
         case "in":
-            filters.add(new Filter(lastLeftAttr.getPropertyName(), FilterOperator.In.getCode(), convertRightValues(lastLeftAttr, ruleExpr, rightValues)));
+            filters.add(new Filter("last$guid", FilterOperator.In.getCode(), convertRightValues(lastLeftAttr, ruleExpr, rightValues)));
             break;
         default:
             break;
         }
-        filters.addAll(orignRequest.getFilters());
-        List<Map<String, Object>> ciDatas = ciService.queryWithFilters(leftRoutines.get(0).getCiTypeId(), filters);
+        adhocIntegrationQuery.getQueryRequest().getFilters().addAll(filters);
+        QueryResponse adhocResponse = ciService.adhocIntegrateQuery(adhocIntegrationQuery);
+        List guids = adhocResponse.getContents();
+
+        List<Filter> targetCiFilters = Lists.newLinkedList();
+        targetCiFilters.add(new Filter("guid",FilterOperator.In.getCode(),guids));
+        //filters.addAll(orignRequest.getFilters());
+        List<Map<String, Object>> ciDatas = ciService.queryWithFilters(leftRoutines.get(0).getCiTypeId(), targetCiFilters);
         results.addAll(ciDatas);
         return results;
     }
@@ -305,7 +339,7 @@ public class FilterRuleService {
         }
 
         AdhocIntegrationQueryDto adhocDto = buildRootDto(routines, ciData);
-        travelFillQueryDto(routines, adhocDto.getCriteria(), 2);
+        //travelFillQueryDto(routines, adhocDto.getCriteria(), 2);
         QueryResponse ret = ciService.adhocIntegrateQuery(adhocDto);
         if (ret != null) {
             contents = ret.getContents();
@@ -372,46 +406,41 @@ public class FilterRuleService {
 
     private AdhocIntegrationQueryDto buildRootDto(List<AutoFillIntegrationQueryDto> routines, Map<String, Object> ciData) {
         AdhocIntegrationQueryDto adhocDto = new AdhocIntegrationQueryDto();
-        AutoFillIntegrationQueryDto rootRoutine = routines.get(1);
         IntegrationQueryDto rootDto = new IntegrationQueryDto();
+
+        AutoFillIntegrationQueryDto rootRoutine = routines.get(0);
         rootDto.setCiTypeId(rootRoutine.getCiTypeId());
-        rootDto.setAttrs(Arrays.asList(getGuidAttrIdByCiTypeId(rootRoutine.getCiTypeId())));
-        rootDto.setAttrKeyNames(Arrays.asList("root$guid"));
+        rootDto.getAttrs().add(getGuidAttrIdByCiTypeId(rootRoutine.getCiTypeId()));
+        rootDto.getAttrKeyNames().add("root$guid");
+
+        IntegrationQueryDto lastIntQuery = rootDto;
+        int i=1;
+        for(;i<routines.size();i++){
+            AutoFillIntegrationQueryDto autoFillIntQuery = routines.get(i);
+            IntegrationQueryDto curIntQuery = new IntegrationQueryDto();
+            curIntQuery.setCiTypeId(autoFillIntQuery.getCiTypeId());
+            curIntQuery.setParentRs(new Relationship(autoFillIntQuery.getParentRs().getAttrId(),
+                    autoFillIntQuery.getParentRs().getIsReferedFromParent()));
+            lastIntQuery.getChildren().add(curIntQuery);
+            lastIntQuery = curIntQuery;
+        }
+
 
         QueryRequest queryRequest = new QueryRequest();
-        Relationship firstRoutineRs = rootRoutine.getParentRs();
-        AdmCiTypeAttr attrOfFilter = ciTypeAttrRepository.getOne(firstRoutineRs.getAttrId());
-
-        Object valueOfFilter = null;
-        if (ciData != null) {
-            valueOfFilter = ciData.get(attrOfFilter.getPropertyName());
-        }
-
-        if (valueOfFilter == null && firstRoutineRs.getIsReferedFromParent()) {
-            throw new InvalidArgumentException(String.format("Value of attr [propertyName = %s] is required.", attrOfFilter.getPropertyName()));
-        } else if (valueOfFilter != null) {
-            String aliasName = "root$guid";
-            if (attrOfFilter.getReferenceId() != rootRoutine.getCiTypeId()) {
-                if (InputType.fromCode(attrOfFilter.getInputType()) == InputType.Reference) {
-                    aliasName = attrOfFilter.getReferenceId() + "$guid";
-                } else if (InputType.fromCode(attrOfFilter.getInputType()) == InputType.Droplist) {
-                    aliasName = TARGET_NAME;
-                    rootDto.setAttrKeyNames(Arrays.asList(TARGET_NAME));
-                }
+        ciData.forEach((name,value) ->{
+            if(value == null|| (value instanceof String && Strings.isNullOrEmpty((String) value))
+                || (value instanceof List && ((List)value).size()==0)){
+                return;
             }
-            Filter filter = null;
-            if(valueOfFilter instanceof Collection) {
-                if(((Collection) valueOfFilter).size()>0) {
-                    filter = new Filter(aliasName, "in", valueOfFilter);
-                }else {
-                    filter = new Filter(aliasName, "eq", "");
 
-                }
-            }else {
-                filter = new Filter(aliasName, "eq", valueOfFilter);
+            AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(rootDto.getCiTypeId(),name);
+            if(!rootDto.getAttrs().contains(attr.getIdAdmCiTypeAttr())){
+                rootDto.getAttrs().add(attr.getIdAdmCiTypeAttr());
+                String attKeyName = "root$"+attr.getPropertyName();
+                rootDto.getAttrKeyNames().add(attKeyName);
+                queryRequest.getFilters().add(new Filter(attKeyName,FilterOperator.Equal.getCode(),value));
             }
-            queryRequest.setFilters(Arrays.asList(filter));
-        }
+        });
 
         adhocDto.setCriteria(rootDto);
         adhocDto.setQueryRequest(queryRequest);
