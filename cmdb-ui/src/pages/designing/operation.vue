@@ -5,12 +5,12 @@
         {{ panal.data.code }}{{ panalIndex === 0 ? '(父)' : '(子)' }}
         <div slot="content">
           <Form :label-width="80" v-if="defaultPanal[0] === panalIndex + 1 + ''">
-            <template v-for="(formData, formDataIndex) in panalForm">
+            <template v-for="(formData, formDataIndex) in panalForm" v-if="formData.isDisplayed">
               <FormItem v-if="formData.inputType === 'text'" :key="formDataIndex" :label="formData.name">
                 <Input v-model="panal.data[formData.propertyName]"></Input>
               </FormItem>
               <FormItem v-if="formData.inputType === 'textArea'" :key="formDataIndex" :label="formData.name">
-                <textArea v-model="panal.data[formData.propertyName]" class="textArea-style"></textArea>
+                <textarea v-model="panal.data[formData.propertyName]" class="textArea-style"></textarea>
               </FormItem>
               <FormItem v-if="formData.inputType === 'ref'" :key="formDataIndex" :label="formData.name">
                 <Ref :formData="formData" :panalData="panal.data" :panalForm="panalForm"></Ref>
@@ -25,6 +25,9 @@
                 multiSelect
               </FormItem>
             </template>
+            <FormItem>
+              <Button type="primary" @click="saveOperation">保存</Button>
+            </FormItem>
           </Form>
         </div>
       </Panel>
@@ -33,7 +36,7 @@
 </template>
 
 <script>
-import { getCiTypeAttributes } from '@/api/server'
+import { getCiTypeAttributes, updateCiDatas } from '@/api/server'
 import Ref from './ref'
 export default {
   name: '',
@@ -47,6 +50,25 @@ export default {
   },
   mounted () {},
   methods: {
+    // 保存数据
+    async saveOperation () {
+      const activePanalData = this.panalData[this.defaultPanal[0] - 1].data
+      let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
+      for (let key in activePanalData) {
+        if (activePanalData[key] && typeof activePanalData[key] === 'object') {
+          tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid
+        }
+      }
+      console.log(tmpPanalData)
+      let params = {
+        id: this.panalForm[0].ciTypeId,
+        updateData: [tmpPanalData]
+      }
+      const { statusCode, data } = await updateCiDatas(params)
+      if (statusCode === 'OK') {
+        console.log(data)
+      }
+    },
     managementData (operateData) {
       this.panalData = []
       this.operateData = operateData
@@ -60,7 +82,6 @@ export default {
       this.defaultPanal = '1'
     },
     openPanal (panalId) {
-      console.log(panalId)
       if (panalId.length) {
         const ciTypeId = this.panalData[Number(panalId[0] - 1)].ciTypeId
         this.getAttributes(ciTypeId)
@@ -69,12 +90,7 @@ export default {
     async getAttributes (ciTypeId) {
       const { statusCode, data } = await getCiTypeAttributes(ciTypeId)
       if (statusCode === 'OK') {
-        this.panalForm = data.filter(_ => {
-          if (_.isDisplayed) {
-            return _
-          }
-        })
-        console.log(this.panalForm)
+        this.panalForm = data
       }
     }
   },
