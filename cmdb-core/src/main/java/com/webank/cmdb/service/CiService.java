@@ -56,6 +56,8 @@ public interface CiService extends CmdbService {
 
     void delete(int ciTypeId, List<String> ids);
 
+    List<Map<String, Object>> refresh(List<CiIndentity> ciIds);
+
     QueryResponse integrateQuery(int intQueryId, QueryRequest intQueryReq);
 
     QueryResponse integrateQuery(String queryName, QueryRequest intQueryReq);
