@@ -113,6 +113,22 @@ public class WecubeAdapterController {
         return response;
     }
 
+    @PostMapping("/data/refresh")
+    @ResponseBody
+    public OperateCiJsonResponse refreshBatchCiData(@RequestBody OperateCiDtoInputs inputs) {
+        List<OperateCiDto> operateCiDtos = inputs.getInputs();
+        OperateCiJsonResponse response = new OperateCiJsonResponse();
+        List<ExceptionHolder> ExceptionHolders = new ArrayList<ExceptionHolder>();
+        List<Map<String, Object>> results = wecubeAdapterService.refreshBatchCiData(operateCiDtos, ExceptionHolders);
+
+        if (ExceptionHolders.size() > 0) {
+            response = OperateCiJsonResponse.errorWithData(String.format("Fail to confirm [%s] CIs, detail error in the data block", inputs), results);
+        } else {
+            response = OperateCiJsonResponse.okayWithData(results);
+        }
+        return response;
+    }
+
     @GetMapping("/data-model")
     @ResponseBody
     public List<EntityDto> getDataModel() {
