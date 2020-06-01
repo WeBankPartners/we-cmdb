@@ -5,27 +5,34 @@
       <Panel name="1">
         {{ parentPanalData.data.code }}
         <div slot="content">
-          <Form :label-width="80">
-            <template v-for="(formData, formDataIndex) in parentPanalForm" v-if="formData.isDisplayed">
-              <FormItem v-if="formData.inputType === 'text'" :key="formDataIndex" :label="formData.name">
+          <Form>
+            <div
+              v-for="(formData, formDataIndex) in parentPanalForm"
+              v-if="formData.isDisplayed"
+              :key="formDataIndex + 'a'"
+            >
+              <Tooltip :content="formData.description" placement="top-end" style="position: absolute;">
+                <span class="form-item-title"> {{ formData.name }}</span>
+              </Tooltip>
+              <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
                 <Input v-model="parentPanalData.data[formData.propertyName]"></Input>
               </FormItem>
-              <FormItem v-if="formData.inputType === 'textArea'" :key="formDataIndex" :label="formData.name">
+              <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
                 <textarea v-model="parentPanalData.data[formData.propertyName]" class="textArea-style"></textarea>
               </FormItem>
-              <FormItem v-if="formData.inputType === 'ref'" :key="formDataIndex" :label="formData.name">
+              <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
                 <Ref :formData="formData" :panalData="parentPanalData.data" :parentPanalForm="parentPanalForm"></Ref>
               </FormItem>
-              <FormItem v-if="formData.inputType === 'multiRef'" :key="formDataIndex" :label="formData.name">
+              <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
                 multiRef
               </FormItem>
-              <FormItem v-if="formData.inputType === 'select'" :key="formDataIndex" :label="formData.name">
+              <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
                 select
               </FormItem>
-              <FormItem v-if="formData.inputType === 'multiSelect'" :key="formDataIndex" :label="formData.name">
+              <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
                 multiSelect
               </FormItem>
-            </template>
+            </div>
             <FormItem>
               <Button type="primary" @click="saveOperation">保存</Button>
             </FormItem>
@@ -38,27 +45,30 @@
       <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
         {{ panal.data.code }}
         <div slot="content">
-          <Form :label-width="80" v-if="defaultPanal[0] === panalIndex + 1 + ''">
-            <template v-for="(formData, formDataIndex) in panalForm" v-if="formData.isDisplayed">
-              <FormItem v-if="formData.inputType === 'text'" :key="formDataIndex" :label="formData.name">
+          <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
+            <div v-for="(formData, formDataIndex) in panalForm" v-if="formData.isDisplayed" :key="formDataIndex + 'b'">
+              <Tooltip :content="formData.description" placement="top-end" style="position: absolute;">
+                <span class="form-item-title"> {{ formData.name }}</span>
+              </Tooltip>
+              <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
                 <Input v-model="panal.data[formData.propertyName]"></Input>
               </FormItem>
-              <FormItem v-if="formData.inputType === 'textArea'" :key="formDataIndex" :label="formData.name">
+              <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
                 <textarea v-model="panal.data[formData.propertyName]" class="textArea-style"></textarea>
               </FormItem>
-              <FormItem v-if="formData.inputType === 'ref'" :key="formDataIndex" :label="formData.name">
+              <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
                 <Ref :formData="formData" :panalData="panal.data" :panalForm="panalForm"></Ref>
               </FormItem>
-              <FormItem v-if="formData.inputType === 'multiRef'" :key="formDataIndex" :label="formData.name">
+              <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
                 multiRef
               </FormItem>
-              <FormItem v-if="formData.inputType === 'select'" :key="formDataIndex" :label="formData.name">
+              <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
                 select
               </FormItem>
-              <FormItem v-if="formData.inputType === 'multiSelect'" :key="formDataIndex" :label="formData.name">
+              <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
                 multiSelect
               </FormItem>
-            </template>
+            </div>
             <FormItem>
               <Button type="primary" @click="saveOperation">保存</Button>
             </FormItem>
@@ -155,5 +165,19 @@ export default {
 .parentCollapse {
   background-color: #5cadff;
   margin-bottom: 20px;
+}
+.form-item-title {
+  width: 80px;
+  text-align: right;
+  vertical-align: middle;
+  float: left;
+  font-size: 14px;
+  color: #515a6e;
+  line-height: 1;
+  padding: 10px 12px 10px 0;
+  box-sizing: border-box;
+}
+.form-item-content {
+  margin-left: 80px;
 }
 </style>
