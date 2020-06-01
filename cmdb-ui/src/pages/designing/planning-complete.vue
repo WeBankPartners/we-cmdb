@@ -13,7 +13,7 @@
         </Col>
         <Col span="6" class="operation-zone">
           <Card>
-            <Operation ref="transferData"></Operation>
+            <Operation ref="transferData" @redrawGraph="redrawGraph"></Operation>
           </Card>
         </Col>
       </Row>
@@ -81,6 +81,9 @@ export default {
         this.idcDesignData = sortingTree(data)
         this.getZoneLink()
       }
+    },
+    redrawGraph () {
+      this.onIdcDataChange()
     },
     initGraph (filters = {}) {
       let graph
