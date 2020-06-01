@@ -256,6 +256,11 @@ public class CiDataInterceptorService {
         updateSeqNoForMultiReferenceFields(entityHolder, updateCi, entityManager);
     }
 
+    public void refreshAutoFill(DynamicEntityHolder entityHolder,EntityManager entityManager, Map<String, Object> ciData){
+        handleAutoFill(entityHolder, entityManager);
+        handleReferenceAutoFill(entityHolder, entityManager, ciData);
+    }
+
     private void updateSeqNoForMultiReferenceFields(DynamicEntityHolder entityHolder, Map<String, Object> updateCi, EntityManager entityManager) {
         DynamicEntityMeta entityMeta = entityHolder.getEntityMeta();
         String curGuid = (String) entityHolder.get(CmdbConstants.DEFAULT_FIELD_GUID);
