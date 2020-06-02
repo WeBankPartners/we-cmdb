@@ -11,7 +11,7 @@
               v-if="formData.isDisplayed"
               :key="formDataIndex + 'a'"
             >
-              <Tooltip :content="formData.description" placement="top-end" style="position: absolute;">
+              <Tooltip :content="formData.description" :delay="500" placement="top-end" style="position: absolute;">
                 <span class="form-item-title"> {{ formData.name }}</span>
               </Tooltip>
               <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
@@ -44,33 +44,64 @@
     <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
       <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
         {{ panal.data.code }}
+        <Button @click="editOperation" size="small" type="error" style="float: right;margin:6px;">删除</Button>
+        <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button>
         <div slot="content">
           <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
             <div v-for="(formData, formDataIndex) in panalForm" v-if="formData.isDisplayed" :key="formDataIndex + 'b'">
-              <Tooltip :content="formData.description" placement="top-end" style="position: absolute;">
+              <Tooltip :content="formData.description" :delay="500" placement="top-end" style="position: absolute;">
                 <span class="form-item-title"> {{ formData.name }}</span>
               </Tooltip>
               <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-                <Input v-model="panal.data[formData.propertyName]"></Input>
+                <Input v-model="panal.data[formData.propertyName]" :disabled="!isEdit || !formData.isEditable"></Input>
               </FormItem>
               <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
-                <textarea v-model="panal.data[formData.propertyName]" class="textArea-style"></textarea>
+                <textarea
+                  v-model="panal.data[formData.propertyName]"
+                  :disabled="!isEdit || !formData.isEditable"
+                  class="textArea-style"
+                ></textarea>
               </FormItem>
               <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-                <Ref :formData="formData" :panalData="panal.data" :panalForm="panalForm"></Ref>
+                <Ref
+                  :formData="formData"
+                  :panalData="panal.data"
+                  :panalForm="panalForm"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></Ref>
               </FormItem>
-              <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-                multiRef
+              <FormItem
+                v-if="formData.inputType === 'multiRef'"
+                :disabled="!isEdit || !formData.isEditable"
+                class="form-item-content"
+              >
+                <MutiRef
+                  :formData="formData"
+                  :panalData="panal.data"
+                  :parentPanalForm="panalForm"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></MutiRef>
               </FormItem>
-              <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
+              <FormItem
+                v-if="formData.inputType === 'select'"
+                :disabled="!isEdit || !formData.isEditable"
+                class="form-item-content"
+              >
                 select
               </FormItem>
-              <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
+              <FormItem
+                v-if="formData.inputType === 'multiSelect'"
+                :disabled="!isEdit || !formData.isEditable"
+                class="form-item-content"
+              >
                 multiSelect
               </FormItem>
             </div>
             <FormItem>
-              <Button type="primary" @click="saveOperation">保存</Button>
+              <div class="opetation-btn-zone">
+                <Button @click="editOperation">编辑</Button>
+                <Button type="primary" @click="saveOperation" :disabled="!isEdit" class="opetation-btn">保存</Button>
+              </div>
             </FormItem>
           </Form>
         </div>
@@ -82,38 +113,62 @@
 <script>
 import { getCiTypeAttributes, updateCiDatas } from '@/api/server'
 import Ref from './ref'
+import MutiRef from './muti-ref'
 export default {
   name: '',
   data () {
     return {
       parentPanalData: { data: { code: '' } },
       parentPanalForm: [],
-      aa: '',
 
-      defaultPanal: '1',
+      defaultPanal: '',
       operateData: null, // 选中数据集合
       panalData: [], // 格式化后panal数据
-      panalForm: [] // panal表单信息
+      panalForm: [], // panal表单信息
+
+      isEdit: false
     }
   },
   mounted () {},
   methods: {
+    editOperation () {
+      this.isEdit = true
+    },
     // 保存数据
     async saveOperation () {
       const activePanalData = this.panalData[this.defaultPanal[0] - 1].data
+      console.log(activePanalData)
       let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
       for (let key in activePanalData) {
         if (activePanalData[key] && typeof activePanalData[key] === 'object') {
-          tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid
+          // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
+          if (Array.isArray(activePanalData[key]) && !key.endsWith('_tmp')) {
+            let tmp = []
+            if (activePanalData[key + '_tmp']) {
+              tmp = activePanalData[key + '_tmp'].map(_ => {
+                return _.data.guid || _.data.codeId
+              })
+            } else {
+              tmp = activePanalData[key].map(_ => {
+                return _.data.guid || _.data.codeId
+              })
+            }
+            tmpPanalData[key] = tmp
+          } else {
+            // Object数据处理
+            tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid
+          }
         }
       }
+      console.log(tmpPanalData)
       let params = {
         id: this.panalForm[0].ciTypeId,
         updateData: [tmpPanalData]
       }
       const { statusCode } = await updateCiDatas(params)
       if (statusCode === 'OK') {
-        this.$emit('redrawGraph')
+        this.$Message.success('Success!')
+        // this.$emit('redrawGraph')
       }
     },
     managementData (operateData) {
@@ -127,9 +182,10 @@ export default {
       if (this.operateData.children) {
         this.panalData.push(...this.operateData.children)
       }
-      this.defaultPanal = '1'
+      // this.defaultPanal = '1'
     },
     openPanal (panalId) {
+      this.isEdit = false
       if (panalId.length) {
         const ciTypeId = this.panalData[Number(panalId[0] - 1)].ciTypeId
         this.getAttributes(ciTypeId, 'panalForm')
@@ -143,7 +199,8 @@ export default {
     }
   },
   components: {
-    Ref
+    Ref,
+    MutiRef
   }
 }
 </script>
@@ -177,7 +234,11 @@ export default {
   padding: 10px 12px 10px 0;
   box-sizing: border-box;
 }
-.form-item-content {
+.form-item-content,
+.opetation-btn-zone {
   margin-left: 80px;
+}
+.opetation-btn {
+  margin: 0 16px;
 }
 </style>
