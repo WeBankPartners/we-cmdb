@@ -1,5 +1,13 @@
 <template>
   <div>
+    <Row style="margin-bottom: 16px;">
+      <span>{{ $t('select_idc') }}：</span>
+      <Select :placeholder="$t('select_idc')" v-model="selectedIdc" class="graph-select" @on-change="onIdcDataChange">
+        <Option v-for="item in allIdcs" :value="item.guid" :key="item.guid">
+          {{ item.name }}
+        </Option>
+      </Select>
+    </Row>
     <Row class="resource-design-tab-row">
       <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
@@ -25,7 +33,7 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import { getEnumCodesByCategoryId, getIdcDesignTreeByGuid } from '@/api/server'
+import { getEnumCodesByCategoryId, getIdcDesignTreeByGuid, getAllIdcDesignData } from '@/api/server'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
 import { addEvent } from '../util/event.js'
 import { VIEW_CONFIG_PARAMS, NETWORK_SEGMENT_DESIGN } from '@/const/init-params.js'
@@ -34,6 +42,8 @@ import Operation from './operation'
 export default {
   data () {
     return {
+      allIdcs: [],
+      selectedIdc: '',
       graph: {},
       idcDesignData: null,
       idcLink: [],
@@ -365,9 +375,16 @@ export default {
           this.initParams[_.code] = _.value
         })
       }
+    },
+    async getAllIdcDesignData () {
+      const { statusCode, data } = await getAllIdcDesignData()
+      if (statusCode === 'OK') {
+        this.allIdcs = data.map(_ => _.data)
+      }
     }
   },
   mounted () {
+    this.getAllIdcDesignData()
     this.onIdcDataChange()
     this.getConfigParams()
   },
@@ -384,5 +401,8 @@ export default {
 }
 .operation-zone {
   // margin-top: 20px;
+}
+.graph-select {
+  width: 400px;
 }
 </style>
