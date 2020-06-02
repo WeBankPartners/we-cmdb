@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Select v-model="panalData[formData.propertyName].guid" @on-open-change="openOptions" :disabled="disabled">
+    <Select v-model="selected" @on-open-change="openOptions" multiple :disabled="disabled">
       <Option v-for="item in options" :value="item.value" :key="item.value">{{ item.label }}</Option>
     </Select>
   </div>
@@ -10,33 +10,41 @@ import { queryReferenceCiData, queryCiData } from '@/api/server'
 export default {
   data () {
     return {
+      selected: [],
       options: []
+    }
+  },
+  watch: {
+    selected: function (val) {
+      console.log(val)
+      if (val.length) {
+        const xx = this.options.filter(_ => {
+          if (val.includes(_.data.guid)) {
+            return _
+          }
+        })
+        console.log(xx)
+        this.panalData[this.formData.propertyName + '_tmp'] = xx
+      }
     }
   },
   props: ['formData', 'panalData', 'panalForm', 'disabled'],
   mounted () {
+    const selectedObject = this.panalData[this.formData.propertyName]
+    this.selected = selectedObject.map(_ => {
+      return _.guid
+    })
     this.openOptions(true)
   },
   methods: {
     async openOptions (val) {
+      console.log(val)
       if (val) {
         if (this.formData.filterRule) {
           let params = JSON.parse(JSON.stringify(this.panalData))
           for (let key in this.panalData) {
             if (this.panalData[key] && typeof this.panalData[key] === 'object') {
               params[key] = this.panalData[key].codeId || this.panalData[key].guid
-              // const xx = this.panalForm.find(_ => {
-              //   return _.propertyName === key
-              // })
-              // console.log(key, xx)
-              // if (xx) {
-              //   if (xx.inputType === 'ref') {
-              //     params[key] = this.panalData[key].guid
-              //   }
-              //   if (xx.inputType === 'select') {
-              //     params[key] = this.panalData[key].codeId
-              //   }
-              // }
             }
           }
           const { statusCode, data } = await queryReferenceCiData({
@@ -46,6 +54,7 @@ export default {
           if (statusCode === 'OK') {
             this.options = data.contents.map(_ => {
               return {
+                ..._,
                 label: _.key_name,
                 value: _.guid
               }
@@ -61,6 +70,7 @@ export default {
           if (statusCode === 'OK') {
             this.options = data.contents.map(_ => {
               return {
+                ..._,
                 label: _.data.key_name,
                 value: _.data.guid
               }
