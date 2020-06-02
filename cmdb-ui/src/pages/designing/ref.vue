@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="panalData[formData.propertyName]">
     <Select v-model="panalData[formData.propertyName].guid" @on-open-change="openOptions" :disabled="disabled">
       <Option v-for="item in options" :value="item.value" :key="item.value">{{ item.label }}</Option>
     </Select>
@@ -25,18 +25,6 @@ export default {
           for (let key in this.panalData) {
             if (this.panalData[key] && typeof this.panalData[key] === 'object') {
               params[key] = this.panalData[key].codeId || this.panalData[key].guid
-              // const xx = this.panalForm.find(_ => {
-              //   return _.propertyName === key
-              // })
-              // console.log(key, xx)
-              // if (xx) {
-              //   if (xx.inputType === 'ref') {
-              //     params[key] = this.panalData[key].guid
-              //   }
-              //   if (xx.inputType === 'select') {
-              //     params[key] = this.panalData[key].codeId
-              //   }
-              // }
             }
           }
           const { statusCode, data } = await queryReferenceCiData({

@@ -15,16 +15,25 @@ export default {
     }
   },
   watch: {
+    panalData: function (panalData) {
+      const selectedObject = panalData[this.formData.propertyName]
+      if (!selectedObject) {
+        return
+      }
+      this.selected = selectedObject.map(_ => {
+        return _.guid
+      })
+    },
     selected: function (val) {
-      console.log(val)
       if (val.length) {
         const xx = this.options.filter(_ => {
           if (val.includes(_.data.guid)) {
             return _
           }
         })
-        console.log(xx)
         this.panalData[this.formData.propertyName + '_tmp'] = xx
+      } else {
+        this.panalData[this.formData.propertyName + '_tmp'] = []
       }
     }
   },
@@ -34,11 +43,11 @@ export default {
     this.selected = selectedObject.map(_ => {
       return _.guid
     })
+
     this.openOptions(true)
   },
   methods: {
     async openOptions (val) {
-      console.log(val)
       if (val) {
         if (this.formData.filterRule) {
           let params = JSON.parse(JSON.stringify(this.panalData))
