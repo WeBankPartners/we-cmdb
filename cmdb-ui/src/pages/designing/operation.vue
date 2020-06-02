@@ -1,7 +1,7 @@
 <template>
   <div class="">
     <h4>当前节点：</h4>
-    <Collapse class="parentCollapse" accordion>
+    <Collapse v-model="parentPanal" class="parentCollapse" accordion>
       <Panel name="1">
         {{ parentPanalData.data.code }}
         <div slot="content">
@@ -15,16 +15,33 @@
                 <span class="form-item-title"> {{ formData.name }}</span>
               </Tooltip>
               <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-                <Input v-model="parentPanalData.data[formData.propertyName]"></Input>
+                <Input
+                  v-model="parentPanalData.data[formData.propertyName]"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></Input>
               </FormItem>
               <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
-                <textarea v-model="parentPanalData.data[formData.propertyName]" class="textArea-style"></textarea>
+                <textarea
+                  v-model="parentPanalData.data[formData.propertyName]"
+                  :disabled="!isEdit || !formData.isEditable"
+                  class="textArea-style"
+                ></textarea>
               </FormItem>
               <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-                <Ref :formData="formData" :panalData="parentPanalData.data" :parentPanalForm="parentPanalForm"></Ref>
+                <Ref
+                  :formData="formData"
+                  :panalData="parentPanalData.data"
+                  :panalForm="parentPanalForm"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></Ref>
               </FormItem>
               <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-                multiRef
+                <MutiRef
+                  :formData="formData"
+                  :panalData="parentPanalData.data"
+                  :panalForm="parentPanalForm"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></MutiRef>
               </FormItem>
               <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
                 select
@@ -34,7 +51,16 @@
               </FormItem>
             </div>
             <FormItem>
-              <Button type="primary" @click="saveOperation">保存</Button>
+              <div class="opetation-btn-zone">
+                <Button @click="editOperation">编辑</Button>
+                <Button
+                  type="primary"
+                  @click="saveOperation('parentPanalData')"
+                  :disabled="!isEdit"
+                  class="opetation-btn"
+                  >保存</Button
+                >
+              </div>
             </FormItem>
           </Form>
         </div>
@@ -70,15 +96,11 @@
                   :disabled="!isEdit || !formData.isEditable"
                 ></Ref>
               </FormItem>
-              <FormItem
-                v-if="formData.inputType === 'multiRef'"
-                :disabled="!isEdit || !formData.isEditable"
-                class="form-item-content"
-              >
+              <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
                 <MutiRef
                   :formData="formData"
                   :panalData="panal.data"
-                  :parentPanalForm="panalForm"
+                  :panalForm="panalForm"
                   :disabled="!isEdit || !formData.isEditable"
                 ></MutiRef>
               </FormItem>
@@ -100,7 +122,9 @@
             <FormItem>
               <div class="opetation-btn-zone">
                 <Button @click="editOperation">编辑</Button>
-                <Button type="primary" @click="saveOperation" :disabled="!isEdit" class="opetation-btn">保存</Button>
+                <Button type="primary" @click="saveOperation('panalData')" :disabled="!isEdit" class="opetation-btn"
+                  >保存</Button
+                >
               </div>
             </FormItem>
           </Form>
@@ -118,6 +142,7 @@ export default {
   name: '',
   data () {
     return {
+      parentPanal: '',
       parentPanalData: { data: { code: '' } },
       parentPanalForm: [],
 
@@ -129,15 +154,36 @@ export default {
       isEdit: false
     }
   },
+  watch: {
+    // parentPanal: function (val) {
+    //   console.log(val)
+    //   this.isEdit = false
+    //   if (val.length) {
+    //     const ciTypeId = this.parentPanalForm[0].ciTypeId
+    //     this.getAttributes(ciTypeId, 'parentPanalForm')
+    //   }
+    // }
+  },
   mounted () {},
   methods: {
     editOperation () {
       this.isEdit = true
     },
     // 保存数据
-    async saveOperation () {
-      const activePanalData = this.panalData[this.defaultPanal[0] - 1].data
-      console.log(activePanalData)
+    async saveOperation (dataSource) {
+      // eslint-disable-next-line no-unused-vars
+      let activePanalData = null
+      // eslint-disable-next-line no-unused-vars
+      let ciTypeId = null
+      if (dataSource === 'parentPanalData') {
+        activePanalData = this[dataSource].data
+        ciTypeId = this.parentPanalForm[0].ciTypeId
+      }
+      if (dataSource === 'panalData') {
+        activePanalData = this.panalData[this.defaultPanal[0] - 1].data
+        ciTypeId = this.panalForm[0].ciTypeId
+      }
+
       let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
       for (let key in activePanalData) {
         if (activePanalData[key] && typeof activePanalData[key] === 'object') {
@@ -160,9 +206,8 @@ export default {
           }
         }
       }
-      console.log(tmpPanalData)
       let params = {
-        id: this.panalForm[0].ciTypeId,
+        id: ciTypeId,
         updateData: [tmpPanalData]
       }
       const { statusCode } = await updateCiDatas(params)
@@ -172,17 +217,16 @@ export default {
       }
     },
     managementData (operateData) {
+      // this.parentPanal = ''
       this.panalData = []
       this.operateData = operateData
       let tmp = JSON.parse(JSON.stringify(this.operateData))
       this.getAttributes(tmp.ciTypeId, 'parentPanalForm')
       delete tmp.children
-      // this.panalData.push(tmp)
       this.parentPanalData = tmp
       if (this.operateData.children) {
         this.panalData.push(...this.operateData.children)
       }
-      // this.defaultPanal = '1'
     },
     openPanal (panalId) {
       this.isEdit = false
@@ -195,6 +239,8 @@ export default {
       const { statusCode, data } = await getCiTypeAttributes(ciTypeId)
       if (statusCode === 'OK') {
         this[formObject] = data
+        console.log(this[formObject])
+        console.log(data)
       }
     }
   },
