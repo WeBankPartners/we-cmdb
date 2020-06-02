@@ -217,7 +217,8 @@ export default {
       }
     },
     managementData (operateData) {
-      // this.parentPanal = ''
+      this.parentPanal = ''
+      this.defaultPanal = ''
       this.panalData = []
       this.operateData = operateData
       let tmp = JSON.parse(JSON.stringify(this.operateData))
@@ -239,8 +240,6 @@ export default {
       const { statusCode, data } = await getCiTypeAttributes(ciTypeId)
       if (statusCode === 'OK') {
         this[formObject] = data
-        console.log(this[formObject])
-        console.log(data)
       }
     }
   },
