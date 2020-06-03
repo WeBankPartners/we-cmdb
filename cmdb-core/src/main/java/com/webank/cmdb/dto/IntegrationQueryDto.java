@@ -17,6 +17,7 @@ import com.webank.cmdb.exception.ServiceException;
 @JsonInclude(Include.NON_EMPTY)
 public class IntegrationQueryDto {
     private String name;
+    private String keyName;
     private Integer ciTypeId;
     private List<Integer> attrs = new LinkedList<>();
     // to display attribute names in cmdb gui (can be duplicated)
@@ -235,8 +236,16 @@ public class IntegrationQueryDto {
     public void setAggKeyNames(List<String> aggKeyNames) {
         this.aggKeyNames = aggKeyNames;
     }
-    
-	@Override
+
+    public String getKeyName() {
+        return keyName;
+    }
+
+    public void setKeyName(String keyName) {
+        this.keyName = keyName;
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("ciTypeId", ciTypeId)

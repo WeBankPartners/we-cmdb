@@ -1,8 +1,10 @@
 package com.webank.cmdb.service;
 
+import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrCondition;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrConditionDto;
 
 import java.util.List;
+import java.util.Set;
 
 public interface RoleCiTypeAccessCtrlService extends CmdbService {
     public static String NAME = "RoleCiTypeAccessCtrlService";
@@ -14,4 +16,6 @@ public interface RoleCiTypeAccessCtrlService extends CmdbService {
     void deleteRoleCiTypeCtrlAttributes(List<Integer> attrIds);
 
     RoleCiTypeCtrlAttrConditionDto queryRoleCiTypeCtrlAttrCondition(Integer ctlAttrId, Integer ciTypeAttrId);
+
+    void deleteRoleCiTypeCtrlAttrConditions(Set<AdmRoleCiTypeCtrlAttrCondition> attrConditions);
 }
