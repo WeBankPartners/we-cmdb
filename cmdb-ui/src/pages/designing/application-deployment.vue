@@ -109,7 +109,8 @@ import {
   getAllCITypes,
   operateCiState,
   getIdcImplementTreeByGuid,
-  getAllZoneLinkGroupByIdc
+  getAllZoneLinkGroupByIdc,
+  queryCiData
 } from '@/api/server.js'
 import { pagination, components, newOuterActions } from '@/const/actions.js'
 import { resetButtonDisabled } from '@/const/tableActionFun.js'
@@ -125,6 +126,7 @@ import {
   INVOKE_UNIT,
   INVOKED_UNIT
 } from '@/const/init-params.js'
+import { baseURL } from '@/api/base.js'
 
 export default {
   components: {
@@ -169,7 +171,8 @@ export default {
       treeSpinShow: true,
       copyRows: [],
       copyEditData: null,
-      isHandleNodeClick: false
+      isHandleNodeClick: false,
+      instancesInUnit: {}
     }
   },
   computed: {
@@ -281,17 +284,50 @@ export default {
       const result = []
       Object.keys(this.systemLines).forEach(guid => {
         const node = this.systemLines[guid]
-        if (this.graphNodes[node.from] && this.graphNodes[node.to]) {
-          let color = '#000'
-          if (!node.fixedDate) {
-            color = stateColor[node.state]
+
+        let color = '#000'
+        if (!node.fixedDate) {
+          color = stateColor[node.state]
+        }
+        result.push(
+          `n_${node.from}->n_${node.to}`,
+          `[id="gl_${node.id}",`,
+          `color="${color}"`,
+          `tooltip="${node.label || ''}",`,
+          `taillabel="${node.label || ''}"];`
+        )
+
+        const formatLabel = (keyName, guid) => {
+          if (this.instancesInUnit[guid]) {
+            let label = [
+              '<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" COLOR="#000">',
+              `<TR><TD>${keyName}</TD></TR>`
+            ]
+            this.instancesInUnit[guid].forEach(_ => {
+              label.push(`<TR><TD>${_.key_name}</TD></TR>`)
+            })
+            label.push('</TABLE>>')
+            return label.join('')
+          } else {
+            return `"${keyName}"`
           }
+        }
+
+        if (!this.graphNodes[node.from]) {
+          const _fromNode = node.data[this.initParams[INVOKE_UNIT]]
           result.push(
-            `n_${node.from}->n_${node.to}`,
-            `[id="gl_${node.id}",`,
-            `color="${color}"`,
-            `tooltip="${node.label || ''}",`,
-            `taillabel="${node.label || ''}"];`
+            `n_${_fromNode.guid}`,
+            `[label=${formatLabel(_fromNode.key_name, _fromNode.guid)},`,
+            this.instancesInUnit[_fromNode.guid] ? 'color="#d3d3d3"' : '',
+            `tooltip="${_fromNode.key_name || ''}"];`
+          )
+        } else if (!this.graphNodes[node.to]) {
+          const _fromTo = node.data[this.initParams[INVOKED_UNIT]]
+          result.push(
+            `n_${_fromTo.guid}`,
+            `[label=${formatLabel(_fromTo.key_name, _fromTo.guid)},`,
+            this.instancesInUnit[_fromTo.guid] ? 'color="#d3d3d3"' : '',
+            `tooltip="${_fromTo.key_name || ''}"];`
           )
         }
       })
@@ -374,14 +410,15 @@ export default {
             return result
           })
         }
-        const formatADLine = array =>
+        const formatADLine = array => {
           array.forEach(_ => {
             if (_.ciTypeId === this.initParams[INVOKE_ID]) {
               this.systemLines[_.guid] = {
+                ..._,
                 from: _.data[this.initParams[INVOKE_UNIT]].guid,
                 to: _.data[this.initParams[INVOKED_UNIT]].guid,
                 id: _.guid,
-                label: _.data.invoke_type.value,
+                label: _.data.invoke_type,
                 state: _.data.state.code,
                 fixedDate: +new Date(_.data.fixed_date)
               }
@@ -390,12 +427,57 @@ export default {
               formatADLine(_.children)
             }
           })
+        }
+
+        const fetchOtherSystemInstances = async () => {
+          this.instancesInUnit = {}
+          this.graphNodes = {}
+          this.genADChildrenDot(this.systemData[0].children || [], 1)
+          let instanceGuids = []
+          Object.keys(this.systemLines).forEach(guid => {
+            const node = this.systemLines[guid]
+            if (!this.graphNodes[node.from]) {
+              const _fromNode = node.data[this.initParams[INVOKE_UNIT]]
+              instanceGuids.push(_fromNode.guid)
+            } else if (!this.graphNodes[node.to]) {
+              const _fromTo = node.data[this.initParams[INVOKED_UNIT]]
+              instanceGuids.push(_fromTo.guid)
+            }
+          })
+          const promiseArray = this.initParams[BUSINESS_APP_INSTANCE_ID].split(',').map(_ => {
+            const query = {
+              id: +_,
+              queryObject: {
+                filters: [
+                  {
+                    name: 'unit',
+                    operator: 'in',
+                    value: instanceGuids
+                  }
+                ]
+              }
+            }
+            return queryCiData(query)
+          })
+          const instances = await Promise.all(promiseArray)
+          let _instancesInUnit = {}
+          instances.forEach(_ => {
+            _.data.contents.forEach(item => {
+              if (_instancesInUnit[item.data.unit.guid]) {
+                _instancesInUnit[item.data.unit.guid].push(item.data)
+              } else {
+                _instancesInUnit[item.data.unit.guid] = [item.data]
+              }
+            })
+          })
+          this.instancesInUnit = _instancesInUnit
+          this.initADGraph()
+          this.initTreeGraph()
+        }
 
         this.systemData = formatADData(data)
         formatADLine(data)
-
-        this.initADGraph()
-        this.initTreeGraph()
+        fetchOtherSystemInstances()
       }
     },
     async getPhysicalGraphData () {
@@ -544,8 +626,19 @@ export default {
       this.renderTreeGraph(this.systemTreeData)
       this.treeSpinShow = false
     },
+    loadImage (nodesString) {
+      ;(nodesString.match(/image=[^ ;]*(files\/\d*|png)/g) || [])
+        .filter((value, index, self) => {
+          return self.indexOf(value) === index
+        })
+        .map(keyvaluepaire => keyvaluepaire.substr(7))
+        .forEach(image => {
+          this.graphTree.graphviz.addImage(image, '48px', '48px')
+        })
+    },
     renderTreeGraph (data) {
       let nodesString = this.genTreeDOT(data)
+      this.loadImage(nodesString)
       this.graphTree.graphviz.transition().renderDot(nodesString)
       let svg = d3.select('#graphTree').select('svg')
       let width = svg.attr('width')
@@ -563,7 +656,7 @@ export default {
         'rankdir=TB nodesep=0.5;',
         `size="${width},${height}";`,
         this.genlayerDot(data),
-        `Node [fontname=Arial, shape=box;];`,
+        'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.3", height="1.1", color="transparent" ,fontsize=10];',
         'Edge [fontname=Arial, arrowhead="t"];',
         `tooltip="${data[0].data.key_name}";`,
         ...this.genChildrenDot(data || [], 1),
@@ -622,8 +715,15 @@ export default {
       let dots = []
       data.forEach(_ => {
         let _label = _.data.code
-        _label = _label.length > 21 ? `${_label.slice(0, 1)}...${_label.slice(-20)}` : _label
-        dots = dots.concat([`"${_.guid}"`, `[id="n_${_.guid}";`, `label="${_label}";`, `tooltip="${_.data.code}"];`])
+        _label = _label.length > 21 ? `${_label.slice(0, 1)}...${_label.slice(-15)}` : _label
+        dots = dots.concat([
+          `"${_.guid}"`,
+          `[id="n_${_.guid}";`,
+          `label="${_label}";`,
+          `image="${baseURL}/files/${_.imageFileId}.png";`,
+          'labelloc="b"',
+          `tooltip="${_.data.code}"];`
+        ])
         this.rankNodes[_.ciTypeId].push(`"${_.guid}"`)
         if (_.children instanceof Array && _.children.length) {
           dots = dots.concat(this.genChildrenDot(_.children, level + 1))
