@@ -963,6 +963,47 @@ export default {
     },
     initRouterGraph (data) {
       let nodes = []
+      const parentNodes = []
+      data.forEach(d => {
+        const owner = parentNodes.find(_ => _.guid === d.data.owner_network_segment.guid)
+        const policy = parentNodes.find(_ => _.guid === d.data.dest_network_segment.guid)
+        if (!owner && d.data.owner_network_segment.network_segment_usage === 'VPC') {
+          parentNodes.push({ children: [], ...d.data.owner_network_segment })
+        }
+        if (!policy && d.data.dest_network_segment.network_segment_usage === 'VPC') {
+          parentNodes.push({ children: [], ...d.data.dest_network_segment })
+        }
+      })
+      data.forEach(d => {
+        parentNodes.forEach(n => {
+          const owner = n.children.find(_ => _.guid === d.data.owner_network_segment.guid)
+          const policy = n.children.find(_ => _.guid === d.data.dest_network_segment.guid)
+          if (
+            !owner &&
+            n.guid === d.data.owner_network_segment.f_network_segment &&
+            d.data.owner_network_segment.network_segment_usage === 'SUBNET'
+          ) {
+            n.children.push({ ...d.data.owner_network_segment })
+          }
+          if (
+            !policy &&
+            n.guid === d.data.dest_network_segment.f_network_segment &&
+            d.data.dest_network_segment.network_segment_usage === 'SUBNET'
+          ) {
+            n.children.push({ ...d.data.dest_network_segment })
+          }
+        })
+      })
+      parentNodes.forEach(p => {
+        nodes.push(`subgraph cluster${p.guid} {`)
+        nodes.push(`"${p.guid}"[id="${p.guid}",tooltip="",label="${p.name}", penwidth="0"];`)
+        p.children.forEach(child => {
+          nodes.push(
+            `"${child.guid}"[id="${child.guid}",penwidth=".5", fontsize="9",tooltip="${child.name}",label="${child.name}"];`
+          )
+        })
+        nodes.push(`}`)
+      })
       data.forEach(_ => {
         nodes.push(
           `"${_.data.owner_network_segment.guid}"[id="${_.data.owner_network_segment.guid}",tooltip="${_.data.owner_network_segment.name}",label="${_.data.owner_network_segment.name}"];`
@@ -971,10 +1012,10 @@ export default {
           `"${_.data.dest_network_segment.guid}"[id="${_.data.dest_network_segment.guid}",tooltip="${_.data.dest_network_segment.name}",label="${_.data.dest_network_segment.name}"];`
         )
         nodes.push(
-          `"${_.data.owner_network_segment.guid}" -> "${_.data.dest_network_segment.guid}"[edgetooltip="${_.data.code}",taillabel="${_.data.code}",labeldistance="4",penwidth="2", fontcolor="#7f8fa6", fontsize="8"];`
+          `"${_.data.owner_network_segment.guid}" -> "${_.data.dest_network_segment.guid}"[edgetooltip="${_.data.code}",taillabel="${_.data.code}",ltail=cluster${_.data.owner_network_segment.guid}, lhead=cluster${_.data.dest_network_segment.guid},arrowsize="0.5",labeldistance="4",penwidth="1", fontcolor="#7f8fa6", fontsize="5"];`
         )
       })
-      const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
+      const nodesString = 'digraph G{ compound=true;' + nodes.join('') + '}'
       let graph = d3.select(`#resourcePlanningRouterGraph${this.initParams[RESOURCE_PLANNING_ROUTER_CODE]}`)
       graph
         .on('dblclick.zoom', null)
@@ -1013,6 +1054,47 @@ export default {
         ingress: 'inv',
         egress: 'normal'
       }
+      const parentNodes = []
+      data.forEach(d => {
+        const owner = parentNodes.find(_ => _.guid === d.data.owner_network_segment.guid)
+        const policy = parentNodes.find(_ => _.guid === d.data.policy_network_segment.guid)
+        if (!owner && d.data.owner_network_segment.network_segment_usage === 'VPC') {
+          parentNodes.push({ children: [], ...d.data.owner_network_segment })
+        }
+        if (!policy && d.data.policy_network_segment.network_segment_usage === 'VPC') {
+          parentNodes.push({ children: [], ...d.data.policy_network_segment })
+        }
+      })
+      data.forEach(d => {
+        parentNodes.forEach(n => {
+          const owner = n.children.find(_ => _.guid === d.data.owner_network_segment.guid)
+          const policy = n.children.find(_ => _.guid === d.data.policy_network_segment.guid)
+          if (
+            !owner &&
+            n.guid === d.data.owner_network_segment.f_network_segment &&
+            d.data.owner_network_segment.network_segment_usage === 'SUBNET'
+          ) {
+            n.children.push({ ...d.data.owner_network_segment })
+          }
+          if (
+            !policy &&
+            n.guid === d.data.policy_network_segment.f_network_segment &&
+            d.data.policy_network_segment.network_segment_usage === 'SUBNET'
+          ) {
+            n.children.push({ ...d.data.policy_network_segment })
+          }
+        })
+      })
+      parentNodes.forEach(p => {
+        nodes.push(`subgraph cluster${p.guid} {`)
+        nodes.push(`"${p.guid}"[id="${p.guid}",tooltip="",label="${p.name}", penwidth="0"];`)
+        p.children.forEach(child => {
+          nodes.push(
+            `"${child.guid}"[id="${child.guid}",penwidth=".5", fontsize="9",tooltip="${child.name}",label="${child.name}"];`
+          )
+        })
+        nodes.push(`}`)
+      })
       data.forEach(_ => {
         nodes.push(
           `"${_.data.owner_network_segment.guid}"[id="${_.data.owner_network_segment.guid}",tooltip="${_.data.owner_network_segment.name}",label="${_.data.owner_network_segment.name}"];`
@@ -1023,12 +1105,14 @@ export default {
         nodes.push(
           `"${_.data.owner_network_segment.guid}" -> "${_.data.policy_network_segment.guid}"[edgetooltip="${
             _.data.code
-          }",taillabel="${_.data.code}",arrowhead=${
-            type[_.data.security_policy_type]
-          },fontcolor="#7f8fa6",labeldistance="4",penwidth="2", fontsize="8"];`
+          }",taillabel="${_.data.code}",arrowhead=${type[_.data.security_policy_type]},ltail=cluster${
+            _.data.owner_network_segment.guid
+          }, lhead=cluster${
+            _.data.policy_network_segment.guid
+          },arrowsize="0.5",fontcolor="#7f8fa6",labeldistance="4",penwidth="1", fontsize="5"];`
         )
       })
-      const nodesString = 'digraph G{ layout="circo";' + nodes.join('') + '}'
+      const nodesString = 'digraph G{ compound=true;' + nodes.join('') + '}'
       let graph = d3.select(`#resourcePlanningSecurityPolicyGraph${this.initParams[DEFAULT_SECURITY_POLICY_CODE]}`)
       graph
         .on('dblclick.zoom', null)
@@ -1082,7 +1166,7 @@ export default {
       d3.selectAll(`${id} g path`)
         .attr('stroke', '#7f8fa6')
         .attr('stroke-opacity', '.2')
-      d3.selectAll(`${id} g g polygon`)
+      d3.selectAll(`${id} g g g polygon`)
         .attr('stroke', '#7f8fa6')
         .attr('stroke-opacity', '.2')
         .attr('fill', '#7f8fa6')
