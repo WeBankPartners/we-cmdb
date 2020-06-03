@@ -6,21 +6,21 @@
     <!-- 1.依赖分析 - 描述运行本插件包需要的其他插件包 -->
     <packageDependencies>
     </packageDependencies>
-         
+
     <!-- 2.菜单注入 - 描述运行本插件包需要注入的菜单 -->
- <menus>
-        <menu code='MENU_DESIGNING_CI_DATA_ENQUIRY' cat='DESIGNING' displayName="CI Data Enquiry" localDisplayName="CI数据查询">/wecmdb/designing/ci-data-enquiry</menu>
-        <menu code='MENU_DESIGNING_CI_INTEGRATED_QUERY_EXECUTION' cat='DESIGNING' displayName="CI Integrated Enquiry" localDisplayName="CI综合查询">/wecmdb/designing/ci-integrated-query-execution</menu>
+    <menus>
+        <menu code='MENU_DESIGNING_CI_DATA_ENQUIRY' cat='DESIGNING' displayName="CI Data Enquery" localDisplayName="CI数据查询">/wecmdb/designing/ci-data-enquiry</menu>
         <menu code='MENU_DESIGNING_CI_DATA_MANAGEMENT' cat='DESIGNING' displayName="CI Data Management" localDisplayName="CI数据管理">/wecmdb/designing/ci-data-management</menu>
-        <menu code='MENU_DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT' cat='DESIGNING' displayName="CI Integrated Enquiry Management" localDisplayName="CI综合查询管理">/wecmdb/designing/ci-integrated-query-management</menu>
-        <menu code='MENU_IDC_PLANNING_DESIGN' cat='DESIGNING' displayName="IDC Planning Design" localDisplayName="机房规划设计">/wecmdb/view-management/idc-planning-design</menu>
-        <menu code='MENU_IDC_RESOURCE_PLANNING' cat='DESIGNING' displayName="IDC Resource Plan" localDisplayName="机房资源规划">/wecmdb/view-management/idc-resource-planning</menu>
-        <menu code='MENU_APPLICATION_ARCHITECTURE_DESIGN' cat='DESIGNING' displayName="App Architecture Design" localDisplayName="应用架构设计">/wecmdb/view-management/application-architecture-design</menu>
-        <menu code='MENU_APPLICATION_DEPLOYMENT_DESIGN' cat='DESIGNING' displayName="App Deployment Design" localDisplayName="应用部署设计">/wecmdb/view-management/application-deployment-design</menu>
+        <menu code='MENU_DESIGNING_CI_INTEGRATED_QUERY_EXECUTION' cat='DESIGNING' displayName="Report Enquery" localDisplayName="报表查询">/wecmdb/designing/ci-integrated-query-execution</menu>
+        <menu code='MENU_DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT' cat='DESIGNING' displayName="Report Management" localDisplayName="报表管理">/wecmdb/designing/ci-integrated-query-management</menu>
+        <menu code='MENU_IDC_PLANNING_DESIGN' cat='DESIGNING' displayName="Resource View - IDC Designing" localDisplayName="资源视图-规划设计">/wecmdb/view-management/idc-planning-design</menu>
+        <menu code='MENU_IDC_RESOURCE_PLANNING' cat='DESIGNING' displayName="Resource View - Resource Management" localDisplayName="资源视图-资源管理">/wecmdb/view-management/idc-resource-planning</menu>
+        <menu code='MENU_APPLICATION_ARCHITECTURE_DESIGN' cat='DESIGNING' displayName="APP View - Architecture Designing" localDisplayName="应用视图-架构设计">/wecmdb/view-management/application-architecture-design</menu>
+        <menu code='MENU_APPLICATION_DEPLOYMENT_DESIGN' cat='DESIGNING' displayName="APP View - Deploy Management" localDisplayName="应用视图-部署管理">/wecmdb/view-management/application-deployment-design</menu>
         <menu code='MENU_ADMIN_CMDB_MODEL_MANAGEMENT' cat='ADMIN' displayName="CMDB Modeling" localDisplayName="CMDB模型管理">/wecmdb/admin/cmdb-model-management</menu>
         <menu code='MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT' cat='ADMIN' displayName="CMDB Base Datas" localDisplayName="CMDB基础数据管理">/wecmdb/admin/base-data-management</menu>
+        <menu code='MENU_ADMIN_PERMISSION_MANAGEMENT' cat='ADMIN' displayName="CMDB Data Permissions" localDisplayName="CMDB数据权限管理">/wecmdb/admin/permission-management</menu>
         <menu code='MENU_ADMIN_QUERY_LOG' cat='ADMIN' displayName="CMDB Logs" localDisplayName="CMDB日志查询">/wecmdb/admin/query-log</menu>
-        <menu code='MENU_ADMIN_PERMISSION_MANAGEMENT' cat='ADMIN' displayName="CMDB Permissions" localDisplayName="CMDB权限管理">/wecmdb/admin/permission-management</menu>
     </menus>
 
     <!-- 3.数据模型 - 描述本插件包的数据模型,并且描述和Framework数据模型的关系 -->
@@ -29,13 +29,11 @@
 
     <!-- 4.系统参数 - 描述运行本插件包需要的系统参数 -->
     <systemParameters>
-        <systemParameter name="CMDB_URL" scopeType="global" defaultValue="http://127.0.0.1:20000/wecmdb"/>
         <systemParameter name="WECMDB_APP_SYSTEM" scopeType="global" defaultValue="app_system"/>
         <systemParameter name="WECMDB_SUBSYS" scopeType="global" defaultValue="subsys"/>
         <systemParameter name="WECMDB_UNIT" scopeType="global" defaultValue="unit"/>
         <systemParameter name="WECMDB_DATA_CENTER" scopeType="global" defaultValue="data_center"/>
         <systemParameter name="WECMDB_NETWORK_ZONE" scopeType="global" defaultValue="network_zone"/>
-        <systemParameter name="WECMDB_BUSINESS_ZONE" scopeType="global" defaultValue="business_zone"/>
         <systemParameter name="WECMDB_RESOURCE_SET" scopeType="global" defaultValue="resource_set"/>
     </systemParameters>
 
@@ -59,7 +57,7 @@
 
     <!-- 6.运行资源 - 描述部署运行本插件包需要的基础资源(如主机、虚拟机、容器、数据库等) -->
     <resourceDependencies>
-        <docker imageName="{{REPOSITORY}}:{{VERSION}}" containerName="{{REPOSITORY}}-{{VERSION}}" portBindings="{{ALLOCATE_PORT}}:8081" volumeBindings="{{BASE_MOUNT_PATH}}/wecmdb/log:/log,/etc/localtime:/etc/localtime" envVariables="DB_HOST={{DB_HOST}},DB_PORT={{DB_PORT}},DB_SCHEMA={{DB_SCHEMA}},DB_USER={{DB_USER}},DB_PWD={{DB_PWD}}"/>
+        <docker imageName="{{REPOSITORY}}:{{VERSION}}" containerName="{{REPOSITORY}}:{{VERSION}}" portBindings="{{ALLOCATE_PORT}}:8081" volumeBindings="{{BASE_MOUNT_PATH}}/wecmdb/log:/log,/etc/localtime:/etc/localtime" envVariables="DB_HOST={{DB_HOST}},DB_PORT={{DB_PORT}},DB_SCHEMA={{DB_SCHEMA}},DB_USER={{DB_USER}},DB_PWD={{DB_PWD}}"/>
         <mysql schema="wecmdb_embedded" initFileName="init.sql" upgradeFileName="upgrade.sql"/>
     </resourceDependencies>
 
@@ -116,6 +114,18 @@
                 </outputParameters>
             </interface>
         </plugin>
+        <plugin name="ci-data-refresh" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+            <interface action="refresh" path="/wecmdb/data/refresh" filterRule="">
+                <inputParameters>
+                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="constant">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">status</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">message</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">guid</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
         <plugin name="ci-data-confirm" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
             <interface action="confirm" path="/wecmdb/data/confirm" filterRule="">
                 <inputParameters>
@@ -130,7 +140,7 @@
             </interface>
         </plugin>
         <!-- 最佳实践 -->
-         <plugin name="ci-data-confirm" targetPackage="" targetEntity="" registerName="any_ci" targetEntityFilterRule="">
+        <plugin name="ci-data-confirm" targetPackage="" targetEntity="" registerName="any_ci" targetEntityFilterRule="">
             <interface action="confirm" path="/wecmdb/data/confirm" filterRule="">
                 <inputParameters>
                     <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">guid</parameter>
