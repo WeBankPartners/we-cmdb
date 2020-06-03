@@ -1,15 +1,76 @@
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*
+SQLyog Ultimate v12.08 (64 bit)
+MySQL - 5.6.43 : Database - wecmdb_embedded
+*********************************************************************
+*/
+
 /*!40101 SET NAMES utf8 */;
-/*!50503 SET NAMES utf8mb4 */;
+
+/*!40101 SET SQL_MODE=''*/;
+
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 SET FOREIGN_KEY_CHECKS=0;
+
+/*Table structure for table `adm_attr_group` */
 
 CREATE TABLE IF NOT EXISTS `adm_attr_group` (
   `id_adm_attr_group` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_attr_group',
   `name` varchar(64) DEFAULT NULL COMMENT '组名',
   PRIMARY KEY (`id_adm_attr_group`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_basekey_cat` */
+
+CREATE TABLE IF NOT EXISTS `adm_basekey_cat` (
+  `id_adm_basekey_cat` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_basekey_cat',
+  `cat_name` varchar(32) DEFAULT NULL COMMENT '类别名称',
+  `description` varchar(255) DEFAULT NULL COMMENT '描述',
+  `id_adm_role` int(11) DEFAULT NULL COMMENT 'id_adm_role',
+  `id_adm_basekey_cat_type` int(11) DEFAULT NULL COMMENT '类型',
+  `group_type_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id_adm_basekey_cat`),
+  KEY `fk_adm_basekey_cat_adm_role_1` (`id_adm_role`),
+  KEY `fk_adm_basekey_cat_type` (`id_adm_basekey_cat_type`),
+  KEY `fk_adm_basekey_group_type_id` (`group_type_id`),
+  CONSTRAINT `fk_adm_basekey_cat_type` FOREIGN KEY (`id_adm_basekey_cat_type`) REFERENCES `adm_basekey_cat_type` (`id_adm_basekey_cat_type`),
+  CONSTRAINT `fk_adm_basekey_group_type_id` FOREIGN KEY (`group_type_id`) REFERENCES `adm_basekey_cat` (`id_adm_basekey_cat`)
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_basekey_cat_type` */
+
+CREATE TABLE IF NOT EXISTS `adm_basekey_cat_type` (
+  `id_adm_basekey_cat_type` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(25) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `ci_type_id` int(11) DEFAULT NULL,
+  `type` int(4) DEFAULT NULL,
+  PRIMARY KEY (`id_adm_basekey_cat_type`),
+  KEY `adm_basekey_cat_type_ci_type_1` (`ci_type_id`),
+  CONSTRAINT `adm_basekey_cat_type_ci_type_1` FOREIGN KEY (`ci_type_id`) REFERENCES `adm_ci_type` (`id_adm_ci_type`)
+) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_basekey_code` */
+
+CREATE TABLE IF NOT EXISTS `adm_basekey_code` (
+  `id_adm_basekey` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_basekey',
+  `id_adm_basekey_cat` int(11) DEFAULT NULL COMMENT 'id_adm_basekey_cat',
+  `code` varchar(255) DEFAULT NULL COMMENT 'key',
+  `value` varchar(2000) DEFAULT NULL COMMENT 'name',
+  `group_code_id` int(11) DEFAULT NULL COMMENT 'the group code it belong to',
+  `code_description` varchar(255) DEFAULT NULL COMMENT '编码描述',
+  `seq_no` int(11) DEFAULT NULL COMMENT '排序序号',
+  `status` varchar(20) DEFAULT 'active' COMMENT '枚举状态',
+  PRIMARY KEY (`id_adm_basekey`),
+  KEY `fk_adm_basekey_code_adm_basekey_cat_1` (`id_adm_basekey_cat`),
+  KEY `fk_adm_basekey_code_group_code_id` (`group_code_id`),
+  CONSTRAINT `fk_adm_basekey_code_adm_basekey_cat_1` FOREIGN KEY (`id_adm_basekey_cat`) REFERENCES `adm_basekey_cat` (`id_adm_basekey_cat`),
+  CONSTRAINT `fk_adm_basekey_code_group_code_id` FOREIGN KEY (`group_code_id`) REFERENCES `adm_basekey_code` (`id_adm_basekey`)
+) ENGINE=InnoDB AUTO_INCREMENT=185 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_ci_type` */
 
 CREATE TABLE IF NOT EXISTS `adm_ci_type` (
   `id_adm_ci_type` int(4) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type',
@@ -28,50 +89,9 @@ CREATE TABLE IF NOT EXISTS `adm_ci_type` (
   PRIMARY KEY (`id_adm_ci_type`),
   UNIQUE KEY `tableNameIndex` (`table_name`),
   KEY `fk_adm_ci_type_adm_ci_type_1` (`catalog_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=65 DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `adm_basekey_cat_type` (
-  `id_adm_basekey_cat_type` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(25) DEFAULT NULL,
-  `description` varchar(255) DEFAULT NULL,
-  `ci_type_id` int(11) DEFAULT NULL,
-  `type` int(4) DEFAULT NULL,
-  PRIMARY KEY (`id_adm_basekey_cat_type`),
-  KEY `adm_basekey_cat_type_ci_type_1` (`ci_type_id`),
-  CONSTRAINT `adm_basekey_cat_type_ci_type_1` FOREIGN KEY (`ci_type_id`) REFERENCES `adm_ci_type` (`id_adm_ci_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `adm_basekey_cat` (
-  `id_adm_basekey_cat` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_basekey_cat',
-  `cat_name` varchar(32) DEFAULT NULL COMMENT '类别名称',
-  `description` varchar(255) DEFAULT NULL COMMENT '描述',
-  `id_adm_role` int(11) DEFAULT NULL COMMENT 'id_adm_role',
-  `id_adm_basekey_cat_type` int(11) DEFAULT NULL COMMENT '类型',
-  `group_type_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id_adm_basekey_cat`),
-  KEY `fk_adm_basekey_cat_adm_role_1` (`id_adm_role`),
-  KEY `fk_adm_basekey_cat_type` (`id_adm_basekey_cat_type`),
-  KEY `fk_adm_basekey_group_type_id` (`group_type_id`),
-  CONSTRAINT `fk_adm_basekey_cat_type` FOREIGN KEY (`id_adm_basekey_cat_type`) REFERENCES `adm_basekey_cat_type` (`id_adm_basekey_cat_type`),
-  CONSTRAINT `fk_adm_basekey_group_type_id` FOREIGN KEY (`group_type_id`) REFERENCES `adm_basekey_cat` (`id_adm_basekey_cat`)
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
-
-
-CREATE TABLE IF NOT EXISTS `adm_basekey_code` (
-  `id_adm_basekey` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_basekey',
-  `id_adm_basekey_cat` int(11) DEFAULT NULL COMMENT 'id_adm_basekey_cat',
-  `code` varchar(255) DEFAULT NULL COMMENT 'key',
-  `value` varchar(2000) DEFAULT NULL COMMENT 'name',
-  `group_code_id` int(11) DEFAULT NULL COMMENT 'the group code it belong to',
-  `code_description` varchar(255) DEFAULT NULL COMMENT '编码描述',
-  `seq_no` int(11) DEFAULT NULL COMMENT '排序序号',
-  `status` varchar(20) DEFAULT 'active' COMMENT '枚举状态',
-  PRIMARY KEY (`id_adm_basekey`),
-  KEY `fk_adm_basekey_code_adm_basekey_cat_1` (`id_adm_basekey_cat`),
-  KEY `fk_adm_basekey_code_group_code_id` (`group_code_id`),
-  CONSTRAINT `fk_adm_basekey_code_adm_basekey_cat_1` FOREIGN KEY (`id_adm_basekey_cat`) REFERENCES `adm_basekey_cat` (`id_adm_basekey_cat`),
-  CONSTRAINT `fk_adm_basekey_code_group_code_id` FOREIGN KEY (`group_code_id`) REFERENCES `adm_basekey_code` (`id_adm_basekey`)
-) ENGINE=InnoDB AUTO_INCREMENT=181 DEFAULT CHARSET=utf8;
+/*Table structure for table `adm_ci_type_attr` */
 
 CREATE TABLE IF NOT EXISTS `adm_ci_type_attr` (
   `id_adm_ci_type_attr` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type_attr',
@@ -104,7 +124,9 @@ CREATE TABLE IF NOT EXISTS `adm_ci_type_attr` (
   `regular_expression_rule` varchar(200) DEFAULT NULL COMMENT '正则规则',
   PRIMARY KEY (`id_adm_ci_type_attr`),
   UNIQUE KEY `uniqCiType` (`id_adm_ci_type`,`property_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1104 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1149 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_ci_type_attr_base` */
 
 CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_base` (
   `id_adm_ci_type_attr` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type_attr',
@@ -136,7 +158,9 @@ CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_base` (
   `regular_expression_rule` varchar(200) DEFAULT NULL COMMENT '正则规则',
   `is_refreshable` int(1) DEFAULT NULL,
   PRIMARY KEY (`id_adm_ci_type_attr`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_ci_type_attr_group` */
 
 CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_group` (
   `id_adm_ci_type_attr_group` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type_attr_group',
@@ -149,13 +173,17 @@ CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_group` (
   CONSTRAINT `fk_adm_ci_type_attr_group_adm_ci_type_attr_1` FOREIGN KEY (`id_adm_ci_type_attr`) REFERENCES `adm_ci_type_attr` (`id_adm_ci_type_attr`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `adm_files` */
+
 CREATE TABLE IF NOT EXISTS `adm_files` (
   `id_adm_file` int(11) NOT NULL AUTO_INCREMENT,
   `type` varchar(32) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   `content` blob,
   PRIMARY KEY (`id_adm_file`)
-) ENGINE=InnoDB AUTO_INCREMENT=70 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=88 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_integrate_template` */
 
 CREATE TABLE IF NOT EXISTS `adm_integrate_template` (
   `id_adm_integrate_template` int(11) NOT NULL AUTO_INCREMENT,
@@ -163,7 +191,9 @@ CREATE TABLE IF NOT EXISTS `adm_integrate_template` (
   `name` varchar(64) DEFAULT NULL,
   `des` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`id_adm_integrate_template`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_integrate_template_alias` */
 
 CREATE TABLE IF NOT EXISTS `adm_integrate_template_alias` (
   `id_alias` int(11) NOT NULL AUTO_INCREMENT,
@@ -175,7 +205,9 @@ CREATE TABLE IF NOT EXISTS `adm_integrate_template_alias` (
   KEY `fk_adm_integrate_template_alias_adm_ci_type_1` (`id_adm_ci_type`),
   CONSTRAINT `fk_adm_integrate_template_alias_adm_ci_type_1` FOREIGN KEY (`id_adm_ci_type`) REFERENCES `adm_ci_type` (`id_adm_ci_type`),
   CONSTRAINT `fk_adm_integrate_template_alias_adm_integrate_template_1` FOREIGN KEY (`id_adm_integrate_template`) REFERENCES `adm_integrate_template` (`id_adm_integrate_template`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_integrate_template_alias_attr` */
 
 CREATE TABLE IF NOT EXISTS `adm_integrate_template_alias_attr` (
   `id_attr` int(11) NOT NULL AUTO_INCREMENT,
@@ -194,7 +226,9 @@ CREATE TABLE IF NOT EXISTS `adm_integrate_template_alias_attr` (
   KEY `fk_adm_integrate_template_alias_attr_2` (`id_ci_type_attr`),
   CONSTRAINT `fk_adm_integrate_template_alias_attr_1` FOREIGN KEY (`id_alias`) REFERENCES `adm_integrate_template_alias` (`id_alias`),
   CONSTRAINT `fk_adm_integrate_template_alias_attr_2` FOREIGN KEY (`id_ci_type_attr`) REFERENCES `adm_ci_type_attr` (`id_adm_ci_type_attr`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_integrate_template_relation` */
 
 CREATE TABLE IF NOT EXISTS `adm_integrate_template_relation` (
   `id_relation` int(11) NOT NULL AUTO_INCREMENT,
@@ -209,7 +243,9 @@ CREATE TABLE IF NOT EXISTS `adm_integrate_template_relation` (
   CONSTRAINT `fk_adm_integrate_template_relation_alias_1` FOREIGN KEY (`child_alias_id`) REFERENCES `adm_integrate_template_alias` (`id_alias`),
   CONSTRAINT `fk_adm_integrate_template_relation_alias_2` FOREIGN KEY (`parent_alias_id`) REFERENCES `adm_integrate_template_alias` (`id_alias`),
   CONSTRAINT `fk_adm_integrate_template_relation_attr_1` FOREIGN KEY (`child_ref_attr_id`) REFERENCES `adm_ci_type_attr` (`id_adm_ci_type_attr`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_log` */
 
 CREATE TABLE IF NOT EXISTS `adm_log` (
   `id_log` int(11) NOT NULL AUTO_INCREMENT,
@@ -237,8 +273,9 @@ CREATE TABLE IF NOT EXISTS `adm_log` (
   KEY `NewIndex1` (`log_cat`),
   KEY `NewIndex2` (`ci_type_name`),
   KEY `NewIndex3` (`ci_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8;
 
+/*Table structure for table `adm_menu` */
 
 CREATE TABLE IF NOT EXISTS `adm_menu` (
   `id_adm_menu` int(11) NOT NULL AUTO_INCREMENT,
@@ -254,28 +291,7 @@ CREATE TABLE IF NOT EXISTS `adm_menu` (
   KEY `fk_adm_menu_adm_menu_1` (`parent_id_adm_menu`)
 ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `adm_tenement` (
-  `id_adm_tenement` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(32) DEFAULT NULL COMMENT '名称',
-  `description` varchar(255) DEFAULT NULL COMMENT '描述',
-  `en_short_name` varchar(32) DEFAULT NULL COMMENT '英文简称',
-  PRIMARY KEY (`id_adm_tenement`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `adm_user` (
-  `id_adm_user` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_user',
-  `name` varchar(64) DEFAULT NULL COMMENT '名称',
-  `code` varchar(100) DEFAULT NULL COMMENT '编码（接口类用户使用）',
-  `encrypted_password` varchar(100) DEFAULT NULL COMMENT '加密的密码',
-  `description` varchar(255) DEFAULT NULL COMMENT '描述',
-  `id_adm_tenement` int(11) DEFAULT NULL COMMENT 'id_adm_tenement',
-  `action_flag` tinyint(1) DEFAULT '0' COMMENT '用户操作Flag',
-  `is_system` int(1) DEFAULT '0' COMMENT '是否系统数据',
-  PRIMARY KEY (`id_adm_user`),
-  UNIQUE KEY `adm_user_code` (`code`),
-  KEY `fk_adm_user_adm_tenement_1` (`id_adm_tenement`),
-  CONSTRAINT `fk_adm_user_adm_tenement_1` FOREIGN KEY (`id_adm_tenement`) REFERENCES `adm_tenement` (`id_adm_tenement`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+/*Table structure for table `adm_role` */
 
 CREATE TABLE IF NOT EXISTS `adm_role` (
   `id_adm_role` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role',
@@ -290,7 +306,9 @@ CREATE TABLE IF NOT EXISTS `adm_role` (
   KEY `fk_adm_role_adm_role_1` (`parent_id_adm_role`),
   CONSTRAINT `fk_adm_role_adm_role_1` FOREIGN KEY (`parent_id_adm_role`) REFERENCES `adm_role` (`id_adm_role`),
   CONSTRAINT `fk_adm_role_adm_tenement_1` FOREIGN KEY (`id_adm_tenement`) REFERENCES `adm_tenement` (`id_adm_tenement`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_role_ci_type` */
 
 CREATE TABLE IF NOT EXISTS `adm_role_ci_type` (
   `id_adm_role_ci_type` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_ci_type',
@@ -309,7 +327,9 @@ CREATE TABLE IF NOT EXISTS `adm_role_ci_type` (
   KEY `FK_adm_role_ci_type_adm_ci_type` (`id_adm_ci_type`),
   CONSTRAINT `fk_adm_role_ci_type_adm_citype_1` FOREIGN KEY (`id_adm_ci_type`) REFERENCES `adm_ci_type` (`id_adm_ci_type`) ON DELETE CASCADE,
   CONSTRAINT `fk_adm_role_ci_type_adm_role_1` FOREIGN KEY (`id_adm_role`) REFERENCES `adm_role` (`id_adm_role`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=525 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=749 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_role_ci_type_ctrl_attr` */
 
 CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr` (
   `id_adm_role_ci_type_ctrl_attr` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_ci_type_ctrl_attr',
@@ -323,7 +343,9 @@ CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr` (
   PRIMARY KEY (`id_adm_role_ci_type_ctrl_attr`),
   KEY `fk_adm_role_ci_type_attribute_adm_role_ci_type_1` (`id_adm_role_ci_type`),
   CONSTRAINT `fk_adm_role_ci_type_attribute_adm_role_ci_type_1` FOREIGN KEY (`id_adm_role_ci_type`) REFERENCES `adm_role_ci_type` (`id_adm_role_ci_type`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_role_ci_type_ctrl_attr_condition` */
 
 CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr_condition` (
   `id_adm_role_ci_type_ctrl_attr_condition` int(11) NOT NULL AUTO_INCREMENT,
@@ -338,7 +360,9 @@ CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr_condition` (
   KEY `fk_adm_role_ci_type_attr_adm_ci_type_attr_1` (`id_adm_ci_type_attr`),
   CONSTRAINT `fk_adm_role_ci_type_attr_adm_ci_type_attr_1` FOREIGN KEY (`id_adm_ci_type_attr`) REFERENCES `adm_ci_type_attr` (`id_adm_ci_type_attr`) ON DELETE CASCADE,
   CONSTRAINT `fk_adm_role_ci_type_attr_adm_role_ci_type_attr_1` FOREIGN KEY (`id_adm_role_ci_type_ctrl_attr`) REFERENCES `adm_role_ci_type_ctrl_attr` (`id_adm_role_ci_type_ctrl_attr`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_role_ci_type_ctrl_attr_expression` */
 
 CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr_expression` (
   `id_adm_role_ci_type_ctrl_attr_expression` int(11) NOT NULL AUTO_INCREMENT,
@@ -347,7 +371,9 @@ CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr_expression` (
   PRIMARY KEY (`id_adm_role_ci_type_ctrl_attr_expression`),
   KEY `id_adm_role_ci_type_attr_condition` (`id_adm_role_ci_type_ctrl_attr_condition`),
   CONSTRAINT `id_adm_role_ci_type_attr_condition` FOREIGN KEY (`id_adm_role_ci_type_ctrl_attr_condition`) REFERENCES `adm_role_ci_type_ctrl_attr_condition` (`id_adm_role_ci_type_ctrl_attr_condition`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_role_ci_type_ctrl_attr_select` */
 
 CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr_select` (
   `id_adm_role_ci_type_ctrl_attr_select` int(11) NOT NULL AUTO_INCREMENT,
@@ -358,8 +384,9 @@ CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr_select` (
   KEY `id_adm_basekey_code` (`id_adm_basekey`),
   CONSTRAINT `id_adm_basekey_code` FOREIGN KEY (`id_adm_basekey`) REFERENCES `adm_basekey_code` (`id_adm_basekey`),
   CONSTRAINT `id_adm_role_ci_type_ctrl_attr_condition` FOREIGN KEY (`id_adm_role_ci_type_ctrl_attr_condition`) REFERENCES `adm_role_ci_type_ctrl_attr_condition` (`id_adm_role_ci_type_ctrl_attr_condition`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `adm_role_menu` */
 
 CREATE TABLE IF NOT EXISTS `adm_role_menu` (
   `id_adm_role_menu` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_menu',
@@ -374,6 +401,8 @@ CREATE TABLE IF NOT EXISTS `adm_role_menu` (
   CONSTRAINT `fk_adm_role_menu_adm_role_1` FOREIGN KEY (`id_adm_role`) REFERENCES `adm_role` (`id_adm_role`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8;
 
+/*Table structure for table `adm_role_user` */
+
 CREATE TABLE IF NOT EXISTS `adm_role_user` (
   `id_adm_role_user` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_user',
   `id_adm_role` int(11) DEFAULT NULL COMMENT 'id_adm_role',
@@ -386,6 +415,8 @@ CREATE TABLE IF NOT EXISTS `adm_role_user` (
   CONSTRAINT `fk_adm_role_user_adm_user_1` FOREIGN KEY (`id_adm_user`) REFERENCES `adm_user` (`id_adm_user`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
+/*Table structure for table `adm_sequence` */
+
 CREATE TABLE IF NOT EXISTS `adm_sequence` (
   `id_adm_sequence` int(10) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_sequence',
   `seq_name` varchar(64) NOT NULL COMMENT '序列名称',
@@ -395,7 +426,9 @@ CREATE TABLE IF NOT EXISTS `adm_sequence` (
   `left_zero_padding` varchar(1) DEFAULT NULL COMMENT '是否补零，y为是，n为否',
   PRIMARY KEY (`id_adm_sequence`),
   UNIQUE KEY `seq_name_index` (`seq_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=106 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=58 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_state_transition` */
 
 CREATE TABLE IF NOT EXISTS `adm_state_transition` (
   `id_adm_state_transition` int(11) NOT NULL,
@@ -417,23 +450,34 @@ CREATE TABLE IF NOT EXISTS `adm_state_transition` (
   CONSTRAINT `fk_adm_state_transition_target_state` FOREIGN KEY (`target_state`) REFERENCES `adm_basekey_code` (`id_adm_basekey`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `application_domain` (
-  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
-  `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
-  `r_guid` varchar(15) DEFAULT NULL COMMENT '原始数据guid',
-  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
-  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
-  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
-  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
-  `state` int(15) DEFAULT NULL COMMENT '状态',
-  `key_name` varchar(1000) DEFAULT NULL COMMENT '唯一名称',
-  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
-  `code` varchar(1000) DEFAULT NULL COMMENT '编码',
-  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `name` varchar(200) DEFAULT NULL COMMENT '名称',
-  `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
-  PRIMARY KEY (`guid`)
+/*Table structure for table `adm_tenement` */
+
+CREATE TABLE IF NOT EXISTS `adm_tenement` (
+  `id_adm_tenement` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(32) DEFAULT NULL COMMENT '名称',
+  `description` varchar(255) DEFAULT NULL COMMENT '描述',
+  `en_short_name` varchar(32) DEFAULT NULL COMMENT '英文简称',
+  PRIMARY KEY (`id_adm_tenement`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `adm_user` */
+
+CREATE TABLE IF NOT EXISTS `adm_user` (
+  `id_adm_user` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_user',
+  `name` varchar(64) DEFAULT NULL COMMENT '名称',
+  `code` varchar(100) DEFAULT NULL COMMENT '编码（接口类用户使用）',
+  `encrypted_password` varchar(100) DEFAULT NULL COMMENT '加密的密码',
+  `description` varchar(255) DEFAULT NULL COMMENT '描述',
+  `id_adm_tenement` int(11) DEFAULT NULL COMMENT 'id_adm_tenement',
+  `action_flag` tinyint(1) DEFAULT '0' COMMENT '用户操作Flag',
+  `is_system` int(1) DEFAULT '0' COMMENT '是否系统数据',
+  PRIMARY KEY (`id_adm_user`),
+  UNIQUE KEY `adm_user_code` (`code`),
+  KEY `fk_adm_user_adm_tenement_1` (`id_adm_tenement`),
+  CONSTRAINT `fk_adm_user_adm_tenement_1` FOREIGN KEY (`id_adm_tenement`) REFERENCES `adm_tenement` (`id_adm_tenement`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `app_instance` */
 
 CREATE TABLE IF NOT EXISTS `app_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -457,7 +501,7 @@ CREATE TABLE IF NOT EXISTS `app_instance` (
   `host_resource_instance` varchar(15) DEFAULT NULL COMMENT '主机资源实例',
   `memory` varchar(200) DEFAULT NULL COMMENT '1 | 2 | 4 | 6 | 8 | 12 | 16',
   `monitor_key_name` varchar(200) DEFAULT NULL,
-  `monitor_port` varchar(200) DEFAULT NULL COMMENT '20000-29999之间的一个数字',
+  `monitor_port` varchar(200) DEFAULT NULL COMMENT '10000-29999之间的一个数字',
   `port` varchar(200) DEFAULT NULL COMMENT '10000-19999之间的一个数字',
   `port_conflict` varchar(200) DEFAULT NULL COMMENT '端口冲突检测',
   `start_script` varchar(200) DEFAULT NULL,
@@ -467,8 +511,13 @@ CREATE TABLE IF NOT EXISTS `app_instance` (
   `unit` varchar(15) DEFAULT NULL COMMENT '单元',
   `variable_values` varchar(4000) DEFAULT NULL COMMENT '差异配置值',
   `name` varchar(200) DEFAULT NULL COMMENT '名称',
+  `app_log_files` varchar(200) DEFAULT NULL COMMENT '用于监控获取业务指标数据',
+  `rw_dir` varchar(200) DEFAULT NULL COMMENT '非部署目录下的需授权读写目录',
+  `rw_file` varchar(200) DEFAULT NULL COMMENT '非部署目录下的需授权读写文件',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `app_system` */
 
 CREATE TABLE IF NOT EXISTS `app_system` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -490,13 +539,17 @@ CREATE TABLE IF NOT EXISTS `app_system` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `app_system$data_center` */
+
 CREATE TABLE IF NOT EXISTS `app_system$data_center` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15)  NOT NULL,
-  `to_guid` varchar(15)  NOT NULL,
+  `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `app_system_design` */
 
 CREATE TABLE IF NOT EXISTS `app_system_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -518,6 +571,28 @@ CREATE TABLE IF NOT EXISTS `app_system_design` (
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `application_domain` */
+
+CREATE TABLE IF NOT EXISTS `application_domain` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '原始数据guid',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `key_name` varchar(1000) DEFAULT NULL COMMENT '唯一名称',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(1000) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `name` varchar(200) DEFAULT NULL COMMENT '名称',
+  `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `block_storage` */
 
 CREATE TABLE IF NOT EXISTS `block_storage` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -546,6 +621,8 @@ CREATE TABLE IF NOT EXISTS `block_storage` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `business_zone` */
+
 CREATE TABLE IF NOT EXISTS `business_zone` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -564,17 +641,11 @@ CREATE TABLE IF NOT EXISTS `business_zone` (
   `logic_business_zone` varchar(15) DEFAULT NULL COMMENT '逻辑业务区域',
   `name` varchar(200) DEFAULT NULL COMMENT '名称',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
-  `network_zone` varchar(15) DEFAULT NULL COMMENT '网络区域',
+  `legal_person` varchar(15) DEFAULT NULL COMMENT '法人',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `business_zone$network_segment` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15)  NOT NULL,
-  `to_guid` varchar(15)  NOT NULL,
-  `seq_no` int(5) DEFAULT '0',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=282 DEFAULT CHARSET=utf8;
+/*Table structure for table `business_zone_design` */
 
 CREATE TABLE IF NOT EXISTS `business_zone_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -589,26 +660,11 @@ CREATE TABLE IF NOT EXISTS `business_zone_design` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(1000) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `network_zone_design` varchar(15) DEFAULT NULL COMMENT '网络区域设计',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `business_zone_design$application_domain` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15)  NOT NULL,
-  `to_guid` varchar(15)  NOT NULL,
-  `seq_no` int(5) DEFAULT '0',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `business_zone_design$network_segment_design` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15)  NOT NULL,
-  `to_guid` varchar(15)  NOT NULL,
-  `seq_no` int(5) DEFAULT '0',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=136 DEFAULT CHARSET=utf8;
+/*Table structure for table `cache_instance` */
 
 CREATE TABLE IF NOT EXISTS `cache_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -632,6 +688,8 @@ CREATE TABLE IF NOT EXISTS `cache_instance` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `cache_resource_instance` */
+
 CREATE TABLE IF NOT EXISTS `cache_resource_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -651,7 +709,7 @@ CREATE TABLE IF NOT EXISTS `cache_resource_instance` (
   `charge_type` varchar(15) DEFAULT NULL COMMENT '计费模式',
   `cluster_node_type` varchar(15) DEFAULT NULL COMMENT '集群节点类型',
   `end_date` varchar(200) DEFAULT NULL COMMENT '截止时间，包年包月时必须给出',
-  `intranet_ip` varchar(15) DEFAULT NULL COMMENT '内网IP',
+  `ip_address` varchar(200) DEFAULT NULL COMMENT '待创建资源,填写IP+4位随机数字',
   `login_port` varchar(200) DEFAULT NULL COMMENT '6379',
   `master_resource_instance` varchar(15) DEFAULT NULL COMMENT '主资源实例',
   `memory` varchar(200) DEFAULT NULL COMMENT '内存(GB)',
@@ -662,12 +720,14 @@ CREATE TABLE IF NOT EXISTS `cache_resource_instance` (
   `resource_instance_type` varchar(15) DEFAULT NULL COMMENT '资源实例类型',
   `resource_set` varchar(15) DEFAULT NULL COMMENT '资源集合',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
-  `unit_type` varchar(15) DEFAULT NULL COMMENT '单元类型',
   `user_name` varchar(200) DEFAULT NULL COMMENT '用户名',
   `user_password` varchar(200) DEFAULT NULL COMMENT '用户密码',
   `resource_instance_system` varchar(15) DEFAULT NULL COMMENT '资源实例系统',
+  `network_segment` varchar(15) DEFAULT NULL COMMENT '网段',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `charge_type` */
 
 CREATE TABLE IF NOT EXISTS `charge_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -688,6 +748,8 @@ CREATE TABLE IF NOT EXISTS `charge_type` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `cloud_vendor` */
+
 CREATE TABLE IF NOT EXISTS `cloud_vendor` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -705,6 +767,8 @@ CREATE TABLE IF NOT EXISTS `cloud_vendor` (
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `cluster_node_type` */
 
 CREATE TABLE IF NOT EXISTS `cluster_node_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -725,6 +789,8 @@ CREATE TABLE IF NOT EXISTS `cluster_node_type` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `cluster_type` */
+
 CREATE TABLE IF NOT EXISTS `cluster_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -744,6 +810,18 @@ CREATE TABLE IF NOT EXISTS `cluster_type` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `cluster_type$unit_type` */
+
+CREATE TABLE IF NOT EXISTS `cluster_type$unit_type` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `seq_no` int(5) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=138 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `data_center` */
+
 CREATE TABLE IF NOT EXISTS `data_center` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -760,22 +838,28 @@ CREATE TABLE IF NOT EXISTS `data_center` (
   `cloud_uid` varchar(200) DEFAULT NULL COMMENT '云用户ID',
   `cloud_vendor` varchar(15) DEFAULT NULL COMMENT '云厂商',
   `data_center_design` varchar(15) DEFAULT NULL COMMENT '数据中心设计',
-  `data_center_type` varchar(200) DEFAULT NULL COMMENT 'REGION | ZONE',
+  `data_center_type` varchar(200) DEFAULT NULL COMMENT 'REGION | ZONE |ENTERPRISE',
   `location` varchar(200) DEFAULT NULL COMMENT '位置',
   `name` varchar(200) DEFAULT NULL COMMENT '名称',
   `regional_data_center` varchar(15) DEFAULT NULL COMMENT '地域数据中心',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   `available_zone` varchar(200) DEFAULT NULL COMMENT '可用区',
+  `region` varchar(200) DEFAULT NULL COMMENT '地域',
+  `cen_asset_id` varchar(200) DEFAULT NULL COMMENT '云企业网资产ID',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `data_center$deploy_environment` */
+
 CREATE TABLE IF NOT EXISTS `data_center$deploy_environment` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15)  NOT NULL,
-  `to_guid` varchar(15)  NOT NULL,
+  `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `data_center_design` */
 
 CREATE TABLE IF NOT EXISTS `data_center_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -794,6 +878,8 @@ CREATE TABLE IF NOT EXISTS `data_center_design` (
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `default_security_policy` */
 
 CREATE TABLE IF NOT EXISTS `default_security_policy` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -820,6 +906,8 @@ CREATE TABLE IF NOT EXISTS `default_security_policy` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `default_security_policy_design` */
+
 CREATE TABLE IF NOT EXISTS `default_security_policy_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -836,12 +924,14 @@ CREATE TABLE IF NOT EXISTS `default_security_policy_design` (
   `policy_network_segment_design` varchar(15) DEFAULT NULL COMMENT '策略网段设计',
   `owner_network_segment_design` varchar(15) DEFAULT NULL COMMENT '属主网段设计',
   `port` varchar(200) DEFAULT NULL COMMENT '数字或数字段，数字段位N1-N2格式',
-  `protocol` varchar(200) DEFAULT NULL COMMENT 'TCP | UDP | ICPM',
+  `protocol` varchar(200) DEFAULT NULL COMMENT 'TCP | UDP | ICMP',
   `security_policy_action` varchar(200) DEFAULT NULL COMMENT 'ACCEPT',
   `security_policy_type` varchar(200) DEFAULT NULL COMMENT 'ingress | egress',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `deploy_environment` */
 
 CREATE TABLE IF NOT EXISTS `deploy_environment` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -860,6 +950,8 @@ CREATE TABLE IF NOT EXISTS `deploy_environment` (
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `deploy_package` */
 
 CREATE TABLE IF NOT EXISTS `deploy_package` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -889,13 +981,17 @@ CREATE TABLE IF NOT EXISTS `deploy_package` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `deploy_package$diff_conf_variable` */
+
 CREATE TABLE IF NOT EXISTS `deploy_package$diff_conf_variable` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15)  NOT NULL,
-  `to_guid` varchar(15)  NOT NULL,
+  `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=114 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `diff_configuration` */
 
 CREATE TABLE IF NOT EXISTS `diff_configuration` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -915,6 +1011,8 @@ CREATE TABLE IF NOT EXISTS `diff_configuration` (
   `variable_value` varchar(6000) DEFAULT NULL COMMENT '变量值',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `host_resource_instance` */
 
 CREATE TABLE IF NOT EXISTS `host_resource_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -936,8 +1034,8 @@ CREATE TABLE IF NOT EXISTS `host_resource_instance` (
   `cluster_node_type` varchar(15) DEFAULT NULL COMMENT '集群节点类型',
   `cpu` varchar(200) DEFAULT NULL COMMENT 'CPU(核)',
   `end_date` varchar(200) DEFAULT NULL COMMENT '截止时间，包年包月时必须给出',
-  `intranet_ip` varchar(15) DEFAULT NULL COMMENT '内网IP',
-  `login_port` varchar(200) DEFAULT NULL COMMENT '20-299的一个数字',
+  `ip_address` varchar(200) DEFAULT NULL COMMENT '待创建资源,填写IP+4位随机数字',
+  `login_port` varchar(200) DEFAULT NULL COMMENT '22|3389',
   `master_resource_instance` varchar(15) DEFAULT NULL COMMENT '主资源实例',
   `memory` varchar(200) DEFAULT NULL COMMENT '内存(GB)',
   `monitor_key_name` varchar(200) DEFAULT NULL,
@@ -949,12 +1047,15 @@ CREATE TABLE IF NOT EXISTS `host_resource_instance` (
   `resource_set` varchar(15) DEFAULT NULL COMMENT '资源集合',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   `storage` varchar(200) DEFAULT NULL COMMENT '50的倍数',
-  `unit_type` varchar(15) DEFAULT NULL COMMENT '单元类型',
   `user_name` varchar(200) DEFAULT NULL COMMENT '用户名',
   `user_password` varchar(200) DEFAULT NULL COMMENT '用户密码',
   `storage_type` varchar(15) DEFAULT NULL COMMENT '存储类型',
+  `network_segment` varchar(15) DEFAULT NULL COMMENT '网段',
+  `subnet_security_group` varchar(200) DEFAULT NULL COMMENT 'Y | N ',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `invoke` */
 
 CREATE TABLE IF NOT EXISTS `invoke` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -969,14 +1070,16 @@ CREATE TABLE IF NOT EXISTS `invoke` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(1000) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `access_control` varchar(200) DEFAULT NULL COMMENT '访问控制',
   `invoked_unit` varchar(15) DEFAULT NULL COMMENT '被调用单元',
   `invoke_design` varchar(15) DEFAULT NULL COMMENT '调用设计',
   `invoke_type` varchar(200) DEFAULT NULL COMMENT '调用类型',
   `invoke_unit` varchar(15) DEFAULT NULL COMMENT '调用单元',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
+  `invoked_resource_type` varchar(200) DEFAULT NULL COMMENT '被调用资源类型',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `invoke_design` */
 
 CREATE TABLE IF NOT EXISTS `invoke_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -999,6 +1102,8 @@ CREATE TABLE IF NOT EXISTS `invoke_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `ip_address` */
+
 CREATE TABLE IF NOT EXISTS `ip_address` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1012,13 +1117,13 @@ CREATE TABLE IF NOT EXISTS `ip_address` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(1000) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `ip_address_usage` varchar(200) DEFAULT NULL COMMENT '网关 | 内网资源 | 外网NAT | 外网LB | 外网网卡',
-  `network_segment` varchar(15) DEFAULT NULL COMMENT '网段',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
-  `used_record` varchar(1000) DEFAULT NULL COMMENT '使用记录',
   `asset_id` varchar(200) DEFAULT NULL COMMENT '资产ID',
+  `network_segment` varchar(15) DEFAULT NULL COMMENT '网段',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `lb_instance` */
 
 CREATE TABLE IF NOT EXISTS `lb_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1035,12 +1140,15 @@ CREATE TABLE IF NOT EXISTS `lb_instance` (
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
   `lb_listener_asset_id` varchar(200) DEFAULT NULL COMMENT '负载监听资产ID',
   `lb_resource_instance` varchar(15) DEFAULT NULL COMMENT '负载均衡资源实例',
-  `port` varchar(200) DEFAULT NULL COMMENT '50-999的一个端口',
+  `port` varchar(200) DEFAULT NULL COMMENT '50-999的一个端口或10000-19999的一个端口',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   `unit` varchar(15) DEFAULT NULL COMMENT '单元',
   `name` varchar(200) DEFAULT NULL COMMENT '名称',
+  `monitor_key_name` varchar(200) DEFAULT NULL COMMENT '监控唯一名称',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `lb_resource_instance` */
 
 CREATE TABLE IF NOT EXISTS `lb_resource_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1060,7 +1168,7 @@ CREATE TABLE IF NOT EXISTS `lb_resource_instance` (
   `charge_type` varchar(15) DEFAULT NULL COMMENT '计费模式',
   `cluster_node_type` varchar(15) DEFAULT NULL COMMENT '集群节点类型',
   `end_date` varchar(200) DEFAULT NULL COMMENT '截止时间，包年包月时必须给出',
-  `ip_address` varchar(15) DEFAULT NULL COMMENT 'IP地址',
+  `ip_address` varchar(200) DEFAULT NULL COMMENT '待创建资源,填写IP+4位随机数字',
   `master_resource_instance` varchar(15) DEFAULT NULL COMMENT '主资源实例',
   `monitor_key_name` varchar(200) DEFAULT NULL,
   `monitor_port` varchar(200) DEFAULT NULL COMMENT '50-999的一个端口',
@@ -1068,9 +1176,11 @@ CREATE TABLE IF NOT EXISTS `lb_resource_instance` (
   `resource_instance_type` varchar(15) DEFAULT NULL COMMENT '资源实例类型',
   `resource_set` varchar(15) DEFAULT NULL COMMENT '资源集合',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
-  `unit_type` varchar(15) DEFAULT NULL COMMENT '单元类型',
+  `network_segment` varchar(15) DEFAULT NULL COMMENT '网段',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `legal_person` */
 
 CREATE TABLE IF NOT EXISTS `legal_person` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1089,6 +1199,8 @@ CREATE TABLE IF NOT EXISTS `legal_person` (
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `manage_role` */
 
 CREATE TABLE IF NOT EXISTS `manage_role` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1109,6 +1221,8 @@ CREATE TABLE IF NOT EXISTS `manage_role` (
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `network_link` */
 
 CREATE TABLE IF NOT EXISTS `network_link` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1131,18 +1245,32 @@ CREATE TABLE IF NOT EXISTS `network_link` (
   `network_link_design` varchar(15) DEFAULT NULL COMMENT '网络连接设计',
   `network_link_type` varchar(200) DEFAULT NULL COMMENT '自动填充',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
-  `ip_address` varchar(15) DEFAULT NULL COMMENT 'IP地址',
-  `name` varchar(200) DEFAULT NULL COMMENT '名称',
+  `subnet_network_segment` varchar(15) DEFAULT NULL COMMENT '子网网段',
+  `nat_table_asset_id` varchar(200) DEFAULT NULL COMMENT 'NAT表资产编码',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `network_link$internet_ip` */
+
 CREATE TABLE IF NOT EXISTS `network_link$internet_ip` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15)  NOT NULL,
-  `to_guid` varchar(15)  NOT NULL,
+  `from_guid` varchar(15) NOT NULL,
+  `to_guid` varchar(15) NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `network_link$nat_ip_address` */
+
+CREATE TABLE IF NOT EXISTS `network_link$nat_ip_address` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `seq_no` int(5) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `network_link_design` */
 
 CREATE TABLE IF NOT EXISTS `network_link_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1159,10 +1287,11 @@ CREATE TABLE IF NOT EXISTS `network_link_design` (
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
   `network_segment_design_1` varchar(15) DEFAULT NULL COMMENT '网段设计1',
   `network_segment_design_2` varchar(15) DEFAULT NULL COMMENT '网段设计2',
-  `network_link_type` varchar(200) DEFAULT NULL COMMENT '网络连接类型',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `network_link_type` */
 
 CREATE TABLE IF NOT EXISTS `network_link_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1182,6 +1311,8 @@ CREATE TABLE IF NOT EXISTS `network_link_type` (
   `cloud_vendor` varchar(15) DEFAULT NULL COMMENT '云厂商',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `network_segment` */
 
 CREATE TABLE IF NOT EXISTS `network_segment` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1207,12 +1338,16 @@ CREATE TABLE IF NOT EXISTS `network_segment` (
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   `subnet_asset_id` varchar(200) DEFAULT NULL COMMENT '子网资产ID',
   `vpc_asset_id` varchar(200) DEFAULT NULL COMMENT 'VPC资产ID',
-  `private_route_table` varchar(200) DEFAULT NULL COMMENT '独立路由表',
+  `private_route_table` varchar(200) DEFAULT NULL COMMENT '独立路由表,腾讯云支持',
   `security_group_asset_id` varchar(200) DEFAULT NULL COMMENT '安全组资产ID',
   `private_nat` varchar(200) DEFAULT NULL COMMENT '独立NAT',
   `nat_rule_asset_id` varchar(200) DEFAULT NULL COMMENT 'NAT规则资产ID',
+  `private_security_group` varchar(200) DEFAULT NULL COMMENT 'Y | N',
+  `num` varchar(200) DEFAULT NULL COMMENT '2位数字或小写字母',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `network_segment_design` */
 
 CREATE TABLE IF NOT EXISTS `network_segment_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1230,13 +1365,16 @@ CREATE TABLE IF NOT EXISTS `network_segment_design` (
   `data_center_design` varchar(15) DEFAULT NULL COMMENT '数据中心设计',
   `f_network_segment_design` varchar(15) DEFAULT NULL COMMENT '父网段设计',
   `mask` varchar(200) DEFAULT NULL COMMENT '0-32的数字',
-  `name` varchar(200) DEFAULT NULL COMMENT '名称',
-  `network_segment_usage` varchar(200) DEFAULT NULL COMMENT 'RDC | VPC | SUBNET | WAN | WNET | OPN | PTN',
+  `name` varchar(200) DEFAULT NULL COMMENT '大写字母数字和下划线组成的字符串',
+  `network_segment_usage` varchar(200) DEFAULT NULL COMMENT 'RDC | VPC | SUBNET | WNET | WAN | TON  |BON  | PTN',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   `private_route_table` varchar(200) DEFAULT NULL COMMENT 'Y | N',
   `private_nat` varchar(200) DEFAULT NULL COMMENT 'Y | N',
+  `private_security_group` varchar(200) DEFAULT NULL COMMENT 'Y | N',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `network_zone` */
 
 CREATE TABLE IF NOT EXISTS `network_zone` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1259,6 +1397,8 @@ CREATE TABLE IF NOT EXISTS `network_zone` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `network_zone_design` */
+
 CREATE TABLE IF NOT EXISTS `network_zone_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1278,6 +1418,8 @@ CREATE TABLE IF NOT EXISTS `network_zone_design` (
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `rdb_instance` */
 
 CREATE TABLE IF NOT EXISTS `rdb_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1313,6 +1455,8 @@ CREATE TABLE IF NOT EXISTS `rdb_instance` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `rdb_resource_instance` */
+
 CREATE TABLE IF NOT EXISTS `rdb_resource_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1333,7 +1477,7 @@ CREATE TABLE IF NOT EXISTS `rdb_resource_instance` (
   `cluster_node_type` varchar(15) DEFAULT NULL COMMENT '集群节点类型',
   `cpu` varchar(200) DEFAULT NULL COMMENT 'CPU(核)',
   `end_date` varchar(200) DEFAULT NULL COMMENT '截止时间，包年包月时必须给出',
-  `intranet_ip` varchar(15) DEFAULT NULL COMMENT '内网IP',
+  `ip_address` varchar(200) DEFAULT NULL COMMENT '待创建资源,填写IP+4位随机数字',
   `login_port` varchar(200) DEFAULT NULL COMMENT '1000-4999的一个数字',
   `master_resource_instance` varchar(15) DEFAULT NULL COMMENT '主资源实例',
   `memory` varchar(200) DEFAULT NULL COMMENT '内存(GB)',
@@ -1346,12 +1490,14 @@ CREATE TABLE IF NOT EXISTS `rdb_resource_instance` (
   `resource_set` varchar(15) DEFAULT NULL COMMENT '资源集合',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   `storage` varchar(200) DEFAULT NULL COMMENT '50的倍数',
-  `unit_type` varchar(15) DEFAULT NULL COMMENT '单元类型',
   `user_name` varchar(200) DEFAULT NULL COMMENT '用户名',
   `user_password` varchar(200) DEFAULT NULL COMMENT '用户密码',
   `storage_type` varchar(15) DEFAULT NULL COMMENT '存储类型',
+  `network_segment` varchar(15) DEFAULT NULL COMMENT '网段',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `resource_instance_spec` */
 
 CREATE TABLE IF NOT EXISTS `resource_instance_spec` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1366,12 +1512,24 @@ CREATE TABLE IF NOT EXISTS `resource_instance_spec` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(1000) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `cloud_vendor` varchar(15) DEFAULT NULL COMMENT '云厂商',
   `name` varchar(200) DEFAULT NULL COMMENT '名称',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   `unit_type` varchar(15) DEFAULT NULL COMMENT '单元类型',
+  `resource_instance_type` varchar(15) DEFAULT NULL COMMENT '资源实例类型',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `resource_instance_spec$resource_instance_type` */
+
+CREATE TABLE IF NOT EXISTS `resource_instance_spec$resource_instance_type` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `seq_no` int(5) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=179 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `resource_instance_system` */
 
 CREATE TABLE IF NOT EXISTS `resource_instance_system` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1392,6 +1550,18 @@ CREATE TABLE IF NOT EXISTS `resource_instance_system` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `resource_instance_system$resource_instance_type` */
+
+CREATE TABLE IF NOT EXISTS `resource_instance_system$resource_instance_type` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `seq_no` int(5) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `resource_instance_type` */
+
 CREATE TABLE IF NOT EXISTS `resource_instance_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1405,12 +1575,14 @@ CREATE TABLE IF NOT EXISTS `resource_instance_type` (
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(1000) DEFAULT NULL COMMENT '编码',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `cloud_vendor` varchar(15) DEFAULT NULL COMMENT '云厂商',
   `name` varchar(200) DEFAULT NULL COMMENT '名称',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   `unit_type` varchar(15) DEFAULT NULL COMMENT '单元类型',
+  `cluster_type` varchar(15) DEFAULT NULL COMMENT '集群类型',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `resource_set` */
 
 CREATE TABLE IF NOT EXISTS `resource_set` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1429,29 +1601,38 @@ CREATE TABLE IF NOT EXISTS `resource_set` (
   `cluster_type` varchar(15) DEFAULT NULL COMMENT '集群类型',
   `logic_resource_set` varchar(15) DEFAULT NULL COMMENT '合法值[LOGIC,NODE]',
   `manage_role` varchar(15) DEFAULT NULL COMMENT '管理角色',
-  `resource_type` varchar(200) DEFAULT NULL COMMENT 'HOST | RDB | CACHE | LB ',
+  `resource_type` varchar(200) DEFAULT NULL COMMENT 'BDP | HOST | RDB | CACHE | LB ',
   `resource_set_design` varchar(15) DEFAULT NULL COMMENT '资源集合设计',
   `resource_set_type` varchar(200) DEFAULT NULL COMMENT 'GROUP | NODE',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   `unit_type` varchar(15) DEFAULT NULL COMMENT '单元类型',
+  `network_zone` varchar(15) DEFAULT NULL COMMENT '网络区域',
+  `init_script_type` varchar(200) DEFAULT NULL COMMENT 'S3 | LOCAL | USER_PARAM',
+  `init_script` varchar(2000) DEFAULT NULL COMMENT '初始化脚本',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `resource_set$deploy_environment` */
+
 CREATE TABLE IF NOT EXISTS `resource_set$deploy_environment` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15)  NOT NULL,
-  `to_guid` varchar(15)  NOT NULL,
+  `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=146 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=178 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `resource_set$network_segment` */
 
 CREATE TABLE IF NOT EXISTS `resource_set$network_segment` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15)  NOT NULL,
-  `to_guid` varchar(15)  NOT NULL,
+  `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=213 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=385 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `resource_set_design` */
 
 CREATE TABLE IF NOT EXISTS `resource_set_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1470,8 +1651,21 @@ CREATE TABLE IF NOT EXISTS `resource_set_design` (
   `network_segment_design` varchar(15) DEFAULT NULL COMMENT '网段设计',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   `unit_type` varchar(15) DEFAULT NULL COMMENT '单元类型',
+  `network_zone_design` varchar(15) DEFAULT NULL COMMENT '网络区域设计',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `resource_set_design$application_domain` */
+
+CREATE TABLE IF NOT EXISTS `resource_set_design$application_domain` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `seq_no` int(5) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `resource_set_invoke_design` */
 
 CREATE TABLE IF NOT EXISTS `resource_set_invoke_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1491,6 +1685,8 @@ CREATE TABLE IF NOT EXISTS `resource_set_invoke_design` (
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `route` */
 
 CREATE TABLE IF NOT EXISTS `route` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1514,6 +1710,8 @@ CREATE TABLE IF NOT EXISTS `route` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `route_design` */
+
 CREATE TABLE IF NOT EXISTS `route_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1533,6 +1731,8 @@ CREATE TABLE IF NOT EXISTS `route_design` (
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `service_design` */
 
 CREATE TABLE IF NOT EXISTS `service_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1556,6 +1756,8 @@ CREATE TABLE IF NOT EXISTS `service_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `service_invoke_design` */
+
 CREATE TABLE IF NOT EXISTS `service_invoke_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1576,6 +1778,8 @@ CREATE TABLE IF NOT EXISTS `service_invoke_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `service_invoke_seq_design` */
+
 CREATE TABLE IF NOT EXISTS `service_invoke_seq_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1595,13 +1799,40 @@ CREATE TABLE IF NOT EXISTS `service_invoke_seq_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `service_invoke_seq_design$service_invoke_design_sequence` */
+
 CREATE TABLE IF NOT EXISTS `service_invoke_seq_design$service_invoke_design_sequence` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15)  NOT NULL,
-  `to_guid` varchar(15)  NOT NULL,
+  `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `static_diff_conf_value` */
+
+CREATE TABLE IF NOT EXISTS `static_diff_conf_value` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '原始数据guid',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `key_name` varchar(1000) DEFAULT NULL COMMENT '唯一名称',
+  `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(1000) DEFAULT NULL COMMENT '编码',
+  `deploy_environment` varchar(15) DEFAULT NULL COMMENT '部署环境',
+  `deploy_environment_difference` varchar(200) DEFAULT NULL COMMENT 'Y | N',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `static_value` varchar(200) DEFAULT NULL COMMENT '静态值',
+  `unit_design` varchar(15) DEFAULT NULL COMMENT '单元设计',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `storage_type` */
 
 CREATE TABLE IF NOT EXISTS `storage_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1623,6 +1854,8 @@ CREATE TABLE IF NOT EXISTS `storage_type` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `subsys` */
+
 CREATE TABLE IF NOT EXISTS `subsys` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1640,16 +1873,21 @@ CREATE TABLE IF NOT EXISTS `subsys` (
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   `subsys_design` varchar(15) DEFAULT NULL COMMENT '子系统设计',
   `app_system` varchar(15) DEFAULT NULL COMMENT '应用系统',
+  `network_zone` varchar(15) DEFAULT NULL COMMENT '网络区域',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `subsys$business_zone` */
+
 CREATE TABLE IF NOT EXISTS `subsys$business_zone` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15)  NOT NULL,
-  `to_guid` varchar(15)  NOT NULL,
+  `from_guid` varchar(15) NOT NULL,
+  `to_guid` varchar(15) NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `subsys_design` */
 
 CREATE TABLE IF NOT EXISTS `subsys_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1668,16 +1906,21 @@ CREATE TABLE IF NOT EXISTS `subsys_design` (
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   `subsys_design_id` varchar(200) DEFAULT NULL COMMENT '4-6位数字',
   `app_system_design` varchar(15) DEFAULT NULL COMMENT '应用系统设计',
+  `network_zone_design` varchar(15) DEFAULT NULL COMMENT '网络区域设计',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `subsys_design$business_zone_design` */
+
 CREATE TABLE IF NOT EXISTS `subsys_design$business_zone_design` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15)  NOT NULL,
-  `to_guid` varchar(15)  NOT NULL,
+  `from_guid` varchar(15) NOT NULL,
+  `to_guid` varchar(15) NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `unit` */
 
 CREATE TABLE IF NOT EXISTS `unit` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1702,16 +1945,21 @@ CREATE TABLE IF NOT EXISTS `unit` (
   `unit_design` varchar(15) DEFAULT NULL COMMENT '单元设计',
   `unit_type` varchar(15) DEFAULT NULL COMMENT '单元类型',
   `protocol` varchar(200) DEFAULT NULL COMMENT '通讯协议',
+  `white_list_type` varchar(200) DEFAULT NULL COMMENT 'N默认策略，I入白名单策略，E出白名单策略，IE出入白名单策略',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `unit$deploy_package` */
+
 CREATE TABLE IF NOT EXISTS `unit$deploy_package` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15)  NOT NULL,
-  `to_guid` varchar(15)  NOT NULL,
-  `seq_no` int(5) DEFAULT 0,
+  `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `unit_design` */
 
 CREATE TABLE IF NOT EXISTS `unit_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1733,8 +1981,11 @@ CREATE TABLE IF NOT EXISTS `unit_design` (
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   `subsys_design` varchar(15) DEFAULT NULL COMMENT '系统',
   `unit_type` varchar(15) DEFAULT NULL COMMENT '单元类型',
+  `white_list_type` varchar(200) DEFAULT NULL COMMENT 'N默认策略，I入白名单策略，E出白名单策略，IE出入白名单策略',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `unit_type` */
 
 CREATE TABLE IF NOT EXISTS `unit_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
@@ -1755,8 +2006,7 @@ CREATE TABLE IF NOT EXISTS `unit_type` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 SET FOREIGN_KEY_CHECKS=1;
-
-/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
-/*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;

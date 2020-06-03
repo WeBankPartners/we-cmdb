@@ -45,6 +45,7 @@ import javax.persistence.criteria.Root;
 import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
+import com.google.common.collect.ImmutableMap;
 import com.webank.cmdb.config.log.CiDataType;
 import com.webank.cmdb.config.log.CiTypeId;
 import com.webank.cmdb.config.log.Guid;
@@ -1046,7 +1047,7 @@ public class CiServiceImpl implements CiService {
     }
 
     private Map<String, Object> doUpdate(EntityManager entityManager, int ciTypeId, Map<String, Object> ci, boolean enableStateTransition) {
-            DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
+        DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
 
         String guid = ci.get(GUID).toString();
         Object entityBean = validateCi(ciTypeId, guid, entityMeta, entityManager, ACTION_MODIFICATION);
@@ -1259,6 +1260,33 @@ public class CiServiceImpl implements CiService {
         } finally {
             priEntityManager.close();
         }
+    }
+
+    @OperationLogPointcut(operation = Modification, objectClass = CiData.class)
+    @Override
+    public List<Map<String, Object>>  refresh(@Guid List<CiIndentity> ciIds) {
+        List<Map<String, Object>> results = Lists.newLinkedList();
+        PriorityEntityManager priEntityManager = getEntityManager();
+        EntityManager entityManager = priEntityManager.getEntityManager();
+
+        EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        try {
+            for (CiIndentity ciId : ciIds) {
+
+                DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciId.getCiTypeId());
+                Object entityBean = validateCi(ciId.getCiTypeId(), ciId.getGuid(), entityMeta, entityManager, null);
+                DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
+
+                ciDataInterceptorService.refreshAutoFill(entityHolder,entityManager,entityHolder.getEntityBeanMap());
+                results.add(ImmutableMap.of("guid",ciId.getGuid()));
+            }
+            transaction.commit();
+        }finally {
+            transaction.rollback();
+            priEntityManager.close();
+        }
+        return results;
     }
 
     public void doDelete(EntityManager entityManager, int ciTypeId, String guid, boolean enableStateTransition) {
@@ -1788,12 +1816,13 @@ public class CiServiceImpl implements CiService {
             }
         }
 
-        attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "guid");
-        attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "r_guid");
+        String curQueryKeyName = curQuery.getKeyName();
+        attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "guid", curQueryKeyName);
+        attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "r_guid",curQueryKeyName);
      
         if (enableBiz) {
-            attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "biz_key");
-            attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "state");
+            attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "biz_key",curQueryKeyName);
+            attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "state",curQueryKeyName);
         }
 
         List<AdmCiTypeAttr> accessControlledAttributes = ciTypeAttrRepository.findAllByCiTypeIdAndIsAccessControlled(curCiTypeId, 1);
@@ -1825,14 +1854,20 @@ public class CiServiceImpl implements CiService {
         }
     }
 
-    private void attachAdditionalAttr(Map<String, FieldInfo> attrExprMap, Stack<String> path, int curCiTypeId, From curFrom, String propertyName) {
+    private void attachAdditionalAttr(Map<String, FieldInfo> attrExprMap, Stack<String> path, int curCiTypeId, From curFrom, String propertyName,String curQueryKeyName) {
         AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId, propertyName);
         validateStatusOfCiTypeAttr(attr);
         if (attr == null) {
             throw new ServiceException(String.format("Can not find out [%s] for CI Type [%d].", propertyName, curCiTypeId));
         }
 
-        String alias = getTemplAlias(path) + "." + propertyName;
+        String alias = null;
+        if(Strings.isNullOrEmpty(curQueryKeyName)) {
+            alias = getTemplAlias(path) + "." + propertyName;
+        }else{
+            alias = curQueryKeyName + "." + propertyName;
+        }
+
         Expression expression = curFrom.get(attr.getPropertyName());
         if (expression.getAlias() == null) {
             expression.alias(alias);
@@ -2074,6 +2109,7 @@ public class CiServiceImpl implements CiService {
         });
         return resultList;
     }
+
     @OperationLogPointcut(operation = Modification, objectClass = CiData.class)
     @Override
     public List<Map<String, Object>> operateState(@Guid List<CiIndentity> ciIds, String operation) {
