@@ -1097,9 +1097,6 @@ export default {
         .attr('stroke-opacity', '.2')
         .attr('fill', '#7f8fa6')
         .attr('fill-opacity', '.2')
-      // d3.selectAll(`${id} g g polygon`)
-      //   .attr('fill', '#7f8fa6')
-      //   .attr('fill-opacity', '.2')
       d3.selectAll(`${id} .edge text`).attr('fill', '#7f8fa6')
     },
     colorNode (nodeName) {
