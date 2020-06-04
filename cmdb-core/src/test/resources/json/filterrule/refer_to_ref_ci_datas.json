@@ -1,7 +1,0 @@
-[{
-	"filter_1": {
-		"left": "[{\"ciTypeId\":12},{\"ciTypeId\":20,\"parentRs\":{\"attrId\":202,\"isReferedFromParent\":1}},{\"ciTypeId\":20,\"parentRs\":{\"attrId\":347,\"isReferedFromParent\":1}}]",
-		"operator": "in",
-		"right": "[{\"ciTypeId\":15},{\"ciTypeId\":8,\"parentRs\":{\"attrId\":264,\"isReferedFromParent\":1}},{\"ciTypeId\":20,\"parentRs\":{\"attrId\":128,\"isReferedFromParent\":1}},{\"ciTypeId\":20,\"parentRs\":{\"attrId\":347,\"isReferedFromParent\":1}}]"
-	}
-}]
