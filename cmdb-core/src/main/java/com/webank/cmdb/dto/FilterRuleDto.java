@@ -1,12 +1,36 @@
 package com.webank.cmdb.dto;
 
+import com.webank.cmdb.constant.CiStatus;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class FilterRuleDto extends ArrayList<FilterRuleDto.FilterUnit> {
-    public static final String RULE_RIGHT_TYPE_EXPRESSION = "expression";
-    public static final String RULE_RIGHT_TYPE_VALUE = "value";
-    public static final String RULE_RIGHT_TYPE_ARRAY = "array";
+    static public enum RightTypeEnum {
+        None("none"), Expression("expression"), Value("value"), Array("array");
+
+        private String code;
+
+        private RightTypeEnum(String code) {
+            this.code = code;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        static public RightTypeEnum fromCode(String code) {
+            for (RightTypeEnum rightType : values()) {
+                if (None.equals(rightType))
+                    continue;
+
+                if (rightType.getCode().equals(code)) {
+                    return rightType;
+                }
+            }
+            return None;
+        }
+    }
 
     static public class FilterUnit extends HashMap<String,RuleUnit>{
     }

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
+import com.webank.cmdb.service.FilterRuleService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,8 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
     private AdmIntegrateTemplateRelationRepository intTemplRltRepository;
     @Autowired
     private AdmCiTypeAttrGroupRepository attrGroupRepository;
+    @Autowired
+    private FilterRuleService filterRuleService;
 
     @Override
     public String getName() {
@@ -87,7 +90,12 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
         validatePropertyName(null, domainBean.getPropertyName(), domainBean.getCiTypeId());
         validatePropertyTypeAndLength(domainBean.getPropertyType(), domainBean.getLength(), domainBean.getCiTypeId());
         validateAutoFillRule(dto.getIsAuto(), dto.getAutoFillRule());
+        validateFilterRule(dto.getFilterRule());
         assignDisplaySeqNo(domainBean);
+    }
+
+    private void validateFilterRule(String filterRuleJson) {
+        filterRuleService.validateJsonString(filterRuleJson);
     }
 
     private void assignDisplaySeqNo(AdmCiTypeAttr domainBean) {

@@ -8,4 +8,6 @@ public interface FilterRuleService {
     QueryResponse<?>  queryReferenceCiData(int referenceAttrId, QueryRequest queryObject);
 
     QueryResponse queryReferenceData(FilterRuleDto filterRule, QueryRequest request);
+
+    void validateJsonString(String filterRuleJson);
 }
