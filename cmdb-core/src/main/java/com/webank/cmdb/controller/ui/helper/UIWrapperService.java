@@ -10,10 +10,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.webank.cmdb.config.ApplicationProperties;
 import com.webank.cmdb.domain.*;
 import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
-import com.webank.cmdb.repository.AdmRoleCiTypeAttrRepository;
 import com.webank.cmdb.service.*;
 import com.webank.cmdb.util.JsonUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -50,10 +48,9 @@ import com.webank.cmdb.dto.RoleCiTypeDto;
 import com.webank.cmdb.dto.RoleDto;
 import com.webank.cmdb.dto.RoleUserDto;
 import com.webank.cmdb.dto.UserDto;
-import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.support.exception.CmdbException;
 import com.webank.cmdb.repository.AdmRoleRepository;
 import com.webank.cmdb.repository.StaticEntityRepository;
-import com.webank.cmdb.service.impl.FilterRuleService;
 import com.webank.cmdb.util.BeanMapUtils;
 import com.webank.cmdb.util.ResourceDto;
 import com.webank.cmdb.util.Sorting;
@@ -623,9 +620,9 @@ public class UIWrapperService {
         return filterRuleService.queryReferenceCiData(referenceAttrId, queryObject);
     }
 
-    public QueryResponse<?> queryReferenceEnumCodes(int referenceAttrId, QueryRequest queryObject) {
-        return filterRuleService.queryReferenceEnumCodes(referenceAttrId, queryObject);
-    }
+//    public QueryResponse<?> queryReferenceEnumCodes(int referenceAttrId, QueryRequest queryObject) {
+//        return filterRuleService.queryReferenceEnumCodes(referenceAttrId, queryObject);
+//    }
 
     public List<UserDto> getAllUsers() {
         QueryResponse<UserDto> response = staticDtoService.query(UserDto.class, defaultQueryObject());

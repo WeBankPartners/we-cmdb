@@ -1,6 +1,6 @@
 package com.webank.cmdb.expression;
 
-import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.support.exception.CmdbException;
 
 public class CmdbExpressException extends CmdbException {
     private static final long serialVersionUID = 1L;

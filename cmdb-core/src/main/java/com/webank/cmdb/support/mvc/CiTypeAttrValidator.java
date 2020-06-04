@@ -1,4 +1,4 @@
-package com.webank.cmdb.mvc;
+package com.webank.cmdb.support.mvc;
 
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;

@@ -1,8 +1,20 @@
 package com.webank.cmdb.constant;
 
 public enum FilterOperator {
-    None("none"), In("in"), Contains("contains"), Equal("eq"), Greater("gt"), Less("lt"), NotEqual("ne"), NotNull("notNull"), Null("null"), GreaterEqual("gteq"), LessEqual("lteq")
-    , NotEmpty("notEmpty"), Empty("empty"), LIKE("like");
+    None("none"),
+    In("in"),
+    Contains("contains"),
+    Equal("eq"),
+    Greater("gt"),
+    Less("lt"),
+    NotEqual("ne"),
+    NotNull("notNull"),
+    Null("null"),
+    GreaterEqual("gteq"),
+    LessEqual("lteq"),
+    NotEmpty("notEmpty"),
+    Empty("empty"),
+    LIKE("like");
 
     private String code;
 
