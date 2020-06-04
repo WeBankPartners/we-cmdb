@@ -1,29 +1,20 @@
-package com.webank.cmdb.security;
+package com.webank.cmdb.support.security;
 
-import static com.webank.cmdb.constant.FieldType.fromCode;
-import static com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrCondition.TYPE_EXPRESSION;
 import static java.util.Collections.emptySet;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.webank.cmdb.constant.AttrConditionType;
 import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrExpression;
 import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrSelect;
-import com.webank.cmdb.dto.CiData;
-import com.webank.cmdb.dto.QueryRequest;
-import com.webank.cmdb.dto.QueryResponse;
-import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.service.RouteQueryExpressionService;
 import com.webank.cmdb.util.ServiceRegistry;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.google.common.collect.Sets;
-import com.webank.cmdb.constant.FieldType;
 import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttrCondition;
 
 import lombok.extern.slf4j.Slf4j;

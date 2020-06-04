@@ -9,7 +9,7 @@ import com.webank.cmdb.dto.*;
 import com.webank.cmdb.dynamicEntity.DynamicEntityHolder;
 import com.webank.cmdb.dynamicEntity.DynamicEntityMeta;
 import com.webank.cmdb.dynamicEntity.FieldNode;
-import com.webank.cmdb.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
 import com.webank.cmdb.repository.AdmBasekeyCodeRepository;
 import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
 import com.webank.cmdb.repository.AdmCiTypeRepository;

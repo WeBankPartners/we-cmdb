@@ -1,4 +1,4 @@
-package com.webank.cmdb.mvc;
+package com.webank.cmdb.support.mvc;
 
 import java.rmi.ServerException;
 import java.util.HashMap;
@@ -24,9 +24,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import com.google.common.collect.Lists;
 import com.webank.cmdb.dto.CustomResponseDto;
 import com.webank.cmdb.dto.ResponseDto;
-import com.webank.cmdb.exception.BatchChangeException;
-import com.webank.cmdb.exception.BatchChangeException.ExceptionHolder;
-import com.webank.cmdb.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.BatchChangeException;
+import com.webank.cmdb.support.exception.BatchChangeException.ExceptionHolder;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
 
 @ControllerAdvice
 public class ResponseResultProcess implements ResponseBodyAdvice<Object> {
