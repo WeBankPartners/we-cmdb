@@ -15,11 +15,7 @@ export default {
     isReadOnly: { default: false, type: Boolean, required: false },
     displayAttrType: { type: Array, required: false },
     hiddenAttrType: { type: Array, required: false },
-    operatorList: {
-      default: () => operatorList,
-      type: Array,
-      required: false
-    }
+    operatorList: { default: () => operatorList, type: Array, required: false }
   },
   data () {
     return {
@@ -115,6 +111,7 @@ export default {
       })
     },
     async handleClick (e) {
+      e.stopPropagation()
       if (this.isReadOnly) return
       const target = e.target || e.srcElement
       if (target.nodeName !== 'SPAN') return
