@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.domain.AdmBasekeyCatType;
 import com.webank.cmdb.dto.CatTypeDto;
-import com.webank.cmdb.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
 import com.webank.cmdb.repository.AdmBasekeyCatRepository;
 import com.webank.cmdb.repository.AdmBasekeyCatTypeRepository;
 import com.webank.cmdb.repository.AdmCiTypeRepository;
