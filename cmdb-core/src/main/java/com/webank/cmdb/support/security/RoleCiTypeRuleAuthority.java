@@ -1,7 +1,7 @@
-package com.webank.cmdb.security;
+package com.webank.cmdb.support.security;
 
-import static com.webank.cmdb.security.Authority.Decision.ACCESS_DENIED;
-import static com.webank.cmdb.security.Authority.Decision.ACCESS_GRANTED;
+import static com.webank.cmdb.support.security.Authority.Decision.ACCESS_DENIED;
+import static com.webank.cmdb.support.security.Authority.Decision.ACCESS_GRANTED;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 import java.util.List;
@@ -9,10 +9,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttr;
-import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.support.exception.CmdbException;
 
 import io.jsonwebtoken.lang.Collections;
 import lombok.extern.slf4j.Slf4j;

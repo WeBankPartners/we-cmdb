@@ -3,7 +3,7 @@ package com.webank.cmdb.dynamicEntity;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
-import com.webank.cmdb.exception.ServiceException;
+import com.webank.cmdb.support.exception.ServiceException;
 
 public class DynamicEntityUtils {
     public static String getEntityQuanlifiedName(String tableName) {
