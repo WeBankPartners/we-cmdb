@@ -6,7 +6,7 @@ import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.dto.*;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dto.QueryRequest;
-import com.webank.cmdb.exception.BatchChangeException.ExceptionHolder;
+import com.webank.cmdb.support.exception.BatchChangeException.ExceptionHolder;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.util.BeanMapUtils;

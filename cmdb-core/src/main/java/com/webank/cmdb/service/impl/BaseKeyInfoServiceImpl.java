@@ -21,7 +21,7 @@ import com.webank.cmdb.domain.AdmBasekeyCode;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
 import com.webank.cmdb.dto.CategoryDto;
-import com.webank.cmdb.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
 import com.webank.cmdb.repository.AdmBasekeyCatRepository;
 import com.webank.cmdb.repository.AdmBasekeyCatTypeRepository;
 import com.webank.cmdb.repository.AdmBasekeyCodeRepository;

@@ -10,8 +10,6 @@ import static com.webank.cmdb.constant.LogOperation.RemovalFailure;
 import static com.webank.cmdb.constant.LogOperation.RemovalSuccess;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +20,6 @@ import com.google.common.collect.Lists;
 import com.webank.cmdb.dto.*;
 import com.webank.cmdb.dynamicEntity.DynamicEntityMeta;
 import com.webank.cmdb.service.CiService;
-import com.webank.cmdb.util.ServiceRegistry;
 import org.apache.logging.log4j.util.Strings;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -36,13 +33,12 @@ import org.springframework.stereotype.Component;
 
 import com.webank.cmdb.constant.LogCategory;
 import com.webank.cmdb.constant.LogOperation;
-import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.support.exception.CmdbException;
 import com.webank.cmdb.service.LogService;
 import com.webank.cmdb.util.CmdbThreadLocal;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.http.HttpServletRequest;
 
 @Component

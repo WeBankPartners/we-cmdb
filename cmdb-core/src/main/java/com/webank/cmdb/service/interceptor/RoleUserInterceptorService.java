@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.domain.AdmRoleUser;
 import com.webank.cmdb.dto.RoleUserDto;
-import com.webank.cmdb.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
 import com.webank.cmdb.repository.AdmRoleUserRepository;
 import com.webank.cmdb.service.StaticDtoService;
 

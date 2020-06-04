@@ -1,4 +1,4 @@
-package com.webank.cmdb.cache;
+package com.webank.cmdb.support.cache;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

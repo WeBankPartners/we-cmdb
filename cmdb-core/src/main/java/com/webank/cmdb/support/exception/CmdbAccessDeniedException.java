@@ -1,4 +1,4 @@
-package com.webank.cmdb.exception;
+package com.webank.cmdb.support.exception;
 
 public class CmdbAccessDeniedException extends CmdbException {
 
