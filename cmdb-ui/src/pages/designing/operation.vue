@@ -31,7 +31,6 @@
                 <Ref
                   :formData="formData"
                   :panalData="parentPanalData.data"
-                  :panalForm="parentPanalForm"
                   :disabled="!isEdit || !formData.isEditable"
                 ></Ref>
               </FormItem>
@@ -39,7 +38,6 @@
                 <MutiRef
                   :formData="formData"
                   :panalData="parentPanalData.data"
-                  :panalForm="parentPanalForm"
                   :disabled="!isEdit || !formData.isEditable"
                 ></MutiRef>
               </FormItem>
@@ -89,18 +87,12 @@
                 ></textarea>
               </FormItem>
               <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-                <Ref
-                  :formData="formData"
-                  :panalData="panal.data"
-                  :panalForm="panalForm"
-                  :disabled="!isEdit || !formData.isEditable"
-                ></Ref>
+                <Ref :formData="formData" :panalData="panal.data" :disabled="!isEdit || !formData.isEditable"></Ref>
               </FormItem>
               <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
                 <MutiRef
                   :formData="formData"
                   :panalData="panal.data"
-                  :panalForm="panalForm"
                   :disabled="!isEdit || !formData.isEditable"
                 ></MutiRef>
               </FormItem>
@@ -130,13 +122,59 @@
           </Form>
         </div>
       </Panel>
+      <div style="margin: 12px;">
+        <Button @click="editOperation" size="small" long type="info">新增节点</Button>
+      </div>
     </Collapse>
+    <div>
+      <Select v-model="selectedType" @on-change="getNewNodeAttr" @on-open-change="getNodeTypes">
+        <Option v-for="item in canCreateNodeTypes" :value="item.value" :key="item.value">{{ item.label }}</Option>
+      </Select>
+      <Form>
+        <div
+          v-for="(formData, formDataIndex) in newNodeForm"
+          v-if="formData.isDisplayed && formData.isEditable"
+          :key="formDataIndex + 'a'"
+        >
+          <Tooltip :content="formData.description" :delay="500" placement="top-end" style="position: absolute;">
+            <span class="form-item-title"> {{ formData.name }}</span>
+          </Tooltip>
+          <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
+            <Input v-model="newNodeFormData[formData.propertyName]"></Input>
+          </FormItem>
+          <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
+            <textarea v-model="newNodeFormData[formData.propertyName]" class="textArea-style"></textarea>
+          </FormItem>
+          <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
+            <RefAdd :formData="formData" :panalData="newNodeFormData" :disabled="false"></RefAdd>
+          </FormItem>
+          <!-- <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
+              <MutiRef
+                :formData="formData"
+                :panalData="newNodeFormData"
+              ></MutiRef>
+            </FormItem>
+            <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
+              select
+            </FormItem>
+            <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
+              multiSelect
+            </FormItem> -->
+        </div>
+        <FormItem>
+          <div class="opetation-btn-zone">
+            <Button type="primary" @click="createNode" class="opetation-btn">创建节点</Button>
+          </div>
+        </FormItem>
+      </Form>
+    </div>
   </div>
 </template>
 
 <script>
-import { getCiTypeAttributes, updateCiDatas } from '@/api/server'
+import { getCiTypeAttributes, updateCiDatas, getRefCiTypeFrom, createCiDatas } from '@/api/server'
 import Ref from './ref'
+import RefAdd from './ref-add'
 import MutiRef from './muti-ref'
 export default {
   name: '',
@@ -151,7 +189,12 @@ export default {
       panalData: [], // 格式化后panal数据
       panalForm: [], // panal表单信息
 
-      isEdit: false
+      isEdit: false,
+
+      selectedType: null,
+      canCreateNodeTypes: [], // 可创建节点类型列表
+      newNodeFormData: {}, // 待创建节点表单
+      newNodeForm: [] // 待创建节点表单
     }
   },
   watch: {
@@ -166,6 +209,46 @@ export default {
   },
   mounted () {},
   methods: {
+    async createNode () {
+      // eslint-disable-next-line no-unused-vars
+      let activePanalData = null
+      // eslint-disable-next-line no-unused-vars
+      let ciTypeId = null
+      activePanalData = this.newNodeFormData
+      console.log(this.newNodeFormData)
+      let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
+      for (let key in activePanalData) {
+        if (activePanalData[key] && typeof activePanalData[key] === 'object') {
+          // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
+          if (Array.isArray(activePanalData[key]) && !key.endsWith('_tmp')) {
+            let tmp = []
+            if (activePanalData[key + '_tmp']) {
+              tmp = activePanalData[key + '_tmp'].map(_ => {
+                return _.data.guid || _.data.codeId
+              })
+            } else {
+              tmp = activePanalData[key].map(_ => {
+                return _.data.guid || _.data.codeId
+              })
+            }
+            tmpPanalData[key] = tmp
+          } else {
+            // Object数据处理
+            tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid
+          }
+        }
+      }
+      let params = {
+        id: this.selectedType,
+        createData: [tmpPanalData]
+      }
+      console.log(params)
+      const { statusCode } = await createCiDatas(params)
+      if (statusCode === 'OK') {
+        this.$Message.success('Success!')
+        // this.$emit('redrawGraph')
+      }
+    },
     editOperation () {
       this.isEdit = true
     },
@@ -229,6 +312,32 @@ export default {
         this.panalData.push(...this.operateData.children)
       }
     },
+    async getNodeTypes (isOpen) {
+      if (!isOpen) return
+      let { statusCode, data } = await getRefCiTypeFrom(this.operateData.ciTypeId)
+      if (statusCode === 'OK') {
+        this.canCreateNodeTypes = data.map(p => {
+          return {
+            value: p.ciType.ciTypeId,
+            label: p.ciType.name
+          }
+        })
+      }
+    },
+    async getNewNodeAttr () {
+      this.newNodeFormData = {}
+      await this.getAttributes(this.selectedType, 'newNodeForm')
+      this.$nextTick(() => {
+        this.newNodeForm.forEach(_ => {
+          if (_.inputType === 'ref') {
+            this.newNodeFormData[_.propertyName] = { guid: '11' }
+          } else {
+            this.newNodeFormData[_.propertyName] = ''
+          }
+        })
+      })
+      console.log(this.newNodeFormData)
+    },
     openPanal (panalId) {
       this.isEdit = false
       if (panalId.length) {
@@ -245,6 +354,7 @@ export default {
   },
   components: {
     Ref,
+    RefAdd,
     MutiRef
   }
 }

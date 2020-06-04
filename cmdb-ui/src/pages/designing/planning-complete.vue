@@ -33,10 +33,16 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import { getEnumCodesByCategoryId, getIdcDesignTreeByGuid, getAllIdcDesignData } from '@/api/server'
+import { getEnumCodesByCategoryId, getIdcDesignTreeByGuid, getAllIdcDesignData, queryCiData } from '@/api/server'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
 import { addEvent } from '../util/event.js'
-import { VIEW_CONFIG_PARAMS, NETWORK_SEGMENT_DESIGN } from '@/const/init-params.js'
+import {
+  VIEW_CONFIG_PARAMS,
+  NETWORK_SEGMENT_DESIGN,
+  IDC_PLANNING_LINK_ID,
+  IDC_PLANNING_LINK_FROM,
+  IDC_PLANNING_LINK_TO
+} from '@/const/init-params.js'
 import Operation from './operation'
 
 export default {
@@ -365,6 +371,23 @@ export default {
     },
     async getZoneLink () {
       this.idcLink = []
+      const payload = {
+        id: this.initParams[IDC_PLANNING_LINK_ID],
+        queryObject: {}
+      }
+      const { statusCode, data } = await queryCiData(payload)
+      if (statusCode === 'OK') {
+        this.idcLink = data.contents.map(_ => {
+          return {
+            guid: _.data.guid,
+            from: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
+            to: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
+            label: _.data.code,
+            state: _.data.state.code
+          }
+        })
+        console.log(this.idcLink)
+      }
       this.initGraph()
     },
     async getConfigParams () {
