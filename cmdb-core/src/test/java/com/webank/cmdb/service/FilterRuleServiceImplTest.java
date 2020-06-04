@@ -60,7 +60,7 @@ public class FilterRuleServiceImplTest  extends AbstractBaseControllerTest {
         FilterRuleDto filterRule = new FilterRuleDto();
         FilterRuleDto.FilterUnit filterUnit = new FilterRuleDto.FilterUnit();
         FilterRuleDto.RuleUnit ruleUnit = new FilterRuleDto.RuleUnit("ip_addr.network_segment>network_segment:mask", FilterOperator.Equal.getCode(),
-                new FilterRuleDto.RuleRight(FilterRuleDto.RULE_RIGHT_TYPE_VALUE,16));
+                new FilterRuleDto.RuleRight(FilterRuleDto.RightTypeEnum.Value.getCode(),16));
         filterUnit.put("filter_1",ruleUnit);
         filterRule.add(filterUnit);
 
