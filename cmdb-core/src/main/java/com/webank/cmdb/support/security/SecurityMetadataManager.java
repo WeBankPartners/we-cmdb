@@ -1,4 +1,4 @@
-package com.webank.cmdb.security;
+package com.webank.cmdb.support.security;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;

@@ -1,6 +1,6 @@
 package com.webank.cmdb.domain;
 
-import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.support.exception.CmdbException;
 
 public interface AdmRoleCiTypeActionPermissions {
     String ENABLED = "Y";

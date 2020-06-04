@@ -1,16 +1,14 @@
 package com.webank.cmdb.controller.ui.helper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.webank.cmdb.config.log.OperationLogPointcut;
 import com.webank.cmdb.constant.CmdbConstants;
-import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.domain.AdmMenu;
 import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttr;
 import com.webank.cmdb.domain.AdmRoleMenu;
 import com.webank.cmdb.dto.*;
-import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.support.exception.CmdbException;
 import com.webank.cmdb.repository.AdmMenusRepository;
 import com.webank.cmdb.repository.AdmRoleCiTypeAttrRepository;
 import com.webank.cmdb.repository.UserRepository;
@@ -20,7 +18,6 @@ import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.util.BeanMapUtils;
 import com.webank.cmdb.util.CmdbThreadLocal;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Modification;
 import static com.webank.cmdb.controller.ui.helper.CollectionUtils.asMap;

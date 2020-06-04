@@ -11,12 +11,10 @@ import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_INTEGRATED_QUERY_
 import static com.webank.cmdb.domain.AdmMenu.MENU_IDC_PLANNING_DESIGN;
 import static com.webank.cmdb.domain.AdmMenu.MENU_IDC_RESOURCE_PLANNING;
 import static com.webank.cmdb.dto.QueryRequest.defaultQueryObject;
-import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +22,6 @@ import javax.annotation.security.RolesAllowed;
 
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.dto.*;
-import org.apache.commons.collections.SequencedHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,7 +40,7 @@ import com.webank.cmdb.config.ApplicationProperties;
 import com.webank.cmdb.controller.ui.helper.ResourceTreeDto;
 import com.webank.cmdb.controller.ui.helper.UIWrapperService;
 import com.webank.cmdb.controller.ui.helper.ZoneLinkDto;
-import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.support.exception.CmdbException;
 import com.webank.cmdb.service.ImageService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -226,12 +223,14 @@ public class UICiDataManagementController {
         return wrapperService.queryReferenceCiData(referenceAttrId, queryObject);
     }
 
+/*
     @PostMapping("/referenceEnumCodes/{reference-attr-id}/query")
     @ResponseBody
     public Object queryReferenceEnumCodes(@PathVariable(value = "reference-attr-id") int referenceAttrId,
             @RequestBody QueryRequest queryObject) {
         return wrapperService.queryReferenceEnumCodes(referenceAttrId, queryObject);
     }
+*/
 
     @RolesAllowed({ MENU_DESIGNING_CI_DATA_MANAGEMENT })
     @PostMapping("/ci-types/{ci-type-id}/ci-data/batch-update")

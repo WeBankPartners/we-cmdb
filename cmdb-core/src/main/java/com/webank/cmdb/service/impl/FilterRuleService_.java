@@ -3,8 +3,6 @@ package com.webank.cmdb.service.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,15 +29,13 @@ import com.webank.cmdb.dto.PageInfo;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.dto.Relationship;
-import com.webank.cmdb.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
 import com.webank.cmdb.repository.AdmBasekeyCodeRepository;
 import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
 import com.webank.cmdb.util.JsonUtil;
 
-import javax.persistence.criteria.CriteriaBuilder;
-
-@Service
-public class FilterRuleService {
+//@Service
+public class FilterRuleService_ {
     @Autowired
     AdmCiTypeAttrRepository ciTypeAttrRepository;
     @Autowired
@@ -54,7 +50,7 @@ public class FilterRuleService {
     public QueryResponse queryReferenceData(AdmCiTypeAttr attrWithFilterRule, QueryRequest request) {
         Map<String, Object> ciData = new HashMap<>();
         if (request.getDialect() != null) {
-            ciData = request.getDialect().getData();
+            ciData = request.getDialect().getAssociatedCiData();
         }
 
         List<Object> results = new LinkedList<>();

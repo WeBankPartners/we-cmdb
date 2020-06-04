@@ -27,8 +27,8 @@ import com.webank.cmdb.constant.FilterRelationship;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dynamicEntity.DynamicEntityMeta;
-import com.webank.cmdb.exception.InvalidArgumentException;
-import com.webank.cmdb.exception.ServiceException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.ServiceException;
 
 public class JpaQueryUtils {
 

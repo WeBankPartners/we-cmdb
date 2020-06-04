@@ -1,6 +1,6 @@
 package com.webank.cmdb.util;
 
-import com.webank.cmdb.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
 
 public class DataTypeConverter {
     public static Integer convertToInteger(Object object) {

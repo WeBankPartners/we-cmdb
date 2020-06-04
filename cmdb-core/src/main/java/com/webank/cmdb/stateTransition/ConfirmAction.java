@@ -19,7 +19,7 @@ import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.StateAction;
 import com.webank.cmdb.domain.AdmStateTransition;
 import com.webank.cmdb.dynamicEntity.DynamicEntityHolder;
-import com.webank.cmdb.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.util.ClassUtils;
 import com.webank.cmdb.util.CmdbThreadLocal;

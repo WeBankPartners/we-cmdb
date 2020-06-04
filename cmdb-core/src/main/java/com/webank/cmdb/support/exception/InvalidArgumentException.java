@@ -1,4 +1,4 @@
-package com.webank.cmdb.exception;
+package com.webank.cmdb.support.exception;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 

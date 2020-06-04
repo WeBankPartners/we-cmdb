@@ -1,4 +1,4 @@
-package com.webank.cmdb.cache;
+package com.webank.cmdb.support.cache;
 
 import java.util.Collection;
 import java.util.Map;
