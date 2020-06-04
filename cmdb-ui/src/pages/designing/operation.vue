@@ -123,14 +123,14 @@
         </div>
       </Panel>
       <div style="margin: 12px;">
-        <Button @click="editOperation" size="small" long type="info">新增节点</Button>
+        <Button @click="showAddNodeArea = true" size="small" long type="info">新增节点</Button>
       </div>
     </Collapse>
-    <div>
+    <div v-if="showAddNodeArea" class="add-node-area">
       <Select v-model="selectedType" @on-change="getNewNodeAttr" @on-open-change="getNodeTypes">
         <Option v-for="item in canCreateNodeTypes" :value="item.value" :key="item.value">{{ item.label }}</Option>
       </Select>
-      <Form>
+      <Form v-if="showNewNodeForm" class="add-node-area">
         <div
           v-for="(formData, formDataIndex) in newNodeForm"
           v-if="formData.isDisplayed && formData.isEditable"
@@ -146,24 +146,21 @@
             <textarea v-model="newNodeFormData[formData.propertyName]" class="textArea-style"></textarea>
           </FormItem>
           <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-            <RefAdd :formData="formData" :panalData="newNodeFormData" :disabled="false"></RefAdd>
+            <Ref :formData="formData" :panalData="newNodeFormData" :disabled="false"></Ref>
           </FormItem>
-          <!-- <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-              <MutiRef
-                :formData="formData"
-                :panalData="newNodeFormData"
-              ></MutiRef>
-            </FormItem>
-            <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
-              select
-            </FormItem>
-            <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
-              multiSelect
-            </FormItem> -->
+          <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
+            <MutiRef :formData="formData" :panalData="newNodeFormData"></MutiRef>
+          </FormItem>
+          <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
+            select
+          </FormItem>
+          <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
+            multiSelect
+          </FormItem>
         </div>
         <FormItem>
           <div class="opetation-btn-zone">
-            <Button type="primary" @click="createNode" class="opetation-btn">创建节点</Button>
+            <Button type="primary" @click="createNode">创建节点</Button>
           </div>
         </FormItem>
       </Form>
@@ -191,10 +188,12 @@ export default {
 
       isEdit: false,
 
+      showAddNodeArea: false, // 新增节点区域
       selectedType: null,
       canCreateNodeTypes: [], // 可创建节点类型列表
       newNodeFormData: {}, // 待创建节点表单
-      newNodeForm: [] // 待创建节点表单
+      newNodeForm: [], // 待创建节点表单
+      showNewNodeForm: false // 新增表单
     }
   },
   watch: {
@@ -215,7 +214,6 @@ export default {
       // eslint-disable-next-line no-unused-vars
       let ciTypeId = null
       activePanalData = this.newNodeFormData
-      console.log(this.newNodeFormData)
       let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
       for (let key in activePanalData) {
         if (activePanalData[key] && typeof activePanalData[key] === 'object') {
@@ -242,10 +240,13 @@ export default {
         id: this.selectedType,
         createData: [tmpPanalData]
       }
-      console.log(params)
       const { statusCode } = await createCiDatas(params)
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
+        this.showAddNodeArea = false
+        this.selectedType = null
+        this.newNodeFormData = {} // 待创建节点表单
+        this.newNodeForm = [] // 待创建节点表单
         // this.$emit('redrawGraph')
       }
     },
@@ -325,18 +326,19 @@ export default {
       }
     },
     async getNewNodeAttr () {
+      this.showNewNodeForm = false
       this.newNodeFormData = {}
       await this.getAttributes(this.selectedType, 'newNodeForm')
-      this.$nextTick(() => {
-        this.newNodeForm.forEach(_ => {
-          if (_.inputType === 'ref') {
-            this.newNodeFormData[_.propertyName] = { guid: '11' }
-          } else {
-            this.newNodeFormData[_.propertyName] = ''
-          }
-        })
+      this.newNodeForm.forEach(_ => {
+        if (_.inputType === 'ref') {
+          this.newNodeFormData[_.propertyName] = { guid: '11' }
+        } else if (_.inputType === 'multiRef') {
+          this.newNodeFormData[_.propertyName] = []
+        } else {
+          this.newNodeFormData[_.propertyName] = ''
+        }
       })
-      console.log(this.newNodeFormData)
+      this.showNewNodeForm = true
     },
     openPanal (panalId) {
       this.isEdit = false
@@ -395,5 +397,8 @@ export default {
 }
 .opetation-btn {
   margin: 0 16px;
+}
+.add-node-area {
+  margin-top: 8px;
 }
 </style>
