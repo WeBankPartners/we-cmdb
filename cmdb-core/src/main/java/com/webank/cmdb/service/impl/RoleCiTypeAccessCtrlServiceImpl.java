@@ -6,7 +6,7 @@ import com.webank.cmdb.domain.*;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.IntegrationQueryDto;
 import com.webank.cmdb.dto.RoleCiTypeCtrlAttrConditionDto;
-import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.support.exception.CmdbException;
 import com.webank.cmdb.expression.CmdbExpressException;
 import com.webank.cmdb.repository.*;
 import com.webank.cmdb.service.RoleCiTypeAccessCtrlService;
