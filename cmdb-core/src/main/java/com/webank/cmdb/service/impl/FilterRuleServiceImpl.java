@@ -74,6 +74,75 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         return getResultWithPaging(request, results);
     }
 
+    @Override
+    public void validateJsonString(String filterRuleJson) {
+        if(Strings.isNullOrEmpty(filterRuleJson))
+            return;
+
+        FilterRuleDto filterRule = null;
+        try {
+            filterRule = JsonUtil.toObject(filterRuleJson,FilterRuleDto.class);
+        } catch (IOException e) {
+            throw new CmdbException("Filter rule json string is invalid.",e);
+        }
+
+        for (FilterUnit filterUnit : filterRule) {
+            filterUnit.forEach((name,ruleUnit)->{
+                String leftExpr = ruleUnit.getLeft();
+                try {
+                    AdhocIntegrationQueryDto adhocIntegrationQuery = routeQueryExpressionService.parseRouteExpression(leftExpr);
+                    List<String> resultColumns = adhocIntegrationQuery.getQueryRequest().getResultColumns();
+                    if(resultColumns.size() != 1){
+                        throw new CmdbException(String.format("Left expression should contain only one result column. (%s)",leftExpr));
+                    }
+                }catch (Exception ex){
+                    throw new CmdbException(String.format("Left expression is invalid. (%s)",leftExpr),ex);
+                }
+                String filterOperatorCode = ruleUnit.getOperator();
+                FilterOperator filterOperator = FilterOperator.fromCode(filterOperatorCode);
+                if(filterOperator == FilterOperator.None){
+                    throw new CmdbException(String.format("Filter operator is invalid. (%s)",filterOperatorCode));
+                }
+
+                validateRuleRight(ruleUnit);
+            });
+        }
+
+    }
+
+    private void validateRuleRight(RuleUnit ruleUnit) {
+        RuleRight ruleRight = ruleUnit.getRight();
+        String typeCode = ruleRight.getType();
+        FilterRuleDto.RightTypeEnum rightType = FilterRuleDto.RightTypeEnum.fromCode(typeCode);
+        Object rightValue = ruleRight.getValue();
+        if(rightType == FilterRuleDto.RightTypeEnum.None){
+            throw new CmdbException(String.format("Type (%s) is invalid.",typeCode));
+        }else if(rightType == FilterRuleDto.RightTypeEnum.Expression){
+            if(!(rightValue instanceof  String)){
+                throw new CmdbException("Right value should be String for expression type.");
+            }
+            String rightExpression = (String)rightValue;
+            try {
+                AdhocIntegrationQueryDto adhocIntegrationQuery = routeQueryExpressionService.parseRouteExpression(rightExpression);
+                List<String> resultColumns = adhocIntegrationQuery.getQueryRequest().getResultColumns();
+                if(resultColumns.size() != 1){
+                    throw new CmdbException(String.format("Right expression should contain only one result column. (%s)",rightExpression));
+                }
+
+            }catch(Exception ex){
+                throw new CmdbException(String.format("Right expression is invalid. (%s)",rightExpression),ex);
+            }
+        }else if(rightType == FilterRuleDto.RightTypeEnum.Array){
+            if(!(rightValue instanceof List)){
+                throw new CmdbException(String.format("Right value should be list."));
+            }
+        }else if(rightType == FilterRuleDto.RightTypeEnum.Value){
+            if(!(rightValue instanceof  String || rightValue instanceof Number)){
+                throw new CmdbException("Right value should be String or Number for value type.");
+            }
+        }
+    }
+
     private QueryResponse<?> getResultWithPaging(QueryRequest request, List<Object> results) {
         QueryResponse<Object> response = new QueryResponse<>();
         if (request.getPageable() != null) {
@@ -212,7 +281,7 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         switch (filterOperator){
             case Contains:
             case LIKE: {
-                if (ruleRight.getType() != FilterRuleDto.RULE_RIGHT_TYPE_VALUE) {
+                if (ruleRight.getType() != FilterRuleDto.RightTypeEnum.Value.getCode()) {
                     throw new CmdbException(String.format("Filter right type should be string. (%s)", ruleRight.getType()));
                 }
                 Object rightVal = processRuleRight(ruleRight, request, associatedCiData);
@@ -286,15 +355,16 @@ public class FilterRuleServiceImpl implements FilterRuleService {
     }
 
     private Object processRuleRight(RuleRight ruleRight,QueryRequest request, Map<String, Object> associatedCiData){
-        switch (ruleRight.getType()){
-            case FilterRuleDto.RULE_RIGHT_TYPE_EXPRESSION:
+        FilterRuleDto.RightTypeEnum rightTypeEnum = FilterRuleDto.RightTypeEnum.fromCode(ruleRight.getType());
+        switch (rightTypeEnum){
+            case Expression:
                 return processRuleRightAsExpression((String) ruleRight.getValue(),request,associatedCiData);
-            case FilterRuleDto.RULE_RIGHT_TYPE_ARRAY:
+            case Array:
                 if(!(ruleRight.getValue() instanceof  List)){
                     throw new CmdbException(String.format("Right value is not list for type (%s).",ruleRight.getType()));
                 }
                 return ruleRight.getValue();
-            case FilterRuleDto.RULE_RIGHT_TYPE_VALUE:
+            case Value:
                 if(!(ruleRight.getValue() instanceof  String || ruleRight.getValue() instanceof Number)){
                     throw new CmdbException(String.format("Right value is not String/Number for type (%s).",ruleRight.getType()));
                 }
