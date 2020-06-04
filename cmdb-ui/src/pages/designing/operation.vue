@@ -175,7 +175,14 @@
 </template>
 
 <script>
-import { getCiTypeAttributes, updateCiDatas, getRefCiTypeFrom, createCiDatas, deleteCiDatas } from '@/api/server'
+import {
+  getCiTypeAttributes,
+  updateCiDatas,
+  getRefCiTypeFrom,
+  createCiDatas,
+  deleteCiDatas,
+  queryCiData
+} from '@/api/server'
 import Ref from './ref'
 import RefAdd from './ref-add'
 import MutiRef from './muti-ref'
@@ -214,6 +221,18 @@ export default {
   },
   mounted () {},
   methods: {
+    async deleteNode (panalData, panalIndex, event) {
+      event.stopPropagation()
+      let params = {
+        id: panalData[panalIndex].ciTypeId,
+        deleteData: [panalData[panalIndex].data.guid]
+      }
+      const { statusCode } = await deleteCiDatas(params)
+      if (statusCode === 'OK') {
+        this.$Message.success('success!')
+        this.panalData.splice(panalIndex, 1)
+      }
+    },
     async createNode () {
       // eslint-disable-next-line no-unused-vars
       let activePanalData = null
@@ -246,14 +265,34 @@ export default {
         id: this.selectedType,
         createData: [tmpPanalData]
       }
-      const { statusCode } = await createCiDatas(params)
+      const { statusCode, data } = await createCiDatas(params)
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
         this.showAddNodeArea = false
+
+        const ciData = await queryCiData({
+          id: this.selectedType,
+          queryObject: {
+            filters: [
+              {
+                name: 'guid',
+                value: data[0].guid,
+                operator: 'eq'
+              }
+            ]
+          }
+        })
+        const params = {
+          ciTypeId: this.selectedType,
+          data: ciData.data.contents[0].data,
+          text: [ciData.data.contents[0].data.code]
+        }
+        // text: [ciData.data.contents[0].data.code, ciData.data.contents[0].data.network_segment_design.code]
+        this.panalData.push(params)
         this.selectedType = null
         this.newNodeFormData = {} // 待创建节点表单
         this.newNodeForm = [] // 待创建节点表单
-        // this.$emit('redrawGraph')
+        console.log(this.panalData)
       }
     },
     editOperation () {
@@ -303,10 +342,12 @@ export default {
       const { statusCode } = await updateCiDatas(params)
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
+        this.isEdit = false
         // this.$emit('redrawGraph')
       }
     },
     managementData (operateData) {
+      console.log(operateData)
       this.parentPanal = ''
       this.defaultPanal = ''
       this.panalData = []
@@ -357,17 +398,6 @@ export default {
       const { statusCode, data } = await getCiTypeAttributes(ciTypeId)
       if (statusCode === 'OK') {
         this[formObject] = data
-      }
-    },
-    async deleteNode (panalData, panalIndex, event) {
-      event.stopPropagation()
-      let params = {
-        id: panalData[panalIndex].ciTypeId,
-        deleteData: [panalData[panalIndex].data.guid]
-      }
-      const { statusCode } = await deleteCiDatas(params)
-      if (statusCode === 'OK') {
-        this.$Message.success('success!')
       }
     }
   },
