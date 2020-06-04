@@ -37,13 +37,14 @@ export default {
       }
     }
   },
-  props: ['formData', 'panalData', 'panalForm', 'disabled'],
+  props: ['formData', 'panalData', 'disabled'],
   mounted () {
     const selectedObject = this.panalData[this.formData.propertyName]
-    this.selected = selectedObject.map(_ => {
-      return _.guid
-    })
-
+    if (selectedObject) {
+      this.selected = selectedObject.map(_ => {
+        return _.guid
+      })
+    }
     this.openOptions(true)
   },
   methods: {
