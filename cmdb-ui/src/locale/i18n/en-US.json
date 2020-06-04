@@ -259,5 +259,7 @@
   "routing_diagram": "Routers Diagram",
   "security_policy_diagram": "Security Policy Diagram",
   "express": "express",
-  "add_expression": "Add Expression"
+  "add_expression": "Add Expression",
+  "filter_rule_modal_title": "Edit Filter Rule",
+  "filter_rule_edit_icon_placeholder": "<-- Click to edit Filter Rule"
 }
