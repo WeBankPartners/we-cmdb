@@ -1,4 +1,4 @@
-package com.webank.cmdb.security;
+package com.webank.cmdb.support.security;
 
 public interface Authority {
 

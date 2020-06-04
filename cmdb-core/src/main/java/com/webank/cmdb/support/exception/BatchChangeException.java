@@ -1,11 +1,10 @@
-package com.webank.cmdb.exception;
+package com.webank.cmdb.support.exception;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.List;
 
 import javax.persistence.PersistenceException;
 
-import org.hibernate.JDBCException;
 import org.hibernate.exception.DataException;
 import org.hibernate.exception.SQLGrammarException;
 
