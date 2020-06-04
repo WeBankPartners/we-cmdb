@@ -1,0 +1,23 @@
+.filter-rule {
+  &-edit-icon {
+    cursor: pointer;
+  }
+
+  &-modal-content {
+    display: flex;
+  }
+
+  &-edit-modal {
+    &-left.editable {
+      display: block;
+      flex: 1;
+    }
+    &-operator.editable {
+      width: 100px;
+    }
+    &-right.editable {
+      display: block;
+      flex: 1;
+    }
+  }
+}
