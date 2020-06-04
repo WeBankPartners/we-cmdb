@@ -4,7 +4,7 @@ import java.util.Map;
 
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
-import com.webank.cmdb.exception.ServiceException;
+import com.webank.cmdb.support.exception.ServiceException;
 import com.webank.cmdb.service.StaticInterceptorService;
 import com.webank.cmdb.util.ResourceDto;
 

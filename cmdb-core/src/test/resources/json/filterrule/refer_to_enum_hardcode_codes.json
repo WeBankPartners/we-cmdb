@@ -1,7 +1,0 @@
-[{
-	"filter_1": {
-		"left": "[{\"ciTypeId\":25},{\"ciTypeId\":25,\"parentRs\":{\"attrId\":439,\"isReferedFromParent\":1},\"enumCodeAttr\":\"code\"}]",
-		"operator": "in",
-		"right": ["deposit_group"]
-	}
-}]

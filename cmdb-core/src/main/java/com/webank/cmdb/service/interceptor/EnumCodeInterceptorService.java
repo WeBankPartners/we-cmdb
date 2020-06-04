@@ -24,7 +24,7 @@ import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
-import com.webank.cmdb.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
 import com.webank.cmdb.repository.AdmBasekeyCatRepository;
 import com.webank.cmdb.repository.AdmBasekeyCodeRepository;
 import com.webank.cmdb.repository.AdmCiTypeAttrRepository;

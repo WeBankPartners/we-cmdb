@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 
 import com.google.common.base.Strings;
-import com.webank.cmdb.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
 
 public class DateUtils {
 
