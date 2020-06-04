@@ -1,0 +1,11 @@
+[
+  {"filter_1":{
+    "left":"ip_addr.network_segment>network_segment:guid",
+    "operator":"in",
+    "right":{
+      "type":"expression",
+      "value":"network_segment:guid"
+    }
+  }
+  }
+]

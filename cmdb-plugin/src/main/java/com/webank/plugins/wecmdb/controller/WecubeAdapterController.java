@@ -2,12 +2,11 @@ package com.webank.plugins.wecmdb.controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.alibaba.fastjson.JSONArray;
-import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.support.exception.CmdbException;
 import com.webank.cmdb.util.BeanMapUtils;
 import com.webank.plugins.wecmdb.dto.wecube.*;
 import com.webank.plugins.wecmdb.helper.HttpUtils;
@@ -20,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.webank.cmdb.exception.BatchChangeException.ExceptionHolder;
+import com.webank.cmdb.support.exception.BatchChangeException.ExceptionHolder;
 import com.webank.plugins.wecmdb.service.WecubeAdapterService;
 
 import javax.servlet.http.HttpServletRequest;

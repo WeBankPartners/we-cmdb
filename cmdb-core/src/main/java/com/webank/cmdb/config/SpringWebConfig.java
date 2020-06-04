@@ -37,12 +37,12 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.webank.cmdb.cache.CacheHandlerInterceptor;
+import com.webank.cmdb.support.cache.CacheHandlerInterceptor;
 import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
 import com.webank.cmdb.constant.AuthenticationType;
 import com.webank.cmdb.controller.interceptor.HttpAccessUsernameInterceptor;
-import com.webank.cmdb.exception.CmdbException;
-import com.webank.cmdb.mvc.CustomRolesPrefixPostProcessor;
+import com.webank.cmdb.support.exception.CmdbException;
+import com.webank.cmdb.support.mvc.CustomRolesPrefixPostProcessor;
 import com.webank.wecube.platform.auth.client.filter.Http401AuthenticationEntryPoint;
 import com.webank.wecube.platform.auth.client.filter.JwtSsoBasedAuthenticationFilter;
 
@@ -53,7 +53,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(jsr250Enabled = true)
-@ComponentScan({ "com.webank.cmdb.controller", "com.webank.cmdb.mvc", "com.webank.cmdb.stateTransition" })
+@ComponentScan({ "com.webank.cmdb.controller", "com.webank.cmdb.support.mvc", "com.webank.cmdb.stateTransition" })
 public class SpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
     @Bean
