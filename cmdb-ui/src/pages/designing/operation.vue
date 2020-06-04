@@ -68,7 +68,13 @@
     <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
       <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
         {{ panal.data.code }}
-        <Button @click="editOperation" size="small" type="error" style="float: right;margin:6px;">删除</Button>
+        <Button
+          @click="deleteNode(panalData, panalIndex, $event)"
+          size="small"
+          type="error"
+          style="float: right;margin:6px;"
+          >删除</Button
+        >
         <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button>
         <div slot="content">
           <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
@@ -169,7 +175,7 @@
 </template>
 
 <script>
-import { getCiTypeAttributes, updateCiDatas, getRefCiTypeFrom, createCiDatas } from '@/api/server'
+import { getCiTypeAttributes, updateCiDatas, getRefCiTypeFrom, createCiDatas, deleteCiDatas } from '@/api/server'
 import Ref from './ref'
 import RefAdd from './ref-add'
 import MutiRef from './muti-ref'
@@ -351,6 +357,17 @@ export default {
       const { statusCode, data } = await getCiTypeAttributes(ciTypeId)
       if (statusCode === 'OK') {
         this[formObject] = data
+      }
+    },
+    async deleteNode (panalData, panalIndex, event) {
+      event.stopPropagation()
+      let params = {
+        id: panalData[panalIndex].ciTypeId,
+        deleteData: [panalData[panalIndex].data.guid]
+      }
+      const { statusCode } = await deleteCiDatas(params)
+      if (statusCode === 'OK') {
+        this.$Message.success('success!')
       }
     }
   },
