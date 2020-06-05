@@ -10,86 +10,141 @@ export default {
   props: {
     value: { required: true },
     allCiTypes: { default: () => [], type: Array, required: true },
-    isReadOnly: { default: false, type: Boolean, required: false },
-    leftRootCi: {},
-    rightRootCi: {}
+    leftRootCi: { type: String, required: true },
+    rightRootCi: { type: String, required: true },
+    isReadOnly: { default: false, type: Boolean, required: false }
   },
   data () {
     return {
       modalDisplay: false,
-      editData: {
-        left: '',
-        operator: 'in',
-        right: {
-          type: 'expression',
-          value: ''
+      modalData: [],
+      hiddenAttrType: ['select', 'multiSelect']
+    }
+  },
+  computed: {
+    defaultModalData () {
+      return [
+        {
+          filter_1: {
+            left: this.leftRootCi,
+            operator: 'in',
+            right: {
+              type: 'expression',
+              value: this.rightRootCi
+            }
+          }
         }
-      }
+      ]
     }
   },
   methods: {
-    handleLeftInput (v) {
-      // TODO
-    },
-    handleRightInput () {
-      // TODO
-    },
     toggleEditModal (type) {
       this.modalDisplay = type
       if (type) {
-        // TODO
+        if (this.value) {
+          this.modalData = JSON.parse(this.value)
+        } else {
+          this.modalData = JSON.parse(JSON.stringify(this.defaultModalData))
+        }
       } else {
-        // TODO
+        this.modalData = []
       }
     },
     confirmFilter () {
       // TODO
+      console.log(JSON.parse(JSON.stringify(this.modalData)))
+      this.toggleEditModal(false)
     },
     cancelFilter () {
-      // TODO
+      this.toggleEditModal(false)
+    },
+    handleDelete (i) {
+      if (i === 0) {
+        return
+      }
+      let arr = Object.keys(this.modalData[0]).sort()
+      arr.splice(i, 1)
+      let result = {}
+      if (!arr.length) {
+        this.modalData = []
+        return
+      }
+      arr.forEach((_, _i) => {
+        result[`filter_${i + 1}`] = {
+          left: this.modalData[0][_].left,
+          operator: this.modalData[0][_].left,
+          right: {
+            type: this.modalData[0][_].right.type,
+            value: this.modalData[0][_].right.value
+          }
+        }
+      })
+      this.modalData[0] = result
     },
     renderEditor () {
       if (this.value.length) {
-        const leftValue = this.value[0].filter_1.left
-        const operator = this.value[0].filter_1.operator
-        const rightType = this.value[0].filter_1.right.type
-        const rightValue = this.value[0].filter_1.right.value
-        return [
-          this.renderLeft(leftValue, true),
-          this.renderOperator(operator, true),
-          this.renderRight(rightType, rightValue, true),
-          this.renderEditIcon(),
-          this.renderEditModal()
-        ]
+        return [...this.renderFilterBody(JSON.parse(this.value)), this.renderEditIcon(), this.renderEditModal()]
       } else {
         return [this.renderEditIcon(), this.renderEditModal()]
       }
     },
-    renderLeft (value, isReadOnly = false) {
+    renderFilterBody (value) {
+      let result = []
+      const fn = i => {
+        const filter = value[0][`filter_${i}`]
+        result = result.concat([
+          i !== 1 ? <span>and</span> : null,
+          this.renderLeft(filter, true),
+          this.renderOperator(filter, true),
+          this.renderRight(filter, true)
+        ])
+        if (value[0][`filter_${i + 1}`]) {
+          fn(i + 1)
+        }
+      }
+      fn(1)
+      return result
+    },
+    renderDeleteIcon (i) {
       return (
-        <AttrExpress
-          class={`filter-rule-edit-modal-left${isReadOnly ? ' isReadOnly' : ' editable'}`}
-          value={value}
-          onInput={this.handleLeftInput}
-          isReadOnly={isReadOnly}
-          allCiTypes={this.allCiTypes}
+        <Icon
+          type="md-remove-circle"
+          color="red"
+          onClick={() => this.handleDelete(i)}
+          class="filter-rule-edit-modal-delete"
         />
       )
     },
-    renderOperator (operator, isReadOnly = false) {
+    renderLeft (obj, isReadOnly = false) {
+      return (
+        <AttrExpress
+          class={`filter-rule-edit-modal-left${isReadOnly ? ' isReadOnly' : ' editable'}`}
+          value={obj.left}
+          onInput={v => {
+            this.$set(obj, 'left', v)
+          }}
+          isReadOnly={isReadOnly}
+          allCiTypes={this.allCiTypes}
+          isFilterAttr={true}
+          hiddenAttrType={this.hiddenAttrType}
+        />
+      )
+    },
+    renderOperator (obj, isReadOnly = false) {
+      const className = `filter-rule-edit-modal-operator${isReadOnly ? ' isReadOnly' : ' editable'}`
       if (isReadOnly) {
-        return <span>{operator}</span>
+        return <span class={className}>{obj.operator}</span>
       } else {
         return (
           <Select
-            class={`filter-rule-edit-modal-operator${isReadOnly ? ' isReadOnly' : ' editable'}`}
-            value={this.editData.operator}
+            class={className}
+            value={obj.operator}
             onInput={v => {
-              this.editData.operator = v
+              this.$set(obj, 'operator', v)
             }}
           >
             {operatorList.map(_ => (
-              <Option key={_.code} value={_.value}>
+              <Option key={_.code} value={_.code}>
                 {_.value}
               </Option>
             ))}
@@ -97,31 +152,46 @@ export default {
         )
       }
     },
-    renderRight (type, value, isReadOnly = false) {
+    renderRight (obj, isReadOnly = false) {
       const className = `filter-rule-edit-modal-right${isReadOnly ? ' isReadOnly' : ' editable'}`
-      switch (type) {
+      switch (obj.right.type) {
         case 'expression':
           return (
             <AttrExpress
               class={className}
-              value={value}
-              onInput={this.handleRightInput}
+              value={obj.right.value}
+              onInput={v => {
+                this.$set(obj.right, 'value', v)
+              }}
               isReadOnly={isReadOnly}
               allCiTypes={this.allCiTypes}
+              isFilterAttr={true}
+              hiddenAttrType={this.hiddenAttrType}
             />
           )
         case 'value':
-          // TODO
           return isReadOnly ? (
-            <span class={className}>{value}</span>
+            <span class={className}>{obj.right.value}</span>
           ) : (
-            <Input class={className} value={value} onInput={this.handleRightInput} />
+            <Input
+              class={className}
+              value={obj.right.value}
+              onInput={v => {
+                this.$set(obj.right, 'value', v)
+              }}
+            />
           )
         case 'array':
           return isReadOnly ? (
-            <span class={className}>{value.join('')}</span>
+            <span class={className}>{obj.right.value.join('')}</span>
           ) : (
-            <Input class={className} value={value} onInput={this.handleRightInput} />
+            <Input
+              class={className}
+              value={obj.right.value}
+              onInput={v => {
+                this.$set(obj.right, 'value', v)
+              }}
+            />
           )
         default:
           return null
@@ -148,11 +218,20 @@ export default {
           on-on-cancel={this.cancelFilter}
         >
           <div class="filter-rule-modal-content">
-            {[
-              this.renderLeft(this.editData.left),
-              this.renderOperator(this.editData.operator),
-              this.renderRight(this.editData.right.type, this.editData.right.value)
-            ]}
+            {this.modalData.length
+              ? Object.keys(this.modalData[0])
+                .sort()
+                .map((filter, i) => {
+                  return (
+                    <div class="filter-rule-modal-content-li">
+                      {this.renderDeleteIcon(i)}
+                      {this.renderLeft(this.modalData[0][filter])}
+                      {this.renderOperator(this.modalData[0][filter])}
+                      {this.renderRight(this.modalData[0][filter])}
+                    </div>
+                  )
+                })
+              : null}
           </div>
         </Modal>
       )
