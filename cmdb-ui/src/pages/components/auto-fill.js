@@ -692,7 +692,7 @@ export default {
         return [
           <Icon class="auto-fill-add" type="md-add-circle" />,
           !this.autoFillArray.length && (
-            <span class="auto-fill-add auto-fill-placeholder">{this.$t('auto_fill_filter_placeholder')}</span>
+            <span class="auto-fill-add auto-fill-placeholder">{this.$t('attr_express_placeholder')}</span>
           )
         ]
       }
@@ -725,7 +725,7 @@ export default {
         <Modal
           value={this.modalDisplay}
           onInput={v => (this.modalDisplay = v)}
-          title={this.$t('auto_fill_filter_modal_title')}
+          title={this.$t('attr_express_modal_title')}
           width="800"
           on-on-ok={this.confirmFilter}
           on-on-cancel={this.cancelFilter}
@@ -793,7 +793,7 @@ export default {
             </div>
           ))}
           <Button type="primary" long onClick={() => this.filters.push(emptyFilter)}>
-            {this.$t('auto_fill_filter_modal_button')}
+            {this.$t('attr_express_modal_button')}
           </Button>
         </Modal>
       )
