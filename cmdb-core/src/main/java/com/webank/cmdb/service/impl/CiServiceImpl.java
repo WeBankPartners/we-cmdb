@@ -1780,8 +1780,8 @@ public class CiServiceImpl implements CiService {
             AdmCiTypeAttr reltAttr = ciTypeAttrRepository.getOne(reltAttrId);
             validateStatusOfCiTypeAttr(reltAttr);
             String joinField = null;
-            // if(relt.getIsReferedFromParent()) {
-            if (reltAttr.getCiTypeId().equals(parentCiType.getIdAdmCiType())) {
+            if(relt.getIsReferedFromParent()) {
+            //if (reltAttr.getCiTypeId().equals(parentCiType.getIdAdmCiType())) {
                 joinField = DynamicEntityUtils.getJoinFieldName(parentCiType, reltAttr, true);
                 curFrom = parentPath.join(joinField, JoinType.LEFT);
             } else {
