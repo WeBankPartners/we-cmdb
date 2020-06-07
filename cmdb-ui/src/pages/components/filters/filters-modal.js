@@ -168,7 +168,7 @@ export default {
           </div>
         ))}
         <Button type="primary" long onClick={this.handleAddRow}>
-          {this.$t('auto_fill_filter_modal_button')}
+          {this.$t('attr_express_modal_button')}
         </Button>
       </div>
     )

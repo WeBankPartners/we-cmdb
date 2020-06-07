@@ -1,0 +1,34 @@
+.filter-rule {
+  &-edit-icon {
+    cursor: pointer;
+  }
+
+  &-modal-content {
+    &-li {
+      align-items: center;
+      display: flex;
+      margin-bottom: 10px;
+      justify-content: center;
+      width: 100%;
+    }
+  }
+
+  &-edit-modal {
+    &-delete {
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    &-left.editable {
+      display: block;
+      flex: 1;
+    }
+    &-operator.editable {
+      width: 100px;
+      margin: 0 10px;
+    }
+    &-right.editable {
+      display: block;
+      flex: 1;
+    }
+  }
+}
