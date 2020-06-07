@@ -15,11 +15,9 @@ export default {
     isReadOnly: { default: false, type: Boolean, required: false },
     displayAttrType: { type: Array, required: false },
     hiddenAttrType: { type: Array, required: false },
-    operatorList: {
-      default: () => operatorList,
-      type: Array,
-      required: false
-    }
+    operatorList: { default: () => operatorList, type: Array, required: false },
+    showAddButton: { default: false, type: Boolean, required: false },
+    banRootCiDelete: { default: false, type: Boolean, required: false }
   },
   data () {
     return {
@@ -65,8 +63,11 @@ export default {
   },
   methods: {
     formatExpression () {
-      const arr = this.value.split(/[.~:]/)
       this.expression = []
+      if (!this.value) {
+        return
+      }
+      const arr = this.value.split(/[.~:]/)
       arr.forEach((_, i) => {
         let innerText = _
         let filter = false
@@ -115,6 +116,7 @@ export default {
       })
     },
     async handleClick (e) {
+      e.stopPropagation()
       if (this.isReadOnly) return
       const target = e.target || e.srcElement
       if (target.nodeName !== 'SPAN') return
@@ -126,7 +128,8 @@ export default {
         case 'node':
         case 'attr':
           const ciTypeId = this.ciTypesObjByTableName[target.getAttribute('citype')].ciTypeId
-          this.showRefOptions(attrIndex, ciTypeId)
+          const _attrIndex = nodeType === 'node' ? +attrIndex : +attrIndex - 1
+          this.showRefOptions(_attrIndex, ciTypeId)
           break
         default:
           break
@@ -140,6 +143,9 @@ export default {
       this.getRefData(attrIndex, ciTypeId)
     },
     optionPushDeleteNode (attrIndex) {
+      if (+attrIndex === 0 && !this.banRootCiDelete) {
+        return
+      }
       this.options.push({
         type: 'option',
         class: 'attr-express-li attr-express-li-delete',
@@ -192,7 +198,7 @@ export default {
               props: {
                 class: 'attr-express-node',
                 attrs: {
-                  'attr-index': +attrIndex + 1,
+                  'attr-index': attrIndex + 1,
                   filter: false,
                   citype: ciType,
                   nodeType: 'node'
@@ -207,7 +213,7 @@ export default {
               type: 'option',
               class: 'attr-express-li attr-express-li-ref attr-express-li-ref-from',
               nodeName,
-              fn: () => this.addNode(+attrIndex + 1, nodeObj)
+              fn: () => this.addNode(attrIndex + 1, nodeObj)
             }
           })
         )
@@ -227,7 +233,10 @@ export default {
         this.options = this.options.concat(
           _ciAttrs.map(_ => {
             const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
-            const ciType = isRef ? this.ciTypesObjById[_.referenceId].tableName : null
+            const _nodeType = isRef ? 'node' : 'attr'
+            const ciType = isRef
+              ? this.ciTypesObjById[_.referenceId].tableName
+              : this.ciTypesObjById[ciTypeId].tableName
             const attr = _.propertyName
             const nodeName = isRef ? `.${attr}>${ciType}` : `:[${attr}]`
             const nodeObj = {
@@ -235,11 +244,11 @@ export default {
               props: {
                 class: 'attr-express-node',
                 attrs: {
-                  'attr-index': +attrIndex + 1,
+                  'attr-index': attrIndex + 1,
                   filter: false,
                   citype: ciType,
-                  attr: attr,
-                  nodeType: 'node'
+                  attr,
+                  nodeType: _nodeType
                 }
               },
               data: {
@@ -251,7 +260,7 @@ export default {
               type: 'option',
               class: 'attr-express-li attr-express-li-ref attr-express-li-ref-to',
               nodeName,
-              fn: () => this.addNode(+attrIndex + 1, nodeObj)
+              fn: () => this.addNode(attrIndex + 1, nodeObj)
             }
           })
         )
@@ -441,6 +450,7 @@ export default {
         let _value = ''
         this.expression.forEach(_ => {
           _value += _.innerText
+          _.props.class = _.props.class.replace(/[ +]error/g, '')
         })
         this.$emit('input', _value)
       }
@@ -470,7 +480,7 @@ export default {
         return [
           <Icon nodeType="add" class="attr-express-add" type="md-add-circle" />,
           <span nodeType="add" class="attr-express-add attr-express-placeholder">
-            {this.$t('auto_fill_filter_placeholder')}
+            {this.$t('attr_express_placeholder')}
           </span>
         ]
       }
@@ -482,7 +492,7 @@ export default {
           onInput={v => {
             this.modalDisplay = v
           }}
-          title={this.$t('auto_fill_filter_modal_title')}
+          title={this.$t('attr_express_modal_title')}
           width="800"
           on-on-ok={this.confirmFilter}
           on-on-cancel={this.cancelFilter}
@@ -516,7 +526,7 @@ export default {
       return [
         !this.isReadOnly && this.renderOptions(),
         ...this.expression.map(_ => this.renderSpan(_)),
-        // ...this.renderAddRule(),
+        this.showAddButton && this.renderAddRule(),
         <span></span>,
         this.renderModal()
       ]
