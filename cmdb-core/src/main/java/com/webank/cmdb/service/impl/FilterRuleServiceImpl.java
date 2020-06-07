@@ -66,7 +66,7 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         Map<String, Object> associatedCiData = new HashMap<>();
         if (request.getDialect() != null) {
             //TODO: rename data
-            associatedCiData = request.getDialect().getAssociatedCiData();
+            associatedCiData = request.getDialect().getData();
         }
 
         List<Object> results = handleAsOrRelationship(filterRule, request, associatedCiData);
@@ -239,6 +239,11 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         updateResultColumnsForRootCiType(integrationQuery, resultColumns);
 
         List<Filter> filtersWithRightValues = buildQueryConditionWithRuleRight(ruleUnit, request, associatedCiData, leftQueryRequest, exprResultColumn);
+        boolean emptyResultFilter = containEmptyResultFilter(filtersWithRightValues);
+        if(emptyResultFilter){
+            return Lists.newArrayList();
+        }
+
         leftQueryRequest.setFilters(filtersWithRightValues);
 
         List<Filter> associatedCiDataFilters = generateAssociatedCiDataFilter(associatedCiData, integrationQuery);
@@ -248,17 +253,38 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         return response.getContents();
     }
 
+    private boolean containEmptyResultFilter(List<Filter> filtersWithRightValues) {
+        boolean emptyResultFilter = false;
+        if(filtersWithRightValues.size()>0){
+            for (Filter filtersWithRightValue : filtersWithRightValues) {
+                Object value = filtersWithRightValue.getValue();
+                if(FilterOperator.In.getCode().equalsIgnoreCase(filtersWithRightValue.getOperator())){
+                    if( value == null || ((List)value).size()==0){
+                        emptyResultFilter = true;
+                    }
+                }
+            }
+        }
+        return emptyResultFilter;
+    }
+
     private List<Filter> generateAssociatedCiDataFilter(Map<String, Object> associatedCiData, IntegrationQueryDto integrationQuery) {
         List<Filter> associatedCiDataFilters = Lists.newLinkedList();
         if(associatedCiData != null && associatedCiData.size() > 0){
             associatedCiData.forEach((attrName,value) -> {
+                if(value == null || (value instanceof String && Strings.isNullOrEmpty((String)value))){
+                    return;
+                }
                 AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(integrationQuery.getCiTypeId(),attrName);
                 if(attr == null){
                     return;
                 }
-                if(!integrationQuery.getAttrs().contains(attr.getIdAdmCiTypeAttr())){
-                    integrationQuery.getAttrs().add(attr.getIdAdmCiTypeAttr());
+
+                if(integrationQuery.getAttrs().contains(attr.getIdAdmCiTypeAttr())){
+                    logger.warn(String.format("Attribute (%d) is existed.",attr.getIdAdmCiTypeAttr()));
+                    return;
                 }
+                integrationQuery.getAttrs().add(attr.getIdAdmCiTypeAttr());
                 String filterName = integrationQuery.getKeyName() + "." + attrName;
                 integrationQuery.getAttrKeyNames().add(filterName);
                 associatedCiDataFilters.add(new Filter(filterName, FilterOperator.Equal.getCode(),value));
