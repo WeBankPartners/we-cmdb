@@ -261,5 +261,6 @@
   "express": "express",
   "add_expression": "Add Expression",
   "filter_rule_modal_title": "Edit Filter Rule",
-  "filter_rule_edit_icon_placeholder": "<-- Click to edit Filter Rule"
+  "filter_rule_edit_icon_placeholder": "<-- Click to edit Filter Rule",
+  "filter_rule_add_button": "Add Filter Rule"
 }
