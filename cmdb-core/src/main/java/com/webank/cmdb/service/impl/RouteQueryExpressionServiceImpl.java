@@ -32,7 +32,9 @@ public class RouteQueryExpressionServiceImpl implements RouteQueryExpressionServ
             result.forEach(valMap ->{
                 valMap.forEach((name,value)->
                 {
-                    queryResult.add(value);
+                    if(value != null && !queryResult.contains(value)) {
+                        queryResult.add(value);
+                    }
                 });
             });
         }
