@@ -87,28 +87,28 @@ export default {
     },
     renderEditor () {
       if (this.value) {
-        return [...this.renderFilterBody(JSON.parse(this.value)), this.renderEditIcon(), this.renderEditModal()]
+        return [...this.renderFilterBody(JSON.parse(this.value)), this.renderEditIcon()]
       } else {
-        return [this.renderEditIcon(), this.renderEditModal()]
+        return this.renderEditIcon()
       }
     },
     renderFilterBody (value) {
+      const arr = Object.keys(value[0])
+        .sort()
+        .map(_ => {
+          return value[0][_]
+        })
       let result = []
-      const fn = i => {
-        const filter = value[0][`filter_${i}`]
-        result = result.concat([
-          i !== 1 ? <span class="filter-rule-key-word">and</span> : <span></span>,
+      arr.forEach((_, i) => {
+        result.push(
+          i !== 0 ? <span class="filter-rule-key-word">and</span> : <span></span>,
           <span class="filter-rule-key-word">{'{'}</span>,
-          this.renderLeft(filter, true),
-          this.renderOperator(filter, true),
-          this.renderRight(filter, true),
+          this.renderLeft(_, true),
+          this.renderOperator(_, true),
+          this.renderRight(_, true),
           <span class="filter-rule-key-word">{'}'}</span>
-        ])
-        if (value[0][`filter_${i + 1}`]) {
-          fn(i + 1)
-        }
-      }
-      fn(1)
+        )
+      })
       return result
     },
     renderDeleteIcon (i) {
@@ -291,7 +291,11 @@ export default {
             ) : (
               <span></span>
             )}
-            <Button type="primary" long onClick={() => this.modalData.push(...this.defaultModalData)}>
+            <Button
+              type="primary"
+              long
+              onClick={() => this.modalData.push(JSON.parse(JSON.stringify(this.defaultModalData))[0])}
+            >
               {this.$t('filter_rule_add_button')}
             </Button>
           </div>
@@ -300,6 +304,11 @@ export default {
     }
   },
   render (h) {
-    return <span class="filter-rule">{this.renderEditor()}</span>
+    return (
+      <span class="filter-rule">
+        {this.renderEditModal()}
+        {this.renderEditor()}
+      </span>
+    )
   }
 }
