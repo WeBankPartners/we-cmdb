@@ -13,10 +13,18 @@
     }
   }
 
+  &-key-word {
+    font-style: oblique;
+    font-weight: 600;
+    margin-right: 10px;
+  }
+
   &-edit-modal {
+    &-input {
+      margin-right: 10px;
+    }
     &-delete {
       cursor: pointer;
-      margin-right: 10px;
     }
     &-left.editable {
       display: block;
@@ -24,11 +32,14 @@
     }
     &-operator.editable {
       width: 100px;
-      margin: 0 10px;
+    }
+    &-right-type {
+      width: 110px;
     }
     &-right.editable {
       display: block;
       flex: 1;
+      margin-right: 0;
     }
   }
 }

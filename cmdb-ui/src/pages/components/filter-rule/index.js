@@ -25,13 +25,11 @@ export default {
     defaultModalData () {
       return [
         {
-          filter_1: {
-            left: this.leftRootCi,
-            operator: 'in',
-            right: {
-              type: 'expression',
-              value: this.rightRootCi
-            }
+          left: this.leftRootCi + ':[guid]',
+          operator: 'in',
+          right: {
+            type: 'expression',
+            value: this.rightRootCi
           }
         }
       ]
@@ -42,7 +40,12 @@ export default {
       this.modalDisplay = type
       if (type) {
         if (this.value) {
-          this.modalData = JSON.parse(this.value)
+          let filterObj = JSON.parse(this.value)[0]
+          this.modalData = Object.keys(filterObj)
+            .sort()
+            .map(_ => {
+              return filterObj[_]
+            })
         } else {
           this.modalData = JSON.parse(JSON.stringify(this.defaultModalData))
         }
@@ -51,38 +54,36 @@ export default {
       }
     },
     confirmFilter () {
-      // TODO
-      console.log(JSON.parse(JSON.stringify(this.modalData)))
+      let result = {}
+      const arr = this.modalData.filter(_ => {
+        if (['notNull', 'null', 'notEmpty', 'empty'].indexOf(_.operator) === -1 && !_.right.value) {
+          return false
+        }
+        if (!_.left) {
+          return false
+        }
+        return true
+      })
+      if (arr.length) {
+        arr.forEach((_, i) => {
+          result[`filter_${i + 1}`] = _
+        })
+        this.$emit('input', JSON.stringify([result]))
+      } else {
+        this.$emit('input', '')
+      }
       this.toggleEditModal(false)
     },
     cancelFilter () {
       this.toggleEditModal(false)
     },
     handleDelete (i) {
-      if (i === 0) {
-        return
-      }
-      let arr = Object.keys(this.modalData[0]).sort()
+      let arr = JSON.parse(JSON.stringify(this.modalData))
       arr.splice(i, 1)
-      let result = {}
-      if (!arr.length) {
-        this.modalData = []
-        return
-      }
-      arr.forEach((_, _i) => {
-        result[`filter_${i + 1}`] = {
-          left: this.modalData[0][_].left,
-          operator: this.modalData[0][_].left,
-          right: {
-            type: this.modalData[0][_].right.type,
-            value: this.modalData[0][_].right.value
-          }
-        }
-      })
-      this.modalData[0] = result
+      this.modalData = arr
     },
     renderEditor () {
-      if (this.value.length) {
+      if (this.value) {
         return [...this.renderFilterBody(JSON.parse(this.value)), this.renderEditIcon(), this.renderEditModal()]
       } else {
         return [this.renderEditIcon(), this.renderEditModal()]
@@ -93,10 +94,12 @@ export default {
       const fn = i => {
         const filter = value[0][`filter_${i}`]
         result = result.concat([
-          i !== 1 ? <span>and</span> : null,
+          i !== 1 ? <span class="filter-rule-key-word">and</span> : <span></span>,
+          <span class="filter-rule-key-word">{'{'}</span>,
           this.renderLeft(filter, true),
           this.renderOperator(filter, true),
-          this.renderRight(filter, true)
+          this.renderRight(filter, true),
+          <span class="filter-rule-key-word">{'}'}</span>
         ])
         if (value[0][`filter_${i + 1}`]) {
           fn(i + 1)
@@ -111,14 +114,14 @@ export default {
           type="md-remove-circle"
           color="red"
           onClick={() => this.handleDelete(i)}
-          class="filter-rule-edit-modal-delete"
+          class="filter-rule-edit-modal-input filter-rule-edit-modal-delete"
         />
       )
     },
     renderLeft (obj, isReadOnly = false) {
       return (
         <AttrExpress
-          class={`filter-rule-edit-modal-left${isReadOnly ? ' isReadOnly' : ' editable'}`}
+          class={`filter-rule-edit-modal-input filter-rule-edit-modal-left${isReadOnly ? ' isReadOnly' : ' editable'}`}
           value={obj.left}
           onInput={v => {
             this.$set(obj, 'left', v)
@@ -127,11 +130,14 @@ export default {
           allCiTypes={this.allCiTypes}
           isFilterAttr={true}
           hiddenAttrType={this.hiddenAttrType}
+          hideFilterModal={true}
         />
       )
     },
     renderOperator (obj, isReadOnly = false) {
-      const className = `filter-rule-edit-modal-operator${isReadOnly ? ' isReadOnly' : ' editable'}`
+      const className = `filter-rule-edit-modal-input filter-rule-edit-modal-operator${
+        isReadOnly ? ' isReadOnly filter-rule-key-word' : ' editable'
+      }`
       if (isReadOnly) {
         return <span class={className}>{obj.operator}</span>
       } else {
@@ -141,6 +147,18 @@ export default {
             value={obj.operator}
             onInput={v => {
               this.$set(obj, 'operator', v)
+              if (['notNull', 'null', 'notEmpty', 'empty'].indexOf(v) >= 0) {
+                this.$set(obj.right, 'type', 'value')
+                this.$set(obj.right, 'value', '')
+              } else if (v === 'in') {
+                this.$set(obj.right, 'type', 'expression')
+                this.$set(obj.right, 'value', this.rightRootCi)
+              } else {
+                this.$set(obj.right, 'type', 'value')
+                if (obj.right.value !== null && obj.right.value.indexOf(this.rightRootCi) === 0) {
+                  this.$set(obj.right, 'value', '')
+                }
+              }
             }}
           >
             {operatorList.map(_ => (
@@ -152,8 +170,42 @@ export default {
         )
       }
     },
+    renderRightType (obj) {
+      const className = 'filter-rule-edit-modal-input filter-rule-edit-modal-right-type'
+      if (['notNull', 'null', 'notEmpty', 'empty'].indexOf(obj.operator) >= 0) {
+        return <Input class={className} disabled />
+      }
+      let types = []
+      if (obj.operator === 'in') {
+        types = ['expression', 'array']
+      } else {
+        types = ['value']
+      }
+      return (
+        <Select
+          class={className}
+          value={obj.right.type}
+          onInput={v => {
+            this.$set(obj.right, 'type', v)
+            const value = v === 'expression' ? this.rightRootCi : ''
+            this.$set(obj.right, 'value', value)
+          }}
+        >
+          {types.map(_ => (
+            <Option key={_} value={_}>
+              {_}
+            </Option>
+          ))}
+        </Select>
+      )
+    },
     renderRight (obj, isReadOnly = false) {
-      const className = `filter-rule-edit-modal-right${isReadOnly ? ' isReadOnly' : ' editable'}`
+      const className = `filter-rule-edit-modal-input filter-rule-edit-modal-right${
+        isReadOnly ? ' isReadOnly' : ' editable'
+      }`
+      if (['notNull', 'null', 'notEmpty', 'empty'].indexOf(obj.operator) >= 0) {
+        return <Input class={className} disabled />
+      }
       switch (obj.right.type) {
         case 'expression':
           return (
@@ -194,14 +246,14 @@ export default {
             />
           )
         default:
-          return null
+          return <Input class={className} disabled />
       }
     },
     renderEditIcon () {
       return (
         <span class="filter-rule-edit-icon" onClick={() => this.toggleEditModal(true)}>
-          <Icon type="md-create" />
-          {!this.value.length && <span>{this.$t('filter_rule_edit_icon_placeholder')}</span>}
+          <Icon type="md-add-circle" />
+          {!this.value && <span>{this.$t('filter_rule_edit_icon_placeholder')}</span>}
         </span>
       )
     },
@@ -218,20 +270,24 @@ export default {
           on-on-cancel={this.cancelFilter}
         >
           <div class="filter-rule-modal-content">
-            {this.modalData.length
-              ? Object.keys(this.modalData[0])
-                .sort()
-                .map((filter, i) => {
-                  return (
-                    <div class="filter-rule-modal-content-li">
-                      {this.renderDeleteIcon(i)}
-                      {this.renderLeft(this.modalData[0][filter])}
-                      {this.renderOperator(this.modalData[0][filter])}
-                      {this.renderRight(this.modalData[0][filter])}
-                    </div>
-                  )
-                })
-              : null}
+            {this.modalData.length ? (
+              this.modalData.map((_, i) => {
+                return (
+                  <div class="filter-rule-modal-content-li">
+                    {this.renderDeleteIcon(i)}
+                    {this.renderLeft(this.modalData[i])}
+                    {this.renderOperator(this.modalData[i])}
+                    {this.renderRightType(this.modalData[i])}
+                    {this.renderRight(this.modalData[i])}
+                  </div>
+                )
+              })
+            ) : (
+              <span></span>
+            )}
+            <Button type="primary" long onClick={() => this.modalData.push(...this.defaultModalData)}>
+              {this.$t('filter_rule_add_button')}
+            </Button>
           </div>
         </Modal>
       )

@@ -261,5 +261,6 @@
   "express": "表达式",
   "add_expression": "新增表达式",
   "filter_rule_modal_title": "编辑过滤规则",
-  "filter_rule_edit_icon_placeholder": "<-- 点此编辑过滤规则"
+  "filter_rule_edit_icon_placeholder": "<-- 点此编辑过滤规则",
+  "filter_rule_add_button": "添加过滤规则"
 }
