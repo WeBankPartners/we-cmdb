@@ -1,8 +1,9 @@
 <template>
   <div>
+    <div @click="onIdcDataChange('0012_0000000001')">asdfasdfasdf</div>
     <Row style="margin-bottom: 16px;">
       <span>{{ $t('select_idc') }}：</span>
-      <Select :placeholder="$t('select_idc')" v-model="selectedIdc" class="graph-select" @on-change="onIdcDataChange">
+      <Select :placeholder="$t('select_idc')" class="graph-select" @on-change="onIdcDataChange">
         <Option v-for="item in allIdcs" :value="item.guid" :key="item.guid">
           {{ item.name }}
         </Option>
@@ -21,7 +22,7 @@
         </Col>
         <Col span="6" class="operation-zone">
           <Card>
-            <Operation ref="transferData" @redrawGraph="redrawGraph"></Operation>
+            <Operation ref="transferData" @operationReload="operationReload"></Operation>
           </Card>
         </Col>
       </Row>
@@ -49,7 +50,6 @@ export default {
   data () {
     return {
       allIdcs: [],
-      selectedIdc: '',
       graph: {},
       idcDesignData: null,
       idcLink: [],
@@ -58,11 +58,68 @@ export default {
       graphData: [], // 缓存所有接口返回数据
       operateData: [], // 操作区数据
       firstChildrenGroup: [], // 第一层子节点id
-      idPath: [] // 缓存点击图形区域从内向外容器ID值
+      idPath: [], // 缓存点击图形区域从内向外容器ID值
+      cacheIdPath: null, // 缓存点击图形区域从内向外容器ID值
+      cacheIndex: [], // 缓存点击图形区域从内向外容器ID值
+      levelData: [] // 缓存层级数据备用
     }
   },
   methods: {
+    operationReload (operateData) {
+      let tmp = this.graphData[0]
+      this.levelData = []
+      // console.log(this.graphData[0])
+      this.cacheIdPath.forEach(id => {
+        this.levelData.unshift(tmp)
+        tmp = tmp.children.find(child => {
+          return `g_${child.guid}` === id
+        })
+      })
+      console.log(this.levelData)
+      let tmpData = null
+      this.levelData.forEach(dataTmp => {
+        console.log(tmpData)
+        console.log(dataTmp)
+        dataTmp.children[this.cacheIndex[0]] = operateData
+        tmpData = dataTmp
+      })
+      console.log(tmpData)
+      this.loadMap([tmpData])
+    },
+    loadMap (graphData) {
+      this.graphData = graphData
+      this.graphData[0].children.forEach(_ => {
+        this.firstChildrenGroup.push(`g_${_.guid}`)
+      })
+      // this.operateData = this.graphData[0]
+      // this.$refs.transferData.managementData(this.operateData)
+      const sortingTree = array => {
+        let obj = {}
+        array.forEach(_ => {
+          _.text = [_.data.code]
+          if (_.data[this.initParams[NETWORK_SEGMENT_DESIGN]] instanceof Array) {
+            let text = []
+            _.data[this.initParams[NETWORK_SEGMENT_DESIGN]].forEach(networkSegmentDesign => {
+              text.push(networkSegmentDesign.code)
+            })
+            _.text.push(`[${text.join(', ')}]`)
+          } else if (typeof _.data[this.initParams[NETWORK_SEGMENT_DESIGN]] === 'object') {
+            _.text.push(_.data[this.initParams[NETWORK_SEGMENT_DESIGN]].code || '')
+          }
+          if (_.children instanceof Array) {
+            _.children = sortingTree(_.children)
+          }
+          obj[_.data.code + _.guid] = _
+        })
+        return Object.keys(obj)
+          .sort()
+          .map(_ => obj[_])
+      }
+      this.idcDesignData = sortingTree(graphData)
+      this.getZoneLink()
+    },
     async onIdcDataChange (guid = '0012_0000000001') {
+      console.log(guid)
       this.spinShow = true
       const { data, statusCode } = await getIdcDesignTreeByGuid([guid])
       this.graphData = data
@@ -98,12 +155,10 @@ export default {
         this.getZoneLink()
       }
     },
-    redrawGraph () {
-      this.onIdcDataChange()
-    },
     initGraph (filters = {}) {
       let graph
       graph = d3.select('#graph')
+      // graph.selectAll('svg').remove()
       graph
         .on('dblclick.zoom', null)
         .on('wheel.zoom', null)
@@ -207,11 +262,17 @@ export default {
     },
     handleNodeClick (e) {
       this.idPath.unshift(e.currentTarget.id)
+      this.cacheIdPath = []
+      this.cacheIndex = []
+      this.cacheIdPath = JSON.parse(JSON.stringify(this.idPath))
       if (this.firstChildrenGroup.includes(e.currentTarget.id)) {
         let tmp = this.graphData[0]
         this.idPath.forEach(id => {
-          tmp = tmp.children.find(child => {
-            return `g_${child.guid}` === id
+          tmp = tmp.children.find((child, index) => {
+            if (`g_${child.guid}` === id) {
+              this.cacheIndex.push(index)
+              return child
+            }
           })
         })
         this.idPath = []
@@ -230,26 +291,43 @@ export default {
       let divWidth = window.innerWidth - 20
       let divHeight = window.innerHeight - 220
       let children = idcData.children || []
+      // d3.select('#graph').select('svg').clear()
       let svg = d3.select('#graph').select('svg')
       svg.attr('width', divWidth).attr('height', divHeight)
       svg.attr('viewBox', '0 0 ' + divWidth + ' ' + divHeight)
-
       children.forEach(zone => {
         d3.select(`#g_${zone.guid}`)
           .select('polygon')
-          .attr('fill', colors[1])
+          .attr('fill', '#000000')
         if (Array.isArray(zone.children)) {
           let points = d3
             .select('#g_' + zone.guid)
             .select('polygon')
             .attr('points')
             .split(' ')
+          // console.log(d3.select('#g_' + zone.guid)._groups[0][0].__data__)
+          // const childrenX = d3.select('#g_' + zone.guid)._groups[0][0].__data__.children
+          // const polygon = childrenX.filter(child => {
+          //   return child.tag === 'polygon'
+          // })
+          // const pointX = polygon[0].attributes.points.split(',')
+          // console.log(pointX)
+          // console.log(points)
+          // let p1 = {
+          //   x: parseInt(pointX[1].split(' ')[1]),
+          //   y: parseInt(pointX[1].split(' ')[0])
+          // }
+          // let pw1 = parseInt(pointX[0] - pointX[1].split(' ')[1])
+          // let ph1 = parseInt(pointX[3].split(' ')[0] - pointX[2].split(' ')[0])
+          // console.log(p1, pw1, ph1)
+          // this.setChildren(zone, p1, pw1, ph1, fontSize, 2, 1)
           let p = {
             x: parseInt(points[1].split(',')[0]),
             y: parseInt(points[1].split(',')[1])
           }
           let pw = parseInt(points[0].split(',')[0] - points[1].split(',')[0])
           let ph = parseInt(points[2].split(',')[1] - points[1].split(',')[1])
+          // console.log(p, pw, ph)
           this.setChildren(zone, p, pw, ph, fontSize, 2, 1)
         }
       })
@@ -313,6 +391,7 @@ export default {
               .text(_)
           })
           if (Array.isArray(node.children[i].children)) {
+            console.log(node.children[i], { x: rx, y: _ry }, w, _h, fontsize, _tlength, deep + 1)
             this.setChildren(node.children[i], { x: rx, y: _ry }, w, _h, fontsize, _tlength, deep + 1)
           }
         }
@@ -363,6 +442,9 @@ export default {
               .attr('y', ty + fontsize * index)
               .text(_)
           })
+          console.log(node.text)
+          console.log(node.children[i])
+          console.log(node.children[i].children)
           if (Array.isArray(node.children[i].children)) {
             this.setChildren(node.children[i], { x: rx, y: ry }, w, h, fontsize, _tlength, deep + 1)
           }
@@ -370,7 +452,7 @@ export default {
       }
     },
     async getZoneLink () {
-      this.idcLink = []
+      // this.idcLink = []
       const payload = {
         id: this.initParams[IDC_PLANNING_LINK_ID],
         queryObject: {}
@@ -386,7 +468,6 @@ export default {
             state: _.data.state.code
           }
         })
-        console.log(this.idcLink)
       }
       this.initGraph()
     },
