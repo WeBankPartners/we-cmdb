@@ -474,7 +474,7 @@ export default {
                 <hr />
               )
             ),
-            this.spinShow ? <Spin fix /> : null
+            this.spinShow ? <Spin fix /> : <span style="display: none"></span>
           ]}
         </div>
       )
