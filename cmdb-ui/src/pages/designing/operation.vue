@@ -1,10 +1,5 @@
 <template>
   <div class="">
-    <!-- <div
-      @click="test($event)"
-      style="float: right;margin:6px;"
-      >abc</div
-    > -->
     <h4>当前节点：</h4>
     <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
       <Panel name="1">
@@ -142,6 +137,7 @@
       </div>
     </Collapse>
     <div v-if="showAddNodeArea" class="add-node-area">
+      {{ selectedType }}123
       <Select v-model="selectedType" @on-change="getNewNodeAttr" @on-open-change="getNodeTypes">
         <Option v-for="(item, index) in canCreateNodeTypes" :value="item.value" :key="item.value + index">{{
           item.label
@@ -233,11 +229,6 @@ export default {
   },
   mounted () {},
   methods: {
-    test (event) {
-      event.stopPropagation()
-      console.log(this.operateData.text)
-      this.$emit('operationReload', 111)
-    },
     async deleteNode (panalData, panalIndex, event) {
       event.stopPropagation()
       let params = {
@@ -249,7 +240,6 @@ export default {
         this.$Message.success('success!')
         this.panalData.splice(panalIndex, 1)
         this.operateData.children = this.panalData
-        console.log(this.operateData)
         this.$emit('operationReload', this.operateData)
       }
     },
@@ -373,15 +363,11 @@ export default {
         if (dataSource === 'parentPanalData') {
           this.operateData.data = data[0]
         }
-        console.log(data)
         if (dataSource === 'panalData') {
-          console.log(index)
           this.operateData.children[index].data = data[0]
         }
-        console.log(this.operateData)
         this.isEdit = false
         this.$emit('operationReload', this.operateData)
-        // this.$emit('redrawGraph')
       }
     },
     managementData (operateData) {
@@ -412,7 +398,9 @@ export default {
         })
       }
     },
-    async getNewNodeAttr () {
+    async getNewNodeAttr (val) {
+      console.log(val)
+      console.log(this.selectedType)
       if (!this.selectedType) {
         return
       }
