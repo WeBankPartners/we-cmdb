@@ -377,7 +377,6 @@ export default {
       }
     },
     managementData (operateData) {
-      console.log(operateData)
       this.parentPanal = ''
       this.defaultPanal = ''
       this.panalData = []
