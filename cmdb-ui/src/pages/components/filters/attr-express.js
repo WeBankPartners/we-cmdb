@@ -17,7 +17,8 @@ export default {
     hiddenAttrType: { type: Array, required: false },
     operatorList: { default: () => operatorList, type: Array, required: false },
     showAddButton: { default: false, type: Boolean, required: false },
-    banRootCiDelete: { default: false, type: Boolean, required: false }
+    banRootCiDelete: { default: false, type: Boolean, required: false },
+    hideFilterModal: { default: false, type: Boolean, required: false }
   },
   data () {
     return {
@@ -114,6 +115,7 @@ export default {
           }
         })
       })
+      this.handleInput()
     },
     async handleClick (e) {
       e.stopPropagation()
@@ -154,6 +156,9 @@ export default {
       })
     },
     optionPushFilterNode (attrIndex) {
+      if (this.hideFilterModal) {
+        return
+      }
       this.options.push({
         type: 'option',
         class: 'attr-express-li attr-express-li-filter',
@@ -446,6 +451,7 @@ export default {
       if (this.expression.length >= 1 && lastNodeText.split('[').length <= 1) {
         this.$emit('input', null)
         this.expression[this.expression.length - 1].props.class += ' error'
+        this.$emit('input', null)
       } else {
         let _value = ''
         this.expression.forEach(_ => {
