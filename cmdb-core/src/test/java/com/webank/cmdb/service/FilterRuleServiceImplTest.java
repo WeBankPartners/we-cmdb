@@ -1,7 +1,6 @@
 package com.webank.cmdb.service;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.controller.AbstractBaseControllerTest;
 import com.webank.cmdb.dto.FilterRuleDto;
@@ -46,7 +45,7 @@ public class FilterRuleServiceImplTest  extends AbstractBaseControllerTest {
         String filterRuleJson = readJsonFromFile("/json/filterrule/simple_rule.json");
         FilterRuleDto filterRuleDto = JsonUtil.toObject(filterRuleJson, FilterRuleDto.class);
         QueryRequest request = new QueryRequest();
-        request.getDialect().setAssociatedCiData(ImmutableMap.of("mask",0));
+        request.getDialect().setData(ImmutableMap.of("mask",0));
         QueryResponse response = filterRuleService.queryReferenceData(filterRuleDto,request);
         assertThat(response.getContents(), notNullValue());
         assertThat(response.getContents().size(), equalTo(1));
