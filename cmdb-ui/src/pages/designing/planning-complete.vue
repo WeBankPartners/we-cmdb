@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div @click="onIdcDataChange('0012_0000000001')">asdfasdfasdf</div>
+    <div @click="onIdcDataChange('0012_0000000002')">asdfasdfasdf</div>
     <Row style="margin-bottom: 16px;">
       <span>{{ $t('select_idc') }}：</span>
       <Select :placeholder="$t('select_idc')" class="graph-select" @on-change="onIdcDataChange">
@@ -107,22 +107,17 @@ export default {
     operationReload (operateData) {
       let tmp = this.graphData[0]
       this.levelData = []
-      // console.log(this.graphData[0])
       this.cacheIdPath.forEach(id => {
         this.levelData.unshift(tmp)
         tmp = tmp.children.find(child => {
           return `g_${child.guid}` === id
         })
       })
-      console.log(this.levelData)
       let tmpData = null
       this.levelData.forEach(dataTmp => {
-        console.log(tmpData)
-        console.log(dataTmp)
         dataTmp.children[this.cacheIndex[0]] = operateData
         tmpData = dataTmp
       })
-      console.log(tmpData)
       this.loadMap([tmpData])
     },
     loadMap (graphData) {
@@ -348,18 +343,31 @@ export default {
           .select('polygon')
           .attr('fill', '#000000')
         if (Array.isArray(zone.children)) {
-          let points = d3
-            .select('#g_' + zone.guid)
-            .select('polygon')
-            .attr('points')
-            .split(' ')
-          let p = {
-            x: parseInt(points[1].split(',')[0]),
-            y: parseInt(points[1].split(',')[1])
+          const childrenX = d3.select('#g_' + zone.guid)._groups[0][0].__data__.children
+          const polygon = childrenX.filter(child => {
+            return child.tag === 'polygon'
+          })
+          const pointX = polygon[0].attributes.points.split(',')
+          let p1 = {
+            x: parseInt(pointX[1].split(' ')[1]),
+            y: parseInt(pointX[1].split(' ')[0])
           }
-          let pw = parseInt(points[0].split(',')[0] - points[1].split(',')[0])
-          let ph = parseInt(points[2].split(',')[1] - points[1].split(',')[1])
-          this.setChildren(zone, p, pw, ph, fontSize, 2, 1)
+          let pw1 = parseInt(pointX[0] - pointX[1].split(' ')[1])
+          let ph1 = parseInt(pointX[3].split(' ')[0] - pointX[2].split(' ')[0])
+          this.setChildren(zone, p1, pw1, ph1, fontSize, 2, 1)
+
+          // let points = d3
+          //   .select('#g_' + zone.guid)
+          //   .select('polygon')
+          //   .attr('points')
+          //   .split(' ')
+          // let p = {
+          //   x: parseInt(points[1].split(',')[0]),
+          //   y: parseInt(points[1].split(',')[1])
+          // }
+          // let pw = parseInt(points[0].split(',')[0] - points[1].split(',')[0])
+          // let ph = parseInt(points[2].split(',')[1] - points[1].split(',')[1])
+          // this.setChildren(zone, p, pw, ph, fontSize, 2, 1)
         }
       })
     },
