@@ -158,7 +158,6 @@ export default {
       this.getZoneLink()
     },
     async onIdcDataChange (guid = '0012_0000000001') {
-      console.log(guid)
       this.spinShow = true
       const { data, statusCode } = await getIdcDesignTreeByGuid([guid])
       this.graphData = data
@@ -327,6 +326,17 @@ export default {
         .on('end', () => {
           addEvent('.node', 'click', this.handleNodeClick)
         })
+      // 最图层选中处理
+      d3.select('#clust1').on('click', () => {
+        this.$refs.transferData.managementData(this.graphData[0])
+        if (this.activeNodeInfo.id) {
+          d3.select('#graph')
+            .select(`#` + this.activeNodeInfo.id)
+            .select(this.activeNodeInfo.type)
+            .attr('fill', this.activeNodeInfo.color)
+          this.activeNodeInfo = {}
+        }
+      })
       let divWidth = window.innerWidth - 20
       let divHeight = window.innerHeight - 220
       let children = idcData.children || []
