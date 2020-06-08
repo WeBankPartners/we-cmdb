@@ -22,7 +22,7 @@
         </Col>
         <Col span="6" class="operation-zone">
           <Card>
-            <Operation ref="transferData" @operationReload="operationReload"></Operation>
+            <Operation ref="transferData" @operationReload="operationReload" @markZone="markZone"></Operation>
           </Card>
         </Col>
       </Row>
@@ -101,6 +101,9 @@ export default {
     }
   },
   methods: {
+    markZone (guid) {
+      this.cacheIdPath = [`g_` + guid]
+    },
     operationReload (operateData) {
       let tmp = this.graphData[0]
       this.levelData = []
