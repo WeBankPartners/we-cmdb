@@ -61,7 +61,43 @@ export default {
       idPath: [], // 缓存点击图形区域从内向外容器ID值
       cacheIdPath: null, // 缓存点击图形区域从内向外容器ID值
       cacheIndex: [], // 缓存点击图形区域从内向外容器ID值
-      levelData: [] // 缓存层级数据备用
+      levelData: [], // 缓存层级数据备用
+
+      activeNodeInfo: {
+        id: '',
+        type: '',
+        color: ''
+      }
+    }
+  },
+  watch: {
+    cacheIdPath: function (val) {
+      // 选中节点颜色控制
+      if (this.activeNodeInfo.id) {
+        d3.select('#graph')
+          .select(`#` + this.activeNodeInfo.id)
+          .select(this.activeNodeInfo.type)
+          .attr('fill', this.activeNodeInfo.color)
+        this.activeNodeInfo = {}
+      }
+      const id = val[val.length - 1]
+      this.activeNodeInfo.type = d3
+        .select('#graph')
+        .select(`#` + id)
+        .select('polygon')._groups[0][0]
+        ? 'polygon'
+        : 'rect'
+      const color = d3
+        .select('#graph')
+        .select(`#` + id)
+        .select(this.activeNodeInfo.type)
+        .attr('fill')
+      this.activeNodeInfo.id = id
+      this.activeNodeInfo.color = color
+      d3.select('#graph')
+        .select(`#` + id)
+        .select(this.activeNodeInfo.type)
+        .attr('fill', 'red')
     }
   },
   methods: {
