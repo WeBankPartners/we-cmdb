@@ -1,5 +1,10 @@
 <template>
   <div class="">
+    <!-- <div
+      @click="test($event)"
+      style="float: right;margin:6px;"
+      >abc</div
+    > -->
     <h4>当前节点：</h4>
     <Collapse v-model="parentPanal" class="parentCollapse" accordion>
       <Panel name="1">
@@ -120,7 +125,11 @@
             <FormItem>
               <div class="opetation-btn-zone">
                 <Button @click="editOperation">编辑</Button>
-                <Button type="primary" @click="saveOperation('panalData')" :disabled="!isEdit" class="opetation-btn"
+                <Button
+                  type="primary"
+                  @click="saveOperation('panalData', panalIndex)"
+                  :disabled="!isEdit"
+                  class="opetation-btn"
                   >保存</Button
                 >
               </div>
@@ -134,7 +143,9 @@
     </Collapse>
     <div v-if="showAddNodeArea" class="add-node-area">
       <Select v-model="selectedType" @on-change="getNewNodeAttr" @on-open-change="getNodeTypes">
-        <Option v-for="item in canCreateNodeTypes" :value="item.value" :key="item.value">{{ item.label }}</Option>
+        <Option v-for="(item, index) in canCreateNodeTypes" :value="item.value" :key="item.value + index">{{
+          item.label
+        }}</Option>
       </Select>
       <Form v-if="showNewNodeForm" class="add-node-area">
         <div
@@ -221,6 +232,11 @@ export default {
   },
   mounted () {},
   methods: {
+    test (event) {
+      event.stopPropagation()
+      console.log(this.operateData.text)
+      this.$emit('operationReload', 111)
+    },
     async deleteNode (panalData, panalIndex, event) {
       event.stopPropagation()
       let params = {
@@ -231,6 +247,9 @@ export default {
       if (statusCode === 'OK') {
         this.$Message.success('success!')
         this.panalData.splice(panalIndex, 1)
+        this.operateData.children = this.panalData
+        console.log(this.operateData)
+        this.$emit('operationReload', this.operateData)
       }
     },
     async createNode () {
@@ -289,17 +308,18 @@ export default {
         }
         // text: [ciData.data.contents[0].data.code, ciData.data.contents[0].data.network_segment_design.code]
         this.panalData.push(params)
+        this.operateData.children = this.panalData
+        this.$emit('operationReload', this.operateData)
         this.selectedType = null
         this.newNodeFormData = {} // 待创建节点表单
         this.newNodeForm = [] // 待创建节点表单
-        console.log(this.panalData)
       }
     },
     editOperation () {
       this.isEdit = true
     },
     // 保存数据
-    async saveOperation (dataSource) {
+    async saveOperation (dataSource, index) {
       // eslint-disable-next-line no-unused-vars
       let activePanalData = null
       // eslint-disable-next-line no-unused-vars
@@ -339,10 +359,20 @@ export default {
         id: ciTypeId,
         updateData: [tmpPanalData]
       }
-      const { statusCode } = await updateCiDatas(params)
+      const { statusCode, data } = await updateCiDatas(params)
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
+        if (dataSource === 'parentPanalData') {
+          this.operateData.data = data[0]
+        }
+        console.log(data)
+        if (dataSource === 'panalData') {
+          console.log(index)
+          this.operateData.children[index].data = data[0]
+        }
+        console.log(this.operateData)
         this.isEdit = false
+        this.$emit('operationReload', this.operateData)
         // this.$emit('redrawGraph')
       }
     },
