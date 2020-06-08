@@ -291,7 +291,6 @@ export default {
       let divWidth = window.innerWidth - 20
       let divHeight = window.innerHeight - 220
       let children = idcData.children || []
-      // d3.select('#graph').select('svg').clear()
       let svg = d3.select('#graph').select('svg')
       svg.attr('width', divWidth).attr('height', divHeight)
       svg.attr('viewBox', '0 0 ' + divWidth + ' ' + divHeight)
@@ -305,29 +304,12 @@ export default {
             .select('polygon')
             .attr('points')
             .split(' ')
-          // console.log(d3.select('#g_' + zone.guid)._groups[0][0].__data__)
-          // const childrenX = d3.select('#g_' + zone.guid)._groups[0][0].__data__.children
-          // const polygon = childrenX.filter(child => {
-          //   return child.tag === 'polygon'
-          // })
-          // const pointX = polygon[0].attributes.points.split(',')
-          // console.log(pointX)
-          // console.log(points)
-          // let p1 = {
-          //   x: parseInt(pointX[1].split(' ')[1]),
-          //   y: parseInt(pointX[1].split(' ')[0])
-          // }
-          // let pw1 = parseInt(pointX[0] - pointX[1].split(' ')[1])
-          // let ph1 = parseInt(pointX[3].split(' ')[0] - pointX[2].split(' ')[0])
-          // console.log(p1, pw1, ph1)
-          // this.setChildren(zone, p1, pw1, ph1, fontSize, 2, 1)
           let p = {
             x: parseInt(points[1].split(',')[0]),
             y: parseInt(points[1].split(',')[1])
           }
           let pw = parseInt(points[0].split(',')[0] - points[1].split(',')[0])
           let ph = parseInt(points[2].split(',')[1] - points[1].split(',')[1])
-          // console.log(p, pw, ph)
           this.setChildren(zone, p, pw, ph, fontSize, 2, 1)
         }
       })
@@ -391,7 +373,6 @@ export default {
               .text(_)
           })
           if (Array.isArray(node.children[i].children)) {
-            console.log(node.children[i], { x: rx, y: _ry }, w, _h, fontsize, _tlength, deep + 1)
             this.setChildren(node.children[i], { x: rx, y: _ry }, w, _h, fontsize, _tlength, deep + 1)
           }
         }
@@ -442,9 +423,6 @@ export default {
               .attr('y', ty + fontsize * index)
               .text(_)
           })
-          console.log(node.text)
-          console.log(node.children[i])
-          console.log(node.children[i].children)
           if (Array.isArray(node.children[i].children)) {
             this.setChildren(node.children[i], { x: rx, y: ry }, w, h, fontsize, _tlength, deep + 1)
           }

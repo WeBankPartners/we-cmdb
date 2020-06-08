@@ -26,12 +26,12 @@ export default {
     },
     selected: function (val) {
       if (val.length) {
-        const xx = this.options.filter(_ => {
-          if (val.includes(_.data.guid)) {
+        const tmp = this.options.filter(_ => {
+          if (val.includes(_.guid || _.data.guid)) {
             return _
           }
         })
-        this.panalData[this.formData.propertyName + '_tmp'] = xx
+        this.panalData[this.formData.propertyName + '_tmp'] = tmp
       } else {
         this.panalData[this.formData.propertyName + '_tmp'] = []
       }
