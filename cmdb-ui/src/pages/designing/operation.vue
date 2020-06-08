@@ -6,7 +6,7 @@
       >abc</div
     > -->
     <h4>当前节点：</h4>
-    <Collapse v-model="parentPanal" class="parentCollapse" accordion>
+    <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
       <Panel name="1">
         {{ parentPanalData.data.code }}
         <div slot="content">
@@ -178,6 +178,7 @@
         <FormItem>
           <div class="opetation-btn-zone">
             <Button type="primary" @click="createNode">创建节点</Button>
+            <Button @click="cancleAddNode" class="opetation-btn">取消</Button>
           </div>
         </FormItem>
       </Form>
@@ -315,6 +316,13 @@ export default {
         this.newNodeForm = [] // 待创建节点表单
       }
     },
+    cancleAddNode () {
+      this.isEdit = false
+      this.showAddNodeArea = false
+      this.selectedType = null
+      this.newNodeFormData = {} // 待创建节点表单
+      this.newNodeForm = [] // 待创建节点表单
+    },
     editOperation () {
       this.isEdit = true
     },
@@ -390,18 +398,24 @@ export default {
       }
     },
     async getNodeTypes (isOpen) {
+      this.canCreateNodeTypes = []
       if (!isOpen) return
       let { statusCode, data } = await getRefCiTypeFrom(this.operateData.ciTypeId)
       if (statusCode === 'OK') {
-        this.canCreateNodeTypes = data.map(p => {
-          return {
-            value: p.ciType.ciTypeId,
-            label: p.ciType.name
+        data.forEach(p => {
+          if (p.referenceType === 29) {
+            this.canCreateNodeTypes.push({
+              value: p.ciType.ciTypeId,
+              label: p.ciType.name
+            })
           }
         })
       }
     },
     async getNewNodeAttr () {
+      if (!this.selectedType) {
+        return
+      }
       this.showNewNodeForm = false
       this.newNodeFormData = {}
       await this.getAttributes(this.selectedType, 'newNodeForm')
@@ -416,9 +430,15 @@ export default {
       })
       this.showNewNodeForm = true
     },
+    openParentPanal () {
+      this.defaultPanal = ''
+      this.$emit('markZone', this.parentPanalData.guid)
+    },
     openPanal (panalId) {
+      this.parentPanal = ''
       this.isEdit = false
       if (panalId.length) {
+        this.$emit('markZone', this.panalData[Number(panalId[0] - 1)].guid)
         const ciTypeId = this.panalData[Number(panalId[0] - 1)].ciTypeId
         this.getAttributes(ciTypeId, 'panalForm')
       }
