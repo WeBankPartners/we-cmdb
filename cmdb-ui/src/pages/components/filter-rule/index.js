@@ -66,6 +66,9 @@ export default {
       })
       if (arr.length) {
         arr.forEach((_, i) => {
+          if (_.right.type === 'array') {
+            _.right.value = _.right.value.split(',')
+          }
           result[`filter_${i + 1}`] = _
         })
         this.$emit('input', JSON.stringify([result]))
@@ -234,8 +237,11 @@ export default {
             />
           )
         case 'array':
+          if (obj.right.value instanceof Array) {
+            obj.right.value = obj.right.value.join(',')
+          }
           return isReadOnly ? (
-            <span class={className}>{obj.right.value.join('')}</span>
+            <span class={className}>{obj.right.value}</span>
           ) : (
             <Input
               class={className}
