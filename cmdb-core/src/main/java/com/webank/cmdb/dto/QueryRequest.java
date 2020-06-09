@@ -28,7 +28,7 @@ public class QueryRequest {
 
     public static class Dialect {
         private boolean showCiHistory = false;
-        private Map<String, Object> data;
+        private Map<String, Object> data = new HashMap<>();
 
         public boolean getShowCiHistory() {
             return showCiHistory;
