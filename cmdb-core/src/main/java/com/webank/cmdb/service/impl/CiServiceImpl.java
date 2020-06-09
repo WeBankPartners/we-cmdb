@@ -11,7 +11,6 @@ import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_REMOV
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
-import java.lang.reflect.Array;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -63,7 +62,6 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -101,12 +99,12 @@ import com.webank.cmdb.dynamicEntity.DynamicEntityMeta;
 import com.webank.cmdb.dynamicEntity.DynamicEntityUtils;
 import com.webank.cmdb.dynamicEntity.FieldNode;
 import com.webank.cmdb.dynamicEntity.MultiValueFeildOperationUtils;
-import com.webank.cmdb.exception.BatchChangeException;
-import com.webank.cmdb.exception.BatchChangeException.ExceptionHolder;
-import com.webank.cmdb.exception.CmdbAccessDeniedException;
-import com.webank.cmdb.exception.CmdbException;
-import com.webank.cmdb.exception.InvalidArgumentException;
-import com.webank.cmdb.exception.ServiceException;
+import com.webank.cmdb.support.exception.BatchChangeException;
+import com.webank.cmdb.support.exception.BatchChangeException.ExceptionHolder;
+import com.webank.cmdb.support.exception.CmdbAccessDeniedException;
+import com.webank.cmdb.support.exception.CmdbException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.ServiceException;
 import com.webank.cmdb.service.AuthorizationService;
 import com.webank.cmdb.service.BaseKeyInfoService;
 import com.webank.cmdb.service.CiService;
@@ -1782,8 +1780,8 @@ public class CiServiceImpl implements CiService {
             AdmCiTypeAttr reltAttr = ciTypeAttrRepository.getOne(reltAttrId);
             validateStatusOfCiTypeAttr(reltAttr);
             String joinField = null;
-            // if(relt.getIsReferedFromParent()) {
-            if (reltAttr.getCiTypeId().equals(parentCiType.getIdAdmCiType())) {
+            if(relt.getIsReferedFromParent()) {
+            //if (reltAttr.getCiTypeId().equals(parentCiType.getIdAdmCiType())) {
                 joinField = DynamicEntityUtils.getJoinFieldName(parentCiType, reltAttr, true);
                 curFrom = parentPath.join(joinField, JoinType.LEFT);
             } else {

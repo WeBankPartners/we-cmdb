@@ -22,7 +22,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.google.common.collect.ImmutableMap;
 import com.webank.cmdb.config.TestDatabase;
-import com.webank.cmdb.exception.CmdbAccessDeniedException;
+import com.webank.cmdb.support.exception.CmdbAccessDeniedException;
 import com.webank.cmdb.util.CmdbThreadLocal;
 
 @SpringBootTest

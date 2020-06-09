@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 import com.webank.cmdb.constant.CiStatus;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.InputType;
-import com.webank.cmdb.exception.ServiceException;
+import com.webank.cmdb.support.exception.ServiceException;
 
 /**
  * The persistent class for the adm_ci_type_attr database table.

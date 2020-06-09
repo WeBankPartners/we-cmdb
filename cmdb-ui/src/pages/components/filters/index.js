@@ -10,7 +10,8 @@ export default {
     value: { default: [], type: Array, required: true },
     allCiTypes: { default: () => [], type: Array, required: true },
     isFilterAttr: { default: false, type: Boolean, required: false },
-    displayAttrType: { default: () => [], type: Array, required: false },
+    displayAttrType: { type: Array, required: false },
+    hiddenAttrType: { type: Array, required: false },
     rootCis: { default: () => [], type: Array, required: true }
   },
   data () {
@@ -22,7 +23,7 @@ export default {
   methods: {
     addExpression (v) {
       let _value = JSON.parse(JSON.stringify(this.value))
-      _value.push(v + ':[guid]')
+      _value.push(v)
       this.$emit('input', _value)
       this.optionsDisplay = false
     },
@@ -77,6 +78,7 @@ export default {
               allCiTypes={this.allCiTypes}
               isFilterAttr={this.isFilterAttr}
               displayAttrType={this.displayAttrType}
+              hiddenAttrType={this.hiddenAttrType}
             />
           ])}
           {this.renderAddIcon()}

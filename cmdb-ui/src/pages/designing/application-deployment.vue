@@ -444,33 +444,35 @@ export default {
               instanceGuids.push(_fromTo.guid)
             }
           })
-          const promiseArray = this.initParams[BUSINESS_APP_INSTANCE_ID].split(',').map(_ => {
-            const query = {
-              id: +_,
-              queryObject: {
-                filters: [
-                  {
-                    name: 'unit',
-                    operator: 'in',
-                    value: instanceGuids
-                  }
-                ]
+          if (instanceGuids.length) {
+            const promiseArray = this.initParams[BUSINESS_APP_INSTANCE_ID].split(',').map(_ => {
+              const query = {
+                id: +_,
+                queryObject: {
+                  filters: [
+                    {
+                      name: 'unit',
+                      operator: 'in',
+                      value: instanceGuids
+                    }
+                  ]
+                }
               }
-            }
-            return queryCiData(query)
-          })
-          const instances = await Promise.all(promiseArray)
-          let _instancesInUnit = {}
-          instances.forEach(_ => {
-            _.data.contents.forEach(item => {
-              if (_instancesInUnit[item.data.unit.guid]) {
-                _instancesInUnit[item.data.unit.guid].push(item.data)
-              } else {
-                _instancesInUnit[item.data.unit.guid] = [item.data]
-              }
+              return queryCiData(query)
             })
-          })
-          this.instancesInUnit = _instancesInUnit
+            const instances = await Promise.all(promiseArray)
+            let _instancesInUnit = {}
+            instances.forEach(_ => {
+              _.data.contents.forEach(item => {
+                if (_instancesInUnit[item.data.unit.guid]) {
+                  _instancesInUnit[item.data.unit.guid].push(item.data)
+                } else {
+                  _instancesInUnit[item.data.unit.guid] = [item.data]
+                }
+              })
+            })
+            this.instancesInUnit = _instancesInUnit
+          }
           this.initADGraph()
           this.initTreeGraph()
         }

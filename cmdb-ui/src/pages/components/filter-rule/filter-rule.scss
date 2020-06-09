@@ -1,0 +1,45 @@
+.filter-rule {
+  &-edit-icon {
+    cursor: pointer;
+  }
+
+  &-modal-content {
+    &-li {
+      align-items: center;
+      display: flex;
+      margin-bottom: 10px;
+      justify-content: center;
+      width: 100%;
+    }
+  }
+
+  &-key-word {
+    font-style: oblique;
+    font-weight: 600;
+    margin-right: 10px;
+  }
+
+  &-edit-modal {
+    &-input {
+      margin-right: 10px;
+    }
+    &-delete {
+      cursor: pointer;
+    }
+    &-left.editable {
+      display: block;
+      flex: 1;
+    }
+    &-operator.editable {
+      width: 100px;
+    }
+    &-right-type {
+      width: 110px;
+    }
+    &-right.editable {
+      display: block;
+      flex: 1;
+      margin-right: 0;
+    }
+  }
+}

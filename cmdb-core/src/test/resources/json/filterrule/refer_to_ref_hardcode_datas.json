@@ -1,7 +1,0 @@
-[{
-	"filter_1": {
-		"left": "[{\"ciTypeId\":12},{\"ciTypeId\":12,\"parentRs\":{\"attrId\":203,\"isReferedFromParent\":1}}]",
-		"operator": "in",
-		"right": ["MGMT_APP_01"]
-	}
-}]

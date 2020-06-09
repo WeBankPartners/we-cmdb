@@ -1,5 +1,6 @@
 import './filters-modal.scss'
 import { queryCiData, getEnumCodesByCategoryId } from '@/api/server.js'
+import { numberOperatorList } from '@/const/operator-list.js'
 
 export default {
   name: 'FiltersModal',
@@ -157,26 +158,17 @@ export default {
               onInput={v => this.changeOperator(v, i)}
               class="filters-modal-filter-li-select operator"
             >
-              {this.operatorList
-                .concat(
-                  _.inputType === 'number'
-                    ? [
-                      { code: 'gt', value: 'Greater' },
-                      { code: 'lt', value: 'Less' }
-                    ]
-                    : []
-                )
-                .map(o => (
-                  <Option key={o.code} value={o.code}>
-                    {o.value}
-                  </Option>
-                ))}
+              {this.operatorList.concat(_.inputType === 'number' ? numberOperatorList : []).map(o => (
+                <Option key={o.code} value={o.code}>
+                  {o.value}
+                </Option>
+              ))}
             </Select>
             {this.renderValueInput(_, i)}
           </div>
         ))}
         <Button type="primary" long onClick={this.handleAddRow}>
-          {this.$t('auto_fill_filter_modal_button')}
+          {this.$t('attr_express_modal_button')}
         </Button>
       </div>
     )

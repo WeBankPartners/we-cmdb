@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
 import com.webank.cmdb.domain.AdmMenu;
 import com.webank.cmdb.domain.AdmUser;
-import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.support.exception.CmdbException;
 import com.webank.cmdb.repository.AdmMenusRepository;
 import com.webank.cmdb.repository.AdmUserRepository;
 

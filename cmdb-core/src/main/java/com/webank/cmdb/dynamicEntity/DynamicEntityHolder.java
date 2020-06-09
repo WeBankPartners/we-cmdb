@@ -16,8 +16,8 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.DynamicEntityType;
-import com.webank.cmdb.exception.InvalidArgumentException;
-import com.webank.cmdb.exception.ServiceException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.ServiceException;
 import com.webank.cmdb.util.ClassUtils;
 
 public class DynamicEntityHolder {

@@ -16,13 +16,13 @@ import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
 import com.webank.cmdb.constant.AuthenticationType;
 import com.webank.cmdb.domain.AdmRole;
 import com.webank.cmdb.domain.AdmRoleCiType;
-import com.webank.cmdb.exception.CmdbAccessDeniedException;
+import com.webank.cmdb.support.exception.CmdbAccessDeniedException;
 import com.webank.cmdb.repository.AdmRoleRepository;
 import com.webank.cmdb.repository.RoleCiTypeRepository;
 import com.webank.cmdb.repository.UserRepository;
-import com.webank.cmdb.security.Authority;
-import com.webank.cmdb.security.Authority.Decision;
-import com.webank.cmdb.security.UserCiTypeAuthority;
+import com.webank.cmdb.support.security.Authority;
+import com.webank.cmdb.support.security.Authority.Decision;
+import com.webank.cmdb.support.security.UserCiTypeAuthority;
 import com.webank.cmdb.service.AuthorizationService;
 import com.webank.cmdb.util.CmdbThreadLocal;
 

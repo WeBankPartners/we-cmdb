@@ -539,19 +539,15 @@
                   </FormItem>
                   <FormItem
                     class="no-need-validation"
-                    v-if="
-                      item.form.inputType === 'ref' ||
-                        item.form.inputType === 'select' ||
-                        item.form.inputType === 'multiRef' ||
-                        item.form.inputType === 'multiSelect'
-                    "
+                    v-if="item.form.inputType === 'ref' || item.form.inputType === 'multiRef'"
                     :label="$t('filter_rule')"
                   >
                     <FilterRule
-                      :allLayers="filterRuleSource"
-                      :filterAttr="item"
-                      :rootCiTypeId="item.ciTypeId"
                       v-model="item.form.filterRule"
+                      :allCiTypes="allCiTypesWithAttr"
+                      :leftRootCi="item.form.propertyName"
+                      :rightRootCi="currentSelectedCI.tableName"
+                      :banRootCiDelete="true"
                       :disabled="item.form.status === 'decommissioned'"
                     ></FilterRule>
                   </FormItem>
@@ -809,7 +805,7 @@ import STATUS_LIST from '@/const/graph-status-list.js'
 import { PROPERTY_TYPE_MAP } from '@/const/data-types.js'
 import { setHeaders, baseURL } from '@/api/base.js'
 import AutoFill from '../components/auto-fill.js'
-import FilterRule from '../components/filter-rule'
+import FilterRule from '../components/filter-rule/index.js'
 import { ZOOM_LEVEL_CAT } from '@/const/init-params.js'
 import { setCookie, getCookie } from '../util/cookie.js'
 import axios from 'axios'

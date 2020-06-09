@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Strings;
 import com.webank.cmdb.dynamicEntity.DynamicEntityMeta;
 import com.webank.cmdb.dynamicEntity.FieldNode;
-import com.webank.cmdb.exception.ServiceException;
+import com.webank.cmdb.support.exception.ServiceException;
 
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
