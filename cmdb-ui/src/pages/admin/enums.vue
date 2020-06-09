@@ -14,7 +14,6 @@
     @sortHandler="sortHandler"
     @pageChange="pageChange"
     @pageSizeChange="pageSizeChange"
-    @getGroupList="getGroupList"
     @confirmAddHandler="confirmAddHandler"
     @confirmEditHandler="confirmEditHandler"
     tableHeight="650"
@@ -52,7 +51,7 @@ export default {
           searchSeqNo: 1,
           displaySeqNo: 1,
           component: 'WeCMDBSelect',
-          onChange: 'getGroupList',
+          onChange: this.getGroupList,
           disEditor: true, // 枚举名称不可改
           inputType: 'select',
           placeholder: 'catName',
