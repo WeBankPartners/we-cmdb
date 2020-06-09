@@ -263,17 +263,27 @@ export default {
     },
     async deleteNode (panalData, panalIndex, event) {
       event.stopPropagation()
-      let params = {
-        id: panalData[panalIndex].ciTypeId,
-        deleteData: [panalData[panalIndex].data.guid]
-      }
-      const { statusCode } = await deleteCiDatas(params)
-      if (statusCode === 'OK') {
-        this.$Message.success('success!')
-        this.panalData.splice(panalIndex, 1)
-        this.operateData.children = this.panalData
-        this.$emit('operationReload', this.operateData)
-      }
+
+      this.$Modal.confirm({
+        title: this.$t('delete_confirm'),
+        loading: true,
+        'z-index': 1000000,
+        onOk: async () => {
+          let params = {
+            id: panalData[panalIndex].ciTypeId,
+            deleteData: [panalData[panalIndex].data.guid]
+          }
+          const { statusCode } = await deleteCiDatas(params)
+          if (statusCode === 'OK') {
+            this.$Modal.remove()
+            this.$Message.success('success!')
+            this.panalData.splice(panalIndex, 1)
+            this.operateData.children = this.panalData
+            this.$emit('operationReload', this.operateData)
+          }
+        },
+        onCancel: () => {}
+      })
     },
     async createNode () {
       // eslint-disable-next-line no-unused-vars
