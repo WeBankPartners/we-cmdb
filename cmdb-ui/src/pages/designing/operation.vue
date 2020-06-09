@@ -137,7 +137,6 @@
       </div>
     </Collapse>
     <div v-if="showAddNodeArea" class="add-node-area">
-      {{ selectedType }}123
       <Select v-model="selectedType" @on-change="getNewNodeAttr" @on-open-change="getNodeTypes">
         <Option v-for="(item, index) in canCreateNodeTypes" :value="item.value" :key="item.value + index">{{
           item.label
@@ -189,8 +188,10 @@ import {
   getRefCiTypeFrom,
   createCiDatas,
   deleteCiDatas,
-  queryCiData
+  queryCiData,
+  getEnumCodesByCategoryId
 } from '@/api/server'
+import { VIEW_CONFIG_PARAMS, IDC_PLANNING_LINK_ID } from '@/const/init-params.js'
 import Ref from './ref'
 import RefAdd from './ref-add'
 import MutiRef from './muti-ref'
@@ -198,6 +199,18 @@ export default {
   name: '',
   data () {
     return {
+      cityList: [
+        {
+          value: 'New York',
+          label: 'New York'
+        },
+        {
+          value: 'London',
+          label: 'London'
+        }
+      ],
+      model1: '',
+      initParams: {},
       parentPanal: '',
       parentPanalData: { data: { code: '' } },
       parentPanalForm: [],
@@ -227,8 +240,27 @@ export default {
     //   }
     // }
   },
-  mounted () {},
+  mounted () {
+    this.getConfigParams()
+  },
   methods: {
+    async getLineAttr () {
+      const { statusCode, data } = await getCiTypeAttributes(this.initParams[IDC_PLANNING_LINK_ID])
+      if (statusCode === 'OK') {
+        console.log(data)
+        // this[formObject] = data
+      }
+    },
+    async getConfigParams () {
+      const { statusCode, data } = await getEnumCodesByCategoryId(0, VIEW_CONFIG_PARAMS)
+      if (statusCode === 'OK') {
+        this.initParams = {}
+        data.forEach(_ => {
+          this.initParams[_.code] = _.value
+        })
+        this.getLineAttr()
+      }
+    },
     async deleteNode (panalData, panalIndex, event) {
       event.stopPropagation()
       let params = {
@@ -384,8 +416,8 @@ export default {
       }
     },
     async getNodeTypes (isOpen) {
-      this.canCreateNodeTypes = []
       if (!isOpen) return
+      this.canCreateNodeTypes = []
       let { statusCode, data } = await getRefCiTypeFrom(this.operateData.ciTypeId)
       if (statusCode === 'OK') {
         data.forEach(p => {

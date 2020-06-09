@@ -97,7 +97,7 @@ export default {
       d3.select('#graph')
         .select(`#` + id)
         .select(this.activeNodeInfo.type)
-        .attr('fill', 'red')
+        .attr('fill', '#2b85e4')
     }
   },
   methods: {
@@ -495,6 +495,8 @@ export default {
       const { statusCode, data } = await queryCiData(payload)
       if (statusCode === 'OK') {
         this.idcLink = data.contents.map(_ => {
+          // TODO
+          // this.fjy[_.propertyName] = _
           return {
             guid: _.data.guid,
             from: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
@@ -503,6 +505,7 @@ export default {
             state: _.data.state.code
           }
         })
+        console.log(this.idcLink)
       }
       this.initGraph()
     },
