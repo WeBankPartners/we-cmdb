@@ -232,6 +232,11 @@ export default {
                     const fun = {
                       input: v => {
                         setValueHandler(v, column, d)
+                      },
+                      change: v => {
+                        if (column.onChange) {
+                          column.onChange(v)
+                        }
                       }
                     }
                     const data = {
