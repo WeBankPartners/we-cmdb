@@ -1,6 +1,5 @@
 export const operatorList = [
   { code: 'in', value: 'In' },
-  { code: 'contains', value: 'Contains' },
   { code: 'eq', value: 'Equal' },
   { code: 'ne', value: 'NotEqual' },
   { code: 'notNull', value: 'NotNull' },
