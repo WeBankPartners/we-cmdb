@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -29,10 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.webank.cmdb.constant.ImplementOperation;
-import com.webank.cmdb.exception.InvalidArgumentException;
-import com.webank.cmdb.exception.ServiceException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.ServiceException;
 import com.webank.cmdb.service.impl.ConstantService;
-import com.webank.cmdb.service.impl.FilterRuleService;
 import com.webank.cmdb.util.JsonUtil;
 
 @RestController
@@ -69,10 +67,12 @@ public class ApiV2Controller {
         return staticDtoService.query(CatCodeDto.class, request);
     }
 
+/*
     @PostMapping("/enum/codes/referenceDatas/{reference-attr-id}/query")
     public QueryResponse<?> queryReferenceEnumCodes(@PathVariable("reference-attr-id") int referenceAttrId, @RequestBody QueryRequest request) {
         return filterRuleService.queryReferenceEnumCodes(referenceAttrId, request);
     }
+*/
 
     @PostMapping("/enum/codes/update")
     public List<CatCodeDto> updateEnumCodes(@Valid @RequestBody List<Map<String, Object>> request) {

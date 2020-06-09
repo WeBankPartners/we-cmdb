@@ -11,8 +11,8 @@ import com.webank.cmdb.constant.FieldType;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
-import com.webank.cmdb.exception.AttributeNotFoundException;
-import com.webank.cmdb.exception.ServiceException;
+import com.webank.cmdb.support.exception.AttributeNotFoundException;
+import com.webank.cmdb.support.exception.ServiceException;
 import com.webank.cmdb.repository.AdmCiTypeRepository;
 import org.apache.logging.log4j.util.Strings;
 
