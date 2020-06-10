@@ -1,4 +1,4 @@
-import AttrExpress from '../filters/attr-express.js'
+import AttrExpress from '../permission-filters/attr-express.js'
 import { operatorList } from '@/const/operator-list.js'
 import './filter-rule.scss'
 
