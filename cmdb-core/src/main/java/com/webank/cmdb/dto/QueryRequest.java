@@ -28,7 +28,7 @@ public class QueryRequest {
 
     public static class Dialect {
         private boolean showCiHistory = false;
-        private Map<String, Object> data = new HashMap<>();
+        private Map<String, Object> associatedData = new HashMap<>();
 
         public boolean getShowCiHistory() {
             return showCiHistory;
@@ -38,12 +38,12 @@ public class QueryRequest {
             this.showCiHistory = showCiHistory;
         }
 
-        public Map<String, Object> getData() {
-            return data;
+        public Map<String, Object> getAssociatedData() {
+            return associatedData;
         }
 
-        public void setData(Map<String, Object> data) {
-            this.data = data;
+        public void setAssociatedData(Map<String, Object> associatedData) {
+            this.associatedData = associatedData;
         }
 
     }
