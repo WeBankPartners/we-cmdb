@@ -16,6 +16,7 @@
     @pageSizeChange="pageSizeChange"
     @confirmAddHandler="confirmAddHandler"
     @confirmEditHandler="confirmEditHandler"
+    @getGroupList="getGroupList"
     tableHeight="650"
     ref="table"
   ></CMDBTable>
@@ -51,7 +52,7 @@ export default {
           searchSeqNo: 1,
           displaySeqNo: 1,
           component: 'WeCMDBSelect',
-          onChange: this.getGroupList,
+          onChange: 'getGroupList',
           disEditor: true, // 枚举名称不可改
           inputType: 'select',
           placeholder: 'catName',
@@ -111,7 +112,7 @@ export default {
           component: 'WeCMDBSelect',
           inputType: 'select',
           placeholder: 'groupCodeId',
-          optionKey: 'catId',
+          optionColumnKey: 'catId',
           isEditable: true,
           isAuto: false
         },
