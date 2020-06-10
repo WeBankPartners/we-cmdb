@@ -222,6 +222,8 @@ export default {
               allCiTypes={this.allCiTypes}
               isFilterAttr={true}
               hiddenAttrType={this.hiddenAttrType}
+              hideFirstFilter={true}
+              hideFirstRefBy={true}
             />
           )
         case 'value':
