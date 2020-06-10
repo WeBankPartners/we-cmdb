@@ -634,6 +634,7 @@ export default {
           on-editModalOkHandler={this.editModalOkHandler}
           modalVisible={modalVisible}
           modalLoading={modalLoading}
+          onGetGroupList={v => this.$emit('getGroupList', v)}
         ></EditModal>
       </div>
     )

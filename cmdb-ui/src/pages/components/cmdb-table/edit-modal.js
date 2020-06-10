@@ -206,7 +206,11 @@ export default {
                             }
                             : null,
                           isMultiple: column.isMultiple,
-                          options: column.optionKey ? this.ascOptions[column.optionKey] : column.options,
+                          options: column.optionColumnKey
+                            ? this.ascOptions[d[column.optionColumnKey]]
+                            : column.optionKey
+                              ? this.ascOptions[column.optionKey]
+                              : column.options,
                           enumId: column.referenceId ? column.referenceId : null
                         }
                         : {
@@ -235,7 +239,7 @@ export default {
                       },
                       change: v => {
                         if (column.onChange) {
-                          column.onChange(v)
+                          this.$emit('getGroupList', v)
                         }
                       }
                     }
