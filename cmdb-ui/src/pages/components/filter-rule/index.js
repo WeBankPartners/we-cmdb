@@ -117,14 +117,14 @@ export default {
           type="md-remove-circle"
           color="red"
           onClick={() => this.handleDelete(i)}
-          class="filter-rule-edit-modal-input filter-rule-edit-modal-delete"
+          class="filter-rule-edit-modal input delete"
         />
       )
     },
     renderLeft (obj, isReadOnly = false) {
       return (
         <AttrExpress
-          class={`filter-rule-edit-modal-input filter-rule-edit-modal-left${isReadOnly ? ' isReadOnly' : ' editable'}`}
+          class={`filter-rule-edit-modal input left${isReadOnly ? ' isReadOnly' : ' editable'}`}
           value={obj.left}
           onInput={v => {
             this.$set(obj, 'left', v)
@@ -138,7 +138,7 @@ export default {
       )
     },
     renderOperator (obj, isReadOnly = false) {
-      const className = `filter-rule-edit-modal-input filter-rule-edit-modal-operator${
+      const className = `filter-rule-edit-modal input operator${
         isReadOnly ? ' isReadOnly filter-rule-key-word' : ' editable'
       }`
       if (isReadOnly) {
@@ -174,7 +174,7 @@ export default {
       }
     },
     renderRightType (obj) {
-      const className = 'filter-rule-edit-modal-input filter-rule-edit-modal-right-type'
+      const className = 'filter-rule-edit-modal input right-type'
       if (['notNull', 'null', 'notEmpty', 'empty'].indexOf(obj.operator) >= 0) {
         return <Input class={className} disabled />
       }
@@ -203,9 +203,7 @@ export default {
       )
     },
     renderRight (obj, isReadOnly = false) {
-      const className = `filter-rule-edit-modal-input filter-rule-edit-modal-right${
-        isReadOnly ? ' isReadOnly' : ' editable'
-      }`
+      const className = `filter-rule-edit-modal input right${isReadOnly ? ' isReadOnly' : ' editable'}`
       if (['notNull', 'null', 'notEmpty', 'empty'].indexOf(obj.operator) >= 0) {
         return <Input class={className} disabled />
       }
