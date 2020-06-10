@@ -20,23 +20,23 @@
   }
 
   &-edit-modal {
-    &-input {
+    &.input.input {
       margin-right: 10px;
     }
-    &-delete {
+    &.delete.delete {
       cursor: pointer;
     }
-    &-left.editable {
+    &.left.left.editable {
       display: block;
       flex: 1;
     }
-    &-operator.editable {
+    &.operator.editable {
       width: 100px;
     }
-    &-right-type {
+    &.right-type {
       width: 110px;
     }
-    &-right.editable {
+    &.right.editable {
       display: block;
       flex: 1;
       margin-right: 0;
