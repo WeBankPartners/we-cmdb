@@ -1,4 +1,4 @@
-import AttrExpress from '../filters/attr-express.js'
+import AttrExpress from '../permission-filters/attr-express.js'
 import { operatorList } from '@/const/operator-list.js'
 import './filter-rule.scss'
 
@@ -222,6 +222,8 @@ export default {
               allCiTypes={this.allCiTypes}
               isFilterAttr={true}
               hiddenAttrType={this.hiddenAttrType}
+              hideFirstFilter={true}
+              hideFirstRefBy={true}
             />
           )
         case 'value':

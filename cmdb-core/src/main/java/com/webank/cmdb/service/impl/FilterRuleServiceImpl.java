@@ -66,7 +66,7 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         Map<String, Object> associatedCiData = new HashMap<>();
         if (request.getDialect() != null) {
             //TODO: rename data
-            associatedCiData = request.getDialect().getData();
+            associatedCiData = request.getDialect().getAssociatedData();
         }
 
         List<Object> results = handleAsOrRelationship(filterRule, request, associatedCiData);
@@ -89,9 +89,10 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         for (FilterUnit filterUnit : filterRule) {
             filterUnit.forEach((name,ruleUnit)->{
                 String leftExpr = ruleUnit.getLeft();
+                AdhocIntegrationQueryDto leftIntegrationQuery;
                 try {
-                    AdhocIntegrationQueryDto adhocIntegrationQuery = routeQueryExpressionService.parseRouteExpression(leftExpr);
-                    List<String> resultColumns = adhocIntegrationQuery.getQueryRequest().getResultColumns();
+                    leftIntegrationQuery = routeQueryExpressionService.parseRouteExpression(leftExpr);
+                    List<String> resultColumns = leftIntegrationQuery.getQueryRequest().getResultColumns();
                     if(resultColumns.size() != 1){
                         throw new CmdbException(String.format("Left expression should contain only one result column. (%s)",leftExpr));
                     }
@@ -104,13 +105,41 @@ public class FilterRuleServiceImpl implements FilterRuleService {
                     throw new CmdbException(String.format("Filter operator is invalid. (%s)",filterOperatorCode));
                 }
 
-                validateRuleRight(ruleUnit);
+                validateRuleRight(ruleUnit,leftIntegrationQuery);
             });
         }
 
     }
 
-    private void validateRuleRight(RuleUnit ruleUnit) {
+    private Integer getLastNodeCiTypeId(AdhocIntegrationQueryDto adhocIntegrationQuery){
+        IntegrationQueryDto integrationQuery = adhocIntegrationQuery.getCriteria();
+        Integer ciTypeId = integrationQuery.getCiTypeId();
+        while(integrationQuery.getChildren().size()>0){
+            integrationQuery = integrationQuery.getChildren().get(0);
+            ciTypeId = integrationQuery.getCiTypeId();
+        }
+        return ciTypeId;
+    }
+
+    private Integer getLastNodeAttrId(AdhocIntegrationQueryDto adhocIntegrationQuery){
+        IntegrationQueryDto integrationQuery = adhocIntegrationQuery.getCriteria();
+        String resultColumn = adhocIntegrationQuery.getQueryRequest().getResultColumns().get(0);
+
+        while(integrationQuery.getChildren().size()>0){
+            integrationQuery = integrationQuery.getChildren().get(0);
+        }
+
+        for (int i=0;i<integrationQuery.getAttrKeyNames().size();i++){
+            String attrKeyName = integrationQuery.getAttrKeyNames().get(i);
+            if(attrKeyName.equalsIgnoreCase(resultColumn)){
+                return integrationQuery.getAttrs().get(i);
+            }
+
+        }
+        throw new CmdbException("Can not find out last node attr id.");
+    }
+
+    private void validateRuleRight(RuleUnit ruleUnit,AdhocIntegrationQueryDto leftIntegrationQuery) {
         RuleRight ruleRight = ruleUnit.getRight();
         String typeCode = ruleRight.getType();
         FilterRuleDto.RightTypeEnum rightType = FilterRuleDto.RightTypeEnum.fromCode(typeCode);
@@ -123,10 +152,21 @@ public class FilterRuleServiceImpl implements FilterRuleService {
             }
             String rightExpression = (String)rightValue;
             try {
-                AdhocIntegrationQueryDto adhocIntegrationQuery = routeQueryExpressionService.parseRouteExpression(rightExpression);
-                List<String> resultColumns = adhocIntegrationQuery.getQueryRequest().getResultColumns();
+                AdhocIntegrationQueryDto rightAdhocIntegrationQuery = routeQueryExpressionService.parseRouteExpression(rightExpression);
+                List<String> resultColumns = rightAdhocIntegrationQuery.getQueryRequest().getResultColumns();
                 if(resultColumns.size() != 1){
                     throw new CmdbException(String.format("Right expression should contain only one result column. (%s)",rightExpression));
+                }
+                Integer leftLastCiTypeId = getLastNodeCiTypeId(leftIntegrationQuery);
+                Integer rightLastCiTypeId = getLastNodeCiTypeId(rightAdhocIntegrationQuery);
+                if(!leftLastCiTypeId.equals(rightLastCiTypeId)){
+                    throw new CmdbException("The last node CI type is not matched for left and right expression");
+                }
+
+                Integer leftResultAttrId = getLastNodeAttrId(leftIntegrationQuery);
+                Integer rightResultAttrId = getLastNodeAttrId(rightAdhocIntegrationQuery);
+                if(!leftResultAttrId.equals(rightResultAttrId)){
+                    throw new CmdbException("The last node result attribute is not matched for left and right expression.");
                 }
 
             }catch(Exception ex){
@@ -246,8 +286,6 @@ public class FilterRuleServiceImpl implements FilterRuleService {
 
         leftQueryRequest.setFilters(filtersWithRightValues);
 
-        List<Filter> associatedCiDataFilters = generateAssociatedCiDataFilter(associatedCiData, integrationQuery);
-        leftQueryRequest.getFilters().addAll(associatedCiDataFilters);
 
         QueryResponse response = ciService.adhocIntegrateQuery(leftAdhocIntegrationQuery);
         return response.getContents();
@@ -266,31 +304,6 @@ public class FilterRuleServiceImpl implements FilterRuleService {
             }
         }
         return emptyResultFilter;
-    }
-
-    private List<Filter> generateAssociatedCiDataFilter(Map<String, Object> associatedCiData, IntegrationQueryDto integrationQuery) {
-        List<Filter> associatedCiDataFilters = Lists.newLinkedList();
-        if(associatedCiData != null && associatedCiData.size() > 0){
-            associatedCiData.forEach((attrName,value) -> {
-                if(value == null || (value instanceof String && Strings.isNullOrEmpty((String)value))){
-                    return;
-                }
-                AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(integrationQuery.getCiTypeId(),attrName);
-                if(attr == null){
-                    return;
-                }
-
-                if(integrationQuery.getAttrs().contains(attr.getIdAdmCiTypeAttr())){
-                    logger.warn(String.format("Attribute (%d) is existed.",attr.getIdAdmCiTypeAttr()));
-                    return;
-                }
-                integrationQuery.getAttrs().add(attr.getIdAdmCiTypeAttr());
-                String filterName = integrationQuery.getKeyName() + "." + attrName;
-                integrationQuery.getAttrKeyNames().add(filterName);
-                associatedCiDataFilters.add(new Filter(filterName, FilterOperator.Equal.getCode(),value));
-            });
-        }
-        return associatedCiDataFilters;
     }
 
     private List<Filter> buildQueryConditionWithRuleRight(RuleUnit ruleUnit, QueryRequest request, Map<String, Object> associatedCiData, QueryRequest queryRequest, String exprResultColumn) {
@@ -406,28 +419,76 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         QueryRequest queryRequest = adhocIntegrationQuery.getQueryRequest();
 
         List<Map<String, Object>> contents = new LinkedList<>();
-
-        if(associatedCiData != null && associatedCiData.size()>0){
-            associatedCiData.forEach((name,value) ->{
-                if(value == null|| (value instanceof String && Strings.isNullOrEmpty((String) value))
-                        || (value instanceof List && ((List)value).size()==0)){
-                    return;
-                }
-
-                AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(integrationQuery.getCiTypeId(),name);
-                if(!integrationQuery.getAttrs().contains(attr.getIdAdmCiTypeAttr())){
-                    integrationQuery.getAttrs().add(attr.getIdAdmCiTypeAttr());
-                    String attKeyName = integrationQuery.getKeyName() + "." + attr.getPropertyName();
-                    integrationQuery.getAttrKeyNames().add(attKeyName);
-                    queryRequest.getFilters().add(new Filter(attKeyName, FilterOperator.Equal.getCode(),value));
-                }
-            });
+        String associatedFieldName = getAssociateFilterName(integrationQuery);
+        if(Strings.isNullOrEmpty(associatedFieldName)){
+            logger.error(String.format("Can not find out associated field name, please check. (%s)",expression));
+            return Lists.newArrayList();
         }
-        QueryResponse ret = ciService.adhocIntegrateQuery(adhocIntegrationQuery);
+
+        String associateValue = String.valueOf(associatedCiData.get(associatedFieldName));
+        AdhocIntegrationQueryDto exprAdhocIntegrateQuery = getRightRuleExpressionQuery(adhocIntegrationQuery,associateValue);
+
+        QueryResponse ret = ciService.adhocIntegrateQuery(exprAdhocIntegrateQuery);
         if (ret != null) {
             contents = ret.getContents();
         }
         return contents;
+    }
+
+    private AdhocIntegrationQueryDto getRightRuleExpressionQuery(AdhocIntegrationQueryDto adhocIntegrationQuery, String associateValue) {
+        IntegrationQueryDto rootIntegrationQuery = adhocIntegrationQuery.getCriteria();
+        QueryRequest queryRequest = adhocIntegrationQuery.getQueryRequest();
+
+        if(rootIntegrationQuery.getChildren().size() != 1){
+            throw new CmdbException("Invalid expression for filter rule. The children size is incorrect.");
+        }
+
+        IntegrationQueryDto integrationQueryDto = rootIntegrationQuery.getChildren().get(0);
+        String rootKeyName = rootIntegrationQuery.getKeyName();
+        List<Filter> filters = Lists.newLinkedList();
+        for (Filter filter : queryRequest.getFilters()) {
+            if(!filter.getName().startsWith(rootKeyName+".")){
+                filters.add(filter);
+            }
+        }
+
+        AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(integrationQueryDto.getCiTypeId(),"guid");
+        if(!integrationQueryDto.getAttrs().contains(attr.getIdAdmCiTypeAttr())){
+            integrationQueryDto.getAttrs().add(attr.getIdAdmCiTypeAttr());
+            integrationQueryDto.getAttrKeyNames().add(integrationQueryDto.getKeyName()+"."+attr.getPropertyName());
+        }
+
+        filters.add(new Filter(integrationQueryDto.getKeyName()+"."+"guid",FilterOperator.Equal.getCode(),associateValue));
+        queryRequest.setFilters(filters);
+
+        List<String> resultColumns = Lists.newLinkedList();
+        for (String resultColumn : queryRequest.getResultColumns()) {
+            if(!resultColumn.startsWith(rootKeyName+".")){
+                resultColumns.add(resultColumn);
+            }
+        }
+        queryRequest.setResultColumns(resultColumns);
+
+        integrationQueryDto.setParentRs(null);
+        AdhocIntegrationQueryDto rightRuleAdhocIntegrationQuery = new AdhocIntegrationQueryDto();
+        rightRuleAdhocIntegrationQuery.setCriteria(integrationQueryDto);
+        rightRuleAdhocIntegrationQuery.setQueryRequest(queryRequest);
+        return rightRuleAdhocIntegrationQuery;
+    }
+
+    private String getAssociateFilterName(IntegrationQueryDto integrationQuery) {
+        if(integrationQuery.getChildren().size()==0){
+            return "";
+        }
+
+        IntegrationQueryDto childQuery = integrationQuery.getChildren().get(0);
+        Relationship relationship = childQuery.getParentRs();
+        if(relationship.getIsReferedFromParent()){
+            Integer attrId = relationship.getAttrId();
+            AdmCiTypeAttr attr = ciTypeAttrRepository.getOne(attrId);
+            return attr.getPropertyName();
+        }
+        return "";
     }
 
 }

@@ -18,7 +18,9 @@ export default {
     operatorList: { default: () => operatorList, type: Array, required: false },
     showAddButton: { default: false, type: Boolean, required: false },
     banRootCiDelete: { default: false, type: Boolean, required: false },
-    hideFilterModal: { default: false, type: Boolean, required: false }
+    hideFilterModal: { default: false, type: Boolean, required: false },
+    hideFirstFilter: { default: false, type: Boolean, required: false },
+    hideFirstRefBy: { default: false, type: Boolean, required: false }
   },
   data () {
     return {
@@ -159,6 +161,9 @@ export default {
       if (this.hideFilterModal) {
         return
       }
+      if (this.hideFirstFilter && !attrIndex) {
+        return
+      }
       this.options.push({
         type: 'option',
         class: 'attr-express-li attr-express-li-filter',
@@ -189,39 +194,41 @@ export default {
       if (refFroms.statusCode === 'OK' && ciAttrs.statusCode === 'OK') {
         this.filterCiAttrs = ciAttrs.data
         // 下拉框添加被引用的CI的选项
-        refFroms.data.length &&
-          this.options.push({
-            type: 'line'
-          })
-        this.options = this.options.concat(
-          refFroms.data.map(_ => {
-            const ciType = _.ciType.tableName
-            const attr = _.propertyName
-            const nodeName = `~(${attr})${ciType}`
-            const nodeObj = {
-              innerText: nodeName,
-              props: {
-                class: 'attr-express-node',
-                attrs: {
-                  'attr-index': attrIndex + 1,
-                  filter: false,
-                  citype: ciType,
-                  nodeType: 'node'
+        if (attrIndex || !this.hideFirstRefBy) {
+          refFroms.data.length &&
+            this.options.push({
+              type: 'line'
+            })
+          this.options = this.options.concat(
+            refFroms.data.map(_ => {
+              const ciType = _.ciType.tableName
+              const attr = _.propertyName
+              const nodeName = `~(${attr})${ciType}`
+              const nodeObj = {
+                innerText: nodeName,
+                props: {
+                  class: 'attr-express-node',
+                  attrs: {
+                    'attr-index': attrIndex + 1,
+                    filter: false,
+                    citype: ciType,
+                    nodeType: 'node'
+                  }
+                },
+                data: {
+                  inputType: _.inputType,
+                  ciTypeId: _.ciTypeId
                 }
-              },
-              data: {
-                inputType: _.inputType,
-                ciTypeId: _.ciTypeId
               }
-            }
-            return {
-              type: 'option',
-              class: 'attr-express-li attr-express-li-ref attr-express-li-ref-from',
-              nodeName,
-              fn: () => this.addNode(attrIndex + 1, nodeObj)
-            }
-          })
-        )
+              return {
+                type: 'option',
+                class: 'attr-express-li attr-express-li-ref attr-express-li-ref-from',
+                nodeName,
+                fn: () => this.addNode(attrIndex + 1, nodeObj)
+              }
+            })
+          )
+        }
         // 下拉框添加属性及引用的CI的选项
         ciAttrs.data.length &&
           this.options.push({
