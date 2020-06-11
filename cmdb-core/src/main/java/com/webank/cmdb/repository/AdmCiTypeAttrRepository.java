@@ -77,4 +77,6 @@ public interface AdmCiTypeAttrRepository extends JpaRepository<AdmCiTypeAttr, In
     @Cacheable("admCiTypeAttrRepository-getOne")
     AdmCiTypeAttr getOne(Integer id);
 
+    List<AdmCiTypeAttr> findAllByFilterRuleNotNull();
+
 }

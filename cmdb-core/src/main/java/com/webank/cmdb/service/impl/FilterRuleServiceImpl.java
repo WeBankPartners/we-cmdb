@@ -9,12 +9,14 @@ import com.webank.cmdb.dto.*;
 import com.webank.cmdb.dto.FilterRuleDto.FilterUnit;
 import com.webank.cmdb.dto.FilterRuleDto.RuleRight;
 import com.webank.cmdb.dto.FilterRuleDto.RuleUnit;
+import com.webank.cmdb.expression.RouteQueryExpressionFormatter;
 import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
 import com.webank.cmdb.service.FilterRuleService;
 import com.webank.cmdb.service.RouteQueryExpressionService;
 import com.webank.cmdb.support.exception.CmdbException;
 import com.webank.cmdb.support.exception.InvalidArgumentException;
 import com.webank.cmdb.util.JsonUtil;
+import io.swagger.models.auth.In;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,6 +111,86 @@ public class FilterRuleServiceImpl implements FilterRuleService {
             });
         }
 
+    }
+
+    @Override
+    public FilterRuleDto convertLegacyFilterRule(String legacyRule) {
+        RouteQueryExpressionFormatter routeQueryExpressionFormatter = new RouteQueryExpressionFormatter(ciService.getDynamicEntityMetaMap());
+        try {
+            List<Map> ruleList = JsonUtil.toList(legacyRule,Map.class);
+            FilterRuleDto filterRuleDto = new FilterRuleDto();
+            for (Map map : ruleList) {
+                FilterUnit filterUnit = new FilterUnit();
+                Map<String,Map> ruleMap = (Map<String,Map>)map;
+                for(Map.Entry<String,Map> kv : ruleMap.entrySet()){
+                    String name = kv.getKey();
+                    Map valueMap = kv.getValue();
+
+                    RuleUnit ruleUnit = new RuleUnit();
+                    Map legacyUnitMap = (Map)valueMap;
+                    String leftExprs = (String) legacyUnitMap.get("left");
+                    List<Map> leftQueryChain = JsonUtil.toList(leftExprs,Map.class);
+                    AdhocIntegrationQueryDto leftAdhocIntegrationQuery = convertLegacyQueryChain(leftQueryChain);
+                    String leftRouteQueryExpr = routeQueryExpressionFormatter.format(leftAdhocIntegrationQuery);
+                    ruleUnit.setLeft(leftRouteQueryExpr);
+                    ruleUnit.setOperator("in");
+
+                    String legacyOperator = (String)legacyUnitMap.get("operator");
+                    Object rightValue = legacyUnitMap.get("right");
+                    if(rightValue instanceof String){
+                        String rightExpr = (String)rightValue;
+                        List<Map> rightQueryChain = JsonUtil.toList(rightExpr,Map.class);
+                        AdhocIntegrationQueryDto rightAdhocIntegrationQuery = convertLegacyQueryChain(rightQueryChain);
+                        String rightRouteQueryExpr = routeQueryExpressionFormatter.format(rightAdhocIntegrationQuery);
+                        ruleUnit.setRight(new RuleRight(FilterRuleDto.RightTypeEnum.Expression.getCode(),rightRouteQueryExpr));
+                    }else if(rightValue instanceof List){
+                        ruleUnit.setRight(new RuleRight(FilterRuleDto.RightTypeEnum.Array.getCode(),rightValue));
+                    }
+                    filterUnit.put(name,ruleUnit);
+                }
+                filterRuleDto.add(filterUnit);
+            }
+            return filterRuleDto;
+        } catch (IOException e) {
+            logger.warn(String.format("Fail to convert legacy filter rule: (%s)",legacyRule),e);
+            return null;
+        }
+    }
+
+    private AdhocIntegrationQueryDto convertLegacyQueryChain(List<Map> legacyQueryChain){
+        AdhocIntegrationQueryDto adhocIntegrationQueryDto = new AdhocIntegrationQueryDto();
+        IntegrationQueryDto rootIntegrationQuery = null;
+        IntegrationQueryDto prevIntegrationQuery = null;
+        for (int i=0;i<legacyQueryChain.size();i++) {
+            IntegrationQueryDto curIntegrationQuery = new IntegrationQueryDto();
+            Map curQuery = (Map)legacyQueryChain.get(i);
+            Integer ciTypeId = (Integer) curQuery.get("ciTypeId");
+            curIntegrationQuery.setCiTypeId(ciTypeId);
+            Map parentRs = (Map)curQuery.get("parentRs");
+            if(parentRs != null){
+                Integer attrId = (Integer) parentRs.get("attrId");
+                Integer isReferedFromParent = (Integer) parentRs.get("isReferedFromParent");
+                if(i < legacyQueryChain.size()-1) {
+                    curIntegrationQuery.setParentRs(new Relationship(attrId, new Integer(1).equals(isReferedFromParent)));
+                }else{//last query in chain
+                    AdmCiTypeAttr ciTypeAttr = ciTypeAttrRepository.getOne(attrId);
+                    String attrName = ciTypeAttr.getPropertyName();
+                    prevIntegrationQuery.getAttrs().add(attrId);
+                    prevIntegrationQuery.getAttrKeyNames().add(attrName);
+                    adhocIntegrationQueryDto.getQueryRequest().getResultColumns().add(attrName);
+                }
+            }
+
+            if(i==0){
+                rootIntegrationQuery = curIntegrationQuery;
+                prevIntegrationQuery = curIntegrationQuery;
+            }else if(i< legacyQueryChain.size()-1){
+                prevIntegrationQuery.getChildren().add(curIntegrationQuery);
+                prevIntegrationQuery = curIntegrationQuery;
+            }
+        }
+        adhocIntegrationQueryDto.setCriteria(rootIntegrationQuery);
+        return adhocIntegrationQueryDto;
     }
 
     private Integer getLastNodeCiTypeId(AdhocIntegrationQueryDto adhocIntegrationQuery){
