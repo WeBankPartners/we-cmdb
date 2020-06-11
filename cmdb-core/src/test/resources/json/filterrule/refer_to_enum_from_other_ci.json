@@ -1,7 +1,0 @@
-[{
-	"filter_1": {
-		"left": "[{\"ciTypeId\":25},{\"ciTypeId\":25,\"parentRs\":{\"attrId\":439,\"isReferedFromParent\":1},\"enumCodeAttr\":\"value\"}]",
-		"operator": "in",
-		"right": "[{\"ciTypeId\":25},{\"ciTypeId\":19,\"parentRs\":{\"attrId\":345,\"isReferedFromParent\":0}},{\"ciTypeId\":20,\"parentRs\":{\"attrId\":359,\"isReferedFromParent\":0}},{\"ciTypeId\":8,\"parentRs\":{\"attrId\":128,\"isReferedFromParent\":0}},{\"ciTypeId\":3,\"parentRs\":{\"attrId\":125,\"isReferedFromParent\":1}},{\"ciTypeId\":2,\"parentRs\":{\"attrId\":43,\"isReferedFromParent\":1}},{\"ciTypeId\":2,\"parentRs\":{\"attrId\":29,\"isReferedFromParent\":1},\"enumCodeAttr\":\"value\"}]"
-	}
-}]

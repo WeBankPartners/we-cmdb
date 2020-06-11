@@ -9,8 +9,8 @@ import com.google.common.base.Strings;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dto.QueryRequest;
-import com.webank.cmdb.exception.AttributeNotFoundException;
-import com.webank.cmdb.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.AttributeNotFoundException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
 import com.webank.cmdb.repository.impl.StaticEntityRepositoryImpl.FilterPath;
 import com.webank.cmdb.repository.impl.StaticEntityRepositoryImpl.JoinFilter;
 
