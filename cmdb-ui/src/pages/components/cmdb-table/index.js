@@ -258,6 +258,7 @@ export default {
           case 'WeCMDBSelect':
             return (
               <item.component
+                on-on-enter={() => this.handleSubmit('form')}
                 onInput={v => (this.form[item.inputKey] = v)}
                 onChange={v => item.onChange && this.$emit(item.onChange, v)}
                 value={this.form[item.inputKey]}
@@ -270,6 +271,7 @@ export default {
           case 'WeCMDBRefSelect':
             return (
               <item.component
+                on-on-enter={() => this.handleSubmit('form')}
                 onInput={v => (this.form[item.inputKey] = v)}
                 value={this.form[item.inputKey]}
                 {...data}
@@ -278,6 +280,7 @@ export default {
           default:
             return (
               <item.component
+                on-on-enter={() => this.handleSubmit('form')}
                 value={this.form[item.inputKey]}
                 onInput={v => (this.form[item.inputKey] = v)}
                 isReadOnly={item.component === 'CMDBPermissionFilters'}
