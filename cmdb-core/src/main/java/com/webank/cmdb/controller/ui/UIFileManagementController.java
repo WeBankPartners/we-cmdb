@@ -1,8 +1,6 @@
 package com.webank.cmdb.controller.ui;
 
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_CMDB_MODEL_MANAGEMENT;
-import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_ENQUIRY;
-import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_MANAGEMENT;
 
 import java.io.IOException;
 
@@ -23,8 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.webank.cmdb.config.ApplicationProperties;
 import com.webank.cmdb.dto.ImageInfoDto;
-import com.webank.cmdb.exception.CmdbException;
-import com.webank.cmdb.exception.ServiceException;
+import com.webank.cmdb.support.exception.CmdbException;
+import com.webank.cmdb.support.exception.ServiceException;
 import com.webank.cmdb.service.ImageService;
 
 import lombok.extern.slf4j.Slf4j;

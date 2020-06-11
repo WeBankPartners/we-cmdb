@@ -225,9 +225,9 @@
   "auto_fill_edit_delimiter": "编辑连接符",
   "auto_fill_special_delimiter": "特殊连接符",
   "auto_fill_change_special_delimiter": "编辑特殊连接符",
-  "auto_fill_filter_modal_title": "过滤条件",
-  "auto_fill_filter_modal_button": "添加过滤条件",
-  "auto_fill_filter_placeholder": " <-- 点此开始编辑填充规则",
+  "attr_express_modal_title": "过滤条件",
+  "attr_express_modal_button": "添加过滤条件",
+  "attr_express_placeholder": " <-- 点此开始编辑表达式",
   "updated_time": "更新时间",
   "query_type": "查询类型",
   "type_latest": "最新",
@@ -259,5 +259,8 @@
   "routing_diagram": "路由关系图",
   "security_policy_diagram": "安全策略关系图",
   "express": "表达式",
-  "add_expression": "新增表达式"
+  "add_expression": "新增表达式",
+  "filter_rule_modal_title": "编辑过滤规则",
+  "filter_rule_edit_icon_placeholder": "<-- 点此编辑过滤规则",
+  "filter_rule_add_button": "添加过滤规则"
 }

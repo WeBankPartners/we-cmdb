@@ -1,7 +1,0 @@
-[{
-	"filter_1": {
-		"left": "[{\"ciTypeId\":12},{\"ciTypeId\":12,\"parentRs\":{\"attrId\":209,\"isReferedFromParent\":1},\"enumCodeAttr\":\"value\"}]",
-		"operator": "in",
-		"right": ["4"]
-	}
-}]

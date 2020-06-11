@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.MoreObjects;
 import com.webank.cmdb.domain.AdmRoleCiTypeCtrlAttr;
-import com.webank.cmdb.exception.CmdbException;
+import com.webank.cmdb.support.exception.CmdbException;
 import com.webank.cmdb.util.CollectionUtils;
 import com.webank.cmdb.util.DtoField;
 import com.webank.cmdb.util.DtoId;

@@ -357,7 +357,7 @@ export default {
             const isRef = found && ['ref', 'multiRef'].indexOf(found.inputType) >= 0
             const isSelect = found && ['select', 'multiSelect'].indexOf(found.inputType) >= 0
             if (isRef) {
-              obj[i] = _[i] ? _[i].conditionValueExprs : []
+              obj[i] = _[i] ? _[i].conditionValueExprs.map(item => item.replace(':[guid]', '')) : []
             } else if (isSelect) {
               obj[i] = _[i] ? _[i].conditionValueSelects : []
             } else {
@@ -423,6 +423,12 @@ export default {
     copyHandler (rows = [], cols) {
       this.$refs.table.showCopyModal()
     },
+    formatConditionValue (value) {
+      return value.map(_ => {
+        let arr = _.split(/[.~]/)
+        return _.replace(arr[0], arr[0] + ':[guid]')
+      })
+    },
     async confirmAddHandler (data) {
       let addAry = JSON.parse(JSON.stringify(data))
       addAry.forEach(_ => {
@@ -439,7 +445,7 @@ export default {
               _[i] = _[i].length
                 ? {
                   conditionType: 'Expression',
-                  conditionValueExprs: _[i]
+                  conditionValueExprs: this.formatConditionValue(_[i])
                 }
                 : null
             } else if (['select', 'multiSelect'].indexOf(foundCi.inputType) >= 0) {
@@ -483,7 +489,7 @@ export default {
                 Array.isArray(_[i]) && _[i].length
                   ? {
                     conditionType: 'Expression',
-                    conditionValueExprs: _[i]
+                    conditionValueExprs: this.formatConditionValue(_[i])
                   }
                   : null
             } else if (['select', 'multiSelect'].indexOf(foundCi.inputType) >= 0) {

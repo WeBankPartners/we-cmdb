@@ -1,6 +1,6 @@
 package com.webank.cmdb.constant;
 
-import com.webank.cmdb.exception.ServiceException;
+import com.webank.cmdb.support.exception.ServiceException;
 
 public enum FieldType {
     None("none", null), Varchar("varchar", String.class), Int("int", Integer.class), DateTime("datetime", java.util.Date.class), Date("date", java.util.Date.class);
