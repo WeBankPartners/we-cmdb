@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div @click="onIdcDataChange('0012_0000000002')">asdfasdfasdf</div>
+    <div @click="test">asdfasdfasdf</div>
     <Row style="margin-bottom: 16px;">
       <span>{{ $t('select_idc') }}：</span>
       <Select :placeholder="$t('select_idc')" class="graph-select" @on-change="onIdcDataChange">
@@ -101,6 +101,9 @@ export default {
     }
   },
   methods: {
+    test () {
+      this.spinShow = !this.spinShow
+    },
     markZone (guid) {
       this.cacheIdPath = [`g_` + guid]
     },
@@ -152,7 +155,7 @@ export default {
       this.idcDesignData = sortingTree(graphData)
       this.getZoneLink()
     },
-    async onIdcDataChange (guid = '0012_0000000001') {
+    async onIdcDataChange (guid = '0012_0000000003') {
       this.spinShow = true
       const { data, statusCode } = await getIdcDesignTreeByGuid([guid])
       this.graphData = data
@@ -505,7 +508,6 @@ export default {
             state: _.data.state.code
           }
         })
-        console.log(this.idcLink)
       }
       this.initGraph()
     },
