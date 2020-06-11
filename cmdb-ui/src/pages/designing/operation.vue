@@ -1,45 +1,176 @@
 <template>
-  <div class="">
-    <h4>当前节点：</h4>
-    <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
-      <Panel name="1">
-        {{ parentPanalData.data.code }}
-        <div slot="content">
-          <Form>
+  <div class="opertaion">
+    <Tabs :animated="false">
+      <TabPane label="节点信息">
+        <h4>当前节点：</h4>
+        <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
+          <Panel name="1">
+            {{ parentPanalData.data.code }}
+            <div slot="content">
+              <Form>
+                <div
+                  v-for="(formData, formDataIndex) in parentPanalForm"
+                  v-if="formData.isDisplayed"
+                  :key="formDataIndex + 'a'"
+                >
+                  <Tooltip :content="formData.description" :delay="500" placement="top-end" style="position: absolute;">
+                    <span class="form-item-title"> {{ formData.name }}</span>
+                  </Tooltip>
+                  <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
+                    <Input
+                      v-model="parentPanalData.data[formData.propertyName]"
+                      :disabled="!isEdit || !formData.isEditable"
+                    ></Input>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
+                    <textarea
+                      v-model="parentPanalData.data[formData.propertyName]"
+                      :disabled="!isEdit || !formData.isEditable"
+                      class="textArea-style"
+                    ></textarea>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
+                    <Ref
+                      :formData="formData"
+                      :panalData="parentPanalData.data"
+                      :disabled="!isEdit || !formData.isEditable"
+                    ></Ref>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
+                    <MutiRef
+                      :formData="formData"
+                      :panalData="parentPanalData.data"
+                      :disabled="!isEdit || !formData.isEditable"
+                    ></MutiRef>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
+                    select
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
+                    multiSelect
+                  </FormItem>
+                </div>
+                <FormItem>
+                  <div class="opetation-btn-zone">
+                    <Button @click="editOperation">编辑</Button>
+                    <Button
+                      type="primary"
+                      @click="saveOperation('parentPanalData')"
+                      :disabled="!isEdit"
+                      class="opetation-btn"
+                      >保存</Button
+                    >
+                  </div>
+                </FormItem>
+              </Form>
+            </div>
+          </Panel>
+        </Collapse>
+        <h4>子节点：</h4>
+        <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
+          <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
+            {{ panal.data.code }}
+            <Button
+              @click="deleteNode(panalData, panalIndex, $event)"
+              size="small"
+              type="error"
+              style="float: right;margin:6px;"
+              >删除</Button
+            >
+            <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button>
+            <div slot="content">
+              <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
+                <div
+                  v-for="(formData, formDataIndex) in panalForm"
+                  v-if="formData.isDisplayed"
+                  :key="formDataIndex + 'b'"
+                >
+                  <Tooltip :content="formData.description" :delay="500" placement="top-end" style="position: absolute;">
+                    <span class="form-item-title"> {{ formData.name }}</span>
+                  </Tooltip>
+                  <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
+                    <Input
+                      v-model="panal.data[formData.propertyName]"
+                      :disabled="!isEdit || !formData.isEditable"
+                    ></Input>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
+                    <textarea
+                      v-model="panal.data[formData.propertyName]"
+                      :disabled="!isEdit || !formData.isEditable"
+                      class="textArea-style"
+                    ></textarea>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
+                    <Ref :formData="formData" :panalData="panal.data" :disabled="!isEdit || !formData.isEditable"></Ref>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
+                    <MutiRef
+                      :formData="formData"
+                      :panalData="panal.data"
+                      :disabled="!isEdit || !formData.isEditable"
+                    ></MutiRef>
+                  </FormItem>
+                  <FormItem
+                    v-if="formData.inputType === 'select'"
+                    :disabled="!isEdit || !formData.isEditable"
+                    class="form-item-content"
+                  >
+                    select
+                  </FormItem>
+                  <FormItem
+                    v-if="formData.inputType === 'multiSelect'"
+                    :disabled="!isEdit || !formData.isEditable"
+                    class="form-item-content"
+                  >
+                    multiSelect
+                  </FormItem>
+                </div>
+                <FormItem>
+                  <div class="opetation-btn-zone">
+                    <Button @click="editOperation">编辑</Button>
+                    <Button
+                      type="primary"
+                      @click="saveOperation('panalData', panalIndex)"
+                      :disabled="!isEdit"
+                      class="opetation-btn"
+                      >保存</Button
+                    >
+                  </div>
+                </FormItem>
+              </Form>
+            </div>
+          </Panel>
+          <div style="margin: 12px;">
+            <Button @click="showAddNodeArea = true" size="small" long type="info">新增节点</Button>
+          </div>
+        </Collapse>
+        <div v-if="showAddNodeArea" class="add-node-area">
+          <Select v-model="selectedNodeType" @on-change="getNewNodeAttr" @on-open-change="getNodeTypes">
+            <Option v-for="(item, index) in canCreateNodeTypes" :value="item.value" :key="item.value + index">{{
+              item.label
+            }}</Option>
+          </Select>
+          <Form v-if="showNewNodeForm" class="add-node-area">
             <div
-              v-for="(formData, formDataIndex) in parentPanalForm"
-              v-if="formData.isDisplayed"
+              v-for="(formData, formDataIndex) in newNodeForm"
+              v-if="formData.isDisplayed && formData.isEditable"
               :key="formDataIndex + 'a'"
             >
               <Tooltip :content="formData.description" :delay="500" placement="top-end" style="position: absolute;">
                 <span class="form-item-title"> {{ formData.name }}</span>
               </Tooltip>
               <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-                <Input
-                  v-model="parentPanalData.data[formData.propertyName]"
-                  :disabled="!isEdit || !formData.isEditable"
-                ></Input>
+                <Input v-model="newNodeFormData[formData.propertyName]"></Input>
               </FormItem>
               <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
-                <textarea
-                  v-model="parentPanalData.data[formData.propertyName]"
-                  :disabled="!isEdit || !formData.isEditable"
-                  class="textArea-style"
-                ></textarea>
+                <textarea v-model="newNodeFormData[formData.propertyName]" class="textArea-style"></textarea>
               </FormItem>
               <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-                <Ref
-                  :formData="formData"
-                  :panalData="parentPanalData.data"
-                  :disabled="!isEdit || !formData.isEditable"
-                ></Ref>
+                <Ref :formData="formData" :panalData="newNodeFormData" :disabled="false"></Ref>
               </FormItem>
               <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-                <MutiRef
-                  :formData="formData"
-                  :panalData="parentPanalData.data"
-                  :disabled="!isEdit || !formData.isEditable"
-                ></MutiRef>
+                <MutiRef :formData="formData" :panalData="newNodeFormData"></MutiRef>
               </FormItem>
               <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
                 select
@@ -50,134 +181,126 @@
             </div>
             <FormItem>
               <div class="opetation-btn-zone">
-                <Button @click="editOperation">编辑</Button>
-                <Button
-                  type="primary"
-                  @click="saveOperation('parentPanalData')"
-                  :disabled="!isEdit"
-                  class="opetation-btn"
-                  >保存</Button
-                >
+                <Button type="primary" @click="createNode">创建节点</Button>
+                <Button @click="cancleAddNode" class="opetation-btn">取消</Button>
               </div>
             </FormItem>
           </Form>
         </div>
-      </Panel>
-    </Collapse>
-    <h4>子节点：</h4>
-    <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
-      <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
-        {{ panal.data.code }}
-        <Button
-          @click="deleteNode(panalData, panalIndex, $event)"
-          size="small"
-          type="error"
-          style="float: right;margin:6px;"
-          >删除</Button
-        >
-        <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button>
-        <div slot="content">
-          <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
-            <div v-for="(formData, formDataIndex) in panalForm" v-if="formData.isDisplayed" :key="formDataIndex + 'b'">
+      </TabPane>
+      <TabPane label="连线信息">
+        <Collapse v-model="parentPanal" accordion @on-change="openParentPanal">
+          <Panel name="1">
+            123123
+            <!-- {{ parentPanalData.data.code }} -->
+            <!-- <div slot="content">
+              <Form>
+                <div
+                  v-for="(formData, formDataIndex) in parentPanalForm"
+                  v-if="formData.isDisplayed"
+                  :key="formDataIndex + 'a'"
+                >
+                  <Tooltip :content="formData.description" :delay="500" placement="top-end" style="position: absolute;">
+                    <span class="form-item-title"> {{ formData.name }}</span>
+                  </Tooltip>
+                  <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
+                    <Input
+                      v-model="parentPanalData.data[formData.propertyName]"
+                      :disabled="!isEdit || !formData.isEditable"
+                    ></Input>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
+                    <textarea
+                      v-model="parentPanalData.data[formData.propertyName]"
+                      :disabled="!isEdit || !formData.isEditable"
+                      class="textArea-style"
+                    ></textarea>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
+                    <Ref
+                      :formData="formData"
+                      :panalData="parentPanalData.data"
+                      :disabled="!isEdit || !formData.isEditable"
+                    ></Ref>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
+                    <MutiRef
+                      :formData="formData"
+                      :panalData="parentPanalData.data"
+                      :disabled="!isEdit || !formData.isEditable"
+                    ></MutiRef>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
+                    select
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
+                    multiSelect
+                  </FormItem>
+                </div>
+                <FormItem>
+                  <div class="opetation-btn-zone">
+                    <Button @click="editOperation">编辑</Button>
+                    <Button
+                      type="primary"
+                      @click="saveOperation('parentPanalData')"
+                      :disabled="!isEdit"
+                      class="opetation-btn"
+                      >保存</Button
+                    >
+                  </div>
+                </FormItem>
+              </Form>
+            </div> -->
+          </Panel>
+          <div style="margin: 12px;">
+            <Button @click="showAddLineArea = true" size="small" long type="info">新增连线</Button>
+          </div>
+        </Collapse>
+        <div v-if="showAddLineArea" class="add-node-area">
+          {{ selectedLineType }}
+          <Select v-model="selectedLineType" @on-change="getNewLineAttr">
+            <Option v-for="(item, index) in canCreateLineTypes" :value="item.value" :key="item.value + index">{{
+              item.label
+            }}</Option>
+          </Select>
+          <Form v-if="showNewLineForm" class="add-node-area">
+            <div
+              v-for="(formData, formDataIndex) in newLineForm"
+              v-if="formData.isDisplayed && formData.isEditable"
+              :key="formDataIndex + 'a'"
+            >
               <Tooltip :content="formData.description" :delay="500" placement="top-end" style="position: absolute;">
                 <span class="form-item-title"> {{ formData.name }}</span>
               </Tooltip>
               <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-                <Input v-model="panal.data[formData.propertyName]" :disabled="!isEdit || !formData.isEditable"></Input>
+                <Input v-model="newLineFormData[formData.propertyName]"></Input>
               </FormItem>
               <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
-                <textarea
-                  v-model="panal.data[formData.propertyName]"
-                  :disabled="!isEdit || !formData.isEditable"
-                  class="textArea-style"
-                ></textarea>
+                <textarea v-model="newLineFormData[formData.propertyName]" class="textArea-style"></textarea>
               </FormItem>
               <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-                <Ref :formData="formData" :panalData="panal.data" :disabled="!isEdit || !formData.isEditable"></Ref>
+                <Ref :formData="formData" :panalData="newLineFormData" :disabled="false"></Ref>
               </FormItem>
               <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-                <MutiRef
-                  :formData="formData"
-                  :panalData="panal.data"
-                  :disabled="!isEdit || !formData.isEditable"
-                ></MutiRef>
+                <MutiRef :formData="formData" :panalData="newLineFormData"></MutiRef>
               </FormItem>
-              <FormItem
-                v-if="formData.inputType === 'select'"
-                :disabled="!isEdit || !formData.isEditable"
-                class="form-item-content"
-              >
+              <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
                 select
               </FormItem>
-              <FormItem
-                v-if="formData.inputType === 'multiSelect'"
-                :disabled="!isEdit || !formData.isEditable"
-                class="form-item-content"
-              >
+              <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
                 multiSelect
               </FormItem>
             </div>
             <FormItem>
               <div class="opetation-btn-zone">
-                <Button @click="editOperation">编辑</Button>
-                <Button
-                  type="primary"
-                  @click="saveOperation('panalData', panalIndex)"
-                  :disabled="!isEdit"
-                  class="opetation-btn"
-                  >保存</Button
-                >
+                <Button type="primary" @click="createLine">创建连线</Button>
+                <!-- <Button @click="cancleAddNode" class="opetation-btn">取消</Button> -->
               </div>
             </FormItem>
           </Form>
         </div>
-      </Panel>
-      <div style="margin: 12px;">
-        <Button @click="showAddNodeArea = true" size="small" long type="info">新增节点</Button>
-      </div>
-    </Collapse>
-    <div v-if="showAddNodeArea" class="add-node-area">
-      <Select v-model="selectedType" @on-change="getNewNodeAttr" @on-open-change="getNodeTypes">
-        <Option v-for="(item, index) in canCreateNodeTypes" :value="item.value" :key="item.value + index">{{
-          item.label
-        }}</Option>
-      </Select>
-      <Form v-if="showNewNodeForm" class="add-node-area">
-        <div
-          v-for="(formData, formDataIndex) in newNodeForm"
-          v-if="formData.isDisplayed && formData.isEditable"
-          :key="formDataIndex + 'a'"
-        >
-          <Tooltip :content="formData.description" :delay="500" placement="top-end" style="position: absolute;">
-            <span class="form-item-title"> {{ formData.name }}</span>
-          </Tooltip>
-          <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-            <Input v-model="newNodeFormData[formData.propertyName]"></Input>
-          </FormItem>
-          <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
-            <textarea v-model="newNodeFormData[formData.propertyName]" class="textArea-style"></textarea>
-          </FormItem>
-          <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-            <Ref :formData="formData" :panalData="newNodeFormData" :disabled="false"></Ref>
-          </FormItem>
-          <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-            <MutiRef :formData="formData" :panalData="newNodeFormData"></MutiRef>
-          </FormItem>
-          <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
-            select
-          </FormItem>
-          <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
-            multiSelect
-          </FormItem>
-        </div>
-        <FormItem>
-          <div class="opetation-btn-zone">
-            <Button type="primary" @click="createNode">创建节点</Button>
-            <Button @click="cancleAddNode" class="opetation-btn">取消</Button>
-          </div>
-        </FormItem>
-      </Form>
-    </div>
+      </TabPane>
+    </Tabs>
   </div>
 </template>
 
@@ -189,9 +312,9 @@ import {
   createCiDatas,
   deleteCiDatas,
   queryCiData,
-  getEnumCodesByCategoryId
+  getAllSystemEnumCodes,
+  getAllCITypesByLayerWithAttr
 } from '@/api/server'
-import { VIEW_CONFIG_PARAMS, IDC_PLANNING_LINK_ID } from '@/const/init-params.js'
 import Ref from './ref'
 import RefAdd from './ref-add'
 import MutiRef from './muti-ref'
@@ -199,17 +322,6 @@ export default {
   name: '',
   data () {
     return {
-      cityList: [
-        {
-          value: 'New York',
-          label: 'New York'
-        },
-        {
-          value: 'London',
-          label: 'London'
-        }
-      ],
-      model1: '',
       initParams: {},
       parentPanal: '',
       parentPanalData: { data: { code: '' } },
@@ -223,42 +335,176 @@ export default {
       isEdit: false,
 
       showAddNodeArea: false, // 新增节点区域
-      selectedType: null,
+      selectedNodeType: null,
       canCreateNodeTypes: [], // 可创建节点类型列表
       newNodeFormData: {}, // 待创建节点表单
       newNodeForm: [], // 待创建节点表单
-      showNewNodeForm: false // 新增表单
+      showNewNodeForm: false, // 新增表单
+
+      showAddLineArea: false,
+      selectedLineType: null,
+      canCreateLineTypes: [], // 可创建连线类型
+      newLineFormData: {}, // 待创建节点表单
+      newLineForm: [], // 待创建节点表单
+      showNewLineForm: false, // 新增表单
+
+      codeData: [],
+      edgeData: [], // 可连接线信息
+      allCITypes: {},
+      currentLineId: null
     }
   },
-  watch: {
-    // parentPanal: function (val) {
-    //   console.log(val)
-    //   this.isEdit = false
-    //   if (val.length) {
-    //     const ciTypeId = this.parentPanalForm[0].ciTypeId
-    //     this.getAttributes(ciTypeId, 'parentPanalForm')
-    //   }
-    // }
-  },
   mounted () {
-    this.getConfigParams()
+    this.getAllCITypes()
   },
   methods: {
-    async getLineAttr () {
-      const { statusCode, data } = await getCiTypeAttributes(this.initParams[IDC_PLANNING_LINK_ID])
-      if (statusCode === 'OK') {
-        console.log(data)
-        // this[formObject] = data
+    async getAllCITypes () {
+      this.allCITypes = []
+      const status = ['notCreated', 'created', 'dirty', 'decommissioned']
+      const allCITypesInfo = await getAllCITypesByLayerWithAttr(status)
+      if (allCITypesInfo.statusCode === 'OK') {
+        allCITypesInfo.data.map(_ => {
+          _.ciTypes.forEach(ciType => {
+            this.allCITypes[ciType.tableName] = ciType
+          })
+        })
+        this.getLineTypes()
       }
     },
-    async getConfigParams () {
-      const { statusCode, data } = await getEnumCodesByCategoryId(0, VIEW_CONFIG_PARAMS)
+    async getLineTypes () {
+      this.canCreateLineTypes = []
+      let params = {
+        filters: [{ name: 'catId', operator: 'in', value: Array.from(new Array(28 + 1).keys()).slice(22) }],
+        paging: false
+      }
+      const { statusCode, data } = await getAllSystemEnumCodes(params)
       if (statusCode === 'OK') {
-        this.initParams = {}
-        data.forEach(_ => {
-          this.initParams[_.code] = _.value
+        this.edgeData = data.contents.filter(dd => {
+          return dd.codeDescription === 'edge'
         })
-        this.getLineAttr()
+      }
+      this.edgeData.forEach(ed => {
+        this.canCreateLineTypes.push({
+          label: ed.value,
+          value: ed.code
+        })
+      })
+    },
+    async getAllSystemEnumCodes () {
+      this.canCreateLineTypes = []
+      let params = {
+        filters: [{ name: 'catId', operator: 'in', value: Array.from(new Array(28 + 1).keys()).slice(22) }],
+        paging: false
+      }
+      const { statusCode, data } = await getAllSystemEnumCodes(params)
+      if (statusCode === 'OK') {
+        this.codeData = data.contents
+      }
+      console.log(this.codeData)
+      // if (statusCode === 'OK') {
+      //   let edgeParams = {
+      //     filters: [{name: 'catId', operator: 'eq', value: 23}, {name: 'groupCodeId', operator: 'eq', value: data.contents[0].codeId}, {name: 'value', operator: 'eq', value: 'edge'}],
+      //     paging: false
+      //   }
+      //   const edgeInfo = await getAllSystemEnumCodes(edgeParams)
+      //   if (edgeInfo.statusCode === 'OK') {
+      //     edgeInfo.data.contents.forEach(p => {
+      //       this.canCreateLineTypes.push({
+      //         value: p.code,
+      //         label: p.codeDescription
+      //       })
+      //     })
+      //   }
+      // }
+    },
+    async getNewLineAttr (val) {
+      this.selectedLineType = val
+      if (!this.selectedLineType) {
+        return
+      }
+      this.showNewLineForm = false
+      this.newLineFormData = {}
+      this.newLineForm = this.allCITypes[val].attributes
+      this.currentLineId = this.allCITypes[val].ciTypeId
+      // await this.getAttributes(this.selectedLineType, 'newLineForm')
+      this.newLineForm.forEach(_ => {
+        if (_.inputType === 'ref') {
+          this.newLineFormData[_.propertyName] = { guid: '11' }
+        } else if (_.inputType === 'multiRef') {
+          this.newLIneFormData[_.propertyName] = []
+        } else {
+          this.newLineFormData[_.propertyName] = ''
+        }
+      })
+      this.showNewLineForm = true
+      console.log(this.newLineForm)
+      this.newLineForm.sort((a, b) => {
+        return a.searchSeqNo - b.searchSeqNo
+      })
+    },
+    async createLine () {
+      // eslint-disable-next-line no-unused-vars
+      let activeLineData = null
+      // eslint-disable-next-line no-unused-vars
+      let ciTypeId = null
+      activeLineData = this.newLineFormData
+      let tmpLineData = JSON.parse(JSON.stringify(activeLineData))
+      for (let key in activeLineData) {
+        if (activeLineData[key] && typeof activeLineData[key] === 'object') {
+          // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
+          if (Array.isArray(activeLineData[key]) && !key.endsWith('_tmp')) {
+            let tmp = []
+            if (activeLineData[key + '_tmp']) {
+              tmp = activeLineData[key + '_tmp'].map(_ => {
+                return _.data.guid || _.data.codeId
+              })
+            } else {
+              tmp = activeLineData[key].map(_ => {
+                return _.data.guid || _.data.codeId
+              })
+            }
+            tmpLineData[key] = tmp
+          } else {
+            // Object数据处理
+            tmpLineData[key] = activeLineData[key].codeId || activeLineData[key].guid
+          }
+        }
+      }
+      console.log(tmpLineData)
+      let params = {
+        id: this.currentLineId,
+        createData: [tmpLineData]
+      }
+      const { statusCode, data } = await createCiDatas(params)
+      console.log(statusCode, data)
+      if (statusCode === 'OK') {
+        this.$Message.success('Success!')
+        this.showAddLineArea = false
+
+        // const ciData = await queryCiData({
+        //   id: this.selectedNodeType,
+        //   queryObject: {
+        //     filters: [
+        //       {
+        //         name: 'guid',
+        //         value: data[0].guid,
+        //         operator: 'eq'
+        //       }
+        //     ]
+        //   }
+        // })
+        // const params = {
+        //   ciTypeId: this.selectedNodeType,
+        //   data: ciData.data.contents[0].data,
+        //   text: [ciData.data.contents[0].data.code]
+        // }
+        // // text: [ciData.data.contents[0].data.code, ciData.data.contents[0].data.network_segment_design.code]
+        // this.panalData.push(params)
+        // this.operateData.children = this.panalData
+        // this.$emit('operationReload', this.operateData)
+        // this.selectedNodeType = null
+        // this.newNodeFormData = {} // 待创建节点表单
+        // this.newNodeForm = [] // 待创建节点表单
       }
     },
     async deleteNode (panalData, panalIndex, event) {
@@ -314,7 +560,7 @@ export default {
         }
       }
       let params = {
-        id: this.selectedType,
+        id: this.selectedNodeType,
         createData: [tmpPanalData]
       }
       const { statusCode, data } = await createCiDatas(params)
@@ -323,7 +569,7 @@ export default {
         this.showAddNodeArea = false
 
         const ciData = await queryCiData({
-          id: this.selectedType,
+          id: this.selectedNodeType,
           queryObject: {
             filters: [
               {
@@ -335,7 +581,7 @@ export default {
           }
         })
         const params = {
-          ciTypeId: this.selectedType,
+          ciTypeId: this.selectedNodeType,
           data: ciData.data.contents[0].data,
           text: [ciData.data.contents[0].data.code]
         }
@@ -343,7 +589,7 @@ export default {
         this.panalData.push(params)
         this.operateData.children = this.panalData
         this.$emit('operationReload', this.operateData)
-        this.selectedType = null
+        this.selectedNodeType = null
         this.newNodeFormData = {} // 待创建节点表单
         this.newNodeForm = [] // 待创建节点表单
       }
@@ -351,7 +597,7 @@ export default {
     cancleAddNode () {
       this.isEdit = false
       this.showAddNodeArea = false
-      this.selectedType = null
+      this.selectedNodeType = null
       this.newNodeFormData = {} // 待创建节点表单
       this.newNodeForm = [] // 待创建节点表单
     },
@@ -417,6 +663,7 @@ export default {
       this.defaultPanal = ''
       this.panalData = []
       this.operateData = operateData
+      // this.getAllSystemEnumCodes()
       let tmp = JSON.parse(JSON.stringify(this.operateData))
       this.getAttributes(tmp.ciTypeId, 'parentPanalForm')
       delete tmp.children
@@ -441,14 +688,12 @@ export default {
       }
     },
     async getNewNodeAttr (val) {
-      console.log(val)
-      console.log(this.selectedType)
-      if (!this.selectedType) {
+      if (!this.selectedNodeType) {
         return
       }
       this.showNewNodeForm = false
       this.newNodeFormData = {}
-      await this.getAttributes(this.selectedType, 'newNodeForm')
+      await this.getAttributes(this.selectedNodeType, 'newNodeForm')
       this.newNodeForm.forEach(_ => {
         if (_.inputType === 'ref') {
           this.newNodeFormData[_.propertyName] = { guid: '11' }
@@ -526,5 +771,10 @@ export default {
 }
 .add-node-area {
   margin-top: 8px;
+}
+
+.opertaion /deep/ .ivu-tabs-tab {
+  width: 100%;
+  text-align: center;
 }
 </style>
