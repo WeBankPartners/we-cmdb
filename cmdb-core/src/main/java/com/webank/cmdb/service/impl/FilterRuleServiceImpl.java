@@ -439,15 +439,20 @@ public class FilterRuleServiceImpl implements FilterRuleService {
             }
                 break;
             case In:
-                List<Map> rightValList = (List<Map>) processRuleRight(ruleRight,request,associatedCiData);
+                List rightValList =  (List) processRuleRight(ruleRight,request,associatedCiData);
                 List<Object> filterValues = Lists.newArrayList();
 
-                rightValList.forEach(map -> {
-                    Object value = map.values().toArray()[0];
-                    if(!filterValues.contains(value)){
-                        filterValues.add(value);
-                    }
-                });
+                if(ruleRight.getType().equalsIgnoreCase(FilterRuleDto.RightTypeEnum.Expression.getCode())){
+                    List<Map> mapList = (List<Map>)rightValList;
+                    mapList.forEach(map -> {
+                        Object value = map.values().toArray()[0];
+                        if(!filterValues.contains(value)){
+                            filterValues.add(value);
+                        }
+                    });
+                }else{
+                    filterValues.addAll(rightValList);
+                }
                 rightValFilter = new Filter(exprResultColumn,FilterOperator.In.getCode(),filterValues);
                 break;
         }

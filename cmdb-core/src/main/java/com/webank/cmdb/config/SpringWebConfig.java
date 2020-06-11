@@ -118,6 +118,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
         registry.antMatchers("/login-with-password*").permitAll()
                 .antMatchers("/logout*").permitAll()
                 .antMatchers("/ui/v2/**").permitAll()
+                .antMatchers("/maintain/**").permitAll()
                 .anyRequest().authenticated()
             .and()
                 .formLogin()
