@@ -14,9 +14,9 @@
     @sortHandler="sortHandler"
     @pageChange="pageChange"
     @pageSizeChange="pageSizeChange"
-    @getGroupList="getGroupList"
     @confirmAddHandler="confirmAddHandler"
     @confirmEditHandler="confirmEditHandler"
+    @getGroupList="getGroupList"
     tableHeight="650"
     ref="table"
   ></CMDBTable>
@@ -112,7 +112,7 @@ export default {
           component: 'WeCMDBSelect',
           inputType: 'select',
           placeholder: 'groupCodeId',
-          optionKey: 'catId',
+          optionColumnKey: 'catId',
           isEditable: true,
           isAuto: false
         },

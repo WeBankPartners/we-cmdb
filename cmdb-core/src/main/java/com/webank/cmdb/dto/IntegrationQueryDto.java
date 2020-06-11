@@ -11,8 +11,8 @@ import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.domain.AdmIntegrateTemplate;
 import com.webank.cmdb.domain.AdmIntegrateTemplateAlias;
 import com.webank.cmdb.domain.AdmIntegrateTemplateRelation;
-import com.webank.cmdb.exception.InvalidArgumentException;
-import com.webank.cmdb.exception.ServiceException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.ServiceException;
 
 @JsonInclude(Include.NON_EMPTY)
 public class IntegrationQueryDto {

@@ -57,7 +57,7 @@ export default {
       let noPagingRes = this.filterParams
         ? await queryReferenceCiData({
           attrId: this.filterParams.attrId,
-          queryObject: { filters: [], paging: false, dialect: { data: rows } }
+          queryObject: { filters: [], paging: false, dialect: { associatedData: rows } }
         })
         : await queryCiData({
           id: this.ciType.id,

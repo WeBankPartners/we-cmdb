@@ -54,6 +54,7 @@ INSERT INTO `adm_ci_type` (`id_adm_ci_type`, `name`, `description`, `id_adm_tene
 	(24, '安全区域连接设计', '安全区域连接设计', NULL, 'zone_link_design', 'created', 135, NULL, 3, 5, NULL, 24, NULL),
 	(25, '数据中心节点设计', '数据中心节点设计', NULL, 'DCN_desgin', 'dirty', 135, NULL, 4, 5, NULL, 25, NULL),
 	(26, '资源集设计', '资源集设计', NULL, 'resource_set_design', 'dirty', 135, NULL, 5, 5, NULL, 26, NULL),
+	(27, '网络连接', '网络连接', NULL, 'network_link', 'created', 11, NULL, 7, 5, 14, 18, NULL),
 	(46, '子系统', '子系统', NULL, 'subsystem', 'created', 132, NULL, 1, 2, NULL, 7, NULL),
 	(50, 'Mult_Ref_CI_A', 'multiple reference CI', NULL, 'muti_ref_ci_a', 'notCreated', 135, NULL, 6, 5, NULL, 27, NULL),
 	(51, 'Mult_Ref_CI_B', 'multiple referenced CI', NULL, 'muti_ref_ci_b', 'notCreated', 135, NULL, 6, 5, NULL, 28, NULL);
@@ -962,6 +963,25 @@ INSERT INTO `adm_ci_type_attr` (`id_adm_ci_type_attr`, `id_adm_ci_type`, `name`,
 	/*(109, 46, '子系统设计', '子系统设计', 'ref', 'subsys_design', 'varchar', 20, 2, '实现', 31, NULL, 6, 1, 13, 0, 0, 0, 1, 0, NULL, 'created', 0, 1, 0, NULL),
 	(510, 46, '环境', '环境', 'select', 'env', 'int', 15, 20, NULL, NULL, NULL, 7, 1, 14, 0, 0, 0, 1, 0, NULL, 'created', 0, 1, 0, NULL),
 	(511, 46, '运维人员', '运维人员', 'text', 'manager', 'varchar', 50, NULL, NULL, NULL, NULL, 8, 1, 15, 1, 0, 0, 1, 0, NULL, 'created', 0, 0, 0, NULL),*/
+-- network_link
+	(520, 27, '全局唯一ID', '全局唯一ID', 'text', 'guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 'created', 1, 0, 0, NULL),
+	(521, 27, '前全局唯一ID', '前一版本数据的guid', 'text', 'p_guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 1, 0, 0, 0, 0, NULL, 'created', 1, 0, 0, NULL),
+	(522, 27, '根全局唯一ID', '原始数据guid', 'text', 'r_guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 'created', 1, 0, 0, NULL),
+	(523, 27, '更新用户', '更新用户', 'text', 'updated_by', 'varchar', 50, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 'created', 1, 0, 0, NULL),
+	(524, 27, '更新日期', '更新日期', 'date', 'updated_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 'created', 1, 0, 0, NULL),
+	(525, 27, '创建用户', '创建用户', 'text', 'created_by', 'varchar', 50, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 'created', 1, 0, 0, NULL),
+	(526, 27, '创建日期', '创建日期', 'date', 'created_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 'created', 1, 0, 0, NULL),
+	(527, 27, '状态', '状态', 'select', 'state', 'int', 15, 8, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 'created', 1, 0, 0, NULL),
+	(528, 27, '唯一名称', '唯一名称', 'text', 'key_name', 'varchar', 1000, NULL, NULL, NULL, NULL, 1, 1, 1, 0, 1, 0, 0, 0, NULL, 'created', 1, 0, 1, '[{"type":"rule","value":"[{\\"ciTypeId\\":26},{\\"ciTypeId\\":23,\\"parentRs\\":{\\"attrId\\":423,\\"isReferedFromParent\\":1}},{\\"ciTypeId\\":23,\\"parentRs\\":{\\"attrId\\":360,\\"isReferedFromParent\\":1}}]"},{"type":"delimiter","value":"__"},{"type":"rule","value":"[{\\"ciTypeId\\":26},{\\"ciTypeId\\":16,\\"parentRs\\":{\\"attrId\\":425,\\"isReferedFromParent\\":1}},{\\"ciTypeId\\":16,\\"parentRs\\":{\\"attrId\\":243,\\"isReferedFromParent\\":1}}]"},{"type":"delimiter","value":"__"},{"type":"rule","value":"[{\\"ciTypeId\\":26},{\\"ciTypeId\\":23,\\"parentRs\\":{\\"attrId\\":424,\\"isReferedFromParent\\":1}},{\\"ciTypeId\\":23,\\"parentRs\\":{\\"attrId\\":360,\\"isReferedFromParent\\":1}}]"}]'),
+	(529, 27, '状态编码', '状态编码', 'text', 'state_code', 'varchar', 50, NULL, NULL, NULL, NULL, 2, 1, 2, 0, 0, 0, 0, 0, NULL, 'created', 1, 0, 1, '[{"type":"rule","value":"[{\\"ciTypeId\\":26},{\\"ciTypeId\\":27,\\"parentRs\\":{\\"attrId\\":418,\\"isReferedFromParent\\":1},\\"enumCodeAttr\\":\\"code\\"}]"}]'),
+	(530, 27, '确认日期', '确认日期', 'text', 'fixed_date', 'varchar', 19, NULL, NULL, NULL, NULL, 3, 1, 3, 1, 0, 0, 0, 0, NULL, 'created', 1, 0, 0, NULL),
+	(531, 27, '编码', '编码', 'text', 'code', 'varchar', 1000, NULL, NULL, NULL, NULL, 4, 1, 4, 0, 0, 0, 0, 0, NULL, 'created', 1, 0, 1, '[{"type":"rule","value":"[{\\"ciTypeId\\":26},{\\"ciTypeId\\":16,\\"parentRs\\":{\\"attrId\\":425,\\"isReferedFromParent\\":1}},{\\"ciTypeId\\":16,\\"parentRs\\":{\\"attrId\\":243,\\"isReferedFromParent\\":1}}]"}]'),
+	(532, 27, '网段1', '网段1', 'ref', 'network_segment_1', 'varchar', 15, 21, '关联', 32, null, 6, 1, 6, 0, 0, 0, 1, 0, NULL, 'created', 0, 0, 0, NULL),
+	(533, 27, '网段2', '网段2', 'ref', 'network_segment_2', 'varchar', 15, 21, '关联', 32, null, 7, 1, 7, 0, 0, 0, 1, 0, NULL, 'created', 0, 0, 0, NULL),
+	(534, 27, '网络带宽(M)', '网络带宽(M)', 'text', 'netband_width', 'varchar', 200, NULL, NULL, NULL, NULL, 9, 1, 9, 0, 0, 0, 1, 0, NULL, 'created', 0, 0, 0, NULL),
+	(535, 27, '资产ID', '资产ID', 'text', 'asset_id', 'varchar', 200, NULL, NULL, NULL, NULL, 13, 1, 13, 1, 0, 0, 1, 0, NULL, 'created', 0, 0, 0, NULL),
+	(536, 27, '最大并发连接数', '最大并发连接数', 'text', 'max_concurrent', 'varchar', 200, NULL, NULL, NULL, NULL, 10, 1, 10, 0, 0, 0, 1, 0, NULL, 'created', 0, 0, 0, NULL),
+	(537, 27, '描述说明', '描述说明', 'textArea', 'description', 'varchar', 1000, NULL, NULL, NULL, NULL, 15, 1, 15, 1, 0, 0, 1, 0, NULL, 'created', 0, 0, 0, NULL),
 -- multiple reference CI A
 -- `id_adm_ci_type_attr(1)`, `id_adm_ci_type(2)`, `name(3)`, `description`(4), `input_type`(5), `property_name`(6), `property_type`(7), `length`(8), `reference_id`(9), `reference_name`(10), `reference_type`(11), `filter_rule`(12), `search_seq_no`(13), `display_type`(14), `display_seq_no`(15), `edit_is_null`(16), `edit_is_only`, `edit_is_hiden`, `edit_is_editable`, `is_defunct`, `special_logic`, `status`, `is_system`, `is_access_controlled`, `is_auto`, `auto_fill_rule`
 	(800, 50, '全局唯一ID', '全局唯一ID', 'text', 'guid', 'varchar', 15, NULL, NULL, NULL, NULL, NULL, 0, 1, 0, 1, 0, 0, 0, NULL, 'notCreated', 1, 0, 1, NULL),
@@ -1577,7 +1597,9 @@ INSERT INTO `adm_sequence` (`id_adm_sequence`, `seq_name`, `current_val`, `incre
 	(20, 'unit', 1, 1, 8, 'N'),
 	(21, 'running_instance', 2, 1, 8, 'N'),
 	(22, 'invoke_sequence_design', 1, 1, 8, 'N'),
-	(23, 'package', 5, 1, 8, 'N');
+	(23, 'package', 5, 1, 8, 'N'),
+	(24, 'network_link', 1, 1, 8, 'N')
+	;
 
 CREATE TABLE IF NOT EXISTS `adm_state_transition` (
   `id_adm_state_transition` int(11) NOT NULL,
@@ -1972,13 +1994,13 @@ CREATE TABLE IF NOT EXISTS `network_segment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `network_segment` (`guid`, `p_guid`, `r_guid`, `description`, `fixed_date`, `key_name`, `updated_by`, `updated_date`, `created_by`, `created_date`, `asset_code`, `code`, `f_network_segment`, `gateway_ip`, `mask`, `name`, `orchestration`, `state`, `type`, `biz_key`) VALUES
-	('0021_0000000001', NULL, '0021_0000000001', 'jj', NULL, '10.0.0.0/16', 'umadmin', '2019-07-03 11:26:46', NULL, NULL, NULL, '10.0.0.0/16', '0021_0000000001', '0014_0000000001', 16, '10.0.0.0/16', NULL, 39, 208, NULL),
+	('0021_0000000001', NULL, '0021_0000000001', 'jj', NULL, '10.0.0.0/16', 'umadmin', '2019-07-03 11:26:46', NULL, NULL, NULL, '10.0.0.0/16', null, '0014_0000000001', 16, '10.0.0.0/16', NULL, 39, 208, NULL),
 	('0021_0000000011', NULL, '0021_0000000011', 'dmz', NULL, '10.0.0.0/24', 'umadmin', '2019-07-02 07:29:59', 'umadmin', '2019-07-02 07:16:38', '', '10.0.0.0/24', '0021_0000000001', '0014_0000000001', 24, '10.0.0.0/24', '', 39, NULL, NULL),
 	('0021_0000000012', NULL, '0021_0000000012', 'ecn', NULL, '10.0.1.0/24', 'umadmin', '2019-07-02 07:24:54', 'umadmin', '2019-07-02 07:24:54', '', '10.0.1.0/24', '0021_0000000001', '0014_0000000001', 24, '10.0.1.0/24', '', 39, NULL, NULL),
 	('0021_0000000013', NULL, '0021_0000000013', 'mgmt', NULL, '10.0.2.0/24', 'umadmin', '2019-07-02 07:27:52', 'umadmin', '2019-07-02 07:27:52', '', '10.0.2.0/24', '0021_0000000001', '0014_0000000004', 24, '10.0.2.0/24', '', 39, NULL, NULL),
-	('0021_0000000014', NULL, '0021_0000000014', '互联网地址', NULL, '0.0.0.0/0', 'umadmin', '2019-07-02 07:35:31', 'umadmin', '2019-07-02 07:33:34', '', '0.0.0.0/0', '0021_0000000014', '0014_0000000005', 0, '0.0.0.0/0', '', 39, NULL, NULL),
-	('0021_0000000015', NULL, '0021_0000000015', '内网地址段', NULL, '10.128.0.0/16', 'umadmin', '2019-07-02 07:38:21', 'umadmin', '2019-07-02 07:38:03', '', '10.128.0.0/16', '0021_0000000015', '0014_0000000006', 16, '10.128.0.0/16', '', 39, NULL, NULL),
-	('0021_0000000016', NULL, '0021_0000000016', 'sf', NULL, '10.0.4.0/22', 'umadmin', '2019-07-02 07:51:09', 'umadmin', '2019-07-02 07:47:23', '', '10.0.4.0/22', '0021_0000000016', '0014_0000000007', 22, '10.0.4.0/22', '', 39, NULL, NULL),
+	('0021_0000000014', NULL, '0021_0000000014', '互联网地址', NULL, '0.0.0.0/0', 'umadmin', '2019-07-02 07:35:31', 'umadmin', '2019-07-02 07:33:34', '', '0.0.0.0/0', null, '0014_0000000005', 0, '0.0.0.0/0', '', 39, NULL, NULL),
+	('0021_0000000015', NULL, '0021_0000000015', '内网地址段', NULL, '10.128.0.0/16', 'umadmin', '2019-07-02 07:38:21', 'umadmin', '2019-07-02 07:38:03', '', '10.128.0.0/16', null, '0014_0000000006', 16, '10.128.0.0/16', '', 39, NULL, NULL),
+	('0021_0000000016', NULL, '0021_0000000016', 'sf', NULL, '10.0.4.0/22', 'umadmin', '2019-07-02 07:51:09', 'umadmin', '2019-07-02 07:47:23', '', '10.0.4.0/22', null, '0014_0000000007', 22, '10.0.4.0/22', '', 39, NULL, NULL),
 	('0021_0000000017', NULL, '0021_0000000017', '', NULL, '10.0.0.0/25', 'umadmin', '2019-07-03 02:29:53', 'umadmin', '2019-07-03 02:29:53', '', '10.0.0.0/25', '0021_0000000011', '0014_0000000001', 25, '10.0.0.0/25', '', 39, NULL, NULL),
 	('0021_0000000018', NULL, '0021_0000000018', '机房', NULL, '10.1.0.0/16', 'umadmin', '2019-07-03 03:05:29', 'umadmin', '2019-07-03 03:05:29', '', '10.1.0.0/16', '0021_0000000001', '0014_0000000001', 16, '10.1.0.0/16', '', 39, 208, NULL),
 	('0021_0000000019', NULL, '0021_0000000019', 'sf', NULL, '10.0.16.0/24', 'umadmin', '2019-07-03 08:01:55', 'umadmin', '2019-07-03 08:01:55', '', '10.0.16.0/24', '0021_0000000014', '0014_0000000005', 24, '10.0.16.0/24', '', 39, 208, NULL),
@@ -2457,5 +2479,30 @@ INSERT INTO `zone_link_design` (`guid`, `p_guid`, `r_guid`, `description`, `fixe
 	('0024_0000000007', NULL, '0024_0000000007', 'ECN-SF', NULL, 'PRDs_ECN_LINK_PRDs_SF', 'umadmin', '2019-07-02 04:00:13', 'umadmin', '2019-07-02 04:00:13', '6', 141, '0023_0000000008', '0023_0000000009'),
 	('0024_0000000008', NULL, '0024_0000000008', 'MGMT-ECN', NULL, 'PRDs_MGMT_LINK_PRDs_ECN', 'umadmin', '2019-07-02 04:00:37', 'umadmin', '2019-07-02 04:00:37', '7', 141, '0023_0000000007', '0023_0000000008'),
 	('0024_0000000009', NULL, '0024_0000000009', 'MGMT-DMZ', NULL, 'PRDs_DMZ_LINK_PRDs_MGMT', 'umadmin', '2019-07-02 04:02:00', 'umadmin', '2019-07-02 04:01:27', '8', 141, '0023_0000000006', '0023_0000000007');
+
+CREATE TABLE IF NOT EXISTS `network_link` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '原始数据guid',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `key_name` varchar(1000) DEFAULT NULL COMMENT '唯一名称',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(1000) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `asset_id` varchar(200) DEFAULT NULL COMMENT '资产ID',
+  `max_concurrent` varchar(200) DEFAULT NULL COMMENT '最大并发连接数',
+  `netband_width` varchar(200) DEFAULT NULL COMMENT '网络带宽(M)',
+  `network_segment_1` varchar(15) DEFAULT NULL COMMENT '网段1',
+  `network_segment_2` varchar(15) DEFAULT NULL COMMENT '网段2',
+  `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
+  `subnet_network_segment` varchar(15) DEFAULT NULL COMMENT '子网网段',
+  `nat_table_asset_id` varchar(200) DEFAULT NULL COMMENT 'NAT表资产编码',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 SET FOREIGN_KEY_CHECKS=1;

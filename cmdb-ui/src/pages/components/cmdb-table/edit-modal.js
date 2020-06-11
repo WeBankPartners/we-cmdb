@@ -206,7 +206,11 @@ export default {
                             }
                             : null,
                           isMultiple: column.isMultiple,
-                          options: column.optionKey ? this.ascOptions[column.optionKey] : column.options,
+                          options: column.optionColumnKey
+                            ? this.ascOptions[d[column.optionColumnKey]]
+                            : column.optionKey
+                              ? this.ascOptions[column.optionKey]
+                              : column.options,
                           enumId: column.referenceId ? column.referenceId : null
                         }
                         : {
@@ -232,6 +236,11 @@ export default {
                     const fun = {
                       input: v => {
                         setValueHandler(v, column, d)
+                      },
+                      change: v => {
+                        if (column.onChange) {
+                          this.$emit('getGroupList', v)
+                        }
                       }
                     }
                     const data = {

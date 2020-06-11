@@ -17,7 +17,7 @@ import com.webank.cmdb.dto.EnumInfoRequest;
 import com.webank.cmdb.dto.EnumInfoResponse;
 import com.webank.cmdb.dto.EnumPair;
 import com.webank.cmdb.dto.PageInfo;
-import com.webank.cmdb.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
 import com.webank.cmdb.repository.AdmBasekeyCatRepository;
 import com.webank.cmdb.repository.EnumInfoRepository;
 import com.webank.cmdb.service.BaseKeyInfoService;
