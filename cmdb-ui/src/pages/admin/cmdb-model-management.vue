@@ -545,7 +545,7 @@
                     <FilterRule
                       v-model="item.form.filterRule"
                       :allCiTypes="allCiTypesWithAttr"
-                      :leftRootCi="item.form.propertyName"
+                      :leftRootCi="allCiTypesFormatByCiTypeId[item.form.referenceId].tableName"
                       :rightRootCi="currentSelectedCI.tableName"
                       :banRootCiDelete="true"
                       :disabled="item.form.status === 'decommissioned'"
@@ -868,6 +868,7 @@ export default {
         isUnique: 'no'
       },
       allCiTypesWithAttr: [],
+      allCiTypesFormatByCiTypeId: {},
       specialDelimiters: [],
       allInputTypes: [],
       allReferenceTypes: [],
@@ -1751,13 +1752,16 @@ export default {
       if (res.statusCode === 'OK') {
         this.filterRuleSource = res.data
         let allCiTypesWithAttr = []
+        let allCiTypesFormatByCiTypeId = {}
         res.data.forEach(layer => {
           layer.ciTypes &&
             layer.ciTypes.forEach(_ => {
               allCiTypesWithAttr.push(_)
+              allCiTypesFormatByCiTypeId[_.ciTypeId] = _
             })
         })
         this.allCiTypesWithAttr = allCiTypesWithAttr
+        this.allCiTypesFormatByCiTypeId = allCiTypesFormatByCiTypeId
       }
     },
     async updateAttrByCiType (ciTypeId) {
