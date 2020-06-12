@@ -110,7 +110,7 @@ import { pagination, components, newOuterActions } from '@/const/actions.js'
 import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
-import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
+import { colors, defaultFontSize as FONTSIZE } from '../../const/graph-configuration'
 import { addEvent } from '../util/event.js'
 import {
   VIEW_CONFIG_PARAMS,
@@ -233,7 +233,7 @@ export default {
       let dots = [
         'digraph G {',
         'rankdir=TB nodesep=0.5;',
-        `Node[shape=box,fontsize=${fontSize},labelloc=t,penwidth=2];`,
+        `Node[shape=box,fontsize=${FONTSIZE},labelloc=t,penwidth=2];`,
         'Edge[fontsize=8,arrowhead="none"];',
         `subgraph cluster_${idcData.data.guid} {`,
         `style="filled";color="${colors[0]}";`,
@@ -337,19 +337,41 @@ export default {
           }
           let pw = parseInt(points[0].split(',')[0] - points[1].split(',')[0])
           let ph = parseInt(points[2].split(',')[1] - points[1].split(',')[1])
-          this.setChildren(zone, p, pw, ph, fontSize, 2, 1)
+          this.setChildren(zone, p, pw, ph, FONTSIZE, 2, 1)
         }
       })
     },
-    setChildren (node, p1, pw, ph, tfsize, tlength = 1, deep) {
+    /**
+     * @param node 当前节点数据
+     * @param p1 父节点左上角坐标(p.x为横坐标，p.y为纵坐标)
+     * @param pw 父节点宽度
+     * @param ph 父节点高度
+     * @param tfsize 父节点默认字体大小（当字数过多时，实际字体大小不等于该值）
+     * @param tRows 当前节点，需要显示的文本的行数，默认为1
+     * @param deep 该递归函数的深度，从1开始
+     */
+    setChildren (node, p1, pw, ph, tfsize, tRows = 1, deep) {
       let graph = d3.select('#graph').select('#g_' + node.guid)
+      /**
+       * n 子节点个数
+       * w 每个子节点的宽度
+       * h 每个子节点的高度
+       * mgap 子节点的边距
+       * fontsize 子节点的默认字体大小（当字数过多时，实际字体大小不等于该值）
+       * strokewidth ???
+       * rx 子节点左上角的横坐标
+       * ry 子节点左上角的纵坐标
+       * tx 子节点文字左上角的横坐标
+       * ty 子节点文字左上角的纵坐标
+       * g graph实例，用于选取元素并对其进行操作
+       */
       const n = node.children.length
       let w, h, mgap, fontsize, strokewidth
       let rx, ry, tx, ty, g
       let color = colors[deep + 1]
       if (pw > ph * 1.2) {
-        if (pw / n > ph - tfsize * tlength) {
-          mgap = (ph - tfsize * tlength) * 0.04
+        if (pw / n > ph - tfsize * tRows) {
+          mgap = (ph - tfsize * tRows) * 0.04
           fontsize = tfsize * 0.8 > (ph - tfsize) * 0.2 ? (ph - tfsize) * 0.2 : tfsize * 0.8
           strokewidth = (ph - tfsize) * 0.005
         } else {
@@ -358,11 +380,12 @@ export default {
           strokewidth = (pw / n) * 0.005
         }
         w = (pw - mgap) / n - mgap
-        h = ph - tfsize * tlength - 2 * mgap
+        h = ph - tfsize * tRows - 2 * mgap
         for (let i = 0; i < n; i++) {
+          // _tlength 子节点文本的行数（非字数）
           const _tlength = node.children[i].text.length
           rx = p1.x + (w + mgap) * i + mgap
-          ry = p1.y + tfsize * tlength + mgap
+          ry = p1.y + tfsize * tRows + mgap
           tx = p1.x + (w + mgap) * i + w * 0.5 + mgap
           g = graph
             .append('g')
@@ -371,11 +394,11 @@ export default {
           let _ry = ry
           let _h = h
           if (Array.isArray(node.children[i].children)) {
-            ty = p1.y + tfsize * tlength + mgap + fontsize
+            ty = p1.y + tfsize * tRows + mgap + fontsize
           } else {
             _ry = ry
             _h = h
-            ty = p1.y + tfsize * tlength + mgap + _h * 0.5
+            ty = p1.y + tfsize * tRows + mgap + _h * 0.5
           }
           g.append('rect')
             .attr('x', rx)
@@ -390,6 +413,7 @@ export default {
             .attr('y', ty)
             .attr('style', 'text-anchor:middle')
           node.children[i].text.forEach((_, index) => {
+            // _fontsize为子节点每行文字实际字体大小
             const _fontsize = (2 * w) / _.length < fontsize ? (2 * w) / _.length : fontsize
             g.select('text')
               .append('tspan')
@@ -414,11 +438,11 @@ export default {
           strokewidth = ((ph - tfsize) / n) * 0.005
         }
         w = pw - 2 * mgap
-        h = (ph - tfsize * tlength - mgap) / n - mgap
+        h = (ph - tfsize * tRows - mgap) / n - mgap
         for (let i = 0; i < n; i++) {
           const _tlength = node.children[i].text.length
           rx = p1.x + mgap
-          ry = p1.y + tfsize * tlength + (h + mgap) * i + mgap
+          ry = p1.y + tfsize * tRows + (h + mgap) * i + mgap
           tx = p1.x + w * 0.5 + mgap
           if (Array.isArray(node.children[i].children)) {
             ty = p1.y + tfsize * _tlength + (h + mgap) * i + mgap + fontsize
