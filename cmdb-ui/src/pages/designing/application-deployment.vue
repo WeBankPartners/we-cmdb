@@ -764,7 +764,11 @@ export default {
       }
     },
     getCurrentData () {
-      this.queryCiAttrs(this.currentTab)
+      const found = this.tabList.find(_ => _.id === this.currentTab)
+      if (!found.isClicked) {
+        found.isClicked = true
+        this.queryCiAttrs(this.currentTab)
+      }
       this.queryCiData()
     },
     onSelectedRowsChange (rows, checkoutBoxdisable) {
@@ -1217,7 +1221,8 @@ export default {
             outerActions: JSON.parse(JSON.stringify(newOuterActions)),
             innerActions: JSON.parse(JSON.stringify(allInnerActions)),
             pagination: JSON.parse(JSON.stringify(pagination)),
-            ascOptions: {}
+            ascOptions: {},
+            isClicked: false
           }
         })
       }
