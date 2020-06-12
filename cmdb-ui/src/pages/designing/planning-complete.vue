@@ -1,6 +1,5 @@
 <template>
   <div>
-    <div @click="test">asdfasdfasdf</div>
     <Row style="margin-bottom: 16px;">
       <span>{{ $t('select_idc') }}：</span>
       <Select :placeholder="$t('select_idc')" class="graph-select" @on-change="onIdcDataChange">
@@ -62,7 +61,7 @@ export default {
       cacheIdPath: null, // 缓存点击图形区域从内向外容器ID值
       cacheIndex: [], // 缓存点击图形区域从内向外容器ID值
       levelData: [], // 缓存层级数据备用
-
+      effectiveLink: [], // 图中可显示连线
       activeNodeInfo: {
         id: '',
         type: '',
@@ -101,13 +100,14 @@ export default {
     }
   },
   methods: {
-    test () {
-      this.spinShow = !this.spinShow
-    },
     markZone (guid) {
       this.cacheIdPath = [`g_` + guid]
     },
     operationReload (operateData) {
+      if (!operateData) {
+        this.loadMap(this.graphData)
+        return
+      }
       let tmp = this.graphData[0]
       this.levelData = []
       this.cacheIdPath.forEach(id => {
@@ -286,14 +286,17 @@ export default {
           newworkToNode[networkSegmentDesign.guid] = guid
         }
       })
+      this.effectiveLink = []
       this.idcLink.forEach(_ => {
         if (newworkToNode[_.from] && newworkToNode[_.to]) {
+          this.effectiveLink.push(_.linkInfo)
           dots.push(
             `g_${newworkToNode[_.from]} -> g_${newworkToNode[_.to]}[id=gl_${_.guid},tooltip="${_.label ||
               ''}",taillabel="${_.label || ''}"];`
           )
         }
       })
+      this.$refs.transferData.linkManagementData(this.effectiveLink)
       return dots.join('')
     },
     handleNodeClick (e) {
@@ -498,11 +501,13 @@ export default {
       const { statusCode, data } = await queryCiData(payload)
       if (statusCode === 'OK') {
         this.idcLink = data.contents.map(_ => {
-          // TODO
-          // this.fjy[_.propertyName] = _
           return {
             guid: _.data.guid,
             from: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
+            linkInfo: {
+              ..._.data,
+              ciTypeId: this.initParams[IDC_PLANNING_LINK_ID]
+            },
             to: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
             label: _.data.code,
             state: _.data.state.code
