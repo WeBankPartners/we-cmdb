@@ -264,7 +264,6 @@
         </div>
       </Collapse>
       <div v-if="showAddLineArea" class="add-node-area">
-        {{ selectedLineType }}
         <Select v-model="selectedLineType" @on-change="getNewLineAttr">
           <Option v-for="(item, index) in canCreateLineTypes" :value="item.value" :key="item.value + index">{{
             item.label
@@ -372,7 +371,6 @@ export default {
   methods: {
     linkManagementData (linkData) {
       this.linkData = linkData
-      console.log(linkData)
     },
     async openLinkPanal (panalId) {
       // this.linkPanal = ''
@@ -502,12 +500,11 @@ export default {
         id: this.currentLineId,
         createData: [tmpLineData]
       }
-      const { statusCode, data } = await createCiDatas(params)
-      console.log(statusCode, data)
+      const { statusCode } = await createCiDatas(params)
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
         this.showAddLineArea = false
-
+        this.$emit('operationReload', '')
         // const ciData = await queryCiData({
         //   id: this.selectedNodeType,
         //   queryObject: {
@@ -636,7 +633,9 @@ export default {
         // text: [ciData.data.contents[0].data.code, ciData.data.contents[0].data.network_segment_design.code]
         this.panalData.push(params)
         this.operateData.children = this.panalData
+        console.log(1)
         this.$emit('operationReload', this.operateData)
+        console.log(2)
         this.selectedNodeType = null
         this.newNodeFormData = {} // 待创建节点表单
         this.newNodeForm = [] // 待创建节点表单
@@ -793,7 +792,7 @@ export default {
 
 <style scoped lang="scss">
 .operation {
-  overflow: auto;
+  // overflow: auto;
   height: calc(100vh - 205px) !important;
 }
 .diy-tabs {
