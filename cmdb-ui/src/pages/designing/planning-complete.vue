@@ -58,7 +58,7 @@ export default {
       operateData: [], // 操作区数据
       firstChildrenGroup: [], // 第一层子节点id
       idPath: [], // 缓存点击图形区域从内向外容器ID值
-      cacheIdPath: null, // 缓存点击图形区域从内向外容器ID值
+      cacheIdPath: [], // 缓存点击图形区域从内向外容器ID值
       cacheIndex: [], // 缓存点击图形区域从内向外容器ID值
       levelData: [], // 缓存层级数据备用
       effectiveLink: [], // 图中可显示连线
@@ -104,27 +104,35 @@ export default {
       this.cacheIdPath = [`g_` + guid]
     },
     operationReload (operateData) {
+      console.log(operateData)
       if (!operateData) {
         this.loadMap(this.graphData)
         return
       }
       let tmp = this.graphData[0]
       this.levelData = []
-      this.cacheIdPath.forEach(id => {
-        this.levelData.unshift(tmp)
-        tmp = tmp.children.find(child => {
-          return `g_${child.guid}` === id
-        })
-      })
       let tmpData = null
-      this.levelData.forEach(dataTmp => {
-        dataTmp.children[this.cacheIndex[0]] = operateData
-        tmpData = dataTmp
-      })
+      if (this.cacheIdPath.length) {
+        this.cacheIdPath.forEach(id => {
+          this.levelData.unshift(tmp)
+          tmp = tmp.children.find(child => {
+            return `g_${child.guid}` === id
+          })
+        })
+        console.log(4)
+        this.levelData.forEach(dataTmp => {
+          dataTmp.children[this.cacheIndex[0]] = operateData
+          tmpData = dataTmp
+        })
+      } else {
+        tmpData = operateData
+      }
       this.loadMap([tmpData])
     },
     loadMap (graphData) {
       this.graphData = graphData
+      console.log(5)
+      console.log(this.graphData[0])
       this.graphData[0].children.forEach(_ => {
         this.firstChildrenGroup.push(`g_${_.guid}`)
       })
@@ -327,7 +335,7 @@ export default {
         .on('end', () => {
           addEvent('.node', 'click', this.handleNodeClick)
         })
-      // 最图层选中处理
+      // 最外图层选中处理
       d3.select('#clust1').on('click', () => {
         this.$refs.transferData.managementData(this.graphData[0])
         if (this.activeNodeInfo.id) {
