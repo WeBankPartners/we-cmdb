@@ -471,11 +471,30 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         if(!integrationQuery.getAttrs().contains(guidAttr.getIdAdmCiTypeAttr())){
             integrationQuery.getAttrs().add(guidAttr.getIdAdmCiTypeAttr());
             integrationQuery.getAttrKeyNames().add(guidAttr.getPropertyName());
+        }else{//rename guid filed's key name to 'guid'
+            int index = integrationQuery.getAttrs().indexOf(guidAttr.getIdAdmCiTypeAttr());
+            String existingGuidKeyName = integrationQuery.getAttrKeyNames().get(index);
+            integrationQuery.getAttrKeyNames().set(index,"guid");
+            for (Filter filter : integrationQuery.getFilters()) {
+                if(filter.getName().equals(existingGuidKeyName)){
+                    filter.setName("guid");
+                }
+            }
         }
         resultColumns.add(guidAttr.getPropertyName());
+
         if(!integrationQuery.getAttrs().contains(keyNameAttr.getIdAdmCiTypeAttr())){
             integrationQuery.getAttrs().add(keyNameAttr.getIdAdmCiTypeAttr());
             integrationQuery.getAttrKeyNames().add(keyNameAttr.getPropertyName());
+        }else{//rename key_name
+            int index = integrationQuery.getAttrs().indexOf(keyNameAttr.getIdAdmCiTypeAttr());
+            String existingKeyName = integrationQuery.getAttrKeyNames().get(index);
+            integrationQuery.getAttrKeyNames().set(index,keyNameAttr.getPropertyName());
+            for (Filter filter : integrationQuery.getFilters()) {
+                if(filter.getName().equals(existingKeyName)){
+                    filter.setName("key_name");
+                }
+            }
         }
         resultColumns.add(keyNameAttr.getPropertyName());
     }
