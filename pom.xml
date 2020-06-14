@@ -60,5 +60,18 @@
 				<module>cmdb-plugin</module>
 			</modules>
 		</profile>
+		<profile>
+			<id>core_plugin</id>
+			<activation>
+				<property>
+					<name>buildType</name>
+					<value>plugin</value>
+				</property>
+			</activation>
+			<modules>
+				<module>cmdb-core</module>
+				<module>cmdb-plugin</module>
+			</modules>
+		</profile>
 	</profiles>
 </project>
