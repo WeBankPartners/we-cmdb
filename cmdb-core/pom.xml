@@ -186,6 +186,15 @@
 				</property>
 			</activation>
 		</profile>
+		<profile>
+			<id>core_plugin</id>
+			<activation>
+				<property>
+					<name>buildType</name>
+					<value>plugin</value>
+				</property>
+			</activation>
+		</profile>
 	</profiles>
 
 	<build>
