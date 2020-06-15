@@ -1,10 +1,10 @@
 <template>
   <div class="operation">
     <div class="diy-tabs">
-      <div :class="['diy-tab', currentTab === 1 ? 'active-tab' : '']" @click="currentTab = 1">
+      <div :class="['diy-tab', currentTab === 1 ? 'active-tab' : '']" @click="changeTab(1)">
         <span>节点信息</span>
       </div>
-      <div :class="['diy-tab', currentTab === 2 ? 'active-tab' : '']" @click="currentTab = 2">
+      <div :class="['diy-tab', currentTab === 2 ? 'active-tab' : '']" @click="changeTab(2)">
         <span>连线信息</span>
       </div>
     </div>
@@ -77,13 +77,7 @@
       <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
         <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
           {{ panal.data.code }}
-          <Button
-            @click="deleteNode(panalData, panalIndex, $event)"
-            size="small"
-            type="error"
-            style="float: right;margin:6px;"
-            >删除</Button
-          >
+          <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon" />
           <!-- <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button> -->
           <div slot="content">
             <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
@@ -199,9 +193,7 @@
       <Collapse v-model="linkPanal" accordion @on-change="openLinkPanal">
         <Panel :name="linkIndex + 1 + ''" v-for="(link, linkIndex) in linkData" :key="linkIndex">
           {{ link.key_name }}
-          <Button @click="deleteLink(link, $event)" size="small" type="error" style="float: right;margin:6px;"
-            >删除</Button
-          >
+          <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon" />
           <!-- <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button> -->
           <div slot="content">
             <Form v-if="linkPanal[0] === linkIndex + 1 + ''">
@@ -300,7 +292,7 @@
           <FormItem>
             <div class="opetation-btn-zone">
               <Button type="primary" @click="createLine">创建连线</Button>
-              <!-- <Button @click="cancleAddNode" class="opetation-btn">取消</Button> -->
+              <Button @click="cancleAddLine" class="opetation-btn">取消</Button>
             </div>
           </FormItem>
         </Form>
@@ -370,6 +362,11 @@ export default {
     this.getAllCITypes()
   },
   methods: {
+    changeTab (tabNum) {
+      this.currentTab = tabNum
+      this.cancleAddLine()
+      this.cancleAddNode()
+    },
     linkManagementData (linkData) {
       this.linkData = linkData
     },
@@ -527,10 +524,15 @@ export default {
         // this.panalData.push(params)
         // this.operateData.children = this.panalData
         // this.$emit('operationReload', this.operateData)
-        // this.selectedNodeType = null
-        // this.newNodeFormData = {} // 待创建节点表单
-        // this.newNodeForm = [] // 待创建节点表单
+        this.cancleAddLine()
       }
+    },
+    cancleAddLine () {
+      this.isEdit = false
+      this.showAddLineArea = false
+      this.selectedLineType = null
+      this.newLineFormData = {}
+      this.newLineForm = []
     },
     async deleteLink (linkData, event) {
       event.stopPropagation()
@@ -636,10 +638,7 @@ export default {
         this.operateData.children = this.panalData
         console.log(1)
         this.$emit('operationReload', this.operateData)
-        console.log(2)
-        this.selectedNodeType = null
-        this.newNodeFormData = {} // 待创建节点表单
-        this.newNodeForm = [] // 待创建节点表单
+        this.cancleAddNode()
       }
     },
     cancleAddNode () {
@@ -798,7 +797,7 @@ export default {
 // }
 .operation-Collapse {
   overflow: auto;
-  height: calc(100vh - 280px);
+  height: calc(100vh - 240px);
 }
 .diy-tabs {
   display: flex;
@@ -866,5 +865,20 @@ export default {
 }
 .opertaion /deep/ .ivu-tabs-ink-bar {
   width: 100% !important;
+}
+
+.operation-icon {
+  float: right;
+  font-size: 16px;
+  border: 1px solid #dcdee2;
+  border-radius: 4px;
+  width: 24px;
+  line-height: 24px;
+  margin: 6px;
+}
+
+.operation-icon:hover {
+  color: #57a3f3;
+  border-color: #57a3f3;
 }
 </style>
