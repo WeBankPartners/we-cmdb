@@ -104,7 +104,6 @@ export default {
       this.cacheIdPath = [`g_` + guid]
     },
     operationReload (operateData) {
-      console.log(operateData)
       if (!operateData) {
         this.loadMap(this.graphData)
         return
@@ -119,7 +118,6 @@ export default {
             return `g_${child.guid}` === id
           })
         })
-        console.log(4)
         this.levelData.forEach(dataTmp => {
           dataTmp.children[this.cacheIndex[0]] = operateData
           tmpData = dataTmp
@@ -131,8 +129,6 @@ export default {
     },
     loadMap (graphData) {
       this.graphData = graphData
-      console.log(5)
-      console.log(this.graphData[0])
       this.graphData[0].children.forEach(_ => {
         this.firstChildrenGroup.push(`g_${_.guid}`)
       })
