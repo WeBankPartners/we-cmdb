@@ -471,7 +471,7 @@ export default {
         if (_.inputType === 'ref') {
           this.newLineFormData[_.propertyName] = { guid: '11' }
         } else if (_.inputType === 'multiRef') {
-          this.newLIneFormData[_.propertyName] = []
+          this.newLineFormData[_.propertyName] = []
         } else {
           this.newLineFormData[_.propertyName] = ''
         }
@@ -512,32 +512,26 @@ export default {
         id: this.currentLineId,
         createData: [tmpLineData]
       }
-      const { statusCode } = await createCiDatas(params)
+      const { statusCode, data } = await createCiDatas(params)
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
         this.showAddLineArea = false
-        this.$emit('operationReload', '')
-        // const ciData = await queryCiData({
-        //   id: this.selectedNodeType,
-        //   queryObject: {
-        //     filters: [
-        //       {
-        //         name: 'guid',
-        //         value: data[0].guid,
-        //         operator: 'eq'
-        //       }
-        //     ]
-        //   }
-        // })
-        // const params = {
-        //   ciTypeId: this.selectedNodeType,
-        //   data: ciData.data.contents[0].data,
-        //   text: [ciData.data.contents[0].data.code]
-        // }
-        // // text: [ciData.data.contents[0].data.code, ciData.data.contents[0].data.network_segment_design.code]
-        // this.panalData.push(params)
-        // this.operateData.children = this.panalData
-        // this.$emit('operationReload', this.operateData)
+        const ciData = await queryCiData({
+          id: this.currentLineId,
+          queryObject: {
+            filters: [
+              {
+                name: 'guid',
+                value: data[0].guid,
+                operator: 'eq'
+              }
+            ]
+          }
+        })
+        this.$emit('operationReload', '', {
+          type: 'add',
+          lineInfo: ciData.data.contents[0]
+        })
         this.cancleAddLine()
       }
     },
@@ -564,7 +558,12 @@ export default {
           if (statusCode === 'OK') {
             this.$Modal.remove()
             this.$Message.success('success!')
-            this.$emit('operationReload', '')
+            this.$emit('operationReload', '', {
+              type: 'remove',
+              lineInfo: {
+                data: linkData
+              }
+            })
           }
         },
         onCancel: () => {}

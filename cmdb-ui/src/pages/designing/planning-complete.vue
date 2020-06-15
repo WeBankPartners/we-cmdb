@@ -55,7 +55,7 @@ export default {
       spinShow: false,
       graphNodes: {},
       graphData: [], // 缓存所有接口返回数据
-      operateData: [], // 操作区数据
+      operateNodeData: [], // 操作区数据
       firstChildrenGroup: [], // 第一层子节点id
       idPath: [], // 缓存点击图形区域从内向外容器ID值
       cacheIdPath: [], // 缓存点击图形区域从内向外容器ID值
@@ -103,9 +103,9 @@ export default {
     markZone (guid) {
       this.cacheIdPath = [`g_` + guid]
     },
-    operationReload (operateData) {
-      if (!operateData) {
-        this.loadMap(this.graphData)
+    operationReload (operateNodeData, operateLineData) {
+      if (!operateNodeData) {
+        this.loadMap(this.graphData, operateLineData)
         return
       }
       let tmp = this.graphData[0]
@@ -119,21 +119,21 @@ export default {
           })
         })
         this.levelData.forEach(dataTmp => {
-          dataTmp.children[this.cacheIndex[0]] = operateData
+          dataTmp.children[this.cacheIndex[0]] = operateNodeData
           tmpData = dataTmp
         })
       } else {
-        tmpData = operateData
+        tmpData = operateNodeData
       }
-      this.loadMap([tmpData])
+      this.loadMap([tmpData], operateLineData)
     },
-    loadMap (graphData) {
+    loadMap (graphData, operateLineData) {
       this.graphData = graphData
       this.graphData[0].children.forEach(_ => {
         this.firstChildrenGroup.push(`g_${_.guid}`)
       })
-      // this.operateData = this.graphData[0]
-      // this.$refs.transferData.managementData(this.operateData)
+      // this.operateNodeData = this.graphData[0]
+      // this.$refs.transferData.managementData(this.operateNodeData)
       const sortingTree = array => {
         let obj = {}
         array.forEach(_ => {
@@ -157,7 +157,30 @@ export default {
           .map(_ => obj[_])
       }
       this.idcDesignData = sortingTree(graphData)
-      this.getZoneLink()
+
+      if (operateLineData) {
+        const lineInfoData = operateLineData.lineInfo.data
+        if (operateLineData.type === 'add') {
+          this.idcLink.push({
+            guid: lineInfoData.guid,
+            from: lineInfoData[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
+            linkInfo: {
+              ...lineInfoData,
+              ciTypeId: this.initParams[IDC_PLANNING_LINK_ID]
+            },
+            to: lineInfoData[this.initParams[IDC_PLANNING_LINK_TO]].guid,
+            label: lineInfoData.code,
+            state: lineInfoData.state.code
+          })
+        }
+        if (operateLineData.type === 'remove') {
+          const index = this.idcLink.findIndex(_ => {
+            return _.guid === lineInfoData.guid
+          })
+          this.idcLink.splice(index, 1)
+        }
+      }
+      this.initGraph()
     },
     async onIdcDataChange (guid = '0012_0000000003') {
       this.spinShow = true
@@ -166,8 +189,8 @@ export default {
       this.graphData[0].children.forEach(_ => {
         this.firstChildrenGroup.push(`g_${_.guid}`)
       })
-      this.operateData = this.graphData[0]
-      this.$refs.transferData.managementData(this.operateData)
+      this.operateNodeData = this.graphData[0]
+      this.$refs.transferData.managementData(this.operateNodeData)
       if (statusCode === 'OK') {
         const sortingTree = array => {
           let obj = {}
@@ -319,8 +342,8 @@ export default {
           })
         })
         this.idPath = []
-        this.operateData = tmp
-        this.$refs.transferData.managementData(this.operateData)
+        this.operateNodeData = tmp
+        this.$refs.transferData.managementData(this.operateNodeData)
       }
     },
     renderGraph (idcData) {
