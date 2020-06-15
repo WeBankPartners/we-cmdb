@@ -14,12 +14,12 @@
         <div>{{ $t('loading') }}</div>
       </Spin>
       <Row>
-        <Col span="18">
+        <Col span="16">
           <Card>
             <div class="graph-container-big" id="graph"></div>
           </Card>
         </Col>
-        <Col span="6" class="operation-zone">
+        <Col span="8" class="operation-zone">
           <Card>
             <Operation ref="transferData" @operationReload="operationReload" @markZone="markZone"></Operation>
           </Card>
@@ -211,7 +211,7 @@ export default {
       let graphZoom = graph
         .graphviz()
         .width(width - 80)
-        .height(window.innerHeight - 230)
+        .height(window.innerHeight - 190)
         .zoom(true)
         .fit(true)
       const idcData = this.idcDesignData[0]
