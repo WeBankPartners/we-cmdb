@@ -76,8 +76,15 @@
       <h4>子节点：</h4>
       <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
         <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
-          {{ panal.data.code }}
-          <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon" />
+          <span style="">
+            {{ panal.data.code }}
+          </span>
+          <Tooltip content="删除" style="float:right">
+            <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon" />
+          </Tooltip>
+          <Tooltip content="确认" style="float:right">
+            <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon" />
+          </Tooltip>
           <!-- <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button> -->
           <div slot="content">
             <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
@@ -192,9 +199,15 @@
     <div v-if="currentTab === 2" class="operation-Collapse">
       <Collapse v-model="linkPanal" accordion @on-change="openLinkPanal">
         <Panel :name="linkIndex + 1 + ''" v-for="(link, linkIndex) in linkData" :key="linkIndex">
-          {{ link.key_name }}
-          <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon" />
-          <!-- <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button> -->
+          <span style="">
+            {{ link.key_name }}
+          </span>
+          <Tooltip content="删除" style="float:right">
+            <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon" />
+          </Tooltip>
+          <Tooltip content="确认" style="float:right">
+            <Icon type="md-checkmark" @click="confirm(link, $event)" class="operation-icon" />
+          </Tooltip>
           <div slot="content">
             <Form v-if="linkPanal[0] === linkIndex + 1 + ''">
               <div
@@ -308,6 +321,7 @@ import {
   createCiDatas,
   deleteCiDatas,
   queryCiData,
+  operateCiState,
   getAllSystemEnumCodes,
   getAllCITypesByLayerWithAttr
 } from '@/api/server'
@@ -556,6 +570,21 @@ export default {
         onCancel: () => {}
       })
     },
+    async confirmNode (panalData, panalIndex, event) {
+      event.stopPropagation()
+      const nodeInfo = panalData[panalIndex]
+      const { statusCode } = await operateCiState(nodeInfo.ciTypeId + '', nodeInfo.guid, 'confirm')
+      if (statusCode === 'OK') {
+        this.$Message.success('success!')
+      }
+    },
+    async confirm (data, event) {
+      event.stopPropagation()
+      const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'confirm')
+      if (statusCode === 'OK') {
+        this.$Message.success('success!')
+      }
+    },
     async deleteNode (panalData, panalIndex, event) {
       event.stopPropagation()
       this.$Modal.confirm({
@@ -636,7 +665,6 @@ export default {
         // text: [ciData.data.contents[0].data.code, ciData.data.contents[0].data.network_segment_design.code]
         this.panalData.push(params)
         this.operateData.children = this.panalData
-        console.log(1)
         this.$emit('operationReload', this.operateData)
         this.cancleAddNode()
       }
@@ -868,7 +896,6 @@ export default {
 }
 
 .operation-icon {
-  float: right;
   font-size: 16px;
   border: 1px solid #dcdee2;
   border-radius: 4px;
