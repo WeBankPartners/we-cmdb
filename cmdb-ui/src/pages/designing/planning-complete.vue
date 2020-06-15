@@ -558,6 +558,8 @@ export default {
 }
 .operation-zone {
   // margin-top: 20px;
+  // overflow: auto;
+  // min-height: calc(100vh - 205px) !important;
 }
 .graph-select {
   width: 400px;

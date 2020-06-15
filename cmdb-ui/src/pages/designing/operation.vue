@@ -8,7 +8,7 @@
         <span>连线信息</span>
       </div>
     </div>
-    <div v-if="currentTab === 1">
+    <div v-if="currentTab === 1" class="operation-Collapse">
       <h4>当前节点：</h4>
       <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
         <Panel name="1">
@@ -20,7 +20,7 @@
                 v-if="formData.isDisplayed"
                 :key="formDataIndex + 'a'"
               >
-                <Tooltip :content="formData.description" :delay="500" placement="top-end" style="position: absolute;">
+                <Tooltip :content="formData.description" :delay="500" placement="left-start">
                   <span class="form-item-title"> {{ formData.name }}</span>
                 </Tooltip>
                 <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
@@ -92,7 +92,7 @@
                 v-if="formData.isDisplayed"
                 :key="formDataIndex + 'b'"
               >
-                <Tooltip :content="formData.description" :delay="500" placement="top-end" style="position: absolute;">
+                <Tooltip :content="formData.description" :delay="500" placement="left-start">
                   <span class="form-item-title"> {{ formData.name }}</span>
                 </Tooltip>
                 <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
@@ -164,7 +164,7 @@
             v-if="formData.isDisplayed && formData.isEditable"
             :key="formDataIndex + 'a'"
           >
-            <Tooltip :content="formData.description" :delay="500" placement="top-end" style="position: absolute;">
+            <Tooltip :content="formData.description" :delay="500" placement="left-start">
               <span class="form-item-title"> {{ formData.name }}</span>
             </Tooltip>
             <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
@@ -195,7 +195,7 @@
         </Form>
       </div>
     </div>
-    <div v-if="currentTab === 2">
+    <div v-if="currentTab === 2" class="operation-Collapse">
       <Collapse v-model="linkPanal" accordion @on-change="openLinkPanal">
         <Panel :name="linkIndex + 1 + ''" v-for="(link, linkIndex) in linkData" :key="linkIndex">
           {{ link.key_name }}
@@ -210,7 +210,7 @@
                 v-if="formData.isDisplayed"
                 :key="formDataIndex + 'b'"
               >
-                <Tooltip :content="formData.description" :delay="500" placement="top-end" style="position: absolute;">
+                <Tooltip :content="formData.description" :delay="500" placement="left-start">
                   <span class="form-item-title"> {{ formData.name }}</span>
                 </Tooltip>
                 <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
@@ -275,7 +275,7 @@
             v-if="formData.isDisplayed && formData.isEditable"
             :key="formDataIndex + 'a'"
           >
-            <Tooltip :content="formData.description" :delay="500" placement="top-end" style="position: absolute;">
+            <Tooltip :content="formData.description" :delay="500" placement="left-start">
               <span class="form-item-title"> {{ formData.name }}</span>
             </Tooltip>
             <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
@@ -339,6 +339,7 @@ export default {
       panalForm: [], // panal表单信息
 
       isEdit: false,
+      nodeFromSet: {}, // 缓存node attr
 
       showAddNodeArea: false, // 新增节点区域
       selectedNodeType: null,
@@ -791,9 +792,13 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.operation {
-  // overflow: auto;
-  height: calc(100vh - 205px) !important;
+// .operation {
+//   overflow: auto;
+//   height: calc(100vh - 205px);
+// }
+.operation-Collapse {
+  overflow: auto;
+  height: calc(100vh - 280px);
 }
 .diy-tabs {
   display: flex;
@@ -815,7 +820,7 @@ export default {
 }
 
 .ivu-form-item {
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 .textArea-style {
   width: 100%;
@@ -841,6 +846,8 @@ export default {
   line-height: 1;
   padding: 10px 12px 10px 0;
   box-sizing: border-box;
+  position: absolute;
+  margin-top: 6px;
 }
 .form-item-content,
 .opetation-btn-zone {
