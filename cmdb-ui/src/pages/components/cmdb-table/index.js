@@ -2,7 +2,7 @@ import '../table.scss'
 import moment from 'moment'
 import EditModal from './edit-modal.js'
 const DEFAULT_FILTER_NUMBER = 5
-const MIN_WIDTH = 130
+const MIN_WIDTH = 200
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 
 export default {
@@ -527,9 +527,9 @@ export default {
           const len = content ? content.toString().length : 0
           const d = {
             props: {
-              disabled: len < 10,
+              disabled: len < 60,
               content: content,
-              'min-width': '130px',
+              'min-width': '200px',
               'max-width': '500px'
             }
           }
