@@ -74,7 +74,7 @@
 							<goal>npm</goal>
 						</goals>
 						<configuration>
-							<arguments>rebuild node-sass</arguments>
+							<arguments>--registry https://registry.npm.taobao.org  rebuild node-sass</arguments>
 						</configuration>
 					</execution>
 					<execution>
@@ -83,7 +83,7 @@
 							<goal>npm</goal>
 						</goals>
 						<configuration>
-							<arguments>install --save core-js@3</arguments>
+							<arguments>--registry https://registry.npm.taobao.org  install --save core-js@3</arguments>
 						</configuration>
 					</execution>
 					<execution>
@@ -92,7 +92,7 @@
 							<goal>npm</goal>
 						</goals>
 						<configuration>
-							<arguments>run ${buildType}</arguments>
+							<arguments>--registry https://registry.npm.taobao.org  run ${buildType}</arguments>
 						</configuration>
 					</execution>
 				</executions>
