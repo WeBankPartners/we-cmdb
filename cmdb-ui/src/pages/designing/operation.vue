@@ -538,6 +538,7 @@ export default {
     cancleAddLine () {
       this.isEdit = false
       this.showAddLineArea = false
+      this.showNewLineForm = false
       this.selectedLineType = null
       this.newLineFormData = {}
       this.newLineForm = []
@@ -671,6 +672,7 @@ export default {
     cancleAddNode () {
       this.isEdit = false
       this.showAddNodeArea = false
+      this.showNewNodeForm = false
       this.selectedNodeType = null
       this.newNodeFormData = {} // 待创建节点表单
       this.newNodeForm = [] // 待创建节点表单
