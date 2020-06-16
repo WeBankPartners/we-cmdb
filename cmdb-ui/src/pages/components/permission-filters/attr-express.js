@@ -11,16 +11,16 @@ export default {
   props: {
     value: { required: true },
     allCiTypes: { default: () => [], type: Array, required: true },
-    isFilterAttr: { default: false, type: Boolean, required: false },
+    isFilterAttr: { default: false, type: Boolean, required: false }, // 为true时，根据 displayAttrType 或 hiddenAttrType 显示对应类型的属性
     isReadOnly: { default: false, type: Boolean, required: false },
-    displayAttrType: { type: Array, required: false },
-    hiddenAttrType: { type: Array, required: false },
+    displayAttrType: { type: Array, required: false }, // isFilterAttr 为 true 时，下拉框内只显示 inputType 包含于 displayAttrType 内的属性，例如 ['ref', 'multiRef'] 则只显示 ref 及 multiRef 类型的属性
+    hiddenAttrType: { type: Array, required: false }, // isFilterAttr 为 true 时，下拉框内只显示 inputType 不包含于 hiddenAttrType 内的属性，例如 ['select', 'multiSelect'] 则不显示 select 及 multiSelect 类型的属性
     operatorList: { default: () => operatorList, type: Array, required: false },
     showAddButton: { default: false, type: Boolean, required: false },
-    banRootCiDelete: { default: false, type: Boolean, required: false },
-    hideFilterModal: { default: false, type: Boolean, required: false },
-    hideFirstFilter: { default: false, type: Boolean, required: false },
-    hideFirstRefBy: { default: false, type: Boolean, required: false }
+    banRootCiDelete: { default: false, type: Boolean, required: false }, // 为 true 时，禁止删除根节点
+    hideFilterModal: { default: false, type: Boolean, required: false }, // 为 true 时，禁止添加过滤项
+    hideFirstFilter: { default: false, type: Boolean, required: false }, // 为 true 时，禁止在根节点除添加过滤项
+    hideFirstRefBy: { default: false, type: Boolean, required: false } // 为 true 时，根节点后的第一个节点隐藏 refBy 的节点，即只显示 refTo 的节点
   },
   data () {
     return {
