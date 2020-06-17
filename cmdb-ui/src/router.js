@@ -84,7 +84,7 @@ export default new Router({
         {
           path: '/wecmdb/admin/log-enquiry',
           name: 'logEnQuiry',
-          component: () => import('@/pages/admin/log-enquiry')
+          component: () => import('@/pages/designing/planning-complete')
         },
         {
           path: '/wecmdb/admin/user-password-management',
