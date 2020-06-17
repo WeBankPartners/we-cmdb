@@ -313,6 +313,13 @@ public class UICiDataManagementController {
         return wrapperService.getIdcDesignTreesByGuid(idcDesignGuids);
     }
 
+    @RolesAllowed({ MENU_IDC_PLANNING_DESIGN })
+    @PostMapping("/data-tree/{citype_id}/query")
+    @ResponseBody
+    public List<ResourceTreeDto> getTree(@PathVariable("citype_id") Integer ciTypeId,@RequestBody List<String> guids) {
+        return wrapperService.getTreeData(ciTypeId,guids);
+    }
+
     @RolesAllowed({ MENU_IDC_PLANNING_DESIGN, MENU_APPLICATION_ARCHITECTURE_DESIGN })
     @GetMapping("/all-zone-link-design")
     @ResponseBody
