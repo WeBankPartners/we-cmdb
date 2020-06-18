@@ -130,6 +130,19 @@ export default {
           options: [],
           isEditable: true,
           isAuto: false
+        },
+        {
+          title: this.$t('description'),
+          key: 'codeDescription',
+          inputKey: 'codeDescription',
+          propertyName: 'codeDescription',
+          searchSeqNo: 0,
+          displaySeqNo: 7,
+          component: 'Input',
+          inputType: 'text',
+          placeholder: 'codeDescription',
+          isEditable: true,
+          isAuto: false
         }
       ],
       pagination: {
