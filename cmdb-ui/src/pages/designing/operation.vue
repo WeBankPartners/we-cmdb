@@ -793,7 +793,7 @@ export default {
     },
     openParentPanal () {
       this.defaultPanal = ''
-      this.$emit('markZone', this.parentPanalData.guid)
+      // this.$emit('markZone', this.parentPanalData.guid)
     },
     openPanal (panalId) {
       this.parentPanal = ''
