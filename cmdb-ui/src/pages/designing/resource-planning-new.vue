@@ -28,7 +28,7 @@
         </Col>
         <Col span="8" class="operation-zone">
           <Card>
-            <Operation ref="transferData"></Operation>
+            <Operation ref="transferData" @operationReload="operationReload" @markZone="markZone"></Operation>
           </Card>
         </Col>
       </Row>
@@ -97,13 +97,146 @@ export default {
       firstChildrenGroup: [], // 第一层子节点id
       idPath: [], // 缓存点击图形区域从内向外容器ID值
       cacheIdPath: [], // 缓存点击图形区域从内向外容器ID值
-      cacheIndex: [] // 缓存点击图形区域从内向外容器ID值
+      cacheIndex: [], // 缓存点击图形区域从内向外容器ID值
+      levelData: [], // 缓存层级数据备用
+      effectiveLink: [], // 图中可显示连线
+      activeNodeInfo: {
+        id: '',
+        type: '',
+        color: ''
+      }
+    }
+  },
+  watch: {
+    cacheIdPath: function (val) {
+      // 选中节点颜色控制
+      if (this.activeNodeInfo.id) {
+        d3.select('#resourcePlanningGraph')
+          .select(`#` + this.activeNodeInfo.id)
+          .select(this.activeNodeInfo.type)
+          .attr('fill', this.activeNodeInfo.color)
+        this.activeNodeInfo = {}
+      }
+      const id = val[val.length - 1]
+      this.activeNodeInfo.type = d3
+        .select('#resourcePlanningGraph')
+        .select(`#` + id)
+        .select('polygon')._groups[0][0]
+        ? 'polygon'
+        : 'rect'
+      const color = d3
+        .select('#resourcePlanningGraph')
+        .select(`#` + id)
+        .select(this.activeNodeInfo.type)
+        .attr('fill')
+      this.activeNodeInfo.id = id
+      this.activeNodeInfo.color = color
+      d3.select('#resourcePlanningGraph')
+        .select(`#` + id)
+        .select(this.activeNodeInfo.type)
+        .attr('fill', '#2b85e4')
     }
   },
   mounted () {
     this.initGraph()
+    this.graphConfig = {
+      nodePath: '',
+      nodeKey: 'data.network_segment_design.guid',
+      fromKey: 'data.network_segment_design_1.guid',
+      toKey: 'data.network_segment_design_2.guid'
+    }
   },
   methods: {
+    operationReload (operateNodeData, operateLineData) {
+      if (!operateNodeData) {
+        this.loadMap(this.graphData, operateLineData)
+        return
+      }
+      let tmp = this.graphData[0]
+      this.levelData = []
+      let tmpData = null
+      if (this.cacheIdPath.length) {
+        this.cacheIdPath.forEach(id => {
+          this.levelData.unshift(tmp)
+          tmp = tmp.children.find(child => {
+            return `n_${child.guid}` === id
+          })
+        })
+        this.levelData.forEach(dataTmp => {
+          dataTmp.children[this.cacheIndex[0]] = operateNodeData
+          tmpData = dataTmp
+        })
+      } else {
+        tmpData = operateNodeData
+      }
+      this.loadMap([tmpData], operateLineData)
+    },
+    loadMap (graphData, operateLineData) {
+      console.log(graphData, operateLineData)
+      this.graphData = graphData
+      this.graphData[0].children.forEach(_ => {
+        this.firstChildrenGroup.push(`g_${_.guid}`)
+      })
+      const sortingTree = array => {
+        let obj = {}
+        array.forEach(_ => {
+          _.text = [_.data.code]
+          if (_.data[this.initParams[NETWORK_SEGMENT]] instanceof Array) {
+            let text = []
+            _.data[this.initParams[NETWORK_SEGMENT]].forEach(networkSegment => {
+              text.push(networkSegment.code)
+            })
+            _.text.push(`[${text.join(', ')}]`)
+          } else if (typeof _.data[this.initParams[NETWORK_SEGMENT]] === 'object') {
+            _.text.push(_.data[this.initParams[NETWORK_SEGMENT]].code || '')
+          }
+          if (_.children instanceof Array) {
+            _.children = sortingTree(_.children)
+          }
+          obj[_.data.code + _.guid] = _
+        })
+        return Object.keys(obj)
+          .sort()
+          .map(_ => obj[_])
+      }
+      this.idcData = sortingTree(graphData)
+      if (operateLineData) {
+        const lineInfoData = operateLineData.lineInfo.data
+        console.log(operateLineData.lineInfo)
+        if (operateLineData.type === 'add') {
+          this.lineData.push({
+            guid: lineInfoData.guid,
+            from: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
+            linkInfo: {
+              ...lineInfoData,
+              ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
+            },
+            to: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
+            label: lineInfoData.code,
+            state: lineInfoData.state.code
+          })
+        }
+        if (operateLineData.type === 'edit') {
+          console.log(lineInfoData)
+          const index = this.lineData.findIndex(_ => {
+            return _.guid === lineInfoData.guid
+          })
+          this.lineData[index] = lineInfoData
+        }
+        if (operateLineData.type === 'remove') {
+          const index = this.lineData.findIndex(_ => {
+            return _.guid === lineInfoData.guid
+          })
+          this.lineData.splice(index, 1)
+        }
+      }
+      this.$nextTick(() => {
+        this.initGraph()
+      })
+    },
+    markZone (guid) {
+      this.cacheIdPath = [`n_` + guid]
+    },
     async getAllIdcData () {
       const { data, statusCode } = await getAllIdcData()
       if (statusCode === 'OK') {
@@ -212,7 +345,6 @@ export default {
           }
           this.idcData = sortingTree(_idcData)
           this.graphData = this.idcData
-          console.log(this.graphData)
           this.firstChildrenGroup = []
           this.graphData[0].children.forEach(_ => {
             this.firstChildrenGroup.push(`n_${_.guid}`)
@@ -223,6 +355,10 @@ export default {
             return {
               guid: _.data.guid,
               from: _.data[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
+              linkInfo: {
+                ..._.data,
+                ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
+              },
               to: _.data[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
               label: _.data.code,
               state: _.data.state.code
@@ -311,6 +447,18 @@ export default {
           this.setChildrenNode()
           addEvent('.node', 'click', this.handleNodeClick)
         })
+      // 最外图层选中处理
+      d3.select('#clust1').on('click', () => {
+        this.$refs.transferData.managementData(this.graphData[0])
+        if (this.activeNodeInfo.id) {
+          d3.select('#resourcePlanningGraph')
+            .select(`#` + this.activeNodeInfo.id)
+            .select(this.activeNodeInfo.type)
+            .attr('fill', this.activeNodeInfo.color)
+          this.activeNodeInfo = {}
+        }
+      })
+
       let width = window.innerWidth - 20
       let height = window.innerHeight - 230
       let svg = d3.select('#resourcePlanningGraph').select('svg')
@@ -395,20 +543,15 @@ export default {
       })
       this.lineData.forEach(_ => {
         if (newworkToNode[_.from] && newworkToNode[_.to]) {
+          this.effectiveLink.push(_.linkInfo)
           dots.push(
             `n_${newworkToNode[_.from]} -> n_${newworkToNode[_.to]}[id=gl_${_.guid},tooltip="${_.label ||
               ''}",taillabel="${_.label || ''}"];`
           )
         }
       })
+      this.$refs.transferData.linkManagementData(this.effectiveLink)
       return dots.join('')
-    },
-    genLink (links) {
-      let result = ''
-      links.forEach(link => {
-        result += `${link.azone}->${link.bzone}[arrowhead="none"];`
-      })
-      return result
     },
     setChildren (node, p1, pw, ph, tfsize, tlength = 1, deep) {
       let graph = d3.select('#resourcePlanningGraph').select('#n_' + node.guid)
@@ -614,9 +757,6 @@ export default {
         .attr('fill', 'red')
         .attr('fill-opacity', '1')
         .attr('stroke-opacity', '1')
-    },
-    showGraph (ci) {
-      ci.showGraph = true
     },
     async getConfigParams () {
       const { statusCode, data } = await getEnumCodesByCategoryId(0, VIEW_CONFIG_PARAMS)

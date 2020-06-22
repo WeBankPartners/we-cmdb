@@ -507,7 +507,6 @@ export default {
           }
         }
       }
-      console.log(tmpLineData)
       let params = {
         id: this.currentLineId,
         createData: [tmpLineData]
@@ -726,7 +725,6 @@ export default {
         id: ciTypeId,
         updateData: [tmpPanalData]
       }
-      console.log(params)
       const { statusCode, data } = await updateCiDatas(params)
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
@@ -738,7 +736,14 @@ export default {
           this.operateData.children[index].data = data[0]
         }
         if (dataSource === 'linkData') {
-          this.$emit('operationReload', '')
+          this.linkData[index] = data[0]
+          this.linkData[index].ciTypeId = Number(ciTypeId)
+          this.$emit('operationReload', '', {
+            type: 'edit',
+            lineInfo: {
+              data: data[0]
+            }
+          })
           return
         }
         this.$emit('operationReload', this.operateData)
