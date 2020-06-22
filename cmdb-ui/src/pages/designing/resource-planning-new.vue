@@ -15,12 +15,23 @@
         <Button @click="onIdcDataChange" type="primary">{{ $t('query') }}</Button>
       </Col>
     </Row>
-    <Row class="graph-tabs">
+    <Row class="resource-design-tab-row">
       <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
         <div>{{ $t('loading') }}</div>
       </Spin>
-      <div class="graph-container-big" id="resourcePlanningGraph"></div>
+      <Row>
+        <Col span="16">
+          <Card>
+            <div class="graph-container-big" id="resourcePlanningGraph"></div>
+          </Card>
+        </Col>
+        <Col span="8" class="operation-zone">
+          <Card>
+            <Operation ref="transferData"></Operation>
+          </Card>
+        </Col>
+      </Row>
     </Row>
   </div>
 </template>
@@ -49,10 +60,13 @@ import {
   RESOURCE_PLANNING_ROUTER_CODE,
   DEFAULT_SECURITY_POLICY_CODE
 } from '@/const/init-params.js'
+import Operation from './operation'
+import { addEvent } from '../util/event.js'
 
 export default {
   components: {
-    TreeSelect
+    TreeSelect,
+    Operation
   },
   data () {
     return {
@@ -77,12 +91,13 @@ export default {
       lineData: [],
       graphNodes: {},
       compareColumns: [],
-      compareData: []
-    }
-  },
-  computed: {
-    needCheckout () {
-      return this.$route.name !== 'ciDataEnquiry'
+      compareData: [],
+
+      operateNodeData: [],
+      firstChildrenGroup: [], // 第一层子节点id
+      idPath: [], // 缓存点击图形区域从内向外容器ID值
+      cacheIdPath: [], // 缓存点击图形区域从内向外容器ID值
+      cacheIndex: [] // 缓存点击图形区域从内向外容器ID值
     }
   },
   mounted () {
@@ -135,10 +150,6 @@ export default {
           })
         })
       }
-    },
-    async reloadHandler () {
-      this.onIdcDataChange()
-      this.isDataChanged = false
     },
     async onIdcDataChange () {
       let willSelectIdc = {}
@@ -200,6 +211,14 @@ export default {
               .map(_ => obj[_])
           }
           this.idcData = sortingTree(_idcData)
+          this.graphData = this.idcData
+          console.log(this.graphData)
+          this.firstChildrenGroup = []
+          this.graphData[0].children.forEach(_ => {
+            this.firstChildrenGroup.push(`n_${_.guid}`)
+          })
+          this.operateNodeData = this.graphData[0]
+          this.$refs.transferData.managementData(this.operateNodeData)
           this.lineData = links.data.contents.map(_ => {
             return {
               guid: _.data.guid,
@@ -209,6 +228,7 @@ export default {
               state: _.data.state.code
             }
           })
+
           this.$nextTick(() => {
             this.initGraph()
           })
@@ -216,6 +236,26 @@ export default {
       } else {
         this.idcData = []
         this.lineData = []
+      }
+    },
+    handleNodeClick (e) {
+      this.idPath.unshift(e.currentTarget.id)
+      this.cacheIdPath = []
+      this.cacheIndex = []
+      this.cacheIdPath = JSON.parse(JSON.stringify(this.idPath))
+      if (this.firstChildrenGroup.includes(e.currentTarget.id)) {
+        let tmp = this.graphData[0]
+        this.idPath.forEach(id => {
+          tmp = tmp.children.find((child, index) => {
+            if (`n_${child.guid}` === id) {
+              this.cacheIndex.push(index)
+              return child
+            }
+          })
+        })
+        this.idPath = []
+        this.operateNodeData = tmp
+        this.$refs.transferData.managementData(this.operateNodeData)
       }
     },
     initGraph () {
@@ -226,12 +266,13 @@ export default {
           .on('dblclick.zoom', null)
           .on('wheel.zoom', null)
           .on('mousewheel.zoom', null)
+        const width = (window.innerWidth / 24) * 18
         this.graph.graphviz = graph
           .graphviz()
           .fit(true)
           .zoom(true)
-          .width(window.innerWidth - 20)
-          .height(window.innerHeight - 230)
+          .width(width - 80)
+          .height(window.innerHeight - 190)
       }
       initEvent()
       this.renderGraph()
@@ -266,7 +307,10 @@ export default {
       this.graph.graphviz
         .transition()
         .renderDot(nodesString)
-        .on('end', this.setChildrenNode)
+        .on('end', () => {
+          this.setChildrenNode()
+          addEvent('.node', 'click', this.handleNodeClick)
+        })
       let width = window.innerWidth - 20
       let height = window.innerHeight - 230
       let svg = d3.select('#resourcePlanningGraph').select('svg')
