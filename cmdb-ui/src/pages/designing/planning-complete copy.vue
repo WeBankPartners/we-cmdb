@@ -1,13 +1,14 @@
 <template>
   <div>
-    <!-- <Row style="margin-bottom: 16px;">
+    {{ cacheIdPath }}
+    <Row style="margin-bottom: 16px;">
       <span>{{ $t('select_idc') }}：</span>
       <Select :placeholder="$t('select_idc')" class="graph-select" @on-change="onIdcDataChange">
         <Option v-for="item in allIdcs" :value="item.guid" :key="item.guid">
           {{ item.name }}
         </Option>
       </Select>
-    </Row> -->
+    </Row>
     <Row class="resource-design-tab-row">
       <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
@@ -33,7 +34,7 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import { getEnumCodesByCategoryId, getAllIdcDesignData, queryCiData, getTreeData } from '@/api/server'
+import { getEnumCodesByCategoryId, getIdcDesignTreeByGuid, getAllIdcDesignData, queryCiData } from '@/api/server'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
 import { addEvent } from '../util/event.js'
 import {
@@ -182,11 +183,10 @@ export default {
       }
       this.initGraph()
     },
-    async onIdcDataChange (guid) {
+    async onIdcDataChange (guid = '0012_0000000003') {
       this.spinShow = true
-      const { data, statusCode } = await getTreeData('12', guid)
+      const { data, statusCode } = await getIdcDesignTreeByGuid([guid])
       this.graphData = data
-      this.firstChildrenGroup = []
       this.graphData[0].children.forEach(_ => {
         this.firstChildrenGroup.push(`g_${_.guid}`)
       })
@@ -264,9 +264,9 @@ export default {
       const children = idcData.children || []
       this.ResourceCollection = []
       children.forEach(_ => {
-        const node = this.dataSelector(_, this.graphConfig.nodePath)
-        Array.isArray(node) ? this.ResourceCollection.push(...node) : this.ResourceCollection.push(node)
+        this.ResourceCollection.push(..._.children)
       })
+      // this.ResourceCollection = children
       let layers = new Map()
       children.forEach(zone => {
         if (layers.has(zone.data.network_zone_layer)) {
@@ -311,27 +311,51 @@ export default {
     },
     genLink () {
       let dots = []
-      let networkToNode = {}
-      this.ResourceCollection.forEach(rc => {
-        const nodeGuid = this.dataSelector(rc, this.graphConfig.nodeKey)
-        if (Object.keys(networkToNode).includes(nodeGuid)) {
-          networkToNode[nodeGuid].push(rc.guid)
-        } else {
-          networkToNode[nodeGuid] = [rc.guid]
+      let newworkToNode = {}
+      Object.keys(this.graphNodes).forEach(guid => {
+        const networkSegmentDesign = this.graphNodes[guid].data[this.initParams[NETWORK_SEGMENT_DESIGN]]
+        if (networkSegmentDesign) {
+          newworkToNode[networkSegmentDesign.guid] = guid
         }
       })
+
+      let networkToNode = {}
+      console.log(this.ResourceCollection)
+      this.ResourceCollection.forEach(rc => {
+        if (Object.keys(networkToNode).includes(rc.data.network_segment_design.f_network_segment_design)) {
+          networkToNode[rc.data.network_segment_design.f_network_segment_design].push(rc.guid)
+        } else {
+          networkToNode[rc.data.network_segment_design.f_network_segment_design] = [rc.guid]
+        }
+      })
+      console.log(networkToNode)
       this.idcLink.forEach(_ => {
         if (networkToNode[_.from] && networkToNode[_.to]) {
-          this.effectiveLink.push(_.linkInfo)
           networkToNode[_.from].forEach(from => {
             networkToNode[_.to].forEach(to => {
               dots.push(
+                `g_${to} -> g_${from}[id=gl_${_.guid},tooltip="${_.label || ''}",taillabel="${_.label || ''}"];`
+              )
+              console.log(
                 `g_${to} -> g_${from}[id=gl_${_.guid},tooltip="${_.label || ''}",taillabel="${_.label || ''}"];`
               )
             })
           })
         }
       })
+
+      this.effectiveLink = []
+      this.idcLink.forEach(_ => {
+        if (newworkToNode[_.from] && newworkToNode[_.to]) {
+          this.effectiveLink.push(_.linkInfo)
+          console.log(_)
+          dots.push(
+            `g_${newworkToNode[_.from]} -> g_${newworkToNode[_.to]}[id=gl_${_.guid},tooltip="${_.label ||
+              ''}",taillabel="${_.label || ''}"];`
+          )
+        }
+      })
+
       this.$refs.transferData.linkManagementData(this.effectiveLink)
       return dots.join('')
     },
@@ -535,16 +559,17 @@ export default {
         queryObject: {}
       }
       const { statusCode, data } = await queryCiData(payload)
+      console.log(data)
       if (statusCode === 'OK') {
         this.idcLink = data.contents.map(_ => {
           return {
             guid: _.data.guid,
-            from: this.dataSelector(_, this.graphConfig.fromKey),
+            from: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
             linkInfo: {
               ..._.data,
               ciTypeId: this.initParams[IDC_PLANNING_LINK_ID]
             },
-            to: this.dataSelector(_, this.graphConfig.toKey),
+            to: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
             label: _.data.code,
             state: _.data.state.code
           }
@@ -566,38 +591,12 @@ export default {
       if (statusCode === 'OK') {
         this.allIdcs = data.map(_ => _.data)
       }
-    },
-    dataSelector (data = {}, rule = '') {
-      // eslint-disable-next-line no-unused-vars
-      let tmp = data
-      if (rule !== '') {
-        const ruleArray = rule.split('.')
-        if (ruleArray.length > 0) {
-          ruleArray.forEach(r => {
-            tmp = tmp[r]
-          })
-        }
-      }
-      return tmp
     }
   },
   mounted () {
-    // this.getAllIdcDesignData()
-    // this.onIdcDataChange()
+    this.getAllIdcDesignData()
+    this.onIdcDataChange()
     this.getConfigParams()
-
-    this.graphConfig = {
-      nodePath: '',
-      nodeKey: 'data.network_segment_design.guid',
-      fromKey: 'data.network_segment_design_1.guid',
-      toKey: 'data.network_segment_design_2.guid'
-    }
-    // this.graphConfig = {
-    //   nodePath: 'children',
-    //   nodeKey: 'data.network_segment_design.f_network_segment_design',
-    //   fromKey: 'data.network_segment_design_1.guid',
-    //   toKey: 'data.network_segment_design_2.guid'
-    // }
   },
   components: {
     Operation
