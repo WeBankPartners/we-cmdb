@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Select v-model="selected" @on-open-change="openOptions" multiple :disabled="disabled">
+    <Select v-model="selected" @on-open-change="openOptions" multiple :disabled="disabled" filterable>
       <Option v-for="item in options" :value="item.value" :key="item.value">{{ item.label }}</Option>
     </Select>
   </div>
