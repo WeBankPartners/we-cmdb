@@ -458,6 +458,7 @@ export default {
       // }
     },
     async getNewLineAttr (val) {
+      console.log(val)
       this.selectedLineType = val
       if (!this.selectedLineType) {
         return
