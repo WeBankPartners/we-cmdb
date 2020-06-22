@@ -16,9 +16,12 @@ export default {
   },
   watch: {
     panalData: function (panalData) {
-      const selectedObject = panalData[this.formData.propertyName]
+      let selectedObject = panalData[this.formData.propertyName]
       if (!selectedObject) {
         return
+      }
+      if (!Array.isArray(selectedObject)) {
+        selectedObject = [selectedObject]
       }
       this.selected = selectedObject.map(_ => {
         return _.guid
