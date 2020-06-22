@@ -202,7 +202,6 @@ export default {
       this.idcData = sortingTree(graphData)
       if (operateLineData) {
         const lineInfoData = operateLineData.lineInfo.data
-        console.log(operateLineData.lineInfo)
         if (operateLineData.type === 'add') {
           this.lineData.push({
             guid: lineInfoData.guid,
@@ -217,7 +216,6 @@ export default {
           })
         }
         if (operateLineData.type === 'edit') {
-          console.log(lineInfoData)
           const index = this.lineData.findIndex(_ => {
             return _.guid === lineInfoData.guid
           })
@@ -541,6 +539,7 @@ export default {
           newworkToNode[networkSegment.guid] = guid
         }
       })
+      this.effectiveLink = []
       this.lineData.forEach(_ => {
         if (newworkToNode[_.from] && newworkToNode[_.to]) {
           this.effectiveLink.push(_.linkInfo)
