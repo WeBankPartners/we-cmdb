@@ -12,7 +12,7 @@
       <h4>当前节点：</h4>
       <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
         <Panel name="1">
-          {{ parentPanalData.data.code }}
+          {{ parentPanalData.data.code | filterCode }}
           <div slot="content">
             <Form>
               <div
@@ -77,7 +77,7 @@
       <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
         <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
           <span style="">
-            {{ panal.data.code }}
+            {{ panal.data.code | filterCode }}
           </span>
           <Tooltip content="删除" style="float:right">
             <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon" />
@@ -200,7 +200,7 @@
       <Collapse v-model="linkPanal" accordion @on-change="openLinkPanal">
         <Panel :name="linkIndex + 1 + ''" v-for="(link, linkIndex) in linkData" :key="linkIndex">
           <span style="">
-            {{ link.key_name }}
+            {{ link.key_name | filterCode }}
           </span>
           <Tooltip content="删除" style="float:right">
             <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon" />
@@ -458,7 +458,6 @@ export default {
       // }
     },
     async getNewLineAttr (val) {
-      console.log(val)
       this.selectedLineType = val
       if (!this.selectedLineType) {
         return
@@ -815,6 +814,11 @@ export default {
       if (statusCode === 'OK') {
         this[formObject] = data
       }
+    }
+  },
+  filters: {
+    filterCode: function (val) {
+      return val.length > 25 ? val.substring(0, 25) + '...' : val
     }
   },
   components: {
