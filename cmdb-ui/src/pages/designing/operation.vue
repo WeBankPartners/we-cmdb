@@ -269,7 +269,7 @@
         </div>
       </Collapse>
       <div v-if="showAddLineArea" class="add-node-area">
-        <Select v-model="selectedLineType" @on-change="getNewLineAttr">
+        <Select v-model="selectedLineType" @on-change="getNewLineAttr" @on-open-change="getLineTypes">
           <Option v-for="(item, index) in canCreateLineTypes" :value="item.value" :key="item.value + index">{{
             item.label
           }}</Option>
@@ -332,6 +332,8 @@ export default {
   name: '',
   data () {
     return {
+      graphCiTypeId: '',
+      graphTableName: '',
       currentTab: 1,
       initParams: {},
       parentPanal: '',
@@ -399,7 +401,7 @@ export default {
       }
     },
     async getAllCITypes () {
-      this.allCITypes = []
+      this.allCITypes = {}
       const status = ['notCreated', 'created', 'dirty', 'decommissioned']
       const allCITypesInfo = await getAllCITypesByLayerWithAttr(status)
       if (allCITypesInfo.statusCode === 'OK') {
@@ -408,10 +410,18 @@ export default {
             this.allCITypes[ciType.tableName] = ciType
           })
         })
-        this.getLineTypes()
       }
     },
-    async getLineTypes () {
+    async getLineTypes (val) {
+      if (!val) {
+        return
+      }
+      const ciTypeKeys = Object.keys(this.allCITypes)
+      ciTypeKeys.forEach(key => {
+        if (this.allCITypes[key].ciTypeId === this.graphCiTypeId) {
+          this.graphTableName = this.allCITypes[key].tableName
+        }
+      })
       this.canCreateLineTypes = []
       let params = {
         filters: [{ name: 'catId', operator: 'in', value: Array.from(new Array(28 + 1).keys()).slice(22) }],
@@ -419,16 +429,22 @@ export default {
       }
       const { statusCode, data } = await getAllSystemEnumCodes(params)
       if (statusCode === 'OK') {
-        this.edgeData = data.contents.filter(dd => {
-          return dd.codeDescription === 'edge'
+        const codeData = data.contents
+        const codeId = codeData.filter(dd => {
+          return dd.code === this.graphTableName
+        })[0].codeId
+        const edgeData = codeData.filter(dd => {
+          if (dd.groupCodeId) {
+            return dd.groupCodeId.codeId === codeId && dd.codeDescription === 'edge'
+          }
+        })
+        edgeData.forEach(ed => {
+          this.canCreateLineTypes.push({
+            label: ed.value,
+            value: ed.code
+          })
         })
       }
-      this.edgeData.forEach(ed => {
-        this.canCreateLineTypes.push({
-          label: ed.value,
-          value: ed.code
-        })
-      })
     },
     async getAllSystemEnumCodes () {
       this.canCreateLineTypes = []
@@ -544,7 +560,6 @@ export default {
     },
     async deleteLink (linkData, event) {
       event.stopPropagation()
-      console.log(linkData)
       this.$Modal.confirm({
         title: this.$t('delete_confirm'),
         loading: true,

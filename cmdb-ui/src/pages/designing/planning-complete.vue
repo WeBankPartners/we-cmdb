@@ -49,6 +49,7 @@ export default {
   data () {
     return {
       allIdcs: [],
+      graphCiTypeId: 12,
       graph: {},
       idcDesignData: null,
       idcLink: [],
@@ -184,13 +185,14 @@ export default {
     },
     async onIdcDataChange (guid) {
       this.spinShow = true
-      const { data, statusCode } = await getTreeData('12', [guid])
+      const { data, statusCode } = await getTreeData(this.graphCiTypeId, [guid])
       this.graphData = data
       this.firstChildrenGroup = []
       this.graphData[0].children.forEach(_ => {
         this.firstChildrenGroup.push(`g_${_.guid}`)
       })
       this.operateNodeData = this.graphData[0]
+      this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
       this.$refs.transferData.managementData(this.operateNodeData)
       if (statusCode === 'OK') {
         const sortingTree = array => {
@@ -589,8 +591,8 @@ export default {
     this.graphConfig = {
       nodePath: '',
       nodeKey: 'data.network_segment_design.guid',
-      fromKey: 'data.network_segment_design_1.guid',
-      toKey: 'data.network_segment_design_2.guid'
+      fromKey: 'data.network_segment_design_2.guid',
+      toKey: 'data.network_segment_design_1.guid'
     }
     // this.graphConfig = {
     //   nodePath: 'children',
