@@ -59,7 +59,7 @@
               </div>
               <FormItem>
                 <div class="opetation-btn-zone">
-                  <Button @click="editOperation">编辑</Button>
+                  <Button @click="editOperation" type="info">编辑</Button>
                   <Button
                     type="primary"
                     @click="saveOperation('parentPanalData')"
@@ -80,10 +80,10 @@
             {{ panal.data.code | filterCode }}
           </span>
           <Tooltip content="删除" style="float:right">
-            <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon" />
+            <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
           </Tooltip>
           <Tooltip content="确认" style="float:right">
-            <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon" />
+            <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
           </Tooltip>
           <!-- <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button> -->
           <div slot="content">
@@ -136,7 +136,7 @@
               </div>
               <FormItem>
                 <div class="opetation-btn-zone">
-                  <Button @click="editOperation">编辑</Button>
+                  <Button @click="editOperation" type="info">编辑</Button>
                   <Button
                     type="primary"
                     @click="saveOperation('panalData', panalIndex)"
@@ -203,10 +203,10 @@
             {{ link.key_name | filterCode }}
           </span>
           <Tooltip content="删除" style="float:right">
-            <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon" />
+            <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon-delete" />
           </Tooltip>
           <Tooltip content="确认" style="float:right">
-            <Icon type="md-checkmark" @click="confirm(link, $event)" class="operation-icon" />
+            <Icon type="md-checkmark" @click="confirm(link, $event)" class="operation-icon-confirm" />
           </Tooltip>
           <div slot="content">
             <Form v-if="linkPanal[0] === linkIndex + 1 + ''">
@@ -251,7 +251,7 @@
               </div>
               <FormItem>
                 <div class="opetation-btn-zone">
-                  <Button @click="editOperation">编辑</Button>
+                  <Button @click="editOperation" type="info">编辑</Button>
                   <Button
                     type="primary"
                     @click="saveOperation('linkData', linkIndex)"
@@ -750,6 +750,7 @@ export default {
       }
     },
     managementData (operateData) {
+      this.currentTab = 1
       this.parentPanal = ''
       this.defaultPanal = ''
       this.panalData = []
@@ -906,17 +907,27 @@ export default {
   width: 100% !important;
 }
 
-.operation-icon {
+.operation-icon-delete {
   font-size: 16px;
-  border: 1px solid #dcdee2;
+  border: 1px solid #ed4014;
+  color: #ed4014;
+  border-radius: 4px;
+  width: 24px;
+  line-height: 24px;
+  margin: 6px;
+}
+.operation-icon-confirm {
+  font-size: 16px;
+  border: 1px solid #57a3f3;
+  color: #57a3f3;
   border-radius: 4px;
   width: 24px;
   line-height: 24px;
   margin: 6px;
 }
 
-.operation-icon:hover {
-  color: #57a3f3;
-  border-color: #57a3f3;
-}
+// .operation-icon:hover {
+//   color: #57a3f3;
+//   border-color: #57a3f3;
+// }
 </style>
