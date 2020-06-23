@@ -22,11 +22,12 @@
       </Spin>
       <Tabs v-show="idcData.length" type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
         <TabPane :label="$t('resource_planning_diagram')" name="resource-design" :index="1">
-          <Alert show-icon closable v-if="isDataChanged">
+          <!-- <Alert show-icon closable v-if="isDataChanged">
             Data has beed changed, click Reload button to reload graph.
             <Button slot="desc" @click="reloadHandler">Reload</Button>
           </Alert>
-          <div class="graph-container-big" id="resourcePlanningGraph"></div>
+          <div class="graph-container-big" id="resourcePlanningGraph"></div> -->
+          <ResourcePlanningNew ref="resourcePlanningNew"></ResourcePlanningNew>
         </TabPane>
         <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name" :index="ci.seqNo + 1">
           <div
@@ -127,10 +128,11 @@ import {
   RESOURCE_PLANNING_ROUTER_CODE,
   DEFAULT_SECURITY_POLICY_CODE
 } from '@/const/init-params.js'
-
+import ResourcePlanningNew from '@/pages/designing/resource-planning-new'
 export default {
   components: {
-    TreeSelect
+    TreeSelect,
+    ResourcePlanningNew
   },
   data () {
     return {
@@ -253,6 +255,7 @@ export default {
           id: this.initParams[RESOURCE_PLANNING_LINK_ID],
           queryObject: {}
         }
+        this.$refs.resourcePlanningNew.onIdcDataChange(selectedIdcs)
         const promiseArray = [getIdcImplementTreeByGuid(selectedIdcs), queryCiData(payload)]
         const [idcData, links] = await Promise.all(promiseArray)
         if (idcData.statusCode === 'OK' && links.statusCode === 'OK') {
@@ -328,7 +331,7 @@ export default {
           .height(window.innerHeight - 230)
       }
       initEvent()
-      this.renderGraph()
+      // this.renderGraph()
       this.spinShow = false
     },
     setChildrenNode () {

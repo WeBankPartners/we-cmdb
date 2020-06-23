@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Row class="graph-select-row">
+    <!-- <Row class="graph-select-row">
       <Col span="8" offset="1" class="resource-planning-title">
         <TreeSelect
           v-model="selectedIdcs"
@@ -14,7 +14,7 @@
       <Col span="6">
         <Button @click="onIdcDataChange" type="primary">{{ $t('query') }}</Button>
       </Col>
-    </Row>
+    </Row> -->
     <Row class="resource-design-tab-row">
       <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
@@ -283,19 +283,19 @@ export default {
         })
       }
     },
-    async onIdcDataChange () {
-      let willSelectIdc = {}
+    async onIdcDataChange (selectedIdcs) {
+      // let willSelectIdc = {}
       this.idcData = []
-      this.selectedIdcs.forEach(_ => {
-        const realIdcGuid = this.allIdcs[_].realIdcGuid
-        if (!this.selectedIdcs.find(guid => realIdcGuid === guid)) {
-          willSelectIdc[realIdcGuid] = realIdcGuid
-        }
-      })
-      let selectedIdcs = JSON.parse(JSON.stringify(this.selectedIdcs))
-      Object.keys(willSelectIdc).forEach(guid => {
-        selectedIdcs.push(guid)
-      })
+      // this.selectedIdcs.forEach(_ => {
+      //   const realIdcGuid = this.allIdcs[_].realIdcGuid
+      //   if (!this.selectedIdcs.find(guid => realIdcGuid === guid)) {
+      //     willSelectIdc[realIdcGuid] = realIdcGuid
+      //   }
+      // })
+      // let selectedIdcs = JSON.parse(JSON.stringify(this.selectedIdcs))
+      // Object.keys(willSelectIdc).forEach(guid => {
+      //   selectedIdcs.push(guid)
+      // })
       if (selectedIdcs.length) {
         this.spinShow = true
         const payload = {
