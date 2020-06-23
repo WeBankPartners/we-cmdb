@@ -70,6 +70,7 @@ export default {
   },
   data () {
     return {
+      graphCiTypeId: 22,
       initParams: {},
       treeIdcs: [],
       allIdcs: {},
@@ -301,10 +302,7 @@ export default {
           id: this.initParams[RESOURCE_PLANNING_LINK_ID],
           queryObject: {}
         }
-        // getTreeData
-        // getTreeData('22', selectedIdcs)
-        console.log(selectedIdcs)
-        const promiseArray = [getTreeData('22', selectedIdcs), queryCiData(payload)]
+        const promiseArray = [getTreeData(this.graphCiTypeId, selectedIdcs), queryCiData(payload)]
         const [idcData, links] = await Promise.all(promiseArray)
         if (idcData.statusCode === 'OK' && links.statusCode === 'OK') {
           const regional = this.initParams[REGIONAL_DATA_CENTER]
@@ -351,6 +349,7 @@ export default {
             this.firstChildrenGroup.push(`n_${_.guid}`)
           })
           this.operateNodeData = this.graphData[0]
+          this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
           this.$refs.transferData.managementData(this.operateNodeData)
           this.lineData = links.data.contents.map(_ => {
             return {
