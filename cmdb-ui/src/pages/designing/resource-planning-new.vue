@@ -42,10 +42,10 @@ import * as d3 from 'd3-selection'
 import * as d3Graphviz from 'd3-graphviz'
 import {
   getAllIdcData,
-  getIdcImplementTreeByGuid,
   getResourcePlanningCiData,
   getEnumCodesByCategoryId,
-  queryCiData
+  queryCiData,
+  getTreeData
 } from '@/api/server'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
 import TreeSelect from '../components/tree-select.vue'
@@ -301,7 +301,10 @@ export default {
           id: this.initParams[RESOURCE_PLANNING_LINK_ID],
           queryObject: {}
         }
-        const promiseArray = [getIdcImplementTreeByGuid(selectedIdcs), queryCiData(payload)]
+        // getTreeData
+        // getTreeData('22', selectedIdcs)
+        console.log(selectedIdcs)
+        const promiseArray = [getTreeData('22', selectedIdcs), queryCiData(payload)]
         const [idcData, links] = await Promise.all(promiseArray)
         if (idcData.statusCode === 'OK' && links.statusCode === 'OK') {
           const regional = this.initParams[REGIONAL_DATA_CENTER]
