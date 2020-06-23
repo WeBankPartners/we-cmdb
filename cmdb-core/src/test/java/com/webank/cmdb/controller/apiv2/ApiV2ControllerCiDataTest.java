@@ -210,6 +210,17 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
     }
 
     @Test
+    @Transactional
+    public void deleteCiDataWithReferencedCiThenReturnFailed() throws Exception {
+        List<String> Ids = Arrays.asList("0002_0000000001");
+        String reqJson = JsonUtil.toJson(Ids);
+        System.out.println("reqJson= " + reqJson);
+        mvc.perform(post("/api/v2/ci/{ciTypeId}/delete", ciTypeId).contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("OK")));
+    }
+
+    @Test
     public void createCiDataWithoutRequriedFiledThenGetError() throws Exception {
         Map<?, ?> jsonMap = ImmutableMap.builder()
                 .put("description", "test desc")
