@@ -136,7 +136,7 @@ export const operateCiState = (ciTypeId, guid, op) => {
   return req.post(`/ci/state/operate?operation=${op}`, payload)
 }
 export const getTreeData = (ciTypeId, guid) => {
-  const payload = [guid]
+  const payload = guid
   return req.post(`/data-tree/${ciTypeId}/query`, payload)
 }
 // ci integrate query
