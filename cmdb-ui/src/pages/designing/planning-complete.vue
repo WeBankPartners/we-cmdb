@@ -184,7 +184,7 @@ export default {
     },
     async onIdcDataChange (guid) {
       this.spinShow = true
-      const { data, statusCode } = await getTreeData('12', guid)
+      const { data, statusCode } = await getTreeData('12', [guid])
       this.graphData = data
       this.firstChildrenGroup = []
       this.graphData[0].children.forEach(_ => {
