@@ -387,13 +387,10 @@ export default {
       this.linkData = linkData
     },
     async openLinkPanal (panalId) {
-      console.log(1111111)
-      console.log(panalId)
       // this.linkPanal = ''
       this.isEdit = false
       if (panalId.length) {
         // this.$emit('markZone', this.panalData[Number(panalId[0] - 1)].guid)
-        console.log(this.linkData[Number(panalId[0] - 1)])
         const ciTypeId = this.linkData[Number(panalId[0] - 1)].ciTypeId
         if (!Object.keys(this.lineFromSet).includes(ciTypeId)) {
           await this.getAttributes(ciTypeId, 'linkPanalForm')
@@ -820,15 +817,11 @@ export default {
       // this.$emit('markZone', this.parentPanalData.guid)
     },
     openPanal (panalId) {
-      console.log(123123)
-      console.log(panalId)
       this.parentPanal = ''
       this.isEdit = false
       if (panalId.length) {
         this.$emit('markZone', this.panalData[Number(panalId[0] - 1)].guid)
-        console.log(this.panalData[Number(panalId[0] - 1)])
         const ciTypeId = this.panalData[Number(panalId[0] - 1)].ciTypeId
-        console.log(ciTypeId)
         this.getAttributes(ciTypeId, 'panalForm')
       }
     },
