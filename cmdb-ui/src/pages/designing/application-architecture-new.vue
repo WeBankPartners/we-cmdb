@@ -73,14 +73,14 @@ import {
   saveAllDesignTreeFromSystemDesign,
   getArchitectureDesignTabs,
   getArchitectureCiDatas,
-  getIdcDesignTreeByGuid,
-  queryCiData,
-  updateSystemDesign
+  updateSystemDesign,
+  getTreeData
 } from '@/api/server'
 import { newOuterActions, pagination, components } from '@/const/actions.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import PhysicalGraph from './physical-graph'
 import moment from 'moment'
+import { addEvent } from '../util/event.js'
 import { colors, stateColor } from '../../const/graph-configuration'
 import {
   VIEW_CONFIG_PARAMS,
@@ -93,10 +93,7 @@ import {
   INVOKE_SEQUENCE_ID,
   INVOKE_DIAGRAM_LINK_FROM,
   INVOKE_DIAGRAM_LINK_TO,
-  INVOKE_TYPE,
-  IDC_PLANNING_LINK_ID,
-  IDC_PLANNING_LINK_FROM,
-  IDC_PLANNING_LINK_TO
+  INVOKE_TYPE
 } from '@/const/init-params.js'
 import Operation from './operation'
 export default {
@@ -106,8 +103,19 @@ export default {
   },
   data () {
     return {
+      graphCiTypeId: 37,
+      graphData: null,
       operateNodeData: {},
-      effectiveLink: [],
+      idPath: [], // 缓存点击图形区域从内向外容器ID值
+      cacheIdPath: [], // 缓存点击图形区域从内向外容器ID值
+      cacheIndex: [], // 缓存点击图形区域从内向外容器ID值
+      levelData: [], // 缓存层级数据备用
+      effectiveLink: [], // 图中可显示连线
+      activeNodeInfo: {
+        id: '',
+        type: '',
+        color: ''
+      },
 
       tabList: [],
       systemDesigns: [],
@@ -128,7 +136,6 @@ export default {
       graph: {},
       systemDesignData: [],
       appLogicData: [],
-      serviceInvokeData: [],
       physicalGraphData: [],
       physicalGraphLinks: [],
       graphNodes: {},
@@ -208,13 +215,6 @@ export default {
         this.buttonLoading.fixVersionModal = false
       }
     },
-    cancelFixVersion () {
-      this.fixVersionTreeModal = false
-    },
-    async reloadHandler () {
-      this.onArchChange()
-      this.isDataChanged = false
-    },
     async onArchChange (isTableViewOnly = false) {
       if (isTableViewOnly) {
         this.queryGraphData(isTableViewOnly)
@@ -254,7 +254,9 @@ export default {
     },
     async getAllDesignTreeFromSystemDesign () {
       this.allUnitDesign = []
-      const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
+      // const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
+      const treeData = await getTreeData(this.graphCiTypeId, [this.systemDesignVersion])
+      console.log(treeData)
       if (treeData.statusCode === 'OK') {
         this.getAllInvokeSequenceData()
         this.appInvokeLines = {}
@@ -333,78 +335,23 @@ export default {
               return result
             })
         this.appLogicData = formatAppLogicTree(treeData.data)
+        this.graphData = this.appLogicData
+        this.firstChildrenGroup = []
+        this.graphData[0].children.forEach(_ => {
+          if (_.children instanceof Array && _.children.length) {
+            this.firstChildrenGroup.push(`g_${_.guid}`)
+          } else {
+            this.firstChildrenGroup.push(`n_${_.guid}`)
+          }
+        })
+        console.log(this.firstChildrenGroup)
         this.operateNodeData = this.appLogicData[0]
         this.$refs.transferData.managementData(this.operateNodeData)
         formatAppLogicLine(treeData.data)
         this.$refs.transferData.linkManagementData(this.effectiveLink)
         formatServiceInvokeLine(treeData.data)
-        this.serviceInvokeData = formatServiceInvokeTree(treeData.data)
-        this.getPhysicalGraphData()
         this.initGraph()
       }
-    },
-    async getPhysicalGraphData () {
-      this.physicalGraphData = []
-      const foundIdcGuid = this.systemDesignsOrigin.find(_ => _.guid === this.systemDesignVersion).data_center_design
-        .guid
-      if (!foundIdcGuid) {
-        return
-      }
-      const payload = {
-        id: this.initParams[IDC_PLANNING_LINK_ID],
-        queryObject: {}
-      }
-      const promiseArray = [getIdcDesignTreeByGuid([foundIdcGuid]), queryCiData(payload)]
-      const [idcData, links] = await Promise.all(promiseArray)
-      if (idcData.statusCode === 'OK') {
-        let setDesigns = {}
-        this.allUnitDesign.forEach(_ => {
-          let color = ''
-          if (this.isTableViewOnly && this.systemDesignFixedDate) {
-            if (this.systemDesignFixedDate <= _.fixedDate) {
-              color = stateColor[_.data.state.code]
-            }
-          } else if (!_.fixedDate) {
-            color = stateColor[_.data.state.code]
-          }
-          _.color = color
-          if (setDesigns[_.data.resource_set_design.guid]) {
-            setDesigns[_.data.resource_set_design.guid].push(_)
-          } else {
-            setDesigns[_.data.resource_set_design.guid] = [_]
-          }
-        })
-        const formatTree = data => {
-          return data.map(_ => {
-            let result = {
-              ..._
-            }
-            if (setDesigns[_.guid]) {
-              result.children = setDesigns[_.guid]
-            }
-            if (_.children instanceof Array && _.children.length) {
-              result.children = formatTree(_.children)
-            }
-            return result
-          })
-        }
-        this.physicalGraphData = formatTree(idcData.data)
-        this.physicalSpin = false
-      }
-      if (links.statusCode === 'OK') {
-        this.physicalGraphLinks = links.data.contents.map(_ => {
-          return {
-            guid: _.data.guid,
-            from: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
-            to: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
-            label: _.data.code,
-            state: _.data.state.code
-          }
-        })
-      }
-    },
-    graphCallback () {
-      this.physicalSpin = false
     },
     async querySysTree () {
       this.buttonLoading.fixVersion = true
@@ -482,11 +429,79 @@ export default {
     },
     renderGraph (id, data, linesData) {
       let nodesString = this.genDOT(id, data, linesData)
-      this.graph.graphviz.transition().renderDot(nodesString)
+      this.graph.graphviz
+        .transition()
+        .renderDot(nodesString)
+        .on('end', () => {
+          // addEvent('.node', 'click', this.handleNodeClick)
+          addEvent('.cluster', 'click', this.handleClusterClick)
+        })
+      // 最外图层选中处理
+      d3.select('#clust1').on('click', () => {
+        this.$refs.transferData.managementData(this.graphData[0])
+        if (this.activeNodeInfo.id) {
+          d3.select('#appLogicGraph')
+            .select(`#` + this.activeNodeInfo.id)
+            .select(this.activeNodeInfo.type)
+            .attr('fill', this.activeNodeInfo.color)
+          this.activeNodeInfo = {}
+        }
+      })
+
       let svg = d3.select(id).select('svg')
       let width = svg.attr('width')
       let height = svg.attr('height')
       svg.attr('viewBox', '0 0 ' + width + ' ' + height)
+    },
+    handleNodeClick (e) {
+      console.log(e.currentTarget.id)
+      this.idPath.unshift(e.currentTarget.id)
+      this.cacheIdPath = []
+      this.cacheIndex = []
+      this.cacheIdPath = JSON.parse(JSON.stringify(this.idPath))
+      if (this.firstChildrenGroup.includes(e.currentTarget.id)) {
+        let tmp = this.graphData[0]
+        console.log(this.idPath)
+        this.idPath.forEach(id => {
+          console.log(tmp.children)
+          if (tmp.children) {
+            tmp = tmp.children.find((child, index) => {
+              if (`n_${child.guid}` === id) {
+                this.cacheIndex.push(index)
+                return child
+              }
+            })
+          } else {
+            console.log(tmp)
+          }
+        })
+        this.idPath = []
+        this.operateNodeData = tmp
+        this.$refs.transferData.managementData(this.operateNodeData)
+      }
+    },
+    handleClusterClick (e) {
+      if (e.currentTarget.id === 'clust1') {
+        return
+      }
+      this.idPath.unshift(e.currentTarget.id)
+      this.cacheIdPath = []
+      this.cacheIndex = []
+      this.cacheIdPath = JSON.parse(JSON.stringify(this.idPath))
+      if (this.firstChildrenGroup.includes(e.currentTarget.id)) {
+        let tmp = this.graphData[0]
+        this.idPath.forEach(id => {
+          tmp = tmp.children.find((child, index) => {
+            if (`g_${child.guid}` === id) {
+              this.cacheIndex.push(index)
+              return child
+            }
+          })
+        })
+        this.idPath = []
+        this.operateNodeData = tmp
+        this.$refs.transferData.managementData(this.operateNodeData)
+      }
     },
     genDOT (id, sysData, linesData) {
       this.graphNodes[id] = {}
