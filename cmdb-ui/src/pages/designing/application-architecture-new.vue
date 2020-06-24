@@ -53,7 +53,7 @@
         </Col>
         <Col span="8" class="operation-zone">
           <Card>
-            <Operation ref="transferData"></Operation>
+            <Operation ref="transferData" @markZone="markZone"></Operation>
           </Card>
         </Col>
       </Row>
@@ -170,6 +170,36 @@ export default {
       isHandleNodeClick: false
     }
   },
+  watch: {
+    cacheIdPath: function (val) {
+      // 选中节点颜色控制
+      if (this.activeNodeInfo.id) {
+        d3.select('#appLogicGraph')
+          .select(`#` + this.activeNodeInfo.id)
+          .select(this.activeNodeInfo.type)
+          .attr('fill', this.activeNodeInfo.color)
+        this.activeNodeInfo = {}
+      }
+      const id = val[val.length - 1]
+      this.activeNodeInfo.type = d3
+        .select('#appLogicGraph')
+        .select(`#` + id)
+        .select('polygon')._groups[0][0]
+        ? 'polygon'
+        : 'rect'
+      const color = d3
+        .select('#appLogicGraph')
+        .select(`#` + id)
+        .select(this.activeNodeInfo.type)
+        .attr('fill')
+      this.activeNodeInfo.id = id
+      this.activeNodeInfo.color = color
+      d3.select('#appLogicGraph')
+        .select(`#` + id)
+        .select(this.activeNodeInfo.type)
+        .attr('fill', '#2b85e4')
+    }
+  },
   computed: {
     currentRguid () {
       const found = this.systemDesignsOrigin.find(_ => _.guid === this.systemDesignVersion)
@@ -180,10 +210,13 @@ export default {
       }
     }
   },
-  watch: {
-    currentTab () {}
-  },
   methods: {
+    markZone (guid) {
+      const firstLevelGuid = this.firstChildrenGroup.find(_ => {
+        return `g_` + guid === _ || `n_` + guid === _
+      })
+      this.cacheIdPath = firstLevelGuid ? [firstLevelGuid] : [`n_` + guid]
+    },
     async getAllInvokeSequenceData () {
       this.invokeSequenceForm.invokeSequenceData = []
       let found = this.tabList.find(i => i.code === this.initParams[INVOKE_SEQUENCE_ID] + '')
@@ -256,7 +289,6 @@ export default {
       this.allUnitDesign = []
       // const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
       const treeData = await getTreeData(this.graphCiTypeId, [this.systemDesignVersion])
-      console.log(treeData)
       if (treeData.statusCode === 'OK') {
         this.getAllInvokeSequenceData()
         this.appInvokeLines = {}
@@ -344,8 +376,8 @@ export default {
             this.firstChildrenGroup.push(`n_${_.guid}`)
           }
         })
-        console.log(this.firstChildrenGroup)
         this.operateNodeData = this.appLogicData[0]
+        this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
         this.$refs.transferData.managementData(this.operateNodeData)
         formatAppLogicLine(treeData.data)
         this.$refs.transferData.linkManagementData(this.effectiveLink)
@@ -433,7 +465,7 @@ export default {
         .transition()
         .renderDot(nodesString)
         .on('end', () => {
-          // addEvent('.node', 'click', this.handleNodeClick)
+          addEvent('.node', 'click', this.handleNodeClick)
           addEvent('.cluster', 'click', this.handleClusterClick)
         })
       // 最外图层选中处理
@@ -454,16 +486,13 @@ export default {
       svg.attr('viewBox', '0 0 ' + width + ' ' + height)
     },
     handleNodeClick (e) {
-      console.log(e.currentTarget.id)
       this.idPath.unshift(e.currentTarget.id)
       this.cacheIdPath = []
       this.cacheIndex = []
       this.cacheIdPath = JSON.parse(JSON.stringify(this.idPath))
       if (this.firstChildrenGroup.includes(e.currentTarget.id)) {
         let tmp = this.graphData[0]
-        console.log(this.idPath)
         this.idPath.forEach(id => {
-          console.log(tmp.children)
           if (tmp.children) {
             tmp = tmp.children.find((child, index) => {
               if (`n_${child.guid}` === id) {
