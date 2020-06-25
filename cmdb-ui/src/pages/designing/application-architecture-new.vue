@@ -1,5 +1,6 @@
 <template>
   <Row>
+    {{ systemDesignVersion }}
     <Row>
       <Col span="16">
         <Row>
@@ -53,7 +54,7 @@
         </Col>
         <Col span="8" class="operation-zone">
           <Card>
-            <Operation ref="transferData" @markZone="markZone"></Operation>
+            <Operation ref="transferData" @operationReload="operationReload" @markZone="markZone"></Operation>
           </Card>
         </Col>
       </Row>
@@ -73,8 +74,7 @@ import {
   saveAllDesignTreeFromSystemDesign,
   getArchitectureDesignTabs,
   getArchitectureCiDatas,
-  updateSystemDesign,
-  getTreeData
+  updateSystemDesign
 } from '@/api/server'
 import { newOuterActions, pagination, components } from '@/const/actions.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
@@ -88,9 +88,7 @@ import {
   INVOKE_DESIGN_ID,
   SERVICE_INVOKE_DESIGN_ID,
   SERVICE_DESIGN,
-  SERVICE_TYPE,
   SERVICE_INVOKE_SEQ_DESIGN,
-  INVOKE_SEQUENCE_ID,
   INVOKE_DIAGRAM_LINK_FROM,
   INVOKE_DIAGRAM_LINK_TO,
   INVOKE_TYPE
@@ -217,19 +215,86 @@ export default {
       })
       this.cacheIdPath = firstLevelGuid ? [firstLevelGuid] : [`n_` + guid]
     },
-    async getAllInvokeSequenceData () {
-      this.invokeSequenceForm.invokeSequenceData = []
-      let found = this.tabList.find(i => i.code === this.initParams[INVOKE_SEQUENCE_ID] + '')
-      if (!found) return
-      const { statusCode, data } = await getArchitectureCiDatas(
-        found.codeId,
-        this.systemDesignVersion,
-        this.currentRguid,
-        {}
-      )
-      if (statusCode === 'OK') {
-        this.invokeSequenceForm.invokeSequenceData = data.contents
+    operationReload (operateNodeData, operateLineData) {
+      if (!operateNodeData) {
+        this.loadMap(this.graphData, operateLineData)
+        return
       }
+      let tmp = this.graphData[0]
+      this.levelData = []
+      let tmpData = null
+      if (this.cacheIdPath.length) {
+        this.cacheIdPath.forEach(id => {
+          this.levelData.unshift(tmp)
+          tmp = tmp.children.find(child => {
+            return `g_${child.guid}` === id
+          })
+        })
+        this.levelData.forEach(dataTmp => {
+          dataTmp.children[this.cacheIndex[0]] = operateNodeData
+          tmpData = dataTmp
+        })
+      } else {
+        tmpData = operateNodeData
+      }
+      this.loadMap([tmpData], operateLineData)
+    },
+    loadMap (graphData, operateLineData) {
+      this.appInvokeLines = {}
+      this.appServiceInvokeLines = {}
+      const formatAppLogicTree = array =>
+        array.map(_ => {
+          let result = {
+            ciTypeId: _.ciTypeId,
+            guid: _.guid,
+            data: _.data,
+            fixedDate: +new Date(_.data.fixed_date)
+          }
+          if (_.children instanceof Array && _.children.length && _.ciTypeId !== this.initParams[UNIT_DESIGN_ID]) {
+            result.children = formatAppLogicTree(_.children)
+          }
+          if (_.ciTypeId === this.initParams[UNIT_DESIGN_ID]) {
+            this.allUnitDesign.push(result)
+          }
+          return result
+        })
+      this.effectiveLink = []
+      const formatAppLogicLine = array =>
+        array.forEach(_ => {
+          console.log(_.ciTypeId, this.initParams[INVOKE_DESIGN_ID])
+          if (_.ciTypeId === this.initParams[INVOKE_DESIGN_ID]) {
+            this.appInvokeLines[_.guid] = {
+              from: _.data[this.initParams[INVOKE_DIAGRAM_LINK_FROM]],
+              to: _.data[this.initParams[INVOKE_DIAGRAM_LINK_TO]],
+              id: _.guid,
+              label: _.data[this.initParams[INVOKE_TYPE]],
+              tooltip: _.data.description || '-',
+              state: _.data.state.code
+            }
+            _.data.ciTypeId = this.initParams[INVOKE_DESIGN_ID]
+            this.effectiveLink.push(_.data)
+          }
+          if (_.children instanceof Array && _.children.length) {
+            formatAppLogicLine(_.children)
+          }
+        })
+      console.log(this.appInvokeLines)
+      console.log(graphData)
+      formatAppLogicLine(graphData)
+      this.appLogicData = formatAppLogicTree(graphData)
+      this.graphData = this.appLogicData
+      this.operateNodeData = this.appLogicData[0]
+      this.firstChildrenGroup = []
+      this.graphData[0].children.forEach(_ => {
+        if (_.children instanceof Array && _.children.length) {
+          this.firstChildrenGroup.push(`g_${_.guid}`)
+        } else {
+          this.firstChildrenGroup.push(`n_${_.guid}`)
+        }
+      })
+      this.$refs.transferData.managementData(this.operateNodeData)
+      this.$refs.transferData.linkManagementData(this.effectiveLink)
+      this.initGraph()
     },
     async onArchFixVersion () {
       if (this.systemDesignVersion === '') return
@@ -287,10 +352,9 @@ export default {
     },
     async getAllDesignTreeFromSystemDesign () {
       this.allUnitDesign = []
-      // const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
-      const treeData = await getTreeData(this.graphCiTypeId, [this.systemDesignVersion])
+      const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
+      // const treeData = await getTreeData(this.graphCiTypeId, [this.systemDesignVersion])
       if (treeData.statusCode === 'OK') {
-        this.getAllInvokeSequenceData()
         this.appInvokeLines = {}
         this.appServiceInvokeLines = {}
         this.systemDesignFixedDate = +new Date(treeData.data[0].data.fixed_date)
@@ -330,42 +394,6 @@ export default {
               formatAppLogicLine(_.children)
             }
           })
-        let serviceDesignNodes = {}
-        const formatServiceInvokeLine = array =>
-          array.forEach(_ => {
-            if (_.ciTypeId === this.initParams[SERVICE_INVOKE_DESIGN_ID]) {
-              const linkTypeName = _.data[this.initParams[SERVICE_DESIGN]][this.initParams[SERVICE_TYPE]]
-              serviceDesignNodes[_.data[this.initParams[INVOKE_DIAGRAM_LINK_FROM]].guid] = true
-              serviceDesignNodes[_.data[this.initParams[INVOKE_DIAGRAM_LINK_TO]].guid] = true
-              this.appServiceInvokeLines[_.guid] = {
-                from: _.data[this.initParams[INVOKE_DIAGRAM_LINK_FROM]],
-                to: _.data[this.initParams[INVOKE_DIAGRAM_LINK_TO]],
-                id: _.guid,
-                label: `${_.data[this.initParams[SERVICE_DESIGN]].name}:${linkTypeName}`,
-                tooltip: _.data.description || '-',
-                state: _.data.state.code,
-                fixedDate: +new Date(_.data.fixed_date)
-              }
-            }
-            if (_.children instanceof Array && _.children.length) {
-              formatServiceInvokeLine(_.children)
-            }
-          })
-        const formatServiceInvokeTree = array =>
-          array
-            .filter(_ => _.ciTypeId !== this.initParams[UNIT_DESIGN_ID] || serviceDesignNodes[_.guid])
-            .map(_ => {
-              let result = {
-                ciTypeId: _.ciTypeId,
-                guid: _.guid,
-                data: _.data,
-                fixedDate: +new Date(_.data.fixed_date)
-              }
-              if (_.ciTypeId !== this.initParams[UNIT_DESIGN_ID] && _.children instanceof Array && _.children.length) {
-                result.children = formatServiceInvokeTree(_.children)
-              }
-              return result
-            })
         this.appLogicData = formatAppLogicTree(treeData.data)
         this.graphData = this.appLogicData
         this.firstChildrenGroup = []
@@ -379,9 +407,9 @@ export default {
         this.operateNodeData = this.appLogicData[0]
         this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
         this.$refs.transferData.managementData(this.operateNodeData)
+        console.log(treeData.data)
         formatAppLogicLine(treeData.data)
         this.$refs.transferData.linkManagementData(this.effectiveLink)
-        formatServiceInvokeLine(treeData.data)
         this.initGraph()
       }
     },
@@ -597,6 +625,7 @@ export default {
       return dots.join('')
     },
     genLines (id, linesData) {
+      console.log(linesData)
       let otherNodes = []
       const result = Object.keys(linesData).map(guid => {
         const node = linesData[guid]
