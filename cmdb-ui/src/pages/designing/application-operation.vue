@@ -340,6 +340,7 @@ export default {
       parentPanalData: { data: { code: '' } },
       parentPanalForm: [],
       activeTab: 'nodeTab',
+      originData: null, // 初始数据
 
       defaultPanal: '',
       operateData: null, // 选中数据集合
@@ -445,33 +446,6 @@ export default {
           })
         })
       }
-    },
-    async getAllSystemEnumCodes () {
-      this.canCreateLineTypes = []
-      let params = {
-        filters: [{ name: 'catId', operator: 'in', value: Array.from(new Array(28 + 1).keys()).slice(22) }],
-        paging: false
-      }
-      const { statusCode, data } = await getAllSystemEnumCodes(params)
-      if (statusCode === 'OK') {
-        this.codeData = data.contents
-      }
-      console.log(this.codeData)
-      // if (statusCode === 'OK') {
-      //   let edgeParams = {
-      //     filters: [{name: 'catId', operator: 'eq', value: 23}, {name: 'groupCodeId', operator: 'eq', value: data.contents[0].codeId}, {name: 'value', operator: 'eq', value: 'edge'}],
-      //     paging: false
-      //   }
-      //   const edgeInfo = await getAllSystemEnumCodes(edgeParams)
-      //   if (edgeInfo.statusCode === 'OK') {
-      //     edgeInfo.data.contents.forEach(p => {
-      //       this.canCreateLineTypes.push({
-      //         value: p.code,
-      //         label: p.codeDescription
-      //       })
-      //     })
-      //   }
-      // }
     },
     async getNewLineAttr (val) {
       this.selectedLineType = val
@@ -614,9 +588,9 @@ export default {
           if (statusCode === 'OK') {
             this.$Modal.remove()
             this.$Message.success('success!')
-            this.panalData.splice(panalIndex, 1)
-            this.operateData.children = this.panalData
-            this.$emit('operationReload', this.operateData)
+            this.originData[0].children.splice(panalIndex, 1)
+            console.log(this.originData)
+            this.$emit('operationReload', this.originData)
           }
         },
         onCancel: () => {}
@@ -674,12 +648,10 @@ export default {
         const params = {
           ciTypeId: this.selectedNodeType,
           data: ciData.data.contents[0].data,
-          text: [ciData.data.contents[0].data.code]
+          guid: [ciData.data.contents[0].data.guid]
         }
-        // text: [ciData.data.contents[0].data.code, ciData.data.contents[0].data.network_segment_design.code]
-        this.panalData.push(params)
-        this.operateData.children = this.panalData
-        this.$emit('operationReload', this.operateData)
+        this.originData[0].children.push(params)
+        this.$emit('operationReload', this.originData)
         this.cancleAddNode()
       }
     },
@@ -764,7 +736,8 @@ export default {
         this.$emit('operationReload', this.operateData)
       }
     },
-    managementData (operateData) {
+    managementData (operateData, originData) {
+      this.originData = originData
       this.currentTab = 1
       this.parentPanal = ''
       this.defaultPanal = ''
