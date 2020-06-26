@@ -34,7 +34,7 @@
         </Col>
         <Col span="8" class="operation-zone">
           <Card>
-            <Operation ref="transferData" @markZone="markZone"></Operation>
+            <Operation ref="transferData" @operationReload="operationReload" @markZone="markZone"></Operation>
           </Card>
         </Col>
       </Row>
@@ -48,6 +48,7 @@ import * as d3 from 'd3-selection'
 import * as d3Graphviz from 'd3-graphviz'
 import { getSystems, getEnumCodesByCategoryId, getAllDeployTreesFromSystemCi } from '@/api/server.js'
 import { colors, stateColor } from '../../const/graph-configuration'
+import { baseURL } from '@/api/base.js'
 import {
   VIEW_CONFIG_PARAMS,
   UNIT_ID,
@@ -56,7 +57,7 @@ import {
   INVOKE_UNIT,
   INVOKED_UNIT
 } from '@/const/init-params.js'
-import Operation from './operation'
+import Operation from './application-operation'
 export default {
   components: {
     Operation
@@ -74,7 +75,9 @@ export default {
       systemData: [],
       systemLines: {},
       graphNodes: {},
+      rankNodes: {},
 
+      originData: null,
       graphCiTypeId: 46,
       graphData: null,
       operateNodeData: {},
@@ -126,6 +129,172 @@ export default {
         return `g_` + guid === _ || `n_` + guid === _
       })
       this.cacheIdPath = firstLevelGuid ? [firstLevelGuid] : [`n_` + guid]
+    },
+    async operationReload (xxx) {
+      console.log(xxx)
+      const { initParams } = this
+      this.originData = xxx
+      this.systemTreeData = xxx
+      this.systemLines = {}
+
+      const formatADData = array => {
+        return array.map(_ => {
+          let result = {
+            ciTypeId: _.ciTypeId,
+            guid: _.guid,
+            data: _.data,
+            label: `"${_.data.code}"`,
+            tooltip: _.data.description || '',
+            fixedDate: +new Date(_.data.fixed_date)
+          }
+          if (_.children instanceof Array && _.children.length && _.ciTypeId !== initParams[UNIT_ID]) {
+            result.children = formatADData(_.children)
+          }
+          if (_.ciTypeId === initParams[UNIT_ID]) {
+            let label = ['<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">', `<TR><TD>${_.data.code}</TD></TR>`]
+            if (_.children instanceof Array && _.children.length) {
+              _.children.forEach(item => {
+                if (initParams[BUSINESS_APP_INSTANCE_ID].split(',').indexOf(item.ciTypeId + '') >= 0) {
+                  label.push(`<TR><TD>${item.data.code}</TD></TR>`)
+                }
+              })
+            }
+            label.push('</TABLE>>')
+            result.label = label.join('')
+          }
+          return result
+        })
+      }
+      this.effectiveLink = []
+      const formatADLine = array => {
+        array.forEach(_ => {
+          if (_.ciTypeId === this.initParams[INVOKE_ID]) {
+            this.systemLines[_.guid] = {
+              ..._,
+              from: _.data[this.initParams[INVOKE_UNIT]].guid,
+              to: _.data[this.initParams[INVOKED_UNIT]].guid,
+              id: _.guid,
+              label: _.data.invoke_type,
+              state: _.data.state.code,
+              fixedDate: +new Date(_.data.fixed_date)
+            }
+            _.data.ciTypeId = this.initParams[INVOKE_ID]
+            this.effectiveLink.push(_.data)
+          }
+          if (_.children instanceof Array && _.children.length) {
+            formatADLine(_.children)
+          }
+        })
+      }
+
+      const fetchOtherSystemInstances = async () => {
+        this.instancesInUnit = {}
+        this.graphNodes = {}
+        this.genADChildrenDot(this.systemData[0].children || [], 1)
+        this.initADGraph()
+      }
+      this.systemData = formatADData(xxx)
+      this.graphData = this.systemData
+      this.firstChildrenGroup = []
+      this.graphData[0].children.forEach(_ => {
+        if (_.children instanceof Array && _.children.length) {
+          this.firstChildrenGroup.push(`g_${_.guid}`)
+        } else {
+          this.firstChildrenGroup.push(`n_${_.guid}`)
+        }
+      })
+      this.operateNodeData = this.systemData[0]
+      this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
+      this.$refs.transferData.managementData(this.operateNodeData, this.originData)
+      // console.log(JSON.stringify(data))
+      formatADLine(xxx)
+      console.log(this.systemLines)
+      this.$refs.transferData.linkManagementData(this.effectiveLink)
+      fetchOtherSystemInstances()
+    },
+    async getAllDeployTreesFromSystemCi () {
+      const { initParams } = this
+      const { statusCode, data } = await getAllDeployTreesFromSystemCi(this.systemVersion)
+      this.originData = data
+      if (statusCode === 'OK') {
+        this.systemTreeData = data
+        this.systemLines = {}
+
+        const formatADData = array => {
+          return array.map(_ => {
+            let result = {
+              ciTypeId: _.ciTypeId,
+              guid: _.guid,
+              data: _.data,
+              label: `"${_.data.code}"`,
+              tooltip: _.data.description || '',
+              fixedDate: +new Date(_.data.fixed_date)
+            }
+            if (_.children instanceof Array && _.children.length && _.ciTypeId !== initParams[UNIT_ID]) {
+              result.children = formatADData(_.children)
+            }
+            if (_.ciTypeId === initParams[UNIT_ID]) {
+              let label = ['<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">', `<TR><TD>${_.data.code}</TD></TR>`]
+              if (_.children instanceof Array && _.children.length) {
+                _.children.forEach(item => {
+                  if (initParams[BUSINESS_APP_INSTANCE_ID].split(',').indexOf(item.ciTypeId + '') >= 0) {
+                    label.push(`<TR><TD>${item.data.code}</TD></TR>`)
+                  }
+                })
+              }
+              label.push('</TABLE>>')
+              result.label = label.join('')
+            }
+            return result
+          })
+        }
+        this.effectiveLink = []
+        const formatADLine = array => {
+          array.forEach(_ => {
+            if (_.ciTypeId === this.initParams[INVOKE_ID]) {
+              this.systemLines[_.guid] = {
+                ..._,
+                from: _.data[this.initParams[INVOKE_UNIT]].guid,
+                to: _.data[this.initParams[INVOKED_UNIT]].guid,
+                id: _.guid,
+                label: _.data.invoke_type,
+                state: _.data.state.code,
+                fixedDate: +new Date(_.data.fixed_date)
+              }
+              _.data.ciTypeId = this.initParams[INVOKE_ID]
+              this.effectiveLink.push(_.data)
+            }
+            if (_.children instanceof Array && _.children.length) {
+              formatADLine(_.children)
+            }
+          })
+        }
+
+        const fetchOtherSystemInstances = async () => {
+          this.instancesInUnit = {}
+          this.graphNodes = {}
+          this.genADChildrenDot(this.systemData[0].children || [], 1)
+          this.initADGraph()
+        }
+        this.systemData = formatADData(data)
+        this.graphData = this.systemData
+        this.firstChildrenGroup = []
+        this.graphData[0].children.forEach(_ => {
+          if (_.children instanceof Array && _.children.length) {
+            this.firstChildrenGroup.push(`g_${_.guid}`)
+          } else {
+            this.firstChildrenGroup.push(`n_${_.guid}`)
+          }
+        })
+        this.operateNodeData = this.systemData[0]
+        this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
+        this.$refs.transferData.managementData(this.operateNodeData, this.originData)
+        console.log(this.originData)
+        formatADLine(data)
+        console.log(this.systemLines)
+        this.$refs.transferData.linkManagementData(this.effectiveLink)
+        fetchOtherSystemInstances()
+      }
     },
     initADGraph () {
       this.spinShow = true
@@ -271,6 +440,29 @@ export default {
       })
       return result.join('')
     },
+    genChildrenDot (data, level) {
+      let dots = []
+      data.forEach(_ => {
+        let _label = _.data.code
+        _label = _label.length > 21 ? `${_label.slice(0, 1)}...${_label.slice(-15)}` : _label
+        dots = dots.concat([
+          `"${_.guid}"`,
+          `[id="n_${_.guid}";`,
+          `label="${_label}";`,
+          `image="${baseURL}/files/${_.imageFileId}.png";`,
+          'labelloc="b"',
+          `tooltip="${_.data.code}"];`
+        ])
+        this.rankNodes[_.ciTypeId].push(`"${_.guid}"`)
+        if (_.children instanceof Array && _.children.length) {
+          dots = dots.concat(this.genChildrenDot(_.children, level + 1))
+          _.children.forEach(c => {
+            dots = dots.concat([`"${_.guid}" -> "${c.guid}";`])
+          })
+        }
+      })
+      return dots
+    },
     onSystemDesignSelect (key) {
       this.systemData = []
       this.systemTreeData = []
@@ -287,87 +479,6 @@ export default {
     async querySysTree () {
       this.spinShow = true
       this.getAllDeployTreesFromSystemCi()
-    },
-    async getAllDeployTreesFromSystemCi () {
-      const { initParams } = this
-      const { statusCode, data } = await getAllDeployTreesFromSystemCi(this.systemVersion)
-      if (statusCode === 'OK') {
-        this.systemTreeData = data
-        this.systemLines = {}
-
-        const formatADData = array => {
-          return array.map(_ => {
-            let result = {
-              ciTypeId: _.ciTypeId,
-              guid: _.guid,
-              data: _.data,
-              label: `"${_.data.code}"`,
-              tooltip: _.data.description || '',
-              fixedDate: +new Date(_.data.fixed_date)
-            }
-            if (_.children instanceof Array && _.children.length && _.ciTypeId !== initParams[UNIT_ID]) {
-              result.children = formatADData(_.children)
-            }
-            if (_.ciTypeId === initParams[UNIT_ID]) {
-              let label = ['<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">', `<TR><TD>${_.data.code}</TD></TR>`]
-              if (_.children instanceof Array && _.children.length) {
-                _.children.forEach(item => {
-                  if (initParams[BUSINESS_APP_INSTANCE_ID].split(',').indexOf(item.ciTypeId + '') >= 0) {
-                    label.push(`<TR><TD>${item.data.code}</TD></TR>`)
-                  }
-                })
-              }
-              label.push('</TABLE>>')
-              result.label = label.join('')
-            }
-            return result
-          })
-        }
-        this.effectiveLink = []
-        const formatADLine = array => {
-          array.forEach(_ => {
-            if (_.ciTypeId === this.initParams[INVOKE_ID]) {
-              this.systemLines[_.guid] = {
-                ..._,
-                from: _.data[this.initParams[INVOKE_UNIT]].guid,
-                to: _.data[this.initParams[INVOKED_UNIT]].guid,
-                id: _.guid,
-                label: _.data.invoke_type,
-                state: _.data.state.code,
-                fixedDate: +new Date(_.data.fixed_date)
-              }
-              _.data.ciTypeId = this.initParams[INVOKE_ID]
-              this.effectiveLink.push(_.data)
-            }
-            if (_.children instanceof Array && _.children.length) {
-              formatADLine(_.children)
-            }
-          })
-        }
-
-        const fetchOtherSystemInstances = async () => {
-          this.instancesInUnit = {}
-          this.graphNodes = {}
-          this.genADChildrenDot(this.systemData[0].children || [], 1)
-          this.initADGraph()
-        }
-        this.graphData = data
-        this.firstChildrenGroup = []
-        this.graphData[0].children.forEach(_ => {
-          if (_.children instanceof Array && _.children.length) {
-            this.firstChildrenGroup.push(`g_${_.guid}`)
-          } else {
-            this.firstChildrenGroup.push(`n_${_.guid}`)
-          }
-        })
-        this.systemData = formatADData(data)
-        this.operateNodeData = this.systemData[0]
-        this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
-        this.$refs.transferData.managementData(this.operateNodeData)
-        formatADLine(data)
-        this.$refs.transferData.linkManagementData(this.effectiveLink)
-        fetchOtherSystemInstances()
-      }
     },
     async getConfigParams () {
       const { statusCode, data } = await getEnumCodesByCategoryId(0, VIEW_CONFIG_PARAMS)
