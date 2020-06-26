@@ -1,45 +1,5 @@
 <template>
   <Row>
-    <Row>
-      <Col span="16">
-        <Row>
-          <span style="margin-right: 10px">{{ $t('system_design') }}</span>
-          <Select v-model="systemDesignVersion" @on-change="onSystemDesignSelect" label-in-name style="width: 35%;">
-            <OptionGroup v-for="(data, idx) in systemDesigns" :key="idx" :label="data[0].name">
-              <Option
-                v-for="item in data"
-                :value="item.guid"
-                :key="item.guid"
-                :label="`${item.name}${item.fixed_date ? ' ' + item.fixed_date : ''}`"
-                style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
-              >
-                <div>{{ item.name }}</div>
-                <div v-if="item.fixed_date" style="color:#ccc; flex-shrink:1; margin-left:10px">
-                  {{ item.fixed_date }}
-                </div>
-              </Option>
-            </OptionGroup>
-          </Select>
-          <Button
-            style="margin: 0 10px;"
-            @click="onArchChange(false)"
-            :loading="buttonLoading.fixVersionModal"
-            :disabled="!allowArch"
-            >{{ $t('architecture_change') }}</Button
-          >
-          <Button
-            style="margin-right: 10px;"
-            @click="querySysTree"
-            :loading="buttonLoading.fixVersion"
-            :disabled="!allowFixVersion"
-            >{{ $t('fix_version') }}</Button
-          >
-          <Button @click="onArchChange(true)" :disabled="!systemDesignVersion || allowFixVersion">{{
-            $t('query')
-          }}</Button>
-        </Row>
-      </Col>
-    </Row>
     <Row class="resource-design-tab-row">
       <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
@@ -82,7 +42,7 @@ import {
   INVOKE_DIAGRAM_LINK_TO,
   INVOKE_TYPE
 } from '@/const/init-params.js'
-import Operation from './operation'
+import Operation from './application-operation'
 export default {
   components: {
     Operation
@@ -201,93 +161,11 @@ export default {
       })
       this.cacheIdPath = firstLevelGuid ? [firstLevelGuid] : [`n_` + guid]
     },
-    operationReload (operateNodeData, operateLineData) {
-      this.getAllDesignTreeFromSystemDesign()
-      // if (!operateNodeData) {
-      //   this.loadMap(this.graphData, operateLineData)
-      //   return
-      // }
-      // let tmp = this.graphData[0]
-      // this.levelData = []
-      // let tmpData = null
-      // if (this.cacheIdPath.length) {
-      //   this.cacheIdPath.forEach(id => {
-      //     this.levelData.unshift(tmp)
-      //     tmp = tmp.children.find(child => {
-      //       return `g_${child.guid}` === id
-      //     })
-      //   })
-      //   this.levelData.forEach(dataTmp => {
-      //     dataTmp.children[this.cacheIndex[0]] = operateNodeData
-      //     tmpData = dataTmp
-      //   })
-      // } else {
-      //   console.log(123123)
-      //   console.log(operateNodeData)
-      //   console.log(this.graphData[0])
-      //   tmpData = operateNodeData
-      // }
-      // this.loadMap([tmpData], operateLineData)
+    operationReload () {
+      this.getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
     },
-    loadMap (xx, operateLineData) {
-      console.log(xx)
-      this.appInvokeLines = {}
-      this.appServiceInvokeLines = {}
-      const formatAppLogicTree = array =>
-        array.map(_ => {
-          let result = {
-            ciTypeId: _.ciTypeId,
-            guid: _.guid,
-            data: _.data,
-            fixedDate: +new Date(_.data.fixed_date)
-          }
-          if (_.children instanceof Array && _.children.length && _.ciTypeId !== this.initParams[UNIT_DESIGN_ID]) {
-            result.children = formatAppLogicTree(_.children)
-          }
-          if (_.ciTypeId === this.initParams[UNIT_DESIGN_ID]) {
-            this.allUnitDesign.push(result)
-          }
-          return result
-        })
-      this.effectiveLink = []
-      const formatAppLogicLine = array =>
-        array.forEach(_ => {
-          if (_.ciTypeId === this.initParams[INVOKE_DESIGN_ID]) {
-            this.appInvokeLines[_.guid] = {
-              from: _.data[this.initParams[INVOKE_DIAGRAM_LINK_FROM]],
-              to: _.data[this.initParams[INVOKE_DIAGRAM_LINK_TO]],
-              id: _.guid,
-              label: _.data[this.initParams[INVOKE_TYPE]],
-              tooltip: _.data.description || '-',
-              state: _.data.state.code,
-              fixedDate: +new Date(_.data.fixed_date)
-            }
-            _.data.ciTypeId = this.initParams[INVOKE_DESIGN_ID]
-            this.effectiveLink.push(_.data)
-          }
-          if (_.children instanceof Array && _.children.length) {
-            formatAppLogicLine(_.children)
-          }
-        })
-      this.appLogicData = formatAppLogicTree(xx)
-      this.graphData = xx
-      this.firstChildrenGroup = []
-      this.graphData[0].children.forEach(_ => {
-        if (_.children instanceof Array && _.children.length) {
-          this.firstChildrenGroup.push(`g_${_.guid}`)
-        } else {
-          this.firstChildrenGroup.push(`n_${_.guid}`)
-        }
-      })
-      this.operateNodeData = this.appLogicData[0]
-      console.log(this.operateNodeData)
-      this.$refs.transferData.managementData(this.operateNodeData)
-      formatAppLogicLine(xx)
-      console.log(this.appInvokeLines)
-      this.$refs.transferData.linkManagementData(this.effectiveLink)
-      this.initGraph()
-    },
-    async getAllDesignTreeFromSystemDesign () {
+    async getAllDesignTreeFromSystemDesign (systemDesignVersion) {
+      this.systemDesignVersion = systemDesignVersion
       this.allUnitDesign = []
       const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
       if (treeData.statusCode === 'OK') {
@@ -343,9 +221,7 @@ export default {
         })
         this.operateNodeData = this.appLogicData[0]
         this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
-        console.log(this.operateNodeData)
         this.$refs.transferData.managementData(this.operateNodeData)
-        console.log(treeData.data)
         formatAppLogicLine(treeData.data)
         this.$refs.transferData.linkManagementData(this.effectiveLink)
         this.initGraph()
@@ -443,9 +319,10 @@ export default {
           .on('dblclick.zoom', null)
           .on('wheel.zoom', null)
           .on('mousewheel.zoom', null)
+        const width = (window.innerWidth / 24) * 18
         this.graph.graphviz = graph
           .graphviz()
-          .width(window.innerWidth - 20)
+          .width(width - 20)
           .height(window.innerHeight - 240)
           .fit(true)
           .zoom(true)
