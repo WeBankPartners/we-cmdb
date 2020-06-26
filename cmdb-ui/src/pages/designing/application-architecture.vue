@@ -55,7 +55,7 @@
       <div>
         <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
           <TabPane :label="$t('application_logic_diagram')" name="architectureDesign" class="app-tab" :index="1">
-            <Alert show-icon closable v-if="isDataChanged">
+            <!-- <Alert show-icon closable v-if="isDataChanged">
               Data has beed changed, click Reload button to reload graph.
               <Button slot="desc" @click="reloadHandler">Reload</Button>
             </Alert>
@@ -68,6 +68,14 @@
             </div>
             <div style="padding-right: 20px">
               <div class="graph-container" id="appLogicGraph"></div>
+            </div> -->
+            <div v-show="showApplicationArchitectureComponent">
+              <ApplicationArchitectureComponent
+                ref="applicationArchitectureComponent"
+              ></ApplicationArchitectureComponent>
+            </div>
+            <div v-if="!showApplicationArchitectureComponent" class="no-data">
+              {{ $t('no_data') }}
             </div>
           </TabPane>
           <TabPane :label="$t('service_invoke_diagram')" name="serviceInvoke" class="app-tab" :index="2">
@@ -246,10 +254,11 @@ import {
   IDC_PLANNING_LINK_FROM,
   IDC_PLANNING_LINK_TO
 } from '@/const/init-params.js'
-
+import ApplicationArchitectureComponent from '@/pages/designing/application-architecture-component'
 export default {
   components: {
-    PhysicalGraph
+    PhysicalGraph,
+    ApplicationArchitectureComponent
   },
   data () {
     return {
@@ -304,7 +313,8 @@ export default {
         fixVersionModal: false
       },
       initParams: {},
-      isHandleNodeClick: false
+      isHandleNodeClick: false,
+      showApplicationArchitectureComponent: false
     }
   },
   computed: {
@@ -468,6 +478,8 @@ export default {
       }
     },
     async getAllDesignTreeFromSystemDesign () {
+      this.showApplicationArchitectureComponent = true
+      this.$refs.applicationArchitectureComponent.getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
       this.allUnitDesign = []
       const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
       if (treeData.statusCode === 'OK') {
@@ -679,13 +691,13 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           .width(window.innerWidth - 20)
-          .height(window.innerHeight - 240)
+          .height(window.innerHeight - 300)
           .fit(true)
           .zoom(true)
       }
       // 应用逻辑图
-      initEvent('#appLogicGraph')
-      this.renderGraph('#appLogicGraph', this.appLogicData, this.appInvokeLines)
+      // initEvent('#appLogicGraph')
+      // this.renderGraph('#appLogicGraph', this.appLogicData, this.appInvokeLines)
       // 服务调用图
       initEvent('#serviceInvokeGraph')
       this.renderGraph('#serviceInvokeGraph', this.serviceInvokeData, this.appServiceInvokeLines)
