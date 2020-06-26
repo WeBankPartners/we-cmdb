@@ -34,7 +34,7 @@
         </Col>
         <Col span="8" class="operation-zone">
           <Card>
-            <Operation ref="transferData"></Operation>
+            <Operation ref="transferData" @markZone="markZone"></Operation>
           </Card>
         </Col>
       </Row>
@@ -73,10 +73,60 @@ export default {
       graph: {},
       systemData: [],
       systemLines: {},
-      graphNodes: {}
+      graphNodes: {},
+
+      graphCiTypeId: 46,
+      graphData: null,
+      operateNodeData: {},
+      idPath: [], // 缓存点击图形区域从内向外容器ID值
+      cacheIdPath: [], // 缓存点击图形区域从内向外容器ID值
+      cacheIndex: [], // 缓存点击图形区域从内向外容器ID值
+      levelData: [], // 缓存层级数据备用
+      effectiveLink: [], // 图中可显示连线
+      activeNodeInfo: {
+        id: '',
+        type: '',
+        color: ''
+      }
+    }
+  },
+  watch: {
+    cacheIdPath: function (val) {
+      // 选中节点颜色控制
+      if (this.activeNodeInfo.id) {
+        d3.select('#graph')
+          .select(`#` + this.activeNodeInfo.id)
+          .select(this.activeNodeInfo.type)
+          .attr('fill', this.activeNodeInfo.color)
+        this.activeNodeInfo = {}
+      }
+      const id = val[val.length - 1]
+      this.activeNodeInfo.type = d3
+        .select('#graph')
+        .select(`#` + id)
+        .select('polygon')._groups[0][0]
+        ? 'polygon'
+        : 'rect'
+      const color = d3
+        .select('#graph')
+        .select(`#` + id)
+        .select(this.activeNodeInfo.type)
+        .attr('fill')
+      this.activeNodeInfo.id = id
+      this.activeNodeInfo.color = color
+      d3.select('#graph')
+        .select(`#` + id)
+        .select(this.activeNodeInfo.type)
+        .attr('fill', '#2b85e4')
     }
   },
   methods: {
+    markZone (guid) {
+      const firstLevelGuid = this.firstChildrenGroup.find(_ => {
+        return `g_` + guid === _ || `n_` + guid === _
+      })
+      this.cacheIdPath = firstLevelGuid ? [firstLevelGuid] : [`n_` + guid]
+    },
     initADGraph () {
       this.spinShow = true
       const initEvent = () => {
@@ -235,13 +285,6 @@ export default {
       }
     },
     async querySysTree () {
-      if (!this.systemVersion) {
-        this.$Notice.warning({
-          title: 'Warning',
-          desc: this.$t('please_select_system')
-        })
-        return
-      }
       this.spinShow = true
       this.getAllDeployTreesFromSystemCi()
     },
@@ -280,6 +323,7 @@ export default {
             return result
           })
         }
+        this.effectiveLink = []
         const formatADLine = array => {
           array.forEach(_ => {
             if (_.ciTypeId === this.initParams[INVOKE_ID]) {
@@ -292,6 +336,8 @@ export default {
                 state: _.data.state.code,
                 fixedDate: +new Date(_.data.fixed_date)
               }
+              _.data.ciTypeId = this.initParams[INVOKE_ID]
+              this.effectiveLink.push(_.data)
             }
             if (_.children instanceof Array && _.children.length) {
               formatADLine(_.children)
@@ -305,8 +351,21 @@ export default {
           this.genADChildrenDot(this.systemData[0].children || [], 1)
           this.initADGraph()
         }
+        this.graphData = data
+        this.firstChildrenGroup = []
+        this.graphData[0].children.forEach(_ => {
+          if (_.children instanceof Array && _.children.length) {
+            this.firstChildrenGroup.push(`g_${_.guid}`)
+          } else {
+            this.firstChildrenGroup.push(`n_${_.guid}`)
+          }
+        })
         this.systemData = formatADData(data)
+        this.operateNodeData = this.systemData[0]
+        this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
+        this.$refs.transferData.managementData(this.operateNodeData)
         formatADLine(data)
+        this.$refs.transferData.linkManagementData(this.effectiveLink)
         fetchOtherSystemInstances()
       }
     },
