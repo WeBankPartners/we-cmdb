@@ -852,7 +852,7 @@ export default {
 // }
 .operation-Collapse {
   overflow: auto;
-  height: calc(100vh - 240px);
+  height: calc(100vh - 300px);
 }
 .diy-tabs {
   display: flex;
