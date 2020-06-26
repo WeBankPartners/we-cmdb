@@ -144,16 +144,6 @@ export default {
         .attr('fill', '#2b85e4')
     }
   },
-  computed: {
-    currentRguid () {
-      const found = this.systemDesignsOrigin.find(_ => _.guid === this.systemDesignVersion)
-      if (found) {
-        return found.r_guid
-      } else {
-        return ''
-      }
-    }
-  },
   methods: {
     markZone (guid) {
       const firstLevelGuid = this.firstChildrenGroup.find(_ => {
