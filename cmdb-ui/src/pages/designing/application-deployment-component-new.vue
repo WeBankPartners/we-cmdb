@@ -1,5 +1,26 @@
 <template>
   <div>
+    <Row class="artifact-management">
+      <Col span="6">
+        <span style="margin-right: 10px">{{ $t('system') }}</span>
+        <Select filterable @on-change="onSystemDesignSelect" v-model="systemVersion" label-in-name style="width: 70%;">
+          <Option v-for="item in systems" :value="item.guid" :key="item.guid">{{ item.key_name }}</Option>
+        </Select>
+      </Col>
+      <Col span="3">
+        <Button type="info" @click="querySysTree">{{ $t('query') }}</Button>
+      </Col>
+    </Row>
+    <hr style="margin: 10px 0" />
+    <!-- <div class="graph-container" id="graph">
+      <Spin size="large" fix v-if="spinShow">
+        <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+        <div>{{ $t('loading') }}</div>
+      </Spin>
+      <div v-else-if="!systemData.length" class="no-data">
+        {{ $t('no_data') }}
+      </div>
+    </div> -->
     <Row class="resource-design-tab-row">
       <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
@@ -110,7 +131,7 @@ export default {
       this.cacheIdPath = firstLevelGuid ? [firstLevelGuid] : [`n_` + guid]
     },
     async operationReload (originData, operateLineData) {
-      this.getAllDeployTreesFromSystemCi(this.systemVersion)
+      this.getAllDeployTreesFromSystemCi()
       // if (operateLineData) {
       //   this.reloadEdge(operateLineData)
       //   return
@@ -270,8 +291,7 @@ export default {
       this.$refs.transferData.linkManagementData(this.effectiveLink)
       fetchOtherSystemInstances()
     },
-    async getAllDeployTreesFromSystemCi (systemVersion) {
-      this.systemVersion = systemVersion
+    async getAllDeployTreesFromSystemCi () {
       const { initParams } = this
       const { statusCode, data } = await getAllDeployTreesFromSystemCi(this.systemVersion)
       this.originData = data
@@ -368,7 +388,7 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           .width(width - 80)
-          .height(window.innerHeight - 260)
+          .height(window.innerHeight - 190)
           .zoom(true)
           .fit(true)
       }

@@ -472,8 +472,6 @@ export default {
     async createLine () {
       // eslint-disable-next-line no-unused-vars
       let activeLineData = null
-      // eslint-disable-next-line no-unused-vars
-      let ciTypeId = null
       activeLineData = this.newLineFormData
       let tmpLineData = JSON.parse(JSON.stringify(activeLineData))
       for (let key in activeLineData) {
@@ -517,6 +515,7 @@ export default {
             ]
           }
         })
+        ciData.data.contents[0].data.ciTypeId = this.currentLineId
         this.$emit('operationReload', '', {
           type: 'add',
           lineInfo: ciData.data.contents[0]
@@ -588,8 +587,9 @@ export default {
           if (statusCode === 'OK') {
             this.$Modal.remove()
             this.$Message.success('success!')
+            console.log(JSON.stringify(this.originData).length)
             this.originData[0].children.splice(panalIndex, 1)
-            console.log(this.originData)
+            console.log(JSON.stringify(this.originData).length)
             this.$emit('operationReload', this.originData)
           }
         },
@@ -717,10 +717,18 @@ export default {
         this.$Message.success('Success!')
         this.isEdit = false
         if (dataSource === 'parentPanalData') {
-          this.operateData.data = data[0]
+          // this.operateData.data = data[0]
+          this.originData[0].data = data[0]
         }
         if (dataSource === 'panalData') {
-          this.operateData.children[index].data = data[0]
+          // this.operateData.children[index].data = data[0]
+          // console.log(data[0])
+          this.originData[0].children.forEach(_ => {
+            if (_.guid === data[0].guid) {
+              _.data = data[0]
+            }
+          })
+          console.log(this.originData)
         }
         if (dataSource === 'linkData') {
           this.linkData[index] = data[0]
@@ -733,7 +741,7 @@ export default {
           })
           return
         }
-        this.$emit('operationReload', this.operateData)
+        this.$emit('operationReload', this.originData)
       }
     },
     managementData (operateData, originData) {
@@ -825,7 +833,7 @@ export default {
 // }
 .operation-Collapse {
   overflow: auto;
-  height: calc(100vh - 300px);
+  height: calc(100vh - 285px);
 }
 .diy-tabs {
   display: flex;
