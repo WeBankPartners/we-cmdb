@@ -9,7 +9,7 @@
       </div>
     </div>
     <div v-if="currentTab === 1" class="operation-Collapse">
-      <h4>{{ $t('current_node') }}：</h4>
+      <h5>{{ $t('current_node') }}：</h5>
       <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
         <Panel name="1">
           {{ parentPanalData.data.code | filterCode }}
@@ -73,7 +73,7 @@
           </div>
         </Panel>
       </Collapse>
-      <h4>{{ $t('subsidiary_node') }}：</h4>
+      <h5>{{ $t('subsidiary_node') }}：</h5>
       <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
         <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
           <span style="">
