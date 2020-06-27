@@ -85,6 +85,7 @@
           <Tooltip content="确认" style="float:right">
             <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
           </Tooltip>
+          <!-- <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button> -->
           <div slot="content">
             <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
               <div
@@ -339,6 +340,7 @@ export default {
       parentPanalData: { data: { code: '' } },
       parentPanalForm: [],
       activeTab: 'nodeTab',
+      originData: null, // 初始数据
 
       defaultPanal: '',
       operateData: null, // 选中数据集合
@@ -445,33 +447,6 @@ export default {
         })
       }
     },
-    async getAllSystemEnumCodes () {
-      this.canCreateLineTypes = []
-      let params = {
-        filters: [{ name: 'catId', operator: 'in', value: Array.from(new Array(28 + 1).keys()).slice(22) }],
-        paging: false
-      }
-      const { statusCode, data } = await getAllSystemEnumCodes(params)
-      if (statusCode === 'OK') {
-        this.codeData = data.contents
-      }
-      console.log(this.codeData)
-      // if (statusCode === 'OK') {
-      //   let edgeParams = {
-      //     filters: [{name: 'catId', operator: 'eq', value: 23}, {name: 'groupCodeId', operator: 'eq', value: data.contents[0].codeId}, {name: 'value', operator: 'eq', value: 'edge'}],
-      //     paging: false
-      //   }
-      //   const edgeInfo = await getAllSystemEnumCodes(edgeParams)
-      //   if (edgeInfo.statusCode === 'OK') {
-      //     edgeInfo.data.contents.forEach(p => {
-      //       this.canCreateLineTypes.push({
-      //         value: p.code,
-      //         label: p.codeDescription
-      //       })
-      //     })
-      //   }
-      // }
-    },
     async getNewLineAttr (val) {
       this.selectedLineType = val
       if (!this.selectedLineType) {
@@ -497,8 +472,6 @@ export default {
     async createLine () {
       // eslint-disable-next-line no-unused-vars
       let activeLineData = null
-      // eslint-disable-next-line no-unused-vars
-      let ciTypeId = null
       activeLineData = this.newLineFormData
       let tmpLineData = JSON.parse(JSON.stringify(activeLineData))
       for (let key in activeLineData) {
@@ -542,6 +515,7 @@ export default {
             ]
           }
         })
+        ciData.data.contents[0].data.ciTypeId = this.currentLineId
         this.$emit('operationReload', '', {
           type: 'add',
           lineInfo: ciData.data.contents[0]
@@ -613,16 +587,15 @@ export default {
           if (statusCode === 'OK') {
             this.$Modal.remove()
             this.$Message.success('success!')
-            this.panalData.splice(panalIndex, 1)
-            this.operateData.children = this.panalData
-            this.$emit('operationReload', this.operateData)
+            // this.originData[0].children.splice(panalIndex, 1)
+            // this.$emit('operationReload', this.originData)
+            this.$emit('operationReload', '')
           }
         },
         onCancel: () => {}
       })
     },
     async createNode () {
-      console.log(1)
       // eslint-disable-next-line no-unused-vars
       let activePanalData = null
       // eslint-disable-next-line no-unused-vars
@@ -654,7 +627,6 @@ export default {
         id: this.selectedNodeType,
         createData: [tmpPanalData]
       }
-      console.log(2)
       const { statusCode, data } = await createCiDatas(params)
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
@@ -675,12 +647,12 @@ export default {
         const params = {
           ciTypeId: this.selectedNodeType,
           data: ciData.data.contents[0].data,
-          text: [ciData.data.contents[0].data.code]
+          guid: [ciData.data.contents[0].data.guid]
         }
-        // text: [ciData.data.contents[0].data.code, ciData.data.contents[0].data.network_segment_design.code]
-        this.panalData.push(params)
-        this.operateData.children = this.panalData
-        this.$emit('operationReload', this.operateData)
+        console.log(params)
+        // this.originData[0].children.push(params)
+        // this.$emit('operationReload', this.originData)
+        this.$emit('operationReload', '')
         this.cancleAddNode()
       }
     },
@@ -750,6 +722,7 @@ export default {
         }
         if (dataSource === 'panalData') {
           this.operateData.children[index].data = data[0]
+          console.log(data[0])
         }
         if (dataSource === 'linkData') {
           this.linkData[index] = data[0]
@@ -762,10 +735,12 @@ export default {
           })
           return
         }
-        this.$emit('operationReload', this.operateData)
+        // this.$emit('operationReload', this.originData)
+        this.$emit('operationReload', '')
       }
     },
-    managementData (operateData) {
+    managementData (operateData, originData) {
+      this.originData = originData
       this.currentTab = 1
       this.parentPanal = ''
       this.defaultPanal = ''
@@ -853,7 +828,7 @@ export default {
 // }
 .operation-Collapse {
   overflow: auto;
-  height: calc(100vh - 240px);
+  height: calc(100vh - 285px);
 }
 .diy-tabs {
   display: flex;
