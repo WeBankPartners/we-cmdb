@@ -262,5 +262,11 @@
   "add_expression": "新增表达式",
   "filter_rule_modal_title": "编辑过滤规则",
   "filter_rule_edit_icon_placeholder": "<-- 点此编辑过滤规则",
-  "filter_rule_add_button": "添加过滤规则"
+  "filter_rule_add_button": "添加过滤规则",
+  "node_information": "节点信息",
+  "current_node": "当前节点",
+  "subsidiary_node": "子节点",
+  "add_node": "新增节点",
+  "link_information": "连线信息",
+  "add_link": "新增连线"
 }
