@@ -27,6 +27,7 @@ import * as d3 from 'd3-selection'
 import * as d3Graphviz from 'd3-graphviz'
 import { getSystems, getEnumCodesByCategoryId, getAllDeployTreesFromSystemCi } from '@/api/server.js'
 import { colors, stateColor } from '../../const/graph-configuration'
+import { addEvent } from '../util/event.js'
 import { baseURL } from '@/api/base.js'
 import {
   VIEW_CONFIG_PARAMS,
@@ -36,7 +37,7 @@ import {
   INVOKE_UNIT,
   INVOKED_UNIT
 } from '@/const/init-params.js'
-import Operation from './application-operation'
+import Operation from './application-deployment-operation'
 export default {
   components: {
     Operation
@@ -379,11 +380,75 @@ export default {
     },
     renderADGraph (data) {
       let nodesString = this.genADDOT(data)
-      this.graph.graphviz.transition().renderDot(nodesString)
+      this.graph.graphviz
+        .transition()
+        .renderDot(nodesString)
+        .on('end', () => {
+          // addEvent('.node', 'click', this.handleNodeClick)
+          addEvent('.cluster', 'click', this.handleClusterClick)
+        })
+      // 最外图层选中处理
+      d3.select('#clust1').on('click', () => {
+        this.$refs.transferData.managementData(this.originData[0])
+        if (this.activeNodeInfo.id) {
+          d3.select('#graph')
+            .select(`#` + this.activeNodeInfo.id)
+            .select(this.activeNodeInfo.type)
+            .attr('fill', this.activeNodeInfo.color)
+          this.activeNodeInfo = {}
+        }
+      })
       let svg = d3.select('#graph').select('svg')
       let width = svg.attr('width')
       let height = svg.attr('height')
       svg.attr('viewBox', '0 0 ' + width + ' ' + height)
+    },
+    handleNodeClick (e) {
+      this.idPath.unshift(e.currentTarget.id)
+      this.cacheIdPath = []
+      this.cacheIndex = []
+      this.cacheIdPath = JSON.parse(JSON.stringify(this.idPath))
+      if (this.firstChildrenGroup.includes(e.currentTarget.id)) {
+        let tmp = this.graphData[0]
+        this.idPath.forEach(id => {
+          if (tmp.children) {
+            tmp = tmp.children.find((child, index) => {
+              if (`n_${child.guid}` === id) {
+                this.cacheIndex.push(index)
+                return child
+              }
+            })
+          } else {
+            console.log(tmp)
+          }
+        })
+        this.idPath = []
+        this.operateNodeData = tmp
+        this.$refs.transferData.managementData(this.operateNodeData)
+      }
+    },
+    handleClusterClick (e) {
+      if (e.currentTarget.id === 'clust1') {
+        return
+      }
+      this.idPath.unshift(e.currentTarget.id)
+      this.cacheIdPath = []
+      this.cacheIndex = []
+      this.cacheIdPath = JSON.parse(JSON.stringify(this.idPath))
+      if (this.firstChildrenGroup.includes(e.currentTarget.id)) {
+        let tmp = this.graphData[0]
+        this.idPath.forEach(id => {
+          tmp = tmp.children.find((child, index) => {
+            if (`g_${child.guid}` === id) {
+              this.cacheIndex.push(index)
+              return child
+            }
+          })
+        })
+        this.idPath = []
+        this.operateNodeData = tmp
+        this.$refs.transferData.managementData(this.operateNodeData)
+      }
     },
     genADDOT (data) {
       this.graphNodes = {}

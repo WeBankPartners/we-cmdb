@@ -62,7 +62,7 @@ export default {
           }
           const { statusCode, data } = await queryReferenceCiData({
             attrId: this.formData.ciTypeAttrId,
-            queryObject: { filters: [], paging: false, dialect: { data: params } }
+            queryObject: { filters: [], paging: false, dialect: { associatedData: params } }
           })
           if (statusCode === 'OK') {
             this.options = data.contents.map(_ => {
