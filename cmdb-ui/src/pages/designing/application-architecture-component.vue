@@ -42,7 +42,7 @@ import {
   INVOKE_DIAGRAM_LINK_TO,
   INVOKE_TYPE
 } from '@/const/init-params.js'
-import Operation from './application-operation'
+import Operation from './application-architecture-operation'
 export default {
   components: {
     Operation
