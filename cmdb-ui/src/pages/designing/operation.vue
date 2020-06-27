@@ -2,14 +2,14 @@
   <div class="operation">
     <div class="diy-tabs">
       <div :class="['diy-tab', currentTab === 1 ? 'active-tab' : '']" @click="changeTab(1)">
-        <span>节点信息</span>
+        <span>{{ $t('node_information') }}</span>
       </div>
       <div :class="['diy-tab', currentTab === 2 ? 'active-tab' : '']" @click="changeTab(2)">
-        <span>连线信息</span>
+        <span>{{ $t('link_information') }}</span>
       </div>
     </div>
     <div v-if="currentTab === 1" class="operation-Collapse">
-      <h4>当前节点：</h4>
+      <h4>{{ $t('current_node') }}：</h4>
       <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
         <Panel name="1">
           {{ parentPanalData.data.code | filterCode }}
@@ -59,13 +59,13 @@
               </div>
               <FormItem>
                 <div class="opetation-btn-zone">
-                  <Button @click="editOperation" type="info">编辑</Button>
+                  <Button @click="editOperation" type="info">{{ $t('edit') }}</Button>
                   <Button
                     type="primary"
                     @click="saveOperation('parentPanalData')"
                     :disabled="!isEdit"
                     class="opetation-btn"
-                    >保存</Button
+                    >{{ $t('save') }}</Button
                   >
                 </div>
               </FormItem>
@@ -73,16 +73,16 @@
           </div>
         </Panel>
       </Collapse>
-      <h4>子节点：</h4>
+      <h4>{{ $t('subsidiary_node') }}：</h4>
       <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
         <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
           <span style="">
             {{ panal.data.code | filterCode }}
           </span>
-          <Tooltip content="删除" style="float:right">
+          <Tooltip :content="$t('delete')" style="float:right">
             <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
           </Tooltip>
-          <Tooltip content="确认" style="float:right">
+          <Tooltip :content="$t('confirm')" style="float:right">
             <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
           </Tooltip>
           <div slot="content">
@@ -135,13 +135,13 @@
               </div>
               <FormItem>
                 <div class="opetation-btn-zone">
-                  <Button @click="editOperation" type="info">编辑</Button>
+                  <Button @click="editOperation" type="info">{{ $t('edit') }}</Button>
                   <Button
                     type="primary"
                     @click="saveOperation('panalData', panalIndex)"
                     :disabled="!isEdit"
                     class="opetation-btn"
-                    >保存</Button
+                    >{{ $t('save') }}</Button
                   >
                 </div>
               </FormItem>
@@ -149,7 +149,7 @@
           </div>
         </Panel>
         <div style="margin: 12px;">
-          <Button @click="showAddNodeArea = true" size="small" long type="info">新增节点</Button>
+          <Button @click="showAddNodeArea = true" size="small" long type="info">{{ $t('add_node') }}</Button>
         </div>
       </Collapse>
       <div v-if="showAddNodeArea" class="add-node-area">
@@ -188,8 +188,8 @@
           </div>
           <FormItem>
             <div class="opetation-btn-zone">
-              <Button type="primary" @click="createNode">创建节点</Button>
-              <Button @click="cancleAddNode" class="opetation-btn">取消</Button>
+              <Button type="primary" @click="createNode">{{ $t('save') }}</Button>
+              <Button @click="cancleAddNode" class="opetation-btn">{{ $t('cancel') }}</Button>
             </div>
           </FormItem>
         </Form>
@@ -201,10 +201,10 @@
           <span style="">
             {{ link.key_name | filterCode }}
           </span>
-          <Tooltip content="删除" style="float:right">
+          <Tooltip :content="$t('delete')" style="float:right">
             <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon-delete" />
           </Tooltip>
-          <Tooltip content="确认" style="float:right">
+          <Tooltip :content="$t('confirm')" style="float:right">
             <Icon type="md-checkmark" @click="confirm(link, $event)" class="operation-icon-confirm" />
           </Tooltip>
           <div slot="content">
@@ -250,13 +250,13 @@
               </div>
               <FormItem>
                 <div class="opetation-btn-zone">
-                  <Button @click="editOperation" type="info">编辑</Button>
+                  <Button @click="editOperation" type="info">{{ $t('edit') }}</Button>
                   <Button
                     type="primary"
                     @click="saveOperation('linkData', linkIndex)"
                     :disabled="!isEdit"
                     class="opetation-btn"
-                    >保存</Button
+                    >{{ $t('save') }}</Button
                   >
                 </div>
               </FormItem>
@@ -303,8 +303,8 @@
           </div>
           <FormItem>
             <div class="opetation-btn-zone">
-              <Button type="primary" @click="createLine">创建连线</Button>
-              <Button @click="cancleAddLine" class="opetation-btn">取消</Button>
+              <Button type="primary" @click="createLine">{{ $t('save') }}</Button>
+              <Button @click="cancleAddLine" class="opetation-btn">{{ $t('cancel') }}</Button>
             </div>
           </FormItem>
         </Form>
