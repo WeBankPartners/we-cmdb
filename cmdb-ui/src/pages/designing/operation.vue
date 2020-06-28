@@ -456,7 +456,6 @@ export default {
       if (statusCode === 'OK') {
         this.codeData = data.contents
       }
-      console.log(this.codeData)
       // if (statusCode === 'OK') {
       //   let edgeParams = {
       //     filters: [{name: 'catId', operator: 'eq', value: 23}, {name: 'groupCodeId', operator: 'eq', value: data.contents[0].codeId}, {name: 'value', operator: 'eq', value: 'edge'}],
@@ -623,7 +622,6 @@ export default {
       })
     },
     async createNode () {
-      console.log(1)
       // eslint-disable-next-line no-unused-vars
       let activePanalData = null
       // eslint-disable-next-line no-unused-vars
@@ -655,7 +653,6 @@ export default {
         id: this.selectedNodeType,
         createData: [tmpPanalData]
       }
-      console.log(2)
       const { statusCode, data } = await createCiDatas(params)
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
