@@ -27,7 +27,7 @@
             <Button slot="desc" @click="reloadHandler">Reload</Button>
           </Alert>
           <div class="graph-container-big" id="resourcePlanningGraph"></div> -->
-          <ResourcePlanningNew ref="resourcePlanningNew"></ResourcePlanningNew>
+          <ResourcePlanningComponent ref="resourcePlanningComponent"></ResourcePlanningComponent>
         </TabPane>
         <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name" :index="ci.seqNo + 1">
           <div
@@ -128,11 +128,11 @@ import {
   RESOURCE_PLANNING_ROUTER_CODE,
   DEFAULT_SECURITY_POLICY_CODE
 } from '@/const/init-params.js'
-import ResourcePlanningNew from '@/pages/designing/resource-planning-new'
+import ResourcePlanningComponent from '@/pages/designing/resource-planning-component'
 export default {
   components: {
     TreeSelect,
-    ResourcePlanningNew
+    ResourcePlanningComponent
   },
   data () {
     return {
@@ -255,7 +255,7 @@ export default {
           id: this.initParams[RESOURCE_PLANNING_LINK_ID],
           queryObject: {}
         }
-        this.$refs.resourcePlanningNew.onIdcDataChange(selectedIdcs)
+        this.$refs.resourcePlanningComponent.onIdcDataChange(selectedIdcs)
         const promiseArray = [getIdcImplementTreeByGuid(selectedIdcs), queryCiData(payload)]
         const [idcData, links] = await Promise.all(promiseArray)
         if (idcData.statusCode === 'OK' && links.statusCode === 'OK') {

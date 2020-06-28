@@ -15,7 +15,7 @@
       </Spin>
       <Tabs v-show="idcDesignData" type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
         <TabPane :label="$t('planning_design_diagram')" name="resource-design" :index="1">
-          <PlanningComplete ref="planningComplete"></PlanningComplete>
+          <PlanningComponent ref="planningComponent"></PlanningComponent>
           <!-- <Alert show-icon closable v-if="isDataChanged">
             Data has beed changed, click Reload button to reload graph.
             <Button slot="desc" @click="reloadHandler">Reload</Button>
@@ -119,7 +119,7 @@ import {
   IDC_PLANNING_ROUTER_DESIGN_CODE,
   DEFAULT_SECURITY_POLICY_DESIGN_CODE
 } from '@/const/init-params.js'
-import PlanningComplete from '@/pages/designing/planning-complete'
+import PlanningComponent from '@/pages/designing/planning-component'
 
 export default {
   data () {
@@ -166,7 +166,7 @@ export default {
   },
   methods: {
     async onIdcDataChange (guid) {
-      this.$refs.planningComplete.onIdcDataChange(guid)
+      this.$refs.planningComponent.onIdcDataChange(guid)
       this.handleTabClick(this.currentTab)
       this.spinShow = true
       const { data, statusCode } = await getIdcDesignTreeByGuid([guid])
@@ -1286,7 +1286,7 @@ export default {
     this.getConfigParams()
   },
   components: {
-    PlanningComplete
+    PlanningComponent
   }
 }
 </script>
