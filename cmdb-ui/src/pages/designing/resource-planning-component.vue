@@ -28,7 +28,12 @@
         </Col>
         <Col span="8" class="operation-zone">
           <Card>
-            <Operation ref="transferData" @operationReload="operationReload" @markZone="markZone"></Operation>
+            <Operation
+              ref="transferData"
+              @operationReload="operationReload"
+              @markZone="markZone"
+              @markEdge="markEdge"
+            ></Operation>
           </Card>
         </Col>
       </Row>
@@ -105,7 +110,8 @@ export default {
         id: '',
         type: '',
         color: ''
-      }
+      },
+      activeLineGuid: ''
     }
   },
   watch: {
@@ -173,7 +179,6 @@ export default {
       this.loadMap([tmpData], operateLineData)
     },
     loadMap (graphData, operateLineData) {
-      console.log(graphData, operateLineData)
       this.graphData = graphData
       this.graphData[0].children.forEach(_ => {
         this.firstChildrenGroup.push(`g_${_.guid}`)
@@ -220,8 +225,24 @@ export default {
           const index = this.lineData.findIndex(_ => {
             return _.guid === lineInfoData.guid
           })
-          this.lineData[index] = lineInfoData
+          this.lineData[index] = {
+            guid: lineInfoData.guid,
+            from: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
+            linkInfo: {
+              ...lineInfoData,
+              ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
+            },
+            to: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
+            label: lineInfoData.code,
+            state: lineInfoData.state.code
+          }
         }
+        // if (operateLineData.type === 'edit') {
+        //   const index = this.lineData.findIndex(_ => {
+        //     return _.guid === lineInfoData.guid
+        //   })
+        //   this.lineData[index] = lineInfoData
+        // }
         if (operateLineData.type === 'remove') {
           const index = this.lineData.findIndex(_ => {
             return _.guid === lineInfoData.guid
@@ -235,6 +256,29 @@ export default {
     },
     markZone (guid) {
       this.cacheIdPath = [`n_` + guid]
+    },
+    markEdge (guid) {
+      if (this.activeLineGuid) {
+        d3.select('#resourcePlanningGraph')
+          .select(`#a_gl_` + this.activeLineGuid)
+          .select('a')
+          .select('path')
+          .attr('stroke', '#000000')
+        d3.select('#resourcePlanningGraph')
+          .select(`#gl_` + this.activeLineGuid)
+          .select('text')
+          .attr('fill', '#000000')
+      }
+      this.activeLineGuid = guid
+      d3.select('#resourcePlanningGraph')
+        .select(`#a_gl_` + guid)
+        .select('a')
+        .select('path')
+        .attr('stroke', 'red')
+      d3.select('#resourcePlanningGraph')
+        .select(`#gl_` + guid)
+        .select('text')
+        .attr('fill', 'red')
     },
     async getAllIdcData () {
       const { data, statusCode } = await getAllIdcData()
@@ -394,6 +438,14 @@ export default {
         this.$refs.transferData.managementData(this.operateNodeData)
       }
     },
+    handleEdgeClick (e) {
+      let guid = e.currentTarget.id.substring(3)
+      this.markEdge('0026_0000000036')
+      const selectLinkIndex = this.effectiveLink.findIndex(link => {
+        return link.guid === guid
+      })
+      this.$refs.transferData.openLinkPanal([selectLinkIndex + 1 + ''])
+    },
     initGraph () {
       let graph
       const initEvent = () => {
@@ -446,6 +498,7 @@ export default {
         .on('end', () => {
           this.setChildrenNode()
           addEvent('.node', 'click', this.handleNodeClick)
+          addEvent('.edge', 'click', this.handleEdgeClick)
         })
       // 最外图层选中处理
       d3.select('#clust1').on('click', () => {
