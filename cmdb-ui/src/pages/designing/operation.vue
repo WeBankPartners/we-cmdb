@@ -383,13 +383,14 @@ export default {
       this.cancleAddNode()
     },
     linkManagementData (linkData) {
+      this.currentTab = 2
       this.linkData = linkData
     },
     async openLinkPanal (panalId) {
-      // this.linkPanal = ''
       this.isEdit = false
       if (panalId.length) {
-        // this.$emit('markZone', this.panalData[Number(panalId[0] - 1)].guid)
+        this.linkPanal = panalId[0]
+        this.$emit('markEdge', this.linkData[Number(panalId[0] - 1)].guid)
         const ciTypeId = this.linkData[Number(panalId[0] - 1)].ciTypeId
         if (!Object.keys(this.lineFromSet).includes(ciTypeId)) {
           await this.getAttributes(ciTypeId, 'linkPanalForm')
@@ -757,7 +758,7 @@ export default {
           this.$emit('operationReload', '', {
             type: 'edit',
             lineInfo: {
-              data: data[0]
+              data: this.linkData[index]
             }
           })
           return
@@ -770,6 +771,7 @@ export default {
       this.parentPanal = ''
       this.defaultPanal = ''
       this.panalData = []
+      this.cancleAddNode()
       this.operateData = operateData
       // this.getAllSystemEnumCodes()
       let tmp = JSON.parse(JSON.stringify(this.operateData))
