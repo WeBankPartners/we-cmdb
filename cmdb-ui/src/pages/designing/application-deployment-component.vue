@@ -64,6 +64,7 @@ export default {
 
       originData: null,
       graphCiTypeId: 46,
+      graphDataWithGuid: {},
       graphData: null,
       operateNodeData: {},
       idPath: [], // 缓存点击图形区域从内向外容器ID值
@@ -111,10 +112,8 @@ export default {
   },
   methods: {
     markZone (guid) {
-      const firstLevelGuid = this.firstChildrenGroup.find(_ => {
-        return `g_` + guid === _ || `n_` + guid === _
-      })
-      this.cacheIdPath = firstLevelGuid ? [firstLevelGuid] : [`n_` + guid]
+      const nodeKeys = Object.keys(this.graphDataWithGuid)
+      this.cacheIdPath = nodeKeys.includes(`n_${guid}`) ? [`n_${guid}`] : [`g_${guid}`]
     },
     markEdge (guid) {
       if (this.activeLineGuid) {
@@ -143,87 +142,6 @@ export default {
     },
     async operationReload (originData, operateLineData) {
       this.getAllDeployTreesFromSystemCi(this.systemVersion)
-      // if (operateLineData) {
-      //   this.reloadEdge(operateLineData)
-      //   return
-      // }
-      // const { initParams } = this
-      // this.originData = originData
-      // this.systemTreeData = originData
-      // this.systemLines = {}
-
-      // const formatADData = array => {
-      //   return array.map(_ => {
-      //     let result = {
-      //       ciTypeId: _.ciTypeId,
-      //       guid: _.guid,
-      //       data: _.data,
-      //       label: `"${_.data.code}"`,
-      //       tooltip: _.data.description || '',
-      //       fixedDate: +new Date(_.data.fixed_date)
-      //     }
-      //     if (_.children instanceof Array && _.children.length && _.ciTypeId !== initParams[UNIT_ID]) {
-      //       result.children = formatADData(_.children)
-      //     }
-      //     if (_.ciTypeId === initParams[UNIT_ID]) {
-      //       let label = ['<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">', `<TR><TD>${_.data.code}</TD></TR>`]
-      //       if (_.children instanceof Array && _.children.length) {
-      //         _.children.forEach(item => {
-      //           if (initParams[BUSINESS_APP_INSTANCE_ID].split(',').indexOf(item.ciTypeId + '') >= 0) {
-      //             label.push(`<TR><TD>${item.data.code}</TD></TR>`)
-      //           }
-      //         })
-      //       }
-      //       label.push('</TABLE>>')
-      //       result.label = label.join('')
-      //     }
-      //     return result
-      //   })
-      // }
-      // this.effectiveLink = []
-      // const formatADLine = array => {
-      //   array.forEach(_ => {
-      //     if (_.ciTypeId === this.initParams[INVOKE_ID]) {
-      //       this.systemLines[_.guid] = {
-      //         ..._,
-      //         from: _.data[this.initParams[INVOKE_UNIT]].guid,
-      //         to: _.data[this.initParams[INVOKED_UNIT]].guid,
-      //         id: _.guid,
-      //         label: _.data.invoke_type,
-      //         state: _.data.state.code,
-      //         fixedDate: +new Date(_.data.fixed_date)
-      //       }
-      //       _.data.ciTypeId = this.initParams[INVOKE_ID]
-      //       this.effectiveLink.push(_.data)
-      //     }
-      //     if (_.children instanceof Array && _.children.length) {
-      //       formatADLine(_.children)
-      //     }
-      //   })
-      // }
-
-      // const fetchOtherSystemInstances = async () => {
-      //   this.instancesInUnit = {}
-      //   this.graphNodes = {}
-      //   this.genADChildrenDot(this.systemData[0].children || [], 1)
-      //   this.initADGraph()
-      // }
-      // this.systemData = formatADData(originData)
-      // this.graphData = this.systemData
-      // this.firstChildrenGroup = []
-      // this.graphData[0].children.forEach(_ => {
-      //   if (_.children instanceof Array && _.children.length) {
-      //     this.firstChildrenGroup.push(`g_${_.guid}`)
-      //   } else {
-      //     this.firstChildrenGroup.push(`n_${_.guid}`)
-      //   }
-      // })
-      // this.operateNodeData = this.systemData[0]
-      // this.$refs.transferData.managementData(this.operateNodeData, this.originData)
-      // formatADLine(originData)
-      // console.log(this.systemLines)
-      // this.$refs.transferData.linkManagementData(this.effectiveLink)
-      // fetchOtherSystemInstances()
     },
     reloadEdge (operateLineData) {
       const lineInfoData = operateLineData.lineInfo.data
@@ -237,7 +155,6 @@ export default {
           fixedDate: +new Date(lineInfoData.fixed_date)
         }
         this.effectiveLink.push(lineInfoData)
-        console.log(this.systemLines)
       }
       if (operateLineData.type === 'edit') {
         const index = this.effectiveLink.findIndex(_ => {
@@ -310,7 +227,7 @@ export default {
       if (statusCode === 'OK') {
         this.systemTreeData = data
         this.systemLines = {}
-
+        this.graphDataWithGuid = {}
         const formatADData = array => {
           return array.map(_ => {
             let result = {
@@ -323,6 +240,9 @@ export default {
             }
             if (_.children instanceof Array && _.children.length && _.ciTypeId !== initParams[UNIT_ID]) {
               result.children = formatADData(_.children)
+              this.graphDataWithGuid['g_' + _.guid] = _
+            } else {
+              this.graphDataWithGuid['n_' + _.guid] = _
             }
             if (_.ciTypeId === initParams[UNIT_ID]) {
               let label = ['<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">', `<TR><TD>${_.data.code}</TD></TR>`]
@@ -369,20 +289,10 @@ export default {
         }
         this.systemData = formatADData(data)
         this.graphData = this.systemData
-        this.firstChildrenGroup = []
-        this.graphData[0].children.forEach(_ => {
-          if (_.children instanceof Array && _.children.length) {
-            this.firstChildrenGroup.push(`g_${_.guid}`)
-          } else {
-            this.firstChildrenGroup.push(`n_${_.guid}`)
-          }
-        })
         this.operateNodeData = this.systemData[0]
         this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
         this.$refs.transferData.managementData(this.operateNodeData, this.originData)
-        console.log(this.originData)
         formatADLine(data)
-        console.log(this.systemLines)
         this.$refs.transferData.linkManagementData(this.effectiveLink)
         fetchOtherSystemInstances()
       }
@@ -415,8 +325,8 @@ export default {
         .transition()
         .renderDot(nodesString)
         .on('end', () => {
-          // addEvent('.node', 'click', this.handleNodeClick)
-          addEvent('.cluster', 'click', this.handleClusterClick)
+          addEvent('.node', 'click', this.handleNodeClick)
+          addEvent('.cluster', 'click', this.handleNodeClick)
           addEvent('.edge', 'click', this.handleEdgeClick)
         })
       // 最外图层选中处理
@@ -436,51 +346,13 @@ export default {
       svg.attr('viewBox', '0 0 ' + width + ' ' + height)
     },
     handleNodeClick (e) {
-      this.idPath.unshift(e.currentTarget.id)
-      this.cacheIdPath = []
-      this.cacheIndex = []
-      this.cacheIdPath = JSON.parse(JSON.stringify(this.idPath))
-      if (this.firstChildrenGroup.includes(e.currentTarget.id)) {
-        let tmp = this.graphData[0]
-        this.idPath.forEach(id => {
-          if (tmp.children) {
-            tmp = tmp.children.find((child, index) => {
-              if (`n_${child.guid}` === id) {
-                this.cacheIndex.push(index)
-                return child
-              }
-            })
-          } else {
-            console.log(tmp)
-          }
-        })
-        this.idPath = []
-        this.operateNodeData = tmp
-        this.$refs.transferData.managementData(this.operateNodeData)
-      }
-    },
-    handleClusterClick (e) {
       if (e.currentTarget.id === 'clust1') {
         return
       }
-      this.idPath.unshift(e.currentTarget.id)
-      this.cacheIdPath = []
-      this.cacheIndex = []
-      this.cacheIdPath = JSON.parse(JSON.stringify(this.idPath))
-      if (this.firstChildrenGroup.includes(e.currentTarget.id)) {
-        let tmp = this.graphData[0]
-        this.idPath.forEach(id => {
-          tmp = tmp.children.find((child, index) => {
-            if (`g_${child.guid}` === id) {
-              this.cacheIndex.push(index)
-              return child
-            }
-          })
-        })
-        this.idPath = []
-        this.operateNodeData = tmp
-        this.$refs.transferData.managementData(this.operateNodeData)
-      }
+      const guid = e.currentTarget.id
+      this.operateNodeData = this.graphDataWithGuid[guid]
+      this.cacheIdPath = [guid]
+      this.$refs.transferData.managementData(this.operateNodeData)
     },
     handleEdgeClick (e) {
       let guid = e.currentTarget.id.substring(3)
