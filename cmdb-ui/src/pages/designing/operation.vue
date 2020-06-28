@@ -383,10 +383,10 @@ export default {
       this.cancleAddNode()
     },
     linkManagementData (linkData) {
-      this.currentTab = 2
       this.linkData = linkData
     },
     async openLinkPanal (panalId) {
+      this.currentTab = 2
       this.isEdit = false
       if (panalId.length) {
         this.linkPanal = panalId[0]
