@@ -769,6 +769,7 @@ export default {
       this.parentPanal = ''
       this.defaultPanal = ''
       this.panalData = []
+      this.cancleAddNode()
       this.operateData = operateData
       // this.getAllSystemEnumCodes()
       let tmp = JSON.parse(JSON.stringify(this.operateData))

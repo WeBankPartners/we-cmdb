@@ -21,7 +21,12 @@
         </Col>
         <Col span="8" class="operation-zone">
           <Card>
-            <Operation ref="transferData" @operationReload="operationReload" @markZone="markZone"></Operation>
+            <Operation
+              ref="transferData"
+              @operationReload="operationReload"
+              @markZone="markZone"
+              @markEdge="markEdge"
+            ></Operation>
           </Card>
         </Col>
       </Row>
@@ -67,7 +72,8 @@ export default {
         id: '',
         type: '',
         color: ''
-      }
+      },
+      activeLineGuid: ''
     }
   },
   watch: {
@@ -98,11 +104,35 @@ export default {
         .select(`#` + id)
         .select(this.activeNodeInfo.type)
         .attr('fill', '#2b85e4')
+      console.log(this.activeNodeInfo.type)
     }
   },
   methods: {
     markZone (guid) {
       this.cacheIdPath = [`g_` + guid]
+    },
+    markEdge (guid) {
+      if (this.activeLineGuid) {
+        d3.select('#graph')
+          .select(`#a_gl_` + this.activeLineGuid)
+          .select('a')
+          .select('path')
+          .attr('stroke', '#000000')
+        d3.select('#graph')
+          .select(`#gl_` + this.activeLineGuid)
+          .select('text')
+          .attr('fill', '#000000')
+      }
+      this.activeLineGuid = guid
+      d3.select('#graph')
+        .select(`#a_gl_` + guid)
+        .select('a')
+        .select('path')
+        .attr('stroke', 'red')
+      d3.select('#graph')
+        .select(`#gl_` + guid)
+        .select('text')
+        .attr('fill', 'red')
     },
     operationReload (operateNodeData, operateLineData) {
       if (!operateNodeData) {
@@ -164,15 +194,31 @@ export default {
         if (operateLineData.type === 'add') {
           this.idcLink.push({
             guid: lineInfoData.guid,
-            from: lineInfoData[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
+            from: lineInfoData[this.initParams[IDC_PLANNING_LINK_TO]].guid,
             linkInfo: {
               ...lineInfoData,
               ciTypeId: this.initParams[IDC_PLANNING_LINK_ID]
             },
-            to: lineInfoData[this.initParams[IDC_PLANNING_LINK_TO]].guid,
+            to: lineInfoData[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
             label: lineInfoData.code,
             state: lineInfoData.state.code
           })
+        }
+        if (operateLineData.type === 'edit') {
+          const index = this.idcLink.findIndex(_ => {
+            return _.guid === lineInfoData.guid
+          })
+          this.idcLink[index] = {
+            guid: lineInfoData.guid,
+            from: lineInfoData[this.initParams[IDC_PLANNING_LINK_TO]].guid,
+            linkInfo: {
+              ...lineInfoData,
+              ciTypeId: this.initParams[IDC_PLANNING_LINK_ID]
+            },
+            to: lineInfoData[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
+            label: lineInfoData.code,
+            state: lineInfoData.state.code
+          }
         }
         if (operateLineData.type === 'remove') {
           const index = this.idcLink.findIndex(_ => {
@@ -322,6 +368,8 @@ export default {
           networkToNode[nodeGuid] = [rc.guid]
         }
       })
+      this.effectiveLink = []
+      console.log(this.idcLink)
       this.idcLink.forEach(_ => {
         if (networkToNode[_.from] && networkToNode[_.to]) {
           this.effectiveLink.push(_.linkInfo)
@@ -357,6 +405,14 @@ export default {
         this.$refs.transferData.managementData(this.operateNodeData)
       }
     },
+    handleEdgeClick (e) {
+      let guid = e.currentTarget.id.substring(3)
+      this.markEdge(guid)
+      const selectLinkIndex = this.effectiveLink.findIndex(link => {
+        return link.guid === guid
+      })
+      this.$refs.transferData.openLinkPanal([selectLinkIndex + 1 + ''])
+    },
     renderGraph (idcData) {
       let nodesString = this.genDOT(idcData)
       this.graph
@@ -364,6 +420,7 @@ export default {
         .renderDot(nodesString)
         .on('end', () => {
           addEvent('.node', 'click', this.handleNodeClick)
+          addEvent('.edge', 'click', this.handleEdgeClick)
         })
       // 最外图层选中处理
       d3.select('#clust1').on('click', () => {
@@ -541,12 +598,12 @@ export default {
         this.idcLink = data.contents.map(_ => {
           return {
             guid: _.data.guid,
-            from: this.dataSelector(_, this.graphConfig.fromKey),
+            from: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
             linkInfo: {
               ..._.data,
               ciTypeId: this.initParams[IDC_PLANNING_LINK_ID]
             },
-            to: this.dataSelector(_, this.graphConfig.toKey),
+            to: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
             label: _.data.code,
             state: _.data.state.code
           }
