@@ -56,6 +56,7 @@ export default {
     return {
       graphCiTypeId: 37,
       graphData: null,
+      graphDataWithGuid: {},
       operateNodeData: {},
       idPath: [], // 缓存点击图形区域从内向外容器ID值
       cacheIdPath: [], // 缓存点击图形区域从内向外容器ID值
@@ -152,10 +153,8 @@ export default {
   },
   methods: {
     markZone (guid) {
-      const firstLevelGuid = this.firstChildrenGroup.find(_ => {
-        return `g_` + guid === _ || `n_` + guid === _
-      })
-      this.cacheIdPath = firstLevelGuid ? [firstLevelGuid] : [`n_` + guid]
+      const nodeKeys = Object.keys(this.graphDataWithGuid)
+      this.cacheIdPath = nodeKeys.includes(`n_${guid}`) ? [`n_${guid}`] : [`g_${guid}`]
     },
     markEdge (guid) {
       if (this.activeLineGuid) {
@@ -191,6 +190,7 @@ export default {
         this.appInvokeLines = {}
         this.appServiceInvokeLines = {}
         this.systemDesignFixedDate = +new Date(treeData.data[0].data.fixed_date)
+        this.graphDataWithGuid = {}
         const formatAppLogicTree = array =>
           array.map(_ => {
             let result = {
@@ -202,6 +202,9 @@ export default {
             }
             if (_.children instanceof Array && _.children.length && _.ciTypeId !== this.initParams[UNIT_DESIGN_ID]) {
               result.children = formatAppLogicTree(_.children)
+              this.graphDataWithGuid['g_' + _.guid] = _
+            } else {
+              this.graphDataWithGuid['n_' + _.guid] = _
             }
             if (_.ciTypeId === this.initParams[UNIT_DESIGN_ID]) {
               this.allUnitDesign.push(result)
@@ -230,14 +233,6 @@ export default {
           })
         this.appLogicData = formatAppLogicTree(treeData.data)
         this.graphData = treeData.data
-        this.firstChildrenGroup = []
-        this.graphData[0].children.forEach(_ => {
-          if (_.children instanceof Array && _.children.length) {
-            this.firstChildrenGroup.push(`g_${_.guid}`)
-          } else {
-            this.firstChildrenGroup.push(`n_${_.guid}`)
-          }
-        })
         this.operateNodeData = this.appLogicData[0]
         this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
         this.$refs.transferData.managementData(this.operateNodeData)
@@ -359,7 +354,7 @@ export default {
         .renderDot(nodesString)
         .on('end', () => {
           addEvent('.node', 'click', this.handleNodeClick)
-          addEvent('.cluster', 'click', this.handleClusterClick)
+          addEvent('.cluster', 'click', this.handleNodeClick)
           addEvent('.edge', 'click', this.handleEdgeClick)
         })
       // 最外图层选中处理
@@ -380,28 +375,13 @@ export default {
       svg.attr('viewBox', '0 0 ' + width + ' ' + height)
     },
     handleNodeClick (e) {
-      this.idPath.unshift(e.currentTarget.id)
-      this.cacheIdPath = []
-      this.cacheIndex = []
-      this.cacheIdPath = JSON.parse(JSON.stringify(this.idPath))
-      if (this.firstChildrenGroup.includes(e.currentTarget.id)) {
-        let tmp = this.graphData[0]
-        this.idPath.forEach(id => {
-          if (tmp.children) {
-            tmp = tmp.children.find((child, index) => {
-              if (`n_${child.guid}` === id) {
-                this.cacheIndex.push(index)
-                return child
-              }
-            })
-          } else {
-            console.log(tmp)
-          }
-        })
-        this.idPath = []
-        this.operateNodeData = tmp
-        this.$refs.transferData.managementData(this.operateNodeData)
+      if (e.currentTarget.id === 'clust1') {
+        return
       }
+      const guid = e.currentTarget.id
+      this.operateNodeData = this.graphDataWithGuid[guid]
+      this.cacheIdPath = [guid]
+      this.$refs.transferData.managementData(this.operateNodeData)
     },
     handleEdgeClick (e) {
       let guid = e.currentTarget.id.substring(3)
@@ -410,29 +390,6 @@ export default {
         return link.guid === guid
       })
       this.$refs.transferData.openLinkPanal([selectLinkIndex + 1 + ''])
-    },
-    handleClusterClick (e) {
-      if (e.currentTarget.id === 'clust1') {
-        return
-      }
-      this.idPath.unshift(e.currentTarget.id)
-      this.cacheIdPath = []
-      this.cacheIndex = []
-      this.cacheIdPath = JSON.parse(JSON.stringify(this.idPath))
-      if (this.firstChildrenGroup.includes(e.currentTarget.id)) {
-        let tmp = this.graphData[0]
-        this.idPath.forEach(id => {
-          tmp = tmp.children.find((child, index) => {
-            if (`g_${child.guid}` === id) {
-              this.cacheIndex.push(index)
-              return child
-            }
-          })
-        })
-        this.idPath = []
-        this.operateNodeData = tmp
-        this.$refs.transferData.managementData(this.operateNodeData)
-      }
     },
     genDOT (id, sysData, linesData) {
       this.graphNodes[id] = {}
