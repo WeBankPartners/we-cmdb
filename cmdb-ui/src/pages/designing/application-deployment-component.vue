@@ -13,7 +13,12 @@
         </Col>
         <Col span="8" class="operation-zone">
           <Card>
-            <Operation ref="transferData" @operationReload="operationReload" @markZone="markZone"></Operation>
+            <Operation
+              ref="transferData"
+              @operationReload="operationReload"
+              @markZone="markZone"
+              @markEdge="markEdge"
+            ></Operation>
           </Card>
         </Col>
       </Row>
@@ -70,7 +75,8 @@ export default {
         id: '',
         type: '',
         color: ''
-      }
+      },
+      activeLineGuid: ''
     }
   },
   watch: {
@@ -109,6 +115,31 @@ export default {
         return `g_` + guid === _ || `n_` + guid === _
       })
       this.cacheIdPath = firstLevelGuid ? [firstLevelGuid] : [`n_` + guid]
+    },
+    markEdge (guid) {
+      if (this.activeLineGuid) {
+        d3.select('#graph')
+          .select(`#gl_` + this.activeLineGuid)
+          .select(`#a_gl_` + this.activeLineGuid)
+          .select('a')
+          .select('path')
+          .attr('stroke', '#000000')
+        d3.select('#graph')
+          .select(`#gl_` + this.activeLineGuid)
+          .select('text')
+          .attr('fill', '#000000')
+      }
+      this.activeLineGuid = guid
+      d3.select('#graph')
+        .select(`#gl_` + guid)
+        .select(`#a_gl_` + guid)
+        .select('a')
+        .select('path')
+        .attr('stroke', 'red')
+      d3.select('#graph')
+        .select(`#gl_` + guid)
+        .select('text')
+        .attr('fill', 'red')
     },
     async operationReload (originData, operateLineData) {
       this.getAllDeployTreesFromSystemCi(this.systemVersion)
@@ -386,6 +417,7 @@ export default {
         .on('end', () => {
           // addEvent('.node', 'click', this.handleNodeClick)
           addEvent('.cluster', 'click', this.handleClusterClick)
+          addEvent('.edge', 'click', this.handleEdgeClick)
         })
       // 最外图层选中处理
       d3.select('#clust1').on('click', () => {
@@ -449,6 +481,14 @@ export default {
         this.operateNodeData = tmp
         this.$refs.transferData.managementData(this.operateNodeData)
       }
+    },
+    handleEdgeClick (e) {
+      let guid = e.currentTarget.id.substring(3)
+      this.markEdge(guid)
+      const selectLinkIndex = this.effectiveLink.findIndex(link => {
+        return link.guid === guid
+      })
+      this.$refs.transferData.openLinkPanal([selectLinkIndex + 1 + ''])
     },
     genADDOT (data) {
       this.graphNodes = {}

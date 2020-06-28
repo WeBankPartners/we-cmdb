@@ -377,9 +377,12 @@ export default {
   },
   mounted () {
     this.getAllCITypes()
+    this.linkPanal = ''
   },
   methods: {
     changeTab (tabNum) {
+      this.defaultPanal = []
+      this.linkPanal = []
       this.currentTab = tabNum
       this.cancleAddLine()
       this.cancleAddNode()
@@ -388,10 +391,11 @@ export default {
       this.linkData = linkData
     },
     async openLinkPanal (panalId) {
-      // this.linkPanal = ''
+      this.currentTab = 2
       this.isEdit = false
       if (panalId.length) {
-        // this.$emit('markZone', this.panalData[Number(panalId[0] - 1)].guid)
+        this.linkPanal = panalId[0]
+        this.$emit('markEdge', this.linkData[Number(panalId[0] - 1)].guid)
         const ciTypeId = this.linkData[Number(panalId[0] - 1)].ciTypeId
         if (!Object.keys(this.lineFromSet).includes(ciTypeId)) {
           await this.getAttributes(ciTypeId, 'linkPanalForm')

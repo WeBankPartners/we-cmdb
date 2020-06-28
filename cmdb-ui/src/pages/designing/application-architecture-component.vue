@@ -13,7 +13,12 @@
         </Col>
         <Col span="8" class="operation-zone">
           <Card>
-            <Operation ref="transferData" @operationReload="operationReload" @markZone="markZone"></Operation>
+            <Operation
+              ref="transferData"
+              @operationReload="operationReload"
+              @markZone="markZone"
+              @markEdge="markEdge"
+            ></Operation>
           </Card>
         </Col>
       </Row>
@@ -62,6 +67,7 @@ export default {
         type: '',
         color: ''
       },
+      activeLineGuid: '',
 
       tabList: [],
       systemDesigns: [],
@@ -150,6 +156,29 @@ export default {
         return `g_` + guid === _ || `n_` + guid === _
       })
       this.cacheIdPath = firstLevelGuid ? [firstLevelGuid] : [`n_` + guid]
+    },
+    markEdge (guid) {
+      if (this.activeLineGuid) {
+        d3.select('#appLogicGraph')
+          .select(`#gl_` + this.activeLineGuid)
+          .select('path')
+          .attr('stroke', '#000000')
+        d3.select('#appLogicGraph')
+          .select(`#a_gl_` + this.activeLineGuid + '-taillabel')
+          .select('a')
+          .select('text')
+          .attr('fill', '#000000')
+      }
+      this.activeLineGuid = guid
+      d3.select('#appLogicGraph')
+        .select(`#gl_` + guid)
+        .select('path')
+        .attr('stroke', 'red')
+      d3.select('#appLogicGraph')
+        .select(`#a_gl_` + guid + '-taillabel')
+        .select('a')
+        .select('text')
+        .attr('fill', 'red')
     },
     operationReload () {
       this.getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
@@ -331,6 +360,7 @@ export default {
         .on('end', () => {
           addEvent('.node', 'click', this.handleNodeClick)
           addEvent('.cluster', 'click', this.handleClusterClick)
+          addEvent('.edge', 'click', this.handleEdgeClick)
         })
       // 最外图层选中处理
       d3.select('#clust1').on('click', () => {
@@ -372,6 +402,14 @@ export default {
         this.operateNodeData = tmp
         this.$refs.transferData.managementData(this.operateNodeData)
       }
+    },
+    handleEdgeClick (e) {
+      let guid = e.currentTarget.id.substring(3)
+      this.markEdge(guid)
+      const selectLinkIndex = this.effectiveLink.findIndex(link => {
+        return link.guid === guid
+      })
+      this.$refs.transferData.openLinkPanal([selectLinkIndex + 1 + ''])
     },
     handleClusterClick (e) {
       if (e.currentTarget.id === 'clust1') {
