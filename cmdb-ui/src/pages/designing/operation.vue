@@ -174,7 +174,11 @@
               <textarea v-model="newNodeFormData[formData.propertyName]" class="textArea-style"></textarea>
             </FormItem>
             <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-              <Ref :formData="formData" :panalData="newNodeFormData" :disabled="false"></Ref>
+              <Ref
+                :formData="formData"
+                :panalData="newNodeFormData"
+                :disabled="formData.referenceId === parentPanalData.ciTypeId"
+              ></Ref>
             </FormItem>
             <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
               <MutiRef :formData="formData" :panalData="newNodeFormData"></MutiRef>
@@ -445,32 +449,6 @@ export default {
           })
         })
       }
-    },
-    async getAllSystemEnumCodes () {
-      this.canCreateLineTypes = []
-      let params = {
-        filters: [{ name: 'catId', operator: 'in', value: Array.from(new Array(28 + 1).keys()).slice(22) }],
-        paging: false
-      }
-      const { statusCode, data } = await getAllSystemEnumCodes(params)
-      if (statusCode === 'OK') {
-        this.codeData = data.contents
-      }
-      // if (statusCode === 'OK') {
-      //   let edgeParams = {
-      //     filters: [{name: 'catId', operator: 'eq', value: 23}, {name: 'groupCodeId', operator: 'eq', value: data.contents[0].codeId}, {name: 'value', operator: 'eq', value: 'edge'}],
-      //     paging: false
-      //   }
-      //   const edgeInfo = await getAllSystemEnumCodes(edgeParams)
-      //   if (edgeInfo.statusCode === 'OK') {
-      //     edgeInfo.data.contents.forEach(p => {
-      //       this.canCreateLineTypes.push({
-      //         value: p.code,
-      //         label: p.codeDescription
-      //       })
-      //     })
-      //   }
-      // }
     },
     async getNewLineAttr (val) {
       this.selectedLineType = val
@@ -770,7 +748,6 @@ export default {
       this.panalData = []
       this.cancleAddNode()
       this.operateData = operateData
-      // this.getAllSystemEnumCodes()
       let tmp = JSON.parse(JSON.stringify(this.operateData))
       this.getAttributes(tmp.ciTypeId, 'parentPanalForm')
       delete tmp.children
@@ -810,6 +787,10 @@ export default {
           this.newNodeFormData[_.propertyName] = ''
         }
       })
+      const defaultAttr = this.newNodeForm.filter(_ => {
+        return _.inputType === 'ref' && _.referenceId === this.parentPanalData.ciTypeId
+      })
+      this.newNodeFormData[defaultAttr[0].propertyName].guid = this.parentPanalData.data.guid
       this.showNewNodeForm = true
     },
     openParentPanal () {
