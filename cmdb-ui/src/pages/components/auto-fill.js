@@ -327,7 +327,7 @@ export default {
             return {
               type: 'option',
               class: 'auto-fill-li auto-fill-li-ref auto-fill-li-ref-from',
-              nodeName: `<-(${ciTypeName})${attrName}`,
+              nodeName: `<-(${attrName})${ciTypeName}`,
               fn: () => this.addNode(ruleIndex, attrIndex, nodeObj)
             }
           })
@@ -342,7 +342,7 @@ export default {
             const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
             const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].name : this.ciTypesObj[_.ciTypeId].name
             const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId].name
-            const nodeName = isRef ? `->(${ciTypeName})${attrName}` : `.${attrName}`
+            const nodeName = isRef ? `->(${attrName})${ciTypeName}` : `.${attrName}`
             const nodeObj = {
               ciTypeId: isRef ? _.referenceId : _.ciTypeId,
               parentRs: {
@@ -597,7 +597,7 @@ export default {
             this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'ref' ||
             this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'multiRef'
           ) {
-            result.push(this.renderSpan(` ${ref}(${ciTypeName})${attrName}`, _props), ...filterNode)
+            result.push(this.renderSpan(` ${ref}(${attrName})${ciTypeName}`, _props), ...filterNode)
           } else {
             result.push(this.renderSpan(` ${ref}${attrName}${enumCode}`, _props), ...filterNode)
           }
