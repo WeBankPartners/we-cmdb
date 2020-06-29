@@ -56,7 +56,7 @@ export default {
     confirmFilter () {
       let result = {}
       const arr = this.modalData.filter(_ => {
-        if (['notNull', 'null', 'notEmpty', 'empty'].indexOf(_.operator) === -1 && !_.right.value) {
+        if (['notNull', 'null', 'notEmpty', 'empty', 'eq', 'ne'].indexOf(_.operator) === -1 && !_.right.value) {
           return false
         }
         if (!_.left) {
@@ -226,7 +226,7 @@ export default {
           )
         case 'value':
           return isReadOnly ? (
-            <span class={className}>{obj.right.value}</span>
+            <span class={className}>{obj.right.value ? obj.right.value : "''"}</span>
           ) : (
             <Input
               class={className}
