@@ -74,4 +74,44 @@ public class FilterRuleServiceImplTest  extends AbstractBaseControllerTest {
         assertThat(response.getContents(), notNullValue());
         assertThat(response.getContents().size(), equalTo(1));
     }
+
+    @Test
+    @Transactional
+    public void given2AndRelationShipFilterRulesWithOneReturnEmptyThenReturnEmptyResult(){
+        FilterRuleDto filterRule = new FilterRuleDto();
+        FilterRuleDto.FilterUnit filterUnit = new FilterRuleDto.FilterUnit();
+        FilterRuleDto.RuleUnit ruleUnit = new FilterRuleDto.RuleUnit("ip_addr.network_segment>network_segment:mask", FilterOperator.Equal.getCode(),
+                new FilterRuleDto.RuleRight(FilterRuleDto.RightTypeEnum.Value.getCode(),16));
+        FilterRuleDto.RuleUnit ruleUnit2 = new FilterRuleDto.RuleUnit("ip_addr.network_segment>network_segment:name", FilterOperator.Null.getCode(), null);
+        filterUnit.put("filter_1",ruleUnit);
+        filterUnit.put("filter_2",ruleUnit2);
+        filterRule.add(filterUnit);
+
+        QueryResponse response = filterRuleService.queryReferenceData(filterRule,new QueryRequest());
+        assertThat(response.getContents(), notNullValue());
+        assertThat(response.getContents().size(), equalTo(0));
+
+    }
+
+    @Test
+    @Transactional
+    public void given2OrRelationShipFilterRulesThenReturnUnionResult(){
+        FilterRuleDto filterRule = new FilterRuleDto();
+        FilterRuleDto.FilterUnit filterUnit = new FilterRuleDto.FilterUnit();
+        FilterRuleDto.RuleUnit ruleUnit = new FilterRuleDto.RuleUnit("ip_addr.network_segment>network_segment:mask", FilterOperator.Equal.getCode(),
+                new FilterRuleDto.RuleRight(FilterRuleDto.RightTypeEnum.Value.getCode(),16));
+        filterUnit.put("filter_1",ruleUnit);
+        filterRule.add(filterUnit);
+
+        FilterRuleDto.FilterUnit filterUnit2 = new FilterRuleDto.FilterUnit();
+        FilterRuleDto.RuleUnit ruleUnit2 = new FilterRuleDto.RuleUnit("ip_addr.network_segment>network_segment:mask", FilterOperator.Equal.getCode(),
+                new FilterRuleDto.RuleRight(FilterRuleDto.RightTypeEnum.Value.getCode(),0));
+        filterUnit2.put("filter_1",ruleUnit2);
+        filterRule.add(filterUnit2);
+
+        QueryResponse response = filterRuleService.queryReferenceData(filterRule,new QueryRequest());
+        assertThat(response.getContents(), notNullValue());
+        assertThat(response.getContents().size(), equalTo(2));
+
+    }
 }

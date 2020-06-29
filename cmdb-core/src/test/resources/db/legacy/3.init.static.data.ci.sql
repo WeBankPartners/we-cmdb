@@ -251,24 +251,24 @@ INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,propert
 ;
 
 -- Unit
-INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system) VALUES
-('English Name','text','English Name',5,'name_en','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0')
-,('Chinese Name','text','Chinese Name',5,'name_cn','varchar',2,'1',2,'1','0','0','1','0',NULL,45,0,'created','0')
-,('Sub-System ID','ref','Sub-System ID',5,'subsystem_id','varchar',3,'1',3,'1','0','0','1','0','',15,3,'created','0')
-,('State','select','State',5,'state','int',4,'1',4,'0','0','0','1','0',NULL,45,4,'created','0')
-,('Unit Type','select','Unit Type',5,'unit_type','int',5,'1',5,'0','0','0','1','0',NULL,45,5,'created','0')
-,('Software','select','Software',5,'software','int',6,'1',6,'0','0','0','1','0',NULL,45,6,'created','0')
-,('Version','date','Version',5,'version','varchar',7,'1',7,'0','0','0','1','0',NULL,45,0,'created','0')
-,('Cluster','select','Cluster',5,'cluster','int',8,'1',8,'0','0','0','1','0',NULL,45,7,'created','0')
-,('Description','text','Description',5,'description','varchar',9,'1',9,'1','0','0','0','0',NULL,200,0,'created','0')
-,('全局唯一ID', 'text', '全局唯一ID', 5, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
-,('唯一值', 'text', '唯一值', 5, 'key_name', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1)
-,('更新用户', 'text', '更新用户', 5, 'updated_by', 'varchar', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1)
-,('更新日期', 'date', '更新日期', 5, 'updated_date', 'date', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'created', 1)
-,('创建用户', 'text', '创建用户', 5, 'created_by', 'varchar', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1)
-,('创建日期', 'date', '创建日期', 5, 'created_date', 'date', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'created', 1)
-,('前全局唯一ID', 'text', '全局唯一ID', 5, 'p_guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
-,('根全局唯一ID', 'text', '全局唯一ID', 5, 'r_guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1)
+INSERT INTO adm_ci_type_attr (name,input_type,description,id_adm_ci_type,property_name,property_type,search_seq_no,display_type,display_seq_no,edit_is_null,edit_is_only,edit_is_hiden,edit_is_editable,is_defunct,special_logic,`length`,reference_id,status,is_system,is_delete_validate) VALUES
+('English Name','text','English Name',5,'name_en','varchar',1,'1',1,'0','1','0','1','0',NULL,45,0,'created','0',0)
+,('Chinese Name','text','Chinese Name',5,'name_cn','varchar',2,'1',2,'1','0','0','1','0',NULL,45,0,'created','0',0)
+,('Sub-System ID','ref','Sub-System ID',5,'subsystem_id','varchar',3,'1',3,'1','0','0','1','0','',15,3,'created','0',0)
+,('State','select','State',5,'state','int',4,'1',4,'0','0','0','1','0',NULL,45,4,'created','0',0)
+,('Unit Type','select','Unit Type',5,'unit_type','int',5,'1',5,'0','0','0','1','0',NULL,45,5,'created','0',0)
+,('Software','select','Software',5,'software','int',6,'1',6,'0','0','0','1','0',NULL,45,6,'created','0',0)
+,('Version','date','Version',5,'version','varchar',7,'1',7,'0','0','0','1','0',NULL,45,0,'created','0',0)
+,('Cluster','select','Cluster',5,'cluster','int',8,'1',8,'0','0','0','1','0',NULL,45,7,'created','0',0)
+,('Description','text','Description',5,'description','varchar',9,'1',9,'1','0','0','0','0',NULL,200,0,'created','0',0)
+,('全局唯一ID', 'text', '全局唯一ID', 5, 'guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1,0)
+,('唯一值', 'text', '唯一值', 5, 'key_name', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1,0)
+,('更新用户', 'text', '更新用户', 5, 'updated_by', 'varchar', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1,0)
+,('更新日期', 'date', '更新日期', 5, 'updated_date', 'date', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'created', 1,0)
+,('创建用户', 'text', '创建用户', 5, 'created_by', 'varchar', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, 64, NULL, 'created', 1,0)
+,('创建日期', 'date', '创建日期', 5, 'created_date', 'date', NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, NULL, NULL, 'created', 1,0)
+,('前全局唯一ID', 'text', '全局唯一ID', 5, 'p_guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1,0)
+,('根全局唯一ID', 'text', '全局唯一ID', 5, 'r_guid', 'varchar', NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, 15, NULL, 'created', 1,0)
 ;
 
 -- Service

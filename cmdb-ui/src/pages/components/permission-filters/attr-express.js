@@ -406,7 +406,7 @@ export default {
     },
     confirmFilter () {
       let _filters = this.filters
-        .filter(_ => _.value !== '' || (_.operator === 'in' && _.value.length))
+        .filter(_ => !(_.operator === 'in' && _.value.length === 0))
         .map(_ => {
           if (['ref', 'multiRef'].indexOf(_.inputType) >= 0 && ['null', 'notNull'].indexOf(_.operator) === -1) {
             let result =
