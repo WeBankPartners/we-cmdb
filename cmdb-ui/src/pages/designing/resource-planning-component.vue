@@ -454,12 +454,12 @@ export default {
           .on('dblclick.zoom', null)
           .on('wheel.zoom', null)
           .on('mousewheel.zoom', null)
-        const width = (window.innerWidth / 24) * 18
+        const width = (window.innerWidth / 24) * 16 - 80
         this.graph.graphviz = graph
           .graphviz()
           .fit(true)
           .zoom(true)
-          .width(width - 80)
+          .width(width)
           .height(window.innerHeight - 190)
       }
       initEvent()
