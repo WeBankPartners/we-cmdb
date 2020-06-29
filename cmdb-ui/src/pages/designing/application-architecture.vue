@@ -1334,7 +1334,7 @@ export default {
   text-align: center;
 }
 .app-tab {
-  height: calc(100vh - 240px);
+  height: calc(100vh - 250px);
 }
 
 .copy-modal {
