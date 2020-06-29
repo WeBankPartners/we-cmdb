@@ -104,7 +104,6 @@ export default {
         .select(`#` + id)
         .select(this.activeNodeInfo.type)
         .attr('fill', '#2b85e4')
-      console.log(this.activeNodeInfo.type)
     }
   },
   methods: {
@@ -369,7 +368,6 @@ export default {
         }
       })
       this.effectiveLink = []
-      console.log(this.idcLink)
       this.idcLink.forEach(_ => {
         if (networkToNode[_.from] && networkToNode[_.to]) {
           this.effectiveLink.push(_.linkInfo)
@@ -641,8 +639,6 @@ export default {
     }
   },
   mounted () {
-    // this.getAllIdcDesignData()
-    // this.onIdcDataChange()
     this.getConfigParams()
 
     this.graphConfig = {
