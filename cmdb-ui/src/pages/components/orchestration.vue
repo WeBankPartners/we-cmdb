@@ -47,7 +47,6 @@ export default {
       }
     },
     async saveOrchestration () {
-      console.log('aa', this.selectedOrchestration, this.row)
       let payload = {
         id: this.row.citypeId,
         updateData: [

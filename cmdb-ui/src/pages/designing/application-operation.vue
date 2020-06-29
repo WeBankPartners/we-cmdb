@@ -587,9 +587,7 @@ export default {
           if (statusCode === 'OK') {
             this.$Modal.remove()
             this.$Message.success('success!')
-            console.log(JSON.stringify(this.originData).length)
             this.originData[0].children.splice(panalIndex, 1)
-            console.log(JSON.stringify(this.originData).length)
             this.$emit('operationReload', this.originData)
           }
         },
@@ -717,18 +715,14 @@ export default {
         this.$Message.success('Success!')
         this.isEdit = false
         if (dataSource === 'parentPanalData') {
-          // this.operateData.data = data[0]
           this.originData[0].data = data[0]
         }
         if (dataSource === 'panalData') {
-          // this.operateData.children[index].data = data[0]
-          // console.log(data[0])
           this.originData[0].children.forEach(_ => {
             if (_.guid === data[0].guid) {
               _.data = data[0]
             }
           })
-          console.log(this.originData)
         }
         if (dataSource === 'linkData') {
           this.linkData[index] = data[0]
