@@ -291,7 +291,7 @@ public class FilterRuleServiceImpl implements FilterRuleService {
     }
 
     private List<Object> unionResult(List<Object> originalValues, List<Object> newValues) {
-        List<Object> finalValues = new LinkedList<>();
+        List<Object> finalValues = new LinkedList<>(originalValues);
         if(originalValues.size()>0){
             originalValues.forEach(value -> {
                 if (value instanceof Map) {
@@ -328,16 +328,18 @@ public class FilterRuleServiceImpl implements FilterRuleService {
 
     private List<Object> handleAsAndRelationship(FilterUnit filterUnit, QueryRequest request, Map<String, Object> associatedCiData){
         List<Object> result = Lists.newLinkedList();
+        int processed = 0;
         for(Map.Entry<String,RuleUnit> entry : filterUnit.entrySet()){
             String filterName = entry.getKey();
             RuleUnit ruleUnit = entry.getValue();
 
             List<Object> filterUnitResult = processRuleUnit(ruleUnit, request, associatedCiData);
-            if(result.size()==0){
+            if(processed == 0){
                 result.addAll(filterUnitResult);
             }else {
                 result = intersetResult(result,filterUnitResult);
             }
+            processed++;
         }
 
         return result;
