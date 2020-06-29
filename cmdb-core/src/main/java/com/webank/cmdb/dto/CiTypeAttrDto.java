@@ -7,6 +7,7 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.base.MoreObjects;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.util.DtoField;
 import com.webank.cmdb.util.DtoId;
@@ -61,6 +62,7 @@ public class CiTypeAttrDto extends BasicResourceDto<CiTypeAttrDto, AdmCiTypeAttr
     private String filterRule;
     private Boolean isRefreshable;
     private String regularExpressionRule;
+    private Boolean isDeleteValidate;
 
     // reference resource
     @DtoField(domainField = "admCiType", updatable = false)
@@ -108,6 +110,7 @@ public class CiTypeAttrDto extends BasicResourceDto<CiTypeAttrDto, AdmCiTypeAttr
             ciTypeAttr.setCiType(CiTypeDto.fromAdmCIType(admCiTypeAttr.getAdmCiType()));
         }
         ciTypeAttr.setRegularExpressionRule(admCiTypeAttr.getRegularExpressionRule());
+        ciTypeAttr.setIsDeleteValidate(admCiTypeAttr.getIsDeleteValidate() == null ? false : admCiTypeAttr.getIsDeleteValidate() != 0);
 
         return ciTypeAttr;
     }
@@ -148,6 +151,7 @@ public class CiTypeAttrDto extends BasicResourceDto<CiTypeAttrDto, AdmCiTypeAttr
         ciTypeAttr.setFilterRule(admCiTypeAttr.getFilterRule());
         ciTypeAttr.setIsRefreshable(admCiTypeAttr.getIsRefreshable() == null ? false : admCiTypeAttr.getIsRefreshable() != 0);
         ciTypeAttr.setRegularExpressionRule(admCiTypeAttr.getRegularExpressionRule());
+        ciTypeAttr.setIsDeleteValidate(admCiTypeAttr.getIsDeleteValidate() == null? false : admCiTypeAttr.getIsDeleteValidate() != 0);
         return ciTypeAttr;
     }
 
@@ -181,6 +185,7 @@ public class CiTypeAttrDto extends BasicResourceDto<CiTypeAttrDto, AdmCiTypeAttr
         admCiTypeAttr.setFilterRule(this.getFilterRule());
         admCiTypeAttr.setIsRefreshable(Boolean.TRUE.equals(this.isRefreshable) ? 1 : 0);
         admCiTypeAttr.setRegularExpressionRule(this.getRegularExpressionRule());
+        admCiTypeAttr.setIsDeleteValidate(Boolean.TRUE.equals(this.isDeleteValidate)? 1 : 0);
         return admCiTypeAttr;
     }
 
@@ -214,6 +219,7 @@ public class CiTypeAttrDto extends BasicResourceDto<CiTypeAttrDto, AdmCiTypeAttr
         toUpdateAttr.setFilterRule(this.getFilterRule());
         toUpdateAttr.setIsRefreshable(Boolean.TRUE.equals(this.isRefreshable) ? 1 : 0);
         toUpdateAttr.setRegularExpressionRule(this.getRegularExpressionRule());
+        toUpdateAttr.setIsDeleteValidate(Boolean.TRUE.equals(this.isDeleteValidate)? 1 : 0);
         return toUpdateAttr;
 
     }
@@ -473,6 +479,7 @@ public class CiTypeAttrDto extends BasicResourceDto<CiTypeAttrDto, AdmCiTypeAttr
                 .add("filterRule", filterRule)
                 .add("isRefreshable", isRefreshable)
                 .add("regularExpressionRule", regularExpressionRule)
+                .add("isDeleteValidate", isDeleteValidate)
                 .toString();
     }
 
@@ -482,5 +489,13 @@ public class CiTypeAttrDto extends BasicResourceDto<CiTypeAttrDto, AdmCiTypeAttr
 
     public void setRegularExpressionRule(String regularExpressionRule) {
         this.regularExpressionRule = regularExpressionRule;
+    }
+
+    public Boolean getIsDeleteValidate() {
+        return isDeleteValidate;
+    }
+
+    public void setIsDeleteValidate(Boolean deleteValidate) {
+        isDeleteValidate = deleteValidate;
     }
 }
