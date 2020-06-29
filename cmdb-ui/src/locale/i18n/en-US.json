@@ -62,6 +62,7 @@
   "reference_name": "Ref Name",
   "reference_type": "Ref Type",
   "select": "Select Type",
+  "is_delete_validate": "Is Delete Validate",
   "is_refreshable": "Is Refreshable",
   "is_displayed": "Is Displayed",
   "is_access_controlled": "Is Accessable",

@@ -200,8 +200,30 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
 
     @Test
     @Transactional
-    public void deleteCiDataThenReturnSuccess() throws Exception {
+    public void deleteCiDataWithoutReferenceThenReturnSuccess() throws Exception {
         List<String> Ids = Arrays.asList("0003_0000000002");
+        String reqJson = JsonUtil.toJson(Ids);
+        System.out.println("reqJson= " + reqJson);
+        mvc.perform(post("/api/v2/ci/{ciTypeId}/delete", ciTypeId).contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("OK")));
+    }
+
+    @Test
+    @Transactional
+    public void deleteCiDataWithReferencedCiAndWithoutDeleteValidateThenReturnFailed() throws Exception {
+        List<String> Ids = Arrays.asList("0002_0000000001");
+        String reqJson = JsonUtil.toJson(Ids);
+        System.out.println("reqJson= " + reqJson);
+        mvc.perform(post("/api/v2/ci/{ciTypeId}/delete", 2).contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("ERR_BATCH_CHANGE")));
+    }
+
+    @Test
+    @Transactional
+    public void deleteCiDataWithReferenceAndIsNotDeleteValidateThenReturnSuccess() throws Exception {
+        List<String> Ids = Arrays.asList("0003_0000000001");
         String reqJson = JsonUtil.toJson(Ids);
         System.out.println("reqJson= " + reqJson);
         mvc.perform(post("/api/v2/ci/{ciTypeId}/delete", ciTypeId).contentType(MediaType.APPLICATION_JSON)
