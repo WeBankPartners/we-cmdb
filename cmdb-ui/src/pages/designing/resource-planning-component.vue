@@ -460,7 +460,7 @@ export default {
           .fit(true)
           .zoom(true)
           .width(width)
-          .height(window.innerHeight - 190)
+          .height(window.innerHeight - 275)
       }
       initEvent()
       this.renderGraph()

@@ -1,27 +1,25 @@
 <template>
   <Row>
-    <Row class="resource-design-tab-row">
-      <Spin fix v-if="spinShow">
-        <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-        <div>{{ $t('loading') }}</div>
-      </Spin>
-      <Row>
-        <Col span="16">
-          <Card>
-            <div class="graph-container" id="appLogicGraph"></div>
-          </Card>
-        </Col>
-        <Col span="8" class="operation-zone">
-          <Card>
-            <Operation
-              ref="transferData"
-              @operationReload="operationReload"
-              @markZone="markZone"
-              @markEdge="markEdge"
-            ></Operation>
-          </Card>
-        </Col>
-      </Row>
+    <Spin fix v-if="spinShow">
+      <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+      <div>{{ $t('loading') }}</div>
+    </Spin>
+    <Row>
+      <Col span="16">
+        <Card>
+          <div id="appLogicGraph"></div>
+        </Card>
+      </Col>
+      <Col span="8" class="operation-zone">
+        <Card>
+          <Operation
+            ref="transferData"
+            @operationReload="operationReload"
+            @markZone="markZone"
+            @markEdge="markEdge"
+          ></Operation>
+        </Card>
+      </Col>
     </Row>
   </Row>
 </template>
@@ -337,7 +335,7 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           .width(width)
-          .height(window.innerHeight - 240)
+          .height(window.innerHeight - 293)
           .fit(true)
           .zoom(true)
       }
