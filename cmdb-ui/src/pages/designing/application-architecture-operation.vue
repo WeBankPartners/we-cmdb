@@ -837,7 +837,7 @@ export default {
 // }
 .operation-Collapse {
   overflow: auto;
-  height: calc(100vh - 300px);
+  height: calc(100vh - 320px);
 }
 .diy-tabs {
   display: flex;

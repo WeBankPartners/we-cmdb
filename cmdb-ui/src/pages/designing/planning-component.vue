@@ -278,7 +278,7 @@ export default {
       let graphZoom = graph
         .graphviz()
         .width(width)
-        .height(window.innerHeight - 190)
+        .height(window.innerHeight - 255)
         .zoom(true)
         .fit(true)
       const idcData = this.idcDesignData[0]
