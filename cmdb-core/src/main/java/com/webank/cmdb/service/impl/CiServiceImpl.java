@@ -2208,9 +2208,13 @@ public class CiServiceImpl implements CiService {
     @Override
     public List<Map<String, Object>> lookupReferenceByCis(int ciTypeId, String guid, boolean checkFinalState) {
         List<Map<String, Object>> dependentCis = Lists.newLinkedList();
-        List<AdmCiTypeAttr> referredAttrs = ciTypeAttrRepository.findByInputTypeAndReferenceIdAndStatus(InputType.Reference.getCode(), ciTypeId, CiStatus.Created.getCode());
-        referredAttrs.addAll(ciTypeAttrRepository.findByInputTypeAndReferenceIdAndStatus(InputType.MultRef.getCode(), ciTypeId, CiStatus.Created.getCode()));
-	referredAttrs.forEach(attr -> {
+        //Fetch attributes which enable delete validation.
+        List<AdmCiTypeAttr> referredAttrs = ciTypeAttrRepository.findByInputTypeAndReferenceIdAndStatusAndIsDeleteValidate(
+                InputType.Reference.getCode(), ciTypeId, CiStatus.Created.getCode(), 1);
+        referredAttrs.addAll(ciTypeAttrRepository.findByInputTypeAndReferenceIdAndStatusAndIsDeleteValidate(
+                InputType.MultRef.getCode(), ciTypeId, CiStatus.Created.getCode(),1));
+
+    	referredAttrs.forEach(attr -> {
             List<Map<String, Object>> ciData = queryWithFilters(attr.getCiTypeId(), Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), guid)), false);
             if (ciData != null && ciData.size() > 0) {
                 ciData.forEach(data -> {
