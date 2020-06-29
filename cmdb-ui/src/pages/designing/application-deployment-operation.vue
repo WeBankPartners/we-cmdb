@@ -658,8 +658,6 @@ export default {
           guid: [ciData.data.contents[0].data.guid]
         }
         console.log(params)
-        // this.originData[0].children.push(params)
-        // this.$emit('operationReload', this.originData)
         this.$emit('operationReload', '')
         this.cancleAddNode()
       }
@@ -730,7 +728,6 @@ export default {
         }
         if (dataSource === 'panalData') {
           this.operateData.children[index].data = data[0]
-          console.log(data[0])
         }
         if (dataSource === 'linkData') {
           this.linkData[index] = data[0]

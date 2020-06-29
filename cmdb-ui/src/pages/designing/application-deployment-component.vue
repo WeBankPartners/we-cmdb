@@ -212,10 +212,6 @@ export default {
         this.genADChildrenDot(this.systemData[0].children || [], 1)
         this.initADGraph()
       }
-      // this.operateNodeData = this.systemData[0]
-      // this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
-      // this.$refs.transferData.managementData(this.operateNodeData, this.originData)
-      // console.log(this.systemLines)
       this.$refs.transferData.linkManagementData(this.effectiveLink)
       fetchOtherSystemInstances()
     },
