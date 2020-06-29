@@ -62,6 +62,7 @@
   "reference_name": "引用命名",
   "reference_type": "引用类型",
   "select": "枚举选择",
+  "is_delete_validate": "删除校验",
   "is_refreshable": "是否复用",
   "is_displayed": "显示在表",
   "is_access_controlled": "权限控制",
