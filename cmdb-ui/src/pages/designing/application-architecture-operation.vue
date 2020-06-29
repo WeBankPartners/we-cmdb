@@ -178,7 +178,7 @@
               <Ref
                 :formData="formData"
                 :panalData="newNodeFormData"
-                :disabled="formData.referenceId === parentPanalData.ciTypeId"
+                :disabled="formData.referenceType === 29 && formData.referenceId === parentPanalData.ciTypeId"
               ></Ref>
             </FormItem>
             <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
