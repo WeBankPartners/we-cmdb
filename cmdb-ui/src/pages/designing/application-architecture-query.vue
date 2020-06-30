@@ -20,20 +20,6 @@
               </Option>
             </OptionGroup>
           </Select>
-          <Button
-            style="margin: 0 10px;"
-            @click="onArchChange(false)"
-            :loading="buttonLoading.fixVersionModal"
-            :disabled="!allowArch"
-            >{{ $t('architecture_change') }}</Button
-          >
-          <Button
-            style="margin-right: 10px;"
-            @click="querySysTree"
-            :loading="buttonLoading.fixVersion"
-            :disabled="!allowFixVersion"
-            >{{ $t('fix_version') }}</Button
-          >
           <Button @click="onArchChange(true)" :disabled="!systemDesignVersion || allowFixVersion">{{
             $t('query')
           }}</Button>
@@ -55,7 +41,7 @@
       <div>
         <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
           <TabPane :label="$t('application_logic_diagram')" name="architectureDesign" class="app-tab" :index="1">
-            <!-- <Alert show-icon closable v-if="isDataChanged">
+            <Alert show-icon closable v-if="isDataChanged">
               Data has beed changed, click Reload button to reload graph.
               <Button slot="desc" @click="reloadHandler">Reload</Button>
             </Alert>
@@ -68,14 +54,6 @@
             </div>
             <div style="padding-right: 20px">
               <div class="graph-container" id="appLogicGraph"></div>
-            </div> -->
-            <div v-show="showApplicationArchitectureComponent">
-              <ApplicationArchitectureComponent
-                ref="applicationArchitectureComponent"
-              ></ApplicationArchitectureComponent>
-            </div>
-            <div v-if="!showApplicationArchitectureComponent" class="no-data">
-              {{ $t('no_data') }}
             </div>
           </TabPane>
           <TabPane :label="$t('service_invoke_diagram')" name="serviceInvoke" class="app-tab" :index="2">
@@ -254,11 +232,9 @@ import {
   IDC_PLANNING_LINK_FROM,
   IDC_PLANNING_LINK_TO
 } from '@/const/init-params.js'
-import ApplicationArchitectureComponent from '@/pages/designing/application-architecture-component'
 export default {
   components: {
-    PhysicalGraph,
-    ApplicationArchitectureComponent
+    PhysicalGraph
   },
   data () {
     return {
@@ -313,8 +289,7 @@ export default {
         fixVersionModal: false
       },
       initParams: {},
-      isHandleNodeClick: false,
-      showApplicationArchitectureComponent: false
+      isHandleNodeClick: false
     }
   },
   computed: {
@@ -405,13 +380,11 @@ export default {
     },
     reColorInvokeSequence () {
       this.shadeAll()
-
       this.invokeSequenceForm.currentInvokeSequence.forEach(_ => {
         this.reColorCurrentInvokeSequenceNode(_.service_design, 'ellipse', 'black')
         this.reColorCurrentInvokeSequenceNode(_.unit_design, 'polygon', 'black')
         this.reColorCurrentInvokeSequenceLine(_, 'black')
       })
-
       let index = this.invokeSequenceForm.currentNum
       let current = this.invokeSequenceForm.currentInvokeSequence[index - 1]
       this.reColorCurrentInvokeSequenceLine(current, 'green')
@@ -459,7 +432,6 @@ export default {
     async queryGraphData (isTableViewOnly) {
       this.invokeSequenceForm.selectedInvokeSequence = ''
       this.invokeSequenceForm.isShowInvokeSequenceDetial = false
-
       if (this.systemDesignVersion === '') {
         return
       }
@@ -478,8 +450,6 @@ export default {
       }
     },
     async getAllDesignTreeFromSystemDesign () {
-      this.showApplicationArchitectureComponent = true
-      this.$refs.applicationArchitectureComponent.getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
       this.allUnitDesign = []
       const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
       if (treeData.statusCode === 'OK') {
@@ -691,13 +661,13 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           .width(window.innerWidth - 20)
-          .height(window.innerHeight - 300)
+          .height(window.innerHeight - 240)
           .fit(true)
           .zoom(true)
       }
       // 应用逻辑图
-      // initEvent('#appLogicGraph')
-      // this.renderGraph('#appLogicGraph', this.appLogicData, this.appInvokeLines)
+      initEvent('#appLogicGraph')
+      this.renderGraph('#appLogicGraph', this.appLogicData, this.appInvokeLines)
       // 服务调用图
       initEvent('#serviceInvokeGraph')
       this.renderGraph('#serviceInvokeGraph', this.serviceInvokeData, this.appServiceInvokeLines)
@@ -863,7 +833,6 @@ export default {
       if (rows.length > 0) {
         let isUpdateableAry = []
         let isDeleteableAry = []
-
         rows.forEach((r, index) => {
           isUpdateableAry.push(!!r.nextOperations.find(op => op === 'update'))
           isDeleteableAry.push(!!r.nextOperations.find(op => op === 'delete'))
@@ -871,7 +840,6 @@ export default {
         let isValueTrue = val => {
           return val === true
         }
-
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.outerActions.forEach(_ => {
@@ -974,7 +942,6 @@ export default {
           emptyRowData['isNewAddedRow'] = true
           emptyRowData['weTableRowId'] = 1
           emptyRowData['nextOperations'] = []
-
           this.$refs[this.tableRef][0].pushNewAddedRowToSelections(emptyRowData)
           this.$refs[this.tableRef][0].showAddModal()
         }
@@ -1147,7 +1114,6 @@ export default {
           this.payload.pageable.startIndex = (ci.pagination.currentPage - 1) * ci.pagination.pageSize
         }
       })
-
       let found = this.tabList.find(i => i.code === this.currentTab)
       if (!found) return
       const { statusCode, data } = await getArchitectureCiDatas(
@@ -1334,26 +1300,22 @@ export default {
   text-align: center;
 }
 .app-tab {
-  height: calc(100vh - 250px);
+  height: calc(100vh - 240px);
 }
-
 .copy-modal {
   .ivu-modal-body {
     max-height: 450px;
     overflow-y: auto;
   }
-
   .copy-form {
     display: flex;
     flex-flow: column nowrap;
   }
-
   .copy-input {
     display: flex;
     flex-flow: row nowrap;
     margin-top: 20px;
     align-items: center;
-
     .ivu-input-number {
       flex: 1;
       margin-right: 15px;

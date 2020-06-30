@@ -129,6 +129,11 @@ export default new Router({
           component: () => import('@/pages/designing/application-architecture')
         },
         {
+          path: '/wecmdb/view-management/application-architecture-query',
+          name: 'applicationArchitectureQuery',
+          component: () => import('@/pages/designing/application-architecture-query')
+        },
+        {
           path: '/wecmdb/view-management/application-deployment-design',
           name: 'applicationDeploymentDesign',
           component: () => import('@/pages/designing/application-deployment')
