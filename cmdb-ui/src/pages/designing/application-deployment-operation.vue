@@ -753,7 +753,6 @@ export default {
       this.cancleAddNode()
       this.operateData = operateData
       let tmp = JSON.parse(JSON.stringify(this.operateData))
-      this.getAttributes(tmp.ciTypeId, 'parentPanalForm')
       delete tmp.children
       this.parentPanalData = tmp
       if (this.operateData.children) {
@@ -797,9 +796,14 @@ export default {
       this.newNodeFormData[defaultAttr[0].propertyName].guid = this.parentPanalData.data.guid
       this.showNewNodeForm = true
     },
-    openParentPanal () {
-      this.defaultPanal = ''
-      // this.$emit('markZone', this.parentPanalData.guid)
+    openParentPanal (val) {
+      if (val.length) {
+        this.defaultPanal = ''
+        this.isEdit = false
+        const ciTypeId = this.operateData.ciTypeId
+        this.parentPanalForm = []
+        this.getAttributes(ciTypeId, 'parentPanalForm')
+      }
     },
     openPanal (panalId) {
       this.parentPanal = ''
