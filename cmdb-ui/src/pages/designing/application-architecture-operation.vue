@@ -138,7 +138,9 @@
               </div>
               <FormItem>
                 <div class="opetation-btn-zone">
-                  <Button @click="editOperation" type="info">{{ $t('edit') }}</Button>
+                  <Button @click="editOperation" :disabled="isEditEnable(panal.meta.nextOperations)" type="info">{{
+                    $t('edit')
+                  }}</Button>
                   <Button
                     type="primary"
                     @click="saveOperation('panalData', panalIndex)"
@@ -385,6 +387,13 @@ export default {
     this.linkPanal = ''
   },
   methods: {
+    isEditEnable (val) {
+      if (val && val.includes('update')) {
+        return false
+      } else {
+        return true
+      }
+    },
     changeTab (tabNum) {
       this.defaultPanal = []
       this.linkPanal = []
