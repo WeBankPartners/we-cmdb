@@ -4,7 +4,7 @@ db_host=$1
 db_port=$2
 db_schema=$3
 
-mkdir -p /log
+mkdir -p /data/wecmdb/log
 java -Duser.timezone=Asia/Shanghai -jar /application/wecube-plugins-wecmdb.jar  \
 --server.address=0.0.0.0 \
 --server.port=8081 \
