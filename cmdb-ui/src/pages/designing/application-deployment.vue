@@ -14,10 +14,7 @@
     <hr style="margin: 10px 0" />
     <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
       <TabPane :label="$t('application_logic_diagram')" name="logic-graph" :index="1">
-        <!-- <Alert show-icon closable v-if="isDataChanged">
-          Data has beed changed, click Reload button to reload graph.
-          <Button slot="desc" @click="reloadHandler">Reload</Button>
-        </Alert>
+        <!--
 
         <div class="graph-container" id="graph">
           <Spin size="large" fix v-if="spinShow">
@@ -28,6 +25,10 @@
             {{ $t('no_data') }}
           </div>
         </div> -->
+        <Alert show-icon closable v-if="isDataChanged">
+          Data has beed changed, click Reload button to reload graph.
+          <Button slot="desc" @click="reloadHandler">Reload</Button>
+        </Alert>
         <div v-show="showApplicationDeploymentComponent">
           <ApplicationDeploymentComponent ref="applicationDeploymentComponent"></ApplicationDeploymentComponent>
         </div>
