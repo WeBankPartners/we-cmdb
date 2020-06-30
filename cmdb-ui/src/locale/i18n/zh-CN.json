@@ -62,6 +62,7 @@
   "reference_name": "引用命名",
   "reference_type": "引用类型",
   "select": "枚举选择",
+  "is_delete_validate": "删除校验",
   "is_refreshable": "是否复用",
   "is_displayed": "显示在表",
   "is_access_controlled": "权限控制",
@@ -262,5 +263,11 @@
   "add_expression": "新增表达式",
   "filter_rule_modal_title": "编辑过滤规则",
   "filter_rule_edit_icon_placeholder": "<-- 点此编辑过滤规则",
-  "filter_rule_add_button": "添加过滤规则"
+  "filter_rule_add_button": "添加过滤规则",
+  "node_information": "节点信息",
+  "current_node": "当前节点",
+  "subsidiary_node": "子节点",
+  "add_node": "新增节点",
+  "link_information": "连线信息",
+  "add_link": "新增连线"
 }

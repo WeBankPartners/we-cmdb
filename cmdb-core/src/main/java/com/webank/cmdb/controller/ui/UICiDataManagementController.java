@@ -4,6 +4,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.webank.cmdb.controller.ui.helper.BooleanUtils.isTrue;
 import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_CMDB_MODEL_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_APPLICATION_ARCHITECTURE_DESIGN;
+import static com.webank.cmdb.domain.AdmMenu.MENU_APPLICATION_ARCHITECTURE_QUERY;
 import static com.webank.cmdb.domain.AdmMenu.MENU_APPLICATION_DEPLOYMENT_DESIGN;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_ENQUIRY;
 import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_MANAGEMENT;
@@ -313,7 +314,14 @@ public class UICiDataManagementController {
         return wrapperService.getIdcDesignTreesByGuid(idcDesignGuids);
     }
 
-    @RolesAllowed({ MENU_IDC_PLANNING_DESIGN, MENU_APPLICATION_ARCHITECTURE_DESIGN })
+    @RolesAllowed({ MENU_IDC_PLANNING_DESIGN })
+    @PostMapping("/data-tree/{citype_id}/query")
+    @ResponseBody
+    public List<ResourceTreeDto> getTree(@PathVariable("citype_id") Integer ciTypeId,@RequestBody List<String> guids) {
+        return wrapperService.getTreeData(ciTypeId,guids);
+    }
+
+    @RolesAllowed({ MENU_IDC_PLANNING_DESIGN, MENU_APPLICATION_ARCHITECTURE_DESIGN, MENU_APPLICATION_ARCHITECTURE_QUERY})
     @GetMapping("/all-zone-link-design")
     @ResponseBody
     public List<ZoneLinkDto> getAllZoneLinkDesignGroupByIdcDesign() {
@@ -348,14 +356,14 @@ public class UICiDataManagementController {
         return wrapperService.getAllZoneLinkGroupByIdc();
     }
 
-    @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN, MENU_APPLICATION_DEPLOYMENT_DESIGN })
+    @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN, MENU_APPLICATION_DEPLOYMENT_DESIGN, MENU_APPLICATION_ARCHITECTURE_QUERY })
     @GetMapping("/system-designs")
     @ResponseBody
     public Object getSystemDesigns() {
         return wrapperService.getSystemDesigns();
     }
     
-    @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN, MENU_APPLICATION_DEPLOYMENT_DESIGN })
+    @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN, MENU_APPLICATION_DEPLOYMENT_DESIGN, MENU_APPLICATION_ARCHITECTURE_QUERY })
     @GetMapping("/system")
     @ResponseBody
     public Object getSystems() {
@@ -370,7 +378,7 @@ public class UICiDataManagementController {
         return wrapperService.updateCiData(ciTypeId, Arrays.asList(ciData));
     }
 
-    @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN })
+    @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN, MENU_APPLICATION_ARCHITECTURE_QUERY })
     @GetMapping("/trees/all-design-trees/from-system-design")
     @ResponseBody
     public List<ResourceTreeDto> getAllDesignTreesFromSystemDesign(@RequestParam(value = "system-design-guid") String systemDesignGuid) {
@@ -384,14 +392,14 @@ public class UICiDataManagementController {
         wrapperService.saveAllDesignTreesFromSystemDesign(systemDesignGuid);
     }
 
-    @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN })
+    @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN, MENU_APPLICATION_ARCHITECTURE_QUERY })
     @GetMapping("/architecture-designs/tabs")
     @ResponseBody
     public Object getArchitectureDesignTabs() {
         return wrapperService.getArchitectureDesignTabs();
     }
 
-    @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN })
+    @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN, MENU_APPLICATION_ARCHITECTURE_QUERY })
     @PostMapping("/architecture-designs/tabs/ci-data")
     @ResponseBody
     public Object getArchitectureCiData(@RequestParam(value = "code-id") Integer codeId,
@@ -436,7 +444,7 @@ public class UICiDataManagementController {
         return wrapperService.getApplicationDeploymentDesignDataTreeBySystemDesignGuidAndEnvCode(systemGuid);
     }
 
-    @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN })
+    @RolesAllowed({ MENU_APPLICATION_ARCHITECTURE_DESIGN, MENU_APPLICATION_ARCHITECTURE_QUERY })
     @GetMapping("/data-tree/application-framework-design")
     @ResponseBody
     public List<ResourceTreeDto> getApplicationFrameworkDesignDataTree(@RequestParam(value = "system-design-guid") String systemDesignGuid) {
