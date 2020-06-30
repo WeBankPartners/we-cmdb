@@ -15,11 +15,12 @@
       </Spin>
       <Tabs v-show="idcDesignData" type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
         <TabPane :label="$t('planning_design_diagram')" name="resource-design" :index="1">
-          <Alert show-icon closable v-if="isDataChanged">
+          <PlanningComponent ref="planningComponent"></PlanningComponent>
+          <!-- <Alert show-icon closable v-if="isDataChanged">
             Data has beed changed, click Reload button to reload graph.
             <Button slot="desc" @click="reloadHandler">Reload</Button>
           </Alert>
-          <div class="graph-container-big" id="graph"></div>
+          <div class="graph-container-big" id="graph"></div> -->
         </TabPane>
         <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name" :index="ci.seqNo + 1">
           <div
@@ -115,12 +116,10 @@ import { addEvent } from '../util/event.js'
 import {
   VIEW_CONFIG_PARAMS,
   NETWORK_SEGMENT_DESIGN,
-  IDC_PLANNING_LINK_ID,
-  IDC_PLANNING_LINK_FROM,
-  IDC_PLANNING_LINK_TO,
   IDC_PLANNING_ROUTER_DESIGN_CODE,
   DEFAULT_SECURITY_POLICY_DESIGN_CODE
 } from '@/const/init-params.js'
+import PlanningComponent from '@/pages/designing/planning-component'
 
 export default {
   data () {
@@ -167,6 +166,7 @@ export default {
   },
   methods: {
     async onIdcDataChange (guid) {
+      this.$refs.planningComponent.onIdcDataChange(guid)
       this.handleTabClick(this.currentTab)
       this.spinShow = true
       const { data, statusCode } = await getIdcDesignTreeByGuid([guid])
@@ -208,22 +208,22 @@ export default {
       this.isDataChanged = false
     },
     initGraph (filters = {}) {
-      let graph
-      graph = d3.select('#graph')
-      graph
-        .on('dblclick.zoom', null)
-        .on('wheel.zoom', null)
-        .on('mousewheel.zoom', null)
+      // let graph
+      // graph = d3.select('#graph')
+      // graph
+      //   .on('dblclick.zoom', null)
+      //   .on('wheel.zoom', null)
+      //   .on('mousewheel.zoom', null)
 
-      let graphZoom = graph
-        .graphviz()
-        .width(window.innerWidth - 20)
-        .height(window.innerHeight - 230)
-        .zoom(true)
-        .fit(true)
-      const idcData = this.idcDesignData[0]
-      this.graph = graphZoom
-      this.renderGraph(idcData)
+      // let graphZoom = graph
+      //   .graphviz()
+      //   .width(window.innerWidth - 20)
+      //   .height(window.innerHeight - 230)
+      //   .zoom(true)
+      //   .fit(true)
+      // const idcData = this.idcDesignData[0]
+      // this.graph = graphZoom
+      // this.renderGraph(idcData)
       this.spinShow = false
     },
     genDOT (idcData) {
@@ -1225,23 +1225,23 @@ export default {
       this.queryCiData()
     },
     async getZoneLink () {
-      this.idcLink = []
-      const payload = {
-        id: this.initParams[IDC_PLANNING_LINK_ID],
-        queryObject: {}
-      }
-      const { statusCode, data } = await queryCiData(payload)
-      if (statusCode === 'OK') {
-        this.idcLink = data.contents.map(_ => {
-          return {
-            guid: _.data.guid,
-            from: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
-            to: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
-            label: _.data.code,
-            state: _.data.state.code
-          }
-        })
-      }
+      // this.idcLink = []
+      // const payload = {
+      //   id: this.initParams[IDC_PLANNING_LINK_ID],
+      //   queryObject: {}
+      // }
+      // const { statusCode, data } = await queryCiData(payload)
+      // if (statusCode === 'OK') {
+      //   this.idcLink = data.contents.map(_ => {
+      //     return {
+      //       guid: _.data.guid,
+      //       from: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
+      //       to: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
+      //       label: _.data.code,
+      //       state: _.data.state.code
+      //     }
+      //   })
+      // }
       this.initGraph()
     },
     async getTabLists () {
@@ -1284,6 +1284,9 @@ export default {
   },
   mounted () {
     this.getConfigParams()
+  },
+  components: {
+    PlanningComponent
   }
 }
 </script>
