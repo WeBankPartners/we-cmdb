@@ -15,12 +15,12 @@
       </Spin>
       <Tabs v-show="idcDesignData" type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
         <TabPane :label="$t('planning_design_diagram')" name="resource-design" :index="1">
-          <PlanningComponent ref="planningComponent"></PlanningComponent>
-          <!-- <Alert show-icon closable v-if="isDataChanged">
+          <Alert show-icon closable v-if="isDataChanged">
             Data has beed changed, click Reload button to reload graph.
             <Button slot="desc" @click="reloadHandler">Reload</Button>
           </Alert>
-          <div class="graph-container-big" id="graph"></div> -->
+          <!-- <div class="graph-container-big" id="graph"></div> -->
+          <PlanningComponent ref="planningComponent"></PlanningComponent>
         </TabPane>
         <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name" :index="ci.seqNo + 1">
           <div
