@@ -79,12 +79,14 @@
           <span style="">
             {{ panal.data.code | filterCode }}
           </span>
-          <Tooltip :content="$t('delete')" style="float:right">
-            <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
-          </Tooltip>
-          <Tooltip :content="$t('confirm')" style="float:right">
-            <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
-          </Tooltip>
+          <template v-for="opera in panal.meta.nextOperations">
+            <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
+              <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
+            </Tooltip>
+            <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
+              <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
+            </Tooltip>
+          </template>
           <!-- <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button> -->
           <div slot="content">
             <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
@@ -744,7 +746,7 @@ export default {
         this.$emit('operationReload', '')
       }
     },
-    managementData (operateData, originData) {
+    async managementData (operateData, originData) {
       this.originData = originData
       this.currentTab = 1
       this.parentPanal = ''
@@ -755,7 +757,41 @@ export default {
       let tmp = JSON.parse(JSON.stringify(this.operateData))
       delete tmp.children
       this.parentPanalData = tmp
+
       if (this.operateData.children) {
+        const { statusCode, data } = await getCiTypeAttributes(this.operateData.children[0].ciTypeId)
+        if (statusCode === 'OK') {
+          const ss = data.filter(_ => {
+            return _.referenceId === this.operateData.ciTypeId
+          })
+          const query = {
+            id: this.operateData.children[0].ciTypeId,
+            queryObject: {
+              dialect: {
+                showCiHistory: false
+              },
+              filters: [
+                {
+                  name: ss[0].propertyName,
+                  operator: 'eq',
+                  value: this.operateData.guid
+                }
+              ]
+            }
+          }
+          const meta = await queryCiData(query)
+          if (meta.statusCode === 'OK') {
+            meta.data.contents.forEach(md => {
+              this.operateData.children.forEach(child => {
+                if (md.data.code === child.data.code) {
+                  child.meta = md.meta
+                } else {
+                  child.meta = []
+                }
+              })
+            })
+          }
+        }
         this.panalData.push(...this.operateData.children)
       }
     },
