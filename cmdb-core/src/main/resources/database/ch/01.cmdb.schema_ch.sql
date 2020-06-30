@@ -122,6 +122,7 @@ CREATE TABLE IF NOT EXISTS `adm_ci_type_attr` (
   `auto_fill_rule` varchar(2000) DEFAULT NULL COMMENT '自动填充规则',
   `is_refreshable` int(1) DEFAULT NULL,
   `regular_expression_rule` varchar(200) DEFAULT NULL COMMENT '正则规则',
+  `is_delete_validate` INT(1) NULL DEFAULT 1,
   PRIMARY KEY (`id_adm_ci_type_attr`),
   UNIQUE KEY `uniqCiType` (`id_adm_ci_type`,`property_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1149 DEFAULT CHARSET=utf8;
@@ -157,6 +158,7 @@ CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_base` (
   `auto_fill_rule` varchar(2000) DEFAULT NULL COMMENT '自动填充规则',
   `regular_expression_rule` varchar(200) DEFAULT NULL COMMENT '正则规则',
   `is_refreshable` int(1) DEFAULT NULL,
+  `is_delete_validate` INT(1) NULL DEFAULT 1,
   PRIMARY KEY (`id_adm_ci_type_attr`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
 

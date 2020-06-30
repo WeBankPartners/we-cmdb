@@ -76,6 +76,8 @@ public class AdmCiTypeAttr implements Serializable {
     private List<AdmTemplateCiTypeAttr> admTemplateCiTypeAttrs;
     @NotNull
     private Integer ciTypeId;
+    //for reference type
+    private Integer isDeleteValidate;
 
     public AdmCiTypeAttr() {
     }
@@ -562,4 +564,12 @@ public class AdmCiTypeAttr implements Serializable {
         this.regularExpressionRule = regularExpressionRule;
     }
 
+    @Column(name = "is_delete_validate")
+    public Integer getIsDeleteValidate() {
+        return isDeleteValidate;
+    }
+
+    public void setIsDeleteValidate(Integer is_delete_validate) {
+        this.isDeleteValidate = is_delete_validate;
+    }
 }
