@@ -89,12 +89,6 @@
             <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera" style="float:right">
               <Icon type="md-trash" class="operation-icon-discard" />
             </Tooltip>
-            <Tooltip :content="$t('startup')" v-if="opera === 'startup'" :key="opera" style="float:right">
-              <Icon type="md-checkmark" class="operation-icon-startup" />
-            </Tooltip>
-            <Tooltip :content="$t('stop')" v-if="opera === 'stop'" :key="opera" style="float:right">
-              <Icon type="md-checkmark" class="operation-icon-stop" />
-            </Tooltip>
           </template>
           <div slot="content">
             <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
@@ -146,7 +140,9 @@
               </div>
               <FormItem>
                 <div class="opetation-btn-zone">
-                  <Button @click="editOperation" type="info">{{ $t('edit') }}</Button>
+                  <Button @click="editOperation" type="info" :disabled="isEditEnable(panal.meta.nextOperations)">{{
+                    $t('edit')
+                  }}</Button>
                   <Button
                     type="primary"
                     @click="saveOperation('panalData', panalIndex)"
@@ -392,12 +388,58 @@ export default {
     this.getAllCITypes()
   },
   methods: {
+    isEditEnable (val) {
+      if (val && val.includes('update')) {
+        return false
+      } else {
+        return true
+      }
+    },
     changeTab (tabNum) {
       this.currentTab = tabNum
       this.cancleAddLine()
       this.cancleAddNode()
     },
-    linkManagementData (linkData) {
+    async linkManagementData (linkData) {
+      console.log(linkData)
+      if (linkData.length > 0) {
+        const { statusCode, data } = await getCiTypeAttributes(this.operateData.children[0].ciTypeId)
+        if (statusCode === 'OK') {
+          const ss = data.filter(_ => {
+            return _.referenceId === this.operateData.ciTypeId
+          })
+          console.log(222)
+          const query = {
+            id: this.operateData.children[0].ciTypeId,
+            queryObject: {
+              dialect: {
+                showCiHistory: false
+              },
+              filters: [
+                {
+                  name: ss[0].propertyName,
+                  operator: 'eq',
+                  value: this.operateData.guid
+                }
+              ]
+            }
+          }
+          const meta = await queryCiData(query)
+          if (meta.statusCode === 'OK') {
+            console.log(meta)
+            // meta.data.contents.forEach(md => {
+            //   this.operateData.children.forEach(child => {
+            //     if (md.data.code === child.data.code) {
+            //       child.meta = md.meta
+            //     } else {
+            //       child.meta = []
+            //     }
+            //   })
+            // })
+          }
+        }
+      }
+
       this.linkData = linkData
     },
     async openLinkPanal (panalId) {
