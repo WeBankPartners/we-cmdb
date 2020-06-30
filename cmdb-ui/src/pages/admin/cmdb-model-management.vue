@@ -473,6 +473,16 @@
                       >
                     </Select>
                   </FormItem>
+                  <FormItem
+                    prop="isDeleteValidate"
+                    v-if="item.form.inputType === 'ref' || item.form.inputType === 'multiRef'"
+                    :label="$t('is_delete_validate')"
+                  >
+                    <RadioGroup v-model="item.form.isDeleteValidate">
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
+                      <Radio :disabled="item.form.status === 'decommissioned'" label="no">No</Radio>
+                    </RadioGroup>
+                  </FormItem>
                   <FormItem prop="isRefreshable" :label="$t('is_refreshable')">
                     <RadioGroup v-model="item.form.isRefreshable">
                       <Radio :disabled="item.form.status === 'decommissioned'" label="yes">Yes</Radio>
@@ -673,6 +683,12 @@
               }}</Option>
             </Select>
           </FormItem>
+          <FormItem prop="isDeleteValidate" :label="$t('is_delete_validate')">
+            <RadioGroup v-model="addNewAttrForm.isDeleteValidate">
+              <Radio label="yes">Yes</Radio>
+              <Radio label="no">No</Radio>
+            </RadioGroup>
+          </FormItem>
           <FormItem prop="isRefreshable" :label="$t('is_refreshable')">
             <RadioGroup v-model="addNewAttrForm.isRefreshable">
               <Radio label="yes">Yes</Radio>
@@ -860,6 +876,7 @@ export default {
       addNewAttrForm: {
         searchSeqNo: 0,
         isAccessControlled: 'no',
+        isDeleteValidate: 'no',
         isRefreshable: 'no',
         isDisplayed: 'no',
         isNullable: 'no',
@@ -921,6 +938,7 @@ export default {
           isEditable: 'yes',
           isUnique: 'no',
           isNullable: 'no',
+          isDeleteValidate: 'no',
           isRefreshable: 'no',
           searchSeqNo: 0
         }
@@ -996,6 +1014,7 @@ export default {
                 i.attributes.forEach(j => {
                   this.$set(j, 'form', {
                     ...j,
+                    isDeleteValidate: j.isDeleteValidate ? 'yes' : 'no',
                     isRefreshable: j.isRefreshable ? 'yes' : 'no',
                     isDisplayed: j.isDisplayed ? 'yes' : 'no',
                     isAccessControlled: j.isAccessControlled ? 'yes' : 'no',
@@ -1606,6 +1625,7 @@ export default {
       const payload = {
         ...this.addNewAttrForm,
         length: this.addNewAttrForm.length || 1,
+        isDeleteValidate: this.addNewAttrForm.isDeleteValidate === 'yes',
         isRefreshable: this.addNewAttrForm.isRefreshable === 'yes',
         isDisplayed: this.addNewAttrForm.isDisplayed === 'yes',
         isAccessControlled: this.addNewAttrForm.isAccessControlled === 'yes',
@@ -1653,6 +1673,7 @@ export default {
       let payload = {
         ...form,
         length: form.length || 1,
+        isDeleteValidate: form.isDeleteValidate === 'yes',
         isRefreshable: form.isRefreshable === 'yes',
         isDisplayed: form.isDisplayed === 'yes',
         isAccessControlled: isSelectOrRef && form.isAccessControlled === 'yes',
@@ -1687,6 +1708,7 @@ export default {
       let updateRes = await updateCIAttr(this.currentSelectedCI.ciTypeId, ciTypeAttrId, {
         ...form,
         length: form.length || 1,
+        isDeleteValidate: form.isDeleteValidate === 'yes',
         isRefreshable: form.isRefreshable === 'yes',
         isDisplayed: form.isDisplayed === 'yes',
         isAccessControlled: isSelectOrRef && form.isAccessControlled === 'yes',
