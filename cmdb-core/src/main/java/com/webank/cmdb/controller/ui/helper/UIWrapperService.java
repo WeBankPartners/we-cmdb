@@ -1657,6 +1657,10 @@ public class UIWrapperService {
         return returnFlags;
     }
 
+    public List<ResourceTreeDto> getTreeData(Integer ciTypeId, java.util.List<String> guids) {
+        return getDataTreesByCiTypeIdAndGuid(ciTypeId, guids);
+    }
+
     @Data
     private static class MergeDataResult {
         private boolean isEndOfData;
