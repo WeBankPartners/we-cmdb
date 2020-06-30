@@ -83,9 +83,9 @@
             <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
               <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
             </Tooltip>
-            <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
+            <!-- <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
               <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
-            </Tooltip>
+            </Tooltip> -->
           </template>
           <!-- <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button> -->
           <div slot="content">
@@ -213,9 +213,9 @@
           <Tooltip :content="$t('delete')" style="float:right">
             <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon-delete" />
           </Tooltip>
-          <Tooltip :content="$t('confirm')" style="float:right">
+          <!-- <Tooltip :content="$t('confirm')" style="float:right">
             <Icon type="md-checkmark" @click="confirm(link, $event)" class="operation-icon-confirm" />
-          </Tooltip>
+          </Tooltip> -->
           <div slot="content">
             <Form v-if="linkPanal[0] === linkIndex + 1 + ''">
               <div
