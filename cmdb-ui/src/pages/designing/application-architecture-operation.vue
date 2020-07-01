@@ -79,10 +79,28 @@
           <span style="">
             {{ panal.data.code | filterCode }}
           </span>
-          <template v-for="opera in panal.meta.nextOperations">
-            <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
-              <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
-            </Tooltip>
+          <template v-if="panal.meta.nextOperations">
+            <template v-for="opera in panal.meta.nextOperations">
+              <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera + panalIndex" style="float:right">
+                <Icon
+                  type="md-trash"
+                  @click="deleteNode(panalData, panalIndex, $event)"
+                  class="operation-icon-delete"
+                />
+              </Tooltip>
+              <Tooltip
+                :content="$t('discard')"
+                v-if="opera === 'discard'"
+                :key="opera + panalIndex"
+                style="float:right"
+              >
+                <Icon
+                  type="ios-share-alt"
+                  @click="discard(panalData, panalIndex, $event)"
+                  class="operation-icon-discard"
+                />
+              </Tooltip>
+            </template>
           </template>
           <div slot="content">
             <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
@@ -587,6 +605,13 @@ export default {
         this.$Message.success('success!')
       }
     },
+    async discard (data, event) {
+      event.stopPropagation()
+      const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'discard')
+      if (statusCode === 'OK') {
+        this.$Message.success('success!')
+      }
+    },
     async deleteNode (panalData, panalIndex, event) {
       event.stopPropagation()
       this.$Modal.confirm({
@@ -763,38 +788,54 @@ export default {
       delete tmp.children
       this.parentPanalData = tmp
       if (this.operateData.children) {
-        const { statusCode, data } = await getCiTypeAttributes(this.operateData.children[0].ciTypeId)
-        if (statusCode === 'OK') {
-          const ss = data.filter(_ => {
-            return _.referenceId === this.operateData.ciTypeId
-          })
-          const query = {
-            id: this.operateData.children[0].ciTypeId,
-            queryObject: {
-              dialect: {
-                showCiHistory: false
-              },
-              filters: [
-                {
-                  name: ss[0].propertyName,
-                  operator: 'eq',
-                  value: this.operateData.guid
-                }
-              ]
-            }
-          }
-          const meta = await queryCiData(query)
-          if (meta.statusCode === 'OK') {
-            meta.data.contents.forEach(md => {
-              this.operateData.children.forEach(child => {
-                if (md.data.code === child.data.code) {
-                  child.meta = md.meta
-                }
-              })
+        let cacthCiTypeId = []
+        this.operateData.children.forEach(child => {
+          cacthCiTypeId.push(child.ciTypeId)
+        })
+        cacthCiTypeId = Array.from(new Set(cacthCiTypeId))
+        console.log(cacthCiTypeId)
+        await cacthCiTypeId.forEach(async ciTypeId => {
+          let xx = await this.test(ciTypeId)
+          console.log(xx)
+          xx.data.contents.forEach(md => {
+            this.operateData.children.forEach(child => {
+              if (md.data.code === child.data.code) {
+                md.meta.nextOperations = Array.from(new Set(md.meta.nextOperations))
+                child.meta = md.meta
+              }
             })
+          })
+          this.panalData = []
+          this.panalData.push(...this.operateData.children)
+          console.log(this.panalData)
+        })
+      }
+    },
+    async test (ciTypeId) {
+      const { statusCode, data } = await getCiTypeAttributes(ciTypeId)
+      if (statusCode === 'OK') {
+        const ss = data.filter(_ => {
+          return _.referenceId === this.operateData.ciTypeId
+        })
+        const query = {
+          id: ciTypeId,
+          queryObject: {
+            dialect: {
+              showCiHistory: false
+            },
+            filters: [
+              {
+                name: ss[0].propertyName,
+                operator: 'eq',
+                value: this.operateData.guid
+              }
+            ]
           }
         }
-        this.panalData.push(...this.operateData.children)
+        const meta = await queryCiData(query)
+        if (meta.statusCode === 'OK') {
+          return meta
+        }
       }
     },
     async getNodeTypes (isOpen) {
@@ -953,6 +994,15 @@ export default {
   font-size: 16px;
   border: 1px solid #ed4014;
   color: #ed4014;
+  border-radius: 4px;
+  width: 24px;
+  line-height: 24px;
+  margin: 6px;
+}
+.operation-icon-discard {
+  font-size: 16px;
+  border: 1px solid black;
+  color: black;
   border-radius: 4px;
   width: 24px;
   line-height: 24px;
