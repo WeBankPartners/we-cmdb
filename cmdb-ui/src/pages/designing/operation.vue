@@ -1013,8 +1013,8 @@ export default {
 }
 .operation-icon-discard {
   font-size: 16px;
-  border: 1px solid black;
-  color: black;
+  border: 1px solid #ff9900;
+  color: #ff9900;
   border-radius: 4px;
   width: 24px;
   line-height: 24px;
