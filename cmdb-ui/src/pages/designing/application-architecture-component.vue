@@ -146,7 +146,7 @@ export default {
       d3.select('#appLogicGraph')
         .select(`#` + id)
         .select(this.activeNodeInfo.type)
-        .attr('fill', '#19be6b')
+        .attr('fill', '#ff9900')
     }
   },
   methods: {
@@ -170,12 +170,12 @@ export default {
       d3.select('#appLogicGraph')
         .select(`#gl_` + guid)
         .select('path')
-        .attr('stroke', 'red')
+        .attr('stroke', '#ff9900')
       d3.select('#appLogicGraph')
         .select(`#a_gl_` + guid + '-taillabel')
         .select('a')
         .select('text')
-        .attr('fill', 'red')
+        .attr('fill', '#ff9900')
     },
     operationReload () {
       this.getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
@@ -353,7 +353,7 @@ export default {
         .on('end', () => {
           addEvent('.node', 'click', this.handleNodeClick)
           addEvent('.cluster', 'click', this.handleNodeClick)
-          addEvent('.edge', 'click', this.handleEdgeClick)
+          // addEvent('.edge', 'click', this.handleEdgeClick)
         })
       // 最外图层选中处理
       d3.select('#clust1').on('click', () => {
