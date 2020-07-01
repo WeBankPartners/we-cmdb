@@ -141,7 +141,7 @@ export default {
       d3.select('#resourcePlanningGraph')
         .select(`#` + id)
         .select(this.activeNodeInfo.type)
-        .attr('fill', '#19be6b')
+        .attr('fill', '#ff9900')
     }
   },
   mounted () {
@@ -275,11 +275,11 @@ export default {
         .select(`#a_gl_` + guid)
         .select('a')
         .select('path')
-        .attr('stroke', 'red')
+        .attr('stroke', '#ff9900')
       d3.select('#resourcePlanningGraph')
         .select(`#gl_` + guid)
         .select('text')
-        .attr('fill', 'red')
+        .attr('fill', '#ff9900')
     },
     async getAllIdcData () {
       const { data, statusCode } = await getAllIdcData()

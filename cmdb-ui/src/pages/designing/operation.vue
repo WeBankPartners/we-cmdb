@@ -86,8 +86,8 @@
             <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
               <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
             </Tooltip>
-            <Tooltip :content="$t('discard')" v-if="opera === 'panalIndex'" :key="opera" style="float:right">
-              <Icon type="md-trash" @click="discard(panal, $event)" class="operation-icon-discard" />
+            <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera" style="float:right">
+              <Icon type="ios-share-alt" @click="discard(panal, $event)" class="operation-icon-discard" />
             </Tooltip>
           </template>
           <div slot="content">
@@ -221,7 +221,11 @@
                 <Icon type="md-checkmark" @click="confirm(link, $event)" class="operation-icon-confirm" />
               </Tooltip>
               <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera" style="float:right">
-                <Icon type="ios-share-alt" @click="discard(link, $event)" class="operation-icon-discard" />
+                <Icon
+                  type="ios-share-alt"
+                  @click="discard(link, $event, 'linkData', linkIndex)"
+                  class="operation-icon-discard"
+                />
               </Tooltip>
             </template>
           </template>
