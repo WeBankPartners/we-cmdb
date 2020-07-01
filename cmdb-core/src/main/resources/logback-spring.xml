@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
 
-    <property name="logPath" value="${CMDB_LOG_PATH:-./target/data/cmdb/log}"/>
+    <property name="logPath" value="${CMDB_LOG_PATH:-./data/wecmdb/log}"/>
     <property name="logFile" value="cmdb-core"/>
 
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
@@ -19,10 +19,10 @@
     <appender name="rollingFile"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
 
-        <File>${logPath}/${logFile}.log</File>
+        <!--<File>${logPath}/${logFile}.log</File>-->
         <rollingPolicy
                 class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <FileNamePattern>${logPath}/${logFile}-%d{yyyyMMdd}.log
+            <FileNamePattern>${logPath}/${logFile}-%d{yyyyMMddHH}.log
             </FileNamePattern>
             <cleanHistoryOnStart>true</cleanHistoryOnStart>
             <MaxHistory>30</MaxHistory>
