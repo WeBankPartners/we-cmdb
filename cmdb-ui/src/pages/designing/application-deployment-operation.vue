@@ -1,13 +1,13 @@
 <template>
   <div class="operation">
-    <div class="diy-tabs">
+    <!-- <div class="diy-tabs">
       <div :class="['diy-tab', currentTab === 1 ? 'active-tab' : '']" @click="changeTab(1)">
         <span>{{ $t('node_information') }}</span>
       </div>
       <div :class="['diy-tab', currentTab === 2 ? 'active-tab' : '']" @click="changeTab(2)">
         <span>{{ $t('link_information') }}</span>
       </div>
-    </div>
+    </div> -->
     <div v-if="currentTab === 1" class="operation-Collapse">
       <h4>{{ $t('current_node') }}：</h4>
       <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
@@ -422,12 +422,10 @@ export default {
     },
     linkManagementData (linkData) {
       this.linkData = linkData
-      console.log(linkData)
       if (linkData.length > 0) {
         this.linkData.sort(function (a, b) {
           return a.ciTypeId - b.ciTypeId
         })
-        console.log(linkData)
       }
     },
     async openLinkPanal (panalId) {
@@ -803,10 +801,8 @@ export default {
           cacthCiTypeId.push(child.ciTypeId)
         })
         cacthCiTypeId = Array.from(new Set(cacthCiTypeId))
-        console.log(cacthCiTypeId)
         await cacthCiTypeId.forEach(async ciTypeId => {
           let xx = await this.test(ciTypeId)
-          console.log(xx)
           xx.data.contents.forEach(md => {
             this.operateData.children.forEach(child => {
               if (md.data.code === child.data.code) {
@@ -817,7 +813,6 @@ export default {
           })
           this.panalData = []
           this.panalData.push(...this.operateData.children)
-          console.log(this.panalData)
         })
       }
     },
