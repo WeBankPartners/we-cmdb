@@ -19,7 +19,7 @@
     <appender name="rollingFile"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
 
-        <!--<File>${logPath}/${logFile}.log</File>-->
+        <File>${logPath}/${logFile}.log</File>
         <rollingPolicy
                 class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <FileNamePattern>${logPath}/${logFile}-%d{yyyyMMdd}.log
@@ -27,10 +27,6 @@
             <cleanHistoryOnStart>true</cleanHistoryOnStart>
             <MaxHistory>30</MaxHistory>
         </rollingPolicy>
-
-        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <MaxFileSize>10k</MaxFileSize>
-        </triggeringPolicy>
 
         <encoder>
             <Pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %thread %-5level %-48logger{48} %msg%n]]>
