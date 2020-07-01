@@ -86,8 +86,8 @@
             <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
               <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
             </Tooltip>
-            <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera" style="float:right">
-              <Icon type="md-trash" class="operation-icon-discard" />
+            <Tooltip :content="$t('discard')" v-if="opera === 'panalIndex'" :key="opera" style="float:right">
+              <Icon type="md-trash" @click="discard(panal, $event)" class="operation-icon-discard" />
             </Tooltip>
           </template>
           <div slot="content">
@@ -212,12 +212,20 @@
           <span style="">
             {{ link.key_name | filterCode }}
           </span>
-          <Tooltip :content="$t('delete')" style="float:right">
-            <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon-delete" />
-          </Tooltip>
-          <Tooltip :content="$t('confirm')" style="float:right">
-            <Icon type="md-checkmark" @click="confirm(link, $event)" class="operation-icon-confirm" />
-          </Tooltip>
+          <template v-if="link.meta.nextOperations">
+            <template v-for="opera in testtest(link.meta.nextOperations)">
+              <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
+                <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon-delete" />
+              </Tooltip>
+              <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
+                <Icon type="md-checkmark" @click="confirm(link, $event)" class="operation-icon-confirm" />
+              </Tooltip>
+              <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera" style="float:right">
+                <Icon type="ios-share-alt" @click="discard(link, $event)" class="operation-icon-discard" />
+              </Tooltip>
+            </template>
+          </template>
+
           <div slot="content">
             <Form v-if="linkPanal[0] === linkIndex + 1 + ''">
               <div
@@ -265,7 +273,7 @@
                   <Button
                     type="primary"
                     @click="saveOperation('linkData', linkIndex)"
-                    :disabled="!isEdit"
+                    :disabled="!isEdit && isEditEnable(link.meta.nextOperations)"
                     class="opetation-btn"
                     >{{ $t('save') }}</Button
                   >
@@ -388,6 +396,9 @@ export default {
     this.getAllCITypes()
   },
   methods: {
+    testtest (nextOperations) {
+      return Array.from(new Set(nextOperations))
+    },
     isEditEnable (val) {
       if (val && val.includes('update')) {
         return false
@@ -401,50 +412,10 @@ export default {
       this.cancleAddNode()
     },
     async linkManagementData (linkData) {
-      console.log(linkData)
-      if (linkData.length > 0) {
-        this.linkData.sort(function (a, b) {
-          return a.ciTypeId - b.ciTypeId
-        })
-        console.log(linkData)
-        const { statusCode, data } = await getCiTypeAttributes(this.operateData.children[0].ciTypeId)
-        if (statusCode === 'OK') {
-          const ss = data.filter(_ => {
-            return _.referenceId === this.operateData.ciTypeId
-          })
-          console.log(222)
-          const query = {
-            id: this.operateData.children[0].ciTypeId,
-            queryObject: {
-              dialect: {
-                showCiHistory: false
-              },
-              filters: [
-                {
-                  name: ss[0].propertyName,
-                  operator: 'eq',
-                  value: this.operateData.guid
-                }
-              ]
-            }
-          }
-          const meta = await queryCiData(query)
-          if (meta.statusCode === 'OK') {
-            console.log(meta)
-            // meta.data.contents.forEach(md => {
-            //   this.operateData.children.forEach(child => {
-            //     if (md.data.code === child.data.code) {
-            //       child.meta = md.meta
-            //     } else {
-            //       child.meta = []
-            //     }
-            //   })
-            // })
-          }
-        }
-      }
-
       this.linkData = linkData
+      this.linkData.forEach(link => {
+        link.meta.nextOperations = Array.from(new Set(link.meta.nextOperations))
+      })
     },
     async openLinkPanal (panalId) {
       this.currentTab = 2
@@ -577,9 +548,16 @@ export default {
             ]
           }
         })
+        let tmp = null
+        if (ciData.statusCode === 'OK') {
+          tmp = ciData.data.contents[0].data
+          tmp.meta = ciData.data.contents[0].meta
+          tmp.ciTypeId = Number(ciTypeId)
+        }
         this.$emit('operationReload', '', {
           type: 'add',
-          lineInfo: ciData.data.contents[0]
+          lineInfo: tmp
+          // lineInfo: ciData.data.contents[0]
         })
         this.cancleAddLine()
       }
@@ -629,6 +607,13 @@ export default {
     async confirm (data, event) {
       event.stopPropagation()
       const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'confirm')
+      if (statusCode === 'OK') {
+        this.$Message.success('success!')
+      }
+    },
+    async discard (data, event) {
+      event.stopPropagation()
+      const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'discard')
       if (statusCode === 'OK') {
         this.$Message.success('success!')
       }
@@ -777,6 +762,24 @@ export default {
       const { statusCode, data } = await updateCiDatas(params)
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
+        const ciData = await queryCiData({
+          id: ciTypeId,
+          queryObject: {
+            filters: [
+              {
+                name: 'guid',
+                value: data[0].guid,
+                operator: 'eq'
+              }
+            ]
+          }
+        })
+        let tmp = null
+        if (ciData.statusCode === 'OK') {
+          tmp = ciData.data.contents[0].data
+          tmp.meta = ciData.data.contents[0].meta
+          tmp.ciTypeId = Number(ciTypeId)
+        }
         this.isEdit = false
         if (dataSource === 'parentPanalData') {
           this.operateData.data = data[0]
@@ -785,8 +788,9 @@ export default {
           this.operateData.children[index].data = data[0]
         }
         if (dataSource === 'linkData') {
-          this.linkData[index] = data[0]
-          this.linkData[index].ciTypeId = Number(ciTypeId)
+          // this.linkData[index] = data[0]
+          // this.linkData[index].ciTypeId = Number(ciTypeId)
+          this.linkData[index] = tmp
           this.$emit('operationReload', '', {
             type: 'edit',
             lineInfo: {
@@ -814,10 +818,8 @@ export default {
           cacthCiTypeId.push(child.ciTypeId)
         })
         cacthCiTypeId = Array.from(new Set(cacthCiTypeId))
-        console.log(cacthCiTypeId)
         await cacthCiTypeId.forEach(async ciTypeId => {
           let xx = await this.test(ciTypeId)
-          console.log(xx)
           xx.data.contents.forEach(md => {
             this.operateData.children.forEach(child => {
               if (md.data.code === child.data.code) {
@@ -828,7 +830,6 @@ export default {
           })
           this.panalData = []
           this.panalData.push(...this.operateData.children)
-          console.log(this.panalData)
         })
       }
     },
