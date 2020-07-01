@@ -893,6 +893,7 @@ export default {
       if (panalId.length) {
         this.$emit('markZone', this.panalData[Number(panalId[0] - 1)].guid)
         const ciTypeId = this.panalData[Number(panalId[0] - 1)].ciTypeId
+        this.panalForm = []
         this.getAttributes(ciTypeId, 'panalForm')
       }
     },

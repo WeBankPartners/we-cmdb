@@ -122,6 +122,7 @@
                   ></textarea>
                 </FormItem>
                 <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
+                  {{ formData.referenceId }}-----
                   <Ref :formData="formData" :panalData="panal.data" :disabled="!isEdit || !formData.isEditable"></Ref>
                 </FormItem>
                 <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
@@ -421,12 +422,12 @@ export default {
         this.linkPanal = panalId[0]
         this.$emit('markEdge', this.linkData[Number(panalId[0] - 1)].guid)
         const ciTypeId = this.linkData[Number(panalId[0] - 1)].ciTypeId
-        if (!Object.keys(this.lineFromSet).includes(ciTypeId)) {
-          await this.getAttributes(ciTypeId, 'linkPanalForm')
-          this.lineFromSet[ciTypeId] = this.linkPanalForm
-        } else {
-          this.linkPanalForm = this.lineFromSet[ciTypeId]
-        }
+        // if (!Object.keys(this.lineFromSet).includes(ciTypeId)) {
+        await this.getAttributes(ciTypeId, 'linkPanalForm')
+        this.lineFromSet[ciTypeId] = this.linkPanalForm
+        // } else {
+        //   this.linkPanalForm = this.lineFromSet[ciTypeId]
+        // }
       }
     },
     async getAllCITypes () {
@@ -885,6 +886,7 @@ export default {
       if (panalId.length) {
         this.$emit('markZone', this.panalData[Number(panalId[0] - 1)].guid)
         const ciTypeId = this.panalData[Number(panalId[0] - 1)].ciTypeId
+        this.panalForm = []
         this.getAttributes(ciTypeId, 'panalForm')
       }
     },

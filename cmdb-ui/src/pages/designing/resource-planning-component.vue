@@ -155,29 +155,29 @@ export default {
   },
   methods: {
     operationReload (operateNodeData, operateLineData) {
-      this.onIdcDataChange(this.selectedIdcs)
-      // if (!operateNodeData) {
-      //   this.loadMap(this.graphData, operateLineData)
-      //   return
-      // }
-      // let tmp = this.graphData[0]
-      // this.levelData = []
-      // let tmpData = null
-      // if (this.cacheIdPath.length) {
-      //   this.cacheIdPath.forEach(id => {
-      //     this.levelData.unshift(tmp)
-      //     tmp = tmp.children.find(child => {
-      //       return `n_${child.guid}` === id
-      //     })
-      //   })
-      //   this.levelData.forEach(dataTmp => {
-      //     dataTmp.children[this.cacheIndex[0]] = operateNodeData
-      //     tmpData = dataTmp
-      //   })
-      // } else {
-      //   tmpData = operateNodeData
-      // }
-      // this.loadMap([tmpData], operateLineData)
+      // this.onIdcDataChange(this.selectedIdcs)
+      if (!operateNodeData) {
+        this.loadMap(this.graphData, operateLineData)
+        return
+      }
+      let tmp = this.graphData[0]
+      this.levelData = []
+      let tmpData = null
+      if (this.cacheIdPath.length) {
+        this.cacheIdPath.forEach(id => {
+          this.levelData.unshift(tmp)
+          tmp = tmp.children.find(child => {
+            return `n_${child.guid}` === id
+          })
+        })
+        this.levelData.forEach(dataTmp => {
+          dataTmp.children[this.cacheIndex[0]] = operateNodeData
+          tmpData = dataTmp
+        })
+      } else {
+        tmpData = operateNodeData
+      }
+      this.loadMap([tmpData], operateLineData)
     },
     loadMap (graphData, operateLineData) {
       this.graphData = graphData
@@ -209,7 +209,6 @@ export default {
       this.idcData = sortingTree(graphData)
       if (operateLineData) {
         const lineInfoData = operateLineData.lineInfo.data
-        console.log(lineInfoData)
         if (operateLineData.type === 'add') {
           this.lineData.push({
             guid: lineInfoData.guid,
@@ -330,7 +329,6 @@ export default {
       }
     },
     async onIdcDataChange (selectedIdcs) {
-      console.log(22)
       this.selectedIdcs = selectedIdcs
       // let willSelectIdc = {}
       this.idcData = []
