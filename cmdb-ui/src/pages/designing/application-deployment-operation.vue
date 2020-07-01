@@ -794,8 +794,6 @@ export default {
               this.operateData.children.forEach(child => {
                 if (md.data.code === child.data.code) {
                   child.meta = md.meta
-                } else {
-                  child.meta = []
                 }
               })
             })
