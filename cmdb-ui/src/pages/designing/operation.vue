@@ -221,7 +221,7 @@
             {{ link.key_name | filterCode }}
           </span>
           <template v-if="link.meta.nextOperations">
-            <template v-for="opera in testtest(link.meta.nextOperations)">
+            <template v-for="opera in setNextOperations(link.meta.nextOperations)">
               <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
                 <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon-delete" />
               </Tooltip>
@@ -289,7 +289,7 @@
                   <Button
                     type="primary"
                     @click="saveOperation('linkData', linkIndex)"
-                    :disabled="!isEdit && isEditEnable(link.meta.nextOperations)"
+                    :disabled="!isEdit || isEditEnable(link.meta.nextOperations)"
                     class="opetation-btn"
                     >{{ $t('save') }}</Button
                   >
@@ -413,7 +413,7 @@ export default {
     this.getAllCITypes()
   },
   methods: {
-    testtest (nextOperations) {
+    setNextOperations (nextOperations) {
       return Array.from(new Set(nextOperations))
     },
     isEditEnable (val) {
@@ -644,12 +644,9 @@ export default {
         tmp = ciData.data.contents[0].data
         tmp.meta = ciData.data.contents[0].meta
         tmp.ciTypeId = Number(data.ciTypeId)
-        console.log(ciData.data.contents[0].meta)
-        console.log(tmp)
       }
       if (type === 'node') {
         this.operateData.children[index].data = tmp
-        console.log(this.operateData.children[index])
         this.$emit('operationReload', this.operateData)
       }
       if (type === 'link') {
@@ -669,7 +666,6 @@ export default {
       if (statusCode === 'OK') {
         this.$Message.success('success!')
       }
-      console.log(this.operateData.children[index])
       const ciData = await queryCiData({
         id: data.ciTypeId,
         queryObject: {
@@ -687,12 +683,9 @@ export default {
         tmp = ciData.data.contents[0].data
         tmp.meta = ciData.data.contents[0].meta
         tmp.ciTypeId = Number(data.ciTypeId)
-        console.log(ciData.data.contents[0].meta)
-        console.log(tmp)
       }
       if (type === 'node') {
         this.operateData.children[index].data = tmp
-        console.log(this.operateData.children[index])
         this.$emit('operationReload', this.operateData)
       }
       if (type === 'link') {
@@ -864,12 +857,6 @@ export default {
           }
         })
         let tmp = null
-        // if (ciData.statusCode === 'OK') {
-        //   tmp = ciData.data.contents[0].data
-        //   tmp.meta = ciData.data.contents[0].meta
-        //   console.log(ciData.data.contents[0].meta)
-        //   tmp.ciTypeId = Number(ciTypeId)
-        // }
         if (dataSource === 'parentPanalData') {
           this.operateData.data = data[0]
         }
@@ -878,14 +865,6 @@ export default {
 
           ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
           this.operateData.children[index].data = ciData.data.contents[0].data
-          // tmp = ciData.data.contents[0]
-          // tmp.children = this.operateData.children[index].children
-          // tmp.data.meta = ciData.data.contents[0].meta
-          // tmp.guid = this.operateData.children[index].guid
-          // tmp.ciTypeId = Number(ciTypeId)
-          // delete tmp.meta
-          // this.operateData.children[index] = tmp
-          // console.log(this.operateData.children[index])
           this.$emit('operationReload', this.operateData)
           return
         }
@@ -906,7 +885,6 @@ export default {
       }
     },
     async managementData (operateData) {
-      console.log(operateData)
       this.currentTab = 1
       this.parentPanal = ''
       this.defaultPanal = ''
@@ -923,8 +901,8 @@ export default {
         })
         cacthCiTypeId = Array.from(new Set(cacthCiTypeId))
         await cacthCiTypeId.forEach(async ciTypeId => {
-          let xx = await this.test(ciTypeId)
-          xx.data.contents.forEach(md => {
+          let attr = await this.getAttr(ciTypeId)
+          attr.data.contents.forEach(md => {
             this.operateData.children.forEach(child => {
               if (md.data.code === child.data.code) {
                 md.meta.nextOperations = Array.from(new Set(md.meta.nextOperations))
@@ -934,11 +912,10 @@ export default {
           })
           this.panalData = []
           this.panalData.push(...this.operateData.children)
-          console.log(this.panalData)
         })
       }
     },
-    async test (ciTypeId) {
+    async getAttr (ciTypeId) {
       const { statusCode, data } = await getCiTypeAttributes(ciTypeId)
       if (statusCode === 'OK') {
         const ss = data.filter(_ => {
