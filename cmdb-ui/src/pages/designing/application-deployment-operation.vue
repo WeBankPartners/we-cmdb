@@ -79,13 +79,31 @@
           <span style="">
             {{ panal.data.code | filterCode }}
           </span>
-          <template v-for="opera in panal.meta.nextOperations">
-            <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
-              <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
-            </Tooltip>
-            <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
-              <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
-            </Tooltip>
+          <template v-if="panal.meta.nextOperations">
+            <template v-for="opera in panal.meta.nextOperations">
+              <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera + panalIndex" style="float:right">
+                <Icon
+                  type="md-trash"
+                  @click="deleteNode(panalData, panalIndex, $event)"
+                  class="operation-icon-delete"
+                />
+              </Tooltip>
+              <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
+                <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
+              </Tooltip>
+              <Tooltip
+                :content="$t('discard')"
+                v-if="opera === 'discard'"
+                :key="opera + panalIndex"
+                style="float:right"
+              >
+                <Icon
+                  type="ios-share-alt"
+                  @click="discard(panalData, panalIndex, $event)"
+                  class="operation-icon-discard"
+                />
+              </Tooltip>
+            </template>
           </template>
           <!-- <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button> -->
           <div slot="content">
@@ -404,6 +422,13 @@ export default {
     },
     linkManagementData (linkData) {
       this.linkData = linkData
+      console.log(linkData)
+      if (linkData.length > 0) {
+        this.linkData.sort(function (a, b) {
+          return a.ciTypeId - b.ciTypeId
+        })
+        console.log(linkData)
+      }
     },
     async openLinkPanal (panalId) {
       this.currentTab = 2
@@ -591,6 +616,13 @@ export default {
         this.$Message.success('success!')
       }
     },
+    async discard (data, event) {
+      event.stopPropagation()
+      const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'discard')
+      if (statusCode === 'OK') {
+        this.$Message.success('success!')
+      }
+    },
     async deleteNode (panalData, panalIndex, event) {
       event.stopPropagation()
       this.$Modal.confirm({
@@ -755,8 +787,7 @@ export default {
         this.$emit('operationReload', '')
       }
     },
-    async managementData (operateData, originData) {
-      this.originData = originData
+    async managementData (operateData) {
       this.currentTab = 1
       this.parentPanal = ''
       this.defaultPanal = ''
@@ -766,40 +797,55 @@ export default {
       let tmp = JSON.parse(JSON.stringify(this.operateData))
       delete tmp.children
       this.parentPanalData = tmp
-
       if (this.operateData.children) {
-        const { statusCode, data } = await getCiTypeAttributes(this.operateData.children[0].ciTypeId)
-        if (statusCode === 'OK') {
-          const ss = data.filter(_ => {
-            return _.referenceId === this.operateData.ciTypeId
-          })
-          const query = {
-            id: this.operateData.children[0].ciTypeId,
-            queryObject: {
-              dialect: {
-                showCiHistory: false
-              },
-              filters: [
-                {
-                  name: ss[0].propertyName,
-                  operator: 'eq',
-                  value: this.operateData.guid
-                }
-              ]
-            }
-          }
-          const meta = await queryCiData(query)
-          if (meta.statusCode === 'OK') {
-            meta.data.contents.forEach(md => {
-              this.operateData.children.forEach(child => {
-                if (md.data.code === child.data.code) {
-                  child.meta = md.meta
-                }
-              })
+        let cacthCiTypeId = []
+        this.operateData.children.forEach(child => {
+          cacthCiTypeId.push(child.ciTypeId)
+        })
+        cacthCiTypeId = Array.from(new Set(cacthCiTypeId))
+        console.log(cacthCiTypeId)
+        await cacthCiTypeId.forEach(async ciTypeId => {
+          let xx = await this.test(ciTypeId)
+          console.log(xx)
+          xx.data.contents.forEach(md => {
+            this.operateData.children.forEach(child => {
+              if (md.data.code === child.data.code) {
+                md.meta.nextOperations = Array.from(new Set(md.meta.nextOperations))
+                child.meta = md.meta
+              }
             })
+          })
+          this.panalData = []
+          this.panalData.push(...this.operateData.children)
+          console.log(this.panalData)
+        })
+      }
+    },
+    async test (ciTypeId) {
+      const { statusCode, data } = await getCiTypeAttributes(ciTypeId)
+      if (statusCode === 'OK') {
+        const ss = data.filter(_ => {
+          return _.referenceId === this.operateData.ciTypeId
+        })
+        const query = {
+          id: ciTypeId,
+          queryObject: {
+            dialect: {
+              showCiHistory: false
+            },
+            filters: [
+              {
+                name: ss[0].propertyName,
+                operator: 'eq',
+                value: this.operateData.guid
+              }
+            ]
           }
         }
-        this.panalData.push(...this.operateData.children)
+        const meta = await queryCiData(query)
+        if (meta.statusCode === 'OK') {
+          return meta
+        }
       }
     },
     async getNodeTypes (isOpen) {
@@ -953,7 +999,15 @@ export default {
 .opertaion /deep/ .ivu-tabs-ink-bar {
   width: 100% !important;
 }
-
+.operation-icon-discard {
+  font-size: 16px;
+  border: 1px solid black;
+  color: black;
+  border-radius: 4px;
+  width: 24px;
+  line-height: 24px;
+  margin: 6px;
+}
 .operation-icon-delete {
   font-size: 16px;
   border: 1px solid #ed4014;
