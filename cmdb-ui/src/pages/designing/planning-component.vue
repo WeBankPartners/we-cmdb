@@ -162,8 +162,6 @@ export default {
       this.graphData[0].children.forEach(_ => {
         this.firstChildrenGroup.push(`g_${_.guid}`)
       })
-      // this.operateNodeData = this.graphData[0]
-      // this.$refs.transferData.managementData(this.operateNodeData)
       const sortingTree = array => {
         let obj = {}
         array.forEach(_ => {
@@ -189,6 +187,7 @@ export default {
       this.idcDesignData = sortingTree(graphData)
 
       if (operateLineData) {
+        console.log(operateLineData)
         const lineInfoData = operateLineData.lineInfo.data
         if (operateLineData.type === 'add') {
           this.idcLink.push({
@@ -204,6 +203,7 @@ export default {
           })
         }
         if (operateLineData.type === 'edit') {
+          console.log(11)
           const index = this.idcLink.findIndex(_ => {
             return _.guid === lineInfoData.guid
           })
@@ -229,6 +229,7 @@ export default {
       this.initGraph()
     },
     async onIdcDataChange (guid) {
+      this.guid = guid
       this.spinShow = true
       const { data, statusCode } = await getTreeData(this.graphCiTypeId, [guid])
       this.graphData = data
@@ -599,6 +600,7 @@ export default {
             from: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
             linkInfo: {
               ..._.data,
+              meta: _.meta,
               ciTypeId: this.initParams[IDC_PLANNING_LINK_ID]
             },
             to: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,

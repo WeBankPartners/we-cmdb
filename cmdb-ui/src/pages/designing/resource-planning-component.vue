@@ -208,6 +208,7 @@ export default {
       this.idcData = sortingTree(graphData)
       if (operateLineData) {
         const lineInfoData = operateLineData.lineInfo.data
+        console.log(lineInfoData)
         if (operateLineData.type === 'add') {
           this.lineData.push({
             guid: lineInfoData.guid,
@@ -401,6 +402,7 @@ export default {
               from: _.data[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
               linkInfo: {
                 ..._.data,
+                meta: _.meta,
                 ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
               },
               to: _.data[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
