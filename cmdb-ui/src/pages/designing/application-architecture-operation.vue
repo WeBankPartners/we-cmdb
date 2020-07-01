@@ -83,11 +83,7 @@
             <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
               <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
             </Tooltip>
-            <!-- <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
-              <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
-            </Tooltip> -->
           </template>
-          <!-- <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button> -->
           <div slot="content">
             <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
               <div
@@ -793,8 +789,6 @@ export default {
               this.operateData.children.forEach(child => {
                 if (md.data.code === child.data.code) {
                   child.meta = md.meta
-                } else {
-                  child.meta = []
                 }
               })
             })
