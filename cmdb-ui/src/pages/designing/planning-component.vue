@@ -103,7 +103,7 @@ export default {
       d3.select('#graph')
         .select(`#` + id)
         .select(this.activeNodeInfo.type)
-        .attr('fill', '#19be6b')
+        .attr('fill', '#ff9900')
     }
   },
   methods: {
@@ -127,11 +127,11 @@ export default {
         .select(`#a_gl_` + guid)
         .select('a')
         .select('path')
-        .attr('stroke', 'red')
+        .attr('stroke', '#ff9900')
       d3.select('#graph')
         .select(`#gl_` + guid)
         .select('text')
-        .attr('fill', 'red')
+        .attr('fill', '#ff9900')
     },
     operationReload (operateNodeData, operateLineData) {
       if (!operateNodeData) {
