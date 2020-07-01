@@ -16,10 +16,10 @@
       </Col>
     </Row> -->
     <Row class="resource-design-tab-row">
-      <Spin fix v-if="spinShow">
+      <!-- <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
         <div>{{ $t('loading') }}</div>
-      </Spin>
+      </Spin> -->
       <Row>
         <Col span="16">
           <Card>
@@ -155,28 +155,29 @@ export default {
   },
   methods: {
     operationReload (operateNodeData, operateLineData) {
-      if (!operateNodeData) {
-        this.loadMap(this.graphData, operateLineData)
-        return
-      }
-      let tmp = this.graphData[0]
-      this.levelData = []
-      let tmpData = null
-      if (this.cacheIdPath.length) {
-        this.cacheIdPath.forEach(id => {
-          this.levelData.unshift(tmp)
-          tmp = tmp.children.find(child => {
-            return `n_${child.guid}` === id
-          })
-        })
-        this.levelData.forEach(dataTmp => {
-          dataTmp.children[this.cacheIndex[0]] = operateNodeData
-          tmpData = dataTmp
-        })
-      } else {
-        tmpData = operateNodeData
-      }
-      this.loadMap([tmpData], operateLineData)
+      this.onIdcDataChange(this.selectedIdcs)
+      // if (!operateNodeData) {
+      //   this.loadMap(this.graphData, operateLineData)
+      //   return
+      // }
+      // let tmp = this.graphData[0]
+      // this.levelData = []
+      // let tmpData = null
+      // if (this.cacheIdPath.length) {
+      //   this.cacheIdPath.forEach(id => {
+      //     this.levelData.unshift(tmp)
+      //     tmp = tmp.children.find(child => {
+      //       return `n_${child.guid}` === id
+      //     })
+      //   })
+      //   this.levelData.forEach(dataTmp => {
+      //     dataTmp.children[this.cacheIndex[0]] = operateNodeData
+      //     tmpData = dataTmp
+      //   })
+      // } else {
+      //   tmpData = operateNodeData
+      // }
+      // this.loadMap([tmpData], operateLineData)
     },
     loadMap (graphData, operateLineData) {
       this.graphData = graphData
@@ -329,6 +330,8 @@ export default {
       }
     },
     async onIdcDataChange (selectedIdcs) {
+      console.log(22)
+      this.selectedIdcs = selectedIdcs
       // let willSelectIdc = {}
       this.idcData = []
       // this.selectedIdcs.forEach(_ => {
