@@ -146,7 +146,7 @@ export default {
       d3.select('#appLogicGraph')
         .select(`#` + id)
         .select(this.activeNodeInfo.type)
-        .attr('fill', '#2b85e4')
+        .attr('fill', '#19be6b')
     }
   },
   methods: {
