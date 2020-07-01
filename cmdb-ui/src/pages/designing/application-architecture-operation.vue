@@ -122,7 +122,6 @@
                   ></textarea>
                 </FormItem>
                 <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-                  {{ formData.referenceId }}-----
                   <Ref :formData="formData" :panalData="panal.data" :disabled="!isEdit || !formData.isEditable"></Ref>
                 </FormItem>
                 <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
