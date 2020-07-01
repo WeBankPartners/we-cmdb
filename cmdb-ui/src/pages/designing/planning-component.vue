@@ -1,18 +1,10 @@
 <template>
   <div>
-    <!-- <Row style="margin-bottom: 16px;">
-      <span>{{ $t('select_idc') }}：</span>
-      <Select :placeholder="$t('select_idc')" class="graph-select" @on-change="onIdcDataChange">
-        <Option v-for="item in allIdcs" :value="item.guid" :key="item.guid">
-          {{ item.name }}
-        </Option>
-      </Select>
-    </Row> -->
     <Row class="resource-design-tab-row">
-      <Spin fix v-if="spinShow">
+      <!-- <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
         <div>{{ $t('loading') }}</div>
-      </Spin>
+      </Spin> -->
       <Row>
         <Col span="16">
           <Card>
@@ -134,6 +126,7 @@ export default {
         .attr('fill', '#ff9900')
     },
     operationReload (operateNodeData, operateLineData) {
+      // this.onIdcDataChange(this.guid)
       if (!operateNodeData) {
         this.loadMap(this.graphData, operateLineData)
         return
@@ -185,9 +178,7 @@ export default {
           .map(_ => obj[_])
       }
       this.idcDesignData = sortingTree(graphData)
-
       if (operateLineData) {
-        console.log(operateLineData)
         const lineInfoData = operateLineData.lineInfo.data
         if (operateLineData.type === 'add') {
           this.idcLink.push({
@@ -203,7 +194,6 @@ export default {
           })
         }
         if (operateLineData.type === 'edit') {
-          console.log(11)
           const index = this.idcLink.findIndex(_ => {
             return _.guid === lineInfoData.guid
           })

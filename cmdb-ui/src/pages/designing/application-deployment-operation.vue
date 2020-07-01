@@ -97,11 +97,7 @@
                 :key="opera + panalIndex"
                 style="float:right"
               >
-                <Icon
-                  type="ios-share-alt"
-                  @click="discard(panalData, panalIndex, $event)"
-                  class="operation-icon-discard"
-                />
+                <Icon type="ios-share-alt" @click="discard(panal, $event)" class="operation-icon-discard" />
               </Tooltip>
             </template>
           </template>
@@ -612,6 +608,7 @@ export default {
       const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'confirm')
       if (statusCode === 'OK') {
         this.$Message.success('success!')
+        this.$emit('operationReload', '', {})
       }
     },
     async discard (data, event) {
@@ -619,6 +616,7 @@ export default {
       const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'discard')
       if (statusCode === 'OK') {
         this.$Message.success('success!')
+        this.$emit('operationReload', '', {})
       }
     },
     async deleteNode (panalData, panalIndex, event) {
