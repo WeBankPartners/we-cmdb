@@ -609,6 +609,7 @@ export default {
               }
             })
           }
+          this.$Modal.remove()
         },
         onCancel: () => {}
       })
@@ -658,7 +659,6 @@ export default {
           }
         })
       }
-      // this.$emit('operationReload', '')
     },
     async discard (data, event, type, index) {
       event.stopPropagation()
@@ -711,12 +711,12 @@ export default {
           }
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
-            this.$Modal.remove()
             this.$Message.success('success!')
             this.panalData.splice(panalIndex, 1)
             this.operateData.children = this.panalData
             this.$emit('operationReload', this.operateData)
           }
+          this.$Modal.remove()
         },
         onCancel: () => {}
       })
