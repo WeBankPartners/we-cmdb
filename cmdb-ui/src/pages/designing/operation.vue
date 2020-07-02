@@ -609,6 +609,7 @@ export default {
               }
             })
           }
+          this.$Modal.remove()
         },
         onCancel: () => {}
       })
@@ -658,7 +659,6 @@ export default {
           }
         })
       }
-      // this.$emit('operationReload', '')
     },
     async discard (data, event, type, index) {
       event.stopPropagation()
@@ -711,12 +711,12 @@ export default {
           }
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
-            this.$Modal.remove()
             this.$Message.success('success!')
             this.panalData.splice(panalIndex, 1)
             this.operateData.children = this.panalData
             this.$emit('operationReload', this.operateData)
           }
+          this.$Modal.remove()
         },
         onCancel: () => {}
       })
@@ -770,13 +770,15 @@ export default {
             ]
           }
         })
+        ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
         const params = {
           ciTypeId: this.selectedNodeType,
+          guid: ciData.data.contents[0].data.guid,
           data: ciData.data.contents[0].data,
           text: [ciData.data.contents[0].data.code]
         }
-        // text: [ciData.data.contents[0].data.code, ciData.data.contents[0].data.network_segment_design.code]
         this.panalData.push(params)
+
         this.operateData.children = this.panalData
         this.$emit('operationReload', this.operateData)
         this.cancleAddNode()
@@ -1006,7 +1008,9 @@ export default {
   },
   filters: {
     filterCode: function (val) {
-      return val.length > 25 ? val.substring(0, 25) + '...' : val
+      if (val) {
+        return val.length > 25 ? val.substring(0, 25) + '...' : val
+      }
     }
   },
   components: {

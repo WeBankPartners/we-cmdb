@@ -582,7 +582,6 @@ export default {
           }
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
-            this.$Modal.remove()
             this.$Message.success('success!')
             this.$emit('operationReload', '', {
               type: 'remove',
@@ -591,6 +590,7 @@ export default {
               }
             })
           }
+          this.$Modal.remove()
         },
         onCancel: () => {}
       })
@@ -632,12 +632,12 @@ export default {
           }
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
-            this.$Modal.remove()
             this.$Message.success('success!')
             // this.originData[0].children.splice(panalIndex, 1)
             // this.$emit('operationReload', this.originData)
             this.$emit('operationReload', '')
           }
+          this.$Modal.remove()
         },
         onCancel: () => {}
       })
@@ -906,7 +906,9 @@ export default {
   },
   filters: {
     filterCode: function (val) {
-      return val.length > 25 ? val.substring(0, 25) + '...' : val
+      if (val) {
+        return val.length > 25 ? val.substring(0, 25) + '...' : val
+      }
     }
   },
   components: {
