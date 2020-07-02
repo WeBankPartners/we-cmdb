@@ -12,7 +12,7 @@
       <h4>{{ $t('current_node') }}：</h4>
       <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
         <Panel name="1">
-          {{ parentPanalData.data.code | filterCode }}
+          {{ parentPanalData.data.key_name | filterCode }}
           <div slot="content">
             <Form>
               <div
@@ -77,7 +77,7 @@
       <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
         <Panel :name="panalIndex + 1 + ''" v-if="isShow" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
           <span style="">
-            {{ panal.data.code | filterCode }}
+            {{ panal.data.key_name | filterCode }}
           </span>
           <template v-for="opera in panal.data.meta.nextOperations">
             <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
