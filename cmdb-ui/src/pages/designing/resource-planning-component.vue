@@ -16,10 +16,10 @@
       </Col>
     </Row> -->
     <Row class="resource-design-tab-row">
-      <Spin fix v-if="spinShow">
+      <!-- <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
         <div>{{ $t('loading') }}</div>
-      </Spin>
+      </Spin> -->
       <Row>
         <Col span="16">
           <Card>
@@ -141,7 +141,7 @@ export default {
       d3.select('#resourcePlanningGraph')
         .select(`#` + id)
         .select(this.activeNodeInfo.type)
-        .attr('fill', '#2b85e4')
+        .attr('fill', '#ff9900')
     }
   },
   mounted () {
@@ -155,6 +155,7 @@ export default {
   },
   methods: {
     operationReload (operateNodeData, operateLineData) {
+      // this.onIdcDataChange(this.selectedIdcs)
       if (!operateNodeData) {
         this.loadMap(this.graphData, operateLineData)
         return
@@ -274,11 +275,11 @@ export default {
         .select(`#a_gl_` + guid)
         .select('a')
         .select('path')
-        .attr('stroke', 'red')
+        .attr('stroke', '#ff9900')
       d3.select('#resourcePlanningGraph')
         .select(`#gl_` + guid)
         .select('text')
-        .attr('fill', 'red')
+        .attr('fill', '#ff9900')
     },
     async getAllIdcData () {
       const { data, statusCode } = await getAllIdcData()
@@ -328,6 +329,7 @@ export default {
       }
     },
     async onIdcDataChange (selectedIdcs) {
+      this.selectedIdcs = selectedIdcs
       // let willSelectIdc = {}
       this.idcData = []
       // this.selectedIdcs.forEach(_ => {
@@ -401,6 +403,7 @@ export default {
               from: _.data[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
               linkInfo: {
                 ..._.data,
+                meta: _.meta,
                 ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
               },
               to: _.data[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,

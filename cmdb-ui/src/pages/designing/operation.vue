@@ -12,7 +12,7 @@
       <h4>{{ $t('current_node') }}：</h4>
       <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
         <Panel name="1">
-          {{ parentPanalData.data.code | filterCode }}
+          {{ parentPanalData.data.key_name | filterCode }}
           <div slot="content">
             <Form>
               <div
@@ -75,16 +75,29 @@
       </Collapse>
       <h5>{{ $t('subsidiary_node') }}：</h5>
       <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
-        <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
+        <Panel :name="panalIndex + 1 + ''" v-if="isShow" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
           <span style="">
-            {{ panal.data.code | filterCode }}
+            {{ panal.data.key_name | filterCode }}
           </span>
-          <Tooltip :content="$t('delete')" style="float:right">
-            <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
-          </Tooltip>
-          <Tooltip :content="$t('confirm')" style="float:right">
-            <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
-          </Tooltip>
+          <template v-for="opera in panal.data.meta.nextOperations">
+            <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
+              <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
+            </Tooltip>
+            <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
+              <Icon
+                type="md-checkmark"
+                @click="confirm(panal, $event, 'node', panalIndex)"
+                class="operation-icon-confirm"
+              />
+            </Tooltip>
+            <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera" style="float:right">
+              <Icon
+                type="ios-share-alt"
+                @click="discard(panal, $event, 'node', panalIndex)"
+                class="operation-icon-discard"
+              />
+            </Tooltip>
+          </template>
           <div slot="content">
             <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
               <div
@@ -135,7 +148,9 @@
               </div>
               <FormItem>
                 <div class="opetation-btn-zone">
-                  <Button @click="editOperation" type="info">{{ $t('edit') }}</Button>
+                  <Button @click="editOperation" type="info" :disabled="isEditEnable(panal.data.meta.nextOperations)">{{
+                    $t('edit')
+                  }}</Button>
                   <Button
                     type="primary"
                     @click="saveOperation('panalData', panalIndex)"
@@ -205,12 +220,28 @@
           <span style="">
             {{ link.key_name | filterCode }}
           </span>
-          <Tooltip :content="$t('delete')" style="float:right">
-            <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon-delete" />
-          </Tooltip>
-          <Tooltip :content="$t('confirm')" style="float:right">
-            <Icon type="md-checkmark" @click="confirm(link, $event)" class="operation-icon-confirm" />
-          </Tooltip>
+          <template v-if="link.meta.nextOperations">
+            <template v-for="opera in setNextOperations(link.meta.nextOperations)">
+              <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
+                <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon-delete" />
+              </Tooltip>
+              <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
+                <Icon
+                  type="md-checkmark"
+                  @click="confirm(link, $event, 'link', linkIndex)"
+                  class="operation-icon-confirm"
+                />
+              </Tooltip>
+              <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera" style="float:right">
+                <Icon
+                  type="ios-share-alt"
+                  @click="discard(link, $event, 'link', linkIndex)"
+                  class="operation-icon-discard"
+                />
+              </Tooltip>
+            </template>
+          </template>
+
           <div slot="content">
             <Form v-if="linkPanal[0] === linkIndex + 1 + ''">
               <div
@@ -258,7 +289,7 @@
                   <Button
                     type="primary"
                     @click="saveOperation('linkData', linkIndex)"
-                    :disabled="!isEdit"
+                    :disabled="!isEdit || isEditEnable(link.meta.nextOperations)"
                     class="opetation-btn"
                     >{{ $t('save') }}</Button
                   >
@@ -335,6 +366,7 @@ export default {
   name: '',
   data () {
     return {
+      isShow: true,
       graphCiTypeId: '',
       graphTableName: '',
       currentTab: 1,
@@ -381,13 +413,26 @@ export default {
     this.getAllCITypes()
   },
   methods: {
+    setNextOperations (nextOperations) {
+      return Array.from(new Set(nextOperations))
+    },
+    isEditEnable (val) {
+      if (val && val.includes('update')) {
+        return false
+      } else {
+        return true
+      }
+    },
     changeTab (tabNum) {
       this.currentTab = tabNum
       this.cancleAddLine()
       this.cancleAddNode()
     },
-    linkManagementData (linkData) {
+    async linkManagementData (linkData) {
       this.linkData = linkData
+      this.linkData.forEach(link => {
+        link.meta.nextOperations = Array.from(new Set(link.meta.nextOperations))
+      })
     },
     async openLinkPanal (panalId) {
       this.currentTab = 2
@@ -520,9 +565,16 @@ export default {
             ]
           }
         })
+        let tmp = null
+        if (ciData.statusCode === 'OK') {
+          tmp = ciData.data.contents[0].data
+          tmp.meta = ciData.data.contents[0].meta
+          tmp.ciTypeId = Number(ciTypeId)
+        }
         this.$emit('operationReload', '', {
           type: 'add',
-          lineInfo: ciData.data.contents[0]
+          lineInfo: tmp
+          // lineInfo: ciData.data.contents[0]
         })
         this.cancleAddLine()
       }
@@ -557,6 +609,7 @@ export default {
               }
             })
           }
+          this.$Modal.remove()
         },
         onCancel: () => {}
       })
@@ -569,11 +622,80 @@ export default {
         this.$Message.success('success!')
       }
     },
-    async confirm (data, event) {
+    async confirm (data, event, type, index) {
       event.stopPropagation()
       const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'confirm')
       if (statusCode === 'OK') {
         this.$Message.success('success!')
+      }
+      const ciData = await queryCiData({
+        id: data.ciTypeId,
+        queryObject: {
+          filters: [
+            {
+              name: 'guid',
+              value: data.guid,
+              operator: 'eq'
+            }
+          ]
+        }
+      })
+      let tmp = null
+      if (ciData.statusCode === 'OK') {
+        tmp = ciData.data.contents[0].data
+        tmp.meta = ciData.data.contents[0].meta
+        tmp.ciTypeId = Number(data.ciTypeId)
+      }
+      if (type === 'node') {
+        this.operateData.children[index].data = tmp
+        this.$emit('operationReload', this.operateData)
+      }
+      if (type === 'link') {
+        this.linkData[index] = tmp
+        this.$emit('operationReload', '', {
+          type: 'edit',
+          lineInfo: {
+            data: this.linkData[index]
+          }
+        })
+      }
+    },
+    async discard (data, event, type, index) {
+      event.stopPropagation()
+      const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'discard')
+      if (statusCode === 'OK') {
+        this.$Message.success('success!')
+      }
+      const ciData = await queryCiData({
+        id: data.ciTypeId,
+        queryObject: {
+          filters: [
+            {
+              name: 'guid',
+              value: data.guid,
+              operator: 'eq'
+            }
+          ]
+        }
+      })
+      let tmp = null
+      if (ciData.statusCode === 'OK') {
+        tmp = ciData.data.contents[0].data
+        tmp.meta = ciData.data.contents[0].meta
+        tmp.ciTypeId = Number(data.ciTypeId)
+      }
+      if (type === 'node') {
+        this.operateData.children[index].data = tmp
+        this.$emit('operationReload', this.operateData)
+      }
+      if (type === 'link') {
+        this.linkData[index] = tmp
+        this.$emit('operationReload', '', {
+          type: 'edit',
+          lineInfo: {
+            data: this.linkData[index]
+          }
+        })
       }
     },
     async deleteNode (panalData, panalIndex, event) {
@@ -589,12 +711,12 @@ export default {
           }
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
-            this.$Modal.remove()
             this.$Message.success('success!')
             this.panalData.splice(panalIndex, 1)
             this.operateData.children = this.panalData
             this.$emit('operationReload', this.operateData)
           }
+          this.$Modal.remove()
         },
         onCancel: () => {}
       })
@@ -648,13 +770,15 @@ export default {
             ]
           }
         })
+        ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
         const params = {
           ciTypeId: this.selectedNodeType,
+          guid: ciData.data.contents[0].data.guid,
           data: ciData.data.contents[0].data,
           text: [ciData.data.contents[0].data.code]
         }
-        // text: [ciData.data.contents[0].data.code, ciData.data.contents[0].data.network_segment_design.code]
         this.panalData.push(params)
+
         this.operateData.children = this.panalData
         this.$emit('operationReload', this.operateData)
         this.cancleAddNode()
@@ -692,6 +816,7 @@ export default {
       }
 
       let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
+      delete tmpPanalData.ciTypeId
       for (let key in activePanalData) {
         if (activePanalData[key] && typeof activePanalData[key] === 'object') {
           // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
@@ -721,15 +846,35 @@ export default {
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
         this.isEdit = false
+        const ciData = await queryCiData({
+          id: ciTypeId,
+          queryObject: {
+            filters: [
+              {
+                name: 'guid',
+                value: data[0].guid,
+                operator: 'eq'
+              }
+            ]
+          }
+        })
+        let tmp = null
         if (dataSource === 'parentPanalData') {
           this.operateData.data = data[0]
         }
         if (dataSource === 'panalData') {
-          this.operateData.children[index].data = data[0]
+          ciData.data.contents[0].meta.nextOperations = Array.from(new Set(ciData.data.contents[0].meta.nextOperations))
+
+          ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
+          this.operateData.children[index].data = ciData.data.contents[0].data
+          this.$emit('operationReload', this.operateData)
+          return
         }
         if (dataSource === 'linkData') {
-          this.linkData[index] = data[0]
-          this.linkData[index].ciTypeId = Number(ciTypeId)
+          tmp = ciData.data.contents[0].data
+          tmp.meta = ciData.data.contents[0].meta
+          tmp.ciTypeId = Number(ciTypeId)
+          this.linkData[index] = tmp
           this.$emit('operationReload', '', {
             type: 'edit',
             lineInfo: {
@@ -741,7 +886,7 @@ export default {
         this.$emit('operationReload', this.operateData)
       }
     },
-    managementData (operateData) {
+    async managementData (operateData) {
       this.currentTab = 1
       this.parentPanal = ''
       this.defaultPanal = ''
@@ -749,11 +894,54 @@ export default {
       this.cancleAddNode()
       this.operateData = operateData
       let tmp = JSON.parse(JSON.stringify(this.operateData))
-      this.getAttributes(tmp.ciTypeId, 'parentPanalForm')
       delete tmp.children
       this.parentPanalData = tmp
       if (this.operateData.children) {
-        this.panalData.push(...this.operateData.children)
+        let cacthCiTypeId = []
+        this.operateData.children.forEach(child => {
+          cacthCiTypeId.push(child.ciTypeId)
+        })
+        cacthCiTypeId = Array.from(new Set(cacthCiTypeId))
+        await cacthCiTypeId.forEach(async ciTypeId => {
+          let attr = await this.getAttr(ciTypeId)
+          attr.data.contents.forEach(md => {
+            this.operateData.children.forEach(child => {
+              if (md.data.code === child.data.code) {
+                md.meta.nextOperations = Array.from(new Set(md.meta.nextOperations))
+                child.data.meta = md.meta
+              }
+            })
+          })
+          this.panalData = []
+          this.panalData.push(...this.operateData.children)
+        })
+      }
+    },
+    async getAttr (ciTypeId) {
+      const { statusCode, data } = await getCiTypeAttributes(ciTypeId)
+      if (statusCode === 'OK') {
+        const ss = data.filter(_ => {
+          return _.referenceId === this.operateData.ciTypeId
+        })
+        const query = {
+          id: ciTypeId,
+          queryObject: {
+            dialect: {
+              showCiHistory: false
+            },
+            filters: [
+              {
+                name: ss[0].propertyName,
+                operator: 'eq',
+                value: this.operateData.guid
+              }
+            ]
+          }
+        }
+        const meta = await queryCiData(query)
+        if (meta.statusCode === 'OK') {
+          return meta
+        }
       }
     },
     async getNodeTypes (isOpen) {
@@ -793,9 +981,14 @@ export default {
       this.newNodeFormData[defaultAttr[0].propertyName].guid = this.parentPanalData.data.guid
       this.showNewNodeForm = true
     },
-    openParentPanal () {
-      this.defaultPanal = ''
-      // this.$emit('markZone', this.parentPanalData.guid)
+    openParentPanal (val) {
+      if (val.length) {
+        this.defaultPanal = ''
+        this.isEdit = false
+        const ciTypeId = this.operateData.ciTypeId
+        this.parentPanalForm = []
+        this.getAttributes(ciTypeId, 'parentPanalForm')
+      }
     },
     openPanal (panalId) {
       this.parentPanal = ''
@@ -815,7 +1008,9 @@ export default {
   },
   filters: {
     filterCode: function (val) {
-      return val.length > 25 ? val.substring(0, 25) + '...' : val
+      if (val) {
+        return val.length > 25 ? val.substring(0, 25) + '...' : val
+      }
     }
   },
   components: {
@@ -902,7 +1097,15 @@ export default {
 .opertaion /deep/ .ivu-tabs-ink-bar {
   width: 100% !important;
 }
-
+.operation-icon-discard {
+  font-size: 16px;
+  border: 1px solid #ff9900;
+  color: #ff9900;
+  border-radius: 4px;
+  width: 24px;
+  line-height: 24px;
+  margin: 6px;
+}
 .operation-icon-delete {
   font-size: 16px;
   border: 1px solid #ed4014;
