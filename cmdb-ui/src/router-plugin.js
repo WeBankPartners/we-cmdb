@@ -7,6 +7,7 @@ import logEnQuiry from '@/pages/admin/log-enquiry'
 import idcPlanningDesign from '@/pages/designing/planning'
 import idcResourcePlanning from '@/pages/designing/resource-planning'
 import applicationArchitectureDesign from '@/pages/designing/application-architecture'
+import applicationArchitectureQuery from '@/pages/designing/application-architecture-query'
 import applicationDeploymentDesign from '@/pages/designing/application-deployment'
 import wecmdbPermissions from '@/pages/admin/plugin-permission-management'
 
@@ -71,6 +72,11 @@ const router = [
     path: '/wecmdb/view-management/application-architecture-design',
     name: 'applicationArchitectureDesign',
     component: applicationArchitectureDesign
+  },
+  {
+    path: '/wecmdb/view-management/application-architecture-query',
+    name: 'applicationArchitectureQuery',
+    component: applicationArchitectureQuery
   },
   {
     path: '/wecmdb/view-management/application-deployment-design',
