@@ -770,13 +770,15 @@ export default {
             ]
           }
         })
+        ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
         const params = {
           ciTypeId: this.selectedNodeType,
+          guid: ciData.data.contents[0].data.guid,
           data: ciData.data.contents[0].data,
           text: [ciData.data.contents[0].data.code]
         }
-        // text: [ciData.data.contents[0].data.code, ciData.data.contents[0].data.network_segment_design.code]
         this.panalData.push(params)
+
         this.operateData.children = this.panalData
         this.$emit('operationReload', this.operateData)
         this.cancleAddNode()
@@ -1006,7 +1008,9 @@ export default {
   },
   filters: {
     filterCode: function (val) {
-      return val.length > 25 ? val.substring(0, 25) + '...' : val
+      if (val) {
+        return val.length > 25 ? val.substring(0, 25) + '...' : val
+      }
     }
   },
   components: {
