@@ -757,7 +757,6 @@ export default {
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
         this.showAddNodeArea = false
-
         const ciData = await queryCiData({
           id: this.selectedNodeType,
           queryObject: {
