@@ -8,12 +8,13 @@
       <Row>
         <Col span="16">
           <Card>
-            <div class="graph-container" id="graph"></div>
+            <div class="container-height" id="graph"></div>
           </Card>
         </Col>
         <Col span="8" class="operation-zone">
           <Card>
             <Operation
+              class="container-height"
               ref="transferData"
               @operationReload="operationReload"
               @markZone="markZone"
@@ -30,7 +31,7 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import { getSystems, getEnumCodesByCategoryId, getAllDeployTreesFromSystemCi } from '@/api/server.js'
+import { getEnumCodesByCategoryId, getAllDeployTreesFromSystemCi } from '@/api/server.js'
 import { colors, stateColor } from '../../const/graph-configuration'
 import { addEvent } from '../util/event.js'
 import { baseURL } from '@/api/base.js'
@@ -495,19 +496,6 @@ export default {
       })
       return dots
     },
-    onSystemDesignSelect (key) {
-      this.systemData = []
-      this.systemTreeData = []
-      this.systemLines = {}
-      this.graphNodes = {}
-      this.initADGraph()
-    },
-    async getSystems () {
-      let { statusCode, data } = await getSystems()
-      if (statusCode === 'OK') {
-        this.systems = data.contents.map(_ => _.data)
-      }
-    },
     async querySysTree () {
       this.spinShow = true
       this.getAllDeployTreesFromSystemCi()
@@ -519,7 +507,6 @@ export default {
         data.forEach(_ => {
           this.initParams[_.code] = Number(_.value) ? Number(_.value) : _.value
         })
-        this.getSystems()
       }
     }
   },
@@ -533,28 +520,7 @@ export default {
 .no-data {
   text-align: center;
 }
-
-.copy-modal {
-  .ivu-modal-body {
-    max-height: 450px;
-    overflow-y: auto;
-  }
-
-  .copy-form {
-    display: flex;
-    flex-flow: column nowrap;
-  }
-
-  .copy-input {
-    display: flex;
-    flex-flow: row nowrap;
-    margin-top: 20px;
-    align-items: center;
-
-    .ivu-input-number {
-      flex: 1;
-      margin-right: 15px;
-    }
-  }
+.container-height {
+  height: calc(100vh - 245px);
 }
 </style>
