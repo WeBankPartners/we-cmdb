@@ -7,12 +7,13 @@
     <Row>
       <Col span="16">
         <Card>
-          <div id="appLogicGraph"></div>
+          <div class="container-height" id="appLogicGraph"></div>
         </Card>
       </Col>
       <Col span="8" class="operation-zone">
         <Card>
           <Operation
+            class="container-height"
             ref="transferData"
             @operationReload="operationReload"
             @markZone="markZone"
@@ -28,13 +29,7 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import {
-  getEnumCodesByCategoryId,
-  getSystemDesigns,
-  getAllDesignTreeFromSystemDesign,
-  updateSystemDesign
-} from '@/api/server'
-import moment from 'moment'
+import { getEnumCodesByCategoryId, getAllDesignTreeFromSystemDesign } from '@/api/server'
 import { addEvent } from '../util/event.js'
 import { colors, stateColor } from '../../const/graph-configuration'
 import {
@@ -68,55 +63,18 @@ export default {
       },
       activeLineGuid: '',
 
-      tabList: [],
-      systemDesigns: [],
-      systemDesignsOrigin: [],
       systemDesignVersion: '',
-      deployTree: [],
-      fixVersionTreeModal: false,
-      payload: {
-        filters: [],
-        pageable: {
-          pageSize: 10,
-          startIndex: 0
-        },
-        paging: true
-      },
-      systemDesignCiTypeId: '',
-      invokeDesignCiTypeId: '',
+
       graph: {},
       systemDesignData: [],
       appLogicData: [],
       graphNodes: {},
-      currentTab: 'architectureDesign',
       spinShow: false,
-      isDataChanged: false,
-      physicalSpin: false,
       invokeLines: [],
-      isShowInvokeSequence: false,
-      invokeSequenceForm: {
-        isShowInvokeSequenceDetial: false,
-        invokeSequenceData: [],
-        spliceInvokeSequenceList: '',
-        totalNum: 0,
-        currentNum: 0,
-        currentInvokeSequenceTag: '',
-        currentInvokeSequence: [],
-        selectedInvokeSequence: ''
-      },
       appInvokeLines: {},
-      appServiceInvokeLines: {},
-      allowArch: false,
-      allowFixVersion: false,
       isTableViewOnly: true,
       systemDesignFixedDate: 0,
-      allUnitDesign: [],
-      buttonLoading: {
-        fixVersion: false,
-        fixVersionModal: false
-      },
-      initParams: {},
-      isHandleNodeClick: false
+      initParams: {}
     }
   },
   watch: {
@@ -182,11 +140,9 @@ export default {
     },
     async getAllDesignTreeFromSystemDesign (systemDesignVersion) {
       this.systemDesignVersion = systemDesignVersion
-      this.allUnitDesign = []
       const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
       if (treeData.statusCode === 'OK') {
         this.appInvokeLines = {}
-        this.appServiceInvokeLines = {}
         this.systemDesignFixedDate = +new Date(treeData.data[0].data.fixed_date)
         this.graphDataWithGuid = {}
         const formatAppLogicTree = array =>
@@ -203,9 +159,6 @@ export default {
               this.graphDataWithGuid['g_' + _.guid] = _
             } else {
               this.graphDataWithGuid['n_' + _.guid] = _
-            }
-            if (_.ciTypeId === this.initParams[UNIT_DESIGN_ID]) {
-              this.allUnitDesign.push(result)
             }
             return result
           })
@@ -239,90 +192,7 @@ export default {
         this.initGraph()
       }
     },
-    async onArchChange (isTableViewOnly = false) {
-      if (isTableViewOnly) {
-        this.queryGraphData(isTableViewOnly)
-      } else {
-        const { statusCode, data } = await updateSystemDesign(this.systemDesignVersion)
-        if (statusCode === 'OK') {
-          if (data.length) {
-            this.getSystemDesigns(() => {
-              this.queryGraphData(isTableViewOnly)
-            })
-          } else {
-            this.queryGraphData(isTableViewOnly)
-          }
-        }
-      }
-    },
-    async queryGraphData (isTableViewOnly) {
-      this.invokeSequenceForm.selectedInvokeSequence = ''
-      this.invokeSequenceForm.isShowInvokeSequenceDetial = false
-
-      if (this.systemDesignVersion === '') {
-        return
-      }
-      this.spinShow = true
-      this.physicalSpin = true
-      this.allowFixVersion = !isTableViewOnly
-      this.isTableViewOnly = isTableViewOnly
-      if (this.currentTab === 'architectureDesign' || this.currentTab === 'serviceInvoke') {
-        this.getAllDesignTreeFromSystemDesign()
-      }
-    },
-    async querySysTree () {
-      this.buttonLoading.fixVersion = true
-      if (this.systemDesignVersion === '') return
-      this.spinShow = true
-      const { statusCode, data } = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
-      if (statusCode === 'OK') {
-        this.spinShow = false
-        this.deployTree = this.formatTree(data).array
-        this.fixVersionTreeModal = true
-        this.buttonLoading.fixVersion = false
-      } else {
-        this.buttonLoading.fixVersion = false
-      }
-    },
-    formatTree (data) {
-      let array = []
-      let isShow = false
-      data.forEach(_ => {
-        let _isShow = false
-        if (!_.data.fixed_date) {
-          isShow = true
-          _isShow = true
-        }
-        const color = _.data.fixed_date ? '#000' : stateColor[_.data.state.code]
-        let result = {
-          fixed_date: _.data.fixed_date,
-          state: _.data.state.code,
-          expand: true,
-          render: (h, params) => <span style={'color:' + color + ';'}>{_.data.key_name}</span>
-        }
-        if (_.children instanceof Array && _.children.length && this.formatTree(_.children).isShow) {
-          isShow = true
-          _isShow = true
-          result.children = this.formatTree(_.children).array
-        }
-        if (_isShow) {
-          array.push(result)
-        }
-      })
-      if (array.length && isShow) {
-        return {
-          isShow: isShow,
-          array: array
-        }
-      } else {
-        return {
-          isShow: isShow,
-          array: []
-        }
-      }
-    },
     initGraph () {
-      this.isShowInvokeSequence = true
       this.spinShow = true
       let graph
       const initEvent = id => {
@@ -489,56 +359,6 @@ export default {
       })
       return result.join('') + nodes.join('')
     },
-    getSelectOptions (columns) {
-      columns.forEach(async _ => {
-        if (_.inputType === 'select') {
-          const { data } = await getEnumCodesByCategoryId(0, _.referenceId)
-          _['options'] = data
-            .filter(j => j.status === 'active')
-            .map(i => {
-              return {
-                label: i.value,
-                value: i.codeId
-              }
-            })
-        }
-      })
-      return columns
-    },
-    onSystemDesignSelect (key) {
-      this.allowArch = this.systemDesignsOrigin.some(x => x.r_guid === key) // 是否允许架构变更，当guid等于r_guid时允许
-      this.allowFixVersion = false
-      this.isTableViewOnly = true
-      if (this.currentTab !== 'architecture-design' && this.currentTab === 'serviceInvoke') {
-        this.tabList.forEach(ci => {
-          ci.tableData = []
-        })
-      }
-    },
-    async getSystemDesigns (callback) {
-      this.systemDesigns = []
-      const { statusCode, data } = await getSystemDesigns()
-      if (statusCode === 'OK') {
-        this.systemDesignsOrigin = data.contents.map(_ => _.data)
-        // 进行分组排序
-        const resultObj = this.systemDesignsOrigin
-          .sort((a, b) => {
-            if (!b.fixed_date) return 1
-            if (!a.fixed_date) return -1
-            if (moment(a.fixed_date).isSameOrAfter(moment(b.fixed_date))) return -1
-            return 1
-          })
-          .reduce((obj, x) => {
-            if (!obj[x.r_guid]) obj[x.r_guid] = []
-            x.guid === x.r_guid ? obj[x.r_guid].unshift(x) : obj[x.r_guid].push(x)
-            return obj
-          }, {})
-        this.systemDesigns = Object.values(resultObj)
-        if (callback && callback instanceof Function) {
-          callback()
-        }
-      }
-    },
     async getConfigParams () {
       const { statusCode, data } = await getEnumCodesByCategoryId(0, VIEW_CONFIG_PARAMS)
       if (statusCode === 'OK') {
@@ -546,7 +366,6 @@ export default {
         data.forEach(_ => {
           this.initParams[_.code] = Number(_.value) ? Number(_.value) : _.value
         })
-        this.getSystemDesigns()
       }
     }
   },
@@ -557,41 +376,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.ivu-card-head p {
-  height: 30px;
-  line-height: 30px;
-}
-.filter-title {
-  margin-right: 10px;
-}
 .no-data {
   text-align: center;
 }
-.app-tab {
-  height: calc(100vh - 240px);
-}
-
-.copy-modal {
-  .ivu-modal-body {
-    max-height: 450px;
-    overflow-y: auto;
-  }
-
-  .copy-form {
-    display: flex;
-    flex-flow: column nowrap;
-  }
-
-  .copy-input {
-    display: flex;
-    flex-flow: row nowrap;
-    margin-top: 20px;
-    align-items: center;
-
-    .ivu-input-number {
-      flex: 1;
-      margin-right: 15px;
-    }
-  }
+.container-height {
+  height: calc(100vh - 290px);
 }
 </style>
