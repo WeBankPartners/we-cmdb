@@ -12,7 +12,9 @@
       <h4>{{ $t('current_node') }}：</h4>
       <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
         <Panel name="1">
-          {{ parentPanalData.data.key_name | filterCode }}
+          <Tooltip :content="parentPanalData.data.key_name" :delay="500" placement="top">
+            <span> {{ parentPanalData.data.key_name | filterCode }}</span>
+          </Tooltip>
           <div slot="content">
             <Form>
               <div
@@ -76,9 +78,9 @@
       <h5>{{ $t('subsidiary_node') }}：</h5>
       <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
         <Panel :name="panalIndex + 1 + ''" v-if="isShow" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
-          <span style="">
-            {{ panal.data.key_name | filterCode }}
-          </span>
+          <Tooltip :content="panal.data.key_name" :delay="500" placement="top">
+            <span> {{ panal.data.key_name | filterCode }}</span>
+          </Tooltip>
           <template v-for="opera in panal.data.meta.nextOperations">
             <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
               <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
@@ -217,9 +219,9 @@
     <div v-if="currentTab === 2" class="operation-Collapse">
       <Collapse v-model="linkPanal" accordion @on-change="openLinkPanal">
         <Panel :name="linkIndex + 1 + ''" v-for="(link, linkIndex) in linkData" :key="linkIndex">
-          <span style="">
-            {{ link.key_name | filterCode }}
-          </span>
+          <Tooltip :content="link.key_name" :delay="500" placement="top">
+            <span> {{ link.key_name | filterCode }}</span>
+          </Tooltip>
           <template v-if="link.meta.nextOperations">
             <template v-for="opera in setNextOperations(link.meta.nextOperations)">
               <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
