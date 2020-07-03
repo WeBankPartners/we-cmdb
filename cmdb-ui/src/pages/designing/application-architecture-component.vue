@@ -15,6 +15,7 @@
           <Operation
             class="container-height"
             ref="transferData"
+            :hideNextOperations="hideNextOperations"
             @operationReload="operationReload"
             @markZone="markZone"
             @markEdge="markEdge"
@@ -72,11 +73,11 @@ export default {
       spinShow: false,
       invokeLines: [],
       appInvokeLines: {},
-      isTableViewOnly: true,
       systemDesignFixedDate: 0,
       initParams: {}
     }
   },
+  props: ['hideNextOperations'],
   watch: {
     cacheIdPath: function (val) {
       // 选中节点颜色控制
