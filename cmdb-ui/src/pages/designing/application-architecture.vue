@@ -73,6 +73,7 @@
             <div v-show="showApplicationArchitectureComponent">
               <ApplicationArchitectureComponent
                 ref="applicationArchitectureComponent"
+                :hideNextOperations="!isTableViewOnly"
               ></ApplicationArchitectureComponent>
             </div>
             <div v-if="!showApplicationArchitectureComponent" class="no-data">
