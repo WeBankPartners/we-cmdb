@@ -16,6 +16,7 @@
             <Operation
               class="container-height"
               ref="transferData"
+              :hideNextOperations="true"
               @operationReload="operationReload"
               @markZone="markZone"
               @markEdge="markEdge"
@@ -43,7 +44,7 @@ import {
   INVOKE_UNIT,
   INVOKED_UNIT
 } from '@/const/init-params.js'
-import Operation from './application-deployment-operation'
+import Operation from './application-operation'
 export default {
   components: {
     Operation

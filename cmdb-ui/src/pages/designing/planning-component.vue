@@ -40,7 +40,7 @@ import {
   IDC_PLANNING_LINK_FROM,
   IDC_PLANNING_LINK_TO
 } from '@/const/init-params.js'
-import Operation from './operation'
+import Operation from './planning-operation'
 
 export default {
   data () {

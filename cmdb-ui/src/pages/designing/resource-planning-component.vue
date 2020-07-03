@@ -1,20 +1,5 @@
 <template>
   <div>
-    <!-- <Row class="graph-select-row">
-      <Col span="8" offset="1" class="resource-planning-title">
-        <TreeSelect
-          v-model="selectedIdcs"
-          :maxTagCount="3"
-          :placeholder="$t('select_idc')"
-          :data="treeIdcs"
-          :clearable="true"
-          style="width:100%"
-        ></TreeSelect>
-      </Col>
-      <Col span="6">
-        <Button @click="onIdcDataChange" type="primary">{{ $t('query') }}</Button>
-      </Col>
-    </Row> -->
     <Row class="resource-design-tab-row">
       <!-- <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
@@ -65,7 +50,7 @@ import {
   RESOURCE_PLANNING_ROUTER_CODE,
   DEFAULT_SECURITY_POLICY_CODE
 } from '@/const/init-params.js'
-import Operation from './operation'
+import Operation from './planning-operation'
 import { addEvent } from '../util/event.js'
 
 export default {
