@@ -48,7 +48,7 @@
                 multiSelect
               </FormItem>
             </div>
-            <FormItem>
+            <FormItem v-if="hideNextOperations">
               <div class="opetation-btn-zone">
                 <Button @click="editOperation" type="info">{{ $t('edit') }}</Button>
                 <Button
@@ -70,7 +70,7 @@
         <span style="">
           {{ panal.data.key_name | filterCode }}
         </span>
-        <template v-if="panal.meta.nextOperations">
+        <template v-if="panal.meta.nextOperations && hideNextOperations">
           <template v-for="opera in panal.meta.nextOperations">
             <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera + panalIndex" style="float:right">
               <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
@@ -121,7 +121,7 @@
                 multiSelect
               </FormItem>
             </div>
-            <FormItem>
+            <FormItem v-if="hideNextOperations">
               <div class="opetation-btn-zone">
                 <Button @click="editOperation" :disabled="isEditEnable(panal.meta.nextOperations)" type="info">{{
                   $t('edit')
@@ -138,7 +138,7 @@
           </Form>
         </div>
       </Panel>
-      <div style="margin: 12px;">
+      <div style="margin: 12px;" v-if="hideNextOperations">
         <Button @click="showAddNodeArea = true" size="small" long type="info">{{ $t('add_node') }}</Button>
       </div>
     </Collapse>
@@ -249,6 +249,7 @@ export default {
       currentLineId: null
     }
   },
+  props: ['hideNextOperations'],
   mounted () {
     this.getAllCITypes()
     this.linkPanal = ''
