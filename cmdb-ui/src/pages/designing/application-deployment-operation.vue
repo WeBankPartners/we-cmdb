@@ -1,337 +1,196 @@
 <template>
-  <div class="operation">
-    <!-- <div class="diy-tabs">
-      <div :class="['diy-tab', currentTab === 1 ? 'active-tab' : '']" @click="changeTab(1)">
-        <span>{{ $t('node_information') }}</span>
-      </div>
-      <div :class="['diy-tab', currentTab === 2 ? 'active-tab' : '']" @click="changeTab(2)">
-        <span>{{ $t('link_information') }}</span>
-      </div>
-    </div> -->
-    <div v-if="currentTab === 1" class="operation-Collapse">
-      <h4>{{ $t('current_node') }}：</h4>
-      <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
-        <Panel name="1">
-          {{ parentPanalData.data.key_name | filterCode }}
-          <div slot="content">
-            <Form>
-              <div
-                v-for="(formData, formDataIndex) in parentPanalForm"
-                v-if="formData.isDisplayed"
-                :key="formDataIndex + 'a'"
-              >
-                <Tooltip :content="formData.description" :delay="500" placement="left-start">
-                  <span class="form-item-title"> {{ formData.name }}</span>
-                </Tooltip>
-                <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-                  <Input
-                    v-model="parentPanalData.data[formData.propertyName]"
-                    :disabled="!isEdit || !formData.isEditable"
-                  ></Input>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
-                  <textarea
-                    v-model="parentPanalData.data[formData.propertyName]"
-                    :disabled="!isEdit || !formData.isEditable"
-                    class="textArea-style"
-                  ></textarea>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-                  <Ref
-                    :formData="formData"
-                    :panalData="parentPanalData.data"
-                    :disabled="!isEdit || !formData.isEditable"
-                  ></Ref>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-                  <MutiRef
-                    :formData="formData"
-                    :panalData="parentPanalData.data"
-                    :disabled="!isEdit || !formData.isEditable"
-                  ></MutiRef>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
-                  select
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
-                  multiSelect
-                </FormItem>
-              </div>
-              <FormItem>
-                <div class="opetation-btn-zone">
-                  <Button @click="editOperation" type="info">{{ $t('edit') }}</Button>
-                  <Button
-                    type="primary"
-                    @click="saveOperation('parentPanalData')"
-                    :disabled="!isEdit"
-                    class="opetation-btn"
-                    >{{ $t('save') }}</Button
-                  >
-                </div>
+  <div class="operation-Collapse">
+    <h4>{{ $t('current_node') }}：</h4>
+    <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
+      <Panel name="1">
+        {{ parentPanalData.data.key_name | filterCode }}
+        <div slot="content">
+          <Form>
+            <div
+              v-for="(formData, formDataIndex) in parentPanalForm"
+              v-if="formData.isDisplayed"
+              :key="formDataIndex + 'a'"
+            >
+              <Tooltip :content="formData.description" :delay="500" placement="left-start">
+                <span class="form-item-title"> {{ formData.name }}</span>
+              </Tooltip>
+              <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
+                <Input
+                  v-model="parentPanalData.data[formData.propertyName]"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></Input>
               </FormItem>
-            </Form>
-          </div>
-        </Panel>
-      </Collapse>
-      <h5>{{ $t('subsidiary_node') }}：</h5>
-      <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
-        <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
-          <span style="">
-            {{ panal.data.key_name | filterCode }}
-          </span>
-          <template v-if="panal.meta.nextOperations">
-            <template v-for="opera in panal.meta.nextOperations">
-              <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera + panalIndex" style="float:right">
-                <Icon
-                  type="md-trash"
-                  @click="deleteNode(panalData, panalIndex, $event)"
-                  class="operation-icon-delete"
-                />
-              </Tooltip>
-              <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
-                <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
-              </Tooltip>
-              <Tooltip
-                :content="$t('discard')"
-                v-if="opera === 'discard'"
-                :key="opera + panalIndex"
-                style="float:right"
-              >
-                <Icon type="ios-share-alt" @click="discard(panal, $event)" class="operation-icon-discard" />
-              </Tooltip>
-            </template>
+              <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
+                <textarea
+                  v-model="parentPanalData.data[formData.propertyName]"
+                  :disabled="!isEdit || !formData.isEditable"
+                  class="textArea-style"
+                ></textarea>
+              </FormItem>
+              <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
+                <Ref
+                  :formData="formData"
+                  :panalData="parentPanalData.data"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></Ref>
+              </FormItem>
+              <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
+                <MutiRef
+                  :formData="formData"
+                  :panalData="parentPanalData.data"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></MutiRef>
+              </FormItem>
+              <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
+                select
+              </FormItem>
+              <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
+                multiSelect
+              </FormItem>
+            </div>
+            <FormItem>
+              <div class="opetation-btn-zone">
+                <Button @click="editOperation" type="info">{{ $t('edit') }}</Button>
+                <Button
+                  type="primary"
+                  @click="saveOperation('parentPanalData')"
+                  :disabled="!isEdit"
+                  class="opetation-btn"
+                  >{{ $t('save') }}</Button
+                >
+              </div>
+            </FormItem>
+          </Form>
+        </div>
+      </Panel>
+    </Collapse>
+    <h5>{{ $t('subsidiary_node') }}：</h5>
+    <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
+      <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
+        <span style="">
+          {{ panal.data.key_name | filterCode }}
+        </span>
+        <template v-if="panal.meta.nextOperations">
+          <template v-for="opera in panal.meta.nextOperations">
+            <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera + panalIndex" style="float:right">
+              <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
+            </Tooltip>
+            <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
+              <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
+            </Tooltip>
+            <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera + panalIndex" style="float:right">
+              <Icon type="ios-share-alt" @click="discard(panal, $event)" class="operation-icon-discard" />
+            </Tooltip>
           </template>
-          <!-- <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button> -->
-          <div slot="content">
-            <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
-              <div
-                v-for="(formData, formDataIndex) in panalForm"
-                v-if="formData.isDisplayed"
-                :key="formDataIndex + 'b'"
-              >
-                <Tooltip :content="formData.description" :delay="500" placement="left-start">
-                  <span class="form-item-title"> {{ formData.name }}</span>
-                </Tooltip>
-                <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-                  <Input
-                    v-model="panal.data[formData.propertyName]"
-                    :disabled="!isEdit || !formData.isEditable"
-                  ></Input>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
-                  <textarea
-                    v-model="panal.data[formData.propertyName]"
-                    :disabled="!isEdit || !formData.isEditable"
-                    class="textArea-style"
-                  ></textarea>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-                  <Ref :formData="formData" :panalData="panal.data" :disabled="!isEdit || !formData.isEditable"></Ref>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-                  <MutiRef
-                    :formData="formData"
-                    :panalData="panal.data"
-                    :disabled="!isEdit || !formData.isEditable"
-                  ></MutiRef>
-                </FormItem>
-                <FormItem
-                  v-if="formData.inputType === 'select'"
-                  :disabled="!isEdit || !formData.isEditable"
-                  class="form-item-content"
-                >
-                  select
-                </FormItem>
-                <FormItem
-                  v-if="formData.inputType === 'multiSelect'"
-                  :disabled="!isEdit || !formData.isEditable"
-                  class="form-item-content"
-                >
-                  multiSelect
-                </FormItem>
-              </div>
-              <FormItem>
-                <div class="opetation-btn-zone">
-                  <Button @click="editOperation" :disabled="isEditEnable(panal.meta.nextOperations)" type="info">{{
-                    $t('edit')
-                  }}</Button>
-                  <Button
-                    type="primary"
-                    @click="saveOperation('panalData', panalIndex)"
-                    :disabled="!isEdit"
-                    class="opetation-btn"
-                    >{{ $t('save') }}</Button
-                  >
-                </div>
+        </template>
+        <!-- <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button> -->
+        <div slot="content">
+          <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
+            <div v-for="(formData, formDataIndex) in panalForm" v-if="formData.isDisplayed" :key="formDataIndex + 'b'">
+              <Tooltip :content="formData.description" :delay="500" placement="left-start">
+                <span class="form-item-title"> {{ formData.name }}</span>
+              </Tooltip>
+              <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
+                <Input v-model="panal.data[formData.propertyName]" :disabled="!isEdit || !formData.isEditable"></Input>
               </FormItem>
-            </Form>
-          </div>
-        </Panel>
-        <div style="margin: 12px;">
-          <Button @click="showAddNodeArea = true" size="small" long type="info">{{ $t('add_node') }}</Button>
-        </div>
-      </Collapse>
-      <div v-if="showAddNodeArea" class="add-node-area">
-        <Select v-model="selectedNodeType" @on-change="getNewNodeAttr" @on-open-change="getNodeTypes">
-          <Option v-for="(item, index) in canCreateNodeTypes" :value="item.value" :key="item.value + index">{{
-            item.label
-          }}</Option>
-        </Select>
-        <Form v-if="showNewNodeForm" class="add-node-area">
-          <div
-            v-for="(formData, formDataIndex) in newNodeForm"
-            v-if="formData.isDisplayed && formData.isEditable"
-            :key="formDataIndex + 'a'"
-          >
-            <Tooltip :content="formData.description" :delay="500" placement="left-start">
-              <span class="form-item-title"> {{ formData.name }}</span>
-            </Tooltip>
-            <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-              <Input v-model="newNodeFormData[formData.propertyName]"></Input>
-            </FormItem>
-            <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
-              <textarea v-model="newNodeFormData[formData.propertyName]" class="textArea-style"></textarea>
-            </FormItem>
-            <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-              <Ref
-                :formData="formData"
-                :panalData="newNodeFormData"
-                :disabled="formData.referenceId === parentPanalData.ciTypeId"
-              ></Ref>
-            </FormItem>
-            <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-              <MutiRef :formData="formData" :panalData="newNodeFormData"></MutiRef>
-            </FormItem>
-            <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
-              select
-            </FormItem>
-            <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
-              multiSelect
-            </FormItem>
-          </div>
-          <FormItem>
-            <div class="opetation-btn-zone">
-              <Button type="primary" @click="createNode">{{ $t('save') }}</Button>
-              <Button @click="cancleAddNode" class="opetation-btn">{{ $t('cancel') }}</Button>
-            </div>
-          </FormItem>
-        </Form>
-      </div>
-    </div>
-    <div v-if="currentTab === 2" class="operation-Collapse">
-      <Collapse v-model="linkPanal" accordion @on-change="openLinkPanal">
-        <Panel :name="linkIndex + 1 + ''" v-for="(link, linkIndex) in linkData" :key="linkIndex">
-          <span style="">
-            {{ link.key_name | filterCode }}
-          </span>
-          <Tooltip :content="$t('delete')" style="float:right">
-            <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon-delete" />
-          </Tooltip>
-          <Tooltip :content="$t('confirm')" style="float:right">
-            <Icon type="md-checkmark" @click="confirm(link, $event)" class="operation-icon-confirm" />
-          </Tooltip>
-          <div slot="content">
-            <Form v-if="linkPanal[0] === linkIndex + 1 + ''">
-              <div
-                v-for="(formData, formDataIndex) in linkPanalForm"
-                v-if="formData.isDisplayed"
-                :key="formDataIndex + 'b'"
-              >
-                <Tooltip :content="formData.description" :delay="500" placement="left-start">
-                  <span class="form-item-title"> {{ formData.name }}</span>
-                </Tooltip>
-                <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-                  <Input v-model="link[formData.propertyName]" :disabled="!isEdit || !formData.isEditable"></Input>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
-                  <textarea
-                    v-model="link[formData.propertyName]"
-                    :disabled="!isEdit || !formData.isEditable"
-                    class="textArea-style"
-                  ></textarea>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-                  <Ref :formData="formData" :panalData="link" :disabled="!isEdit || !formData.isEditable"></Ref>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-                  <MutiRef :formData="formData" :panalData="link" :disabled="!isEdit || !formData.isEditable"></MutiRef>
-                </FormItem>
-                <FormItem
-                  v-if="formData.inputType === 'select'"
+              <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
+                <textarea
+                  v-model="panal.data[formData.propertyName]"
                   :disabled="!isEdit || !formData.isEditable"
-                  class="form-item-content"
-                >
-                  select
-                </FormItem>
-                <FormItem
-                  v-if="formData.inputType === 'multiSelect'"
-                  :disabled="!isEdit || !formData.isEditable"
-                  class="form-item-content"
-                >
-                  multiSelect
-                </FormItem>
-              </div>
-              <FormItem>
-                <div class="opetation-btn-zone">
-                  <Button @click="editOperation" type="info">{{ $t('edit') }}</Button>
-                  <Button
-                    type="primary"
-                    @click="saveOperation('linkData', linkIndex)"
-                    :disabled="!isEdit"
-                    class="opetation-btn"
-                    >{{ $t('save') }}</Button
-                  >
-                </div>
+                  class="textArea-style"
+                ></textarea>
               </FormItem>
-            </Form>
-          </div>
-        </Panel>
-        <div style="margin: 12px;">
-          <Button @click="showAddLineArea = true" size="small" long type="info">新增连线</Button>
-        </div>
-      </Collapse>
-      <div v-if="showAddLineArea" class="add-node-area">
-        <Select v-model="selectedLineType" @on-change="getNewLineAttr" @on-open-change="getLineTypes">
-          <Option v-for="(item, index) in canCreateLineTypes" :value="item.value" :key="item.value + index">{{
-            item.label
-          }}</Option>
-        </Select>
-        <Form v-if="showNewLineForm" class="add-node-area">
-          <div
-            v-for="(formData, formDataIndex) in newLineForm"
-            v-if="formData.isDisplayed && formData.isEditable"
-            :key="formDataIndex + 'a'"
-          >
-            <Tooltip :content="formData.description" :delay="500" placement="left-start">
-              <span class="form-item-title"> {{ formData.name }}</span>
-            </Tooltip>
-            <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-              <Input v-model="newLineFormData[formData.propertyName]"></Input>
-            </FormItem>
-            <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
-              <textarea v-model="newLineFormData[formData.propertyName]" class="textArea-style"></textarea>
-            </FormItem>
-            <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-              <Ref :formData="formData" :panalData="newLineFormData" :disabled="false"></Ref>
-            </FormItem>
-            <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-              <MutiRef :formData="formData" :panalData="newLineFormData"></MutiRef>
-            </FormItem>
-            <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
-              select
-            </FormItem>
-            <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
-              multiSelect
-            </FormItem>
-          </div>
-          <FormItem>
-            <div class="opetation-btn-zone">
-              <Button type="primary" @click="createLine">{{ $t('save') }}</Button>
-              <Button @click="cancleAddLine" class="opetation-btn">{{ $t('cancel') }}</Button>
+              <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
+                <Ref :formData="formData" :panalData="panal.data" :disabled="!isEdit || !formData.isEditable"></Ref>
+              </FormItem>
+              <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
+                <MutiRef
+                  :formData="formData"
+                  :panalData="panal.data"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></MutiRef>
+              </FormItem>
+              <FormItem
+                v-if="formData.inputType === 'select'"
+                :disabled="!isEdit || !formData.isEditable"
+                class="form-item-content"
+              >
+                select
+              </FormItem>
+              <FormItem
+                v-if="formData.inputType === 'multiSelect'"
+                :disabled="!isEdit || !formData.isEditable"
+                class="form-item-content"
+              >
+                multiSelect
+              </FormItem>
             </div>
-          </FormItem>
-        </Form>
+            <FormItem>
+              <div class="opetation-btn-zone">
+                <Button @click="editOperation" :disabled="isEditEnable(panal.meta.nextOperations)" type="info">{{
+                  $t('edit')
+                }}</Button>
+                <Button
+                  type="primary"
+                  @click="saveOperation('panalData', panalIndex)"
+                  :disabled="!isEdit"
+                  class="opetation-btn"
+                  >{{ $t('save') }}</Button
+                >
+              </div>
+            </FormItem>
+          </Form>
+        </div>
+      </Panel>
+      <div style="margin: 12px;">
+        <Button @click="showAddNodeArea = true" size="small" long type="info">{{ $t('add_node') }}</Button>
       </div>
+    </Collapse>
+    <div v-if="showAddNodeArea" class="add-node-area">
+      <Select v-model="selectedNodeType" @on-change="getNewNodeAttr" @on-open-change="getNodeTypes">
+        <Option v-for="(item, index) in canCreateNodeTypes" :value="item.value" :key="item.value + index">{{
+          item.label
+        }}</Option>
+      </Select>
+      <Form v-if="showNewNodeForm" class="add-node-area">
+        <div
+          v-for="(formData, formDataIndex) in newNodeForm"
+          v-if="formData.isDisplayed && formData.isEditable"
+          :key="formDataIndex + 'a'"
+        >
+          <Tooltip :content="formData.description" :delay="500" placement="left-start">
+            <span class="form-item-title"> {{ formData.name }}</span>
+          </Tooltip>
+          <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
+            <Input v-model="newNodeFormData[formData.propertyName]"></Input>
+          </FormItem>
+          <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
+            <textarea v-model="newNodeFormData[formData.propertyName]" class="textArea-style"></textarea>
+          </FormItem>
+          <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
+            <Ref
+              :formData="formData"
+              :panalData="newNodeFormData"
+              :disabled="formData.referenceId === parentPanalData.ciTypeId"
+            ></Ref>
+          </FormItem>
+          <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
+            <MutiRef :formData="formData" :panalData="newNodeFormData"></MutiRef>
+          </FormItem>
+          <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
+            select
+          </FormItem>
+          <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
+            multiSelect
+          </FormItem>
+        </div>
+        <FormItem>
+          <div class="opetation-btn-zone">
+            <Button type="primary" @click="createNode">{{ $t('save') }}</Button>
+            <Button @click="cancleAddNode" class="opetation-btn">{{ $t('cancel') }}</Button>
+          </div>
+        </FormItem>
+      </Form>
     </div>
   </div>
 </template>
@@ -356,12 +215,10 @@ export default {
     return {
       graphCiTypeId: '',
       graphTableName: '',
-      currentTab: 1,
       initParams: {},
       parentPanal: '',
       parentPanalData: { data: { code: '' } },
       parentPanalForm: [],
-      activeTab: 'nodeTab',
       originData: null, // 初始数据
 
       defaultPanal: '',
@@ -409,13 +266,6 @@ export default {
         return true
       }
     },
-    changeTab (tabNum) {
-      this.defaultPanal = []
-      this.linkPanal = []
-      this.currentTab = tabNum
-      this.cancleAddLine()
-      this.cancleAddNode()
-    },
     linkManagementData (linkData) {
       this.linkData = linkData
       if (linkData.length > 0) {
@@ -425,7 +275,6 @@ export default {
       }
     },
     async openLinkPanal (panalId) {
-      this.currentTab = 2
       this.isEdit = false
       if (panalId.length) {
         this.linkPanal = panalId[0]
@@ -784,7 +633,6 @@ export default {
       }
     },
     async managementData (operateData) {
-      this.currentTab = 1
       this.parentPanal = ''
       this.defaultPanal = ''
       this.panalData = []
@@ -920,31 +768,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
-// .operation {
-//   overflow: auto;
-//   height: calc(100vh - 205px);
-// }
 .operation-Collapse {
   overflow: auto;
-  height: calc(100vh - 285px);
-}
-.diy-tabs {
-  display: flex;
-  justify-content: space-around;
-  border-bottom: 1px solid #dcdee2;
-  flex-grow: 1;
-  margin-bottom: 8px;
-}
-.diy-tab {
-  width: 50%;
-  text-align: center;
-  // padding: 8px 16px;
-  cursor: pointer;
-}
-.active-tab {
-  /* width: 50%; */
-  color: #2d8cf0;
-  border-bottom: 2px solid #2d8cf0;
 }
 
 .ivu-form-item {
@@ -988,13 +813,6 @@ export default {
   margin-top: 8px;
 }
 
-.opertaion /deep/ .ivu-tabs-tab {
-  width: 100%;
-  text-align: center;
-}
-.opertaion /deep/ .ivu-tabs-ink-bar {
-  width: 100% !important;
-}
 .operation-icon-discard {
   font-size: 16px;
   border: 1px solid #ff9900;
@@ -1022,9 +840,4 @@ export default {
   line-height: 24px;
   margin: 6px;
 }
-
-// .operation-icon:hover {
-//   color: #57a3f3;
-//   border-color: #57a3f3;
-// }
 </style>
