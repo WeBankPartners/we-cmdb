@@ -3,8 +3,11 @@
     <h5>{{ $t('current_node') }}：</h5>
     <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
       <Panel name="1">
-        <Tooltip :content="parentPanalData.data.key_name" :delay="500" placement="top">
+        <Tooltip :delay="500" placement="top">
           <span> {{ parentPanalData.data.key_name | filterCode }}</span>
+          <div slot="content" style="white-space: normal;">
+            {{ parentPanalData.data.key_name }}
+          </div>
         </Tooltip>
         <div slot="content">
           <Form>
@@ -69,8 +72,11 @@
     <h5>{{ $t('subsidiary_node') }}：</h5>
     <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
       <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
-        <Tooltip :content="panal.data.key_name" :delay="500" placement="top">
+        <Tooltip :delay="500" placement="top">
           <span> {{ panal.data.key_name | filterCode }}</span>
+          <div slot="content" style="white-space: normal;">
+            {{ panal.data.key_name }}
+          </div>
         </Tooltip>
         <template v-for="opera in panal.meta.nextOperations" v-if="hideNextOperations">
           <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera + panalIndex" style="float:right">
