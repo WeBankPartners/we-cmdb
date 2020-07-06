@@ -82,7 +82,8 @@
       <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
         <Panel :name="panalIndex + 1 + ''" v-if="isShow" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
           <Tooltip :delay="500" placement="top">
-            <span> {{ panal.data.key_name | filterCode }}</span>
+            <span style="color:red">{{ findCiType(panal) }}</span>
+            <span>-{{ panal.data.key_name | filterCode }}</span>
             <div slot="content" style="white-space: normal;">
               {{ panal.data.key_name }}
             </div>
@@ -226,7 +227,8 @@
       <Collapse v-model="linkPanal" accordion @on-change="openLinkPanal">
         <Panel :name="linkIndex + 1 + ''" v-for="(link, linkIndex) in linkData" :key="linkIndex">
           <Tooltip :delay="500" placement="top">
-            <span> {{ link.key_name | filterCode }}</span>
+            <span style="color:red">{{ findCiType(link) }}</span>
+            <span> -{{ link.key_name | filterCode }}</span>
             <div slot="content" style="white-space: normal;">
               {{ link.key_name }}
             </div>
@@ -1012,6 +1014,13 @@ export default {
       const { statusCode, data } = await getCiTypeAttributes(ciTypeId)
       if (statusCode === 'OK') {
         this[formObject] = data
+      }
+    },
+    findCiType (formData) {
+      for (let key in this.allCITypes) {
+        if (this.allCITypes[key].ciTypeId === formData.ciTypeId) {
+          return this.allCITypes[key].tableName
+        }
       }
     }
   },

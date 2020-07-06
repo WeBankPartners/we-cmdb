@@ -73,7 +73,7 @@
     <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
       <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
         <Tooltip :delay="500" placement="top">
-          <span style="color:#2db7f5">{{ findCiType(panal) }}</span>
+          <span style="color:red">{{ findCiType(panal) }}</span>
           <span>-{{ panal.data.key_name | filterCode }}</span>
           <div slot="content" style="white-space: normal;">
             {{ panal.data.key_name }}
@@ -653,6 +653,7 @@ export default {
               if (md.data.code === child.data.code) {
                 md.meta.nextOperations = Array.from(new Set(md.meta.nextOperations))
                 child.meta = md.meta
+                child.tableName = this.findCiType(child)
               }
             })
           })
