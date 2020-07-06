@@ -72,15 +72,13 @@
         <Tooltip :content="panal.data.key_name" :delay="500" placement="top">
           <span> {{ panal.data.key_name | filterCode }}</span>
         </Tooltip>
-        <template v-if="panal.meta.nextOperations && hideNextOperations">
-          <template v-for="opera in panal.meta.nextOperations">
-            <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera + panalIndex" style="float:right">
-              <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
-            </Tooltip>
-            <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera + panalIndex" style="float:right">
-              <Icon type="ios-share-alt" @click="discard(panal, $event)" class="operation-icon-discard" />
-            </Tooltip>
-          </template>
+        <template v-for="opera in panal.meta.nextOperations" v-if="hideNextOperations">
+          <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera + panalIndex" style="float:right">
+            <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
+          </Tooltip>
+          <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera + panalIndex" style="float:right">
+            <Icon type="ios-share-alt" @click="discard(panal, $event)" class="operation-icon-discard" />
+          </Tooltip>
         </template>
         <div slot="content">
           <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
@@ -205,7 +203,6 @@ import {
   getAllCITypesByLayerWithAttr
 } from '@/api/server'
 import Ref from './ref'
-import RefAdd from './ref-add'
 import MutiRef from './muti-ref'
 export default {
   name: '',
@@ -653,6 +650,7 @@ export default {
             })
           })
           this.panalData = []
+          console.log(this.operateData.children)
           this.panalData.push(...this.operateData.children)
         })
       }
@@ -756,7 +754,6 @@ export default {
   },
   components: {
     Ref,
-    RefAdd,
     MutiRef
   }
 }
