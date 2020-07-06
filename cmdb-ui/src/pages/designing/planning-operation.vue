@@ -301,7 +301,7 @@
           </div>
         </Panel>
         <div style="margin: 12px;">
-          <Button @click="showAddLineArea = true" size="small" long type="info">新增连线</Button>
+          <Button @click="showAddLineArea = true" size="small" long type="info">{{ $t('add_link') }}</Button>
         </div>
       </Collapse>
       <div v-if="showAddLineArea" class="add-node-area">
@@ -362,7 +362,6 @@ import {
   getAllCITypesByLayerWithAttr
 } from '@/api/server'
 import Ref from './ref'
-import RefAdd from './ref-add'
 import MutiRef from './muti-ref'
 export default {
   name: '',
@@ -1016,7 +1015,6 @@ export default {
   },
   components: {
     Ref,
-    RefAdd,
     MutiRef
   }
 }
