@@ -73,7 +73,8 @@
     <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
       <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
         <Tooltip :delay="500" placement="top">
-          <span> {{ panal.data.key_name | filterCode }}</span>
+          <span style="color:#2db7f5">{{ findCiType(panal) }}</span>
+          <span>-{{ panal.data.key_name | filterCode }}</span>
           <div slot="content" style="white-space: normal;">
             {{ panal.data.key_name }}
           </div>
@@ -90,7 +91,7 @@
           <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
             <div v-for="(formData, formDataIndex) in panalForm" v-if="formData.isDisplayed" :key="formDataIndex + 'b'">
               <Tooltip :content="formData.description" :delay="500" placement="left-start">
-                <span class="form-item-title"> {{ formData.name }}</span>
+                <span class="form-item-title">{{ formData.name }}</span>
               </Tooltip>
               <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
                 <Input v-model="panal.data[formData.propertyName]" :disabled="!isEdit || !formData.isEditable"></Input>
@@ -748,6 +749,13 @@ export default {
       const { statusCode, data } = await getCiTypeAttributes(ciTypeId)
       if (statusCode === 'OK') {
         this[formObject] = data
+      }
+    },
+    findCiType (formData) {
+      for (let key in this.allCITypes) {
+        if (this.allCITypes[key].ciTypeId === formData.ciTypeId) {
+          return this.allCITypes[key].tableName
+        }
       }
     }
   },
