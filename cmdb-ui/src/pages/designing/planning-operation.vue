@@ -12,8 +12,11 @@
       <h4>{{ $t('current_node') }}：</h4>
       <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
         <Panel name="1">
-          <Tooltip :content="parentPanalData.data.key_name" :delay="500" placement="top">
+          <Tooltip :delay="500" placement="top">
             <span> {{ parentPanalData.data.key_name | filterCode }}</span>
+            <div slot="content" style="white-space: normal;">
+              {{ parentPanalData.data.key_name }}
+            </div>
           </Tooltip>
           <div slot="content">
             <Form>
@@ -78,8 +81,11 @@
       <h5>{{ $t('subsidiary_node') }}：</h5>
       <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
         <Panel :name="panalIndex + 1 + ''" v-if="isShow" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
-          <Tooltip :content="panal.data.key_name" :delay="500" placement="top">
+          <Tooltip :delay="500" placement="top">
             <span> {{ panal.data.key_name | filterCode }}</span>
+            <div slot="content" style="white-space: normal;">
+              {{ panal.data.key_name }}
+            </div>
           </Tooltip>
           <template v-for="opera in panal.data.meta.nextOperations">
             <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
@@ -219,8 +225,11 @@
     <div v-if="currentTab === 2" class="operation-Collapse">
       <Collapse v-model="linkPanal" accordion @on-change="openLinkPanal">
         <Panel :name="linkIndex + 1 + ''" v-for="(link, linkIndex) in linkData" :key="linkIndex">
-          <Tooltip :content="link.key_name" :delay="500" placement="top">
+          <Tooltip :delay="500" placement="top">
             <span> {{ link.key_name | filterCode }}</span>
+            <div slot="content" style="white-space: normal;">
+              {{ link.key_name }}
+            </div>
           </Tooltip>
           <template v-if="link.meta.nextOperations">
             <template v-for="opera in setNextOperations(link.meta.nextOperations)">
@@ -1009,7 +1018,7 @@ export default {
   filters: {
     filterCode: function (val) {
       if (val) {
-        return val.length > 25 ? val.substring(0, 25) + '...' : val
+        return val.length > 20 ? val.substring(0, 20) + '...' : val
       }
     }
   },
@@ -1021,10 +1030,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-// .operation {
-//   overflow: auto;
-//   height: calc(100vh - 205px);
-// }
 .operation-Collapse {
   overflow: auto;
   height: calc(100vh - 280px);
