@@ -16,6 +16,7 @@
             class="container-height"
             ref="transferData"
             :hideNextOperations="hideNextOperations"
+            :ignoreOpera="ignoreOpera"
             @operationReload="operationReload"
             @markZone="markZone"
             @markEdge="markEdge"
@@ -41,7 +42,7 @@ import {
   INVOKE_DIAGRAM_LINK_TO,
   INVOKE_TYPE
 } from '@/const/init-params.js'
-import Operation from './application-operation'
+import Operation from './application-operation-tmp'
 export default {
   components: {
     Operation
@@ -49,6 +50,7 @@ export default {
   data () {
     return {
       graphCiTypeId: 37,
+      ignoreOpera: ['confirm'],
       graphData: null,
       graphDataWithGuid: {},
       operateNodeData: {},
