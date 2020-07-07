@@ -148,6 +148,7 @@ export default {
       } else {
         tmpData = operateNodeData
       }
+      this.$refs.transferData.managementData(operateNodeData)
       this.loadMap([tmpData], operateLineData)
     },
     loadMap (graphData, operateLineData) {
