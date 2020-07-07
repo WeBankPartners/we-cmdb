@@ -71,7 +71,6 @@
     </Collapse>
     <template v-for="(newPanalKey, newPanalKeyIndex) in newPanalDataKeys">
       <div :key="newPanalKeyIndex + 'a'" class="panal-title">{{ $t('subsidiary_node') }}{{ newPanalKey }}：</div>
-      <!-- <h4 :key="newPanalKeyIndex+'a'">{{ $t('subsidiary_node') }}{{newPanalKey}}：</h4> -->
       <Collapse
         v-model="defaultPanal"
         accordion
