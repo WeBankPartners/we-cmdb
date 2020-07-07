@@ -78,115 +78,7 @@
           </div>
         </Panel>
       </Collapse>
-      <template v-for="(groupingKey, groupingKeyIndex) in groupingDataKeys">
-        <div :key="groupingKeyIndex + 'a'" class="panal-title">{{ $t('subsidiary_node') }}{{ groupingKey }}：</div>
-        <Collapse
-          v-model="defaultPanal"
-          accordion
-          @on-change="openPanal(defaultPanal, groupingKey)"
-          :key="groupingKeyIndex + 'b'"
-        >
-          <Panel :name="panal.guid" v-for="(panal, panalIndex) in groupingData[groupingKey]" :key="panalIndex">
-            <Tooltip :delay="500" placement="top">
-              <span>{{ panal.data.key_name | filterCode }}</span>
-              <div slot="content" style="white-space: normal;">
-                {{ panal.data.key_name }}
-              </div>
-            </Tooltip>
-            <template v-if="panal.data.meta">
-              <template v-for="opera in panal.data.meta.nextOperations">
-                <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
-                  <Icon type="md-checkmark" @click="confirm(panal, $event, 'node')" class="operation-icon-confirm" />
-                </Tooltip>
-                <Tooltip
-                  :content="$t('delete')"
-                  v-if="opera === 'delete'"
-                  :key="opera + panalIndex"
-                  style="float:right"
-                >
-                  <Icon type="md-trash" @click="deleteNode(panal, $event)" class="operation-icon-delete" />
-                </Tooltip>
-                <Tooltip
-                  :content="$t('discard')"
-                  v-if="opera === 'discard'"
-                  :key="opera + panalIndex"
-                  style="float:right"
-                >
-                  <Icon type="ios-share-alt" @click="discard(panal, $event, 'node')" class="operation-icon-discard" />
-                </Tooltip>
-              </template>
-            </template>
-            <div slot="content">
-              <Form v-if="defaultPanal[0] === panal.guid">
-                <div
-                  v-for="(formData, formDataIndex) in panalForm"
-                  v-if="formData.isDisplayed"
-                  :key="formDataIndex + 'b'"
-                >
-                  <Tooltip :content="formData.description" :delay="500" placement="left-start">
-                    <span class="form-item-title">{{ formData.name }}</span>
-                  </Tooltip>
-                  <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-                    <Input
-                      v-model="panal.data[formData.propertyName]"
-                      :disabled="!isEdit || !formData.isEditable"
-                    ></Input>
-                  </FormItem>
-                  <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
-                    <textarea
-                      v-model="panal.data[formData.propertyName]"
-                      :disabled="!isEdit || !formData.isEditable"
-                      class="textArea-style"
-                    ></textarea>
-                  </FormItem>
-                  <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-                    <Ref :formData="formData" :panalData="panal.data" :disabled="!isEdit || !formData.isEditable"></Ref>
-                  </FormItem>
-                  <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-                    <MutiRef
-                      :formData="formData"
-                      :panalData="panal.data"
-                      :disabled="!isEdit || !formData.isEditable"
-                    ></MutiRef>
-                  </FormItem>
-                  <FormItem
-                    v-if="formData.inputType === 'select'"
-                    :disabled="!isEdit || !formData.isEditable"
-                    class="form-item-content"
-                  >
-                    select
-                  </FormItem>
-                  <FormItem
-                    v-if="formData.inputType === 'multiSelect'"
-                    :disabled="!isEdit || !formData.isEditable"
-                    class="form-item-content"
-                  >
-                    multiSelect
-                  </FormItem>
-                </div>
-                <FormItem>
-                  <div class="opetation-btn-zone">
-                    <Button
-                      @click="editOperation"
-                      :disabled="isEditEnable(panal.data.meta.nextOperations)"
-                      type="info"
-                      >{{ $t('edit') }}</Button
-                    >
-                    <Button
-                      type="primary"
-                      @click="saveOperation('panalData', groupingKey)"
-                      :disabled="!isEdit"
-                      class="opetation-btn"
-                      >{{ $t('save') }}</Button
-                    >
-                  </div>
-                </FormItem>
-              </Form>
-            </div>
-          </Panel>
-        </Collapse>
-      </template>
-      <!-- <h5>{{ $t('subsidiary_node') }}：</h5>
+      <h5>{{ $t('subsidiary_node') }}：</h5>
       <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
         <Panel :name="panalIndex + 1 + ''" v-if="isShow" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
           <Tooltip :delay="500" placement="top">
@@ -283,10 +175,7 @@
         <div style="margin: 12px;">
           <Button @click="showAddNodeArea = true" size="small" long type="info">{{ $t('add_node') }}</Button>
         </div>
-      </Collapse> -->
-      <div style="margin: 6px 0;">
-        <Button @click="showAddNodeArea = true" size="small" long type="info">{{ $t('add_node') }}</Button>
-      </div>
+      </Collapse>
       <div v-if="showAddNodeArea" class="add-node-area">
         <Select v-model="selectedNodeType" @on-change="getNewNodeAttr" @on-open-change="getNodeTypes">
           <Option v-for="(item, index) in canCreateNodeTypes" :value="item.value" :key="item.value + index">{{
@@ -338,7 +227,8 @@
       <Collapse v-model="linkPanal" accordion @on-change="openLinkPanal">
         <Panel :name="linkIndex + 1 + ''" v-for="(link, linkIndex) in linkData" :key="linkIndex">
           <Tooltip :delay="500" placement="top">
-            <span>{{ link.key_name | filterCode }}</span>
+            <span style="color:red">{{ findCiType(link) }}</span>
+            <span> -{{ link.key_name | filterCode }}</span>
             <div slot="content" style="white-space: normal;">
               {{ link.key_name }}
             </div>
@@ -349,10 +239,18 @@
                 <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon-delete" />
               </Tooltip>
               <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
-                <Icon type="md-checkmark" @click="confirm(link, $event, 'link')" class="operation-icon-confirm" />
+                <Icon
+                  type="md-checkmark"
+                  @click="confirm(link, $event, 'link', linkIndex)"
+                  class="operation-icon-confirm"
+                />
               </Tooltip>
               <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera" style="float:right">
-                <Icon type="ios-share-alt" @click="discard(link, $event, 'link')" class="operation-icon-discard" />
+                <Icon
+                  type="ios-share-alt"
+                  @click="discard(link, $event, 'link', linkIndex)"
+                  class="operation-icon-discard"
+                />
               </Tooltip>
             </template>
           </template>
@@ -731,16 +629,15 @@ export default {
         onCancel: () => {}
       })
     },
-    // async confirmNode (panalData, panalIndex, event) {
-    //   event.stopPropagation()
-    //   const nodeInfo = panalData[panalIndex]
-    //   const { statusCode } = await operateCiState(nodeInfo.ciTypeId + '', nodeInfo.guid, 'confirm')
-    //   if (statusCode === 'OK') {
-    //     this.$Message.success('success!')
-    //   }
-    // },
-    // panal, groupingKey, 'node', $event
-    async confirm (data, event, type) {
+    async confirmNode (panalData, panalIndex, event) {
+      event.stopPropagation()
+      const nodeInfo = panalData[panalIndex]
+      const { statusCode } = await operateCiState(nodeInfo.ciTypeId + '', nodeInfo.guid, 'confirm')
+      if (statusCode === 'OK') {
+        this.$Message.success('success!')
+      }
+    },
+    async confirm (data, event, type, index) {
       event.stopPropagation()
       const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'confirm')
       if (statusCode === 'OK') {
@@ -765,61 +662,20 @@ export default {
         tmp.ciTypeId = Number(data.ciTypeId)
       }
       if (type === 'node') {
-        const index = this.operateData.children.findIndex(child => {
-          return child.guid === data.guid
-        })
         this.operateData.children[index].data = tmp
         this.$emit('operationReload', this.operateData)
       }
       if (type === 'link') {
-        // this.linkData[index] = tmp
-        // this.$emit('operationReload', '', {
-        //   type: 'edit',
-        //   lineInfo: {
-        //     data: this.linkData[index]
-        //   }
-        // })
+        this.linkData[index] = tmp
+        this.$emit('operationReload', '', {
+          type: 'edit',
+          lineInfo: {
+            data: this.linkData[index]
+          }
+        })
       }
     },
-    // async confirm (data, event, type, index) {
-    //   event.stopPropagation()
-    //   const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'confirm')
-    //   if (statusCode === 'OK') {
-    //     this.$Message.success('success!')
-    //   }
-    //   const ciData = await queryCiData({
-    //     id: data.ciTypeId,
-    //     queryObject: {
-    //       filters: [
-    //         {
-    //           name: 'guid',
-    //           value: data.guid,
-    //           operator: 'eq'
-    //         }
-    //       ]
-    //     }
-    //   })
-    //   let tmp = null
-    //   if (ciData.statusCode === 'OK') {
-    //     tmp = ciData.data.contents[0].data
-    //     tmp.meta = ciData.data.contents[0].meta
-    //     tmp.ciTypeId = Number(data.ciTypeId)
-    //   }
-    //   if (type === 'node') {
-    //     this.operateData.children[index].data = tmp
-    //     this.$emit('operationReload', this.operateData)
-    //   }
-    //   if (type === 'link') {
-    //     this.linkData[index] = tmp
-    //     this.$emit('operationReload', '', {
-    //       type: 'edit',
-    //       lineInfo: {
-    //         data: this.linkData[index]
-    //       }
-    //     })
-    //   }
-    // },
-    async discard (data, event, type) {
+    async discard (data, event, type, index) {
       event.stopPropagation()
       const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'discard')
       if (statusCode === 'OK') {
@@ -844,23 +700,20 @@ export default {
         tmp.ciTypeId = Number(data.ciTypeId)
       }
       if (type === 'node') {
-        const index = this.operateData.children.findIndex(child => {
-          return child.guid === data.guid
-        })
         this.operateData.children[index].data = tmp
         this.$emit('operationReload', this.operateData)
       }
       if (type === 'link') {
-        // this.linkData[index] = tmp
-        // this.$emit('operationReload', '', {
-        //   type: 'edit',
-        //   lineInfo: {
-        //     data: this.linkData[index]
-        //   }
-        // })
+        this.linkData[index] = tmp
+        this.$emit('operationReload', '', {
+          type: 'edit',
+          lineInfo: {
+            data: this.linkData[index]
+          }
+        })
       }
     },
-    async deleteNode (data, event) {
+    async deleteNode (panalData, panalIndex, event) {
       event.stopPropagation()
       this.$Modal.confirm({
         title: this.$t('delete_confirm'),
@@ -868,18 +721,14 @@ export default {
         'z-index': 1000000,
         onOk: async () => {
           let params = {
-            id: data.ciTypeId,
-            deleteData: [data.guid]
+            id: panalData[panalIndex].ciTypeId,
+            deleteData: [panalData[panalIndex].data.guid]
           }
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
             this.$Message.success('success!')
-            const index = this.operateData.children.findIndex(child => {
-              return child.guid === data.guid
-            })
-            let children = JSON.parse(JSON.stringify(this.operateData.children))
-            children.splice(index, 1)
-            this.operateData.children = children
+            this.panalData.splice(panalIndex, 1)
+            this.operateData.children = this.panalData
             this.$emit('operationReload', this.operateData)
           }
           this.$Modal.remove()
@@ -943,6 +792,7 @@ export default {
           text: [ciData.data.contents[0].data.code]
         }
         this.panalData.push(params)
+
         this.operateData.children = this.panalData
         this.$emit('operationReload', this.operateData)
         this.cancleAddNode()
@@ -960,7 +810,7 @@ export default {
       this.isEdit = true
     },
     // 保存数据
-    async saveOperation (dataSource, tableName) {
+    async saveOperation (dataSource, index) {
       // eslint-disable-next-line no-unused-vars
       let activePanalData = null
       // eslint-disable-next-line no-unused-vars
@@ -970,11 +820,8 @@ export default {
         ciTypeId = this.parentPanalForm[0].ciTypeId
       }
       if (dataSource === 'panalData') {
-        // activePanalData = this.panalData[this.defaultPanal[0] - 1].data
-        // ciTypeId = this.panalForm[0].ciTypeId
-        const activePanal = this.groupingData[tableName].find(item => item.guid === this.defaultPanal[0])
-        activePanalData = activePanal.data
-        ciTypeId = activePanal.ciTypeId
+        activePanalData = this.panalData[this.defaultPanal[0] - 1].data
+        ciTypeId = this.panalForm[0].ciTypeId
       }
       if (dataSource === 'linkData') {
         activePanalData = this.linkData[this.linkPanal[0] - 1]
@@ -1025,32 +872,30 @@ export default {
             ]
           }
         })
-        // let tmp = null
+        let tmp = null
         if (dataSource === 'parentPanalData') {
           this.operateData.data = data[0]
         }
         if (dataSource === 'panalData') {
           ciData.data.contents[0].meta.nextOperations = Array.from(new Set(ciData.data.contents[0].meta.nextOperations))
+
           ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
-          const index = this.operateData.children.findIndex(child => {
-            return child.guid === ciData.data.contents[0].data.guid
-          })
           this.operateData.children[index].data = ciData.data.contents[0].data
           this.$emit('operationReload', this.operateData)
           return
         }
         if (dataSource === 'linkData') {
-          // tmp = ciData.data.contents[0].data
-          // tmp.meta = ciData.data.contents[0].meta
-          // tmp.ciTypeId = Number(ciTypeId)
-          // this.linkData[index] = tmp
-          // this.$emit('operationReload', '', {
-          //   type: 'edit',
-          //   lineInfo: {
-          //     data: this.linkData[index]
-          //   }
-          // })
-          // return
+          tmp = ciData.data.contents[0].data
+          tmp.meta = ciData.data.contents[0].meta
+          tmp.ciTypeId = Number(ciTypeId)
+          this.linkData[index] = tmp
+          this.$emit('operationReload', '', {
+            type: 'edit',
+            lineInfo: {
+              data: this.linkData[index]
+            }
+          })
+          return
         }
         this.$emit('operationReload', this.operateData)
       }
@@ -1060,8 +905,6 @@ export default {
       this.parentPanal = ''
       this.defaultPanal = ''
       this.panalData = []
-      this.groupingData = {}
-      this.groupingDataKeys = []
       this.cancleAddNode()
       this.operateData = operateData
       let tmp = JSON.parse(JSON.stringify(this.operateData))
@@ -1080,11 +923,11 @@ export default {
               if (md.data.code === child.data.code) {
                 md.meta.nextOperations = Array.from(new Set(md.meta.nextOperations))
                 child.data.meta = md.meta
-                child.tableName = this.findCiType(child.ciTypeId)
               }
             })
           })
           this.panalData = []
+
           this.groupingData = {}
           this.groupingDataKeys = []
           this.operateData.children.forEach(child => {
@@ -1095,6 +938,7 @@ export default {
               this.groupingDataKeys.push(child.tableName)
             }
           })
+
           this.panalData.push(...this.operateData.children)
         })
       }
@@ -1172,15 +1016,13 @@ export default {
         this.getAttributes(ciTypeId, 'parentPanalForm')
       }
     },
-    openPanal (panalId, tableName) {
+    openPanal (panalId) {
       this.parentPanal = ''
       this.isEdit = false
       if (panalId.length) {
-        const ciData = this.groupingData[tableName].find(item => item.guid === panalId[0])
-        const ciTypeId = ciData.ciTypeId
-        this.panalForm = []
+        this.$emit('markZone', this.panalData[Number(panalId[0] - 1)].guid)
+        const ciTypeId = this.panalData[Number(panalId[0] - 1)].ciTypeId
         this.getAttributes(ciTypeId, 'panalForm')
-        this.$emit('markZone', ciData.guid)
       }
     },
     async getAttributes (ciTypeId, formObject) {
@@ -1189,9 +1031,9 @@ export default {
         this[formObject] = data
       }
     },
-    findCiType (ciTypeId) {
+    findCiType (formData) {
       for (let key in this.allCITypes) {
-        if (this.allCITypes[key].ciTypeId === ciTypeId) {
+        if (this.allCITypes[key].ciTypeId === formData.ciTypeId) {
           return this.allCITypes[key].tableName
         }
       }
@@ -1247,11 +1089,7 @@ export default {
   outline: 0;
   box-shadow: 0 0 0 2px rgba(45, 140, 240, 0.2);
 }
-.panal-title {
-  font-size: 12px;
-  font-weight: 500;
-  margin: 6px 0;
-}
+
 .parentCollapse {
   background-color: #5cadff;
   margin-bottom: 8px;
