@@ -17,6 +17,7 @@
               class="container-height"
               ref="transferData"
               :hideNextOperations="true"
+              :ignoreOpera="ignoreOpera"
               @operationReload="operationReload"
               @markZone="markZone"
               @markEdge="markEdge"
@@ -44,13 +45,14 @@ import {
   INVOKE_UNIT,
   INVOKED_UNIT
 } from '@/const/init-params.js'
-import Operation from './application-operation'
+import Operation from './application-operation-tmp'
 export default {
   components: {
     Operation
   },
   data () {
     return {
+      ignoreOpera: [],
       initParams: {},
       systems: [],
       systemVersion: '',
@@ -92,24 +94,28 @@ export default {
           .attr('fill', this.activeNodeInfo.color)
         this.activeNodeInfo = {}
       }
-      const id = val[val.length - 1]
-      this.activeNodeInfo.type = d3
-        .select('#graph')
-        .select(`#` + id)
-        .select('polygon')._groups[0][0]
-        ? 'polygon'
-        : 'rect'
-      const color = d3
-        .select('#graph')
-        .select(`#` + id)
-        .select(this.activeNodeInfo.type)
-        .attr('fill')
-      this.activeNodeInfo.id = id
-      this.activeNodeInfo.color = color
-      d3.select('#graph')
-        .select(`#` + id)
-        .select(this.activeNodeInfo.type)
-        .attr('fill', '#ff9900')
+      try {
+        const id = val[val.length - 1]
+        this.activeNodeInfo.type = d3
+          .select('#graph')
+          .select(`#` + id)
+          .select('polygon')._groups[0][0]
+          ? 'polygon'
+          : 'rect'
+        const color = d3
+          .select('#graph')
+          .select(`#` + id)
+          .select(this.activeNodeInfo.type)
+          .attr('fill')
+        this.activeNodeInfo.id = id
+        this.activeNodeInfo.color = color
+        d3.select('#graph')
+          .select(`#` + id)
+          .select(this.activeNodeInfo.type)
+          .attr('fill', '#ff9900')
+      } catch (error) {
+        console.log(error)
+      }
     }
   },
   methods: {
