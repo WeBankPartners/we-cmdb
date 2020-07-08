@@ -30,7 +30,7 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import { getEnumCodesByCategoryId, getAllIdcDesignData, queryCiData, getTreeData } from '@/api/server'
+import { getEnumCodesByCategoryId, queryCiData, getTreeData } from '@/api/server'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
 import { addEvent } from '../util/event.js'
 import {
@@ -45,7 +45,6 @@ import Operation from './planning-operation'
 export default {
   data () {
     return {
-      allIdcs: [],
       graphCiTypeId: 12,
       graph: {},
       idcDesignData: null,
@@ -611,12 +610,6 @@ export default {
         })
       }
     },
-    async getAllIdcDesignData () {
-      const { statusCode, data } = await getAllIdcDesignData()
-      if (statusCode === 'OK') {
-        this.allIdcs = data.map(_ => _.data)
-      }
-    },
     dataSelector (data = {}, rule = '') {
       // eslint-disable-next-line no-unused-vars
       let tmp = data
@@ -653,17 +646,4 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-.graph-container-big {
-  // margin-top: 20px;
-  // border: 1px solid red;
-}
-.operation-zone {
-  // margin-top: 20px;
-  // overflow: auto;
-  // min-height: calc(100vh - 205px) !important;
-}
-.graph-select {
-  width: 400px;
-}
-</style>
+<style lang="scss" scoped></style>
