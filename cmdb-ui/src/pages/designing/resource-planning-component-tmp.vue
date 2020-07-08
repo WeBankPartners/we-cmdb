@@ -167,7 +167,7 @@ export default {
       }
       this.loadMap([tmpData], operateLineData)
     },
-    loadMap (graphData, operateLineData) {
+    async loadMap (graphData, operateLineData) {
       this.graphData = graphData
       this.graphData[0].children.forEach(_ => {
         this.firstChildrenGroup.push(`g_${_.guid}`)
@@ -214,17 +214,25 @@ export default {
           const index = this.lineData.findIndex(_ => {
             return _.guid === lineInfoData.guid
           })
-          this.lineData[index] = {
-            guid: lineInfoData.guid,
-            from: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
-            linkInfo: {
-              ...lineInfoData,
-              ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
-            },
-            to: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
-            label: lineInfoData.code,
-            state: lineInfoData.state.code
+          let param = {
+            data: operateLineData.lineInfo.data,
+            meta: operateLineData.lineInfo.data.meta
           }
+          console.log(param)
+          const text = await this.exprLineFinder('', '', [param])
+          console.log(text)
+          this.lineData[index] = text[0]
+          // this.lineData[index] = {
+          //   guid: lineInfoData.guid,
+          //   from: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
+          //   linkInfo: {
+          //     ...lineInfoData,
+          //     ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
+          //   },
+          //   to: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
+          //   label: lineInfoData.code,
+          //   state: lineInfoData.state.code
+          // }
         }
         // if (operateLineData.type === 'edit') {
         //   const index = this.lineData.findIndex(_ => {
@@ -385,21 +393,21 @@ export default {
           this.operateNodeData = this.graphData[0]
           this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
           this.$refs.transferData.managementData(this.operateNodeData)
-          await this.exprLineFinder('', '', links.data.contents)
-          this.lineData = links.data.contents.map(_ => {
-            return {
-              guid: _.data.guid,
-              from: _.data[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
-              linkInfo: {
-                ..._.data,
-                meta: _.meta,
-                ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
-              },
-              to: _.data[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
-              label: _.data.code,
-              state: _.data.state.code
-            }
-          })
+          this.lineData = await this.exprLineFinder('', '', links.data.contents)
+          // this.lineData = links.data.contents.map(_ => {
+          //   return {
+          //     guid: _.data.guid,
+          //     from: _.data[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
+          //     linkInfo: {
+          //       ..._.data,
+          //       meta: _.meta,
+          //       ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
+          //     },
+          //     to: _.data[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
+          //     label: _.data.code,
+          //     state: _.data.state.code
+          //   }
+          // })
 
           this.$nextTick(() => {
             this.initGraph()
@@ -579,20 +587,12 @@ export default {
     },
     genLines () {
       let dots = []
-      let newworkToNode = {}
-      Object.keys(this.graphNodes).forEach(guid => {
-        const networkSegment = this.graphNodes[guid].data[this.initParams[NETWORK_SEGMENT]]
-        if (networkSegment) {
-          newworkToNode[networkSegment.guid] = guid
-        }
-      })
       this.effectiveLink = []
       this.lineData.forEach(_ => {
-        if (newworkToNode[_.from] && newworkToNode[_.to]) {
+        if (_.from in this.graphNodes && _.to in this.graphNodes) {
           this.effectiveLink.push(_.linkInfo)
           dots.push(
-            `n_${newworkToNode[_.from]} -> n_${newworkToNode[_.to]}[id=gl_${_.guid},tooltip="${_.label ||
-              ''}",taillabel="${_.label || ''}"];`
+            `n_${_.from} -> n_${_.to}[id=gl_${_.guid},tooltip="${_.label || ''}",taillabel="${_.label || ''}"];`
           )
         }
       })
@@ -888,14 +888,14 @@ export default {
         }
       })
       // TODO: remove this
-      console.log('link results:', linkResults)
-      for (let key in linkResults) {
-        let a = linkResults[key].from
-        let b = linkResults[key].to
-        if (a.length > 0 && b.length > 0) {
-          console.log('link:', linkResults[key].guid, ' ,from: ', a, ' ,to: ', b)
-        }
-      }
+      // console.log('link results:', linkResults)
+      // for (let key in linkResults) {
+      //   let a = linkResults[key].from
+      //   let b = linkResults[key].to
+      //   if (a.length > 0 && b.length > 0) {
+      //     console.log('link:', linkResults[key].guid, ' ,from: ', a, ' ,to: ', b)
+      //   }
+      // }
       return linkResults
     },
     exprOpFinder (expr) {
