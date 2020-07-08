@@ -14,10 +14,7 @@
     <hr style="margin: 10px 0" />
     <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
       <TabPane :label="$t('application_logic_diagram')" name="logic-graph" :index="1">
-        <Alert show-icon closable v-if="isDataChanged">
-          Data has beed changed, click Reload button to reload graph.
-          <Button slot="desc" @click="reloadHandler">Reload</Button>
-        </Alert>
+        <!--
 
         <div class="graph-container" id="graph">
           <Spin size="large" fix v-if="spinShow">
@@ -27,6 +24,16 @@
           <div v-else-if="!systemData.length" class="no-data">
             {{ $t('no_data') }}
           </div>
+        </div> -->
+        <Alert show-icon closable v-if="isDataChanged">
+          Data has beed changed, click Reload button to reload graph.
+          <Button slot="desc" @click="reloadHandler">Reload</Button>
+        </Alert>
+        <div v-show="showApplicationDeploymentComponent">
+          <ApplicationDeploymentComponent ref="applicationDeploymentComponent"></ApplicationDeploymentComponent>
+        </div>
+        <div v-if="!showApplicationDeploymentComponent" class="no-data">
+          {{ $t('no_data') }}
         </div>
       </TabPane>
       <TabPane :label="$t('application_logic_tree_diagram')" name="logic-tree-graph" :index="2">
@@ -118,6 +125,7 @@ import { formatData } from '../util/format.js'
 import { getExtraInnerActions } from '../util/state-operations.js'
 import PhysicalGraph from './physical-graph'
 import { colors, stateColor } from '../../const/graph-configuration'
+import ApplicationDeploymentComponent from '@/pages/designing/application-deployment-component'
 import {
   VIEW_CONFIG_PARAMS,
   UNIT_ID,
@@ -130,7 +138,8 @@ import { baseURL } from '@/api/base.js'
 
 export default {
   components: {
-    PhysicalGraph
+    PhysicalGraph,
+    ApplicationDeploymentComponent
   },
   data () {
     return {
@@ -172,7 +181,8 @@ export default {
       copyRows: [],
       copyEditData: null,
       isHandleNodeClick: false,
-      instancesInUnit: {}
+      instancesInUnit: {},
+      showApplicationDeploymentComponent: false
     }
   },
   computed: {
@@ -199,10 +209,11 @@ export default {
           .on('dblclick.zoom', null)
           .on('wheel.zoom', null)
           .on('mousewheel.zoom', null)
+        const width = ((window.innerWidth - 60) / 24) * 16 - 40
         this.graph.graphviz = graph
           .graphviz()
-          .width(window.innerWidth - 60)
-          .height(window.innerHeight - 230)
+          .width(width)
+          .height(window.innerHeight - 260)
           .zoom(true)
           .fit(true)
       }
@@ -344,7 +355,7 @@ export default {
       this.systemTreeData = []
       this.systemLines = {}
       this.graphNodes = {}
-      this.initADGraph()
+      // this.initADGraph()
       this.initTreeGraph()
     },
     async getSystems () {
@@ -375,6 +386,8 @@ export default {
       // this.getPhysicalGraphData()
     },
     async getAllDeployTreesFromSystemCi () {
+      this.showApplicationDeploymentComponent = true
+      this.$refs.applicationDeploymentComponent.getAllDeployTreesFromSystemCi(this.systemVersion)
       const { initParams } = this
       const { statusCode, data } = await getAllDeployTreesFromSystemCi(this.systemVersion)
       if (statusCode === 'OK') {
@@ -473,7 +486,7 @@ export default {
             })
             this.instancesInUnit = _instancesInUnit
           }
-          this.initADGraph()
+          // this.initADGraph()
           this.initTreeGraph()
         }
 

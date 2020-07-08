@@ -613,6 +613,7 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
         admCiTypeAttr.setAutoFillRule((String) arr[25]);
         admCiTypeAttr.setRegularExpressionRule((String) arr[26]);
         admCiTypeAttr.setIsRefreshable(((Integer) arr[27]));
+        admCiTypeAttr.setIsDeleteValidate(((Integer) arr[28]));
         return admCiTypeAttr;
     }
 }
