@@ -1,29 +1,20 @@
-/*
-SQLyog Ultimate v12.08 (64 bit)
-MySQL - 5.6.43 : Database - wecmdb_embedded
-*********************************************************************
-*/
 
-/*!40101 SET NAMES utf8 */;
-
-/*!40101 SET SQL_MODE=''*/;
-
+SET NAMES utf8 ;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 SET FOREIGN_KEY_CHECKS=0;
 
-/*Table structure for table `adm_attr_group` */
-
+-- Dumping structure for table wecmdb_bk.adm_attr_group
 CREATE TABLE IF NOT EXISTS `adm_attr_group` (
   `id_adm_attr_group` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_attr_group',
   `name` varchar(64) DEFAULT NULL COMMENT '组名',
   PRIMARY KEY (`id_adm_attr_group`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_basekey_cat` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_basekey_cat
 CREATE TABLE IF NOT EXISTS `adm_basekey_cat` (
   `id_adm_basekey_cat` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_basekey_cat',
   `cat_name` varchar(32) DEFAULT NULL COMMENT '类别名称',
@@ -37,10 +28,10 @@ CREATE TABLE IF NOT EXISTS `adm_basekey_cat` (
   KEY `fk_adm_basekey_group_type_id` (`group_type_id`),
   CONSTRAINT `fk_adm_basekey_cat_type` FOREIGN KEY (`id_adm_basekey_cat_type`) REFERENCES `adm_basekey_cat_type` (`id_adm_basekey_cat_type`),
   CONSTRAINT `fk_adm_basekey_group_type_id` FOREIGN KEY (`group_type_id`) REFERENCES `adm_basekey_cat` (`id_adm_basekey_cat`)
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_basekey_cat_type` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_basekey_cat_type
 CREATE TABLE IF NOT EXISTS `adm_basekey_cat_type` (
   `id_adm_basekey_cat_type` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(25) DEFAULT NULL,
@@ -50,10 +41,10 @@ CREATE TABLE IF NOT EXISTS `adm_basekey_cat_type` (
   PRIMARY KEY (`id_adm_basekey_cat_type`),
   KEY `adm_basekey_cat_type_ci_type_1` (`ci_type_id`),
   CONSTRAINT `adm_basekey_cat_type_ci_type_1` FOREIGN KEY (`ci_type_id`) REFERENCES `adm_ci_type` (`id_adm_ci_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_basekey_code` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_basekey_code
 CREATE TABLE IF NOT EXISTS `adm_basekey_code` (
   `id_adm_basekey` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_basekey',
   `id_adm_basekey_cat` int(11) DEFAULT NULL COMMENT 'id_adm_basekey_cat',
@@ -68,10 +59,10 @@ CREATE TABLE IF NOT EXISTS `adm_basekey_code` (
   KEY `fk_adm_basekey_code_group_code_id` (`group_code_id`),
   CONSTRAINT `fk_adm_basekey_code_adm_basekey_cat_1` FOREIGN KEY (`id_adm_basekey_cat`) REFERENCES `adm_basekey_cat` (`id_adm_basekey_cat`),
   CONSTRAINT `fk_adm_basekey_code_group_code_id` FOREIGN KEY (`group_code_id`) REFERENCES `adm_basekey_code` (`id_adm_basekey`)
-) ENGINE=InnoDB AUTO_INCREMENT=185 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=218 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_ci_type` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_ci_type
 CREATE TABLE IF NOT EXISTS `adm_ci_type` (
   `id_adm_ci_type` int(4) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type',
   `name` varchar(32) DEFAULT NULL COMMENT 'ci类型中文名称',
@@ -89,10 +80,10 @@ CREATE TABLE IF NOT EXISTS `adm_ci_type` (
   PRIMARY KEY (`id_adm_ci_type`),
   UNIQUE KEY `tableNameIndex` (`table_name`),
   KEY `fk_adm_ci_type_adm_ci_type_1` (`catalog_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=65 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_ci_type_attr` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_ci_type_attr
 CREATE TABLE IF NOT EXISTS `adm_ci_type_attr` (
   `id_adm_ci_type_attr` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type_attr',
   `id_adm_ci_type` int(4) NOT NULL COMMENT 'id_adm_ci_type',
@@ -122,13 +113,13 @@ CREATE TABLE IF NOT EXISTS `adm_ci_type_attr` (
   `auto_fill_rule` varchar(2000) DEFAULT NULL COMMENT '自动填充规则',
   `is_refreshable` int(1) DEFAULT NULL,
   `regular_expression_rule` varchar(200) DEFAULT NULL COMMENT '正则规则',
-  `is_delete_validate` INT(1) NULL DEFAULT 1,
+  `is_delete_validate` int(1) DEFAULT '1' COMMENT '删除校验',
   PRIMARY KEY (`id_adm_ci_type_attr`),
   UNIQUE KEY `uniqCiType` (`id_adm_ci_type`,`property_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1149 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1186 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_ci_type_attr_base` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_ci_type_attr_base
 CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_base` (
   `id_adm_ci_type_attr` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type_attr',
   `id_adm_ci_type` int(4) NOT NULL COMMENT 'id_adm_ci_type',
@@ -157,13 +148,13 @@ CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_base` (
   `is_auto` int(1) DEFAULT NULL,
   `auto_fill_rule` varchar(2000) DEFAULT NULL COMMENT '自动填充规则',
   `regular_expression_rule` varchar(200) DEFAULT NULL COMMENT '正则规则',
+  `is_delete_validate` int(1) DEFAULT '1' COMMENT '删除校验',
   `is_refreshable` int(1) DEFAULT NULL,
-  `is_delete_validate` INT(1) NULL DEFAULT 1,
   PRIMARY KEY (`id_adm_ci_type_attr`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_ci_type_attr_group` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_ci_type_attr_group
 CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_group` (
   `id_adm_ci_type_attr_group` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_ci_type_attr_group',
   `id_adm_ci_type_attr` int(11) DEFAULT NULL COMMENT 'id_adm_ci_type_attr',
@@ -175,28 +166,28 @@ CREATE TABLE IF NOT EXISTS `adm_ci_type_attr_group` (
   CONSTRAINT `fk_adm_ci_type_attr_group_adm_ci_type_attr_1` FOREIGN KEY (`id_adm_ci_type_attr`) REFERENCES `adm_ci_type_attr` (`id_adm_ci_type_attr`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_files` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_files
 CREATE TABLE IF NOT EXISTS `adm_files` (
   `id_adm_file` int(11) NOT NULL AUTO_INCREMENT,
   `type` varchar(32) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   `content` blob,
   PRIMARY KEY (`id_adm_file`)
-) ENGINE=InnoDB AUTO_INCREMENT=88 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=90 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_integrate_template` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_integrate_template
 CREATE TABLE IF NOT EXISTS `adm_integrate_template` (
   `id_adm_integrate_template` int(11) NOT NULL AUTO_INCREMENT,
   `ci_type_id` int(11) NOT NULL,
   `name` varchar(64) DEFAULT NULL,
   `des` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`id_adm_integrate_template`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_integrate_template_alias` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_integrate_template_alias
 CREATE TABLE IF NOT EXISTS `adm_integrate_template_alias` (
   `id_alias` int(11) NOT NULL AUTO_INCREMENT,
   `id_adm_ci_type` int(11) DEFAULT NULL,
@@ -207,10 +198,10 @@ CREATE TABLE IF NOT EXISTS `adm_integrate_template_alias` (
   KEY `fk_adm_integrate_template_alias_adm_ci_type_1` (`id_adm_ci_type`),
   CONSTRAINT `fk_adm_integrate_template_alias_adm_ci_type_1` FOREIGN KEY (`id_adm_ci_type`) REFERENCES `adm_ci_type` (`id_adm_ci_type`),
   CONSTRAINT `fk_adm_integrate_template_alias_adm_integrate_template_1` FOREIGN KEY (`id_adm_integrate_template`) REFERENCES `adm_integrate_template` (`id_adm_integrate_template`)
-) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_integrate_template_alias_attr` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_integrate_template_alias_attr
 CREATE TABLE IF NOT EXISTS `adm_integrate_template_alias_attr` (
   `id_attr` int(11) NOT NULL AUTO_INCREMENT,
   `id_alias` int(11) DEFAULT NULL,
@@ -228,10 +219,10 @@ CREATE TABLE IF NOT EXISTS `adm_integrate_template_alias_attr` (
   KEY `fk_adm_integrate_template_alias_attr_2` (`id_ci_type_attr`),
   CONSTRAINT `fk_adm_integrate_template_alias_attr_1` FOREIGN KEY (`id_alias`) REFERENCES `adm_integrate_template_alias` (`id_alias`),
   CONSTRAINT `fk_adm_integrate_template_alias_attr_2` FOREIGN KEY (`id_ci_type_attr`) REFERENCES `adm_ci_type_attr` (`id_adm_ci_type_attr`)
-) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_integrate_template_relation` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_integrate_template_relation
 CREATE TABLE IF NOT EXISTS `adm_integrate_template_relation` (
   `id_relation` int(11) NOT NULL AUTO_INCREMENT,
   `child_alias_id` int(11) DEFAULT NULL,
@@ -245,10 +236,10 @@ CREATE TABLE IF NOT EXISTS `adm_integrate_template_relation` (
   CONSTRAINT `fk_adm_integrate_template_relation_alias_1` FOREIGN KEY (`child_alias_id`) REFERENCES `adm_integrate_template_alias` (`id_alias`),
   CONSTRAINT `fk_adm_integrate_template_relation_alias_2` FOREIGN KEY (`parent_alias_id`) REFERENCES `adm_integrate_template_alias` (`id_alias`),
   CONSTRAINT `fk_adm_integrate_template_relation_attr_1` FOREIGN KEY (`child_ref_attr_id`) REFERENCES `adm_ci_type_attr` (`id_adm_ci_type_attr`)
-) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_log` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_log
 CREATE TABLE IF NOT EXISTS `adm_log` (
   `id_log` int(11) NOT NULL AUTO_INCREMENT,
   `log_cat` varchar(50) DEFAULT NULL,
@@ -275,10 +266,10 @@ CREATE TABLE IF NOT EXISTS `adm_log` (
   KEY `NewIndex1` (`log_cat`),
   KEY `NewIndex2` (`ci_type_name`),
   KEY `NewIndex3` (`ci_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=139 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_menu` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_menu
 CREATE TABLE IF NOT EXISTS `adm_menu` (
   `id_adm_menu` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL COMMENT '菜单名称',
@@ -293,8 +284,8 @@ CREATE TABLE IF NOT EXISTS `adm_menu` (
   KEY `fk_adm_menu_adm_menu_1` (`parent_id_adm_menu`)
 ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_role` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_role
 CREATE TABLE IF NOT EXISTS `adm_role` (
   `id_adm_role` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role',
   `role_name` varchar(32) DEFAULT NULL COMMENT '角色名称',
@@ -310,8 +301,8 @@ CREATE TABLE IF NOT EXISTS `adm_role` (
   CONSTRAINT `fk_adm_role_adm_tenement_1` FOREIGN KEY (`id_adm_tenement`) REFERENCES `adm_tenement` (`id_adm_tenement`)
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_role_ci_type` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_role_ci_type
 CREATE TABLE IF NOT EXISTS `adm_role_ci_type` (
   `id_adm_role_ci_type` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_ci_type',
   `id_adm_role` int(11) NOT NULL COMMENT 'id_adm_role',
@@ -331,8 +322,8 @@ CREATE TABLE IF NOT EXISTS `adm_role_ci_type` (
   CONSTRAINT `fk_adm_role_ci_type_adm_role_1` FOREIGN KEY (`id_adm_role`) REFERENCES `adm_role` (`id_adm_role`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=749 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_role_ci_type_ctrl_attr` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_role_ci_type_ctrl_attr
 CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr` (
   `id_adm_role_ci_type_ctrl_attr` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_ci_type_ctrl_attr',
   `id_adm_role_ci_type` int(11) NOT NULL COMMENT 'id_adm_role_ci_type',
@@ -347,8 +338,8 @@ CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr` (
   CONSTRAINT `fk_adm_role_ci_type_attribute_adm_role_ci_type_1` FOREIGN KEY (`id_adm_role_ci_type`) REFERENCES `adm_role_ci_type` (`id_adm_role_ci_type`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_role_ci_type_ctrl_attr_condition` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_role_ci_type_ctrl_attr_condition
 CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr_condition` (
   `id_adm_role_ci_type_ctrl_attr_condition` int(11) NOT NULL AUTO_INCREMENT,
   `id_adm_role_ci_type_ctrl_attr` int(11) NOT NULL,
@@ -364,8 +355,8 @@ CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr_condition` (
   CONSTRAINT `fk_adm_role_ci_type_attr_adm_role_ci_type_attr_1` FOREIGN KEY (`id_adm_role_ci_type_ctrl_attr`) REFERENCES `adm_role_ci_type_ctrl_attr` (`id_adm_role_ci_type_ctrl_attr`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_role_ci_type_ctrl_attr_expression` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_role_ci_type_ctrl_attr_expression
 CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr_expression` (
   `id_adm_role_ci_type_ctrl_attr_expression` int(11) NOT NULL AUTO_INCREMENT,
   `id_adm_role_ci_type_ctrl_attr_condition` int(11) DEFAULT NULL,
@@ -375,8 +366,8 @@ CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr_expression` (
   CONSTRAINT `id_adm_role_ci_type_attr_condition` FOREIGN KEY (`id_adm_role_ci_type_ctrl_attr_condition`) REFERENCES `adm_role_ci_type_ctrl_attr_condition` (`id_adm_role_ci_type_ctrl_attr_condition`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_role_ci_type_ctrl_attr_select` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_role_ci_type_ctrl_attr_select
 CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr_select` (
   `id_adm_role_ci_type_ctrl_attr_select` int(11) NOT NULL AUTO_INCREMENT,
   `id_adm_role_ci_type_ctrl_attr_condition` int(11) NOT NULL,
@@ -388,8 +379,8 @@ CREATE TABLE IF NOT EXISTS `adm_role_ci_type_ctrl_attr_select` (
   CONSTRAINT `id_adm_role_ci_type_ctrl_attr_condition` FOREIGN KEY (`id_adm_role_ci_type_ctrl_attr_condition`) REFERENCES `adm_role_ci_type_ctrl_attr_condition` (`id_adm_role_ci_type_ctrl_attr_condition`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_role_menu` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_role_menu
 CREATE TABLE IF NOT EXISTS `adm_role_menu` (
   `id_adm_role_menu` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_menu',
   `id_adm_role` int(11) DEFAULT NULL COMMENT 'id_adm_role',
@@ -403,8 +394,8 @@ CREATE TABLE IF NOT EXISTS `adm_role_menu` (
   CONSTRAINT `fk_adm_role_menu_adm_role_1` FOREIGN KEY (`id_adm_role`) REFERENCES `adm_role` (`id_adm_role`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_role_user` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_role_user
 CREATE TABLE IF NOT EXISTS `adm_role_user` (
   `id_adm_role_user` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_role_user',
   `id_adm_role` int(11) DEFAULT NULL COMMENT 'id_adm_role',
@@ -417,8 +408,8 @@ CREATE TABLE IF NOT EXISTS `adm_role_user` (
   CONSTRAINT `fk_adm_role_user_adm_user_1` FOREIGN KEY (`id_adm_user`) REFERENCES `adm_user` (`id_adm_user`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_sequence` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_sequence
 CREATE TABLE IF NOT EXISTS `adm_sequence` (
   `id_adm_sequence` int(10) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_sequence',
   `seq_name` varchar(64) NOT NULL COMMENT '序列名称',
@@ -430,8 +421,8 @@ CREATE TABLE IF NOT EXISTS `adm_sequence` (
   UNIQUE KEY `seq_name_index` (`seq_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=58 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_state_transition` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_state_transition
 CREATE TABLE IF NOT EXISTS `adm_state_transition` (
   `id_adm_state_transition` int(11) NOT NULL,
   `current_state` int(11) DEFAULT NULL,
@@ -452,8 +443,8 @@ CREATE TABLE IF NOT EXISTS `adm_state_transition` (
   CONSTRAINT `fk_adm_state_transition_target_state` FOREIGN KEY (`target_state`) REFERENCES `adm_basekey_code` (`id_adm_basekey`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_tenement` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_tenement
 CREATE TABLE IF NOT EXISTS `adm_tenement` (
   `id_adm_tenement` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(32) DEFAULT NULL COMMENT '名称',
@@ -462,8 +453,8 @@ CREATE TABLE IF NOT EXISTS `adm_tenement` (
   PRIMARY KEY (`id_adm_tenement`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `adm_user` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.adm_user
 CREATE TABLE IF NOT EXISTS `adm_user` (
   `id_adm_user` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id_adm_user',
   `name` varchar(64) DEFAULT NULL COMMENT '名称',
@@ -479,8 +470,28 @@ CREATE TABLE IF NOT EXISTS `adm_user` (
   CONSTRAINT `fk_adm_user_adm_tenement_1` FOREIGN KEY (`id_adm_tenement`) REFERENCES `adm_tenement` (`id_adm_tenement`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `app_instance` */
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.application_domain
+CREATE TABLE IF NOT EXISTS `application_domain` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '原始数据guid',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `key_name` varchar(1000) DEFAULT NULL COMMENT '唯一名称',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(1000) DEFAULT NULL COMMENT '编码',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `name` varchar(200) DEFAULT NULL COMMENT '名称',
+  `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.app_instance
 CREATE TABLE IF NOT EXISTS `app_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -519,8 +530,8 @@ CREATE TABLE IF NOT EXISTS `app_instance` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `app_system` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.app_system
 CREATE TABLE IF NOT EXISTS `app_system` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -541,18 +552,18 @@ CREATE TABLE IF NOT EXISTS `app_system` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `app_system$data_center` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.app_system$data_center
 CREATE TABLE IF NOT EXISTS `app_system$data_center` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*Table structure for table `app_system_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.app_system_design
 CREATE TABLE IF NOT EXISTS `app_system_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -574,28 +585,8 @@ CREATE TABLE IF NOT EXISTS `app_system_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `application_domain` */
-
-CREATE TABLE IF NOT EXISTS `application_domain` (
-  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
-  `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
-  `r_guid` varchar(15) DEFAULT NULL COMMENT '原始数据guid',
-  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
-  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
-  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
-  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
-  `state` int(15) DEFAULT NULL COMMENT '状态',
-  `key_name` varchar(1000) DEFAULT NULL COMMENT '唯一名称',
-  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
-  `code` varchar(1000) DEFAULT NULL COMMENT '编码',
-  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
-  `name` varchar(200) DEFAULT NULL COMMENT '名称',
-  `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
-  PRIMARY KEY (`guid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-/*Table structure for table `block_storage` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.block_storage
 CREATE TABLE IF NOT EXISTS `block_storage` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -623,8 +614,8 @@ CREATE TABLE IF NOT EXISTS `block_storage` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `business_zone` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.business_zone
 CREATE TABLE IF NOT EXISTS `business_zone` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -637,6 +628,7 @@ CREATE TABLE IF NOT EXISTS `business_zone` (
   `key_name` varchar(1000) DEFAULT NULL COMMENT '唯一名称',
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(1000) DEFAULT NULL COMMENT '编码',
+  `network_zone` varchar(15) DEFAULT NULL COMMENT '网络区域',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
   `business_zone_design` varchar(15) DEFAULT NULL COMMENT '业务区域设计',
   `business_zone_type` varchar(200) DEFAULT NULL COMMENT 'GROUP | NODE',
@@ -647,8 +639,8 @@ CREATE TABLE IF NOT EXISTS `business_zone` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `business_zone_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.business_zone_design
 CREATE TABLE IF NOT EXISTS `business_zone_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -661,13 +653,14 @@ CREATE TABLE IF NOT EXISTS `business_zone_design` (
   `key_name` varchar(1000) DEFAULT NULL COMMENT '唯一名称',
   `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
   `code` varchar(1000) DEFAULT NULL COMMENT '编码',
+  `network_zone_design` varchar(15) DEFAULT NULL COMMENT '网络区域设计',
   `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `cache_instance` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.cache_instance
 CREATE TABLE IF NOT EXISTS `cache_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -690,8 +683,8 @@ CREATE TABLE IF NOT EXISTS `cache_instance` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `cache_resource_instance` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.cache_resource_instance
 CREATE TABLE IF NOT EXISTS `cache_resource_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -729,8 +722,8 @@ CREATE TABLE IF NOT EXISTS `cache_resource_instance` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `charge_type` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.charge_type
 CREATE TABLE IF NOT EXISTS `charge_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -750,8 +743,8 @@ CREATE TABLE IF NOT EXISTS `charge_type` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `cloud_vendor` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.cloud_vendor
 CREATE TABLE IF NOT EXISTS `cloud_vendor` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -770,8 +763,8 @@ CREATE TABLE IF NOT EXISTS `cloud_vendor` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `cluster_node_type` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.cluster_node_type
 CREATE TABLE IF NOT EXISTS `cluster_node_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -791,8 +784,8 @@ CREATE TABLE IF NOT EXISTS `cluster_node_type` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `cluster_type` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.cluster_type
 CREATE TABLE IF NOT EXISTS `cluster_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -812,8 +805,8 @@ CREATE TABLE IF NOT EXISTS `cluster_type` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `cluster_type$unit_type` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.cluster_type$unit_type
 CREATE TABLE IF NOT EXISTS `cluster_type$unit_type` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -822,8 +815,57 @@ CREATE TABLE IF NOT EXISTS `cluster_type$unit_type` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=138 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*Table structure for table `data_center` */
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.cos_instance
+CREATE TABLE IF NOT EXISTS `cos_instance` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '原始数据guid',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `key_name` varchar(1000) DEFAULT NULL COMMENT '唯一名称',
+  `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(1000) DEFAULT NULL COMMENT '编码',
+  `access_id` varchar(200) DEFAULT NULL COMMENT '访问ID',
+  `access_key` varchar(200) DEFAULT NULL COMMENT '访问密钥',
+  `access_user` varchar(200) DEFAULT NULL COMMENT '访问用户',
+  `cos_resource_instance` varchar(15) DEFAULT NULL COMMENT '对象存储资源实例',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `name` varchar(200) DEFAULT NULL COMMENT '名称',
+  `unit` varchar(15) DEFAULT NULL COMMENT '单元',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.cos_resource_instance
+CREATE TABLE IF NOT EXISTS `cos_resource_instance` (
+  `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
+  `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
+  `r_guid` varchar(15) DEFAULT NULL COMMENT '原始数据guid',
+  `updated_by` varchar(50) DEFAULT NULL COMMENT '更新用户',
+  `updated_date` datetime DEFAULT NULL COMMENT '更新日期',
+  `created_by` varchar(50) DEFAULT NULL COMMENT '创建用户',
+  `created_date` datetime DEFAULT NULL COMMENT '创建日期',
+  `state` int(15) DEFAULT NULL COMMENT '状态',
+  `key_name` varchar(1000) DEFAULT NULL COMMENT '唯一名称',
+  `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
+  `fixed_date` varchar(19) DEFAULT NULL COMMENT '确认日期',
+  `code` varchar(1000) DEFAULT NULL COMMENT '编码',
+  `access_dns` varchar(200) DEFAULT NULL COMMENT '访问域名',
+  `description` varchar(1000) DEFAULT NULL COMMENT '描述说明',
+  `name` varchar(200) DEFAULT NULL COMMENT '名称',
+  `resource_set` varchar(15) DEFAULT NULL COMMENT '资源集合',
+  `access_proxy` varchar(200) DEFAULT NULL COMMENT '访问代理',
+  `is_public` varchar(200) DEFAULT NULL COMMENT 'true | false',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.data_center
 CREATE TABLE IF NOT EXISTS `data_center` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -851,18 +893,18 @@ CREATE TABLE IF NOT EXISTS `data_center` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `data_center$deploy_environment` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.data_center$deploy_environment
 CREATE TABLE IF NOT EXISTS `data_center$deploy_environment` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*Table structure for table `data_center_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.data_center_design
 CREATE TABLE IF NOT EXISTS `data_center_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -881,8 +923,8 @@ CREATE TABLE IF NOT EXISTS `data_center_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `default_security_policy` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.default_security_policy
 CREATE TABLE IF NOT EXISTS `default_security_policy` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -908,8 +950,8 @@ CREATE TABLE IF NOT EXISTS `default_security_policy` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `default_security_policy_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.default_security_policy_design
 CREATE TABLE IF NOT EXISTS `default_security_policy_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -933,8 +975,8 @@ CREATE TABLE IF NOT EXISTS `default_security_policy_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `deploy_environment` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.deploy_environment
 CREATE TABLE IF NOT EXISTS `deploy_environment` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -953,8 +995,8 @@ CREATE TABLE IF NOT EXISTS `deploy_environment` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `deploy_package` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.deploy_package
 CREATE TABLE IF NOT EXISTS `deploy_package` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -983,18 +1025,18 @@ CREATE TABLE IF NOT EXISTS `deploy_package` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `deploy_package$diff_conf_variable` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.deploy_package$diff_conf_variable
 CREATE TABLE IF NOT EXISTS `deploy_package$diff_conf_variable` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*Table structure for table `diff_configuration` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.diff_configuration
 CREATE TABLE IF NOT EXISTS `diff_configuration` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1014,8 +1056,8 @@ CREATE TABLE IF NOT EXISTS `diff_configuration` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `host_resource_instance` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.host_resource_instance
 CREATE TABLE IF NOT EXISTS `host_resource_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1057,8 +1099,8 @@ CREATE TABLE IF NOT EXISTS `host_resource_instance` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `invoke` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.invoke
 CREATE TABLE IF NOT EXISTS `invoke` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1081,8 +1123,8 @@ CREATE TABLE IF NOT EXISTS `invoke` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `invoke_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.invoke_design
 CREATE TABLE IF NOT EXISTS `invoke_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1104,8 +1146,8 @@ CREATE TABLE IF NOT EXISTS `invoke_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `ip_address` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.ip_address
 CREATE TABLE IF NOT EXISTS `ip_address` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1125,8 +1167,8 @@ CREATE TABLE IF NOT EXISTS `ip_address` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `lb_instance` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.lb_instance
 CREATE TABLE IF NOT EXISTS `lb_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1150,8 +1192,8 @@ CREATE TABLE IF NOT EXISTS `lb_instance` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `lb_resource_instance` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.lb_resource_instance
 CREATE TABLE IF NOT EXISTS `lb_resource_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1182,8 +1224,8 @@ CREATE TABLE IF NOT EXISTS `lb_resource_instance` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `legal_person` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.legal_person
 CREATE TABLE IF NOT EXISTS `legal_person` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1202,8 +1244,8 @@ CREATE TABLE IF NOT EXISTS `legal_person` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `manage_role` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.manage_role
 CREATE TABLE IF NOT EXISTS `manage_role` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1224,8 +1266,8 @@ CREATE TABLE IF NOT EXISTS `manage_role` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `network_link` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.network_link
 CREATE TABLE IF NOT EXISTS `network_link` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1252,18 +1294,8 @@ CREATE TABLE IF NOT EXISTS `network_link` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `network_link$internet_ip` */
-
-CREATE TABLE IF NOT EXISTS `network_link$internet_ip` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from_guid` varchar(15) NOT NULL,
-  `to_guid` varchar(15) NOT NULL,
-  `seq_no` int(5) DEFAULT '0',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8;
-
-/*Table structure for table `network_link$nat_ip_address` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.network_link$nat_ip_address
 CREATE TABLE IF NOT EXISTS `network_link$nat_ip_address` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -1272,8 +1304,8 @@ CREATE TABLE IF NOT EXISTS `network_link$nat_ip_address` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*Table structure for table `network_link_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.network_link_design
 CREATE TABLE IF NOT EXISTS `network_link_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1293,8 +1325,8 @@ CREATE TABLE IF NOT EXISTS `network_link_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `network_link_type` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.network_link_type
 CREATE TABLE IF NOT EXISTS `network_link_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1314,8 +1346,8 @@ CREATE TABLE IF NOT EXISTS `network_link_type` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `network_segment` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.network_segment
 CREATE TABLE IF NOT EXISTS `network_segment` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1349,8 +1381,8 @@ CREATE TABLE IF NOT EXISTS `network_segment` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `network_segment_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.network_segment_design
 CREATE TABLE IF NOT EXISTS `network_segment_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1376,8 +1408,8 @@ CREATE TABLE IF NOT EXISTS `network_segment_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `network_zone` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.network_zone
 CREATE TABLE IF NOT EXISTS `network_zone` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1399,8 +1431,8 @@ CREATE TABLE IF NOT EXISTS `network_zone` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `network_zone_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.network_zone_design
 CREATE TABLE IF NOT EXISTS `network_zone_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1421,8 +1453,8 @@ CREATE TABLE IF NOT EXISTS `network_zone_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `rdb_instance` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.rdb_instance
 CREATE TABLE IF NOT EXISTS `rdb_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1457,8 +1489,8 @@ CREATE TABLE IF NOT EXISTS `rdb_instance` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `rdb_resource_instance` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.rdb_resource_instance
 CREATE TABLE IF NOT EXISTS `rdb_resource_instance` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1499,8 +1531,8 @@ CREATE TABLE IF NOT EXISTS `rdb_resource_instance` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `resource_instance_spec` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.resource_instance_spec
 CREATE TABLE IF NOT EXISTS `resource_instance_spec` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1521,8 +1553,8 @@ CREATE TABLE IF NOT EXISTS `resource_instance_spec` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `resource_instance_spec$resource_instance_type` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.resource_instance_spec$resource_instance_type
 CREATE TABLE IF NOT EXISTS `resource_instance_spec$resource_instance_type` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -1531,8 +1563,8 @@ CREATE TABLE IF NOT EXISTS `resource_instance_spec$resource_instance_type` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=179 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*Table structure for table `resource_instance_system` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.resource_instance_system
 CREATE TABLE IF NOT EXISTS `resource_instance_system` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1552,8 +1584,8 @@ CREATE TABLE IF NOT EXISTS `resource_instance_system` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `resource_instance_system$resource_instance_type` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.resource_instance_system$resource_instance_type
 CREATE TABLE IF NOT EXISTS `resource_instance_system$resource_instance_type` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -1562,8 +1594,8 @@ CREATE TABLE IF NOT EXISTS `resource_instance_system$resource_instance_type` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*Table structure for table `resource_instance_type` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.resource_instance_type
 CREATE TABLE IF NOT EXISTS `resource_instance_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1584,8 +1616,8 @@ CREATE TABLE IF NOT EXISTS `resource_instance_type` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `resource_set` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.resource_set
 CREATE TABLE IF NOT EXISTS `resource_set` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1603,7 +1635,7 @@ CREATE TABLE IF NOT EXISTS `resource_set` (
   `cluster_type` varchar(15) DEFAULT NULL COMMENT '集群类型',
   `logic_resource_set` varchar(15) DEFAULT NULL COMMENT '合法值[LOGIC,NODE]',
   `manage_role` varchar(15) DEFAULT NULL COMMENT '管理角色',
-  `resource_type` varchar(200) DEFAULT NULL COMMENT 'BDP | HOST | RDB | CACHE | LB ',
+  `resource_type` varchar(200) DEFAULT NULL COMMENT 'BDP | HOST | RDB | CACHE | LB | COS ',
   `resource_set_design` varchar(15) DEFAULT NULL COMMENT '资源集合设计',
   `resource_set_type` varchar(200) DEFAULT NULL COMMENT 'GROUP | NODE',
   `state_code` varchar(50) DEFAULT NULL COMMENT '状态编码',
@@ -1614,8 +1646,8 @@ CREATE TABLE IF NOT EXISTS `resource_set` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `resource_set$deploy_environment` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.resource_set$deploy_environment
 CREATE TABLE IF NOT EXISTS `resource_set$deploy_environment` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -1624,8 +1656,8 @@ CREATE TABLE IF NOT EXISTS `resource_set$deploy_environment` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=178 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*Table structure for table `resource_set$network_segment` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.resource_set$network_segment
 CREATE TABLE IF NOT EXISTS `resource_set$network_segment` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -1634,8 +1666,8 @@ CREATE TABLE IF NOT EXISTS `resource_set$network_segment` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=385 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*Table structure for table `resource_set_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.resource_set_design
 CREATE TABLE IF NOT EXISTS `resource_set_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1657,8 +1689,8 @@ CREATE TABLE IF NOT EXISTS `resource_set_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `resource_set_design$application_domain` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.resource_set_design$application_domain
 CREATE TABLE IF NOT EXISTS `resource_set_design$application_domain` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -1667,8 +1699,8 @@ CREATE TABLE IF NOT EXISTS `resource_set_design$application_domain` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*Table structure for table `resource_set_invoke_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.resource_set_invoke_design
 CREATE TABLE IF NOT EXISTS `resource_set_invoke_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1688,8 +1720,8 @@ CREATE TABLE IF NOT EXISTS `resource_set_invoke_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `route` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.route
 CREATE TABLE IF NOT EXISTS `route` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1712,8 +1744,8 @@ CREATE TABLE IF NOT EXISTS `route` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `route_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.route_design
 CREATE TABLE IF NOT EXISTS `route_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1734,8 +1766,8 @@ CREATE TABLE IF NOT EXISTS `route_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `service_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.service_design
 CREATE TABLE IF NOT EXISTS `service_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1758,8 +1790,8 @@ CREATE TABLE IF NOT EXISTS `service_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `service_invoke_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.service_invoke_design
 CREATE TABLE IF NOT EXISTS `service_invoke_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1780,8 +1812,8 @@ CREATE TABLE IF NOT EXISTS `service_invoke_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `service_invoke_seq_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.service_invoke_seq_design
 CREATE TABLE IF NOT EXISTS `service_invoke_seq_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1801,8 +1833,8 @@ CREATE TABLE IF NOT EXISTS `service_invoke_seq_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `service_invoke_seq_design$service_invoke_design_sequence` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.service_invoke_seq_design$service_invoke_design_sequence
 CREATE TABLE IF NOT EXISTS `service_invoke_seq_design$service_invoke_design_sequence` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -1811,8 +1843,8 @@ CREATE TABLE IF NOT EXISTS `service_invoke_seq_design$service_invoke_design_sequ
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*Table structure for table `static_diff_conf_value` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.static_diff_conf_value
 CREATE TABLE IF NOT EXISTS `static_diff_conf_value` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1834,8 +1866,8 @@ CREATE TABLE IF NOT EXISTS `static_diff_conf_value` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `storage_type` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.storage_type
 CREATE TABLE IF NOT EXISTS `storage_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1856,8 +1888,8 @@ CREATE TABLE IF NOT EXISTS `storage_type` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `subsys` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.subsys
 CREATE TABLE IF NOT EXISTS `subsys` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1879,8 +1911,8 @@ CREATE TABLE IF NOT EXISTS `subsys` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `subsys$business_zone` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.subsys$business_zone
 CREATE TABLE IF NOT EXISTS `subsys$business_zone` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) NOT NULL,
@@ -1889,8 +1921,8 @@ CREATE TABLE IF NOT EXISTS `subsys$business_zone` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `subsys_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.subsys_design
 CREATE TABLE IF NOT EXISTS `subsys_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1912,8 +1944,8 @@ CREATE TABLE IF NOT EXISTS `subsys_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `subsys_design$business_zone_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.subsys_design$business_zone_design
 CREATE TABLE IF NOT EXISTS `subsys_design$business_zone_design` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) NOT NULL,
@@ -1922,8 +1954,8 @@ CREATE TABLE IF NOT EXISTS `subsys_design$business_zone_design` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8;
 
-/*Table structure for table `unit` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.unit
 CREATE TABLE IF NOT EXISTS `unit` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1951,18 +1983,18 @@ CREATE TABLE IF NOT EXISTS `unit` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `unit$deploy_package` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.unit$deploy_package
 CREATE TABLE IF NOT EXISTS `unit$deploy_package` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `from_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `to_guid` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL,
   `seq_no` int(5) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*Table structure for table `unit_design` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.unit_design
 CREATE TABLE IF NOT EXISTS `unit_design` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',
@@ -1987,8 +2019,8 @@ CREATE TABLE IF NOT EXISTS `unit_design` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `unit_type` */
-
+-- Data exporting was unselected.
+-- Dumping structure for table wecmdb_bk.unit_type
 CREATE TABLE IF NOT EXISTS `unit_type` (
   `guid` varchar(15) NOT NULL COMMENT '全局唯一ID',
   `p_guid` varchar(15) DEFAULT NULL COMMENT '前一版本数据的guid',

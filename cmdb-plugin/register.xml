@@ -16,6 +16,7 @@
         <menu code='MENU_IDC_PLANNING_DESIGN' cat='DESIGNING' displayName="Resource View - IDC Designing" localDisplayName="资源视图-规划设计">/wecmdb/view-management/idc-planning-design</menu>
         <menu code='MENU_IDC_RESOURCE_PLANNING' cat='DESIGNING' displayName="Resource View - Resource Management" localDisplayName="资源视图-资源管理">/wecmdb/view-management/idc-resource-planning</menu>
         <menu code='MENU_APPLICATION_ARCHITECTURE_DESIGN' cat='DESIGNING' displayName="APP View - Architecture Designing" localDisplayName="应用视图-架构设计">/wecmdb/view-management/application-architecture-design</menu>
+        <menu code='MENU_APPLICATION_ARCHITECTURE_QUERY' cat='DESIGNING' displayName="APP View - Architecture Enquery" localDisplayName="应用视图-架构查询">/wecmdb/view-management/application-architecture-query</menu>
         <menu code='MENU_APPLICATION_DEPLOYMENT_DESIGN' cat='DESIGNING' displayName="APP View - Deploy Management" localDisplayName="应用视图-部署管理">/wecmdb/view-management/application-deployment-design</menu>
         <menu code='MENU_ADMIN_CMDB_MODEL_MANAGEMENT' cat='ADMIN' displayName="CMDB Modeling" localDisplayName="CMDB模型管理">/wecmdb/admin/cmdb-model-management</menu>
         <menu code='MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT' cat='ADMIN' displayName="CMDB Base Datas" localDisplayName="CMDB基础数据管理">/wecmdb/admin/base-data-management</menu>
@@ -47,6 +48,7 @@
             <menu code="MENU_IDC_PLANNING_DESIGN" />
             <menu code="MENU_IDC_RESOURCE_PLANNING" />
             <menu code="MENU_APPLICATION_ARCHITECTURE_DESIGN" />
+            <menu code="MENU_APPLICATION_ARCHITECTURE_QUERY" />
             <menu code="MENU_APPLICATION_DEPLOYMENT_DESIGN" />
             <menu code="MENU_ADMIN_CMDB_MODEL_MANAGEMENT" />
             <menu code="MENU_ADMIN_PERMISSION_MANAGEMENT" />
@@ -57,7 +59,7 @@
 
     <!-- 6.运行资源 - 描述部署运行本插件包需要的基础资源(如主机、虚拟机、容器、数据库等) -->
     <resourceDependencies>
-        <docker imageName="{{REPOSITORY}}:{{VERSION}}" containerName="{{REPOSITORY}}-{{VERSION}}" portBindings="{{ALLOCATE_PORT}}:8081" volumeBindings="{{BASE_MOUNT_PATH}}/wecmdb/log:/log,/etc/localtime:/etc/localtime" envVariables="DB_HOST={{DB_HOST}},DB_PORT={{DB_PORT}},DB_SCHEMA={{DB_SCHEMA}},DB_USER={{DB_USER}},DB_PWD={{DB_PWD}}"/>
+        <docker imageName="{{REPOSITORY}}:{{VERSION}}" containerName="{{REPOSITORY}}-{{VERSION}}" portBindings="{{ALLOCATE_PORT}}:8081" volumeBindings="{{BASE_MOUNT_PATH}}/wecmdb/log:/data/wecmdb/log,/etc/localtime:/etc/localtime" envVariables="DB_HOST={{DB_HOST}},DB_PORT={{DB_PORT}},DB_SCHEMA={{DB_SCHEMA}},DB_USER={{DB_USER}},DB_PWD={{DB_PWD}}"/>
         <mysql schema="wecmdb_embedded" initFileName="init.sql" upgradeFileName="upgrade.sql"/>
     </resourceDependencies>
 
@@ -150,6 +152,30 @@
                     <parameter datatype="string" sensitiveData="N" mappingType="context">message</parameter>
                     <parameter datatype="string" sensitiveData="N" mappingType="context">guid</parameter>
                     <parameter datatype="string" sensitiveData="N" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="ci-data-refresh" targetPackage="wecmdb" targetEntity="app_instance" registerName="app_instance" targetEntityFilterRule="">
+            <interface action="refresh" path="/wecmdb/data/refresh" filterRule="{state_code eq 'created'}{fixed_date is NULL}">
+                <inputParameters>
+                    <parameter datatype="string" required="N" sensitiveData="N"  mappingType="entity" mappingEntityExpression="wecmdb:app_instance.guid">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">status</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">message</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="entity" mappingEntityExpression="wecmdb:app_instance.guid">guid</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="ci-data-refresh" targetPackage="wecmdb" targetEntity="rdb_instance" registerName="rdb_instance" targetEntityFilterRule="">
+            <interface action="refresh" path="/wecmdb/data/refresh" filterRule="{state_code eq 'created'}{fixed_date is NULL}">
+                <inputParameters>
+                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="entity" mappingEntityExpression="wecmdb:rdb_instance.guid">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">status</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">message</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="entity" mappingEntityExpression="wecmdb:rdb_instance.guid">guid</parameter>
                 </outputParameters>
             </interface>
         </plugin>

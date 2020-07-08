@@ -47,6 +47,9 @@
   "icon": "Icon",
   "save_draft": "Save Draft",
   "confirm": "Confirm",
+  "discard": "Discard",
+  "startup": "Startup",
+  "stop": "Stop",
   "edit_name": "Edit Name",
   "move_up_ci_attribute": "Move Up",
   "move_down_ci_attribute": "Move Down",
@@ -263,5 +266,11 @@
   "add_expression": "Add Expression",
   "filter_rule_modal_title": "Edit Filter Rule",
   "filter_rule_edit_icon_placeholder": "<-- Click to edit Filter Rule",
-  "filter_rule_add_button": "Add Filter Rule"
+  "filter_rule_add_button": "Add Filter Rule",
+  "node_information": "Node Information",
+  "current_node": "Current Node",
+  "subsidiary_node": "Subsidiary Node",
+  "add_node": "Add Node",
+  "link_information": "Link Information",
+  "add_link": "Add Link"
 }
