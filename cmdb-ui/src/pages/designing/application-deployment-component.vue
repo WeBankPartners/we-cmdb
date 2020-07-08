@@ -220,7 +220,6 @@ export default {
         this.genADChildrenDot(this.systemData[0].children || [], 1)
         this.initADGraph()
       }
-      this.$refs.transferData.linkManagementData(this.effectiveLink)
       fetchOtherSystemInstances()
     },
     async getAllDeployTreesFromSystemCi (systemVersion) {
@@ -297,7 +296,6 @@ export default {
         this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
         this.$refs.transferData.managementData(this.operateNodeData, this.originData)
         formatADLine(data)
-        this.$refs.transferData.linkManagementData(this.effectiveLink)
         fetchOtherSystemInstances()
       }
     },

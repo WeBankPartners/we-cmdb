@@ -191,7 +191,6 @@ export default {
         this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
         this.$refs.transferData.managementData(this.operateNodeData)
         formatAppLogicLine(treeData.data)
-        this.$refs.transferData.linkManagementData(this.effectiveLink)
         this.initGraph()
       }
     },
