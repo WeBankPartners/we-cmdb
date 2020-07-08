@@ -242,7 +242,6 @@ import {
   deleteCiDatas,
   queryCiData,
   operateCiState,
-  getAllSystemEnumCodes,
   getAllCITypesByLayerWithAttr
 } from '@/api/server'
 import Ref from './ref'
@@ -311,23 +310,6 @@ export default {
         return true
       }
     },
-    linkManagementData (linkData) {
-      this.linkData = linkData
-    },
-    async openLinkPanal (panalId) {
-      this.isEdit = false
-      if (panalId.length) {
-        this.linkPanal = panalId[0]
-        this.$emit('markEdge', this.linkData[Number(panalId[0] - 1)].guid)
-        const ciTypeId = this.linkData[Number(panalId[0] - 1)].ciTypeId
-        // if (!Object.keys(this.lineFromSet).includes(ciTypeId)) {
-        await this.getAttributes(ciTypeId, 'linkPanalForm')
-        this.lineFromSet[ciTypeId] = this.linkPanalForm
-        // } else {
-        //   this.linkPanalForm = this.lineFromSet[ciTypeId]
-        // }
-      }
-    },
     async getAllCITypes () {
       this.allCITypes = {}
       const status = ['notCreated', 'created', 'dirty', 'decommissioned']
@@ -339,151 +321,6 @@ export default {
           })
         })
       }
-    },
-    async getLineTypes (val) {
-      if (!val) {
-        return
-      }
-      const ciTypeKeys = Object.keys(this.allCITypes)
-      ciTypeKeys.forEach(key => {
-        if (this.allCITypes[key].ciTypeId === this.graphCiTypeId) {
-          this.graphTableName = this.allCITypes[key].tableName
-        }
-      })
-      this.canCreateLineTypes = []
-      let params = {
-        filters: [{ name: 'catId', operator: 'in', value: Array.from(new Array(28 + 1).keys()).slice(22) }],
-        paging: false
-      }
-      const { statusCode, data } = await getAllSystemEnumCodes(params)
-      if (statusCode === 'OK') {
-        const codeData = data.contents
-        const codeId = codeData.filter(dd => {
-          return dd.code === this.graphTableName
-        })[0].codeId
-        const edgeData = codeData.filter(dd => {
-          if (dd.groupCodeId) {
-            return dd.groupCodeId.codeId === codeId && dd.codeDescription === 'edge'
-          }
-        })
-        edgeData.forEach(ed => {
-          this.canCreateLineTypes.push({
-            label: ed.value,
-            value: ed.code
-          })
-        })
-      }
-    },
-    async getNewLineAttr (val) {
-      this.selectedLineType = val
-      if (!this.selectedLineType) {
-        return
-      }
-      this.showNewLineForm = false
-      this.newLineFormData = {}
-      this.newLineForm = this.allCITypes[val].attributes
-      this.currentLineId = this.allCITypes[val].ciTypeId
-      // await this.getAttributes(this.selectedLineType, 'newLineForm')
-      this.newLineForm.forEach(_ => {
-        if (_.inputType === 'ref') {
-          this.newLineFormData[_.propertyName] = { guid: '11' }
-        } else if (_.inputType === 'multiRef') {
-          this.newLineFormData[_.propertyName] = []
-        } else {
-          this.newLineFormData[_.propertyName] = ''
-        }
-      })
-      this.showNewLineForm = true
-      this.newLineForm.sort((a, b) => a.searchSeqNo - b.searchSeqNo)
-    },
-    async createLine () {
-      // eslint-disable-next-line no-unused-vars
-      let activeLineData = null
-      // eslint-disable-next-line no-unused-vars
-      let ciTypeId = null
-      activeLineData = this.newLineFormData
-      let tmpLineData = JSON.parse(JSON.stringify(activeLineData))
-      for (let key in activeLineData) {
-        if (activeLineData[key] && typeof activeLineData[key] === 'object') {
-          // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
-          if (Array.isArray(activeLineData[key]) && !key.endsWith('_tmp')) {
-            let tmp = []
-            if (activeLineData[key + '_tmp']) {
-              tmp = activeLineData[key + '_tmp'].map(_ => {
-                return _.data.guid || _.data.codeId
-              })
-            } else {
-              tmp = activeLineData[key].map(_ => {
-                return _.data.guid || _.data.codeId
-              })
-            }
-            tmpLineData[key] = tmp
-          } else {
-            // Object数据处理
-            tmpLineData[key] = activeLineData[key].codeId || activeLineData[key].guid
-          }
-        }
-      }
-      let params = {
-        id: this.currentLineId,
-        createData: [tmpLineData]
-      }
-      const { statusCode, data } = await createCiDatas(params)
-      if (statusCode === 'OK') {
-        this.$Message.success('Success!')
-        this.showAddLineArea = false
-        const ciData = await queryCiData({
-          id: this.currentLineId,
-          queryObject: {
-            filters: [
-              {
-                name: 'guid',
-                value: data[0].guid,
-                operator: 'eq'
-              }
-            ]
-          }
-        })
-        this.$emit('operationReload', '', {
-          type: 'add',
-          lineInfo: ciData.data.contents[0]
-        })
-        this.cancleAddLine()
-      }
-    },
-    cancleAddLine () {
-      this.isEdit = false
-      this.showAddLineArea = false
-      this.showNewLineForm = false
-      this.selectedLineType = null
-      this.newLineFormData = {}
-      this.newLineForm = []
-    },
-    async deleteLink (linkData, event) {
-      event.stopPropagation()
-      this.$Modal.confirm({
-        title: this.$t('delete_confirm'),
-        loading: true,
-        'z-index': 1000000,
-        onOk: async () => {
-          let params = {
-            id: linkData.ciTypeId,
-            deleteData: [linkData.guid]
-          }
-          const { statusCode } = await deleteCiDatas(params)
-          if (statusCode === 'OK') {
-            this.$Message.success('success!')
-            this.$emit('operationReload', '', {
-              type: 'remove',
-              lineInfo: {
-                data: linkData
-              }
-            })
-          }
-          this.$Modal.remove()
-        },
-        onCancel: () => {}
-      })
     },
     async confirm (panalData, tableName, panalIndex, $event) {
       event.stopPropagation()
@@ -652,11 +489,29 @@ export default {
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
         this.isEdit = false
+        const ciData = await queryCiData({
+          id: ciTypeId,
+          queryObject: {
+            filters: [
+              {
+                name: 'guid',
+                value: data[0].guid,
+                operator: 'eq'
+              }
+            ]
+          }
+        })
         if (dataSource === 'parentPanalData') {
           this.operateData.data = data[0]
         }
         if (dataSource === 'panalData') {
-          console.log(data[0])
+          ciData.data.contents[0].meta.nextOperations = Array.from(new Set(ciData.data.contents[0].meta.nextOperations))
+          ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
+          const index = this.getIndex(this.operateData.children, ciData.data.contents[0].data.guid)
+          this.operateData.children[index].data = ciData.data.contents[0].data
+          console.log(this.operateData)
+          this.$emit('operationReload', this.operateData)
+          return
           // this.operateData.children[index].data = data[0]
         }
         this.$emit('operationReload', this.operateData)
@@ -692,6 +547,7 @@ export default {
           this.newPanalData = {}
           this.newPanalDataKeys = []
           this.operateData.children.forEach(child => {
+            console.log(child)
             if (child.tableName in this.newPanalData) {
               this.newPanalData[child.tableName].push(child)
             } else {
