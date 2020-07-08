@@ -30,13 +30,7 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line
 import * as d3Graphviz from 'd3-graphviz'
-import {
-  getAllIdcData,
-  getResourcePlanningCiData,
-  getEnumCodesByCategoryId,
-  queryCiData,
-  getTreeData
-} from '@/api/server'
+import { getResourcePlanningCiData, getEnumCodesByCategoryId, queryCiData, getTreeData } from '@/api/server'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
 import TreeSelect from '../components/tree-select.vue'
 import {
@@ -63,7 +57,6 @@ export default {
       graphCiTypeId: 22,
       initParams: {},
       treeIdcs: [],
-      allIdcs: {},
       selectedIdcs: [],
       payload: {
         filters: [],
@@ -162,6 +155,7 @@ export default {
       } else {
         tmpData = operateNodeData
       }
+      this.$refs.transferData.managementData(operateNodeData)
       this.loadMap([tmpData], operateLineData)
     },
     loadMap (graphData, operateLineData) {
@@ -266,67 +260,10 @@ export default {
         .select('text')
         .attr('fill', '#ff9900')
     },
-    async getAllIdcData () {
-      const { data, statusCode } = await getAllIdcData()
-      if (statusCode === 'OK') {
-        this.allIdcs = {}
-        const regional = this.initParams[REGIONAL_DATA_CENTER]
-        data.forEach(_ => {
-          if (!_.data[regional]) {
-            this.treeIdcs.push({
-              guid: _.data.guid,
-              title: _.data.name,
-              expand: true,
-              children: []
-            })
-          }
-          this.allIdcs[_.data.guid] = {
-            guid: _.data.guid,
-            name: _.data.name,
-            realIdcGuid: _.data[regional] ? _.data[regional].guid : _.data.guid
-          }
-        })
-        const deep = (idcObj, idc) => {
-          if (idc.data[regional] && idcObj.guid === idc.data[regional].guid) {
-            const found = idcObj.children.find(_ => _.guid === idc.data.guid)
-            if (!found) {
-              idcObj.children.push({
-                guid: idc.data.guid,
-                title: idc.data.name,
-                realIdcGuid: idcObj.guid,
-                expand: true,
-                children: []
-              })
-            }
-          } else {
-            idcObj.children.forEach(child => {
-              data.forEach(i => {
-                deep(child, i)
-              })
-            })
-          }
-        }
-        this.treeIdcs.forEach(_ => {
-          data.forEach(idc => {
-            deep(_, idc)
-          })
-        })
-      }
-    },
     async onIdcDataChange (selectedIdcs) {
       this.selectedIdcs = selectedIdcs
       // let willSelectIdc = {}
       this.idcData = []
-      // this.selectedIdcs.forEach(_ => {
-      //   const realIdcGuid = this.allIdcs[_].realIdcGuid
-      //   if (!this.selectedIdcs.find(guid => realIdcGuid === guid)) {
-      //     willSelectIdc[realIdcGuid] = realIdcGuid
-      //   }
-      // })
-      // let selectedIdcs = JSON.parse(JSON.stringify(this.selectedIdcs))
-      // Object.keys(willSelectIdc).forEach(guid => {
-      //   selectedIdcs.push(guid)
-      // })
       if (selectedIdcs.length) {
         this.spinShow = true
         const payload = {
@@ -711,7 +648,6 @@ export default {
       }
     },
     async queryCiData () {
-      this.getAllIdcData()
       const found = this.tabList.find(_ => _.code === this.currentTab)
       if (
         this.currentTab === this.initParams[RESOURCE_PLANNING_ROUTER_CODE] ||
@@ -808,7 +744,6 @@ export default {
           this.initParams[_.code] = _.value
         })
       }
-      this.getAllIdcData()
     }
   },
   created () {
