@@ -39,13 +39,12 @@ import {
   NETWORK_SEGMENT,
   LAYER,
   RESOURCE_PLANNING_LINK_ID,
-  RESOURCE_PLANNING_LINK_FROM,
-  RESOURCE_PLANNING_LINK_TO,
   RESOURCE_PLANNING_ROUTER_CODE,
   DEFAULT_SECURITY_POLICY_CODE
 } from '@/const/init-params.js'
 import Operation from './planning-operation'
 import { addEvent } from '../util/event.js'
+import exprLineFinder from '@/const/format-links'
 
 export default {
   components: {
@@ -89,7 +88,12 @@ export default {
         type: '',
         color: ''
       },
-      activeLineGuid: ''
+      activeLineGuid: '',
+
+      linkExpr: {
+        exprFrom: 'network_link.network_segment_1>network_segment~(network_segment)network_zone',
+        exprTo: 'network_link.network_segment_2>network_segment~(network_segment)network_zone'
+      }
     }
   },
   watch: {
@@ -124,12 +128,6 @@ export default {
   },
   mounted () {
     this.initGraph()
-    this.graphConfig = {
-      nodePath: '',
-      nodeKey: 'data.network_segment_design.guid',
-      fromKey: 'data.network_segment_design_1.guid',
-      toKey: 'data.network_segment_design_2.guid'
-    }
   },
   methods: {
     operationReload (operateNodeData, operateLineData) {
@@ -158,7 +156,7 @@ export default {
       this.$refs.transferData.managementData(operateNodeData)
       this.loadMap([tmpData], operateLineData)
     },
-    loadMap (graphData, operateLineData) {
+    async loadMap (graphData, operateLineData) {
       this.graphData = graphData
       this.graphData[0].children.forEach(_ => {
         this.firstChildrenGroup.push(`g_${_.guid}`)
@@ -189,40 +187,35 @@ export default {
       if (operateLineData) {
         const lineInfoData = operateLineData.lineInfo.data
         if (operateLineData.type === 'add') {
-          this.lineData.push({
-            guid: lineInfoData.guid,
-            from: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
-            linkInfo: {
-              ...lineInfoData,
-              ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
-            },
-            to: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
-            label: lineInfoData.code,
-            state: lineInfoData.state.code
-          })
+          // this.lineData.push({
+          //   guid: lineInfoData.guid,
+          //   from: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
+          //   linkInfo: {
+          //     ...lineInfoData,
+          //     ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
+          //   },
+          //   to: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
+          //   label: lineInfoData.code,
+          //   state: lineInfoData.state.code
+          // })
+          let param = {
+            data: operateLineData.lineInfo.data,
+            meta: operateLineData.lineInfo.data.meta
+          }
+          const updateLine = await exprLineFinder(this.linkExpr, [param], this.initParams[RESOURCE_PLANNING_LINK_ID])
+          this.lineData.push(updateLine[0])
         }
         if (operateLineData.type === 'edit') {
           const index = this.lineData.findIndex(_ => {
             return _.guid === lineInfoData.guid
           })
-          this.lineData[index] = {
-            guid: lineInfoData.guid,
-            from: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
-            linkInfo: {
-              ...lineInfoData,
-              ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
-            },
-            to: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
-            label: lineInfoData.code,
-            state: lineInfoData.state.code
+          let param = {
+            data: operateLineData.lineInfo.data,
+            meta: operateLineData.lineInfo.data.meta
           }
+          const updateLine = await exprLineFinder(this.linkExpr, [param], this.initParams[RESOURCE_PLANNING_LINK_ID])
+          this.lineData[index] = updateLine[0]
         }
-        // if (operateLineData.type === 'edit') {
-        //   const index = this.lineData.findIndex(_ => {
-        //     return _.guid === lineInfoData.guid
-        //   })
-        //   this.lineData[index] = lineInfoData
-        // }
         if (operateLineData.type === 'remove') {
           const index = this.lineData.findIndex(_ => {
             return _.guid === lineInfoData.guid
@@ -262,7 +255,6 @@ export default {
     },
     async onIdcDataChange (selectedIdcs) {
       this.selectedIdcs = selectedIdcs
-      // let willSelectIdc = {}
       this.idcData = []
       if (selectedIdcs.length) {
         this.spinShow = true
@@ -319,20 +311,25 @@ export default {
           this.operateNodeData = this.graphData[0]
           this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
           this.$refs.transferData.managementData(this.operateNodeData)
-          this.lineData = links.data.contents.map(_ => {
-            return {
-              guid: _.data.guid,
-              from: _.data[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
-              linkInfo: {
-                ..._.data,
-                meta: _.meta,
-                ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
-              },
-              to: _.data[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
-              label: _.data.code,
-              state: _.data.state.code
-            }
-          })
+          this.lineData = await exprLineFinder(
+            this.linkExpr,
+            links.data.contents,
+            this.initParams[RESOURCE_PLANNING_LINK_ID]
+          )
+          // this.lineData = links.data.contents.map(_ => {
+          //   return {
+          //     guid: _.data.guid,
+          //     from: _.data[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
+          //     linkInfo: {
+          //       ..._.data,
+          //       meta: _.meta,
+          //       ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
+          //     },
+          //     to: _.data[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
+          //     label: _.data.code,
+          //     state: _.data.state.code
+          //   }
+          // })
 
           this.$nextTick(() => {
             this.initGraph()
@@ -512,20 +509,12 @@ export default {
     },
     genLines () {
       let dots = []
-      let newworkToNode = {}
-      Object.keys(this.graphNodes).forEach(guid => {
-        const networkSegment = this.graphNodes[guid].data[this.initParams[NETWORK_SEGMENT]]
-        if (networkSegment) {
-          newworkToNode[networkSegment.guid] = guid
-        }
-      })
       this.effectiveLink = []
       this.lineData.forEach(_ => {
-        if (newworkToNode[_.from] && newworkToNode[_.to]) {
+        if (_.from in this.graphNodes && _.to in this.graphNodes) {
           this.effectiveLink.push(_.linkInfo)
           dots.push(
-            `n_${newworkToNode[_.from]} -> n_${newworkToNode[_.to]}[id=gl_${_.guid},tooltip="${_.label ||
-              ''}",taillabel="${_.label || ''}"];`
+            `n_${_.from} -> n_${_.to}[id=gl_${_.guid},tooltip="${_.label || ''}",taillabel="${_.label || ''}"];`
           )
         }
       })
