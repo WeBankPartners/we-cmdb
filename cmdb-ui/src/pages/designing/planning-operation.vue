@@ -78,7 +78,7 @@
           </div>
         </Panel>
       </Collapse>
-      <template v-for="(groupingKey, groupingKeyIndex) in groupingDataKeys">
+      <template v-for="(groupingKey, groupingKeyIndex) in groupingNodeKeys">
         <div :key="groupingKeyIndex + 'a'" class="panal-title">{{ $t('subsidiary_node') }}{{ groupingKey }}：</div>
         <Collapse
           v-model="defaultPanal"
@@ -86,7 +86,7 @@
           @on-change="openPanal(defaultPanal, groupingKey)"
           :key="groupingKeyIndex + 'b'"
         >
-          <Panel :name="panal.guid" v-for="(panal, panalIndex) in groupingData[groupingKey]" :key="panalIndex">
+          <Panel :name="panal.guid" v-for="(panal, panalIndex) in groupingNode[groupingKey]" :key="panalIndex">
             <Tooltip :delay="500" placement="top">
               <span>{{ panal.data.key_name | filterCode }}</span>
               <div slot="content" style="white-space: normal;">
@@ -186,104 +186,6 @@
           </Panel>
         </Collapse>
       </template>
-      <!-- <h5>{{ $t('subsidiary_node') }}：</h5>
-      <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
-        <Panel :name="panalIndex + 1 + ''" v-if="isShow" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
-          <Tooltip :delay="500" placement="top">
-            <span style="color:red">{{ findCiType(panal) }}</span>
-            <span>-{{ panal.data.key_name | filterCode }}</span>
-            <div slot="content" style="white-space: normal;">
-              {{ panal.data.key_name }}
-            </div>
-          </Tooltip>
-          <template v-for="opera in panal.data.meta.nextOperations">
-            <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
-              <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
-            </Tooltip>
-            <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
-              <Icon
-                type="md-checkmark"
-                @click="confirm(panal, $event, 'node', panalIndex)"
-                class="operation-icon-confirm"
-              />
-            </Tooltip>
-            <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera" style="float:right">
-              <Icon
-                type="ios-share-alt"
-                @click="discard(panal, $event, 'node', panalIndex)"
-                class="operation-icon-discard"
-              />
-            </Tooltip>
-          </template>
-          <div slot="content">
-            <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
-              <div
-                v-for="(formData, formDataIndex) in panalForm"
-                v-if="formData.isDisplayed"
-                :key="formDataIndex + 'b'"
-              >
-                <Tooltip :content="formData.description" :delay="500" placement="left-start">
-                  <span class="form-item-title"> {{ formData.name }}</span>
-                </Tooltip>
-                <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-                  <Input
-                    v-model="panal.data[formData.propertyName]"
-                    :disabled="!isEdit || !formData.isEditable"
-                  ></Input>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
-                  <textarea
-                    v-model="panal.data[formData.propertyName]"
-                    :disabled="!isEdit || !formData.isEditable"
-                    class="textArea-style"
-                  ></textarea>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-                  <Ref :formData="formData" :panalData="panal.data" :disabled="!isEdit || !formData.isEditable"></Ref>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-                  <MutiRef
-                    :formData="formData"
-                    :panalData="panal.data"
-                    :disabled="!isEdit || !formData.isEditable"
-                  ></MutiRef>
-                </FormItem>
-                <FormItem
-                  v-if="formData.inputType === 'select'"
-                  :disabled="!isEdit || !formData.isEditable"
-                  class="form-item-content"
-                >
-                  select
-                </FormItem>
-                <FormItem
-                  v-if="formData.inputType === 'multiSelect'"
-                  :disabled="!isEdit || !formData.isEditable"
-                  class="form-item-content"
-                >
-                  multiSelect
-                </FormItem>
-              </div>
-              <FormItem>
-                <div class="opetation-btn-zone">
-                  <Button @click="editOperation" type="info" :disabled="isEditEnable(panal.data.meta.nextOperations)">{{
-                    $t('edit')
-                  }}</Button>
-                  <Button
-                    type="primary"
-                    @click="saveOperation('panalData', panalIndex)"
-                    :disabled="!isEdit"
-                    class="opetation-btn"
-                    >{{ $t('save') }}</Button
-                  >
-                </div>
-              </FormItem>
-            </Form>
-          </div>
-        </Panel>
-        <div style="margin: 12px;">
-          <Button @click="showAddNodeArea = true" size="small" long type="info">{{ $t('add_node') }}</Button>
-        </div>
-      </Collapse> -->
       <div style="margin: 6px 0;">
         <Button @click="showAddNodeArea = true" size="small" long type="info">{{ $t('add_node') }}</Button>
       </div>
@@ -335,88 +237,100 @@
       </div>
     </div>
     <div v-if="currentTab === 2" class="operation-Collapse">
-      <Collapse v-model="linkPanal" accordion @on-change="openLinkPanal">
-        <Panel :name="linkIndex + 1 + ''" v-for="(link, linkIndex) in linkData" :key="linkIndex">
-          <Tooltip :delay="500" placement="top">
-            <span>{{ link.key_name | filterCode }}</span>
-            <div slot="content" style="white-space: normal;">
-              {{ link.key_name }}
-            </div>
-          </Tooltip>
-          <template v-if="link.meta.nextOperations">
-            <template v-for="opera in setNextOperations(link.meta.nextOperations)">
-              <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
-                <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon-delete" />
-              </Tooltip>
-              <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
-                <Icon type="md-checkmark" @click="confirm(link, $event, 'link')" class="operation-icon-confirm" />
-              </Tooltip>
-              <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera" style="float:right">
-                <Icon type="ios-share-alt" @click="discard(link, $event, 'link')" class="operation-icon-discard" />
-              </Tooltip>
-            </template>
-          </template>
-
-          <div slot="content">
-            <Form v-if="linkPanal[0] === linkIndex + 1 + ''">
-              <div
-                v-for="(formData, formDataIndex) in linkPanalForm"
-                v-if="formData.isDisplayed"
-                :key="formDataIndex + 'b'"
-              >
-                <Tooltip :content="formData.description" :delay="500" placement="left-start">
-                  <span class="form-item-title"> {{ formData.name }}</span>
-                </Tooltip>
-                <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-                  <Input v-model="link[formData.propertyName]" :disabled="!isEdit || !formData.isEditable"></Input>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
-                  <textarea
-                    v-model="link[formData.propertyName]"
-                    :disabled="!isEdit || !formData.isEditable"
-                    class="textArea-style"
-                  ></textarea>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-                  <Ref :formData="formData" :panalData="link" :disabled="!isEdit || !formData.isEditable"></Ref>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-                  <MutiRef :formData="formData" :panalData="link" :disabled="!isEdit || !formData.isEditable"></MutiRef>
-                </FormItem>
-                <FormItem
-                  v-if="formData.inputType === 'select'"
-                  :disabled="!isEdit || !formData.isEditable"
-                  class="form-item-content"
-                >
-                  select
-                </FormItem>
-                <FormItem
-                  v-if="formData.inputType === 'multiSelect'"
-                  :disabled="!isEdit || !formData.isEditable"
-                  class="form-item-content"
-                >
-                  multiSelect
-                </FormItem>
+      <template v-for="(groupingKey, groupingKeyIndex) in groupingLinkKeys">
+        <div :key="groupingKeyIndex + 'e'" class="panal-title">{{ groupingKey }}：</div>
+        <Collapse
+          v-model="linkPanal"
+          accordion
+          @on-change="openLinkPanal(linkPanal, groupingKey)"
+          :key="groupingKeyIndex + 'f'"
+        >
+          <Panel :name="link.guid" v-for="(link, linkIndex) in groupingLink[groupingKey]" :key="linkIndex">
+            <Tooltip :delay="500" placement="top">
+              <span>{{ link.key_name | filterCode }}</span>
+              <div slot="content" style="white-space: normal;">
+                {{ link.key_name }}
               </div>
-              <FormItem>
-                <div class="opetation-btn-zone">
-                  <Button @click="editOperation" type="info">{{ $t('edit') }}</Button>
-                  <Button
-                    type="primary"
-                    @click="saveOperation('linkData', linkIndex)"
-                    :disabled="!isEdit || isEditEnable(link.meta.nextOperations)"
-                    class="opetation-btn"
-                    >{{ $t('save') }}</Button
+            </Tooltip>
+            <template v-if="link.meta.nextOperations">
+              <template v-for="opera in setNextOperations(link.meta.nextOperations)">
+                <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera" style="float:right">
+                  <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon-delete" />
+                </Tooltip>
+                <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
+                  <Icon type="md-checkmark" @click="confirm(link, $event, 'link')" class="operation-icon-confirm" />
+                </Tooltip>
+                <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera" style="float:right">
+                  <Icon type="ios-share-alt" @click="discard(link, $event, 'link')" class="operation-icon-discard" />
+                </Tooltip>
+              </template>
+            </template>
+
+            <div slot="content">
+              <Form v-if="linkPanal[0] === link.guid">
+                <div
+                  v-for="(formData, formDataIndex) in linkPanalForm"
+                  v-if="formData.isDisplayed"
+                  :key="formDataIndex + 'b'"
+                >
+                  <Tooltip :content="formData.description" :delay="500" placement="left-start">
+                    <span class="form-item-title"> {{ formData.name }}</span>
+                  </Tooltip>
+                  <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
+                    <Input v-model="link[formData.propertyName]" :disabled="!isEdit || !formData.isEditable"></Input>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
+                    <textarea
+                      v-model="link[formData.propertyName]"
+                      :disabled="!isEdit || !formData.isEditable"
+                      class="textArea-style"
+                    ></textarea>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
+                    <Ref :formData="formData" :panalData="link" :disabled="!isEdit || !formData.isEditable"></Ref>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
+                    <MutiRef
+                      :formData="formData"
+                      :panalData="link"
+                      :disabled="!isEdit || !formData.isEditable"
+                    ></MutiRef>
+                  </FormItem>
+                  <FormItem
+                    v-if="formData.inputType === 'select'"
+                    :disabled="!isEdit || !formData.isEditable"
+                    class="form-item-content"
                   >
+                    select
+                  </FormItem>
+                  <FormItem
+                    v-if="formData.inputType === 'multiSelect'"
+                    :disabled="!isEdit || !formData.isEditable"
+                    class="form-item-content"
+                  >
+                    multiSelect
+                  </FormItem>
                 </div>
-              </FormItem>
-            </Form>
-          </div>
-        </Panel>
-        <div style="margin: 12px;">
-          <Button @click="showAddLineArea = true" size="small" long type="info">{{ $t('add_link') }}</Button>
-        </div>
-      </Collapse>
+                <FormItem>
+                  <div class="opetation-btn-zone">
+                    <Button @click="editOperation" type="info">{{ $t('edit') }}</Button>
+                    <Button
+                      type="primary"
+                      @click="saveOperation('linkData', groupingKey)"
+                      :disabled="!isEdit || isEditEnable(link.meta.nextOperations)"
+                      class="opetation-btn"
+                      >{{ $t('save') }}</Button
+                    >
+                  </div>
+                </FormItem>
+              </Form>
+            </div>
+          </Panel>
+        </Collapse>
+      </template>
+      <div style="margin: 6px 0;">
+        <Button @click="showAddLineArea = true" size="small" long type="info">{{ $t('add_link') }}</Button>
+      </div>
       <div v-if="showAddLineArea" class="add-node-area">
         <Select v-model="selectedLineType" @on-change="getNewLineAttr" @on-open-change="getLineTypes">
           <Option v-for="(item, index) in canCreateLineTypes" :value="item.value" :key="item.value + index">{{
@@ -522,8 +436,11 @@ export default {
       allCITypes: {},
       currentLineId: null,
 
-      groupingData: {}, // 节点分组数据
-      groupingDataKeys: [] // 节点分组类型
+      groupingNode: {}, // 节点分组数据
+      groupingNodeKeys: [], // 节点分组类型
+
+      groupingLink: {}, // 调用分组数据
+      groupingLinkKeys: [] // 调用分组类型
     }
   },
   mounted () {
@@ -549,15 +466,26 @@ export default {
       this.linkData = linkData
       this.linkData.forEach(link => {
         link.meta.nextOperations = Array.from(new Set(link.meta.nextOperations))
+        link.tableName = this.findCiType(Number(link.ciTypeId))
+      })
+      this.groupingLink = {}
+      this.groupingLinkKeys = []
+      this.linkData.forEach(link => {
+        if (link.tableName in this.groupingLink) {
+          this.groupingLink[link.tableName].push(link)
+        } else {
+          this.groupingLink[link.tableName] = [link]
+          this.groupingLinkKeys.push(link.tableName)
+        }
       })
     },
-    async openLinkPanal (panalId) {
+    async openLinkPanal (panalId, tableName) {
       this.currentTab = 2
       this.isEdit = false
       if (panalId.length) {
-        this.linkPanal = panalId[0]
-        this.$emit('markEdge', this.linkData[Number(panalId[0] - 1)].guid)
-        const ciTypeId = this.linkData[Number(panalId[0] - 1)].ciTypeId
+        const ciData = this.groupingLink[tableName].find(item => item.guid === panalId[0])
+        const ciTypeId = ciData.ciTypeId
+        this.$emit('markEdge', ciData.guid)
         if (!Object.keys(this.lineFromSet).includes(ciTypeId)) {
           await this.getAttributes(ciTypeId, 'linkPanalForm')
           this.lineFromSet[ciTypeId] = this.linkPanalForm
@@ -690,8 +618,9 @@ export default {
         }
         this.$emit('operationReload', '', {
           type: 'add',
-          lineInfo: tmp
-          // lineInfo: ciData.data.contents[0]
+          lineInfo: {
+            data: tmp
+          }
         })
         this.cancleAddLine()
       }
@@ -731,15 +660,6 @@ export default {
         onCancel: () => {}
       })
     },
-    // async confirmNode (panalData, panalIndex, event) {
-    //   event.stopPropagation()
-    //   const nodeInfo = panalData[panalIndex]
-    //   const { statusCode } = await operateCiState(nodeInfo.ciTypeId + '', nodeInfo.guid, 'confirm')
-    //   if (statusCode === 'OK') {
-    //     this.$Message.success('success!')
-    //   }
-    // },
-    // panal, groupingKey, 'node', $event
     async confirm (data, event, type) {
       event.stopPropagation()
       const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'confirm')
@@ -765,60 +685,21 @@ export default {
         tmp.ciTypeId = Number(data.ciTypeId)
       }
       if (type === 'node') {
-        const index = this.operateData.children.findIndex(child => {
-          return child.guid === data.guid
-        })
+        const index = this.getIndex(this.operateData.children, data.guid)
         this.operateData.children[index].data = tmp
         this.$emit('operationReload', this.operateData)
       }
       if (type === 'link') {
-        // this.linkData[index] = tmp
-        // this.$emit('operationReload', '', {
-        //   type: 'edit',
-        //   lineInfo: {
-        //     data: this.linkData[index]
-        //   }
-        // })
+        const index = this.getIndex(this.linkData, data.guid)
+        this.linkData[index] = tmp
+        this.$emit('operationReload', '', {
+          type: 'edit',
+          lineInfo: {
+            data: this.linkData[index]
+          }
+        })
       }
     },
-    // async confirm (data, event, type, index) {
-    //   event.stopPropagation()
-    //   const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'confirm')
-    //   if (statusCode === 'OK') {
-    //     this.$Message.success('success!')
-    //   }
-    //   const ciData = await queryCiData({
-    //     id: data.ciTypeId,
-    //     queryObject: {
-    //       filters: [
-    //         {
-    //           name: 'guid',
-    //           value: data.guid,
-    //           operator: 'eq'
-    //         }
-    //       ]
-    //     }
-    //   })
-    //   let tmp = null
-    //   if (ciData.statusCode === 'OK') {
-    //     tmp = ciData.data.contents[0].data
-    //     tmp.meta = ciData.data.contents[0].meta
-    //     tmp.ciTypeId = Number(data.ciTypeId)
-    //   }
-    //   if (type === 'node') {
-    //     this.operateData.children[index].data = tmp
-    //     this.$emit('operationReload', this.operateData)
-    //   }
-    //   if (type === 'link') {
-    //     this.linkData[index] = tmp
-    //     this.$emit('operationReload', '', {
-    //       type: 'edit',
-    //       lineInfo: {
-    //         data: this.linkData[index]
-    //       }
-    //     })
-    //   }
-    // },
     async discard (data, event, type) {
       event.stopPropagation()
       const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'discard')
@@ -844,20 +725,19 @@ export default {
         tmp.ciTypeId = Number(data.ciTypeId)
       }
       if (type === 'node') {
-        const index = this.operateData.children.findIndex(child => {
-          return child.guid === data.guid
-        })
+        const index = this.getIndex(this.operateData.children, data.guid)
         this.operateData.children[index].data = tmp
         this.$emit('operationReload', this.operateData)
       }
       if (type === 'link') {
-        // this.linkData[index] = tmp
-        // this.$emit('operationReload', '', {
-        //   type: 'edit',
-        //   lineInfo: {
-        //     data: this.linkData[index]
-        //   }
-        // })
+        const index = this.getIndex(this.linkData, data.guid)
+        this.linkData[index] = tmp
+        this.$emit('operationReload', '', {
+          type: 'edit',
+          lineInfo: {
+            data: this.linkData[index]
+          }
+        })
       }
     },
     async deleteNode (data, event) {
@@ -874,9 +754,7 @@ export default {
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
             this.$Message.success('success!')
-            const index = this.operateData.children.findIndex(child => {
-              return child.guid === data.guid
-            })
+            const index = this.getIndex(this.operateData.children, data.guid)
             let children = JSON.parse(JSON.stringify(this.operateData.children))
             children.splice(index, 1)
             this.operateData.children = children
@@ -970,20 +848,19 @@ export default {
         ciTypeId = this.parentPanalForm[0].ciTypeId
       }
       if (dataSource === 'panalData') {
-        // activePanalData = this.panalData[this.defaultPanal[0] - 1].data
-        // ciTypeId = this.panalForm[0].ciTypeId
-        const activePanal = this.groupingData[tableName].find(item => item.guid === this.defaultPanal[0])
+        const activePanal = this.groupingNode[tableName].find(item => item.guid === this.defaultPanal[0])
         activePanalData = activePanal.data
         ciTypeId = activePanal.ciTypeId
       }
       if (dataSource === 'linkData') {
-        activePanalData = this.linkData[this.linkPanal[0] - 1]
+        activePanalData = this.groupingLink[tableName].find(item => item.guid === this.linkPanal[0])
         ciTypeId = activePanalData.ciTypeId
         delete activePanalData.ciTypeId
       }
 
       let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
       delete tmpPanalData.ciTypeId
+      delete tmpPanalData.tableName
       for (let key in activePanalData) {
         if (activePanalData[key] && typeof activePanalData[key] === 'object') {
           // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
@@ -1025,32 +902,32 @@ export default {
             ]
           }
         })
-        // let tmp = null
+        let tmp = null
         if (dataSource === 'parentPanalData') {
           this.operateData.data = data[0]
         }
         if (dataSource === 'panalData') {
           ciData.data.contents[0].meta.nextOperations = Array.from(new Set(ciData.data.contents[0].meta.nextOperations))
           ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
-          const index = this.operateData.children.findIndex(child => {
-            return child.guid === ciData.data.contents[0].data.guid
-          })
+          const index = this.getIndex(this.operateData.children, ciData.data.contents[0].data.guid)
           this.operateData.children[index].data = ciData.data.contents[0].data
           this.$emit('operationReload', this.operateData)
           return
         }
         if (dataSource === 'linkData') {
-          // tmp = ciData.data.contents[0].data
-          // tmp.meta = ciData.data.contents[0].meta
-          // tmp.ciTypeId = Number(ciTypeId)
-          // this.linkData[index] = tmp
-          // this.$emit('operationReload', '', {
-          //   type: 'edit',
-          //   lineInfo: {
-          //     data: this.linkData[index]
-          //   }
-          // })
-          // return
+          tmp = ciData.data.contents[0].data
+          tmp.meta = ciData.data.contents[0].meta
+          tmp.ciTypeId = Number(ciTypeId)
+
+          const index = this.getIndex(this.linkData, ciData.data.contents[0].data.guid)
+          this.linkData[index] = tmp
+          this.$emit('operationReload', '', {
+            type: 'edit',
+            lineInfo: {
+              data: this.linkData[index]
+            }
+          })
+          return
         }
         this.$emit('operationReload', this.operateData)
       }
@@ -1060,8 +937,8 @@ export default {
       this.parentPanal = ''
       this.defaultPanal = ''
       this.panalData = []
-      this.groupingData = {}
-      this.groupingDataKeys = []
+      this.groupingNode = {}
+      this.groupingNodeKeys = []
       this.cancleAddNode()
       this.operateData = operateData
       let tmp = JSON.parse(JSON.stringify(this.operateData))
@@ -1085,14 +962,14 @@ export default {
             })
           })
           this.panalData = []
-          this.groupingData = {}
-          this.groupingDataKeys = []
+          this.groupingNode = {}
+          this.groupingNodeKeys = []
           this.operateData.children.forEach(child => {
-            if (child.tableName in this.groupingData) {
-              this.groupingData[child.tableName].push(child)
+            if (child.tableName in this.groupingNode) {
+              this.groupingNode[child.tableName].push(child)
             } else {
-              this.groupingData[child.tableName] = [child]
-              this.groupingDataKeys.push(child.tableName)
+              this.groupingNode[child.tableName] = [child]
+              this.groupingNodeKeys.push(child.tableName)
             }
           })
           this.panalData.push(...this.operateData.children)
@@ -1176,7 +1053,7 @@ export default {
       this.parentPanal = ''
       this.isEdit = false
       if (panalId.length) {
-        const ciData = this.groupingData[tableName].find(item => item.guid === panalId[0])
+        const ciData = this.groupingNode[tableName].find(item => item.guid === panalId[0])
         const ciTypeId = ciData.ciTypeId
         this.panalForm = []
         this.getAttributes(ciTypeId, 'panalForm')
@@ -1195,6 +1072,12 @@ export default {
           return this.allCITypes[key].tableName
         }
       }
+    },
+    getIndex (dataGroup, guid) {
+      const index = dataGroup.findIndex(child => {
+        return child.guid === guid
+      })
+      return index
     }
   },
   filters: {
