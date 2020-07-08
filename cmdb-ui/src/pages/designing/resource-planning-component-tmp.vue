@@ -385,7 +385,7 @@ export default {
           this.operateNodeData = this.graphData[0]
           this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
           this.$refs.transferData.managementData(this.operateNodeData)
-          this.exprLineFinder('', '', links.data.contents)
+          await this.exprLineFinder('', '', links.data.contents)
           this.lineData = links.data.contents.map(_ => {
             return {
               guid: _.data.guid,
@@ -814,19 +814,18 @@ export default {
       }
       this.getAllIdcData()
     },
-    exprLineFinder (expr, ciMapping, linkData) {
+    async exprLineFinder (expr, ciMapping, linkData) {
       /*
       连接线数据匹配
       [
           {'link的guid值': {from: [{guid: ...}], to: [{guid: ...}]}
       ]
       */
-      // TODO: replace this with data source(eg. api call)
       let cacheData = {}
+      // TODO: replace this with data source(eg. api call)
       let exprFrom = 'network_link.network_segment_1>network_segment~(network_segment)network_zone'
-      // let exprTo = 'network_link_design.network_segment_design_2>network_segment_design~(network_segment_design)network_zone_design'
-
-      let lineFrom = this.exprMatch(this.exprParse(exprFrom), linkData, async (exprData, isBackref, guids) => {
+      let exprTo = 'network_link.network_segment_2>network_segment~(network_segment)network_zone'
+      const myCiGetter = async (exprData, isBackref, guids) => {
         // expr_data结构如下：
         // {
         //     "backref_attribute":"",
@@ -836,10 +835,8 @@ export default {
         //     ],
         //     "attribute":""
         // }
-        // TODO: #1 get ci data
-        // let datas = requests.get(exprData.ci, exprData.filters)
-        //  + JSON.stringify(exprData.filters)
         let datas = []
+        // TODO: make id with filter
         let id = exprData.ci
         if (cacheData[id]) {
           datas = cacheData[id]
@@ -855,24 +852,51 @@ export default {
             cacheData[id] = datas
           }
         }
-        console.log(lineFrom)
         if (isBackref) {
           return datas.filter(item => guids.includes(item.data[exprData.backref_attribute].guid))
         } else {
           return datas.filter(item => guids.includes(item.data.guid))
         }
-      })
-      // let lineTo = this.exprMatch(this.exprParse(exprTo), linkData, (exprData, isBackref, guids) => {
-      //   // TODO: same as #1
-      // })
+      }
+      let lineFrom = await this.exprMatch(this.exprParse(exprFrom), linkData, myCiGetter)
+      let lineTo = await this.exprMatch(this.exprParse(exprTo), linkData, myCiGetter)
       // merge link data
-      // let linkResults = {}
-      // for (let key in lineFrom) {
-      //   if (key in lineTo) {
-      //     linkResults[key] = {from: lineFrom[key], to: lineTo[key]}
-      //   }
-      // }
-      // return linkResults
+      let linkMapping = {}
+      let linkResults = []
+      for (let key in lineFrom) {
+        if (key in lineTo) {
+          linkMapping[key] = { from: lineFrom[key], to: lineTo[key] }
+        }
+      }
+      linkData.forEach(el => {
+        let linkGuid = el.data.guid
+        if (linkGuid in linkMapping) {
+          if (linkMapping[linkGuid].from.length > 0 && linkMapping[linkGuid].to.length > 0) {
+            linkResults.push({
+              guid: linkGuid,
+              label: el.data.code,
+              state: el.data.state.code,
+              from: linkMapping[linkGuid].from[0].data.guid,
+              to: linkMapping[linkGuid].to[0].data.guid,
+              linkInfo: {
+                ...el.data,
+                meta: el.meta,
+                ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
+              }
+            })
+          }
+        }
+      })
+      // TODO: remove this
+      console.log('link results:', linkResults)
+      for (let key in linkResults) {
+        let a = linkResults[key].from
+        let b = linkResults[key].to
+        if (a.length > 0 && b.length > 0) {
+          console.log('link:', linkResults[key].guid, ' ,from: ', a, ' ,to: ', b)
+        }
+      }
+      return linkResults
     },
     exprOpFinder (expr) {
       let ops = ['~', '>', '->', '<-']
@@ -964,9 +988,11 @@ export default {
       })
       return splitRes
     },
-    exprMatch (exprGroups, inputData, ciGetter) {
+    async exprMatch (exprGroups, inputData, ciGetter) {
       let results = {}
-      inputData.forEach(async el => {
+      for (let eIndex = 0; eIndex < inputData.length; eIndex++) {
+        let el = inputData[eIndex]
+        // inputData.forEach(async el => {
         let isBackref = false
         let guids = []
         let curData = []
@@ -988,9 +1014,9 @@ export default {
             for (let j = 0; j < curData.length; j++) {
               let guid = ''
               if (exprData.attribute.length > 0) {
-                guid = curData[j][exprData.attribute].guid
+                guid = curData[j].data[exprData.attribute].guid
               } else {
-                guid = curData[j].guid
+                guid = curData[j].data.guid
               }
               if (guid) {
                 guids.push(guid)
@@ -1005,8 +1031,7 @@ export default {
           }
         }
         results[el.data.guid] = curData
-      })
-      console.log(results)
+      }
       return results
     },
     async getAllCITypes () {
