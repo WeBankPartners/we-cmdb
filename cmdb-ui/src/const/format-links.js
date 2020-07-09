@@ -71,17 +71,21 @@ export default async function exprLineFinder (expr, linkData, ciTypeId) {
     let linkGuid = el.data.guid
     if (linkGuid in linkMapping) {
       if (linkMapping[linkGuid].from.length > 0 && linkMapping[linkGuid].to.length > 0) {
-        linkResults.push({
-          guid: linkGuid,
-          label: el.data.code,
-          state: el.data.state.code,
-          from: linkMapping[linkGuid].from[0].data.guid,
-          to: linkMapping[linkGuid].to[0].data.guid,
-          linkInfo: {
-            ...el.data,
-            meta: el.meta,
-            ciTypeId: ciTypeId
-          }
+        linkMapping[linkGuid].from.forEach(elFrom => {
+          linkMapping[linkGuid].to.forEach(elTo => {
+            linkResults.push({
+              guid: linkGuid,
+              label: el.data.code,
+              state: el.data.state.code,
+              from: elFrom.data.guid,
+              to: elTo.data.guid,
+              linkInfo: {
+                ...el.data,
+                meta: el.meta,
+                ciTypeId: ciTypeId
+              }
+            })
+          })
         })
       }
     }
