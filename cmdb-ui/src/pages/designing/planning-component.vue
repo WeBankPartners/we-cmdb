@@ -41,6 +41,7 @@ import {
   IDC_PLANNING_LINK_TO
 } from '@/const/init-params.js'
 import Operation from './planning-operation'
+import exprLineFinder from '@/const/format-links'
 
 export default {
   data () {
@@ -64,7 +65,14 @@ export default {
         type: '',
         color: ''
       },
-      activeLineGuid: ''
+      activeLineGuid: '',
+
+      linkExpr: {
+        exprFrom:
+          'network_link_design.network_segment_design_2>network_segment_design.f_network_segment_design~(network_segment_design)network_zone_design',
+        exprTo:
+          'network_link_design.network_segment_design_1>network_segment_design.f_network_segment_design~(network_segment_design)network_zone_design'
+      }
     }
   },
   watch: {
@@ -348,27 +356,35 @@ export default {
       return dots.join('')
     },
     genLink () {
+      // let dots = []
+      // let networkToNode = {}
+      // this.ResourceCollection.forEach(rc => {
+      //   const nodeGuid = this.dataSelector(rc, this.graphConfig.nodeKey)
+      //   if (Object.keys(networkToNode).includes(nodeGuid)) {
+      //     networkToNode[nodeGuid].push(rc.guid)
+      //   } else {
+      //     networkToNode[nodeGuid] = [rc.guid]
+      //   }
+      // })
+      // this.effectiveLink = []
+      // this.idcLink.forEach(_ => {
+      //   if (networkToNode[_.from] && networkToNode[_.to]) {
+      //     this.effectiveLink.push(_.linkInfo)
+      //     networkToNode[_.from].forEach(from => {
+      //       networkToNode[_.to].forEach(to => {
+      //         dots.push(
+      //           `g_${to} -> g_${from}[id=gl_${_.guid},tooltip="${_.label || ''}",taillabel="${_.label || ''}"];`
+      //         )
+      //       })
+      //     })
+      //   }
+      // })
       let dots = []
-      let networkToNode = {}
-      this.ResourceCollection.forEach(rc => {
-        const nodeGuid = this.dataSelector(rc, this.graphConfig.nodeKey)
-        if (Object.keys(networkToNode).includes(nodeGuid)) {
-          networkToNode[nodeGuid].push(rc.guid)
-        } else {
-          networkToNode[nodeGuid] = [rc.guid]
-        }
-      })
-      this.effectiveLink = []
       this.idcLink.forEach(_ => {
-        if (networkToNode[_.from] && networkToNode[_.to]) {
-          this.effectiveLink.push(_.linkInfo)
-          networkToNode[_.from].forEach(from => {
-            networkToNode[_.to].forEach(to => {
-              dots.push(
-                `g_${to} -> g_${from}[id=gl_${_.guid},tooltip="${_.label || ''}",taillabel="${_.label || ''}"];`
-              )
-            })
-          })
+        if (_.from in this.graphNodes && _.to in this.graphNodes) {
+          dots.push(
+            `g_${_.from} -> g_${_.to}[id=gl_${_.guid},tooltip="${_.label || ''}",taillabel="${_.label || ''}"];`
+          )
         }
       })
       this.$refs.transferData.linkManagementData(this.effectiveLink)
@@ -584,20 +600,22 @@ export default {
       }
       const { statusCode, data } = await queryCiData(payload)
       if (statusCode === 'OK') {
-        this.idcLink = data.contents.map(_ => {
-          return {
-            guid: _.data.guid,
-            from: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
-            linkInfo: {
-              ..._.data,
-              meta: _.meta,
-              ciTypeId: this.initParams[IDC_PLANNING_LINK_ID]
-            },
-            to: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
-            label: _.data.code,
-            state: _.data.state.code
-          }
-        })
+        this.idcLink = await exprLineFinder(this.linkExpr, data.contents, this.initParams[IDC_PLANNING_LINK_ID])
+        console.log(this.idcLink)
+        // this.idcLink = data.contents.map(_ => {
+        //   return {
+        //     guid: _.data.guid,
+        //     from: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
+        //     linkInfo: {
+        //       ..._.data,
+        //       meta: _.meta,
+        //       ciTypeId: this.initParams[IDC_PLANNING_LINK_ID]
+        //     },
+        //     to: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
+        //     label: _.data.code,
+        //     state: _.data.state.code
+        //   }
+        // })
       }
       this.initGraph()
     },
