@@ -178,7 +178,7 @@ export default {
           if (Array.isArray(tmp)) {
             tmp = tmp.find((child, index) => {
               if (child.guid === guid) {
-                this.editIndex.unshift(index)
+                this.editIndex.push(index)
                 return child
               }
             }).children
@@ -190,26 +190,35 @@ export default {
       // eslint-disable-next-line no-unused-vars
       let tmpData = originData
       if (this.editIndex.length > 0) {
-        this.editIndex.forEach((no, index) => {
-          console.log(no)
-          if (this.editIndex.length - 1 !== index) {
-            tmpData = originData.children[index]
-          } else {
-            console.log(1)
-            console.log(tmpData)
-            tmpData = tmpData.children
-            if (Array.isArray(tmp)) {
-              console.log(0)
-              const index = tmpData.findIndex(child => {
-                return child.guid === pGuid
-              })
-              tmpData = tmpData[index]
-              tmpData.children[editNodeIndex] = editNode
+        if (this.editIndex.length < 2) {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length - 1 !== index) {
+              tmpData = originData.children[no]
+            } else {
+              console.log(1)
+              console.log(tmpData)
+              tmpData = tmpData.children
+              if (Array.isArray(tmp)) {
+                console.log(0)
+                const index = tmpData.findIndex(child => {
+                  return child.guid === pGuid
+                })
+                tmpData = tmpData[index]
+                tmpData.children[editNodeIndex] = editNode
+              }
             }
-          }
-        })
+          })
+        } else {
+          console.log(123123)
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length !== index) {
+              tmpData = tmpData.children[no]
+            }
+          })
+          console.log(tmpData)
+          tmpData.children[editNodeIndex] = editNode
+        }
       } else {
-        console.log(222)
         originData.children[editNodeIndex] = editNode
       }
       this.loadMap([originData], pGuid)
