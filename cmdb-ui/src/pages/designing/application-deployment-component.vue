@@ -1,5 +1,6 @@
 <template>
   <div>
+    {{ cacheIdPath }}
     <Row class="resource-design-tab-row">
       <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
@@ -81,7 +82,10 @@ export default {
         type: '',
         color: ''
       },
-      activeLineGuid: ''
+      activeLineGuid: '',
+
+      editPath: [],
+      editIndex: []
     }
   },
   watch: {
@@ -148,44 +152,74 @@ export default {
         .select('text')
         .attr('fill', 'red')
     },
-    async operationReload (originData, operateLineData) {
-      this.getAllDeployTreesFromSystemCi(this.systemVersion)
+    // async operationReload (originData, operateLineData) {
+    //   this.getAllDeployTreesFromSystemCi(this.systemVersion)
+    // },
+    findParentGuid (guid) {
+      if (guid !== 'p') {
+        const xParent = this.graphDataWithGuid[`n_${guid}`] || this.graphDataWithGuid[`g_${guid}`]
+        const xGuid = xParent.parentGuid
+        this.editPath.unshift(xGuid)
+        this.findParentGuid(xGuid)
+      }
     },
-    reloadEdge (operateLineData) {
-      const lineInfoData = operateLineData.lineInfo.data
-      if (operateLineData.type === 'add') {
-        this.systemLines[lineInfoData.guid] = {
-          ...lineInfoData,
-          from: lineInfoData[this.initParams[INVOKE_UNIT]].guid,
-          to: lineInfoData[this.initParams[INVOKED_UNIT]].guid,
-          label: lineInfoData.invoke_type,
-          state: lineInfoData.state.code,
-          fixedDate: +new Date(lineInfoData.fixed_date)
+    operationReload (operateNodeData) {
+      this.operateNodeData = operateNodeData
+      console.log(operateNodeData)
+      const pGuid = operateNodeData.guid
+      this.editPath = []
+      this.findParentGuid(pGuid)
+      this.editPath.push(pGuid)
+      this.editPath = this.editPath.slice(1)
+      let originData = JSON.parse(JSON.stringify(this.originData[0]))
+      let tmp = JSON.parse(JSON.stringify(this.originData[0]))
+      this.editPath.forEach(guid => {
+        if (guid === this.originData[0].guid) {
+          tmp = tmp.children
+        } else {
+          if (Array.isArray(tmp)) {
+            tmp = tmp.find((child, index) => {
+              if (child.guid === guid) {
+                this.editIndex.unshift(index)
+                return child
+              }
+            })
+          }
         }
-        this.effectiveLink.push(lineInfoData)
-      }
-      if (operateLineData.type === 'edit') {
-        const index = this.effectiveLink.findIndex(_ => {
-          return _.guid === lineInfoData.guid
+      })
+      // eslint-disable-next-line no-unused-vars
+      // let tmpData = originData
+      // this.editIndex.forEach((no, index) => {
+      //   if (this.editIndex.length - 1 !== index) {
+      //     tmpData = originData.children[index]
+      //   } else {
+      //     tmpData = operateNodeData
+      //   }
+      // })
+      // eslint-disable-next-line no-unused-vars
+      let tmpData = originData
+      if (this.editIndex.length > 1) {
+        this.editIndex.forEach((no, index) => {
+          if (this.editIndex.length - 1 !== index) {
+            tmpData = originData.children[index]
+          } else {
+            tmpData = operateNodeData
+          }
         })
-        this.effectiveLink[index] = lineInfoData
-        this.systemLines[lineInfoData.guid] = {
-          ...lineInfoData,
-          from: lineInfoData[this.initParams[INVOKE_UNIT]].guid,
-          to: lineInfoData[this.initParams[INVOKED_UNIT]].guid,
-          label: lineInfoData.invoke_type,
-          state: lineInfoData.state.code,
-          fixedDate: +new Date(lineInfoData.fixed_date)
-        }
+      } else {
+        console.log(this.originData[0])
+        originData = this.originData[0]
       }
-      if (operateLineData.type === 'remove') {
-        const index = this.effectiveLink.findIndex(_ => {
-          return _.guid === lineInfoData.guid
-        })
-        this.effectiveLink.splice(index, 1)
-        delete this.systemLines[lineInfoData.guid]
-      }
+
+      this.$refs.transferData.managementData(operateNodeData)
+      this.loadMap([originData])
+    },
+    loadMap (xxxx) {
       const { initParams } = this
+      this.originData = xxxx
+      this.systemTreeData = xxxx
+      this.systemLines = {}
+      this.graphDataWithGuid = {}
       const formatADData = array => {
         return array.map(_ => {
           let result = {
@@ -198,6 +232,9 @@ export default {
           }
           if (_.children instanceof Array && _.children.length && _.ciTypeId !== initParams[UNIT_ID]) {
             result.children = formatADData(_.children)
+            this.graphDataWithGuid['g_' + _.guid] = _
+          } else {
+            this.graphDataWithGuid['n_' + _.guid] = _
           }
           if (_.ciTypeId === initParams[UNIT_ID]) {
             let label = ['<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">', `<TR><TD>${_.data.code}</TD></TR>`]
@@ -214,12 +251,39 @@ export default {
           return result
         })
       }
+      this.effectiveLink = []
+      const formatADLine = array => {
+        array.forEach(_ => {
+          if (_.ciTypeId === this.initParams[INVOKE_ID]) {
+            this.systemLines[_.guid] = {
+              ..._,
+              from: _.data[this.initParams[INVOKE_UNIT]].guid,
+              to: _.data[this.initParams[INVOKED_UNIT]].guid,
+              id: _.guid,
+              label: _.data.invoke_type,
+              state: _.data.state.code,
+              fixedDate: +new Date(_.data.fixed_date)
+            }
+            _.data.ciTypeId = this.initParams[INVOKE_ID]
+            this.effectiveLink.push(_.data)
+          }
+          if (_.children instanceof Array && _.children.length) {
+            formatADLine(_.children)
+          }
+        })
+      }
       const fetchOtherSystemInstances = async () => {
         this.instancesInUnit = {}
         this.graphNodes = {}
         this.genADChildrenDot(this.systemData[0].children || [], 1)
         this.initADGraph()
       }
+      this.systemData = formatADData(xxxx)
+      this.graphData = this.systemData
+      this.operateNodeData = this.systemData[0]
+      this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
+      this.$refs.transferData.managementData(this.operateNodeData, this.originData)
+      formatADLine(xxxx)
       fetchOtherSystemInstances()
     },
     async getAllDeployTreesFromSystemCi (systemVersion) {
@@ -231,7 +295,7 @@ export default {
         this.systemTreeData = data
         this.systemLines = {}
         this.graphDataWithGuid = {}
-        const formatADData = array => {
+        const formatADData = (array, parentGuid) => {
           return array.map(_ => {
             let result = {
               ciTypeId: _.ciTypeId,
@@ -242,9 +306,11 @@ export default {
               fixedDate: +new Date(_.data.fixed_date)
             }
             if (_.children instanceof Array && _.children.length && _.ciTypeId !== initParams[UNIT_ID]) {
-              result.children = formatADData(_.children)
+              result.children = formatADData(_.children, _.guid)
+              _.parentGuid = parentGuid
               this.graphDataWithGuid['g_' + _.guid] = _
             } else {
+              _.parentGuid = parentGuid
               this.graphDataWithGuid['n_' + _.guid] = _
             }
             if (_.ciTypeId === initParams[UNIT_ID]) {
@@ -283,14 +349,13 @@ export default {
             }
           })
         }
-
         const fetchOtherSystemInstances = async () => {
           this.instancesInUnit = {}
           this.graphNodes = {}
           this.genADChildrenDot(this.systemData[0].children || [], 1)
           this.initADGraph()
         }
-        this.systemData = formatADData(data)
+        this.systemData = formatADData(data, 'p')
         this.graphData = this.systemData
         this.operateNodeData = this.systemData[0]
         this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
@@ -500,10 +565,6 @@ export default {
         }
       })
       return dots
-    },
-    async querySysTree () {
-      this.spinShow = true
-      this.getAllDeployTreesFromSystemCi()
     },
     async getConfigParams () {
       const { statusCode, data } = await getEnumCodesByCategoryId(0, VIEW_CONFIG_PARAMS)

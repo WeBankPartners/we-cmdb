@@ -449,7 +449,7 @@ export default {
       if (dataSource === 'panalData') {
         const activePanal = this.newPanalData[tableName].find(item => item.guid === this.defaultPanal[0])
         activePanalData = activePanal.data
-        console.log(activePanalData)
+
         ciTypeId = activePanal.ciTypeId
       }
       if (dataSource === 'linkData') {
@@ -509,7 +509,6 @@ export default {
           ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
           const index = this.getIndex(this.operateData.children, ciData.data.contents[0].data.guid)
           this.operateData.children[index].data = ciData.data.contents[0].data
-          console.log(this.operateData)
           this.$emit('operationReload', this.operateData)
           return
           // this.operateData.children[index].data = data[0]
@@ -547,7 +546,6 @@ export default {
           this.newPanalData = {}
           this.newPanalDataKeys = []
           this.operateData.children.forEach(child => {
-            console.log(child)
             if (child.tableName in this.newPanalData) {
               this.newPanalData[child.tableName].push(child)
             } else {
@@ -655,6 +653,12 @@ export default {
           return this.allCITypes[key].tableName
         }
       }
+    },
+    getIndex (dataGroup, guid) {
+      const index = dataGroup.findIndex(child => {
+        return child.guid === guid
+      })
+      return index
     }
   },
   filters: {
