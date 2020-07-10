@@ -484,19 +484,11 @@ export default {
           this.operateData.data = data[0]
         }
         if (dataSource === 'panalData') {
-          // ciData.data.contents[0].meta.nextOperations = Array.from(new Set(ciData.data.contents[0].meta.nextOperations))
-          // ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
+          ciData.data.contents[0].meta.nextOperations = Array.from(new Set(ciData.data.contents[0].meta.nextOperations))
+          ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
           const index = this.getIndex(this.operateData.children, ciData.data.contents[0].data.guid)
-          // this.operateData.children[index].data = ciData.data.contents[0].data
-          let editNode = {
-            children: this.operateData.children[index].children,
-            ciTypeId: ciTypeId,
-            data: ciData.data.contents[0].data,
-            guid: ciData.data.contents[0].data.guid,
-            imageFileId: this.operateData.children[index].imageFileId,
-            parentGuid: this.operateData.children[index].parentGuid
-          }
-          this.$emit('operationReload', this.operateData.guid, editNode, index)
+          this.operateData.children[index].data = ciData.data.contents[0].data
+          this.$emit('operationReload', this.operateData)
           return
           // this.operateData.children[index].data = data[0]
         }
@@ -504,6 +496,7 @@ export default {
       }
     },
     async managementData (operateData) {
+      console.log(operateData)
       this.parentPanal = ''
       this.defaultPanal = ''
       this.panalData = []
