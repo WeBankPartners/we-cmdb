@@ -37,6 +37,7 @@ import * as d3Graphviz from 'd3-graphviz'
 import { getEnumCodesByCategoryId, getAllDeployTreesFromSystemCi } from '@/api/server.js'
 import { colors, stateColor } from '../../const/graph-configuration'
 import { addEvent } from '../util/event.js'
+import { baseURL } from '@/api/base.js'
 import {
   VIEW_CONFIG_PARAMS,
   UNIT_ID,
@@ -162,17 +163,18 @@ export default {
         this.findParentGuid(xGuid)
       }
     },
-    operationReload (pGuid, editNode, editNodeIndex) {
+    operationReload (operateNodeData) {
+      this.operateNodeData = operateNodeData
+      console.log(operateNodeData)
+      const pGuid = operateNodeData.guid
       this.editPath = []
-      this.editIndex = []
       this.findParentGuid(pGuid)
       this.editPath.push(pGuid)
       this.editPath = this.editPath.slice(1)
       let originData = JSON.parse(JSON.stringify(this.originData[0]))
       let tmp = JSON.parse(JSON.stringify(this.originData[0]))
-      console.log(originData)
       this.editPath.forEach(guid => {
-        if (guid === originData.guid) {
+        if (guid === this.originData[0].guid) {
           tmp = tmp.children
         } else {
           if (Array.isArray(tmp)) {
@@ -181,46 +183,44 @@ export default {
                 this.editIndex.unshift(index)
                 return child
               }
-            }).children
+            })
           }
         }
       })
-      console.log(this.editPath)
-      console.log(this.editIndex)
+      // eslint-disable-next-line no-unused-vars
+      // let tmpData = originData
+      // this.editIndex.forEach((no, index) => {
+      //   if (this.editIndex.length - 1 !== index) {
+      //     tmpData = originData.children[index]
+      //   } else {
+      //     tmpData = operateNodeData
+      //   }
+      // })
       // eslint-disable-next-line no-unused-vars
       let tmpData = originData
-      if (this.editIndex.length > 0) {
+      if (this.editIndex.length > 1) {
         this.editIndex.forEach((no, index) => {
-          console.log(no)
           if (this.editIndex.length - 1 !== index) {
             tmpData = originData.children[index]
           } else {
-            console.log(1)
-            console.log(tmpData)
-            tmpData = tmpData.children
-            if (Array.isArray(tmp)) {
-              console.log(0)
-              const index = tmpData.findIndex(child => {
-                return child.guid === pGuid
-              })
-              tmpData = tmpData[index]
-              tmpData.children[editNodeIndex] = editNode
-            }
+            tmpData = operateNodeData
           }
         })
       } else {
-        console.log(222)
-        originData.children[editNodeIndex] = editNode
+        console.log(this.originData[0])
+        originData = this.originData[0]
       }
-      this.loadMap([originData], pGuid)
+
+      this.$refs.transferData.managementData(operateNodeData)
+      this.loadMap([originData])
     },
-    loadMap (xxxx, pGuid) {
+    loadMap (xxxx) {
       const { initParams } = this
       this.originData = xxxx
       this.systemTreeData = xxxx
       this.systemLines = {}
       this.graphDataWithGuid = {}
-      const formatADData = (array, parentGuid) => {
+      const formatADData = array => {
         return array.map(_ => {
           let result = {
             ciTypeId: _.ciTypeId,
@@ -231,11 +231,9 @@ export default {
             fixedDate: +new Date(_.data.fixed_date)
           }
           if (_.children instanceof Array && _.children.length && _.ciTypeId !== initParams[UNIT_ID]) {
-            result.children = formatADData(_.children, _.guid)
-            _.parentGuid = parentGuid
+            result.children = formatADData(_.children)
             this.graphDataWithGuid['g_' + _.guid] = _
           } else {
-            _.parentGuid = parentGuid
             this.graphDataWithGuid['n_' + _.guid] = _
           }
           if (_.ciTypeId === initParams[UNIT_ID]) {
@@ -280,15 +278,11 @@ export default {
         this.genADChildrenDot(this.systemData[0].children || [], 1)
         this.initADGraph()
       }
-      this.systemData = formatADData(xxxx, 'p')
+      this.systemData = formatADData(xxxx)
       this.graphData = this.systemData
       this.operateNodeData = this.systemData[0]
       this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
-      console.log(this.graphDataWithGuid)
-      this.$refs.transferData.managementData(
-        this.graphDataWithGuid[`n_${pGuid}`] || this.graphDataWithGuid[`g_${pGuid}`]
-      )
-      // this.$refs.transferData.managementData(this.operateNodeData)
+      this.$refs.transferData.managementData(this.operateNodeData, this.originData)
       formatADLine(xxxx)
       fetchOtherSystemInstances()
     },
@@ -296,7 +290,7 @@ export default {
       this.systemVersion = systemVersion
       const { initParams } = this
       const { statusCode, data } = await getAllDeployTreesFromSystemCi(this.systemVersion)
-      this.originData = JSON.parse(JSON.stringify(data))
+      this.originData = data
       if (statusCode === 'OK') {
         this.systemTreeData = data
         this.systemLines = {}
@@ -365,7 +359,7 @@ export default {
         this.graphData = this.systemData
         this.operateNodeData = this.systemData[0]
         this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
-        this.$refs.transferData.managementData(this.operateNodeData)
+        this.$refs.transferData.managementData(this.operateNodeData, this.originData)
         formatADLine(data)
         fetchOtherSystemInstances()
       }
@@ -548,6 +542,29 @@ export default {
         }
       })
       return result.join('')
+    },
+    genChildrenDot (data, level) {
+      let dots = []
+      data.forEach(_ => {
+        let _label = _.data.code
+        _label = _label.length > 21 ? `${_label.slice(0, 1)}...${_label.slice(-15)}` : _label
+        dots = dots.concat([
+          `"${_.guid}"`,
+          `[id="n_${_.guid}";`,
+          `label="${_label}";`,
+          `image="${baseURL}/files/${_.imageFileId}.png";`,
+          'labelloc="b"',
+          `tooltip="${_.data.code}"];`
+        ])
+        this.rankNodes[_.ciTypeId].push(`"${_.guid}"`)
+        if (_.children instanceof Array && _.children.length) {
+          dots = dots.concat(this.genChildrenDot(_.children, level + 1))
+          _.children.forEach(c => {
+            dots = dots.concat([`"${_.guid}" -> "${c.guid}";`])
+          })
+        }
+      })
+      return dots
     },
     async getConfigParams () {
       const { statusCode, data } = await getEnumCodesByCategoryId(0, VIEW_CONFIG_PARAMS)
