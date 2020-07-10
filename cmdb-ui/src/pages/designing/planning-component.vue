@@ -69,9 +69,9 @@ export default {
 
       linkExpr: {
         exprFrom:
-          'network_link_design.network_segment_design_2>network_segment_design.f_network_segment_design~(network_segment_design)network_zone_design',
+          'network_link_design.network_segment_design_1>network_segment_design~(network_segment_design)network_zone_design',
         exprTo:
-          'network_link_design.network_segment_design_1>network_segment_design.f_network_segment_design~(network_segment_design)network_zone_design'
+          'network_link_design.network_segment_design_2>network_segment_design~(network_segment_design)network_zone_design'
       }
     }
   },
