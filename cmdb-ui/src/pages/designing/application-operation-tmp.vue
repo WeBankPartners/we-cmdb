@@ -312,16 +312,17 @@ export default {
       const { statusCode } = await operateCiState(activePanal.ciTypeId + '', activePanal.guid, 'confirm')
       if (statusCode === 'OK') {
         this.$Message.success('success!')
-        this.$emit('operationReload', '', {})
+        this.$emit('operationReload', this.operateData.guid, '', '', 'confirm')
       }
     },
     async discard (panalData, tableName, panalIndex, $event) {
+      // TODO 恢复选择项数据好像有问题
       event.stopPropagation()
       const activePanal = panalData[tableName][panalIndex]
       const { statusCode } = await operateCiState(activePanal.ciTypeId + '', activePanal.guid, 'discard')
       if (statusCode === 'OK') {
         this.$Message.success('success!')
-        this.$emit('operationReload', '', {})
+        this.$emit('operationReload', this.operateData.guid, '', '', 'discard')
       }
     },
     async deleteNode (panalData, tableName, panalIndex, event) {
@@ -339,9 +340,28 @@ export default {
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
             this.$Message.success('success!')
-            // this.panalData.splice(panalIndex, 1)
-            // this.operateData.children = this.panalData
-            this.$emit('operationReload', this.operateData)
+            const ciData = await queryCiData({
+              id: activePanal.ciTypeId,
+              queryObject: {
+                filters: [
+                  {
+                    name: 'guid',
+                    value: activePanal.guid,
+                    operator: 'eq'
+                  }
+                ]
+              }
+            })
+            const index = this.getIndex(this.operateData.children, activePanal.guid)
+            let editNode = {
+              children: this.operateData.children[index].children,
+              ciTypeId: activePanal.ciTypeId,
+              data: ciData.data.contents[0].data,
+              guid: ciData.data.contents[0].data.guid,
+              imageFileId: this.operateData.children[index].imageFileId,
+              parentGuid: this.operateData.children[index].parentGuid
+            }
+            this.$emit('operationReload', this.operateData.guid, editNode, index, 'edit')
           }
           this.$Modal.remove()
         },
@@ -484,10 +504,7 @@ export default {
           this.operateData.data = data[0]
         }
         if (dataSource === 'panalData') {
-          // ciData.data.contents[0].meta.nextOperations = Array.from(new Set(ciData.data.contents[0].meta.nextOperations))
-          // ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
           const index = this.getIndex(this.operateData.children, ciData.data.contents[0].data.guid)
-          // this.operateData.children[index].data = ciData.data.contents[0].data
           let editNode = {
             children: this.operateData.children[index].children,
             ciTypeId: ciTypeId,
@@ -496,7 +513,7 @@ export default {
             imageFileId: this.operateData.children[index].imageFileId,
             parentGuid: this.operateData.children[index].parentGuid
           }
-          this.$emit('operationReload', this.operateData.guid, editNode, index)
+          this.$emit('operationReload', this.operateData.guid, editNode, index, 'edit')
           return
           // this.operateData.children[index].data = data[0]
         }
@@ -504,6 +521,7 @@ export default {
       }
     },
     async managementData (operateData) {
+      console.log(operateData)
       this.parentPanal = ''
       this.defaultPanal = ''
       this.panalData = []
@@ -542,6 +560,7 @@ export default {
           })
           this.panalData.push(...this.operateData.children)
         })
+        console.log(this.panalData)
       }
     },
     async test (ciTypeId) {
