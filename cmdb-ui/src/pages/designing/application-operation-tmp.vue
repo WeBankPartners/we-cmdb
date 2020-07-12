@@ -322,7 +322,30 @@ export default {
       const { statusCode } = await operateCiState(activePanal.ciTypeId + '', activePanal.guid, 'discard')
       if (statusCode === 'OK') {
         this.$Message.success('success!')
-        this.$emit('operationReload', this.operateData.guid, '', '', 'discard')
+      }
+      const ciData = await queryCiData({
+        id: activePanal.ciTypeId,
+        queryObject: {
+          filters: [
+            {
+              name: 'guid',
+              value: activePanal.guid,
+              operator: 'eq'
+            }
+          ]
+        }
+      })
+      if (ciData.statusCode === 'OK') {
+        const index = this.getIndex(this.operateData.children, activePanal.guid)
+        let editNode = {
+          children: this.operateData.children[index].children,
+          ciTypeId: activePanal.ciTypeId,
+          data: ciData.data.contents[0].data,
+          guid: ciData.data.contents[0].data.guid,
+          imageFileId: this.operateData.children[index].imageFileId,
+          parentGuid: this.operateData.children[index].parentGuid
+        }
+        this.$emit('operationReload', this.operateData.guid, editNode, index, 'edit')
       }
     },
     async deleteNode (panalData, tableName, panalIndex, event) {
@@ -340,18 +363,21 @@ export default {
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
             this.$Message.success('success!')
-            const ciData = await queryCiData({
-              id: activePanal.ciTypeId,
-              queryObject: {
-                filters: [
-                  {
-                    name: 'guid',
-                    value: activePanal.guid,
-                    operator: 'eq'
-                  }
-                ]
-              }
-            })
+          }
+          this.$Modal.remove()
+          const ciData = await queryCiData({
+            id: activePanal.ciTypeId,
+            queryObject: {
+              filters: [
+                {
+                  name: 'guid',
+                  value: activePanal.guid,
+                  operator: 'eq'
+                }
+              ]
+            }
+          })
+          if (ciData.statusCode === 'OK') {
             const index = this.getIndex(this.operateData.children, activePanal.guid)
             let editNode = {
               children: this.operateData.children[index].children,
@@ -363,7 +389,6 @@ export default {
             }
             this.$emit('operationReload', this.operateData.guid, editNode, index, 'edit')
           }
-          this.$Modal.remove()
         },
         onCancel: () => {}
       })
