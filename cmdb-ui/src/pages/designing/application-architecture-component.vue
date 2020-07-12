@@ -49,6 +49,7 @@ export default {
   },
   data () {
     return {
+      originData: null,
       graphCiTypeId: 37,
       ignoreOpera: ['confirm'],
       graphData: null,
@@ -58,7 +59,6 @@ export default {
       cacheIdPath: [], // 缓存点击图形区域从内向外容器ID值
       cacheIndex: [], // 缓存点击图形区域从内向外容器ID值
       levelData: [], // 缓存层级数据备用
-      effectiveLink: [], // 图中可显示连线
       activeNodeInfo: {
         id: '',
         type: '',
@@ -76,7 +76,10 @@ export default {
       invokeLines: [],
       appInvokeLines: {},
       systemDesignFixedDate: 0,
-      initParams: {}
+      initParams: {},
+
+      editPath: [],
+      editIndex: []
     }
   },
   props: ['hideNextOperations'],
@@ -138,17 +141,305 @@ export default {
         .select('text')
         .attr('fill', '#ff9900')
     },
-    operationReload () {
-      this.getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
+    // operationReload () {
+    //   this.getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
+    // },
+    findParentGuid (guid) {
+      if (guid !== 'p') {
+        const xParent = this.graphDataWithGuid[`n_${guid}`] || this.graphDataWithGuid[`g_${guid}`]
+        const xGuid = xParent.parentGuid
+        this.editPath.unshift(xGuid)
+        this.findParentGuid(xGuid)
+      }
+    },
+    operationReload (pGuid, editNode, editNodeIndex, type) {
+      let originData = JSON.parse(JSON.stringify(this.originData[0]))
+      if (type === 'confirm') {
+        this.loadMap([originData], pGuid)
+        return
+      }
+      this.editPath = []
+      this.editIndex = []
+      this.findParentGuid(pGuid)
+      this.editPath.push(pGuid)
+      this.editPath = this.editPath.slice(1)
+      let tmpData = originData
+      let tmp = JSON.parse(JSON.stringify(this.originData[0]))
+      if (type === 'parentNode') {
+        // TODO 更新父节点，需先点击外层才生效？
+        this.editPath.forEach(guid => {
+          if (guid !== originData.guid) {
+            // eslint-disable-next-line no-unused-vars
+            tmp = tmp.children.find((child, i) => {
+              if (child.guid === guid) {
+                this.editIndex.push(i)
+                return child
+              }
+            })
+          }
+        })
+        if (this.editIndex.length > 0) {
+          if (this.editIndex.length < 2) {
+            this.editIndex.forEach((no, index) => {
+              if (this.editIndex.length - 1 !== index) {
+                tmpData = originData.children[no]
+              } else {
+                tmpData = tmpData.children
+                if (Array.isArray(tmpData)) {
+                  const index = tmpData.findIndex(child => {
+                    return child.guid === pGuid
+                  })
+                  tmpData = tmpData[index]
+                  tmpData.data = editNode.data
+                }
+              }
+            })
+          } else {
+            this.editIndex.forEach((no, index) => {
+              if (this.editIndex.length !== index) {
+                tmpData = tmpData.children[no]
+              }
+            })
+            tmpData.data = editNode.data
+          }
+        } else {
+          originData.data = editNode.data
+        }
+        this.loadMap([originData], pGuid)
+        return
+      }
+      if (type === 'addNode') {
+        this.addNode(pGuid, editNode, editNodeIndex, type)
+        return
+      }
+      if (type === 'deleteNode') {
+        this.deleteNode(pGuid, editNode, editNodeIndex, type)
+        return
+      }
+
+      // 更新子节点
+      // let tmp = JSON.parse(JSON.stringify(this.originData[0]))
+      this.editPath.forEach(guid => {
+        if (guid === originData.guid) {
+          tmp = tmp.children
+        } else {
+          if (Array.isArray(tmp)) {
+            tmp = tmp.find((child, index) => {
+              if (child.guid === guid) {
+                this.editIndex.push(index)
+                return child
+              }
+            }).children
+          }
+        }
+      })
+      // eslint-disable-next-line no-unused-vars
+      // let tmpData = originData
+      if (this.editIndex.length > 0) {
+        if (this.editIndex.length < 2) {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length - 1 !== index) {
+              tmpData = originData.children[no]
+            } else {
+              tmpData = tmpData.children
+              if (Array.isArray(tmp)) {
+                const index = tmpData.findIndex(child => {
+                  return child.guid === pGuid
+                })
+                tmpData = tmpData[index]
+                tmpData.children[editNodeIndex] = editNode
+              }
+            }
+          })
+        } else {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length !== index) {
+              tmpData = tmpData.children[no]
+            }
+          })
+          tmpData.children[editNodeIndex] = editNode
+        }
+      } else {
+        originData.children[editNodeIndex] = editNode
+      }
+      this.loadMap([originData], pGuid)
+    },
+    addNode (pGuid, editNode, editNodeIndex, type) {
+      let originData = JSON.parse(JSON.stringify(this.originData[0]))
+      let tmp = JSON.parse(JSON.stringify(this.originData[0]))
+      this.editPath.forEach(guid => {
+        if (guid === originData.guid) {
+          tmp = tmp.children
+        } else {
+          if (Array.isArray(tmp)) {
+            tmp = tmp.find((child, index) => {
+              if (child.guid === guid) {
+                this.editIndex.push(index)
+                return child
+              }
+            }).children
+          }
+        }
+      })
+      // eslint-disable-next-line no-unused-vars
+      let tmpData = originData
+      if (this.editIndex.length > 0) {
+        if (this.editIndex.length < 2) {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length - 1 !== index) {
+              tmpData = originData.children[no]
+            } else {
+              tmpData = tmpData.children
+              if (Array.isArray(tmpData)) {
+                const index = tmpData.findIndex(child => {
+                  return child.guid === pGuid
+                })
+                tmpData = tmpData[index]
+                tmpData.children = tmpData.children || []
+                tmpData.children.push(editNode)
+              }
+            }
+          })
+        } else {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length !== index) {
+              tmpData = tmpData.children[no]
+            }
+          })
+          tmpData.children = tmpData.children || []
+          tmpData.children.push(editNode)
+        }
+      } else {
+        tmpData.children = tmpData.children || []
+        originData.children.push(editNode)
+      }
+      this.loadMap([originData], pGuid)
+    },
+    deleteNode (pGuid, editNode, editNodeIndex, type) {
+      let originData = JSON.parse(JSON.stringify(this.originData[0]))
+      let tmp = JSON.parse(JSON.stringify(this.originData[0]))
+      this.editPath.forEach(guid => {
+        if (guid === originData.guid) {
+          tmp = tmp.children
+        } else {
+          if (Array.isArray(tmp)) {
+            tmp = tmp.find((child, index) => {
+              if (child.guid === guid) {
+                this.editIndex.push(index)
+                return child
+              }
+            }).children
+          }
+        }
+      })
+      // eslint-disable-next-line no-unused-vars
+      let tmpData = originData
+      if (this.editIndex.length > 0) {
+        if (this.editIndex.length < 2) {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length - 1 !== index) {
+              tmpData = originData.children[no]
+            } else {
+              tmpData = tmpData.children
+              if (Array.isArray(tmp)) {
+                const index = tmpData.findIndex(child => {
+                  return child.guid === pGuid
+                })
+                tmpData = tmpData[index]
+                if (tmpData.children.length === 1) {
+                  delete tmpData.children
+                } else {
+                  tmpData.children.splice(editNodeIndex, 1)
+                }
+              }
+            }
+          })
+        } else {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length !== index) {
+              tmpData = tmpData.children[no]
+            }
+          })
+          if (tmpData.children.length === 1) {
+            delete tmpData.children
+          } else {
+            tmpData.children.splice(editNodeIndex, 1)
+          }
+        }
+      } else {
+        if (tmpData.children.length === 1) {
+          delete tmpData.children
+        } else {
+          tmpData.children.splice(editNodeIndex, 1)
+        }
+      }
+      this.loadMap([originData], pGuid)
+    },
+    loadMap (xxxx, pGuid) {
+      this.originData = xxxx
+      this.systemTreeData = xxxx
+      this.systemLines = {}
+      this.originData = JSON.parse(JSON.stringify(xxxx))
+      this.appInvokeLines = {}
+      this.graphDataWithGuid = {}
+      const formatAppLogicTree = (array, parentGuid) =>
+        array.map(_ => {
+          let result = {
+            ciTypeId: _.ciTypeId,
+            guid: _.guid,
+            data: _.data,
+            children_x: _.children,
+            fixedDate: +new Date(_.data.fixed_date)
+          }
+          if (_.children instanceof Array && _.children.length && _.ciTypeId !== this.initParams[UNIT_DESIGN_ID]) {
+            result.children = formatAppLogicTree(_.children, _.guid)
+            _.parentGuid = parentGuid
+            this.graphDataWithGuid['g_' + _.guid] = _
+          } else {
+            _.parentGuid = parentGuid
+            this.graphDataWithGuid['n_' + _.guid] = _
+          }
+          return result
+        })
+      this.effectiveLink = []
+      const formatAppLogicLine = array =>
+        array.forEach(_ => {
+          if (_.ciTypeId === this.initParams[INVOKE_DESIGN_ID]) {
+            this.appInvokeLines[_.guid] = {
+              from: _.data[this.initParams[INVOKE_DIAGRAM_LINK_FROM]],
+              to: _.data[this.initParams[INVOKE_DIAGRAM_LINK_TO]],
+              id: _.guid,
+              label: _.data[this.initParams[INVOKE_TYPE]],
+              tooltip: _.data.description || '-',
+              state: _.data.state.code,
+              fixedDate: +new Date(_.data.fixed_date)
+            }
+            _.data.ciTypeId = this.initParams[INVOKE_DESIGN_ID]
+            this.effectiveLink.push(_.data)
+          }
+          if (_.children instanceof Array && _.children.length) {
+            formatAppLogicLine(_.children)
+          }
+        })
+      this.appLogicData = formatAppLogicTree(xxxx, 'p')
+      // this.graphData = xxxx
+      this.operateNodeData = this.appLogicData[0]
+      this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
+      this.$refs.transferData.managementData(
+        this.graphDataWithGuid[`n_${pGuid}`] || this.graphDataWithGuid[`g_${pGuid}`]
+      )
+      formatAppLogicLine(xxxx)
+      this.initGraph()
     },
     async getAllDesignTreeFromSystemDesign (systemDesignVersion) {
       this.systemDesignVersion = systemDesignVersion
       const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
       if (treeData.statusCode === 'OK') {
+        this.originData = JSON.parse(JSON.stringify(treeData.data))
         this.appInvokeLines = {}
         this.systemDesignFixedDate = +new Date(treeData.data[0].data.fixed_date)
         this.graphDataWithGuid = {}
-        const formatAppLogicTree = array =>
+        const formatAppLogicTree = (array, parentGuid) =>
           array.map(_ => {
             let result = {
               ciTypeId: _.ciTypeId,
@@ -158,9 +449,11 @@ export default {
               fixedDate: +new Date(_.data.fixed_date)
             }
             if (_.children instanceof Array && _.children.length && _.ciTypeId !== this.initParams[UNIT_DESIGN_ID]) {
-              result.children = formatAppLogicTree(_.children)
+              result.children = formatAppLogicTree(_.children, _.guid)
+              _.parentGuid = parentGuid
               this.graphDataWithGuid['g_' + _.guid] = _
             } else {
+              _.parentGuid = parentGuid
               this.graphDataWithGuid['n_' + _.guid] = _
             }
             return result
@@ -185,8 +478,8 @@ export default {
               formatAppLogicLine(_.children)
             }
           })
-        this.appLogicData = formatAppLogicTree(treeData.data)
-        this.graphData = treeData.data
+        this.appLogicData = formatAppLogicTree(treeData.data, 'p')
+        this.graphData = this.appLogicData
         this.operateNodeData = this.appLogicData[0]
         this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
         this.$refs.transferData.managementData(this.operateNodeData)
@@ -225,7 +518,6 @@ export default {
         .on('end', () => {
           addEvent('.node', 'click', this.handleNodeClick)
           addEvent('.cluster', 'click', this.handleNodeClick)
-          // addEvent('.edge', 'click', this.handleEdgeClick)
         })
       // 最外图层选中处理
       d3.select('#clust1').on('click', () => {
@@ -252,14 +544,6 @@ export default {
       this.operateNodeData = this.graphDataWithGuid[guid]
       this.cacheIdPath = [guid]
       this.$refs.transferData.managementData(this.operateNodeData)
-    },
-    handleEdgeClick (e) {
-      let guid = e.currentTarget.id.substring(3)
-      this.markEdge(guid)
-      const selectLinkIndex = this.effectiveLink.findIndex(link => {
-        return link.guid === guid
-      })
-      this.$refs.transferData.openLinkPanal([selectLinkIndex + 1 + ''])
     },
     genDOT (id, sysData, linesData) {
       this.graphNodes[id] = {}
