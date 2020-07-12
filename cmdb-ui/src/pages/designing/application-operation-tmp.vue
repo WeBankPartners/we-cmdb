@@ -254,6 +254,7 @@ export default {
       graphTableName: '',
       initParams: {},
       parentPanal: '',
+      parentOriginData: null,
       parentPanalData: { data: { code: '' } },
       parentPanalForm: [],
 
@@ -316,7 +317,6 @@ export default {
       }
     },
     async discard (panalData, tableName, panalIndex, $event) {
-      // TODO 恢复选择项数据好像有问题
       event.stopPropagation()
       const activePanal = panalData[tableName][panalIndex]
       const { statusCode } = await operateCiState(activePanal.ciTypeId + '', activePanal.guid, 'discard')
@@ -379,15 +379,20 @@ export default {
           })
           if (ciData.statusCode === 'OK') {
             const index = this.getIndex(this.operateData.children, activePanal.guid)
-            let editNode = {
-              children: this.operateData.children[index].children,
-              ciTypeId: activePanal.ciTypeId,
-              data: ciData.data.contents[0].data,
-              guid: ciData.data.contents[0].data.guid,
-              imageFileId: this.operateData.children[index].imageFileId,
-              parentGuid: this.operateData.children[index].parentGuid
+            let editNode = {}
+            if (ciData.data.contents.length === 0) {
+              this.$emit('operationReload', this.operateData.guid, {}, index, 'deleteNode')
+            } else {
+              editNode = {
+                children: this.operateData.children[index].children,
+                ciTypeId: activePanal.ciTypeId,
+                data: ciData.data.contents[0].data,
+                guid: ciData.data.contents[0].data.guid,
+                imageFileId: this.operateData.children[index].imageFileId,
+                parentGuid: this.operateData.children[index].parentGuid
+              }
+              this.$emit('operationReload', this.operateData.guid, editNode, index, 'edit')
             }
-            this.$emit('operationReload', this.operateData.guid, editNode, index, 'edit')
           }
         },
         onCancel: () => {}
@@ -442,15 +447,13 @@ export default {
             ]
           }
         })
-        const params = {
+        const addNode = {
           ciTypeId: this.selectedNodeType,
           data: ciData.data.contents[0].data,
-          text: [ciData.data.contents[0].data.code]
+          guid: ciData.data.contents[0].data.guid,
+          imageFileId: ''
         }
-        // text: [ciData.data.contents[0].data.code, ciData.data.contents[0].data.network_segment_design.code]
-        this.panalData.push(params)
-        this.operateData.children = this.panalData
-        this.$emit('operationReload', this.operateData)
+        this.$emit('operationReload', this.operateData.guid, addNode, '', 'addNode')
         this.cancleAddNode()
       }
     },
@@ -526,7 +529,16 @@ export default {
           }
         })
         if (dataSource === 'parentPanalData') {
+          // let editNode = {
+          //   children: this.parentOriginData.children,
+          //   ciTypeId: ciTypeId,
+          //   data: data[0],
+          //   guid: this.parentOriginData.guid,
+          //   imageFileId: this.parentOriginData.imageFileId,
+          //   parentGuid: this.parentOriginData.parentGuid
+          // }
           this.operateData.data = data[0]
+          this.$emit('operationReload', this.operateData.guid, this.operateData, '', 'parentNode')
         }
         if (dataSource === 'panalData') {
           const index = this.getIndex(this.operateData.children, ciData.data.contents[0].data.guid)
@@ -539,20 +551,18 @@ export default {
             parentGuid: this.operateData.children[index].parentGuid
           }
           this.$emit('operationReload', this.operateData.guid, editNode, index, 'edit')
-          return
-          // this.operateData.children[index].data = data[0]
         }
-        this.$emit('operationReload', this.operateData)
       }
     },
     async managementData (operateData) {
-      console.log(operateData)
       this.parentPanal = ''
       this.defaultPanal = ''
       this.panalData = []
+      this.newPanalDataKeys = []
       this.cancleAddNode()
       this.operateData = operateData
       let tmp = JSON.parse(JSON.stringify(this.operateData))
+      this.parentOriginData = JSON.parse(JSON.stringify(this.operateData))
       delete tmp.children
       this.parentPanalData = tmp
       if (this.operateData.children) {
@@ -585,7 +595,6 @@ export default {
           })
           this.panalData.push(...this.operateData.children)
         })
-        console.log(this.panalData)
       }
     },
     async test (ciTypeId) {
