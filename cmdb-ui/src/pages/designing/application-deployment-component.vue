@@ -163,8 +163,7 @@ export default {
     },
     operationReload (pGuid, editNode, editNodeIndex, type) {
       let originData = JSON.parse(JSON.stringify(this.originData[0]))
-      if (type === 'confirm' || type === 'discard') {
-        console.log(22)
+      if (type === 'confirm') {
         this.loadMap([originData], pGuid)
         return
       }
@@ -173,8 +172,39 @@ export default {
       this.findParentGuid(pGuid)
       this.editPath.push(pGuid)
       this.editPath = this.editPath.slice(1)
+      // let tmpData = originData
       let tmp = JSON.parse(JSON.stringify(this.originData[0]))
-      console.log(originData)
+      if (type === 'parentNode') {
+        // TODO 更新父节点，需先点击外层才生效？
+        this.editPath.forEach(guid => {
+          if (guid !== originData.guid) {
+            // eslint-disable-next-line no-unused-vars
+            tmp = tmp.children.find((child, i) => {
+              if (child.guid === guid) {
+                this.editIndex.push(i)
+                return child
+              }
+            })
+          }
+        })
+        if (this.editIndex.length > 0) {
+        } else {
+          originData = editNode
+        }
+        this.loadMap([originData], pGuid)
+        return
+      }
+      if (type === 'addNode') {
+        this.addNode(pGuid, editNode, editNodeIndex, type)
+        return
+      }
+      if (type === 'deleteNode') {
+        this.deleteNode(pGuid, editNode, editNodeIndex, type)
+        return
+      }
+
+      // 更新子节点
+      // let tmp = JSON.parse(JSON.stringify(this.originData[0]))
       this.editPath.forEach(guid => {
         if (guid === originData.guid) {
           tmp = tmp.children
@@ -189,8 +219,6 @@ export default {
           }
         }
       })
-      console.log(this.editPath)
-      console.log(this.editIndex)
       // eslint-disable-next-line no-unused-vars
       let tmpData = originData
       if (this.editIndex.length > 0) {
@@ -199,11 +227,8 @@ export default {
             if (this.editIndex.length - 1 !== index) {
               tmpData = originData.children[no]
             } else {
-              console.log(1)
-              console.log(tmpData)
               tmpData = tmpData.children
               if (Array.isArray(tmp)) {
-                console.log(0)
                 const index = tmpData.findIndex(child => {
                   return child.guid === pGuid
                 })
@@ -213,17 +238,126 @@ export default {
             }
           })
         } else {
-          console.log(123123)
           this.editIndex.forEach((no, index) => {
             if (this.editIndex.length !== index) {
               tmpData = tmpData.children[no]
             }
           })
-          console.log(tmpData)
           tmpData.children[editNodeIndex] = editNode
         }
       } else {
         originData.children[editNodeIndex] = editNode
+      }
+      this.loadMap([originData], pGuid)
+    },
+    addNode (pGuid, editNode, editNodeIndex, type) {
+      let originData = JSON.parse(JSON.stringify(this.originData[0]))
+      let tmp = JSON.parse(JSON.stringify(this.originData[0]))
+      this.editPath.forEach(guid => {
+        if (guid === originData.guid) {
+          tmp = tmp.children
+        } else {
+          if (Array.isArray(tmp)) {
+            tmp = tmp.find((child, index) => {
+              if (child.guid === guid) {
+                this.editIndex.push(index)
+                return child
+              }
+            }).children
+          }
+        }
+      })
+      // eslint-disable-next-line no-unused-vars
+      let tmpData = originData
+      if (this.editIndex.length > 0) {
+        if (this.editIndex.length < 2) {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length - 1 !== index) {
+              tmpData = originData.children[no]
+            } else {
+              tmpData = tmpData.children
+              if (Array.isArray(tmpData)) {
+                const index = tmpData.findIndex(child => {
+                  return child.guid === pGuid
+                })
+                tmpData = tmpData[index]
+                tmpData.children = tmpData.children || []
+                tmpData.children.push(editNode)
+              }
+            }
+          })
+        } else {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length !== index) {
+              tmpData = tmpData.children[no]
+            }
+          })
+          tmpData.children = tmpData.children || []
+          tmpData.children.push(editNode)
+        }
+      } else {
+        tmpData.children = tmpData.children || []
+        originData.children.push(editNode)
+      }
+      this.loadMap([originData], pGuid)
+    },
+    deleteNode (pGuid, editNode, editNodeIndex, type) {
+      let originData = JSON.parse(JSON.stringify(this.originData[0]))
+      let tmp = JSON.parse(JSON.stringify(this.originData[0]))
+      this.editPath.forEach(guid => {
+        if (guid === originData.guid) {
+          tmp = tmp.children
+        } else {
+          if (Array.isArray(tmp)) {
+            tmp = tmp.find((child, index) => {
+              if (child.guid === guid) {
+                this.editIndex.push(index)
+                return child
+              }
+            }).children
+          }
+        }
+      })
+      // eslint-disable-next-line no-unused-vars
+      let tmpData = originData
+      if (this.editIndex.length > 0) {
+        if (this.editIndex.length < 2) {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length - 1 !== index) {
+              tmpData = originData.children[no]
+            } else {
+              tmpData = tmpData.children
+              if (Array.isArray(tmp)) {
+                const index = tmpData.findIndex(child => {
+                  return child.guid === pGuid
+                })
+                tmpData = tmpData[index]
+                if (tmpData.children.length === 1) {
+                  delete tmpData.children
+                } else {
+                  tmpData.children.splice(editNodeIndex, 1)
+                }
+              }
+            }
+          })
+        } else {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length !== index) {
+              tmpData = tmpData.children[no]
+            }
+          })
+          if (tmpData.children.length === 1) {
+            delete tmpData.children
+          } else {
+            tmpData.children.splice(editNodeIndex, 1)
+          }
+        }
+      } else {
+        if (tmpData.children.length === 1) {
+          delete tmpData.children
+        } else {
+          tmpData.children.splice(editNodeIndex, 1)
+        }
       }
       this.loadMap([originData], pGuid)
     },
@@ -411,7 +545,6 @@ export default {
         .on('end', () => {
           addEvent('.node', 'click', this.handleNodeClick)
           addEvent('.cluster', 'click', this.handleNodeClick)
-          // addEvent('.edge', 'click', this.handleEdgeClick)
         })
       // 最外图层选中处理
       d3.select('#clust1').on('click', () => {
