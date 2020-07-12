@@ -1,6 +1,5 @@
 <template>
   <div>
-    {{ cacheIdPath }}
     <Row class="resource-design-tab-row">
       <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
@@ -162,13 +161,18 @@ export default {
         this.findParentGuid(xGuid)
       }
     },
-    operationReload (pGuid, editNode, editNodeIndex) {
+    operationReload (pGuid, editNode, editNodeIndex, type) {
+      let originData = JSON.parse(JSON.stringify(this.originData[0]))
+      if (type === 'confirm' || type === 'discard') {
+        console.log(22)
+        this.loadMap([originData], pGuid)
+        return
+      }
       this.editPath = []
       this.editIndex = []
       this.findParentGuid(pGuid)
       this.editPath.push(pGuid)
       this.editPath = this.editPath.slice(1)
-      let originData = JSON.parse(JSON.stringify(this.originData[0]))
       let tmp = JSON.parse(JSON.stringify(this.originData[0]))
       console.log(originData)
       this.editPath.forEach(guid => {
@@ -293,11 +297,9 @@ export default {
       this.graphData = this.systemData
       this.operateNodeData = this.systemData[0]
       this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
-      console.log(this.graphDataWithGuid)
       this.$refs.transferData.managementData(
         this.graphDataWithGuid[`n_${pGuid}`] || this.graphDataWithGuid[`g_${pGuid}`]
       )
-      // this.$refs.transferData.managementData(this.operateNodeData)
       formatADLine(xxxx)
       fetchOtherSystemInstances()
     },
