@@ -172,7 +172,7 @@ export default {
       this.findParentGuid(pGuid)
       this.editPath.push(pGuid)
       this.editPath = this.editPath.slice(1)
-      // let tmpData = originData
+      let tmpData = originData
       let tmp = JSON.parse(JSON.stringify(this.originData[0]))
       if (type === 'parentNode') {
         // TODO 更新父节点，需先点击外层才生效？
@@ -188,12 +188,55 @@ export default {
           }
         })
         if (this.editIndex.length > 0) {
+          if (this.editIndex.length < 2) {
+            this.editIndex.forEach((no, index) => {
+              if (this.editIndex.length - 1 !== index) {
+                tmpData = originData.children[no]
+              } else {
+                tmpData = tmpData.children
+                if (Array.isArray(tmpData)) {
+                  const index = tmpData.findIndex(child => {
+                    return child.guid === pGuid
+                  })
+                  tmpData = tmpData[index]
+                  tmpData.data = editNode.data
+                }
+              }
+            })
+          } else {
+            this.editIndex.forEach((no, index) => {
+              if (this.editIndex.length !== index) {
+                tmpData = tmpData.children[no]
+              }
+            })
+            tmpData.data = editNode.data
+          }
         } else {
-          originData = editNode
+          originData.data = editNode.data
         }
         this.loadMap([originData], pGuid)
         return
       }
+      // if (type === 'parentNode') {
+      //   // TODO 更新父节点，需先点击外层才生效？
+      //   this.editPath.forEach(guid => {
+      //     if (guid !== originData.guid) {
+      //       // eslint-disable-next-line no-unused-vars
+      //       tmp = tmp.children.find((child, i) => {
+      //         if (child.guid === guid) {
+      //           this.editIndex.push(i)
+      //           return child
+      //         }
+      //       })
+      //     }
+      //   })
+      //   if (this.editIndex.length > 0) {
+      //   } else {
+      //     originData.data = editNode.data
+      //   }
+      //   this.loadMap([originData], pGuid)
+      //   return
+      // }
       if (type === 'addNode') {
         this.addNode(pGuid, editNode, editNodeIndex, type)
         return
@@ -220,7 +263,7 @@ export default {
         }
       })
       // eslint-disable-next-line no-unused-vars
-      let tmpData = originData
+      // let tmpData = originData
       if (this.editIndex.length > 0) {
         if (this.editIndex.length < 2) {
           this.editIndex.forEach((no, index) => {
