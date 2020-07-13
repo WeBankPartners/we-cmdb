@@ -141,9 +141,6 @@ export default {
         .select('text')
         .attr('fill', '#ff9900')
     },
-    // operationReload () {
-    //   this.getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
-    // },
     findParentGuid (guid) {
       if (guid !== 'p') {
         const xParent = this.graphDataWithGuid[`n_${guid}`] || this.graphDataWithGuid[`g_${guid}`]
@@ -375,11 +372,11 @@ export default {
       }
       this.loadMap([originData], pGuid)
     },
-    loadMap (xxxx, pGuid) {
-      this.originData = xxxx
-      this.systemTreeData = xxxx
+    loadMap (updatedOriginData, pGuid) {
+      // this.originData = updatedOriginData
+      this.systemTreeData = updatedOriginData
       this.systemLines = {}
-      this.originData = JSON.parse(JSON.stringify(xxxx))
+      this.originData = JSON.parse(JSON.stringify(updatedOriginData))
       this.appInvokeLines = {}
       this.graphDataWithGuid = {}
       const formatAppLogicTree = (array, parentGuid) =>
@@ -401,7 +398,6 @@ export default {
           }
           return result
         })
-      this.effectiveLink = []
       const formatAppLogicLine = array =>
         array.forEach(_ => {
           if (_.ciTypeId === this.initParams[INVOKE_DESIGN_ID]) {
@@ -415,20 +411,18 @@ export default {
               fixedDate: +new Date(_.data.fixed_date)
             }
             _.data.ciTypeId = this.initParams[INVOKE_DESIGN_ID]
-            this.effectiveLink.push(_.data)
           }
           if (_.children instanceof Array && _.children.length) {
             formatAppLogicLine(_.children)
           }
         })
-      this.appLogicData = formatAppLogicTree(xxxx, 'p')
-      // this.graphData = xxxx
+      this.appLogicData = formatAppLogicTree(updatedOriginData, 'p')
       this.operateNodeData = this.appLogicData[0]
       this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
       this.$refs.transferData.managementData(
         this.graphDataWithGuid[`n_${pGuid}`] || this.graphDataWithGuid[`g_${pGuid}`]
       )
-      formatAppLogicLine(xxxx)
+      formatAppLogicLine(updatedOriginData)
       this.initGraph()
     },
     async getAllDesignTreeFromSystemDesign (systemDesignVersion) {
@@ -458,7 +452,6 @@ export default {
             }
             return result
           })
-        this.effectiveLink = []
         const formatAppLogicLine = array =>
           array.forEach(_ => {
             if (_.ciTypeId === this.initParams[INVOKE_DESIGN_ID]) {
@@ -472,7 +465,6 @@ export default {
                 fixedDate: +new Date(_.data.fixed_date)
               }
               _.data.ciTypeId = this.initParams[INVOKE_DESIGN_ID]
-              this.effectiveLink.push(_.data)
             }
             if (_.children instanceof Array && _.children.length) {
               formatAppLogicLine(_.children)

@@ -150,9 +150,6 @@ export default {
         .select('text')
         .attr('fill', 'red')
     },
-    // async operationReload (originData, operateLineData) {
-    //   this.getAllDeployTreesFromSystemCi(this.systemVersion)
-    // },
     findParentGuid (guid) {
       if (guid !== 'p') {
         const xParent = this.graphDataWithGuid[`n_${guid}`] || this.graphDataWithGuid[`g_${guid}`]
@@ -217,26 +214,6 @@ export default {
         this.loadMap([originData], pGuid)
         return
       }
-      // if (type === 'parentNode') {
-      //   // TODO 更新父节点，需先点击外层才生效？
-      //   this.editPath.forEach(guid => {
-      //     if (guid !== originData.guid) {
-      //       // eslint-disable-next-line no-unused-vars
-      //       tmp = tmp.children.find((child, i) => {
-      //         if (child.guid === guid) {
-      //           this.editIndex.push(i)
-      //           return child
-      //         }
-      //       })
-      //     }
-      //   })
-      //   if (this.editIndex.length > 0) {
-      //   } else {
-      //     originData.data = editNode.data
-      //   }
-      //   this.loadMap([originData], pGuid)
-      //   return
-      // }
       if (type === 'addNode') {
         this.addNode(pGuid, editNode, editNodeIndex, type)
         return
@@ -404,10 +381,10 @@ export default {
       }
       this.loadMap([originData], pGuid)
     },
-    loadMap (xxxx, pGuid) {
+    loadMap (updatedOriginData, pGuid) {
       const { initParams } = this
-      this.originData = xxxx
-      this.systemTreeData = xxxx
+      this.originData = updatedOriginData
+      this.systemTreeData = updatedOriginData
       this.systemLines = {}
       this.graphDataWithGuid = {}
       const formatADData = (array, parentGuid) => {
@@ -443,7 +420,6 @@ export default {
           return result
         })
       }
-      this.effectiveLink = []
       const formatADLine = array => {
         array.forEach(_ => {
           if (_.ciTypeId === this.initParams[INVOKE_ID]) {
@@ -457,7 +433,6 @@ export default {
               fixedDate: +new Date(_.data.fixed_date)
             }
             _.data.ciTypeId = this.initParams[INVOKE_ID]
-            this.effectiveLink.push(_.data)
           }
           if (_.children instanceof Array && _.children.length) {
             formatADLine(_.children)
@@ -470,14 +445,14 @@ export default {
         this.genADChildrenDot(this.systemData[0].children || [], 1)
         this.initADGraph()
       }
-      this.systemData = formatADData(xxxx, 'p')
+      this.systemData = formatADData(updatedOriginData, 'p')
       this.graphData = this.systemData
       this.operateNodeData = this.systemData[0]
       this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
       this.$refs.transferData.managementData(
         this.graphDataWithGuid[`n_${pGuid}`] || this.graphDataWithGuid[`g_${pGuid}`]
       )
-      formatADLine(xxxx)
+      formatADLine(updatedOriginData)
       fetchOtherSystemInstances()
     },
     async getAllDeployTreesFromSystemCi (systemVersion) {
@@ -522,7 +497,6 @@ export default {
             return result
           })
         }
-        this.effectiveLink = []
         const formatADLine = array => {
           array.forEach(_ => {
             if (_.ciTypeId === this.initParams[INVOKE_ID]) {
@@ -536,7 +510,6 @@ export default {
                 fixedDate: +new Date(_.data.fixed_date)
               }
               _.data.ciTypeId = this.initParams[INVOKE_ID]
-              this.effectiveLink.push(_.data)
             }
             if (_.children instanceof Array && _.children.length) {
               formatADLine(_.children)
@@ -613,14 +586,6 @@ export default {
       this.operateNodeData = this.graphDataWithGuid[guid]
       this.cacheIdPath = [guid]
       this.$refs.transferData.managementData(this.operateNodeData)
-    },
-    handleEdgeClick (e) {
-      let guid = e.currentTarget.id.substring(3)
-      this.markEdge(guid)
-      const selectLinkIndex = this.effectiveLink.findIndex(link => {
-        return link.guid === guid
-      })
-      this.$refs.transferData.openLinkPanal([selectLinkIndex + 1 + ''])
     },
     genADDOT (data) {
       this.graphNodes = {}
