@@ -34,6 +34,14 @@
                     :disabled="!isEdit || !formData.isEditable"
                   ></Input>
                 </FormItem>
+                <FormItem v-if="formData.inputType === 'date'" class="form-item-content">
+                  <DatePicker
+                    v-model="parentPanalData.data[formData.propertyName]"
+                    :disabled="!isEdit || !formData.isEditable"
+                    type="date"
+                    placeholder="Select date"
+                  ></DatePicker>
+                </FormItem>
                 <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
                   <textarea
                     v-model="parentPanalData.data[formData.propertyName]"
@@ -140,6 +148,14 @@
                       :disabled="!isEdit || !formData.isEditable"
                     ></Input>
                   </FormItem>
+                  <FormItem v-if="formData.inputType === 'date'" class="form-item-content">
+                    <DatePicker
+                      v-model="panal.data[formData.propertyName]"
+                      :disabled="!isEdit || !formData.isEditable"
+                      type="date"
+                      placeholder="Select date"
+                    ></DatePicker>
+                  </FormItem>
                   <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
                     <textarea
                       v-model="panal.data[formData.propertyName]"
@@ -164,6 +180,14 @@
                       :panalData="panal.data"
                       :disabled="!isEdit || !formData.isEditable"
                     ></Password>
+                  </FormItem>
+                  <FormItem v-if="formData.inputType === 'date'" class="form-item-content">
+                    <DatePicker
+                      v-model="panal.data[formData.propertyName]"
+                      :disabled="!isEdit || !formData.isEditable"
+                      type="date"
+                      placeholder="Select date"
+                    ></DatePicker>
                   </FormItem>
                   <FormItem
                     v-if="formData.inputType === 'select'"
@@ -222,6 +246,13 @@
             </Tooltip>
             <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
               <Input v-model="newNodeFormData[formData.propertyName]"></Input>
+            </FormItem>
+            <FormItem v-if="formData.inputType === 'date'" class="form-item-content">
+              <DatePicker
+                v-model="newNodeFormData[formData.propertyName]"
+                type="date"
+                placeholder="Select date"
+              ></DatePicker>
             </FormItem>
             <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
               <textarea v-model="newNodeFormData[formData.propertyName]" class="textArea-style"></textarea>
@@ -303,6 +334,14 @@
                   <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
                     <Input v-model="link[formData.propertyName]" :disabled="!isEdit || !formData.isEditable"></Input>
                   </FormItem>
+                  <FormItem v-if="formData.inputType === 'date'" class="form-item-content">
+                    <DatePicker
+                      v-model="link[formData.propertyName]"
+                      :disabled="!isEdit || !formData.isEditable"
+                      type="date"
+                      placeholder="Select date"
+                    ></DatePicker>
+                  </FormItem>
                   <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
                     <textarea
                       v-model="link[formData.propertyName]"
@@ -380,6 +419,13 @@
             </Tooltip>
             <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
               <Input v-model="newLineFormData[formData.propertyName]"></Input>
+            </FormItem>
+            <FormItem v-if="formData.inputType === 'date'" class="form-item-content">
+              <DatePicker
+                v-model="newLineFormData[formData.propertyName]"
+                type="date"
+                placeholder="Select date"
+              ></DatePicker>
             </FormItem>
             <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
               <textarea v-model="newLineFormData[formData.propertyName]" class="textArea-style"></textarea>
