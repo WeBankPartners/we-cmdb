@@ -46,6 +46,14 @@
                   :disabled="!isEdit || !formData.isEditable"
                 ></MutiRef>
               </FormItem>
+              <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+                <Password
+                  :isNewAddedRow="false"
+                  :formData="formData"
+                  :panalData="parentPanalData.data"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></Password>
+              </FormItem>
               <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
                 select
               </FormItem>
@@ -113,6 +121,14 @@
                   :disabled="!isEdit || !formData.isEditable"
                 ></MutiRef>
               </FormItem>
+              <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+                <Password
+                  :isNewAddedRow="false"
+                  :formData="formData"
+                  :panalData="panal.data"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></Password>
+              </FormItem>
               <FormItem
                 v-if="formData.inputType === 'select'"
                 :disabled="!isEdit || !formData.isEditable"
@@ -179,6 +195,14 @@
           </FormItem>
           <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
             <MutiRef :formData="formData" :panalData="newNodeFormData"></MutiRef>
+          </FormItem>
+          <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+            <Password
+              :isNewAddedRow="true"
+              :formData="formData"
+              :panalData="newNodeFormData"
+              :disabled="false"
+            ></Password>
           </FormItem>
           <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
             select
