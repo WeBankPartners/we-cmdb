@@ -55,6 +55,14 @@
                     :disabled="!isEdit || !formData.isEditable"
                   ></MutiRef>
                 </FormItem>
+                <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+                  <Password
+                    :isNewAddedRow="false"
+                    :formData="formData"
+                    :panalData="parentPanalData.data"
+                    :disabled="!isEdit || !formData.isEditable"
+                  ></Password>
+                </FormItem>
                 <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
                   select
                 </FormItem>
@@ -149,6 +157,14 @@
                       :disabled="!isEdit || !formData.isEditable"
                     ></MutiRef>
                   </FormItem>
+                  <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+                    <Password
+                      :isNewAddedRow="false"
+                      :formData="formData"
+                      :panalData="panal.data"
+                      :disabled="!isEdit || !formData.isEditable"
+                    ></Password>
+                  </FormItem>
                   <FormItem
                     v-if="formData.inputType === 'select'"
                     :disabled="!isEdit || !formData.isEditable"
@@ -219,6 +235,14 @@
             </FormItem>
             <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
               <MutiRef :formData="formData" :panalData="newNodeFormData"></MutiRef>
+            </FormItem>
+            <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+              <Password
+                :isNewAddedRow="true"
+                :formData="formData"
+                :panalData="newNodeFormData"
+                :disabled="false"
+              ></Password>
             </FormItem>
             <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
               select
@@ -296,6 +320,14 @@
                       :disabled="!isEdit || !formData.isEditable"
                     ></MutiRef>
                   </FormItem>
+                  <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+                    <Password
+                      :isNewAddedRow="false"
+                      :formData="formData"
+                      :panalData="link"
+                      :disabled="!isEdit || !formData.isEditable"
+                    ></Password>
+                  </FormItem>
                   <FormItem
                     v-if="formData.inputType === 'select'"
                     :disabled="!isEdit || !formData.isEditable"
@@ -358,6 +390,14 @@
             <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
               <MutiRef :formData="formData" :panalData="newLineFormData"></MutiRef>
             </FormItem>
+            <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+              <Password
+                :isNewAddedRow="false"
+                :formData="formData"
+                :panalData="newLineFormData"
+                :disabled="false"
+              ></Password>
+            </FormItem>
             <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
               select
             </FormItem>
@@ -389,6 +429,7 @@ import {
   getAllCITypesByLayerWithAttr
 } from '@/api/server'
 import Ref from './ref'
+import Password from './password'
 import MutiRef from './muti-ref'
 export default {
   name: '',
@@ -1089,6 +1130,7 @@ export default {
   },
   components: {
     Ref,
+    Password,
     MutiRef
   }
 }
