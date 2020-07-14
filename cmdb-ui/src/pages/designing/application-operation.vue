@@ -16,8 +16,14 @@
               v-if="formData.isDisplayed"
               :key="formDataIndex + 'a'"
             >
-              <Tooltip :content="formData.description" :delay="500" placement="left-start">
-                <span class="form-item-title"> {{ formData.name }}</span>
+              <Tooltip :delay="500" placement="left-start">
+                <span class="form-item-title">
+                  <span v-if="!formData.isNullable" class="require-tag">*</span>
+                  {{ formData.name }}
+                </span>
+                <div slot="content" style="white-space: normal;">
+                  {{ formData.description }}
+                </div>
               </Tooltip>
               <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
                 <Input
@@ -121,8 +127,14 @@
                 v-if="formData.isDisplayed"
                 :key="formDataIndex + 'b'"
               >
-                <Tooltip :content="formData.description" :delay="500" placement="left-start">
-                  <span class="form-item-title">{{ formData.name }}</span>
+                <Tooltip :delay="500" placement="left-start">
+                  <span class="form-item-title">
+                    <span v-if="!formData.isNullable" class="require-tag">*</span>
+                    {{ formData.name }}
+                  </span>
+                  <div slot="content" style="white-space: normal;">
+                    {{ formData.description }}
+                  </div>
                 </Tooltip>
                 <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
                   <Input
@@ -196,8 +208,14 @@
           v-if="formData.isDisplayed && formData.isEditable"
           :key="formDataIndex + 'a'"
         >
-          <Tooltip :content="formData.description" :delay="500" placement="left-start">
-            <span class="form-item-title"> {{ formData.name }}</span>
+          <Tooltip :delay="500" placement="left-start">
+            <span class="form-item-title">
+              <span v-if="!formData.isNullable" class="require-tag">*</span>
+              {{ formData.name }}
+            </span>
+            <div slot="content" style="white-space: normal;">
+              {{ formData.description }}
+            </div>
           </Tooltip>
           <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
             <Input v-model="newNodeFormData[formData.propertyName]"></Input>
@@ -798,5 +816,8 @@ export default {
   width: 24px;
   line-height: 24px;
   margin: 6px;
+}
+.require-tag {
+  color: red;
 }
 </style>
