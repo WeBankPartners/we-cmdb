@@ -565,7 +565,6 @@ export default {
             .attr('y', ty)
             .attr('style', 'text-anchor:middle')
           node.children[i].text.forEach((_, index) => {
-            console.log(_)
             const _fontsize = (2 * w) / _.length < fontsize ? (2 * w) / _.length : fontsize
             g.select('text')
               .append('tspan')
