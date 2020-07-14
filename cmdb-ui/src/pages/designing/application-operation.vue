@@ -31,6 +31,14 @@
                   :disabled="!isEdit || !formData.isEditable"
                 ></Input>
               </FormItem>
+              <FormItem v-if="formData.inputType === 'date'" class="form-item-content">
+                <DatePicker
+                  v-model="parentPanalData.data[formData.propertyName]"
+                  :disabled="!isEdit || !formData.isEditable"
+                  type="date"
+                  placeholder="Select date"
+                ></DatePicker>
+              </FormItem>
               <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
                 <textarea
                   v-model="parentPanalData.data[formData.propertyName]"
@@ -51,6 +59,14 @@
                   :panalData="parentPanalData.data"
                   :disabled="!isEdit || !formData.isEditable"
                 ></MutiRef>
+              </FormItem>
+              <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+                <Password
+                  :isNewAddedRow="false"
+                  :formData="formData"
+                  :panalData="parentPanalData.data"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></Password>
               </FormItem>
               <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
                 select
@@ -142,6 +158,14 @@
                     :disabled="!isEdit || !formData.isEditable"
                   ></Input>
                 </FormItem>
+                <FormItem v-if="formData.inputType === 'date'" class="form-item-content">
+                  <DatePicker
+                    v-model="panal.data[formData.propertyName]"
+                    :disabled="!isEdit || !formData.isEditable"
+                    type="date"
+                    placeholder="Select date"
+                  ></DatePicker>
+                </FormItem>
                 <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
                   <textarea
                     v-model="panal.data[formData.propertyName]"
@@ -158,6 +182,14 @@
                     :panalData="panal.data"
                     :disabled="!isEdit || !formData.isEditable"
                   ></MutiRef>
+                </FormItem>
+                <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+                  <Password
+                    :isNewAddedRow="false"
+                    :formData="formData"
+                    :panalData="panal.data"
+                    :disabled="!isEdit || !formData.isEditable"
+                  ></Password>
                 </FormItem>
                 <FormItem
                   v-if="formData.inputType === 'select'"
@@ -220,6 +252,13 @@
           <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
             <Input v-model="newNodeFormData[formData.propertyName]"></Input>
           </FormItem>
+          <FormItem v-if="formData.inputType === 'date'" class="form-item-content">
+            <DatePicker
+              v-model="newNodeFormData[formData.propertyName]"
+              type="date"
+              placeholder="Select date"
+            ></DatePicker>
+          </FormItem>
           <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
             <textarea v-model="newNodeFormData[formData.propertyName]" class="textArea-style"></textarea>
           </FormItem>
@@ -232,6 +271,14 @@
           </FormItem>
           <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
             <MutiRef :formData="formData" :panalData="newNodeFormData"></MutiRef>
+          </FormItem>
+          <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+            <Password
+              :isNewAddedRow="true"
+              :formData="formData"
+              :panalData="newNodeFormData"
+              :disabled="false"
+            ></Password>
           </FormItem>
           <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
             select
@@ -262,6 +309,7 @@ import {
   getAllCITypesByLayerWithAttr
 } from '@/api/server'
 import Ref from './ref'
+import Password from './password'
 import MutiRef from './muti-ref'
 export default {
   name: '',
@@ -727,6 +775,7 @@ export default {
   },
   components: {
     Ref,
+    Password,
     MutiRef
   }
 }
