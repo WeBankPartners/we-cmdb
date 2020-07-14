@@ -1,10 +1,6 @@
 <template>
   <div>
     <Row class="resource-design-tab-row">
-      <!-- <Spin fix v-if="spinShow">
-        <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-        <div>{{ $t('loading') }}</div>
-      </Spin> -->
       <Row>
         <Col span="16">
           <Card>
@@ -131,7 +127,6 @@ export default {
   },
   methods: {
     operationReload (operateNodeData, operateLineData) {
-      // this.onIdcDataChange(this.selectedIdcs)
       if (!operateNodeData) {
         this.loadMap(this.graphData, operateLineData)
         return
@@ -362,11 +357,11 @@ export default {
     },
     handleEdgeClick (e) {
       let guid = e.currentTarget.id.substring(3)
-      this.markEdge('0026_0000000036')
-      const selectLinkIndex = this.effectiveLink.findIndex(link => {
+      this.markEdge(guid)
+      const selectLink = this.effectiveLink.find(link => {
         return link.guid === guid
       })
-      this.$refs.transferData.openLinkPanal([selectLinkIndex + 1 + ''])
+      this.$refs.transferData.openLinkPanal([selectLink.guid], selectLink.tableName)
     },
     initGraph () {
       let graph
@@ -570,6 +565,7 @@ export default {
             .attr('y', ty)
             .attr('style', 'text-anchor:middle')
           node.children[i].text.forEach((_, index) => {
+            console.log(_)
             const _fontsize = (2 * w) / _.length < fontsize ? (2 * w) / _.length : fontsize
             g.select('text')
               .append('tspan')
