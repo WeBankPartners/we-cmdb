@@ -536,7 +536,7 @@ export default {
       newNodeForm: [], // 待创建节点表单
       showNewNodeForm: false, // 新增表单
 
-      linkPanal: '',
+      linkPanal: [],
       linkData: [],
       linkPanalForm: [], // 连线panal表单信息
 
@@ -600,6 +600,9 @@ export default {
       this.currentTab = 2
       this.isEdit = false
       if (panalId.length) {
+        // For edge click
+        this.linkPanal = []
+        this.linkPanal.push(panalId[0])
         const ciData = this.groupingLink[tableName].find(item => item.guid === panalId[0])
         const ciTypeId = ciData.ciTypeId
         this.$emit('markEdge', ciData.guid)
