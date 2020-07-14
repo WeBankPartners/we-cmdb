@@ -477,7 +477,7 @@ export default {
             let tmp = []
             if (activePanalData[key + '_tmp']) {
               tmp = activePanalData[key + '_tmp'].map(_ => {
-                return _.data.guid || _.data.codeId
+                return _.guid || _.codeId
               })
             } else {
               tmp = activePanalData[key].map(_ => {
@@ -558,7 +558,7 @@ export default {
             let tmp = []
             if (activePanalData[key + '_tmp']) {
               tmp = activePanalData[key + '_tmp'].map(_ => {
-                return _.data.guid || _.data.codeId
+                return _.guid || _.codeId
               })
             } else {
               tmp = activePanalData[key].map(_ => {
