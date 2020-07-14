@@ -44,7 +44,7 @@ import {
   INVOKE_UNIT,
   INVOKED_UNIT
 } from '@/const/init-params.js'
-import Operation from './application-operation-tmp'
+import Operation from './application-operation'
 export default {
   components: {
     Operation
