@@ -25,6 +25,14 @@
                   :disabled="!isEdit || !formData.isEditable"
                 ></Input>
               </FormItem>
+              <FormItem v-if="formData.inputType === 'date'" class="form-item-content">
+                <DatePicker
+                  v-model="parentPanalData.data[formData.propertyName]"
+                  :disabled="!isEdit || !formData.isEditable"
+                  type="date"
+                  placeholder="Select date"
+                ></DatePicker>
+              </FormItem>
               <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
                 <textarea
                   v-model="parentPanalData.data[formData.propertyName]"
@@ -45,6 +53,14 @@
                   :panalData="parentPanalData.data"
                   :disabled="!isEdit || !formData.isEditable"
                 ></MutiRef>
+              </FormItem>
+              <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+                <Password
+                  :isNewAddedRow="false"
+                  :formData="formData"
+                  :panalData="parentPanalData.data"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></Password>
               </FormItem>
               <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
                 select
@@ -69,122 +85,101 @@
         </div>
       </Panel>
     </Collapse>
-    <template v-for="(newPanalKey, newPanalKeyIndex) in newPanalDataKeys">
-      <div :key="newPanalKeyIndex + 'a'" class="panal-title">{{ $t('subsidiary_node') }}{{ newPanalKey }}：</div>
-      <Collapse
-        v-model="defaultPanal"
-        accordion
-        @on-change="openPanal(defaultPanal, newPanalKey)"
-        :key="newPanalKeyIndex + 'b'"
-      >
-        <Panel :name="panal.guid" v-for="(panal, panalIndex) in newPanalData[newPanalKey]" :key="panalIndex">
-          <Tooltip :delay="500" placement="top">
-            <span style="color:red">{{ findCiType(panal) }}</span>
-            <span>-{{ panal.data.key_name | filterCode }}</span>
-            <div slot="content" style="white-space: normal;">
-              {{ panal.data.key_name }}
-            </div>
-          </Tooltip>
-          <template v-if="panal.meta">
-            <template v-for="opera in filterNextoperations(panal.meta.nextOperations)" v-if="hideNextOperations">
-              <Tooltip :content="$t('confirm')" v-if="opera === 'confirm'" :key="opera" style="float:right">
-                <Icon
-                  type="md-checkmark"
-                  @click="confirm(newPanalData, newPanalKey, panalIndex, $event)"
-                  class="operation-icon-confirm"
-                />
-              </Tooltip>
-              <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera + panalIndex" style="float:right">
-                <Icon
-                  type="md-trash"
-                  @click="deleteNode(newPanalData, newPanalKey, panalIndex, $event)"
-                  class="operation-icon-delete"
-                />
-              </Tooltip>
-              <Tooltip
-                :content="$t('discard')"
-                v-if="opera === 'discard'"
-                :key="opera + panalIndex"
-                style="float:right"
-              >
-                <Icon
-                  type="ios-share-alt"
-                  @click="discard(newPanalData, newPanalKey, panalIndex, $event)"
-                  class="operation-icon-discard"
-                />
-              </Tooltip>
-            </template>
-          </template>
-          <div slot="content">
-            <Form v-if="defaultPanal[0] === panal.guid">
-              <div
-                v-for="(formData, formDataIndex) in panalForm"
-                v-if="formData.isDisplayed"
-                :key="formDataIndex + 'b'"
-              >
-                <Tooltip :content="formData.description" :delay="500" placement="left-start">
-                  <span class="form-item-title">{{ formData.name }}</span>
-                </Tooltip>
-                <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-                  <Input
-                    v-model="panal.data[formData.propertyName]"
-                    :disabled="!isEdit || !formData.isEditable"
-                  ></Input>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
-                  <textarea
-                    v-model="panal.data[formData.propertyName]"
-                    :disabled="!isEdit || !formData.isEditable"
-                    class="textArea-style"
-                  ></textarea>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-                  <Ref :formData="formData" :panalData="panal.data" :disabled="!isEdit || !formData.isEditable"></Ref>
-                </FormItem>
-                <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-                  <MutiRef
-                    :formData="formData"
-                    :panalData="panal.data"
-                    :disabled="!isEdit || !formData.isEditable"
-                  ></MutiRef>
-                </FormItem>
-                <FormItem
-                  v-if="formData.inputType === 'select'"
-                  :disabled="!isEdit || !formData.isEditable"
-                  class="form-item-content"
-                >
-                  select
-                </FormItem>
-                <FormItem
-                  v-if="formData.inputType === 'multiSelect'"
-                  :disabled="!isEdit || !formData.isEditable"
-                  class="form-item-content"
-                >
-                  multiSelect
-                </FormItem>
-              </div>
-              <FormItem v-if="hideNextOperations">
-                <div class="opetation-btn-zone">
-                  <Button @click="editOperation" :disabled="isEditEnable(panal.meta.nextOperations)" type="info">{{
-                    $t('edit')
-                  }}</Button>
-                  <Button
-                    type="primary"
-                    @click="saveOperation('panalData', newPanalKey)"
-                    :disabled="!isEdit"
-                    class="opetation-btn"
-                    >{{ $t('save') }}</Button
-                  >
-                </div>
-              </FormItem>
-            </Form>
+    <h5>{{ $t('subsidiary_node') }}：</h5>
+    <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
+      <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
+        <Tooltip :delay="500" placement="top">
+          <span>{{ panal.data.key_name | filterCode }}</span>
+          <div slot="content" style="white-space: normal;">
+            {{ panal.data.key_name }}
           </div>
-        </Panel>
-      </Collapse>
-    </template>
-    <div style="margin: 12px 0;" v-if="hideNextOperations">
-      <Button @click="showAddNodeArea = true" size="small" long type="info">{{ $t('add_node') }}</Button>
-    </div>
+        </Tooltip>
+        <template v-for="opera in panal.meta.nextOperations" v-if="hideNextOperations">
+          <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera + panalIndex" style="float:right">
+            <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
+          </Tooltip>
+          <Tooltip :content="$t('discard')" v-if="opera === 'discard'" :key="opera + panalIndex" style="float:right">
+            <Icon type="ios-share-alt" @click="discard(panal, $event)" class="operation-icon-discard" />
+          </Tooltip>
+        </template>
+        <div slot="content">
+          <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
+            <div v-for="(formData, formDataIndex) in panalForm" v-if="formData.isDisplayed" :key="formDataIndex + 'b'">
+              <Tooltip :content="formData.description" :delay="500" placement="left-start">
+                <span class="form-item-title">{{ formData.name }}</span>
+              </Tooltip>
+              <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
+                <Input v-model="panal.data[formData.propertyName]" :disabled="!isEdit || !formData.isEditable"></Input>
+              </FormItem>
+              <FormItem v-if="formData.inputType === 'date'" class="form-item-content">
+                <DatePicker
+                  v-model="panal.data[formData.propertyName]"
+                  :disabled="!isEdit || !formData.isEditable"
+                  type="date"
+                  placeholder="Select date"
+                ></DatePicker>
+              </FormItem>
+              <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
+                <textarea
+                  v-model="panal.data[formData.propertyName]"
+                  :disabled="!isEdit || !formData.isEditable"
+                  class="textArea-style"
+                ></textarea>
+              </FormItem>
+              <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
+                <Ref :formData="formData" :panalData="panal.data" :disabled="!isEdit || !formData.isEditable"></Ref>
+              </FormItem>
+              <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
+                <MutiRef
+                  :formData="formData"
+                  :panalData="panal.data"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></MutiRef>
+              </FormItem>
+              <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+                <Password
+                  :isNewAddedRow="false"
+                  :formData="formData"
+                  :panalData="panal.data"
+                  :disabled="!isEdit || !formData.isEditable"
+                ></Password>
+              </FormItem>
+              <FormItem
+                v-if="formData.inputType === 'select'"
+                :disabled="!isEdit || !formData.isEditable"
+                class="form-item-content"
+              >
+                select
+              </FormItem>
+              <FormItem
+                v-if="formData.inputType === 'multiSelect'"
+                :disabled="!isEdit || !formData.isEditable"
+                class="form-item-content"
+              >
+                multiSelect
+              </FormItem>
+            </div>
+            <FormItem v-if="hideNextOperations">
+              <div class="opetation-btn-zone">
+                <Button @click="editOperation" :disabled="isEditEnable(panal.meta.nextOperations)" type="info">{{
+                  $t('edit')
+                }}</Button>
+                <Button
+                  type="primary"
+                  @click="saveOperation('panalData', panalIndex)"
+                  :disabled="!isEdit"
+                  class="opetation-btn"
+                  >{{ $t('save') }}</Button
+                >
+              </div>
+            </FormItem>
+          </Form>
+        </div>
+      </Panel>
+      <div style="margin: 12px;" v-if="hideNextOperations">
+        <Button @click="showAddNodeArea = true" size="small" long type="info">{{ $t('add_node') }}</Button>
+      </div>
+    </Collapse>
     <div v-if="showAddNodeArea" class="add-node-area">
       <Select v-model="selectedNodeType" @on-change="getNewNodeAttr" @on-open-change="getNodeTypes">
         <Option v-for="(item, index) in canCreateNodeTypes" :value="item.value" :key="item.value + index">{{
@@ -203,6 +198,13 @@
           <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
             <Input v-model="newNodeFormData[formData.propertyName]"></Input>
           </FormItem>
+          <FormItem v-if="formData.inputType === 'date'" class="form-item-content">
+            <DatePicker
+              v-model="newNodeFormData[formData.propertyName]"
+              type="date"
+              placeholder="Select date"
+            ></DatePicker>
+          </FormItem>
           <FormItem v-if="formData.inputType === 'textArea'" class="form-item-content">
             <textarea v-model="newNodeFormData[formData.propertyName]" class="textArea-style"></textarea>
           </FormItem>
@@ -215,6 +217,14 @@
           </FormItem>
           <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
             <MutiRef :formData="formData" :panalData="newNodeFormData"></MutiRef>
+          </FormItem>
+          <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+            <Password
+              :isNewAddedRow="true"
+              :formData="formData"
+              :panalData="newNodeFormData"
+              :disabled="false"
+            ></Password>
           </FormItem>
           <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
             select
@@ -242,6 +252,7 @@ import {
   deleteCiDatas,
   queryCiData,
   operateCiState,
+  getAllSystemEnumCodes,
   getAllCITypesByLayerWithAttr
 } from '@/api/server'
 import Ref from './ref'
@@ -272,26 +283,52 @@ export default {
       newNodeForm: [], // 待创建节点表单
       showNewNodeForm: false, // 新增表单
 
-      allCITypes: {},
+      linkPanal: '',
+      linkData: [],
+      linkPanalForm: [], // 连线panal表单信息
 
-      newPanalDataKeys: [],
-      newPanalData: null
+      showAddLineArea: false,
+      selectedLineType: null,
+      canCreateLineTypes: [], // 可创建连线类型
+      newLineFormData: {}, // 待创建节点表单
+      newLineForm: [], // 待创建节点表单
+      showNewLineForm: false, // 新增表单
+      lineFromSet: {}, // 缓存line attr
+
+      codeData: [],
+      edgeData: [], // 可连接线信息
+      allCITypes: {},
+      currentLineId: null
     }
   },
-  props: ['hideNextOperations', 'ignoreOpera'],
+  props: ['hideNextOperations'],
   mounted () {
     this.getAllCITypes()
+    this.linkPanal = ''
   },
   methods: {
-    filterNextoperations (val) {
-      const ignoreOpera = new Set(this.ignoreOpera)
-      return val.filter(x => !ignoreOpera.has(x))
-    },
     isEditEnable (val) {
       if (val && val.includes('update')) {
         return false
       } else {
         return true
+      }
+    },
+    linkManagementData (linkData) {
+      this.linkData = linkData
+    },
+    async openLinkPanal (panalId) {
+      this.isEdit = false
+      if (panalId.length) {
+        this.linkPanal = panalId[0]
+        this.$emit('markEdge', this.linkData[Number(panalId[0] - 1)].guid)
+        const ciTypeId = this.linkData[Number(panalId[0] - 1)].ciTypeId
+        // if (!Object.keys(this.lineFromSet).includes(ciTypeId)) {
+        await this.getAttributes(ciTypeId, 'linkPanalForm')
+        this.lineFromSet[ciTypeId] = this.linkPanalForm
+        // } else {
+        //   this.linkPanalForm = this.lineFromSet[ciTypeId]
+        // }
       }
     },
     async getAllCITypes () {
@@ -306,41 +343,191 @@ export default {
         })
       }
     },
-    async confirm (panalData, tableName, panalIndex, $event) {
-      event.stopPropagation()
-      const activePanal = panalData[tableName][panalIndex]
-      const { statusCode } = await operateCiState(activePanal.ciTypeId + '', activePanal.guid, 'confirm')
+    async getLineTypes (val) {
+      if (!val) {
+        return
+      }
+      const ciTypeKeys = Object.keys(this.allCITypes)
+      ciTypeKeys.forEach(key => {
+        if (this.allCITypes[key].ciTypeId === this.graphCiTypeId) {
+          this.graphTableName = this.allCITypes[key].tableName
+        }
+      })
+      this.canCreateLineTypes = []
+      let params = {
+        filters: [{ name: 'catId', operator: 'in', value: Array.from(new Array(28 + 1).keys()).slice(22) }],
+        paging: false
+      }
+      const { statusCode, data } = await getAllSystemEnumCodes(params)
       if (statusCode === 'OK') {
-        this.$Message.success('success!')
-        this.$emit('operationReload', '', {})
+        const codeData = data.contents
+        const codeId = codeData.filter(dd => {
+          return dd.code === this.graphTableName
+        })[0].codeId
+        const edgeData = codeData.filter(dd => {
+          if (dd.groupCodeId) {
+            return dd.groupCodeId.codeId === codeId && dd.codeDescription === 'edge'
+          }
+        })
+        edgeData.forEach(ed => {
+          this.canCreateLineTypes.push({
+            label: ed.value,
+            value: ed.code
+          })
+        })
       }
     },
-    async discard (panalData, tableName, panalIndex, $event) {
-      event.stopPropagation()
-      const activePanal = panalData[tableName][panalIndex]
-      const { statusCode } = await operateCiState(activePanal.ciTypeId + '', activePanal.guid, 'discard')
+    async getNewLineAttr (val) {
+      this.selectedLineType = val
+      if (!this.selectedLineType) {
+        return
+      }
+      this.showNewLineForm = false
+      this.newLineFormData = {}
+      this.newLineForm = this.allCITypes[val].attributes
+      this.currentLineId = this.allCITypes[val].ciTypeId
+      // await this.getAttributes(this.selectedLineType, 'newLineForm')
+      this.newLineForm.forEach(_ => {
+        if (_.inputType === 'ref') {
+          this.newLineFormData[_.propertyName] = { guid: '11' }
+        } else if (_.inputType === 'multiRef') {
+          this.newLineFormData[_.propertyName] = []
+        } else {
+          this.newLineFormData[_.propertyName] = ''
+        }
+      })
+      this.showNewLineForm = true
+      this.newLineForm.sort((a, b) => a.searchSeqNo - b.searchSeqNo)
+    },
+    async createLine () {
+      // eslint-disable-next-line no-unused-vars
+      let activeLineData = null
+      // eslint-disable-next-line no-unused-vars
+      let ciTypeId = null
+      activeLineData = this.newLineFormData
+      let tmpLineData = JSON.parse(JSON.stringify(activeLineData))
+      for (let key in activeLineData) {
+        if (activeLineData[key] && typeof activeLineData[key] === 'object') {
+          // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
+          if (Array.isArray(activeLineData[key]) && !key.endsWith('_tmp')) {
+            let tmp = []
+            if (activeLineData[key + '_tmp']) {
+              tmp = activeLineData[key + '_tmp'].map(_ => {
+                return _.data.guid || _.data.codeId
+              })
+            } else {
+              tmp = activeLineData[key].map(_ => {
+                return _.data.guid || _.data.codeId
+              })
+            }
+            tmpLineData[key] = tmp
+          } else {
+            // Object数据处理
+            tmpLineData[key] = activeLineData[key].codeId || activeLineData[key].guid
+          }
+        }
+      }
+      let params = {
+        id: this.currentLineId,
+        createData: [tmpLineData]
+      }
+      const { statusCode, data } = await createCiDatas(params)
       if (statusCode === 'OK') {
-        this.$Message.success('success!')
-        this.$emit('operationReload', '', {})
+        this.$Message.success('Success!')
+        this.showAddLineArea = false
+        const ciData = await queryCiData({
+          id: this.currentLineId,
+          queryObject: {
+            filters: [
+              {
+                name: 'guid',
+                value: data[0].guid,
+                operator: 'eq'
+              }
+            ]
+          }
+        })
+        this.$emit('operationReload', '', {
+          type: 'add',
+          lineInfo: ciData.data.contents[0]
+        })
+        this.cancleAddLine()
       }
     },
-    async deleteNode (panalData, tableName, panalIndex, event) {
+    cancleAddLine () {
+      this.isEdit = false
+      this.showAddLineArea = false
+      this.showNewLineForm = false
+      this.selectedLineType = null
+      this.newLineFormData = {}
+      this.newLineForm = []
+    },
+    async deleteLink (linkData, event) {
       event.stopPropagation()
-      const activePanal = panalData[tableName][panalIndex]
       this.$Modal.confirm({
         title: this.$t('delete_confirm'),
         loading: true,
         'z-index': 1000000,
         onOk: async () => {
           let params = {
-            id: activePanal.ciTypeId,
-            deleteData: [activePanal.guid]
+            id: linkData.ciTypeId,
+            deleteData: [linkData.guid]
           }
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
             this.$Message.success('success!')
-            // this.panalData.splice(panalIndex, 1)
-            // this.operateData.children = this.panalData
+            this.$emit('operationReload', '', {
+              type: 'remove',
+              lineInfo: {
+                data: linkData
+              }
+            })
+          }
+          this.$Modal.remove()
+        },
+        onCancel: () => {}
+      })
+    },
+    async confirmNode (panalData, panalIndex, event) {
+      event.stopPropagation()
+      const nodeInfo = panalData[panalIndex]
+      const { statusCode } = await operateCiState(nodeInfo.ciTypeId + '', nodeInfo.guid, 'confirm')
+      if (statusCode === 'OK') {
+        this.$Message.success('success!')
+      }
+    },
+    async confirm (data, event) {
+      event.stopPropagation()
+      const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'confirm')
+      if (statusCode === 'OK') {
+        this.$Message.success('success!')
+        this.$emit('operationReload', '', {})
+      }
+    },
+    async discard (data, event) {
+      event.stopPropagation()
+      const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'discard')
+      if (statusCode === 'OK') {
+        this.$Message.success('success!')
+        this.$emit('operationReload', '', {})
+      }
+    },
+    async deleteNode (panalData, panalIndex, event) {
+      event.stopPropagation()
+      this.$Modal.confirm({
+        title: this.$t('delete_confirm'),
+        loading: true,
+        'z-index': 1000000,
+        onOk: async () => {
+          let params = {
+            id: panalData[panalIndex].ciTypeId,
+            deleteData: [panalData[panalIndex].data.guid]
+          }
+          const { statusCode } = await deleteCiDatas(params)
+          if (statusCode === 'OK') {
+            this.$Message.success('success!')
+            this.panalData.splice(panalIndex, 1)
+            this.operateData.children = this.panalData
             this.$emit('operationReload', this.operateData)
           }
           this.$Modal.remove()
@@ -421,7 +608,7 @@ export default {
       this.isEdit = true
     },
     // 保存数据
-    async saveOperation (dataSource, tableName) {
+    async saveOperation (dataSource, index) {
       // eslint-disable-next-line no-unused-vars
       let activePanalData = null
       // eslint-disable-next-line no-unused-vars
@@ -431,10 +618,13 @@ export default {
         ciTypeId = this.parentPanalForm[0].ciTypeId
       }
       if (dataSource === 'panalData') {
-        const activePanal = this.newPanalData[tableName].find(item => item.guid === this.defaultPanal[0])
-        activePanalData = activePanal.data
-
-        ciTypeId = activePanal.ciTypeId
+        activePanalData = this.panalData[this.defaultPanal[0] - 1].data
+        ciTypeId = this.panalForm[0].ciTypeId
+      }
+      if (dataSource === 'linkData') {
+        activePanalData = this.linkData[this.linkPanal[0] - 1]
+        ciTypeId = activePanalData.ciTypeId
+        delete activePanalData.ciTypeId
       }
 
       let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
@@ -459,7 +649,6 @@ export default {
           }
         }
       }
-      delete tmpPanalData.ciTypeId
       let params = {
         id: ciTypeId,
         updateData: [tmpPanalData]
@@ -468,35 +657,27 @@ export default {
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
         this.isEdit = false
-        const ciData = await queryCiData({
-          id: ciTypeId,
-          queryObject: {
-            filters: [
-              {
-                name: 'guid',
-                value: data[0].guid,
-                operator: 'eq'
-              }
-            ]
-          }
-        })
         if (dataSource === 'parentPanalData') {
           this.operateData.data = data[0]
         }
         if (dataSource === 'panalData') {
-          ciData.data.contents[0].meta.nextOperations = Array.from(new Set(ciData.data.contents[0].meta.nextOperations))
-          ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
-          const index = this.getIndex(this.operateData.children, ciData.data.contents[0].data.guid)
-          this.operateData.children[index].data = ciData.data.contents[0].data
-          this.$emit('operationReload', this.operateData)
+          this.operateData.children[index].data = data[0]
+        }
+        if (dataSource === 'linkData') {
+          this.linkData[index] = data[0]
+          this.linkData[index].ciTypeId = Number(ciTypeId)
+          this.$emit('operationReload', '', {
+            type: 'edit',
+            lineInfo: {
+              data: data[0]
+            }
+          })
           return
-          // this.operateData.children[index].data = data[0]
         }
         this.$emit('operationReload', this.operateData)
       }
     },
     async managementData (operateData) {
-      console.log(operateData)
       this.parentPanal = ''
       this.defaultPanal = ''
       this.panalData = []
@@ -523,16 +704,7 @@ export default {
             })
           })
           this.panalData = []
-          this.newPanalData = {}
-          this.newPanalDataKeys = []
-          this.operateData.children.forEach(child => {
-            if (child.tableName in this.newPanalData) {
-              this.newPanalData[child.tableName].push(child)
-            } else {
-              this.newPanalData[child.tableName] = [child]
-              this.newPanalDataKeys.push(child.tableName)
-            }
-          })
+          console.log(this.operateData.children)
           this.panalData.push(...this.operateData.children)
         })
       }
@@ -610,15 +782,14 @@ export default {
         this.getAttributes(ciTypeId, 'parentPanalForm')
       }
     },
-    openPanal (panalId, tableName) {
+    openPanal (panalId) {
       this.parentPanal = ''
       this.isEdit = false
       if (panalId.length) {
-        const ciData = this.newPanalData[tableName].find(item => item.guid === panalId[0])
-        const ciTypeId = ciData.ciTypeId
+        this.$emit('markZone', this.panalData[Number(panalId[0] - 1)].guid)
+        const ciTypeId = this.panalData[Number(panalId[0] - 1)].ciTypeId
         this.panalForm = []
         this.getAttributes(ciTypeId, 'panalForm')
-        this.$emit('markZone', ciData.guid)
       }
     },
     async getAttributes (ciTypeId, formObject) {
@@ -633,12 +804,6 @@ export default {
           return this.allCITypes[key].tableName
         }
       }
-    },
-    getIndex (dataGroup, guid) {
-      const index = dataGroup.findIndex(child => {
-        return child.guid === guid
-      })
-      return index
     }
   },
   filters: {
@@ -672,11 +837,7 @@ export default {
   outline: 0;
   box-shadow: 0 0 0 2px rgba(45, 140, 240, 0.2);
 }
-.panal-title {
-  font-size: 12px;
-  font-weight: 500;
-  margin: 6px 0;
-}
+
 .parentCollapse {
   background-color: #5cadff;
   margin-bottom: 8px;
@@ -740,4 +901,9 @@ export default {
   line-height: 24px;
   margin: 6px;
 }
+
+// .operation-icon:hover {
+//   color: #57a3f3;
+//   border-color: #57a3f3;
+// }
 </style>
