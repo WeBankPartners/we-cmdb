@@ -1,13 +1,20 @@
 <template>
-  <div v-if="panalData[formData.propertyName]">
-    <Select
-      v-model="panalData[formData.propertyName].guid"
-      @on-open-change="openOptions"
-      :disabled="disabled"
-      filterable
-    >
-      <Option v-for="item in options" :value="item.value" :key="item.value">{{ item.label }}</Option>
-    </Select>
+  <div>
+    <div v-if="panalData[formData.propertyName]">
+      <Select
+        v-model="panalData[formData.propertyName].guid"
+        @on-open-change="openOptions"
+        :disabled="disabled"
+        filterable
+      >
+        <Option v-for="item in options" :value="item.value" :key="item.value">{{ item.label }}</Option>
+      </Select>
+    </div>
+    <div v-else>
+      <Select>
+        <Option v-for="item in options" :value="item.value" :key="item.value">{{ item.label }}</Option>
+      </Select>
+    </div>
   </div>
 </template>
 <script>
