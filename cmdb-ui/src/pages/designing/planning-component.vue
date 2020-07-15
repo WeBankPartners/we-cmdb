@@ -1,10 +1,6 @@
 <template>
   <div>
     <Row class="resource-design-tab-row">
-      <!-- <Spin fix v-if="spinShow">
-        <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-        <div>{{ $t('loading') }}</div>
-      </Spin> -->
       <Row>
         <Col span="16">
           <Card>
@@ -382,6 +378,7 @@ export default {
       let dots = []
       this.idcLink.forEach(_ => {
         if (_.from in this.graphNodes && _.to in this.graphNodes) {
+          this.effectiveLink.push(_.linkInfo)
           dots.push(
             `g_${_.from} -> g_${_.to}[id=gl_${_.guid},tooltip="${_.label || ''}",taillabel="${_.label || ''}"];`
           )
@@ -413,10 +410,10 @@ export default {
     handleEdgeClick (e) {
       let guid = e.currentTarget.id.substring(3)
       this.markEdge(guid)
-      const selectLinkIndex = this.effectiveLink.findIndex(link => {
+      const selectLink = this.effectiveLink.find(link => {
         return link.guid === guid
       })
-      this.$refs.transferData.openLinkPanal([selectLinkIndex + 1 + ''])
+      this.$refs.transferData.openLinkPanal([selectLink.guid], selectLink.tableName)
     },
     renderGraph (idcData) {
       let nodesString = this.genDOT(idcData)

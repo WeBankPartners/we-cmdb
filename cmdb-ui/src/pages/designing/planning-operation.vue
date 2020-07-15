@@ -9,7 +9,7 @@
       </div>
     </div>
     <div v-if="currentTab === 1" class="operation-Collapse">
-      <h4>{{ $t('current_node') }}：</h4>
+      <div class="parent-title">{{ $t('current_node') }}：</div>
       <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
         <Panel name="1">
           <Tooltip :delay="500" placement="top">
@@ -101,7 +101,7 @@
         </Panel>
       </Collapse>
       <template v-for="(groupingKey, groupingKeyIndex) in groupingNodeKeys">
-        <div :key="groupingKeyIndex + 'a'" class="panal-title">{{ $t('subsidiary_node') }}{{ groupingKey }}：</div>
+        <div class="subsidiary-title" :key="groupingKeyIndex + 'a'">{{ $t('subsidiary_node') }}{{ groupingKey }}：</div>
         <Collapse
           v-model="defaultPanal"
           accordion
@@ -311,7 +311,7 @@
     </div>
     <div v-if="currentTab === 2" class="operation-Collapse">
       <template v-for="(groupingKey, groupingKeyIndex) in groupingLinkKeys">
-        <div :key="groupingKeyIndex + 'e'" class="panal-title">{{ groupingKey }}：</div>
+        <div class="subsidiary-title" :key="groupingKeyIndex + 'e'">{{ groupingKey }}：</div>
         <Collapse
           v-model="linkPanal"
           accordion
@@ -580,6 +580,7 @@ export default {
       this.cancleAddNode()
     },
     async linkManagementData (linkData) {
+      console.log(linkData)
       this.linkData = linkData
       this.linkData.forEach(link => {
         link.meta.nextOperations = Array.from(new Set(link.meta.nextOperations))
@@ -988,7 +989,7 @@ export default {
             let tmp = []
             if (activePanalData[key + '_tmp']) {
               tmp = activePanalData[key + '_tmp'].map(_ => {
-                return _.guid || _.codeId
+                return _.data.guid || _.data.codeId
               })
             } else {
               tmp = activePanalData[key].map(_ => {
@@ -1250,6 +1251,14 @@ export default {
   border-color: #57a3f3;
   outline: 0;
   box-shadow: 0 0 0 2px rgba(45, 140, 240, 0.2);
+}
+.parent-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+.subsidiary-title {
+  font-size: 13px;
+  font-weight: 500;
 }
 .panal-title {
   font-size: 12px;

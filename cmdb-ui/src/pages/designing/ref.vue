@@ -11,7 +11,7 @@
       </Select>
     </div>
     <div v-else>
-      <Select>
+      <Select :disabled="disabled" filterable>
         <Option v-for="item in options" :value="item.value" :key="item.value">{{ item.label }}</Option>
       </Select>
     </div>
