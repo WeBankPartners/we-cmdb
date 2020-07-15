@@ -316,21 +316,6 @@ export default {
             links.data.contents,
             this.initParams[RESOURCE_PLANNING_LINK_ID]
           )
-          // this.lineData = links.data.contents.map(_ => {
-          //   return {
-          //     guid: _.data.guid,
-          //     from: _.data[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
-          //     linkInfo: {
-          //       ..._.data,
-          //       meta: _.meta,
-          //       ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
-          //     },
-          //     to: _.data[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
-          //     label: _.data.code,
-          //     state: _.data.state.code
-          //   }
-          // })
-
           this.$nextTick(() => {
             this.initGraph()
           })
@@ -394,6 +379,9 @@ export default {
           d3.select(`#n_${zone.guid}`)
             .select('polygon')
             .attr('fill', colors[1])
+          d3.select(`#n_${zone.guid}`)
+            .select('title')
+            .text(zone.data.description)
           if (zone.children instanceof Array) {
             let points = d3
               .select(`#n_${zone.guid}`)
@@ -556,6 +544,7 @@ export default {
             _h = h
             ty = p1.y + tfsize * tlength + mgap + _h * 0.5
           }
+          g.append('title').text(node.children[i].data.description)
           g.append('rect')
             .attr('x', rx)
             .attr('y', _ry)
@@ -608,6 +597,7 @@ export default {
             .append('g')
             .attr('class', 'node')
             .attr('id', `n_${node.children[i].guid}`)
+          g.append('title').text(node.children[i].data.description)
           g.append('rect')
             .attr('x', rx)
             .attr('y', ry)
