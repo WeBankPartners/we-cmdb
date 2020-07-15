@@ -307,6 +307,7 @@ export default {
                   >
                     <Tooltip {...d} disabled={!column.description} content={column.description} placement="top">
                       {column.name || column.title}
+                      <span style="color:red">{column.isNullable ? '' : '*'}</span>
                     </Tooltip>
                   </div>
                 )
