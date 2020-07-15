@@ -2,19 +2,24 @@
   <div>
     <Row class="resource-design-tab-row">
       <Row>
-        <Col span="16">
+        <Col span="24">
           <Card>
             <div class="graph-container-big" id="resourcePlanningGraph"></div>
-          </Card>
-        </Col>
-        <Col span="8" class="operation-zone">
-          <Card>
-            <Operation
-              ref="transferData"
-              @operationReload="operationReload"
-              @markZone="markZone"
-              @markEdge="markEdge"
-            ></Operation>
+            <div class="operation-area">
+              <Collapse>
+                <Panel name="1">
+                  {{ $t('operating_area') }}
+                  <div slot="content">
+                    <Operation
+                      ref="transferData"
+                      @operationReload="operationReload"
+                      @markZone="markZone"
+                      @markEdge="markEdge"
+                    ></Operation>
+                  </div>
+                </Panel>
+              </Collapse>
+            </div>
           </Card>
         </Col>
       </Row>
@@ -371,12 +376,11 @@ export default {
           .on('dblclick.zoom', null)
           .on('wheel.zoom', null)
           .on('mousewheel.zoom', null)
-        const width = (window.innerWidth / 24) * 16 - 80
         this.graph.graphviz = graph
           .graphviz()
           .fit(true)
           .zoom(true)
-          .width(width)
+          .width(window.innerWidth - 60)
           .height(window.innerHeight - 275)
       }
       initEvent()
@@ -737,71 +741,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.graph-select-row {
-  margin-bottom: 10px;
-}
-.graph-tabs {
-  min-height: 400px;
-  position: relative;
-}
-.ivu-card-head p {
-  height: 30px;
-  line-height: 30px;
-}
-.filter-title {
-  margin-right: 10px;
-}
-.graph-list {
-  overflow-x: auto;
-  display: flex;
-}
-.graph-list > div {
-  cursor: pointer;
-}
-.graph-container {
-  width: 160px;
-  height: 120px;
-  float: left;
-  margin-right: 5px;
-  text-align: center;
-}
-.graph-container-big {
-  margin-top: 20px;
-}
-.resource-planning-title {
-  display: flex;
-  margin-right: 10px;
-  margin-left: 0;
-  & > span {
-    line-height: 32px;
-  }
-}
-.resource-planning-select {
-  flex: 1;
-  margin-left: 10px;
-}
-
-.copy-modal {
-  .ivu-modal-body {
-    max-height: 450px;
-    overflow-y: auto;
-  }
-
-  .copy-form {
-    display: flex;
-    flex-flow: column nowrap;
-  }
-
-  .copy-input {
-    display: flex;
-    flex-flow: row nowrap;
-    margin-top: 20px;
-    align-items: center;
-
-    .ivu-input-number {
-      flex: 1;
-      margin-right: 15px;
-    }
-  }
+.operation-area {
+  position: absolute;
+  width: 450px;
+  top: 10px;
+  right: 0px;
 }
 </style>
