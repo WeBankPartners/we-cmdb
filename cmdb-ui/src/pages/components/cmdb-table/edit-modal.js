@@ -306,8 +306,8 @@ export default {
                     key={column.ciTypeAttrId || index}
                   >
                     <Tooltip {...d} disabled={!column.description} content={column.description} placement="top">
-                      {column.name || column.title}
                       <span style="color:red">{column.isNullable ? '' : '*'}</span>
+                      {column.name || column.title}
                     </Tooltip>
                   </div>
                 )
