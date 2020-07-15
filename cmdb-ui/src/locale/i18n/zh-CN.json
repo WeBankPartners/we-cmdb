@@ -272,5 +272,6 @@
   "subsidiary_node": "子节点",
   "add_node": "新增节点",
   "link_information": "连线信息",
-  "add_link": "新增连线"
+  "add_link": "新增连线",
+  "operating_area": "操作区"
 }

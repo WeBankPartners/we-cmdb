@@ -580,7 +580,6 @@ export default {
       this.cancleAddNode()
     },
     async linkManagementData (linkData) {
-      console.log(linkData)
       this.linkData = linkData
       this.linkData.forEach(link => {
         link.meta.nextOperations = Array.from(new Set(link.meta.nextOperations))
@@ -1219,7 +1218,7 @@ export default {
 <style scoped lang="scss">
 .operation-Collapse {
   overflow: auto;
-  height: calc(100vh - 280px);
+  height: calc(100vh - 360px);
 }
 .diy-tabs {
   display: flex;

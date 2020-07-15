@@ -6,12 +6,30 @@
         <div>{{ $t('loading') }}</div>
       </Spin>
       <Row>
-        <Col span="16">
+        <Col span="24">
           <Card>
             <div class="container-height" id="graph"></div>
+            <div class="operation-area">
+              <Collapse>
+                <Panel name="1">
+                  {{ $t('operating_area') }}
+                  <div slot="content">
+                    <Operation
+                      class="operation-container"
+                      ref="transferData"
+                      :hideNextOperations="true"
+                      :ignoreOpera="ignoreOpera"
+                      @operationReload="operationReload"
+                      @markZone="markZone"
+                      @markEdge="markEdge"
+                    ></Operation>
+                  </div>
+                </Panel>
+              </Collapse>
+            </div>
           </Card>
         </Col>
-        <Col span="8" class="operation-zone">
+        <!-- <Col span="8" class="operation-zone">
           <Card>
             <Operation
               class="container-height"
@@ -23,7 +41,7 @@
               @markEdge="markEdge"
             ></Operation>
           </Card>
-        </Col>
+        </Col> -->
       </Row>
     </Row>
   </div>
@@ -540,10 +558,9 @@ export default {
           .on('dblclick.zoom', null)
           .on('wheel.zoom', null)
           .on('mousewheel.zoom', null)
-        const width = ((window.innerWidth - 60) / 24) * 16 - 40
         this.graph.graphviz = graph
           .graphviz()
-          .width(width)
+          .width(window.innerWidth - 60)
           .height(window.innerHeight - 260)
           .zoom(true)
           .fit(true)
@@ -723,5 +740,14 @@ export default {
 }
 .container-height {
   height: calc(100vh - 245px);
+}
+.operation-area {
+  position: absolute;
+  width: 450px;
+  top: 10px;
+  right: 0px;
+}
+.operation-container {
+  height: calc(100vh - 310px);
 }
 </style>
