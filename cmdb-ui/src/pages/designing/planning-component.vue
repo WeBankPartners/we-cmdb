@@ -309,11 +309,6 @@ export default {
       const height = 12
       let dots = []
       const children = idcData.children || []
-      // this.ResourceCollection = []
-      // children.forEach(_ => {
-      //   const node = this.dataSelector(_, this.graphConfig.nodePath)
-      //   Array.isArray(node) ? this.ResourceCollection.push(...node) : this.ResourceCollection.push(node)
-      // })
       let layers = new Map()
       children.forEach(zone => {
         if (layers.has(zone.data.network_zone_layer)) {
@@ -357,29 +352,6 @@ export default {
       return dots.join('')
     },
     genLink () {
-      // let dots = []
-      // let networkToNode = {}
-      // this.ResourceCollection.forEach(rc => {
-      //   const nodeGuid = this.dataSelector(rc, this.graphConfig.nodeKey)
-      //   if (Object.keys(networkToNode).includes(nodeGuid)) {
-      //     networkToNode[nodeGuid].push(rc.guid)
-      //   } else {
-      //     networkToNode[nodeGuid] = [rc.guid]
-      //   }
-      // })
-      // this.effectiveLink = []
-      // this.idcLink.forEach(_ => {
-      //   if (networkToNode[_.from] && networkToNode[_.to]) {
-      //     this.effectiveLink.push(_.linkInfo)
-      //     networkToNode[_.from].forEach(from => {
-      //       networkToNode[_.to].forEach(to => {
-      //         dots.push(
-      //           `g_${to} -> g_${from}[id=gl_${_.guid},tooltip="${_.label || ''}",taillabel="${_.label || ''}"];`
-      //         )
-      //       })
-      //     })
-      //   }
-      // })
       let dots = []
       this.idcLink.forEach(_ => {
         if (_.from in this.graphNodes && _.to in this.graphNodes) {
@@ -450,6 +422,9 @@ export default {
         d3.select(`#g_${zone.guid}`)
           .select('polygon')
           .attr('fill', '#000000')
+        d3.select(`#g_${zone.guid}`)
+          .select('title')
+          .text(zone.data.description)
         if (Array.isArray(zone.children)) {
           const childrenX = d3.select('#g_' + zone.guid)._groups[0][0].__data__.children
           const polygon = childrenX.filter(child => {
@@ -515,6 +490,7 @@ export default {
             _h = h
             ty = p1.y + tfsize * tlength + mgap + _h * 0.5
           }
+          g.append('title').text(node.children[i].data.description)
           g.append('rect')
             .attr('x', rx)
             .attr('y', _ry)
@@ -567,6 +543,7 @@ export default {
             .append('g')
             .attr('class', 'node')
             .attr('id', `g_${node.children[i].guid}`)
+          g.append('title').text(node.children[i].data.description)
           g.append('rect')
             .attr('x', rx)
             .attr('y', ry)
