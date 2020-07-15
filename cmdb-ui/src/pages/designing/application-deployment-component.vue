@@ -29,19 +29,6 @@
             </div>
           </Card>
         </Col>
-        <!-- <Col span="8" class="operation-zone">
-          <Card>
-            <Operation
-              class="container-height"
-              ref="transferData"
-              :hideNextOperations="true"
-              :ignoreOpera="ignoreOpera"
-              @operationReload="operationReload"
-              @markZone="markZone"
-              @markEdge="markEdge"
-            ></Operation>
-          </Card>
-        </Col> -->
       </Row>
     </Row>
   </div>
