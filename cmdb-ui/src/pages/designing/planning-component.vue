@@ -2,19 +2,25 @@
   <div>
     <Row class="resource-design-tab-row">
       <Row>
-        <Col span="16">
+        <Col span="24">
           <Card>
             <div class="graph-container-big" id="graph"></div>
-          </Card>
-        </Col>
-        <Col span="8" class="operation-zone">
-          <Card>
-            <Operation
-              ref="transferData"
-              @operationReload="operationReload"
-              @markZone="markZone"
-              @markEdge="markEdge"
-            ></Operation>
+
+            <div class="operation-area">
+              <Collapse>
+                <Panel name="1">
+                  {{ $t('operating_area') }}
+                  <div slot="content">
+                    <Operation
+                      ref="transferData"
+                      @operationReload="operationReload"
+                      @markZone="markZone"
+                      @markEdge="markEdge"
+                    ></Operation>
+                  </div>
+                </Panel>
+              </Collapse>
+            </div>
           </Card>
         </Col>
       </Row>
@@ -268,10 +274,9 @@ export default {
         .on('dblclick.zoom', null)
         .on('wheel.zoom', null)
         .on('mousewheel.zoom', null)
-      const width = ((window.innerWidth - 60) / 24) * 16 - 40
       let graphZoom = graph
         .graphviz()
-        .width(width)
+        .width(window.innerWidth - 60)
         .height(window.innerHeight - 255)
         .zoom(true)
         .fit(true)
@@ -304,11 +309,11 @@ export default {
       const height = 12
       let dots = []
       const children = idcData.children || []
-      this.ResourceCollection = []
-      children.forEach(_ => {
-        const node = this.dataSelector(_, this.graphConfig.nodePath)
-        Array.isArray(node) ? this.ResourceCollection.push(...node) : this.ResourceCollection.push(node)
-      })
+      // this.ResourceCollection = []
+      // children.forEach(_ => {
+      //   const node = this.dataSelector(_, this.graphConfig.nodePath)
+      //   Array.isArray(node) ? this.ResourceCollection.push(...node) : this.ResourceCollection.push(node)
+      // })
       let layers = new Map()
       children.forEach(zone => {
         if (layers.has(zone.data.network_zone_layer)) {
@@ -598,7 +603,6 @@ export default {
       const { statusCode, data } = await queryCiData(payload)
       if (statusCode === 'OK') {
         this.idcLink = await exprLineFinder(this.linkExpr, data.contents, this.initParams[IDC_PLANNING_LINK_ID])
-        console.log(this.idcLink)
         // this.idcLink = data.contents.map(_ => {
         //   return {
         //     guid: _.data.guid,
@@ -661,4 +665,11 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.operation-area {
+  position: absolute;
+  width: 450px;
+  top: 10px;
+  right: 0px;
+}
+</style>
