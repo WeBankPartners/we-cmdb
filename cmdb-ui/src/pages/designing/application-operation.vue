@@ -1,6 +1,6 @@
 <template>
   <div class="operation-Collapse">
-    <h5>{{ $t('current_node') }}：</h5>
+    <div class="parent-title">{{ $t('current_node') }}：</div>
     <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
       <Panel name="1">
         <Tooltip :delay="500" placement="top">
@@ -92,7 +92,7 @@
       </Panel>
     </Collapse>
     <template v-for="(newPanalKey, newPanalKeyIndex) in newPanalDataKeys">
-      <div :key="newPanalKeyIndex + 'a'" class="panal-title">{{ $t('subsidiary_node') }}{{ newPanalKey }}：</div>
+      <div class="subsidiary-title" :key="newPanalKeyIndex + 'a'">{{ $t('subsidiary_node') }}{{ newPanalKey }}：</div>
       <Collapse
         v-model="defaultPanal"
         accordion
@@ -558,7 +558,7 @@ export default {
             let tmp = []
             if (activePanalData[key + '_tmp']) {
               tmp = activePanalData[key + '_tmp'].map(_ => {
-                return _.guid || _.codeId
+                return _.data.guid || _.data.codeId
               })
             } else {
               tmp = activePanalData[key].map(_ => {
@@ -797,6 +797,14 @@ export default {
   border-color: #57a3f3;
   outline: 0;
   box-shadow: 0 0 0 2px rgba(45, 140, 240, 0.2);
+}
+.parent-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+.subsidiary-title {
+  font-size: 13px;
+  font-weight: 500;
 }
 .panal-title {
   font-size: 12px;
