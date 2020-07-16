@@ -444,7 +444,7 @@ export default {
         dots.push(
           `subgraph cluster_${idc.guid} {`,
           `style="filled";color="${colors[0]}";`,
-          `tooltip="${idc.data.description}";`,
+          `tooltip="${idc.data.description || idc.data.name}";`,
           `label="${idc.data.name}";`,
           this.genChildren(idc.children || [], 1),
           '}'
