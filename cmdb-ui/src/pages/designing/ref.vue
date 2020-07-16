@@ -4,14 +4,11 @@
       <Select
         v-model="panalData[formData.propertyName].guid"
         @on-open-change="openOptions"
+        @on-clear="clearSelect"
         :disabled="disabled"
         filterable
+        clearable
       >
-        <Option v-for="item in options" :value="item.value" :key="item.value">{{ item.label }}</Option>
-      </Select>
-    </div>
-    <div v-else>
-      <Select :disabled="disabled" filterable>
         <Option v-for="item in options" :value="item.value" :key="item.value">{{ item.label }}</Option>
       </Select>
     </div>
@@ -26,6 +23,13 @@ export default {
     }
   },
   props: ['formData', 'panalData', 'disabled'],
+  created () {
+    if (!this.panalData[this.formData.propertyName]) {
+      this.panalData[this.formData.propertyName] = {
+        guid: ''
+      }
+    }
+  },
   mounted () {
     this.openOptions(true)
   },
@@ -68,6 +72,10 @@ export default {
           }
         }
       }
+    },
+    clearSelect () {
+      this.panalData[this.formData.propertyName].guid = ''
+      console.log(this.panalData[this.formData.propertyName])
     }
   }
 }
