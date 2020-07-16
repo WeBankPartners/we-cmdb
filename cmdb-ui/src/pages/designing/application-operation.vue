@@ -229,7 +229,13 @@
       <Button @click="showAddNodeArea = true" size="small" long type="info">{{ $t('add_node') }}</Button>
     </div>
     <div v-if="showAddNodeArea" class="add-node-area">
-      <Select v-model="selectedNodeType" @on-change="getNewNodeAttr" @on-open-change="getNodeTypes">
+      <Select
+        v-model="selectedNodeType"
+        @on-change="getNewNodeAttr"
+        @on-open-change="getNodeTypes"
+        filterable
+        clearable
+      >
         <Option v-for="(item, index) in canCreateNodeTypes" :value="item.value" :key="item.value + index">{{
           item.label
         }}</Option>
@@ -487,10 +493,11 @@ export default {
             tmpPanalData[key] = tmp
           } else {
             // Object数据处理
-            tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid
+            tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid || ''
           }
         }
       }
+      tmpPanalData = this.clearInvalidParameter(tmpPanalData)
       let params = {
         id: this.selectedNodeType,
         createData: [tmpPanalData]
@@ -568,11 +575,11 @@ export default {
             tmpPanalData[key] = tmp
           } else {
             // Object数据处理
-            tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid
+            tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid || ''
           }
         }
       }
-      delete tmpPanalData.ciTypeId
+      tmpPanalData = this.clearInvalidParameter(tmpPanalData)
       let params = {
         id: ciTypeId,
         updateData: [tmpPanalData]
@@ -713,7 +720,7 @@ export default {
       await this.getAttributes(this.selectedNodeType, 'newNodeForm')
       this.newNodeForm.forEach(_ => {
         if (_.inputType === 'ref') {
-          this.newNodeFormData[_.propertyName] = { guid: '11' }
+          this.newNodeFormData[_.propertyName] = { guid: '' }
         } else if (_.inputType === 'multiRef') {
           this.newNodeFormData[_.propertyName] = []
         } else {
@@ -764,6 +771,16 @@ export default {
         return child.guid === guid
       })
       return index
+    },
+    clearInvalidParameter (params) {
+      let keys = []
+      for (let key in params) {
+        if (key.endsWith('_tmp') || ['meta', 'ciTypeId', 'tableName'].includes(key)) {
+          keys.push(key)
+          delete params[key]
+        }
+      }
+      return params
     }
   },
   filters: {
