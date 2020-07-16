@@ -295,6 +295,7 @@ export default {
         'Edge[fontsize=8,arrowhead="none"];',
         `subgraph cluster_${idcData.data.guid} {`,
         `style="filled";color="${colors[0]}";`,
+        `tooltip="${'(' + idcData.data.key_name + ')' + idcData.data.description}";`,
         `label="${idcData.data.name || idcData.data.description || idcData.data.code}";`,
         `size="${width},${height}";`,
         this.genChildren(idcData),
@@ -424,7 +425,7 @@ export default {
           .attr('fill', '#000000')
         d3.select(`#g_${zone.guid}`)
           .select('title')
-          .text(zone.data.description)
+          .text('(' + zone.data.key_name + ')' + zone.data.description)
         if (Array.isArray(zone.children)) {
           const childrenX = d3.select('#g_' + zone.guid)._groups[0][0].__data__.children
           const polygon = childrenX.filter(child => {
@@ -490,7 +491,7 @@ export default {
             _h = h
             ty = p1.y + tfsize * tlength + mgap + _h * 0.5
           }
-          g.append('title').text(node.children[i].data.description)
+          g.append('title').text('(' + node.children[i].data.key_name + ')' + node.children[i].data.description)
           g.append('rect')
             .attr('x', rx)
             .attr('y', _ry)
@@ -543,7 +544,7 @@ export default {
             .append('g')
             .attr('class', 'node')
             .attr('id', `g_${node.children[i].guid}`)
-          g.append('title').text(node.children[i].data.description)
+          g.append('title').text('(' + node.children[i].data.key_name + ')' + node.children[i].data.description)
           g.append('rect')
             .attr('x', rx)
             .attr('y', ry)

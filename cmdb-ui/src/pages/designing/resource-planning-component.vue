@@ -381,7 +381,7 @@ export default {
             .attr('fill', colors[1])
           d3.select(`#n_${zone.guid}`)
             .select('title')
-            .text(zone.data.description)
+            .text('(' + zone.data.key_name + ')' + zone.data.description)
           if (zone.children instanceof Array) {
             let points = d3
               .select(`#n_${zone.guid}`)
@@ -444,7 +444,7 @@ export default {
         dots.push(
           `subgraph cluster_${idc.guid} {`,
           `style="filled";color="${colors[0]}";`,
-          `tooltip="${idc.data.description || idc.data.name}";`,
+          `tooltip="${'(' + idc.data.key_name + ')' + idc.data.description}";`,
           `label="${idc.data.name}";`,
           this.genChildren(idc.children || [], 1),
           '}'
@@ -544,7 +544,7 @@ export default {
             _h = h
             ty = p1.y + tfsize * tlength + mgap + _h * 0.5
           }
-          g.append('title').text(node.children[i].data.description)
+          g.append('title').text('(' + node.children[i].data.key_name + ')' + node.children[i].data.description)
           g.append('rect')
             .attr('x', rx)
             .attr('y', _ry)
@@ -597,7 +597,7 @@ export default {
             .append('g')
             .attr('class', 'node')
             .attr('id', `n_${node.children[i].guid}`)
-          g.append('title').text(node.children[i].data.description)
+          g.append('title').text('(' + node.children[i].data.key_name + ')' + node.children[i].data.description)
           g.append('rect')
             .attr('x', rx)
             .attr('y', ry)
