@@ -18,6 +18,7 @@ import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.util.*;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -242,7 +243,10 @@ public class CiDataInterceptorService {
             }
             
             Object val = ciBeanMap.get(attr.getPropertyName());
-            if (val == null || ((val instanceof String) && "".equals(val))) {
+            if (val == null
+                    || ((val instanceof String) && Strings.isEmpty((String)val))
+                    || ((val instanceof  Set) && ((Set)val).size()==0)
+                    || ((val instanceof  List) && ((List)val).size()==0)) {
                 Integer ciTypeId = entityHolder.getEntityMeta().getCiTypeId();
                 throw new InvalidArgumentException(String.format("Field [%s] is required for creation of CiType [%s(%d)].", attr.getPropertyName(), getCiTypeName(ciTypeId), ciTypeId));
             }
