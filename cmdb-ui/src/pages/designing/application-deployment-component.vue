@@ -606,7 +606,7 @@ export default {
         `size="${width},${height}";`,
         `subgraph cluster_${data[0].guid}{`,
         `style="filled";color="${colors[0]}";`,
-        `tooltip="${data[0].data.code}";`,
+        `tooltip="${data[0].data.description || data[0].data.key_name}";`,
         `label="${data[0].data.code}";`,
         this.genADChildrenDot(data[0].children || [], 1),
         '}',
@@ -632,7 +632,7 @@ export default {
               `color="${color || colors[level]}";`,
               `style="filled";fillcolor="${colors[level]}";`,
               `label=${_.label};`,
-              `tooltip="${_.tooltip}";`,
+              `tooltip="${_.data.description || _.data.key_name}";`,
               this.genADChildrenDot(_.children, level + 1),
               '}'
             )
@@ -642,6 +642,7 @@ export default {
               `"n_${_.guid}"`,
               `[id="n_${_.guid}",shape="none",`,
               `fillcolor="${color || colors[level]}";`,
+              `tooltip="${_.data.description || _.data.key_name}";`,
               `label=${_.label}`,
               '];'
             )
@@ -665,10 +666,9 @@ export default {
           `n_${node.from}->n_${node.to}`,
           `[id="gl_${node.id}",`,
           `color="${color}"`,
-          `tooltip="${node.label || ''}",`,
+          `tooltip="${node.data.description || node.data.key_name}",`,
           `taillabel="${node.label || ''}"];`
         )
-
         const formatLabel = (keyName, guid) => {
           if (this.instancesInUnit[guid]) {
             let label = [
