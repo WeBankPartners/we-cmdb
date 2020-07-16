@@ -606,7 +606,7 @@ export default {
         `size="${width},${height}";`,
         `subgraph cluster_${data[0].guid}{`,
         `style="filled";color="${colors[0]}";`,
-        `tooltip="${data[0].data.description || data[0].data.key_name}";`,
+        `tooltip="${'(' + data[0].data.key_name + ')' + data[0].data.description}";`,
         `label="${data[0].data.code}";`,
         this.genADChildrenDot(data[0].children || [], 1),
         '}',
@@ -632,7 +632,7 @@ export default {
               `color="${color || colors[level]}";`,
               `style="filled";fillcolor="${colors[level]}";`,
               `label=${_.label};`,
-              `tooltip="${_.data.description || _.data.key_name}";`,
+              `tooltip="${'(' + _.data.key_name + ')' + _.data.description}";`,
               this.genADChildrenDot(_.children, level + 1),
               '}'
             )
@@ -642,7 +642,7 @@ export default {
               `"n_${_.guid}"`,
               `[id="n_${_.guid}",shape="none",`,
               `fillcolor="${color || colors[level]}";`,
-              `tooltip="${_.data.description || _.data.key_name}";`,
+              `tooltip="${'(' + _.data.key_name + ')' + _.data.description}";`,
               `label=${_.label}`,
               '];'
             )
@@ -666,7 +666,7 @@ export default {
           `n_${node.from}->n_${node.to}`,
           `[id="gl_${node.id}",`,
           `color="${color}"`,
-          `tooltip="${node.data.description || node.data.key_name}",`,
+          `tooltip="${'(' + node.data.key_name + ')' + node.data.description}",`,
           `taillabel="${node.label || ''}"];`
         )
         const formatLabel = (keyName, guid) => {
