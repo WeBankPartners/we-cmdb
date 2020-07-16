@@ -554,7 +554,7 @@ export default {
         `size="${width},${height}";`,
         `subgraph cluster_${sysData[0].guid} {`,
         `style="filled";color="${colors[0]}";`,
-        `tooltip="${sysData[0].data.description || sysData[0].data.name}";`,
+        `tooltip="${'(' + sysData[0].data.key_name + ')' + sysData[0].data.description}";`,
         `label="${sysData[0].data.name}";`,
         this.genChildrenDot(id, sysData[0].children || [], 1),
         '}',
@@ -584,7 +584,7 @@ export default {
               `color="${color || colors[level]}";`,
               `style="filled";fillcolor="${colors[level]}";`,
               `label="${_.data.code || _.data.key_name}";`,
-              `tooltip="${_.data.description || _.data.name}"`,
+              `tooltip="${'(' + _.data.key_name + ')' + _.data.description}"`,
               this.genChildrenDot(id, _.children, level + 1),
               '}'
             ])
@@ -596,7 +596,7 @@ export default {
               `label="${_.data.code || _.data.key_name}";`,
               `color="${color || colors[level]}";`,
               `fillcolor="${colors[level]}";`,
-              `tooltip="${_.data.description || _.data.name}"];`
+              `tooltip="${'(' + _.data.key_name + ')' + _.data.description}"];`
             ])
           }
         })
