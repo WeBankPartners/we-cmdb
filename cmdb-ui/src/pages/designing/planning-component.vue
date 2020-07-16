@@ -135,7 +135,6 @@ export default {
         .attr('fill', '#ff9900')
     },
     operationReload (operateNodeData, operateLineData) {
-      // this.onIdcDataChange(this.guid)
       if (!operateNodeData) {
         this.loadMap(this.graphData, operateLineData)
         return
@@ -353,6 +352,7 @@ export default {
     },
     genLink () {
       let dots = []
+      this.effectiveLink = []
       this.idcLink.forEach(_ => {
         if (_.from in this.graphNodes && _.to in this.graphNodes) {
           this.effectiveLink.push(_.linkInfo)
