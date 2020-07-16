@@ -449,7 +449,18 @@ export default {
               : JSON.parse(JSON.stringify(newOuterActions)),
           innerActions:
             this.$route.name === 'ciDataEnquiry'
-              ? null
+              ? [
+                {
+                  label: this.$t('compare'),
+                  props: {
+                    type: 'info',
+                    size: 'small'
+                  },
+                  actionType: 'compare',
+                  isDisabled: row => !row.weTableForm.p_guid,
+                  isLoading: row => !!row.weTableForm.compareLoading
+                }
+              ]
               : deepClone(
                 [].concat(await getExtraInnerActions()).concat([
                   {
