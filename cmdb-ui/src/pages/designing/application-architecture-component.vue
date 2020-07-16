@@ -554,7 +554,7 @@ export default {
         `size="${width},${height}";`,
         `subgraph cluster_${sysData[0].guid} {`,
         `style="filled";color="${colors[0]}";`,
-        `tooltip="${sysData[0].data.description}";`,
+        `tooltip="${sysData[0].data.description || sysData[0].data.name}";`,
         `label="${sysData[0].data.name}";`,
         this.genChildrenDot(id, sysData[0].children || [], 1),
         '}',
