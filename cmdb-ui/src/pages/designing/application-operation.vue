@@ -225,7 +225,7 @@
         </Panel>
       </Collapse>
     </template>
-    <div style="margin: 12px 0;" v-if="hideNextOperations">
+    <div class="add-btn" v-if="hideNextOperations">
       <Button @click="showAddNodeArea = true" size="small" long type="info">{{ $t('add_node') }}</Button>
     </div>
     <div v-if="showAddNodeArea" class="add-node-area">
@@ -893,5 +893,10 @@ export default {
 }
 .require-tag {
   color: red;
+}
+.add-btn {
+  margin: 0 auto;
+  margin-top: 16px;
+  width: 97%;
 }
 </style>
