@@ -667,6 +667,7 @@ export default {
           `[id="gl_${node.id}",`,
           `color="${color}"`,
           `tooltip="${'(' + node.data.key_name + ')' + node.data.description}",`,
+          `tailtooltip="${'(' + node.data.key_name + ')' + node.data.description}",`,
           `taillabel="${node.label || ''}"];`
         )
         const formatLabel = (keyName, guid) => {

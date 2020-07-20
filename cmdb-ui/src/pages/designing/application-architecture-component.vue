@@ -623,9 +623,10 @@ export default {
         if (!this.graphNodes[id][node.to.guid]) {
           otherNodes.push(node.to)
         }
-        return `n_${node.from.guid} -> n_${node.to.guid}[id="gl_${node.id}",color="${color}",tailtooltip="${
-          node.tooltip
-        }",taillabel="${node.label || ''}"];`
+        return `n_${node.from.guid} -> n_${node.to.guid}[id="gl_${node.id}",color="${color}",
+        tooltip="${node.from.key_name + '-->' + node.to.key_name}",tailtooltip="${node.from.key_name +
+          '-->' +
+          node.to.key_name}",taillabel="${node.label || ''}"];`
       })
       let nodes = []
       otherNodes.forEach(_ => {

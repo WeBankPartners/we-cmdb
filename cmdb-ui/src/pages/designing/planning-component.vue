@@ -358,7 +358,8 @@ export default {
         if (_.from in this.graphNodes && _.to in this.graphNodes) {
           this.effectiveLink.push(_.linkInfo)
           dots.push(
-            `g_${_.from} -> g_${_.to}[id=gl_${_.guid},tooltip="${_.label || ''}",taillabel="${_.label || ''}"];`
+            `g_${_.from} -> g_${_.to}[id=gl_${_.guid},tooltip="${_.linkInfo.key_name || ''}",tailtooltip="${_.linkInfo
+              .key_name || ''}",taillabel="${_.label || ''}"];`
           )
         }
       })
