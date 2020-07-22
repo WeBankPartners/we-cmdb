@@ -1,15 +1,14 @@
-SET FOREIGN_KEY_CHECKS=0;
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET NAMES utf8 */;
 /*!50503 SET NAMES utf8mb4 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
--- Dumping data for table wecmdb_embedded.adm_attr_group: ~0 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_attr_group: ~0 rows (approximately)
 /*!40000 ALTER TABLE `adm_attr_group` DISABLE KEYS */;
 /*!40000 ALTER TABLE `adm_attr_group` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_basekey_cat: ~21 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_basekey_cat: ~26 rows (approximately)
 /*!40000 ALTER TABLE `adm_basekey_cat` DISABLE KEYS */;
 INSERT INTO `adm_basekey_cat` (`id_adm_basekey_cat`, `cat_name`, `description`, `id_adm_role`, `id_adm_basekey_cat_type`, `group_type_id`) VALUES
 	(1, 'ci_layer', '层级', NULL, 1, NULL),
@@ -32,10 +31,15 @@ INSERT INTO `adm_basekey_cat` (`id_adm_basekey_cat`, `cat_name`, `description`, 
 	(18, 'tab_of_deploy_design', '部署设计CI标签', NULL, 1, NULL),
 	(19, 'tab_query_of_deploy_design', '部署设计标签查询', NULL, 1, 18),
 	(20, 'view_config_params', '视图初始化参数', NULL, 1, NULL),
-	(21, 'view_ci_type_id', '视图相关CI的ID', NULL, 1, NULL);
+	(21, 'view_ci_type_id', '视图相关CI的ID', NULL, 1, NULL),
+	(22, 'graph_view_root_ci_type', '视图根节点', NULL, 1, NULL),
+	(23, 'graph_view_element_ci_type', '视图中图形元素', NULL, 1, 22),
+	(24, 'graph_view_edge_node_level1', '视图中边的关联层级一', NULL, 1, 23),
+	(25, 'graph_view_edge_node_level2', '视图中边的关联层级二', NULL, 1, 23),
+	(26, 'graph_view_edge_node_level3', '视图中边的关联层级三', NULL, 1, 23);
 /*!40000 ALTER TABLE `adm_basekey_cat` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_basekey_cat_type: ~57 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_basekey_cat_type: ~59 rows (approximately)
 /*!40000 ALTER TABLE `adm_basekey_cat_type` DISABLE KEYS */;
 INSERT INTO `adm_basekey_cat_type` (`id_adm_basekey_cat_type`, `name`, `description`, `ci_type_id`, `type`) VALUES
 	(1, 'sys', NULL, NULL, 1),
@@ -94,10 +98,12 @@ INSERT INTO `adm_basekey_cat_type` (`id_adm_basekey_cat_type`, `name`, `descript
 	(56, 'network_link_type', '网络连接类型', 54, 3),
 	(59, 'storage_type', '存储类型', 62, 3),
 	(60, 'charge_type', '计费模式', 63, 3),
-	(61, '静态差异化值', NULL, 64, 3);
+	(61, '静态差异化值', NULL, 64, 3),
+	(62, '对象存储资源实例', NULL, 65, 3),
+	(63, '对象存储实例', NULL, 66, 3);
 /*!40000 ALTER TABLE `adm_basekey_cat_type` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_basekey_code: ~169 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_basekey_code: ~199 rows (approximately)
 /*!40000 ALTER TABLE `adm_basekey_code` DISABLE KEYS */;
 INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, `value`, `group_code_id`, `code_description`, `seq_no`, `status`) VALUES
 	(1, 1, 'app_architecture_layer', '应用架构层', NULL, '应用架构层', 1, 'active'),
@@ -268,10 +274,40 @@ INSERT INTO `adm_basekey_code` (`id_adm_basekey`, `id_adm_basekey_cat`, `code`, 
 	(181, 20, 'resourcePlaningRouterCode', '30', NULL, NULL, 31, 'active'),
 	(182, 20, 'idcPlaningRouterDesignCode', '20', NULL, NULL, 32, 'active'),
 	(183, 20, 'defaultSecurityPolicyCode', '25', NULL, NULL, 33, 'active'),
-	(184, 20, 'defaultSecurityPolicyDesignCode', '15', NULL, NULL, 34, 'active');
+	(184, 20, 'defaultSecurityPolicyDesignCode', '15', NULL, NULL, 34, 'active'),
+	(185, 14, '65', '对象存储资源实例', NULL, NULL, 14, 'active'),
+	(186, 15, 'cos_resource_instance', '[{"ciTypeId":65},{"ciTypeId":29,"parentRs":{"attrId":1174,"isReferedFromParent":1}},{"ciTypeId":24,"parentRs":{"attrId":1136,"isReferedFromParent":1}},{"ciTypeId":22,"parentRs":{"attrId":383,"isReferedFromParent":1}}]', 185, NULL, 14, 'active'),
+	(187, 18, '66', '对象存储实例', NULL, NULL, 8, 'active'),
+	(188, 19, 'cos_instance', '[{"ciTypeId":66},{"ciTypeId":48,"parentRs":{"attrId":1183,"isReferedFromParent":1}},{"ciTypeId":47,"parentRs":{"attrId":886,"isReferedFromParent":1}},{"ciTypeId":46,"parentRs":{"attrId":869,"isReferedFromParent":1}}]', 187, NULL, 16, 'active'),
+	(189, 22, 'data_center_design', '机房设计', NULL, '机房设计', NULL, 'active'),
+	(190, 23, 'network_zone_design', '网络区域设计', 189, 'node', NULL, 'active'),
+	(191, 23, 'network_link_design', '网络连接设计', 189, 'edge', NULL, 'active'),
+	(192, 23, 'resource_set_design', '资源集合设计', 189, 'node', NULL, 'active'),
+	(193, 24, 'network_segment_design@network_segment_design_1', 'network_link_design@network_segment_design_1', 191, 'start', NULL, 'active'),
+	(194, 24, 'network_segment_design@network_segment_design_2', 'network_link_design@network_segment_design_2', 191, 'end', NULL, 'active'),
+	(195, 25, 'network_zone_design@network_segment_design', 'network_zone_design@network_segment_design', 193, NULL, NULL, 'active'),
+	(196, 25, 'network_zone_design@network_segment_design', 'network_zone_design@network_segment_design', 194, NULL, NULL, 'active'),
+	(198, 22, 'data_center', '机房', NULL, NULL, NULL, 'active'),
+	(199, 23, 'network_zone', '网络区域', 198, 'node', NULL, 'active'),
+	(200, 23, 'network_link', '网络连接', 198, 'edge', NULL, 'active'),
+	(201, 23, 'resource_set', '资源集合', 198, 'node', NULL, 'active'),
+	(202, 23, 'host_resource_instance', '主机资源实例', 198, 'node', NULL, 'active'),
+	(203, 23, 'rdb_resource_instance', '数据库资源实例', 198, 'node', NULL, 'active'),
+	(204, 23, 'cache_resource_instance', '缓存资源实例', 198, 'node', NULL, 'active'),
+	(205, 23, 'lb_resource_instance', '负载均衡资源实例', 198, 'node', NULL, 'active'),
+	(206, 23, 'cos_resource_instance', '资源集合', 198, 'node', NULL, 'active'),
+	(207, 22, 'app_system_design', '应用系统设计', NULL, NULL, NULL, 'active'),
+	(208, 23, 'subsys_design', '子系统设计', 207, 'node', NULL, 'active'),
+	(209, 23, 'unit_design', '单元设计', 207, 'node', NULL, 'active'),
+	(210, 23, 'invoke_design', '调用设计', 207, 'edge', NULL, 'active'),
+	(211, 23, 'service_design', '服务设计', 207, 'node', NULL, 'active'),
+	(214, 22, 'app_system', '应用系统', NULL, NULL, NULL, 'active'),
+	(215, 23, 'subsys', '子系统', 214, 'node', NULL, 'active'),
+	(216, 23, 'unit', '单元', 214, 'node', NULL, 'active'),
+	(217, 23, 'invoke', '调用', 214, 'edge', NULL, 'active');
 /*!40000 ALTER TABLE `adm_basekey_code` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_ci_type: ~55 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_ci_type: ~57 rows (approximately)
 /*!40000 ALTER TABLE `adm_ci_type` DISABLE KEYS */;
 INSERT INTO `adm_ci_type` (`id_adm_ci_type`, `name`, `image_file_id`, `description`, `id_adm_tenement`, `table_name`, `status`, `catalog_id`, `ci_global_unique_id`, `seq_no`, `layer_id`, `zoom_level_id`, `ci_state_type`) VALUES
 	(1, '管理角色', 1, '管理角色', NULL, 'manage_role', 'created', 7, NULL, 1, 1, 15, NULL),
@@ -328,37 +364,40 @@ INSERT INTO `adm_ci_type` (`id_adm_ci_type`, `name`, `image_file_id`, `descripti
 	(54, '网络连接类型', 1, '网络连接类型', NULL, 'network_link_type', 'created', NULL, NULL, 1, 5, 15, NULL),
 	(62, '存储类型', 13, '存储类型', NULL, 'storage_type', 'created', NULL, NULL, 2, 5, 15, NULL),
 	(63, '计费模式', 19, '计费模式', NULL, 'charge_type', 'created', NULL, NULL, 3, 5, 15, NULL),
-	(64, '静态差异化值', 87, '静态差异化值', NULL, 'static_diff_conf_value', 'created', NULL, NULL, 4, 2, 13, NULL);
+	(64, '静态差异化值', 87, '静态差异化值', NULL, 'static_diff_conf_value', 'created', NULL, NULL, 4, 2, 13, NULL),
+	(65, '对象存储资源实例', 88, '对象存储资源实例', NULL, 'cos_resource_instance', 'created', NULL, NULL, 5, 5, 13, NULL),
+	(66, '对象存储实例', 89, '对象存储实例', NULL, 'cos_instance', 'created', NULL, NULL, 6, 3, 13, NULL);
 /*!40000 ALTER TABLE `adm_ci_type` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_ci_type_attr_base: ~12 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_ci_type_attr_base: ~12 rows (approximately)
 /*!40000 ALTER TABLE `adm_ci_type_attr_base` DISABLE KEYS */;
-INSERT INTO `adm_ci_type_attr_base` (`id_adm_ci_type_attr`, `id_adm_ci_type`, `name`, `description`, `input_type`, `property_name`, `property_type`, `length`, `reference_id`, `reference_name`, `reference_type`, `filter_rule`, `search_seq_no`, `display_type`, `display_seq_no`, `edit_is_null`, `edit_is_only`, `edit_is_hiden`, `edit_is_editable`, `is_defunct`, `special_logic`, `status`, `is_system`, `is_access_controlled`, `is_auto`, `auto_fill_rule`, `regular_expression_rule`, `is_refreshable`) VALUES
-	(1, 1, '全局唯一ID', '全局唯一ID', 'text', 'guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 0),
-	(2, 1, '前全局唯一ID', '前一版本数据的guid', 'text', 'p_guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 1, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 1),
-	(3, 1, '根全局唯一ID', '原始数据guid', 'text', 'r_guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 0),
-	(4, 1, '更新用户', '更新用户', 'text', 'updated_by', 'varchar', 50, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 1),
-	(5, 1, '更新日期', '更新日期', 'date', 'updated_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 1),
-	(6, 1, '创建用户', '创建用户', 'text', 'created_by', 'varchar', 50, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 0),
-	(7, 1, '创建日期', '创建日期', 'date', 'created_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 0),
-	(8, 1, '状态', '状态', 'select', 'state', 'int', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 0),
-	(9, 1, '唯一名称', '唯一名称', 'text', 'key_name', 'varchar', 1000, NULL, NULL, NULL, NULL, 1, 1, 1, 0, 1, 0, 0, 0, NULL, 'notCreated', 1, 0, 1, NULL, NULL, 0),
-	(10, 1, '状态编码', '状态编码', 'text', 'state_code', 'varchar', 50, NULL, NULL, NULL, NULL, 2, 1, 2, 0, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 1, NULL, NULL, 0),
-	(11, 1, '确认日期', '确认日期', 'text', 'fixed_date', 'varchar', 19, NULL, NULL, NULL, NULL, 3, 1, 3, 1, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 0),
-	(12, 1, '编码', '编码', 'text', 'code', 'varchar', 1000, NULL, NULL, NULL, NULL, 4, 1, 4, 0, 0, 0, 1, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 0);
+INSERT INTO `adm_ci_type_attr_base` (`id_adm_ci_type_attr`, `id_adm_ci_type`, `name`, `description`, `input_type`, `property_name`, `property_type`, `length`, `reference_id`, `reference_name`, `reference_type`, `filter_rule`, `search_seq_no`, `display_type`, `display_seq_no`, `edit_is_null`, `edit_is_only`, `edit_is_hiden`, `edit_is_editable`, `is_defunct`, `special_logic`, `status`, `is_system`, `is_access_controlled`, `is_auto`, `auto_fill_rule`, `regular_expression_rule`, `is_delete_validate`, `is_refreshable`) VALUES
+	(1, 1, '全局唯一ID', '全局唯一ID', 'text', 'guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 1, 0),
+	(2, 1, '前全局唯一ID', '前一版本数据的guid', 'text', 'p_guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 1, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 1, 1),
+	(3, 1, '根全局唯一ID', '原始数据guid', 'text', 'r_guid', 'varchar', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 1, 0),
+	(4, 1, '更新用户', '更新用户', 'text', 'updated_by', 'varchar', 50, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 1, 1),
+	(5, 1, '更新日期', '更新日期', 'date', 'updated_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 1, 1),
+	(6, 1, '创建用户', '创建用户', 'text', 'created_by', 'varchar', 50, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 1, 0),
+	(7, 1, '创建日期', '创建日期', 'date', 'created_date', 'datetime', 1, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 1, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 1, 0),
+	(8, 1, '状态', '状态', 'select', 'state', 'int', 15, NULL, NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 1, 0),
+	(9, 1, '唯一名称', '唯一名称', 'text', 'key_name', 'varchar', 1000, NULL, NULL, NULL, NULL, 1, 1, 1, 0, 1, 0, 0, 0, NULL, 'notCreated', 1, 0, 1, NULL, NULL, 1, 0),
+	(10, 1, '状态编码', '状态编码', 'text', 'state_code', 'varchar', 50, NULL, NULL, NULL, NULL, 2, 1, 2, 0, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 1, NULL, NULL, 1, 0),
+	(11, 1, '确认日期', '确认日期', 'text', 'fixed_date', 'varchar', 19, NULL, NULL, NULL, NULL, 3, 1, 3, 1, 0, 0, 0, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 1, 0),
+	(12, 1, '编码', '编码', 'text', 'code', 'varchar', 1000, NULL, NULL, NULL, NULL, 4, 1, 4, 0, 0, 0, 1, 0, NULL, 'notCreated', 1, 0, 0, NULL, NULL, 1, 0);
 /*!40000 ALTER TABLE `adm_ci_type_attr_base` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_ci_type_attr_group: ~0 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_ci_type_attr_group: ~0 rows (approximately)
 /*!40000 ALTER TABLE `adm_ci_type_attr_group` DISABLE KEYS */;
 /*!40000 ALTER TABLE `adm_ci_type_attr_group` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_integrate_template: ~1 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_integrate_template: ~2 rows (approximately)
 /*!40000 ALTER TABLE `adm_integrate_template` DISABLE KEYS */;
 INSERT INTO `adm_integrate_template` (`id_adm_integrate_template`, `ci_type_id`, `name`, `des`) VALUES
-	(8, 46, '应用系统-子系统-单元-实例-资源实例', '应用系统-子系统-单元-实例-资源实例');
+	(8, 46, '应用系统-子系统-单元-实例-资源实例', '应用系统-子系统-单元-实例-资源实例'),
+	(9, 1, '管理角色-应用实例', '管理角色-应用实例');
 /*!40000 ALTER TABLE `adm_integrate_template` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_integrate_template_alias: ~11 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_integrate_template_alias: ~14 rows (approximately)
 /*!40000 ALTER TABLE `adm_integrate_template_alias` DISABLE KEYS */;
 INSERT INTO `adm_integrate_template_alias` (`id_alias`, `id_adm_ci_type`, `id_adm_integrate_template`, `alias`) VALUES
 	(28, 46, 8, '应用系统'),
@@ -371,10 +410,13 @@ INSERT INTO `adm_integrate_template_alias` (`id_alias`, `id_adm_ci_type`, `id_ad
 	(35, 52, 8, '4-3-缓存实例-单元'),
 	(36, 34, 8, '5-3-缓存资源实例-使用'),
 	(37, 53, 8, '4-4-负载均衡实例-单元'),
-	(38, 35, 8, '5-4-负载均衡资源实例-使用');
+	(38, 35, 8, '5-4-负载均衡资源实例-使用'),
+	(39, 1, 9, '管理角色'),
+	(40, 48, 9, '2-1-单元-管理角色'),
+	(41, 50, 9, '3-1-应用实例-单元');
 /*!40000 ALTER TABLE `adm_integrate_template_alias` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_integrate_template_alias_attr: ~15 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_integrate_template_alias_attr: ~18 rows (approximately)
 /*!40000 ALTER TABLE `adm_integrate_template_alias_attr` DISABLE KEYS */;
 INSERT INTO `adm_integrate_template_alias_attr` (`id_attr`, `id_alias`, `id_ci_type_attr`, `is_condition`, `is_displayed`, `mapping_name`, `filter`, `key_name`, `seq_no`, `cn_alias`, `sys_attr`) VALUES
 	(35, 28, 848, '1', '1', '唯一名称', NULL, 'appSystem$keyName', 1, NULL, NULL),
@@ -391,10 +433,13 @@ INSERT INTO `adm_integrate_template_alias_attr` (`id_attr`, `id_alias`, `id_ci_t
 	(46, 36, 616, '1', '1', 'IP地址', NULL, 'appSystem-subsys-unit-cacheInstance-cacheResourceInstance$ipAddress', 1, NULL, NULL),
 	(47, 37, 999, '1', '1', '唯一名称', NULL, 'appSystem-subsys-unit-lbInstance$keyName', 1, NULL, NULL),
 	(48, 38, 639, '1', '1', '唯一名称', NULL, 'appSystem-subsys-unit-lbInstance-lbResourceInstance$keyName', 1, NULL, NULL),
-	(49, 38, 649, '1', '1', 'IP地址', NULL, 'appSystem-subsys-unit-lbInstance-lbResourceInstance$ipAddress', 1, NULL, NULL);
+	(49, 38, 649, '1', '1', 'IP地址', NULL, 'appSystem-subsys-unit-lbInstance-lbResourceInstance$ipAddress', 1, NULL, NULL),
+	(50, 39, 8, '1', '1', '状态', NULL, 'manageRole$state', 1, NULL, NULL),
+	(51, 40, 885, '1', '1', '编码', NULL, 'manageRole-unit$code', 1, NULL, NULL),
+	(52, 41, 925, '1', '1', '编码', NULL, 'manageRole-unit-appInstance$code', 1, NULL, NULL);
 /*!40000 ALTER TABLE `adm_integrate_template_alias_attr` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_integrate_template_relation: ~10 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_integrate_template_relation: ~12 rows (approximately)
 /*!40000 ALTER TABLE `adm_integrate_template_relation` DISABLE KEYS */;
 INSERT INTO `adm_integrate_template_relation` (`id_relation`, `child_alias_id`, `child_ref_attr_id`, `parent_alias_id`, `is_refered_from_parent`) VALUES
 	(22, 29, 869, 28, 0),
@@ -406,14 +451,16 @@ INSERT INTO `adm_integrate_template_relation` (`id_relation`, `child_alias_id`, 
 	(28, 32, 927, 31, 1),
 	(29, 34, 957, 33, 1),
 	(30, 36, 985, 35, 1),
-	(31, 38, 1004, 37, 1);
+	(31, 38, 1004, 37, 1),
+	(32, 40, 893, 39, 0),
+	(33, 41, 926, 40, 0);
 /*!40000 ALTER TABLE `adm_integrate_template_relation` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_log: ~0 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_log: ~0 rows (approximately)
 /*!40000 ALTER TABLE `adm_log` DISABLE KEYS */;
 /*!40000 ALTER TABLE `adm_log` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_menu: ~19 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_menu: ~19 rows (approximately)
 /*!40000 ALTER TABLE `adm_menu` DISABLE KEYS */;
 INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `other_name`, `url`, `seq_no`, `remark`, `parent_id_adm_menu`, `class_path`, `is_active`) VALUES
 	(1, 'DATA_QUERY', '数据查询', NULL, 1, NULL, NULL, NULL, 0),
@@ -437,14 +484,14 @@ INSERT INTO `adm_menu` (`id_adm_menu`, `name`, `other_name`, `url`, `seq_no`, `r
 	(24, 'ADMIN_USER_PASSWORD_MANAGEMENT', '用户密码管理', NULL, 24, NULL, 5, NULL, 0);
 /*!40000 ALTER TABLE `adm_menu` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_role: ~2 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_role: ~2 rows (approximately)
 /*!40000 ALTER TABLE `adm_role` DISABLE KEYS */;
 INSERT INTO `adm_role` (`id_adm_role`, `role_name`, `description`, `id_adm_tenement`, `parent_id_adm_role`, `role_type`, `is_system`) VALUES
 	(1, 'SUPER_ADMIN', '超级管理员', NULL, NULL, 'ADMIN', 1),
-	(13, 'SUB_SYSTEM', NULL, NULL, NULL, NULL, NULL);
+	(13, 'SUB_SYSTEM', '子系统', NULL, NULL, 'ADMIN', 1);
 /*!40000 ALTER TABLE `adm_role` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_role_ci_type: ~110 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_role_ci_type: ~114 rows (approximately)
 /*!40000 ALTER TABLE `adm_role_ci_type` DISABLE KEYS */;
 INSERT INTO `adm_role_ci_type` (`id_adm_role_ci_type`, `id_adm_role`, `id_adm_ci_type`, `ci_type_name`, `creation_permission`, `removal_permission`, `modification_permission`, `enquiry_permission`, `execution_permission`, `grant_permission`) VALUES
 	(1, 1, 1, '管理角色', 'Y', 'Y', 'Y', 'Y', 'Y', 'N'),
@@ -556,32 +603,36 @@ INSERT INTO `adm_role_ci_type` (`id_adm_role_ci_type`, `id_adm_role`, `id_adm_ci
 	(635, 13, 54, '网络连接类型', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'),
 	(636, 13, 62, '存储类型', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'),
 	(637, 13, 63, '计费模式', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'),
-	(638, 13, 64, '静态差异化值', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y');
+	(638, 13, 64, '静态差异化值', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'),
+	(639, 1, 65, '对象存储资源实例', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'),
+	(640, 1, 66, '对象存储实例', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'),
+	(641, 13, 65, '对象存储资源实例', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'),
+	(642, 13, 66, '对象存储实例', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y');
 /*!40000 ALTER TABLE `adm_role_ci_type` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_role_ci_type_ctrl_attr: ~1 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_role_ci_type_ctrl_attr: ~0 rows (approximately)
 /*!40000 ALTER TABLE `adm_role_ci_type_ctrl_attr` DISABLE KEYS */;
 INSERT INTO `adm_role_ci_type_ctrl_attr` (`id_adm_role_ci_type_ctrl_attr`, `id_adm_role_ci_type`, `creation_permission`, `removal_permission`, `modification_permission`, `enquiry_permission`, `execution_permission`, `grant_permission`) VALUES
 	(2, 38, 'Y', 'Y', 'Y', 'Y', 'Y', 'N');
 /*!40000 ALTER TABLE `adm_role_ci_type_ctrl_attr` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_role_ci_type_ctrl_attr_condition: ~1 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_role_ci_type_ctrl_attr_condition: ~0 rows (approximately)
 /*!40000 ALTER TABLE `adm_role_ci_type_ctrl_attr_condition` DISABLE KEYS */;
 INSERT INTO `adm_role_ci_type_ctrl_attr_condition` (`id_adm_role_ci_type_ctrl_attr_condition`, `id_adm_role_ci_type_ctrl_attr`, `id_adm_ci_type_attr`, `ci_type_attr_name`, `condition_value`, `condition_value_type`) VALUES
 	(2, 2, 709, '应用系统设计', NULL, 'Expression');
 /*!40000 ALTER TABLE `adm_role_ci_type_ctrl_attr_condition` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_role_ci_type_ctrl_attr_expression: ~1 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_role_ci_type_ctrl_attr_expression: ~0 rows (approximately)
 /*!40000 ALTER TABLE `adm_role_ci_type_ctrl_attr_expression` DISABLE KEYS */;
 INSERT INTO `adm_role_ci_type_ctrl_attr_expression` (`id_adm_role_ci_type_ctrl_attr_expression`, `id_adm_role_ci_type_ctrl_attr_condition`, `expression`) VALUES
 	(1, 2, 'app_system_design:[guid].application_domain>application_domain[{code eq \'ADc\'}]');
 /*!40000 ALTER TABLE `adm_role_ci_type_ctrl_attr_expression` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_role_ci_type_ctrl_attr_select: ~0 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_role_ci_type_ctrl_attr_select: ~0 rows (approximately)
 /*!40000 ALTER TABLE `adm_role_ci_type_ctrl_attr_select` DISABLE KEYS */;
 /*!40000 ALTER TABLE `adm_role_ci_type_ctrl_attr_select` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_role_menu: ~37 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_role_menu: ~37 rows (approximately)
 /*!40000 ALTER TABLE `adm_role_menu` DISABLE KEYS */;
 INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`, `is_system`) VALUES
 	(1, 1, 1, 0),
@@ -623,13 +674,13 @@ INSERT INTO `adm_role_menu` (`id_adm_role_menu`, `id_adm_role`, `id_adm_menu`, `
 	(63, 6, 23, 0);
 /*!40000 ALTER TABLE `adm_role_menu` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_role_user: ~1 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_role_user: ~0 rows (approximately)
 /*!40000 ALTER TABLE `adm_role_user` DISABLE KEYS */;
 INSERT INTO `adm_role_user` (`id_adm_role_user`, `id_adm_role`, `id_adm_user`, `is_system`) VALUES
 	(1, 1, 1, 1);
 /*!40000 ALTER TABLE `adm_role_user` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_sequence: ~55 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_sequence: ~55 rows (approximately)
 /*!40000 ALTER TABLE `adm_sequence` DISABLE KEYS */;
 INSERT INTO `adm_sequence` (`id_adm_sequence`, `seq_name`, `current_val`, `increment_val`, `length_limitation`, `left_zero_padding`) VALUES
 	(1, 'manage_role', 1, 1, 8, 'N'),
@@ -638,7 +689,7 @@ INSERT INTO `adm_sequence` (`id_adm_sequence`, `seq_name`, `current_val`, `incre
 	(4, 'network_zone_design', 15, 1, 8, 'N'),
 	(5, 'application_domain', 3, 1, 8, 'N'),
 	(6, 'business_zone_design', 11, 1, 8, 'N'),
-	(7, 'unit_type', 12, 1, 8, 'N'),
+	(7, 'unit_type', 13, 1, 8, 'N'),
 	(8, 'resource_set_design', 48, 1, 8, 'N'),
 	(9, 'resource_set_invoke_design', 27, 1, 8, 'N'),
 	(10, 'network_link_design', 27, 1, 8, 'N'),
@@ -663,7 +714,7 @@ INSERT INTO `adm_sequence` (`id_adm_sequence`, `seq_name`, `current_val`, `incre
 	(31, 'app_system_design', 8, 1, 8, 'N'),
 	(32, 'subsys_design', 8, 1, 8, 'N'),
 	(33, 'unit_design', 19, 1, 8, 'N'),
-	(34, 'invoke_design', 17, 1, 8, 'N'),
+	(34, 'invoke_design', 18, 1, 8, 'N'),
 	(35, 'service_design', 7, 1, 8, 'N'),
 	(36, 'service_invoke_design', 6, 1, 8, 'N'),
 	(37, 'legal_person', 1, 1, 8, 'N'),
@@ -678,7 +729,7 @@ INSERT INTO `adm_sequence` (`id_adm_sequence`, `seq_name`, `current_val`, `incre
 	(46, 'rdb_instance', 5, 1, 8, 'N'),
 	(47, 'lb_instance', 14, 1, 8, 'N'),
 	(48, 'invoke', 17, 1, 8, 'N'),
-	(49, 'deploy_package', 4, 1, 8, 'N'),
+	(49, 'deploy_package', 7, 1, 8, 'N'),
 	(50, 'diff_configuration', 13, 1, 8, 'N'),
 	(51, 'cache_resource_instance', 6, 1, 8, 'N'),
 	(52, 'block_storage', 5, 1, 8, 'N'),
@@ -689,7 +740,7 @@ INSERT INTO `adm_sequence` (`id_adm_sequence`, `seq_name`, `current_val`, `incre
 	(57, 'static_diff_conf_value', 2, 1, 8, 'N');
 /*!40000 ALTER TABLE `adm_sequence` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_state_transition: ~59 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_state_transition: ~59 rows (approximately)
 /*!40000 ALTER TABLE `adm_state_transition` DISABLE KEYS */;
 INSERT INTO `adm_state_transition` (`id_adm_state_transition`, `current_state`, `current_state_is_confirmed`, `target_state`, `target_state_is_confirmed`, `operation`, `action`, `status`) VALUES
 	(1, 37, 0, NULL, NULL, 48, 54, 'active'),
@@ -753,11 +804,11 @@ INSERT INTO `adm_state_transition` (`id_adm_state_transition`, `current_state`, 
 	(59, 42, 0, 40, 1, 47, 55, 'active');
 /*!40000 ALTER TABLE `adm_state_transition` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_tenement: ~0 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_tenement: ~0 rows (approximately)
 /*!40000 ALTER TABLE `adm_tenement` DISABLE KEYS */;
 /*!40000 ALTER TABLE `adm_tenement` ENABLE KEYS */;
 
--- Dumping data for table wecmdb_embedded.adm_user: ~1 rows (approximately)
+-- Dumping data for table wecmdb_bk.adm_user: ~0 rows (approximately)
 /*!40000 ALTER TABLE `adm_user` DISABLE KEYS */;
 INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `encrypted_password`, `description`, `id_adm_tenement`, `action_flag`, `is_system`) VALUES
 	(1, 'admin', 'admin', '$2a$10$Gh3WDwZ8kFpxbmo/h.oywuN.LuYwgrlx53ZeG.mz7P4eKgct7IYZm', 'admin', NULL, 0, 1);
@@ -766,4 +817,3 @@ INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `encrypted_password`, `de
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-SET FOREIGN_KEY_CHECKS=1;
