@@ -1,18 +1,18 @@
 <template>
   <div class="operation">
-    <div class="diy-tabs">
+    <!-- <div class="diy-tabs">
       <div :class="['diy-tab', currentTab === 1 ? 'active-tab' : '']" @click="changeTab(1)">
         <span>{{ $t('node_information') }}</span>
       </div>
       <div :class="['diy-tab', currentTab === 2 ? 'active-tab' : '']" @click="changeTab(2)">
         <span>{{ $t('link_information') }}</span>
       </div>
-    </div>
+    </div> -->
     <div v-if="currentTab === 1" class="operation-Collapse">
       <h5>{{ $t('current_node') }}：</h5>
       <Collapse v-model="parentPanal" class="parentCollapse" accordion @on-change="openParentPanal">
         <Panel name="1">
-          {{ parentPanalData.data.code | filterCode }}
+          {{ parentPanalData.data.key_name | filterCode }}
           <div slot="content">
             <Form>
               <div
@@ -77,15 +77,27 @@
       <Collapse v-model="defaultPanal" accordion @on-change="openPanal">
         <Panel :name="panalIndex + 1 + ''" v-for="(panal, panalIndex) in panalData" :key="panalIndex">
           <span style="">
-            {{ panal.data.code | filterCode }}
+            {{ panal.data.key_name | filterCode }}
           </span>
-          <Tooltip :content="$t('delete')" style="float:right">
-            <Icon type="md-trash" @click="deleteNode(panalData, panalIndex, $event)" class="operation-icon-delete" />
-          </Tooltip>
-          <Tooltip :content="$t('confirm')" style="float:right">
-            <Icon type="md-checkmark" @click="confirm(panal, $event)" class="operation-icon-confirm" />
-          </Tooltip>
-          <!-- <Button @click="editOperation" size="small" type="primary" style="float: right;margin:6px;">确认</Button> -->
+          <template v-if="panal.meta.nextOperations">
+            <template v-for="opera in panal.meta.nextOperations">
+              <Tooltip :content="$t('delete')" v-if="opera === 'delete'" :key="opera + panalIndex" style="float:right">
+                <Icon
+                  type="md-trash"
+                  @click="deleteNode(panalData, panalIndex, $event)"
+                  class="operation-icon-delete"
+                />
+              </Tooltip>
+              <Tooltip
+                :content="$t('discard')"
+                v-if="opera === 'discard'"
+                :key="opera + panalIndex"
+                style="float:right"
+              >
+                <Icon type="ios-share-alt" @click="discard(panal, $event)" class="operation-icon-discard" />
+              </Tooltip>
+            </template>
+          </template>
           <div slot="content">
             <Form v-if="defaultPanal[0] === panalIndex + 1 + ''">
               <div
@@ -136,7 +148,9 @@
               </div>
               <FormItem>
                 <div class="opetation-btn-zone">
-                  <Button @click="editOperation" type="info">{{ $t('edit') }}</Button>
+                  <Button @click="editOperation" :disabled="isEditEnable(panal.meta.nextOperations)" type="info">{{
+                    $t('edit')
+                  }}</Button>
                   <Button
                     type="primary"
                     @click="saveOperation('panalData', panalIndex)"
@@ -209,9 +223,9 @@
           <Tooltip :content="$t('delete')" style="float:right">
             <Icon type="md-trash" @click="deleteLink(link, $event)" class="operation-icon-delete" />
           </Tooltip>
-          <Tooltip :content="$t('confirm')" style="float:right">
+          <!-- <Tooltip :content="$t('confirm')" style="float:right">
             <Icon type="md-checkmark" @click="confirm(link, $event)" class="operation-icon-confirm" />
-          </Tooltip>
+          </Tooltip> -->
           <div slot="content">
             <Form v-if="linkPanal[0] === linkIndex + 1 + ''">
               <div
@@ -383,6 +397,13 @@ export default {
     this.linkPanal = ''
   },
   methods: {
+    isEditEnable (val) {
+      if (val && val.includes('update')) {
+        return false
+      } else {
+        return true
+      }
+    },
     changeTab (tabNum) {
       this.defaultPanal = []
       this.linkPanal = []
@@ -400,12 +421,12 @@ export default {
         this.linkPanal = panalId[0]
         this.$emit('markEdge', this.linkData[Number(panalId[0] - 1)].guid)
         const ciTypeId = this.linkData[Number(panalId[0] - 1)].ciTypeId
-        if (!Object.keys(this.lineFromSet).includes(ciTypeId)) {
-          await this.getAttributes(ciTypeId, 'linkPanalForm')
-          this.lineFromSet[ciTypeId] = this.linkPanalForm
-        } else {
-          this.linkPanalForm = this.lineFromSet[ciTypeId]
-        }
+        // if (!Object.keys(this.lineFromSet).includes(ciTypeId)) {
+        await this.getAttributes(ciTypeId, 'linkPanalForm')
+        this.lineFromSet[ciTypeId] = this.linkPanalForm
+        // } else {
+        //   this.linkPanalForm = this.lineFromSet[ciTypeId]
+        // }
       }
     },
     async getAllCITypes () {
@@ -552,7 +573,6 @@ export default {
           }
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
-            this.$Modal.remove()
             this.$Message.success('success!')
             this.$emit('operationReload', '', {
               type: 'remove',
@@ -561,6 +581,7 @@ export default {
               }
             })
           }
+          this.$Modal.remove()
         },
         onCancel: () => {}
       })
@@ -578,6 +599,15 @@ export default {
       const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'confirm')
       if (statusCode === 'OK') {
         this.$Message.success('success!')
+        this.$emit('operationReload', '', {})
+      }
+    },
+    async discard (data, event) {
+      event.stopPropagation()
+      const { statusCode } = await operateCiState(data.ciTypeId + '', data.guid, 'discard')
+      if (statusCode === 'OK') {
+        this.$Message.success('success!')
+        this.$emit('operationReload', '', {})
       }
     },
     async deleteNode (panalData, panalIndex, event) {
@@ -593,12 +623,12 @@ export default {
           }
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
-            this.$Modal.remove()
             this.$Message.success('success!')
             this.panalData.splice(panalIndex, 1)
             this.operateData.children = this.panalData
             this.$emit('operationReload', this.operateData)
           }
+          this.$Modal.remove()
         },
         onCancel: () => {}
       })
@@ -745,7 +775,7 @@ export default {
         this.$emit('operationReload', this.operateData)
       }
     },
-    managementData (operateData) {
+    async managementData (operateData) {
       this.currentTab = 1
       this.parentPanal = ''
       this.defaultPanal = ''
@@ -753,11 +783,54 @@ export default {
       this.cancleAddNode()
       this.operateData = operateData
       let tmp = JSON.parse(JSON.stringify(this.operateData))
-      this.getAttributes(tmp.ciTypeId, 'parentPanalForm')
       delete tmp.children
       this.parentPanalData = tmp
       if (this.operateData.children) {
-        this.panalData.push(...this.operateData.children)
+        let cacthCiTypeId = []
+        this.operateData.children.forEach(child => {
+          cacthCiTypeId.push(child.ciTypeId)
+        })
+        cacthCiTypeId = Array.from(new Set(cacthCiTypeId))
+        await cacthCiTypeId.forEach(async ciTypeId => {
+          let xx = await this.test(ciTypeId)
+          xx.data.contents.forEach(md => {
+            this.operateData.children.forEach(child => {
+              if (md.data.code === child.data.code) {
+                md.meta.nextOperations = Array.from(new Set(md.meta.nextOperations))
+                child.meta = md.meta
+              }
+            })
+          })
+          this.panalData = []
+          this.panalData.push(...this.operateData.children)
+        })
+      }
+    },
+    async test (ciTypeId) {
+      const { statusCode, data } = await getCiTypeAttributes(ciTypeId)
+      if (statusCode === 'OK') {
+        const ss = data.filter(_ => {
+          return _.referenceId === this.operateData.ciTypeId
+        })
+        const query = {
+          id: ciTypeId,
+          queryObject: {
+            dialect: {
+              showCiHistory: false
+            },
+            filters: [
+              {
+                name: ss[0].propertyName,
+                operator: 'eq',
+                value: this.operateData.guid
+              }
+            ]
+          }
+        }
+        const meta = await queryCiData(query)
+        if (meta.statusCode === 'OK') {
+          return meta
+        }
       }
     },
     async getNodeTypes (isOpen) {
@@ -797,9 +870,14 @@ export default {
       this.newNodeFormData[defaultAttr[0].propertyName].guid = this.parentPanalData.data.guid
       this.showNewNodeForm = true
     },
-    openParentPanal () {
-      this.defaultPanal = ''
-      // this.$emit('markZone', this.parentPanalData.guid)
+    openParentPanal (val) {
+      if (val.length) {
+        this.defaultPanal = ''
+        this.isEdit = false
+        const ciTypeId = this.operateData.ciTypeId
+        this.parentPanalForm = []
+        this.getAttributes(ciTypeId, 'parentPanalForm')
+      }
     },
     openPanal (panalId) {
       this.parentPanal = ''
@@ -807,6 +885,7 @@ export default {
       if (panalId.length) {
         this.$emit('markZone', this.panalData[Number(panalId[0] - 1)].guid)
         const ciTypeId = this.panalData[Number(panalId[0] - 1)].ciTypeId
+        this.panalForm = []
         this.getAttributes(ciTypeId, 'panalForm')
       }
     },
@@ -819,7 +898,9 @@ export default {
   },
   filters: {
     filterCode: function (val) {
-      return val.length > 25 ? val.substring(0, 25) + '...' : val
+      if (val) {
+        return val.length > 25 ? val.substring(0, 25) + '...' : val
+      }
     }
   },
   components: {
@@ -911,6 +992,15 @@ export default {
   font-size: 16px;
   border: 1px solid #ed4014;
   color: #ed4014;
+  border-radius: 4px;
+  width: 24px;
+  line-height: 24px;
+  margin: 6px;
+}
+.operation-icon-discard {
+  font-size: 16px;
+  border: 1px solid #ff9900;
+  color: #ff9900;
   border-radius: 4px;
   width: 24px;
   line-height: 24px;

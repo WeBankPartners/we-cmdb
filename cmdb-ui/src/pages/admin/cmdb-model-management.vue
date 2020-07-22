@@ -876,7 +876,7 @@ export default {
       addNewAttrForm: {
         searchSeqNo: 0,
         isAccessControlled: 'no',
-        isDeleteValidate: 'no',
+        isDeleteValidate: 'yes',
         isRefreshable: 'no',
         isDisplayed: 'no',
         isNullable: 'no',
@@ -938,7 +938,7 @@ export default {
           isEditable: 'yes',
           isUnique: 'no',
           isNullable: 'no',
-          isDeleteValidate: 'no',
+          isDeleteValidate: 'yes',
           isRefreshable: 'no',
           searchSeqNo: 0
         }

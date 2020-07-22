@@ -1,18 +1,10 @@
 <template>
   <div>
-    <!-- <Row style="margin-bottom: 16px;">
-      <span>{{ $t('select_idc') }}：</span>
-      <Select :placeholder="$t('select_idc')" class="graph-select" @on-change="onIdcDataChange">
-        <Option v-for="item in allIdcs" :value="item.guid" :key="item.guid">
-          {{ item.name }}
-        </Option>
-      </Select>
-    </Row> -->
     <Row class="resource-design-tab-row">
-      <Spin fix v-if="spinShow">
+      <!-- <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
         <div>{{ $t('loading') }}</div>
-      </Spin>
+      </Spin> -->
       <Row>
         <Col span="16">
           <Card>
@@ -103,7 +95,7 @@ export default {
       d3.select('#graph')
         .select(`#` + id)
         .select(this.activeNodeInfo.type)
-        .attr('fill', '#2b85e4')
+        .attr('fill', '#ff9900')
     }
   },
   methods: {
@@ -127,13 +119,14 @@ export default {
         .select(`#a_gl_` + guid)
         .select('a')
         .select('path')
-        .attr('stroke', 'red')
+        .attr('stroke', '#ff9900')
       d3.select('#graph')
         .select(`#gl_` + guid)
         .select('text')
-        .attr('fill', 'red')
+        .attr('fill', '#ff9900')
     },
     operationReload (operateNodeData, operateLineData) {
+      // this.onIdcDataChange(this.guid)
       if (!operateNodeData) {
         this.loadMap(this.graphData, operateLineData)
         return
@@ -162,8 +155,6 @@ export default {
       this.graphData[0].children.forEach(_ => {
         this.firstChildrenGroup.push(`g_${_.guid}`)
       })
-      // this.operateNodeData = this.graphData[0]
-      // this.$refs.transferData.managementData(this.operateNodeData)
       const sortingTree = array => {
         let obj = {}
         array.forEach(_ => {
@@ -187,7 +178,6 @@ export default {
           .map(_ => obj[_])
       }
       this.idcDesignData = sortingTree(graphData)
-
       if (operateLineData) {
         const lineInfoData = operateLineData.lineInfo.data
         if (operateLineData.type === 'add') {
@@ -229,6 +219,7 @@ export default {
       this.initGraph()
     },
     async onIdcDataChange (guid) {
+      this.guid = guid
       this.spinShow = true
       const { data, statusCode } = await getTreeData(this.graphCiTypeId, [guid])
       this.graphData = data
@@ -599,6 +590,7 @@ export default {
             from: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
             linkInfo: {
               ..._.data,
+              meta: _.meta,
               ciTypeId: this.initParams[IDC_PLANNING_LINK_ID]
             },
             to: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,

@@ -107,7 +107,7 @@ export default {
       d3.select('#graph')
         .select(`#` + id)
         .select(this.activeNodeInfo.type)
-        .attr('fill', '#2b85e4')
+        .attr('fill', '#ff9900')
     }
   },
   methods: {
@@ -323,7 +323,7 @@ export default {
         .on('end', () => {
           addEvent('.node', 'click', this.handleNodeClick)
           addEvent('.cluster', 'click', this.handleNodeClick)
-          addEvent('.edge', 'click', this.handleEdgeClick)
+          // addEvent('.edge', 'click', this.handleEdgeClick)
         })
       // 最外图层选中处理
       d3.select('#clust1').on('click', () => {

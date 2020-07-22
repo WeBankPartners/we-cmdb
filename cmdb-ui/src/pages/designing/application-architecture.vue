@@ -55,10 +55,7 @@
       <div>
         <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
           <TabPane :label="$t('application_logic_diagram')" name="architectureDesign" class="app-tab" :index="1">
-            <!-- <Alert show-icon closable v-if="isDataChanged">
-              Data has beed changed, click Reload button to reload graph.
-              <Button slot="desc" @click="reloadHandler">Reload</Button>
-            </Alert>
+            <!--
             <Spin size="large" fix v-if="spinShow">
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
               <div>{{ $t('loading') }}</div>
@@ -69,6 +66,10 @@
             <div style="padding-right: 20px">
               <div class="graph-container" id="appLogicGraph"></div>
             </div> -->
+            <Alert show-icon closable v-if="isDataChanged">
+              Data has beed changed, click Reload button to reload graph.
+              <Button slot="desc" @click="reloadHandler">Reload</Button>
+            </Alert>
             <div v-show="showApplicationArchitectureComponent">
               <ApplicationArchitectureComponent
                 ref="applicationArchitectureComponent"
