@@ -72,6 +72,7 @@ export default {
       activeLineGuid: '',
 
       systemDesignVersion: '',
+      isTableViewOnly: false,
 
       graph: {},
       systemDesignData: [],
@@ -430,8 +431,9 @@ export default {
       formatAppLogicLine(updatedOriginData)
       this.initGraph()
     },
-    async getAllDesignTreeFromSystemDesign (systemDesignVersion) {
+    async getAllDesignTreeFromSystemDesign (systemDesignVersion, isTableViewOnly) {
       this.systemDesignVersion = systemDesignVersion
+      this.isTableViewOnly = isTableViewOnly
       const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
       if (treeData.statusCode === 'OK') {
         this.originData = JSON.parse(JSON.stringify(treeData.data))
