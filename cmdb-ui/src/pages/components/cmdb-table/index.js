@@ -435,7 +435,7 @@ export default {
         }
         return 0
       }
-      const columns = this.tableColumns.filter(_ => _.isDisplayed || _.displaySeqNo || _.children).sort(compare)
+      const columns = this.tableColumns.filter(_ => (_.isDisplayed && _.displaySeqNo > 0) || _.children).sort(compare)
       const tableWidth = this.$refs.table ? this.$refs.table.$el.clientWidth : 1000 // 获取table宽度，默认值1000
       const colLength = columns.length // 获取传入展示的column长度
       this.colWidth = Math.floor(tableWidth / colLength)

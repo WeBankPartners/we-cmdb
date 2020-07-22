@@ -351,26 +351,17 @@ public class CiServiceImpl implements CiService {
             totalCount = convertResultToInteger(results);
 
             results = doQuery(ciRequest, entityMeta, false);
-            if (ciRequest.getAggregationFuction() != null &&
-                    ciRequest.getAggregationFuction().size() > 0) {
-                if (results != null && results.size() > 0) {
-                    Map<String, Object> enhacedMap = Maps.newHashMap();
-                    enhacedMap.put("fixed_date", results);
-                    ciInfoResp.addContent(new CiData(enhacedMap, null));
-                }
-            } else {
-                results.forEach(x -> {
-                    Map<String, Object> entityBeanMap = null;
+            results.forEach(x -> {
+                Map<String, Object> entityBeanMap = null;
 
-                    entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true, ciRequest.getResultColumns());
+                entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true, ciRequest.getResultColumns());
 
-                    Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
-                    List<String> nextOperations = getNextOperations(entityBeanMap);
-                    CiData ciData = new CiData(enhacedMap, nextOperations);
+                Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
+                List<String> nextOperations = getNextOperations(entityBeanMap);
+                CiData ciData = new CiData(enhacedMap, nextOperations);
 
-                    ciInfoResp.addContent(ciData);
-                });
-            }
+                ciInfoResp.addContent(ciData);
+            });
         } finally {
             priEntityManager.close();
         }
