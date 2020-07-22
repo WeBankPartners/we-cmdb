@@ -170,6 +170,7 @@ public class AdmCiTypeAttr implements Serializable {
         return false;
     }
 
+    @Column(name = "description")
     public String getDescription() {
         return this.description;
     }
@@ -268,6 +269,7 @@ public class AdmCiTypeAttr implements Serializable {
         this.isSystem = isSystem;
     }
 
+    @Column(name="length")
     public Integer getLength() {
         return this.length;
     }
@@ -276,6 +278,7 @@ public class AdmCiTypeAttr implements Serializable {
         this.length = length;
     }
 
+    @Column(name = "name")
     public String getName() {
         return this.name;
     }
@@ -347,6 +350,7 @@ public class AdmCiTypeAttr implements Serializable {
         this.specialLogic = specialLogic;
     }
 
+    @Column(name = "status")
     public String getStatus() {
         return this.status;
     }
