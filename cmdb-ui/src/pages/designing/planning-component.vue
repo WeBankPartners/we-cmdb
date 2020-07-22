@@ -1,24 +1,26 @@
 <template>
   <div>
     <Row class="resource-design-tab-row">
-      <!-- <Spin fix v-if="spinShow">
-        <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-        <div>{{ $t('loading') }}</div>
-      </Spin> -->
       <Row>
-        <Col span="16">
+        <Col span="24">
           <Card>
             <div class="graph-container-big" id="graph"></div>
-          </Card>
-        </Col>
-        <Col span="8" class="operation-zone">
-          <Card>
-            <Operation
-              ref="transferData"
-              @operationReload="operationReload"
-              @markZone="markZone"
-              @markEdge="markEdge"
-            ></Operation>
+
+            <div class="operation-area">
+              <Collapse>
+                <Panel name="1">
+                  {{ $t('operating_area') }}
+                  <div slot="content">
+                    <Operation
+                      ref="transferData"
+                      @operationReload="operationReload"
+                      @markZone="markZone"
+                      @markEdge="markEdge"
+                    ></Operation>
+                  </div>
+                </Panel>
+              </Collapse>
+            </div>
           </Card>
         </Col>
       </Row>
@@ -30,7 +32,7 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import { getEnumCodesByCategoryId, getAllIdcDesignData, queryCiData, getTreeData } from '@/api/server'
+import { getEnumCodesByCategoryId, queryCiData, getTreeData } from '@/api/server'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
 import { addEvent } from '../util/event.js'
 import {
@@ -40,12 +42,12 @@ import {
   IDC_PLANNING_LINK_FROM,
   IDC_PLANNING_LINK_TO
 } from '@/const/init-params.js'
-import Operation from './operation'
+import Operation from './planning-operation'
+import exprLineFinder from '@/const/format-links'
 
 export default {
   data () {
     return {
-      allIdcs: [],
       graphCiTypeId: 12,
       graph: {},
       idcDesignData: null,
@@ -65,7 +67,14 @@ export default {
         type: '',
         color: ''
       },
-      activeLineGuid: ''
+      activeLineGuid: '',
+
+      linkExpr: {
+        exprFrom:
+          'network_link_design.network_segment_design_1>network_segment_design~(network_segment_design)network_zone_design',
+        exprTo:
+          'network_link_design.network_segment_design_2>network_segment_design~(network_segment_design)network_zone_design'
+      }
     }
   },
   watch: {
@@ -126,7 +135,6 @@ export default {
         .attr('fill', '#ff9900')
     },
     operationReload (operateNodeData, operateLineData) {
-      // this.onIdcDataChange(this.guid)
       if (!operateNodeData) {
         this.loadMap(this.graphData, operateLineData)
         return
@@ -148,6 +156,7 @@ export default {
       } else {
         tmpData = operateNodeData
       }
+      this.$refs.transferData.managementData(operateNodeData)
       this.loadMap([tmpData], operateLineData)
     },
     loadMap (graphData, operateLineData) {
@@ -264,10 +273,9 @@ export default {
         .on('dblclick.zoom', null)
         .on('wheel.zoom', null)
         .on('mousewheel.zoom', null)
-      const width = ((window.innerWidth - 60) / 24) * 16 - 40
       let graphZoom = graph
         .graphviz()
-        .width(width)
+        .width(window.innerWidth - 60)
         .height(window.innerHeight - 255)
         .zoom(true)
         .fit(true)
@@ -287,6 +295,7 @@ export default {
         'Edge[fontsize=8,arrowhead="none"];',
         `subgraph cluster_${idcData.data.guid} {`,
         `style="filled";color="${colors[0]}";`,
+        `tooltip="${'(' + idcData.data.key_name + ')' + idcData.data.description}";`,
         `label="${idcData.data.name || idcData.data.description || idcData.data.code}";`,
         `size="${width},${height}";`,
         this.genChildren(idcData),
@@ -300,11 +309,6 @@ export default {
       const height = 12
       let dots = []
       const children = idcData.children || []
-      this.ResourceCollection = []
-      children.forEach(_ => {
-        const node = this.dataSelector(_, this.graphConfig.nodePath)
-        Array.isArray(node) ? this.ResourceCollection.push(...node) : this.ResourceCollection.push(node)
-      })
       let layers = new Map()
       children.forEach(zone => {
         if (layers.has(zone.data.network_zone_layer)) {
@@ -349,26 +353,14 @@ export default {
     },
     genLink () {
       let dots = []
-      let networkToNode = {}
-      this.ResourceCollection.forEach(rc => {
-        const nodeGuid = this.dataSelector(rc, this.graphConfig.nodeKey)
-        if (Object.keys(networkToNode).includes(nodeGuid)) {
-          networkToNode[nodeGuid].push(rc.guid)
-        } else {
-          networkToNode[nodeGuid] = [rc.guid]
-        }
-      })
       this.effectiveLink = []
       this.idcLink.forEach(_ => {
-        if (networkToNode[_.from] && networkToNode[_.to]) {
+        if (_.from in this.graphNodes && _.to in this.graphNodes) {
           this.effectiveLink.push(_.linkInfo)
-          networkToNode[_.from].forEach(from => {
-            networkToNode[_.to].forEach(to => {
-              dots.push(
-                `g_${to} -> g_${from}[id=gl_${_.guid},tooltip="${_.label || ''}",taillabel="${_.label || ''}"];`
-              )
-            })
-          })
+          dots.push(
+            `g_${_.from} -> g_${_.to}[id=gl_${_.guid},tooltip="${_.linkInfo.key_name || ''}",tailtooltip="${_.linkInfo
+              .key_name || ''}",taillabel="${_.label || ''}"];`
+          )
         }
       })
       this.$refs.transferData.linkManagementData(this.effectiveLink)
@@ -397,10 +389,10 @@ export default {
     handleEdgeClick (e) {
       let guid = e.currentTarget.id.substring(3)
       this.markEdge(guid)
-      const selectLinkIndex = this.effectiveLink.findIndex(link => {
+      const selectLink = this.effectiveLink.find(link => {
         return link.guid === guid
       })
-      this.$refs.transferData.openLinkPanal([selectLinkIndex + 1 + ''])
+      this.$refs.transferData.openLinkPanal([selectLink.guid], selectLink.tableName)
     },
     renderGraph (idcData) {
       let nodesString = this.genDOT(idcData)
@@ -432,6 +424,9 @@ export default {
         d3.select(`#g_${zone.guid}`)
           .select('polygon')
           .attr('fill', '#000000')
+        d3.select(`#g_${zone.guid}`)
+          .select('title')
+          .text('(' + zone.data.key_name + ')' + zone.data.description)
         if (Array.isArray(zone.children)) {
           const childrenX = d3.select('#g_' + zone.guid)._groups[0][0].__data__.children
           const polygon = childrenX.filter(child => {
@@ -497,6 +492,7 @@ export default {
             _h = h
             ty = p1.y + tfsize * tlength + mgap + _h * 0.5
           }
+          g.append('title').text('(' + node.children[i].data.key_name + ')' + node.children[i].data.description)
           g.append('rect')
             .attr('x', rx)
             .attr('y', _ry)
@@ -543,12 +539,13 @@ export default {
           if (Array.isArray(node.children[i].children)) {
             ty = p1.y + _tlength * tfsize + (h + mgap) * i + fontsize + mgap
           } else {
-            ty = p1.y + mgap + fontsize * (tlength + 1) + (h + mgap) * i + h * 0.5
+            ty = p1.y + tfsize * _tlength + (h + mgap) * i + mgap + h * 0.5
           }
           g = graph
             .append('g')
             .attr('class', 'node')
             .attr('id', `g_${node.children[i].guid}`)
+          g.append('title').text('(' + node.children[i].data.key_name + ')' + node.children[i].data.description)
           g.append('rect')
             .attr('x', rx)
             .attr('y', ry)
@@ -584,20 +581,21 @@ export default {
       }
       const { statusCode, data } = await queryCiData(payload)
       if (statusCode === 'OK') {
-        this.idcLink = data.contents.map(_ => {
-          return {
-            guid: _.data.guid,
-            from: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
-            linkInfo: {
-              ..._.data,
-              meta: _.meta,
-              ciTypeId: this.initParams[IDC_PLANNING_LINK_ID]
-            },
-            to: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
-            label: _.data.code,
-            state: _.data.state.code
-          }
-        })
+        this.idcLink = await exprLineFinder(this.linkExpr, data.contents, this.initParams[IDC_PLANNING_LINK_ID])
+        // this.idcLink = data.contents.map(_ => {
+        //   return {
+        //     guid: _.data.guid,
+        //     from: _.data[this.initParams[IDC_PLANNING_LINK_TO]].guid,
+        //     linkInfo: {
+        //       ..._.data,
+        //       meta: _.meta,
+        //       ciTypeId: this.initParams[IDC_PLANNING_LINK_ID]
+        //     },
+        //     to: _.data[this.initParams[IDC_PLANNING_LINK_FROM]].guid,
+        //     label: _.data.code,
+        //     state: _.data.state.code
+        //   }
+        // })
       }
       this.initGraph()
     },
@@ -608,12 +606,6 @@ export default {
         data.forEach(_ => {
           this.initParams[_.code] = _.value
         })
-      }
-    },
-    async getAllIdcDesignData () {
-      const { statusCode, data } = await getAllIdcDesignData()
-      if (statusCode === 'OK') {
-        this.allIdcs = data.map(_ => _.data)
       }
     },
     dataSelector (data = {}, rule = '') {
@@ -653,16 +645,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.graph-container-big {
-  // margin-top: 20px;
-  // border: 1px solid red;
-}
-.operation-zone {
-  // margin-top: 20px;
-  // overflow: auto;
-  // min-height: calc(100vh - 205px) !important;
-}
-.graph-select {
-  width: 400px;
+.operation-area {
+  position: absolute;
+  width: 450px;
+  top: 10px;
+  right: 0px;
 }
 </style>

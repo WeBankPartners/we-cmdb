@@ -6,19 +6,27 @@
         <div>{{ $t('loading') }}</div>
       </Spin>
       <Row>
-        <Col span="16">
+        <Col span="24">
           <Card>
-            <div class="graph-container" id="graph"></div>
-          </Card>
-        </Col>
-        <Col span="8" class="operation-zone">
-          <Card>
-            <Operation
-              ref="transferData"
-              @operationReload="operationReload"
-              @markZone="markZone"
-              @markEdge="markEdge"
-            ></Operation>
+            <div class="container-height" id="graph"></div>
+            <div class="operation-area">
+              <Collapse>
+                <Panel name="1">
+                  {{ $t('operating_area') }}
+                  <div slot="content">
+                    <Operation
+                      class="operation-container"
+                      ref="transferData"
+                      :hideNextOperations="true"
+                      :ignoreOpera="ignoreOpera"
+                      @operationReload="operationReload"
+                      @markZone="markZone"
+                      @markEdge="markEdge"
+                    ></Operation>
+                  </div>
+                </Panel>
+              </Collapse>
+            </div>
           </Card>
         </Col>
       </Row>
@@ -30,10 +38,9 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import { getSystems, getEnumCodesByCategoryId, getAllDeployTreesFromSystemCi } from '@/api/server.js'
+import { getEnumCodesByCategoryId, getAllDeployTreesFromSystemCi } from '@/api/server.js'
 import { colors, stateColor } from '../../const/graph-configuration'
 import { addEvent } from '../util/event.js'
-import { baseURL } from '@/api/base.js'
 import {
   VIEW_CONFIG_PARAMS,
   UNIT_ID,
@@ -42,13 +49,14 @@ import {
   INVOKE_UNIT,
   INVOKED_UNIT
 } from '@/const/init-params.js'
-import Operation from './application-deployment-operation'
+import Operation from './application-operation'
 export default {
   components: {
     Operation
   },
   data () {
     return {
+      ignoreOpera: [],
       initParams: {},
       systems: [],
       systemVersion: '',
@@ -77,7 +85,10 @@ export default {
         type: '',
         color: ''
       },
-      activeLineGuid: ''
+      activeLineGuid: '',
+
+      editPath: [],
+      editIndex: []
     }
   },
   watch: {
@@ -90,24 +101,28 @@ export default {
           .attr('fill', this.activeNodeInfo.color)
         this.activeNodeInfo = {}
       }
-      const id = val[val.length - 1]
-      this.activeNodeInfo.type = d3
-        .select('#graph')
-        .select(`#` + id)
-        .select('polygon')._groups[0][0]
-        ? 'polygon'
-        : 'rect'
-      const color = d3
-        .select('#graph')
-        .select(`#` + id)
-        .select(this.activeNodeInfo.type)
-        .attr('fill')
-      this.activeNodeInfo.id = id
-      this.activeNodeInfo.color = color
-      d3.select('#graph')
-        .select(`#` + id)
-        .select(this.activeNodeInfo.type)
-        .attr('fill', '#ff9900')
+      try {
+        const id = val[val.length - 1]
+        this.activeNodeInfo.type = d3
+          .select('#graph')
+          .select(`#` + id)
+          .select('polygon')._groups[0][0]
+          ? 'polygon'
+          : 'rect'
+        const color = d3
+          .select('#graph')
+          .select(`#` + id)
+          .select(this.activeNodeInfo.type)
+          .attr('fill')
+        this.activeNodeInfo.id = id
+        this.activeNodeInfo.color = color
+        d3.select('#graph')
+          .select(`#` + id)
+          .select(this.activeNodeInfo.type)
+          .attr('fill', '#ff9900')
+      } catch (error) {
+        console.log(error)
+      }
     }
   },
   methods: {
@@ -140,45 +155,244 @@ export default {
         .select('text')
         .attr('fill', 'red')
     },
-    async operationReload (originData, operateLineData) {
-      this.getAllDeployTreesFromSystemCi(this.systemVersion)
+    findParentGuid (guid) {
+      if (guid !== 'p') {
+        const xParent = this.graphDataWithGuid[`n_${guid}`] || this.graphDataWithGuid[`g_${guid}`]
+        const xGuid = xParent.parentGuid
+        this.editPath.unshift(xGuid)
+        this.findParentGuid(xGuid)
+      }
     },
-    reloadEdge (operateLineData) {
-      const lineInfoData = operateLineData.lineInfo.data
-      if (operateLineData.type === 'add') {
-        this.systemLines[lineInfoData.guid] = {
-          ...lineInfoData,
-          from: lineInfoData[this.initParams[INVOKE_UNIT]].guid,
-          to: lineInfoData[this.initParams[INVOKED_UNIT]].guid,
-          label: lineInfoData.invoke_type,
-          state: lineInfoData.state.code,
-          fixedDate: +new Date(lineInfoData.fixed_date)
-        }
-        this.effectiveLink.push(lineInfoData)
+    operationReload (pGuid, editNode, editNodeIndex, type) {
+      let originData = JSON.parse(JSON.stringify(this.originData[0]))
+      if (type === 'confirm') {
+        this.loadMap([originData], pGuid)
+        return
       }
-      if (operateLineData.type === 'edit') {
-        const index = this.effectiveLink.findIndex(_ => {
-          return _.guid === lineInfoData.guid
+      this.editPath = []
+      this.editIndex = []
+      this.findParentGuid(pGuid)
+      this.editPath.push(pGuid)
+      this.editPath = this.editPath.slice(1)
+      let tmpData = originData
+      let tmp = JSON.parse(JSON.stringify(this.originData[0]))
+      if (type === 'parentNode') {
+        // TODO 更新父节点，需先点击外层才生效？
+        this.editPath.forEach(guid => {
+          if (guid !== originData.guid) {
+            // eslint-disable-next-line no-unused-vars
+            tmp = tmp.children.find((child, i) => {
+              if (child.guid === guid) {
+                this.editIndex.push(i)
+                return child
+              }
+            })
+          }
         })
-        this.effectiveLink[index] = lineInfoData
-        this.systemLines[lineInfoData.guid] = {
-          ...lineInfoData,
-          from: lineInfoData[this.initParams[INVOKE_UNIT]].guid,
-          to: lineInfoData[this.initParams[INVOKED_UNIT]].guid,
-          label: lineInfoData.invoke_type,
-          state: lineInfoData.state.code,
-          fixedDate: +new Date(lineInfoData.fixed_date)
+        if (this.editIndex.length > 0) {
+          if (this.editIndex.length < 2) {
+            this.editIndex.forEach((no, index) => {
+              if (this.editIndex.length - 1 !== index) {
+                tmpData = originData.children[no]
+              } else {
+                tmpData = tmpData.children
+                if (Array.isArray(tmpData)) {
+                  const index = tmpData.findIndex(child => {
+                    return child.guid === pGuid
+                  })
+                  tmpData = tmpData[index]
+                  tmpData.data = editNode.data
+                }
+              }
+            })
+          } else {
+            this.editIndex.forEach((no, index) => {
+              if (this.editIndex.length !== index) {
+                tmpData = tmpData.children[no]
+              }
+            })
+            tmpData.data = editNode.data
+          }
+        } else {
+          originData.data = editNode.data
+        }
+        this.loadMap([originData], pGuid)
+        return
+      }
+      if (type === 'addNode') {
+        this.addNode(pGuid, editNode, editNodeIndex, type)
+        return
+      }
+      if (type === 'deleteNode') {
+        this.deleteNode(pGuid, editNode, editNodeIndex, type)
+        return
+      }
+
+      // 更新子节点
+      // let tmp = JSON.parse(JSON.stringify(this.originData[0]))
+      this.editPath.forEach(guid => {
+        if (guid === originData.guid) {
+          tmp = tmp.children
+        } else {
+          if (Array.isArray(tmp)) {
+            tmp = tmp.find((child, index) => {
+              if (child.guid === guid) {
+                this.editIndex.push(index)
+                return child
+              }
+            }).children
+          }
+        }
+      })
+      // eslint-disable-next-line no-unused-vars
+      // let tmpData = originData
+      if (this.editIndex.length > 0) {
+        if (this.editIndex.length < 2) {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length - 1 !== index) {
+              tmpData = originData.children[no]
+            } else {
+              tmpData = tmpData.children
+              if (Array.isArray(tmp)) {
+                const index = tmpData.findIndex(child => {
+                  return child.guid === pGuid
+                })
+                tmpData = tmpData[index]
+                tmpData.children[editNodeIndex] = editNode
+              }
+            }
+          })
+        } else {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length !== index) {
+              tmpData = tmpData.children[no]
+            }
+          })
+          tmpData.children[editNodeIndex] = editNode
+        }
+      } else {
+        originData.children[editNodeIndex] = editNode
+      }
+      this.loadMap([originData], pGuid)
+    },
+    addNode (pGuid, editNode, editNodeIndex, type) {
+      let originData = JSON.parse(JSON.stringify(this.originData[0]))
+      let tmp = JSON.parse(JSON.stringify(this.originData[0]))
+      this.editPath.forEach(guid => {
+        if (guid === originData.guid) {
+          tmp = tmp.children
+        } else {
+          if (Array.isArray(tmp)) {
+            tmp = tmp.find((child, index) => {
+              if (child.guid === guid) {
+                this.editIndex.push(index)
+                return child
+              }
+            }).children
+          }
+        }
+      })
+      // eslint-disable-next-line no-unused-vars
+      let tmpData = originData
+      if (this.editIndex.length > 0) {
+        if (this.editIndex.length < 2) {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length - 1 !== index) {
+              tmpData = originData.children[no]
+            } else {
+              tmpData = tmpData.children
+              if (Array.isArray(tmpData)) {
+                const index = tmpData.findIndex(child => {
+                  return child.guid === pGuid
+                })
+                tmpData = tmpData[index]
+                tmpData.children = tmpData.children || []
+                tmpData.children.push(editNode)
+              }
+            }
+          })
+        } else {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length !== index) {
+              tmpData = tmpData.children[no]
+            }
+          })
+          tmpData.children = tmpData.children || []
+          tmpData.children.push(editNode)
+        }
+      } else {
+        tmpData.children = tmpData.children || []
+        originData.children.push(editNode)
+      }
+      this.loadMap([originData], pGuid)
+    },
+    deleteNode (pGuid, editNode, editNodeIndex, type) {
+      let originData = JSON.parse(JSON.stringify(this.originData[0]))
+      let tmp = JSON.parse(JSON.stringify(this.originData[0]))
+      this.editPath.forEach(guid => {
+        if (guid === originData.guid) {
+          tmp = tmp.children
+        } else {
+          if (Array.isArray(tmp)) {
+            tmp = tmp.find((child, index) => {
+              if (child.guid === guid) {
+                this.editIndex.push(index)
+                return child
+              }
+            }).children
+          }
+        }
+      })
+      // eslint-disable-next-line no-unused-vars
+      let tmpData = originData
+      if (this.editIndex.length > 0) {
+        if (this.editIndex.length < 2) {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length - 1 !== index) {
+              tmpData = originData.children[no]
+            } else {
+              tmpData = tmpData.children
+              if (Array.isArray(tmp)) {
+                const index = tmpData.findIndex(child => {
+                  return child.guid === pGuid
+                })
+                tmpData = tmpData[index]
+                if (tmpData.children.length === 1) {
+                  delete tmpData.children
+                } else {
+                  tmpData.children.splice(editNodeIndex, 1)
+                }
+              }
+            }
+          })
+        } else {
+          this.editIndex.forEach((no, index) => {
+            if (this.editIndex.length !== index) {
+              tmpData = tmpData.children[no]
+            }
+          })
+          if (tmpData.children.length === 1) {
+            delete tmpData.children
+          } else {
+            tmpData.children.splice(editNodeIndex, 1)
+          }
+        }
+      } else {
+        if (tmpData.children.length === 1) {
+          delete tmpData.children
+        } else {
+          tmpData.children.splice(editNodeIndex, 1)
         }
       }
-      if (operateLineData.type === 'remove') {
-        const index = this.effectiveLink.findIndex(_ => {
-          return _.guid === lineInfoData.guid
-        })
-        this.effectiveLink.splice(index, 1)
-        delete this.systemLines[lineInfoData.guid]
-      }
+      this.loadMap([originData], pGuid)
+    },
+    loadMap (updatedOriginData, pGuid) {
       const { initParams } = this
-      const formatADData = array => {
+      this.originData = updatedOriginData
+      this.systemTreeData = updatedOriginData
+      this.systemLines = {}
+      this.graphDataWithGuid = {}
+      const formatADData = (array, parentGuid) => {
         return array.map(_ => {
           let result = {
             ciTypeId: _.ciTypeId,
@@ -189,7 +403,12 @@ export default {
             fixedDate: +new Date(_.data.fixed_date)
           }
           if (_.children instanceof Array && _.children.length && _.ciTypeId !== initParams[UNIT_ID]) {
-            result.children = formatADData(_.children)
+            result.children = formatADData(_.children, _.guid)
+            _.parentGuid = parentGuid
+            this.graphDataWithGuid['g_' + _.guid] = _
+          } else {
+            _.parentGuid = parentGuid
+            this.graphDataWithGuid['n_' + _.guid] = _
           }
           if (_.ciTypeId === initParams[UNIT_ID]) {
             let label = ['<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">', `<TR><TD>${_.data.code}</TD></TR>`]
@@ -206,25 +425,51 @@ export default {
           return result
         })
       }
+      const formatADLine = array => {
+        array.forEach(_ => {
+          if (_.ciTypeId === this.initParams[INVOKE_ID]) {
+            this.systemLines[_.guid] = {
+              ..._,
+              from: _.data[this.initParams[INVOKE_UNIT]].guid,
+              to: _.data[this.initParams[INVOKED_UNIT]].guid,
+              id: _.guid,
+              label: _.data.invoke_type,
+              state: _.data.state.code,
+              fixedDate: +new Date(_.data.fixed_date)
+            }
+            _.data.ciTypeId = this.initParams[INVOKE_ID]
+          }
+          if (_.children instanceof Array && _.children.length) {
+            formatADLine(_.children)
+          }
+        })
+      }
       const fetchOtherSystemInstances = async () => {
         this.instancesInUnit = {}
         this.graphNodes = {}
         this.genADChildrenDot(this.systemData[0].children || [], 1)
         this.initADGraph()
       }
-      this.$refs.transferData.linkManagementData(this.effectiveLink)
+      this.systemData = formatADData(updatedOriginData, 'p')
+      this.graphData = this.systemData
+      this.operateNodeData = this.systemData[0]
+      this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
+      this.$refs.transferData.managementData(
+        this.graphDataWithGuid[`n_${pGuid}`] || this.graphDataWithGuid[`g_${pGuid}`]
+      )
+      formatADLine(updatedOriginData)
       fetchOtherSystemInstances()
     },
     async getAllDeployTreesFromSystemCi (systemVersion) {
       this.systemVersion = systemVersion
       const { initParams } = this
       const { statusCode, data } = await getAllDeployTreesFromSystemCi(this.systemVersion)
-      this.originData = data
+      this.originData = JSON.parse(JSON.stringify(data))
       if (statusCode === 'OK') {
         this.systemTreeData = data
         this.systemLines = {}
         this.graphDataWithGuid = {}
-        const formatADData = array => {
+        const formatADData = (array, parentGuid) => {
           return array.map(_ => {
             let result = {
               ciTypeId: _.ciTypeId,
@@ -235,9 +480,11 @@ export default {
               fixedDate: +new Date(_.data.fixed_date)
             }
             if (_.children instanceof Array && _.children.length && _.ciTypeId !== initParams[UNIT_ID]) {
-              result.children = formatADData(_.children)
+              result.children = formatADData(_.children, _.guid)
+              _.parentGuid = parentGuid
               this.graphDataWithGuid['g_' + _.guid] = _
             } else {
+              _.parentGuid = parentGuid
               this.graphDataWithGuid['n_' + _.guid] = _
             }
             if (_.ciTypeId === initParams[UNIT_ID]) {
@@ -255,7 +502,6 @@ export default {
             return result
           })
         }
-        this.effectiveLink = []
         const formatADLine = array => {
           array.forEach(_ => {
             if (_.ciTypeId === this.initParams[INVOKE_ID]) {
@@ -269,27 +515,24 @@ export default {
                 fixedDate: +new Date(_.data.fixed_date)
               }
               _.data.ciTypeId = this.initParams[INVOKE_ID]
-              this.effectiveLink.push(_.data)
             }
             if (_.children instanceof Array && _.children.length) {
               formatADLine(_.children)
             }
           })
         }
-
         const fetchOtherSystemInstances = async () => {
           this.instancesInUnit = {}
           this.graphNodes = {}
           this.genADChildrenDot(this.systemData[0].children || [], 1)
           this.initADGraph()
         }
-        this.systemData = formatADData(data)
+        this.systemData = formatADData(data, 'p')
         this.graphData = this.systemData
         this.operateNodeData = this.systemData[0]
         this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
-        this.$refs.transferData.managementData(this.operateNodeData, this.originData)
+        this.$refs.transferData.managementData(this.operateNodeData)
         formatADLine(data)
-        this.$refs.transferData.linkManagementData(this.effectiveLink)
         fetchOtherSystemInstances()
       }
     },
@@ -302,10 +545,9 @@ export default {
           .on('dblclick.zoom', null)
           .on('wheel.zoom', null)
           .on('mousewheel.zoom', null)
-        const width = ((window.innerWidth - 60) / 24) * 16 - 40
         this.graph.graphviz = graph
           .graphviz()
-          .width(width)
+          .width(window.innerWidth - 60)
           .height(window.innerHeight - 260)
           .zoom(true)
           .fit(true)
@@ -323,7 +565,6 @@ export default {
         .on('end', () => {
           addEvent('.node', 'click', this.handleNodeClick)
           addEvent('.cluster', 'click', this.handleNodeClick)
-          // addEvent('.edge', 'click', this.handleEdgeClick)
         })
       // 最外图层选中处理
       d3.select('#clust1').on('click', () => {
@@ -350,14 +591,6 @@ export default {
       this.cacheIdPath = [guid]
       this.$refs.transferData.managementData(this.operateNodeData)
     },
-    handleEdgeClick (e) {
-      let guid = e.currentTarget.id.substring(3)
-      this.markEdge(guid)
-      const selectLinkIndex = this.effectiveLink.findIndex(link => {
-        return link.guid === guid
-      })
-      this.$refs.transferData.openLinkPanal([selectLinkIndex + 1 + ''])
-    },
     genADDOT (data) {
       this.graphNodes = {}
       if (!data.length) {
@@ -373,7 +606,7 @@ export default {
         `size="${width},${height}";`,
         `subgraph cluster_${data[0].guid}{`,
         `style="filled";color="${colors[0]}";`,
-        `tooltip="${data[0].data.code}";`,
+        `tooltip="${'(' + data[0].data.key_name + ')' + data[0].data.description}";`,
         `label="${data[0].data.code}";`,
         this.genADChildrenDot(data[0].children || [], 1),
         '}',
@@ -399,7 +632,7 @@ export default {
               `color="${color || colors[level]}";`,
               `style="filled";fillcolor="${colors[level]}";`,
               `label=${_.label};`,
-              `tooltip="${_.tooltip}";`,
+              `tooltip="${'(' + _.data.key_name + ')' + _.data.description}";`,
               this.genADChildrenDot(_.children, level + 1),
               '}'
             )
@@ -409,6 +642,7 @@ export default {
               `"n_${_.guid}"`,
               `[id="n_${_.guid}",shape="none",`,
               `fillcolor="${color || colors[level]}";`,
+              `tooltip="${'(' + _.data.key_name + ')' + _.data.description}";`,
               `label=${_.label}`,
               '];'
             )
@@ -432,10 +666,10 @@ export default {
           `n_${node.from}->n_${node.to}`,
           `[id="gl_${node.id}",`,
           `color="${color}"`,
-          `tooltip="${node.label || ''}",`,
+          `tooltip="${'(' + node.data.key_name + ')' + node.data.description}",`,
+          `tailtooltip="${'(' + node.data.key_name + ')' + node.data.description}",`,
           `taillabel="${node.label || ''}"];`
         )
-
         const formatLabel = (keyName, guid) => {
           if (this.instancesInUnit[guid]) {
             let label = [
@@ -472,46 +706,6 @@ export default {
       })
       return result.join('')
     },
-    genChildrenDot (data, level) {
-      let dots = []
-      data.forEach(_ => {
-        let _label = _.data.code
-        _label = _label.length > 21 ? `${_label.slice(0, 1)}...${_label.slice(-15)}` : _label
-        dots = dots.concat([
-          `"${_.guid}"`,
-          `[id="n_${_.guid}";`,
-          `label="${_label}";`,
-          `image="${baseURL}/files/${_.imageFileId}.png";`,
-          'labelloc="b"',
-          `tooltip="${_.data.code}"];`
-        ])
-        this.rankNodes[_.ciTypeId].push(`"${_.guid}"`)
-        if (_.children instanceof Array && _.children.length) {
-          dots = dots.concat(this.genChildrenDot(_.children, level + 1))
-          _.children.forEach(c => {
-            dots = dots.concat([`"${_.guid}" -> "${c.guid}";`])
-          })
-        }
-      })
-      return dots
-    },
-    onSystemDesignSelect (key) {
-      this.systemData = []
-      this.systemTreeData = []
-      this.systemLines = {}
-      this.graphNodes = {}
-      this.initADGraph()
-    },
-    async getSystems () {
-      let { statusCode, data } = await getSystems()
-      if (statusCode === 'OK') {
-        this.systems = data.contents.map(_ => _.data)
-      }
-    },
-    async querySysTree () {
-      this.spinShow = true
-      this.getAllDeployTreesFromSystemCi()
-    },
     async getConfigParams () {
       const { statusCode, data } = await getEnumCodesByCategoryId(0, VIEW_CONFIG_PARAMS)
       if (statusCode === 'OK') {
@@ -519,7 +713,6 @@ export default {
         data.forEach(_ => {
           this.initParams[_.code] = Number(_.value) ? Number(_.value) : _.value
         })
-        this.getSystems()
       }
     }
   },
@@ -533,28 +726,16 @@ export default {
 .no-data {
   text-align: center;
 }
-
-.copy-modal {
-  .ivu-modal-body {
-    max-height: 450px;
-    overflow-y: auto;
-  }
-
-  .copy-form {
-    display: flex;
-    flex-flow: column nowrap;
-  }
-
-  .copy-input {
-    display: flex;
-    flex-flow: row nowrap;
-    margin-top: 20px;
-    align-items: center;
-
-    .ivu-input-number {
-      flex: 1;
-      margin-right: 15px;
-    }
-  }
+.container-height {
+  height: calc(100vh - 245px);
+}
+.operation-area {
+  position: absolute;
+  width: 450px;
+  top: 10px;
+  right: 0px;
+}
+.operation-container {
+  height: calc(100vh - 310px);
 }
 </style>

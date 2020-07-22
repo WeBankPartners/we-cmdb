@@ -73,6 +73,7 @@
             <div v-show="showApplicationArchitectureComponent">
               <ApplicationArchitectureComponent
                 ref="applicationArchitectureComponent"
+                :hideNextOperations="!isTableViewOnly"
               ></ApplicationArchitectureComponent>
             </div>
             <div v-if="!showApplicationArchitectureComponent" class="no-data">
@@ -480,7 +481,10 @@ export default {
     },
     async getAllDesignTreeFromSystemDesign () {
       this.showApplicationArchitectureComponent = true
-      this.$refs.applicationArchitectureComponent.getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
+      this.$refs.applicationArchitectureComponent.getAllDesignTreeFromSystemDesign(
+        this.systemDesignVersion,
+        this.isTableViewOnly
+      )
       this.allUnitDesign = []
       const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
       if (treeData.statusCode === 'OK') {

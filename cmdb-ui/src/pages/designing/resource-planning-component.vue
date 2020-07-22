@@ -1,39 +1,25 @@
 <template>
   <div>
-    <!-- <Row class="graph-select-row">
-      <Col span="8" offset="1" class="resource-planning-title">
-        <TreeSelect
-          v-model="selectedIdcs"
-          :maxTagCount="3"
-          :placeholder="$t('select_idc')"
-          :data="treeIdcs"
-          :clearable="true"
-          style="width:100%"
-        ></TreeSelect>
-      </Col>
-      <Col span="6">
-        <Button @click="onIdcDataChange" type="primary">{{ $t('query') }}</Button>
-      </Col>
-    </Row> -->
     <Row class="resource-design-tab-row">
-      <!-- <Spin fix v-if="spinShow">
-        <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-        <div>{{ $t('loading') }}</div>
-      </Spin> -->
       <Row>
-        <Col span="16">
+        <Col span="24">
           <Card>
             <div class="graph-container-big" id="resourcePlanningGraph"></div>
-          </Card>
-        </Col>
-        <Col span="8" class="operation-zone">
-          <Card>
-            <Operation
-              ref="transferData"
-              @operationReload="operationReload"
-              @markZone="markZone"
-              @markEdge="markEdge"
-            ></Operation>
+            <div class="operation-area">
+              <Collapse>
+                <Panel name="1">
+                  {{ $t('operating_area') }}
+                  <div slot="content">
+                    <Operation
+                      ref="transferData"
+                      @operationReload="operationReload"
+                      @markZone="markZone"
+                      @markEdge="markEdge"
+                    ></Operation>
+                  </div>
+                </Panel>
+              </Collapse>
+            </div>
           </Card>
         </Col>
       </Row>
@@ -45,13 +31,7 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line
 import * as d3Graphviz from 'd3-graphviz'
-import {
-  getAllIdcData,
-  getResourcePlanningCiData,
-  getEnumCodesByCategoryId,
-  queryCiData,
-  getTreeData
-} from '@/api/server'
+import { getResourcePlanningCiData, getEnumCodesByCategoryId, queryCiData, getTreeData } from '@/api/server'
 import { colors, defaultFontSize as fontSize } from '../../const/graph-configuration'
 import TreeSelect from '../components/tree-select.vue'
 import {
@@ -60,13 +40,12 @@ import {
   NETWORK_SEGMENT,
   LAYER,
   RESOURCE_PLANNING_LINK_ID,
-  RESOURCE_PLANNING_LINK_FROM,
-  RESOURCE_PLANNING_LINK_TO,
   RESOURCE_PLANNING_ROUTER_CODE,
   DEFAULT_SECURITY_POLICY_CODE
 } from '@/const/init-params.js'
-import Operation from './operation'
+import Operation from './planning-operation'
 import { addEvent } from '../util/event.js'
+import exprLineFinder from '@/const/format-links'
 
 export default {
   components: {
@@ -78,7 +57,6 @@ export default {
       graphCiTypeId: 22,
       initParams: {},
       treeIdcs: [],
-      allIdcs: {},
       selectedIdcs: [],
       payload: {
         filters: [],
@@ -111,7 +89,12 @@ export default {
         type: '',
         color: ''
       },
-      activeLineGuid: ''
+      activeLineGuid: '',
+
+      linkExpr: {
+        exprFrom: 'network_link.network_segment_1>network_segment~(network_segment)network_zone',
+        exprTo: 'network_link.network_segment_2>network_segment~(network_segment)network_zone'
+      }
     }
   },
   watch: {
@@ -146,16 +129,9 @@ export default {
   },
   mounted () {
     this.initGraph()
-    this.graphConfig = {
-      nodePath: '',
-      nodeKey: 'data.network_segment_design.guid',
-      fromKey: 'data.network_segment_design_1.guid',
-      toKey: 'data.network_segment_design_2.guid'
-    }
   },
   methods: {
     operationReload (operateNodeData, operateLineData) {
-      // this.onIdcDataChange(this.selectedIdcs)
       if (!operateNodeData) {
         this.loadMap(this.graphData, operateLineData)
         return
@@ -177,9 +153,10 @@ export default {
       } else {
         tmpData = operateNodeData
       }
+      this.$refs.transferData.managementData(operateNodeData)
       this.loadMap([tmpData], operateLineData)
     },
-    loadMap (graphData, operateLineData) {
+    async loadMap (graphData, operateLineData) {
       this.graphData = graphData
       this.graphData[0].children.forEach(_ => {
         this.firstChildrenGroup.push(`g_${_.guid}`)
@@ -210,40 +187,35 @@ export default {
       if (operateLineData) {
         const lineInfoData = operateLineData.lineInfo.data
         if (operateLineData.type === 'add') {
-          this.lineData.push({
-            guid: lineInfoData.guid,
-            from: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
-            linkInfo: {
-              ...lineInfoData,
-              ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
-            },
-            to: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
-            label: lineInfoData.code,
-            state: lineInfoData.state.code
-          })
+          // this.lineData.push({
+          //   guid: lineInfoData.guid,
+          //   from: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
+          //   linkInfo: {
+          //     ...lineInfoData,
+          //     ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
+          //   },
+          //   to: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
+          //   label: lineInfoData.code,
+          //   state: lineInfoData.state.code
+          // })
+          let param = {
+            data: operateLineData.lineInfo.data,
+            meta: operateLineData.lineInfo.data.meta
+          }
+          const updateLine = await exprLineFinder(this.linkExpr, [param], this.initParams[RESOURCE_PLANNING_LINK_ID])
+          this.lineData.push(updateLine[0])
         }
         if (operateLineData.type === 'edit') {
           const index = this.lineData.findIndex(_ => {
             return _.guid === lineInfoData.guid
           })
-          this.lineData[index] = {
-            guid: lineInfoData.guid,
-            from: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
-            linkInfo: {
-              ...lineInfoData,
-              ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
-            },
-            to: lineInfoData[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
-            label: lineInfoData.code,
-            state: lineInfoData.state.code
+          let param = {
+            data: operateLineData.lineInfo.data,
+            meta: operateLineData.lineInfo.data.meta
           }
+          const updateLine = await exprLineFinder(this.linkExpr, [param], this.initParams[RESOURCE_PLANNING_LINK_ID])
+          this.lineData[index] = updateLine[0]
         }
-        // if (operateLineData.type === 'edit') {
-        //   const index = this.lineData.findIndex(_ => {
-        //     return _.guid === lineInfoData.guid
-        //   })
-        //   this.lineData[index] = lineInfoData
-        // }
         if (operateLineData.type === 'remove') {
           const index = this.lineData.findIndex(_ => {
             return _.guid === lineInfoData.guid
@@ -281,67 +253,9 @@ export default {
         .select('text')
         .attr('fill', '#ff9900')
     },
-    async getAllIdcData () {
-      const { data, statusCode } = await getAllIdcData()
-      if (statusCode === 'OK') {
-        this.allIdcs = {}
-        const regional = this.initParams[REGIONAL_DATA_CENTER]
-        data.forEach(_ => {
-          if (!_.data[regional]) {
-            this.treeIdcs.push({
-              guid: _.data.guid,
-              title: _.data.name,
-              expand: true,
-              children: []
-            })
-          }
-          this.allIdcs[_.data.guid] = {
-            guid: _.data.guid,
-            name: _.data.name,
-            realIdcGuid: _.data[regional] ? _.data[regional].guid : _.data.guid
-          }
-        })
-        const deep = (idcObj, idc) => {
-          if (idc.data[regional] && idcObj.guid === idc.data[regional].guid) {
-            const found = idcObj.children.find(_ => _.guid === idc.data.guid)
-            if (!found) {
-              idcObj.children.push({
-                guid: idc.data.guid,
-                title: idc.data.name,
-                realIdcGuid: idcObj.guid,
-                expand: true,
-                children: []
-              })
-            }
-          } else {
-            idcObj.children.forEach(child => {
-              data.forEach(i => {
-                deep(child, i)
-              })
-            })
-          }
-        }
-        this.treeIdcs.forEach(_ => {
-          data.forEach(idc => {
-            deep(_, idc)
-          })
-        })
-      }
-    },
     async onIdcDataChange (selectedIdcs) {
       this.selectedIdcs = selectedIdcs
-      // let willSelectIdc = {}
       this.idcData = []
-      // this.selectedIdcs.forEach(_ => {
-      //   const realIdcGuid = this.allIdcs[_].realIdcGuid
-      //   if (!this.selectedIdcs.find(guid => realIdcGuid === guid)) {
-      //     willSelectIdc[realIdcGuid] = realIdcGuid
-      //   }
-      // })
-      // let selectedIdcs = JSON.parse(JSON.stringify(this.selectedIdcs))
-      // Object.keys(willSelectIdc).forEach(guid => {
-      //   selectedIdcs.push(guid)
-      // })
       if (selectedIdcs.length) {
         this.spinShow = true
         const payload = {
@@ -397,21 +311,11 @@ export default {
           this.operateNodeData = this.graphData[0]
           this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
           this.$refs.transferData.managementData(this.operateNodeData)
-          this.lineData = links.data.contents.map(_ => {
-            return {
-              guid: _.data.guid,
-              from: _.data[this.initParams[RESOURCE_PLANNING_LINK_FROM]].guid,
-              linkInfo: {
-                ..._.data,
-                meta: _.meta,
-                ciTypeId: this.initParams[RESOURCE_PLANNING_LINK_ID]
-              },
-              to: _.data[this.initParams[RESOURCE_PLANNING_LINK_TO]].guid,
-              label: _.data.code,
-              state: _.data.state.code
-            }
-          })
-
+          this.lineData = await exprLineFinder(
+            this.linkExpr,
+            links.data.contents,
+            this.initParams[RESOURCE_PLANNING_LINK_ID]
+          )
           this.$nextTick(() => {
             this.initGraph()
           })
@@ -443,11 +347,11 @@ export default {
     },
     handleEdgeClick (e) {
       let guid = e.currentTarget.id.substring(3)
-      this.markEdge('0026_0000000036')
-      const selectLinkIndex = this.effectiveLink.findIndex(link => {
+      this.markEdge(guid)
+      const selectLink = this.effectiveLink.find(link => {
         return link.guid === guid
       })
-      this.$refs.transferData.openLinkPanal([selectLinkIndex + 1 + ''])
+      this.$refs.transferData.openLinkPanal([selectLink.guid], selectLink.tableName)
     },
     initGraph () {
       let graph
@@ -457,12 +361,11 @@ export default {
           .on('dblclick.zoom', null)
           .on('wheel.zoom', null)
           .on('mousewheel.zoom', null)
-        const width = (window.innerWidth / 24) * 16 - 80
         this.graph.graphviz = graph
           .graphviz()
           .fit(true)
           .zoom(true)
-          .width(width)
+          .width(window.innerWidth - 60)
           .height(window.innerHeight - 275)
       }
       initEvent()
@@ -476,6 +379,9 @@ export default {
           d3.select(`#n_${zone.guid}`)
             .select('polygon')
             .attr('fill', colors[1])
+          d3.select(`#n_${zone.guid}`)
+            .select('title')
+            .text('(' + zone.data.key_name + ')' + zone.data.description)
           if (zone.children instanceof Array) {
             let points = d3
               .select(`#n_${zone.guid}`)
@@ -538,7 +444,7 @@ export default {
         dots.push(
           `subgraph cluster_${idc.guid} {`,
           `style="filled";color="${colors[0]}";`,
-          `tooltip="${idc.data.description}";`,
+          `tooltip="${'(' + idc.data.key_name + ')' + idc.data.description}";`,
           `label="${idc.data.name}";`,
           this.genChildren(idc.children || [], 1),
           '}'
@@ -590,20 +496,13 @@ export default {
     },
     genLines () {
       let dots = []
-      let newworkToNode = {}
-      Object.keys(this.graphNodes).forEach(guid => {
-        const networkSegment = this.graphNodes[guid].data[this.initParams[NETWORK_SEGMENT]]
-        if (networkSegment) {
-          newworkToNode[networkSegment.guid] = guid
-        }
-      })
       this.effectiveLink = []
       this.lineData.forEach(_ => {
-        if (newworkToNode[_.from] && newworkToNode[_.to]) {
+        if (_.from in this.graphNodes && _.to in this.graphNodes) {
           this.effectiveLink.push(_.linkInfo)
           dots.push(
-            `n_${newworkToNode[_.from]} -> n_${newworkToNode[_.to]}[id=gl_${_.guid},tooltip="${_.label ||
-              ''}",taillabel="${_.label || ''}"];`
+            `n_${_.from} -> n_${_.to}[id=gl_${_.guid},tooltip="${_.linkInfo.key_name || ''}",tailtooltip="${_.linkInfo
+              .key_name || ''}",taillabel="${_.label || ''}"];`
           )
         }
       })
@@ -646,6 +545,7 @@ export default {
             _h = h
             ty = p1.y + tfsize * tlength + mgap + _h * 0.5
           }
+          g.append('title').text('(' + node.children[i].data.key_name + ')' + node.children[i].data.description)
           g.append('rect')
             .attr('x', rx)
             .attr('y', _ry)
@@ -698,6 +598,7 @@ export default {
             .append('g')
             .attr('class', 'node')
             .attr('id', `n_${node.children[i].guid}`)
+          g.append('title').text('(' + node.children[i].data.key_name + ')' + node.children[i].data.description)
           g.append('rect')
             .attr('x', rx)
             .attr('y', ry)
@@ -726,7 +627,6 @@ export default {
       }
     },
     async queryCiData () {
-      this.getAllIdcData()
       const found = this.tabList.find(_ => _.code === this.currentTab)
       if (
         this.currentTab === this.initParams[RESOURCE_PLANNING_ROUTER_CODE] ||
@@ -823,7 +723,6 @@ export default {
           this.initParams[_.code] = _.value
         })
       }
-      this.getAllIdcData()
     }
   },
   created () {
@@ -833,71 +732,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.graph-select-row {
-  margin-bottom: 10px;
-}
-.graph-tabs {
-  min-height: 400px;
-  position: relative;
-}
-.ivu-card-head p {
-  height: 30px;
-  line-height: 30px;
-}
-.filter-title {
-  margin-right: 10px;
-}
-.graph-list {
-  overflow-x: auto;
-  display: flex;
-}
-.graph-list > div {
-  cursor: pointer;
-}
-.graph-container {
-  width: 160px;
-  height: 120px;
-  float: left;
-  margin-right: 5px;
-  text-align: center;
-}
-.graph-container-big {
-  margin-top: 20px;
-}
-.resource-planning-title {
-  display: flex;
-  margin-right: 10px;
-  margin-left: 0;
-  & > span {
-    line-height: 32px;
-  }
-}
-.resource-planning-select {
-  flex: 1;
-  margin-left: 10px;
-}
-
-.copy-modal {
-  .ivu-modal-body {
-    max-height: 450px;
-    overflow-y: auto;
-  }
-
-  .copy-form {
-    display: flex;
-    flex-flow: column nowrap;
-  }
-
-  .copy-input {
-    display: flex;
-    flex-flow: row nowrap;
-    margin-top: 20px;
-    align-items: center;
-
-    .ivu-input-number {
-      flex: 1;
-      margin-right: 15px;
-    }
-  }
+.operation-area {
+  position: absolute;
+  width: 450px;
+  top: 10px;
+  right: 0px;
 }
 </style>
