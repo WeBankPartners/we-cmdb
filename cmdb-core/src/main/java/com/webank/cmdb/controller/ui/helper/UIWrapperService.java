@@ -1122,18 +1122,17 @@ public class UIWrapperService {
         }
         inputFilters.getDialect().setShowCiHistory(true);
         inputFilters.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
-        Map<String, String> aggregation = Maps.newHashMap();
-        aggregation.put(AggregationFuction.MAX.getCode(), CONSTANT_FIXED_DATE);
-        inputFilters.setAggregationFuction(aggregation);
         inputFilters.getFilters().add(fixDate);
         inputFilters.addNotEmptyFilter(CONSTANT_FIXED_DATE);
         inputFilters.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID));
-        List<CiData> fixed_date = queryCiData(ciTypeId, inputFilters).getContents();
-        if (fixed_date == null || fixed_date.size() <= 0) {
+        List<CiData> ciDatas = queryCiData(ciTypeId, inputFilters).getContents();
+        if (ciDatas == null || ciDatas.size() <= 0) {
             return inputFilters;
         }
-        List date = (List) fixed_date.get(0).getData().get(CONSTANT_FIXED_DATE);
-        queryData.addInFilter(CONSTANT_FIXED_DATE, date);
+        List<String> guids = ciDatas.stream().map(ciData ->{
+            return ciData.getData().get(CmdbConstants.GUID).toString();
+        }).collect(Collectors.toList());
+        queryData.addInFilter(CmdbConstants.GUID, guids);
         queryData.getDialect().setShowCiHistory(true);
         return queryData;
     }
