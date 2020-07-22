@@ -59,7 +59,7 @@
 
     <!-- 6.运行资源 - 描述部署运行本插件包需要的基础资源(如主机、虚拟机、容器、数据库等) -->
     <resourceDependencies>
-        <docker imageName="{{REPOSITORY}}:{{VERSION}}" containerName="{{REPOSITORY}}-{{VERSION}}" portBindings="{{ALLOCATE_PORT}}:8081" volumeBindings="{{BASE_MOUNT_PATH}}/wecmdb/log:/target/data/cmdb/log,/etc/localtime:/etc/localtime" envVariables="DB_HOST={{DB_HOST}},DB_PORT={{DB_PORT}},DB_SCHEMA={{DB_SCHEMA}},DB_USER={{DB_USER}},DB_PWD={{DB_PWD}}"/>
+        <docker imageName="{{REPOSITORY}}:{{VERSION}}" containerName="{{REPOSITORY}}-{{VERSION}}" portBindings="{{ALLOCATE_PORT}}:8081" volumeBindings="{{BASE_MOUNT_PATH}}/wecmdb/log:/data/wecmdb/log,/etc/localtime:/etc/localtime" envVariables="DB_HOST={{DB_HOST}},DB_PORT={{DB_PORT}},DB_SCHEMA={{DB_SCHEMA}},DB_USER={{DB_USER}},DB_PWD={{DB_PWD}}"/>
         <mysql schema="wecmdb_embedded" initFileName="init.sql" upgradeFileName="upgrade.sql"/>
     </resourceDependencies>
 
@@ -152,6 +152,30 @@
                     <parameter datatype="string" sensitiveData="N" mappingType="context">message</parameter>
                     <parameter datatype="string" sensitiveData="N" mappingType="context">guid</parameter>
                     <parameter datatype="string" sensitiveData="N" mappingType="context">fixed_date</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="ci-data-refresh" targetPackage="wecmdb" targetEntity="app_instance" registerName="app_instance" targetEntityFilterRule="">
+            <interface action="refresh" path="/wecmdb/data/refresh" filterRule="{state_code eq 'created'}{fixed_date is NULL}">
+                <inputParameters>
+                    <parameter datatype="string" required="N" sensitiveData="N"  mappingType="entity" mappingEntityExpression="wecmdb:app_instance.guid">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">status</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">message</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="entity" mappingEntityExpression="wecmdb:app_instance.guid">guid</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="ci-data-refresh" targetPackage="wecmdb" targetEntity="rdb_instance" registerName="rdb_instance" targetEntityFilterRule="">
+            <interface action="refresh" path="/wecmdb/data/refresh" filterRule="{state_code eq 'created'}{fixed_date is NULL}">
+                <inputParameters>
+                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="entity" mappingEntityExpression="wecmdb:rdb_instance.guid">guid</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">status</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">message</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="entity" mappingEntityExpression="wecmdb:rdb_instance.guid">guid</parameter>
                 </outputParameters>
             </interface>
         </plugin>
