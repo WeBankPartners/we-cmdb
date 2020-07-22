@@ -427,7 +427,7 @@ CREATE TABLE `adm_log` (
   `created_by` varchar(64) DEFAULT NULL,
   `created_date` varchar(64) DEFAULT NULL,
   `ci_type_instance_guid` varchar(64) DEFAULT NULL,
-  `remark` varchar(200) DEFAULT NULL,
+  `remark` varchar(1000) DEFAULT NULL,
   `ci_type_name` varchar(100) DEFAULT NULL,
   `ci_name` varchar(100) DEFAULT NULL,
   `status` int(2) DEFAULT '0',

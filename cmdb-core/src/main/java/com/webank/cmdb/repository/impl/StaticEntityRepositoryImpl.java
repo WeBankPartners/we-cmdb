@@ -2,21 +2,15 @@ package com.webank.cmdb.repository.impl;
 
 import static java.lang.reflect.Modifier.isStatic;
 
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.persistence.EntityGraph;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.Subgraph;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
@@ -26,7 +20,9 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 
+import com.webank.cmdb.support.exception.CmdbException;
 import org.apache.commons.beanutils.BeanMap;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -567,53 +563,115 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
         sb.append(") ENGINE=InnoDB DEFAULT CHARSET=utf8");
         return sb.toString();
     }
+
     @Override
     public List<AdmCiTypeAttr> retrieveDefaultAdmCiTypeAttrs(AdmCiType admCiType) {
-        Query createNativeQuery = entityManager.createNativeQuery("SELECT * FROM adm_ci_type_attr_base ");
-        List baseAttrs = createNativeQuery.getResultList();
-        List<AdmCiTypeAttr> ciTypeAttrs = retrieveBaseAttrs(baseAttrs, admCiType);
-        return ciTypeAttrs;
+        String selectSql = null;
+        List<AttrFieldInfo> attrFieldInfos = null;
+        try {
+            attrFieldInfos = CiTypeAttrInfos();
+            StringBuilder sb = new StringBuilder("SELECT ");
+            Iterator<AttrFieldInfo> iterator = attrFieldInfos.iterator();
+            while (iterator.hasNext()){
+                AttrFieldInfo attrFieldInfo = iterator.next();
+                sb.append(attrFieldInfo.getColumn());
+                if(iterator.hasNext()){
+                    sb.append(",");
+                }
+            }
+            sb.append(" FROM adm_ci_type_attr_base ");
+            selectSql = sb.toString();
+        }catch (Exception ex){
+            throw new CmdbException("Failed to retrieved default AdmCiTypeAttr fields.",ex);
+        }
+
+        List<AdmCiTypeAttr> admCiTypeAttrs = new ArrayList<>();
+        Query createNativeQuery = entityManager.createNativeQuery(selectSql);
+        List<Object[]> baseAttrs = createNativeQuery.getResultList();
+        for(Object[] row:baseAttrs){
+            AdmCiTypeAttr attr = new AdmCiTypeAttr();
+            for(int i=0;i<row.length;i++){
+                AttrFieldInfo attrFieldInfo = attrFieldInfos.get(i);
+                try {
+                    attrFieldInfo.getSetter().invoke(attr,row[i]);
+                } catch (Exception e) {
+                    throw new CmdbException("Failed to retrieved default AdmCiTypeAttr fields.",e);
+                }
+            }
+            attr.setCiTypeId(admCiType.getIdAdmCiType());
+            attr.setIdAdmCiTypeAttr(null);
+            admCiTypeAttrs.add(attr);
+        }
+        return admCiTypeAttrs;
     }
 
-    public List<AdmCiTypeAttr> retrieveBaseAttrs(List<Object[]> baseAttrs, AdmCiType admCiType) {
-        List<AdmCiTypeAttr> ciTypeAttrs = new ArrayList<AdmCiTypeAttr>();
-        baseAttrs.stream().forEach(arr -> {
-            AdmCiTypeAttr ciType = objectToCiTypeAttr(arr, admCiType);
-            ciTypeAttrs.add(ciType);
-        });
-        return ciTypeAttrs;
+    class AttrFieldInfo{
+        private String column;
+        private Method reader;
+        private Method setter;
+        private Class type;
+
+        public Method getReader() {
+            return reader;
+        }
+
+        public void setReader(Method reader) {
+            this.reader = reader;
+        }
+
+        public Method getSetter() {
+            return setter;
+        }
+
+        public void setSetter(Method setter) {
+            this.setter = setter;
+        }
+
+        public String getColumn() {
+            return column;
+        }
+
+        public void setColumn(String column) {
+            this.column = column;
+        }
+
+        public Class getType() {
+            return type;
+        }
+
+        public void setType(Class type) {
+            this.type = type;
+        }
     }
 
-    public AdmCiTypeAttr objectToCiTypeAttr(Object[] arr, AdmCiType admCiType) {
-        AdmCiTypeAttr admCiTypeAttr = new AdmCiTypeAttr();
-        admCiTypeAttr.setCiTypeId(admCiType.getIdAdmCiType());
-        admCiTypeAttr.setName((String) arr[2]);
-        admCiTypeAttr.setDescription((String) arr[3]);
-        admCiTypeAttr.setInputType((String) arr[4]);
-        admCiTypeAttr.setPropertyName((String) arr[5]);
-        admCiTypeAttr.setPropertyType((String) arr[6]);
-        admCiTypeAttr.setLength((Integer) arr[7]);
-        admCiTypeAttr.setReferenceId((Integer) arr[8]);
-        admCiTypeAttr.setReferenceName((String) arr[9]);
-        admCiTypeAttr.setReferenceType((Integer) arr[10]);
-        admCiTypeAttr.setFilterRule((String) arr[11]);
-        admCiTypeAttr.setSearchSeqNo((Integer) arr[12]);
-        admCiTypeAttr.setDisplayType((Integer) arr[13]);
-        admCiTypeAttr.setDisplaySeqNo((Integer) arr[14]);
-        admCiTypeAttr.setEditIsNull((Integer) arr[15]);
-        admCiTypeAttr.setEditIsOnly((Integer) arr[16]);
-        admCiTypeAttr.setEditIsHiden((Integer) arr[17]);
-        admCiTypeAttr.setEditIsEditable((Integer) arr[18]);
-        admCiTypeAttr.setIsDefunct((Integer) arr[19]);
-        admCiTypeAttr.setSpecialLogic((String) arr[20]);
-        admCiTypeAttr.setStatus((String) arr[21]);
-        admCiTypeAttr.setIsSystem((Integer) arr[22]);
-        admCiTypeAttr.setIsAccessControlled((Integer) arr[23]);
-        admCiTypeAttr.setIsAuto((Integer) arr[24]);
-        admCiTypeAttr.setAutoFillRule((String) arr[25]);
-        admCiTypeAttr.setRegularExpressionRule((String) arr[26]);
-        admCiTypeAttr.setIsRefreshable(((Integer) arr[27]));
-        admCiTypeAttr.setIsDeleteValidate(((Integer) arr[28]));
-        return admCiTypeAttr;
+    private List<AttrFieldInfo> CiTypeAttrInfos() throws IntrospectionException {
+        List<AttrFieldInfo> attrFieldInfos = new ArrayList<>();
+        Field[] fields = AdmCiTypeAttr.class.getDeclaredFields();
+
+        for (Field field : fields) {
+            AttrFieldInfo attrFieldInfo = new AttrFieldInfo();
+            attrFieldInfo.setType(field.getType());
+            Column fieldColumn = field.getAnnotation(Column.class);
+            PropertyDescriptor propertyDescriptor = null;
+            try {
+                propertyDescriptor = new PropertyDescriptor(field.getName(), AdmCiTypeAttr.class);
+            }catch (IntrospectionException ex){
+                continue;
+            }
+            Method getter = PropertyUtils.getReadMethod(propertyDescriptor);
+            if(fieldColumn !=null){
+                attrFieldInfo.setColumn(fieldColumn.name());
+            }else{
+                Column getterColumn = getter.getAnnotation(Column.class);
+                if(getterColumn == null)
+                    continue;
+                attrFieldInfo.setColumn(getterColumn.name());
+            }
+            attrFieldInfo.setReader(getter);
+            Method setter = PropertyUtils.getWriteMethod(propertyDescriptor);
+            attrFieldInfo.setSetter(setter);
+            attrFieldInfos.add(attrFieldInfo);
+        }
+        return attrFieldInfos;
     }
 }
