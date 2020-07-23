@@ -17,6 +17,9 @@ public class CiDataTreeDto {
     private Integer ciTypeId;
     private String rootGuid;
     private String guid;
+    private String fixedDate;
+    private String stateCode;
+    private String description;
     private Object data;
     private List<CiDataTreeDto> children = new LinkedList<>();
 }

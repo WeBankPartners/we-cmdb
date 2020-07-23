@@ -1932,7 +1932,7 @@ public class CiServiceImpl implements CiService {
 
         String tableName = ciTypeRepository.findByIdAdmCiType(fromCiTypeId).getTableName();
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("SELECT guid, name,r_guid from %s where (r_guid,fixed_date) in (SELECT ci.r_guid, max(ci.fixed_date) as fixed_date from %s ci, adm_basekey_code code " + "where ci.state = code.id_adm_basekey "
+        sb.append(String.format("SELECT guid, name,r_guid,state_code,fixed_date,code,description from %s where (r_guid,fixed_date) in (SELECT ci.r_guid, max(ci.fixed_date) as fixed_date from %s ci, adm_basekey_code code " + "where ci.state = code.id_adm_basekey "
                 + "and ci.fixed_date is not null " + "and ((ci.fixed_date < '%s' and code.code != '%s' ) or (ci.fixed_date = '%s'))", tableName, tableName, version, "delete", version, version));
 
         if (parentColumnName != null) {
@@ -1972,11 +1972,17 @@ public class CiServiceImpl implements CiService {
         data.put("guid", x[0]);
         data.put("name", x[1]);
         data.put("r_guid", x[2]);
+        data.put("state_code", x[3]);
+        data.put("fixed_date", x[4]);
+        data.put("description", x[5]);
 
         CiDataTreeDto ci = new CiDataTreeDto();
         ci.setCiTypeId(fromCiTypeId);
         ci.setGuid((String) data.get("guid"));
         ci.setRootGuid((String) data.get("r_guid"));
+        ci.setStateCode((String) data.get("state_code"));
+        ci.setFixedDate((String) data.get("fixed_date"));
+        ci.setDescription((String) data.get("description"));
         ci.setData(data);
         cis.add(ci);
         return ci;
