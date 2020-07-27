@@ -119,6 +119,8 @@ public class CmdbConstants {
     public static final String DEFAULT_FIELD_FIXED_DATE = "fixed_date";
     public static final String DEFAULT_FIELD_ORCHESTRATION = "orchestration";
     public static final String DEFAULT_FIELD_BIZ_KEY = "biz_key";
+    public static final String DEFAULT_FIELD_STATE_CODE = "state_code";
+    public static final String CIDATA_STATE_DELETED = "deleted";
 
     public static final Integer ENUM_CAT_TYPE_SYS = 1;
     public static final Integer ENUM_CAT_TYPE_COMMON = 2;
