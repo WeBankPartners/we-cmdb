@@ -43,7 +43,8 @@ export default {
             inputKey: _.key,
             disEditor: true,
             displaySeqNo: 1,
-            searchSeqNo: 1
+            searchSeqNo: 1,
+            isDisplayed: true
           }
           if (_.vals) {
             result.options = _.vals.map(opt => {
