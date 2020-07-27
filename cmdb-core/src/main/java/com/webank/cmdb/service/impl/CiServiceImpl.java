@@ -3,13 +3,12 @@ package com.webank.cmdb.service.impl;
 import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Creation;
 import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Modification;
 import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Removal;
-import static com.webank.cmdb.constant.CmdbConstants.CALLBACK_ID;
-import static com.webank.cmdb.constant.CmdbConstants.GUID;
 import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_ENQUIRY;
 import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_MODIFICATION;
 import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_REMOVAL;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static com.webank.cmdb.constant.CmdbConstants.*;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -353,14 +352,15 @@ public class CiServiceImpl implements CiService {
             results = doQuery(ciRequest, entityMeta, false);
             results.forEach(x -> {
                 Map<String, Object> entityBeanMap = null;
-
+                
                 entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true, ciRequest.getResultColumns());
 
                 Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
                 List<String> nextOperations = getNextOperations(entityBeanMap);
                 CiData ciData = new CiData(enhacedMap, nextOperations);
-
-                ciInfoResp.addContent(ciData);
+                if(!(ciData.getData().get(DEFAULT_FIELD_FIXED_DATE) != null && "".equals(ciData.getData().get(DEFAULT_FIELD_FIXED_DATE)) && CIDATA_STATE_DELETED.equals(ciData.getData().get(DEFAULT_FIELD_STATE_CODE)))) {
+                   ciInfoResp.addContent(ciData);
+                }
             });
         } finally {
             priEntityManager.close();
@@ -581,7 +581,6 @@ public class CiServiceImpl implements CiService {
                 if (CiStatus.Decommissioned.getCode().equals(attr.getStatus()) || (attr.getEditIsHiden() != null && attr.getEditIsHiden() != 0)) {
                     continue;
                 }
-                
                 if(!fieldNode.isJoinNode()) {
                     value = convertFieldValue(fieldName, value, attrMap.get(attrId));
                     ciMap.put(fieldName, value);
