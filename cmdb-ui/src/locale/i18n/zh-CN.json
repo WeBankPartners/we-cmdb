@@ -273,5 +273,7 @@
   "add_node": "新增节点",
   "link_information": "连线信息",
   "add_link": "新增连线",
-  "operating_area": "操作区"
+  "operating_area": "操作区",
+  "appArchFirstPart": "是否基于",
+  "appArchSecPart": "版本做架构变更"
 }
