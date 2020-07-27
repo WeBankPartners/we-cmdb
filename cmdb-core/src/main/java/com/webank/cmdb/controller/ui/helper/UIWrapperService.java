@@ -539,7 +539,7 @@ public class UIWrapperService {
         if (queryObject == null) {
             queryObject = QueryRequest.defaultQueryObject().descendingSortBy(CmdbConstants.DEFAULT_FIELD_CREATED_DATE);
         } else if (queryObject.getSorting() == null || queryObject.getSorting().getField() == null) {
-            queryObject.getDialect().setShowCiHistory(false);
+            queryObject.getDialect().setShowCiHistory(true);
             queryObject.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_CREATED_DATE));
         }
         queryObject.addNotEqualsFilter("state", uiProperties.getEnumIdOfStateDelete());
