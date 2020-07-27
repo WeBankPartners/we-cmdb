@@ -59,7 +59,8 @@ export default {
           options: [],
           optionKey: 'catOpts',
           isEditable: true,
-          isAuto: false
+          isAuto: false,
+          isDisplayed: true
         },
         {
           title: this.$t('table_enum_key'),
@@ -72,7 +73,8 @@ export default {
           inputType: 'text',
           placeholder: 'code',
           isEditable: true,
-          isAuto: false
+          isAuto: false,
+          isDisplayed: true
         },
         {
           title: this.$t('table_enum_value'),
@@ -85,7 +87,8 @@ export default {
           inputType: 'text',
           placeholder: 'value',
           isEditable: true,
-          isAuto: false
+          isAuto: false,
+          isDisplayed: true
         },
         {
           title: this.$t('form_enum_type'),
@@ -100,7 +103,8 @@ export default {
           inputType: 'text',
           placeholder: 'catTypeName',
           isEditable: false,
-          isAuto: false
+          isAuto: false,
+          isDisplayed: true
         },
         {
           title: this.$t('table_enum_group'),
@@ -114,7 +118,8 @@ export default {
           placeholder: 'groupCodeId',
           optionColumnKey: 'catId',
           isEditable: true,
-          isAuto: false
+          isAuto: false,
+          isDisplayed: true
         },
         {
           title: this.$t('state'),
@@ -129,7 +134,8 @@ export default {
           optionKey: 'statusOpts',
           options: [],
           isEditable: true,
-          isAuto: false
+          isAuto: false,
+          isDisplayed: true
         },
         {
           title: this.$t('description'),
@@ -142,7 +148,8 @@ export default {
           inputType: 'text',
           placeholder: 'codeDescription',
           isEditable: true,
-          isAuto: false
+          isAuto: false,
+          isDisplayed: true
         }
       ],
       pagination: {
