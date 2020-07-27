@@ -264,6 +264,7 @@ export default {
   },
   data () {
     return {
+      currentSystem: null,
       tabList: [],
       systemDesigns: [],
       systemDesignsOrigin: [],
@@ -446,16 +447,38 @@ export default {
       if (isTableViewOnly) {
         this.queryGraphData(isTableViewOnly)
       } else {
-        const { statusCode, data } = await updateSystemDesign(this.systemDesignVersion)
-        if (statusCode === 'OK') {
-          if (data.length) {
-            this.getSystemDesigns(() => {
-              this.queryGraphData(isTableViewOnly)
-            })
-          } else {
-            this.queryGraphData(isTableViewOnly)
-          }
+        if (this.currentSystem.fixed_date) {
+          this.confirmOnArch(isTableViewOnly)
+          return
         }
+        this.getGraphData(isTableViewOnly)
+      }
+    },
+    confirmOnArch (isTableViewOnly) {
+      this.$Modal.confirm({
+        title:
+          this.$t('appArchFirstPart') +
+          `${this.currentSystem.name}${this.currentSystem.fixed_date}` +
+          this.$t('appArchSecPart'),
+        loading: true,
+        'z-index': 1000000,
+        onOk: async () => {
+          this.getGraphData()
+        },
+        onCancel: () => {}
+      })
+    },
+    async getGraphData (isTableViewOnly) {
+      const { statusCode, data } = await updateSystemDesign(this.systemDesignVersion)
+      if (statusCode === 'OK') {
+        if (data.length) {
+          this.getSystemDesigns(() => {
+            this.queryGraphData(isTableViewOnly)
+          })
+        } else {
+          this.queryGraphData(isTableViewOnly)
+        }
+        this.$Modal.remove()
       }
     },
     async queryGraphData (isTableViewOnly) {
@@ -1269,6 +1292,7 @@ export default {
     },
     onSystemDesignSelect (key) {
       this.allowArch = this.systemDesignsOrigin.some(x => x.r_guid === key) // 是否允许架构变更，当guid等于r_guid时允许
+      this.currentSystem = this.systemDesignsOrigin.find(x => x.guid === key)
       this.allowFixVersion = false
       this.isTableViewOnly = true
       if (
