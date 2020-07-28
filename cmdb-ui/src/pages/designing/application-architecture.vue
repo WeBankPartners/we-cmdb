@@ -4,7 +4,13 @@
       <Col span="16">
         <Row>
           <span style="margin-right: 10px">{{ $t('system_design') }}</span>
-          <Select v-model="systemDesignVersion" @on-change="onSystemDesignSelect" label-in-name style="width: 35%;">
+          <Select
+            v-model="systemDesignVersion"
+            @on-change="onSystemDesignSelect"
+            filterable
+            label-in-name
+            style="width: 35%;"
+          >
             <OptionGroup v-for="(data, idx) in systemDesigns" :key="idx" :label="data[0].name">
               <Option
                 v-for="item in data"
@@ -112,6 +118,7 @@
                       <Form-item :label="$t('invoking_sequential_design')">
                         <Row>
                           <Select
+                            filterable
                             :placeholder="$t('select_placeholder')"
                             v-model="invokeSequenceForm.selectedInvokeSequence"
                             style="width:calc(100% - 80px)"
