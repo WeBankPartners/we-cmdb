@@ -1324,7 +1324,7 @@ export default {
       if (res.statusCode === 'OK') {
         let enumList = []
         enumList = res.data.contents
-        this.currentSelectedCIAttrEnum = enumList
+        this.currentSelectedCIAttrEnum = enumList.filter(item => item.catName.startsWith('ci_state_'))
       }
     },
     async onInputTypeChange (value, isDiabled) {
