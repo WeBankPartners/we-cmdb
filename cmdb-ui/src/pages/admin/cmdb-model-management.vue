@@ -148,6 +148,7 @@
                     <Select
                       :max-tag-count="3"
                       v-model="item.form.zoomLevelId"
+                      filterable
                       @on-change="changeLayer"
                       :disabled="item.form.status === 'decommissioned'"
                     >
@@ -157,7 +158,7 @@
                     </Select>
                   </FormItem>
                   <FormItem :label="$t('refrence_layer')">
-                    <Select v-model="item.form.layerId" :disabled="item.form.status === 'decommissioned'">
+                    <Select v-model="item.form.layerId" :disabled="item.form.status === 'decommissioned'" filterable>
                       <Option v-for="layer in layers" :value="layer.layerId" :key="layer.layerId">{{
                         layer.name
                       }}</Option>
@@ -240,14 +241,14 @@
               <Input v-model="addNewCITypeForm.tableName"></Input>
             </FormItem>
             <FormItem :label="$t('zoom_level')" prop="zoomLevelId">
-              <Select :max-tag-count="3" v-model="addNewCITypeForm.zoomLevelId">
+              <Select :max-tag-count="3" v-model="addNewCITypeForm.zoomLevelId" filterable>
                 <Option v-for="item in zoomLevelIdList" :value="item.codeId" :key="item.codeId">
                   {{ item.value }}
                 </Option>
               </Select>
             </FormItem>
             <FormItem :label="$t('refrence_layer')">
-              <Select disabled v-model="addNewCITypeForm.layerId">
+              <Select disabled v-model="addNewCITypeForm.layerId" filterable>
                 <Option v-for="layer in layers" :value="layer.layerId" :key="layer.layerId">{{ layer.name }}</Option>
               </Select>
             </FormItem>
@@ -392,6 +393,7 @@
                   </FormItem>
                   <FormItem prop="inputType" :label="$t('data_type')">
                     <Select
+                      filterable
                       v-model="item.form.inputType"
                       @on-change="onInputTypeChange($event, item.form.status !== 'notCreated')"
                       :disabled="item.form.status !== 'notCreated'"
@@ -434,7 +436,11 @@
                     v-if="item.form.inputType === 'ref' || item.form.inputType === 'multiRef'"
                     :label="$t('reference_select')"
                   >
-                    <Select v-model="item.form.referenceId" :disabled="item.form.status === 'decommissioned'">
+                    <Select
+                      v-model="item.form.referenceId"
+                      :disabled="item.form.status === 'decommissioned'"
+                      filterable
+                    >
                       <Option v-for="item in allCiTypesWithAttr" :value="item.ciTypeId" :key="item.ciTypeId">{{
                         item.name
                       }}</Option>
@@ -452,7 +458,11 @@
                     v-if="item.form.inputType === 'ref' || item.form.inputType === 'multiRef'"
                     :label="$t('reference_type')"
                   >
-                    <Select v-model="item.form.referenceType" :disabled="item.form.status === 'decommissioned'">
+                    <Select
+                      v-model="item.form.referenceType"
+                      :disabled="item.form.status === 'decommissioned'"
+                      filterable
+                    >
                       <Option v-for="item in allReferenceTypes" :value="item.codeId" :key="item.codeId">{{
                         item.value
                       }}</Option>
@@ -463,7 +473,12 @@
                     v-if="item.form.inputType === 'select' || item.form.inputType === 'multiSelect'"
                     :label="$t('select')"
                   >
-                    <Select clearable v-model="item.form.referenceId" :disabled="item.form.status === 'decommissioned'">
+                    <Select
+                      clearable
+                      v-model="item.form.referenceId"
+                      :disabled="item.form.status === 'decommissioned'"
+                      filterable
+                    >
                       <Option
                         v-for="enumItem in currentSelectedCIAttrEnum"
                         :value="enumItem.catId"
@@ -613,7 +628,7 @@
             <InputNumber :min="0" v-model="addNewAttrForm.searchSeqNo"></InputNumber>
           </FormItem>
           <FormItem prop="inputType" :label="$t('data_type')">
-            <Select v-model="addNewAttrForm.inputType" @on-change="onInputTypeChange($event, false)">
+            <Select v-model="addNewAttrForm.inputType" @on-change="onInputTypeChange($event, false)" filterable>
               <Option v-for="item in allInputTypes" :value="item" :key="item">{{ item }}</Option>
             </Select>
           </FormItem>
@@ -648,7 +663,7 @@
             v-if="addNewAttrForm.inputType === 'ref' || addNewAttrForm.inputType === 'multiRef'"
             :label="$t('reference_select')"
           >
-            <Select v-model="addNewAttrForm.referenceId">
+            <Select v-model="addNewAttrForm.referenceId" filterable>
               <Option v-for="item in allCiTypesWithAttr" :value="item.ciTypeId" :key="item.ciTypeId">{{
                 item.name
               }}</Option>
@@ -666,7 +681,7 @@
             v-if="addNewAttrForm.inputType === 'ref' || addNewAttrForm.inputType === 'multiRef'"
             :label="$t('reference_type')"
           >
-            <Select v-model="addNewAttrForm.referenceType">
+            <Select v-model="addNewAttrForm.referenceType" filterable>
               <Option v-for="item in allReferenceTypes" :value="item.codeId" :key="item.codeId">{{
                 item.value
               }}</Option>
@@ -677,7 +692,7 @@
             v-if="addNewAttrForm.inputType === 'select' || addNewAttrForm.inputType === 'multiSelect'"
             :label="$t('select')"
           >
-            <Select clearable v-model="addNewAttrForm.referenceId">
+            <Select clearable v-model="addNewAttrForm.referenceId" filterable>
               <Option v-for="item in currentSelectedCIAttrEnum" :value="item.catId" :key="item.catId">{{
                 item.catName
               }}</Option>
@@ -1309,7 +1324,7 @@ export default {
       if (res.statusCode === 'OK') {
         let enumList = []
         enumList = res.data.contents
-        this.currentSelectedCIAttrEnum = enumList
+        this.currentSelectedCIAttrEnum = enumList.filter(item => item.catName.startsWith('ci_state_'))
       }
     },
     async onInputTypeChange (value, isDiabled) {

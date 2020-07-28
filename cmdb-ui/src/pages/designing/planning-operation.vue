@@ -248,6 +248,7 @@
           @on-open-change="getNodeTypes"
           filterable
           clearable
+          @on-clear="cancleAddNode"
         >
           <Option v-for="(item, index) in canCreateNodeTypes" :value="item.value" :key="item.value + index">{{
             item.label
@@ -439,6 +440,7 @@
           @on-open-change="getLineTypes"
           filterable
           clearable
+          @on-clear="cancleAddLine"
         >
           <Option v-for="(item, index) in canCreateLineTypes" :value="item.value" :key="item.value + index">{{
             item.label
