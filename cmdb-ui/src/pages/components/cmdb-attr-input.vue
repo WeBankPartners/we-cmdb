@@ -21,7 +21,7 @@
       </Select>
     </Col>
     <Col span="4" offset="1">
-      <Select @on-change="mappingTypeChangeHandler" v-model="mappingType">
+      <Select @on-change="mappingTypeChangeHandler" v-model="mappingType" filterable>
         <Option value="CMDB_CI_TYPE" key="CMDB_CI_TYPE">{{ $t('ci_type_attribute') }}</Option>
         <Option value="CMDB_ENUM_CODE" key="CMDB_ENUM_CODE">{{ $t('form_enum_type') }}</Option>
       </Select>
