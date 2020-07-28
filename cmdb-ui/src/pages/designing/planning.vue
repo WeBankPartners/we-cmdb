@@ -2,10 +2,15 @@
   <div>
     <Row class="resource-design-select-row">
       <span>{{ $t('select_idc') }}：</span>
-      <Select :placeholder="$t('select_idc')" v-model="selectedIdc" class="graph-select" @on-change="onIdcDataChange">
-        <Option v-for="item in allIdcs" :value="item.guid" :key="item.guid">
-          {{ item.name }}
-        </Option>
+      <Select
+        :placeholder="$t('select_idc')"
+        v-model="selectedIdc"
+        class="graph-select"
+        @on-change="onIdcDataChange"
+        filterable
+        clearable
+      >
+        <Option v-for="item in allIdcs" :value="item.guid" :key="item.guid">{{ item.name }}</Option>
       </Select>
     </Row>
     <Row class="resource-design-tab-row">
@@ -20,7 +25,9 @@
             <Button slot="desc" @click="reloadHandler">Reload</Button>
           </Alert>
           <!-- <div class="graph-container-big" id="graph"></div> -->
-          <PlanningComponent ref="planningComponent"></PlanningComponent>
+          <div v-show="selectedIdc">
+            <PlanningComponent ref="planningComponent"></PlanningComponent>
+          </div>
         </TabPane>
         <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name" :index="ci.seqNo + 1">
           <div
@@ -166,6 +173,7 @@ export default {
   },
   methods: {
     async onIdcDataChange (guid) {
+      if (!guid) return
       this.$refs.planningComponent.onIdcDataChange(guid)
       this.handleTabClick(this.currentTab)
       this.spinShow = true
