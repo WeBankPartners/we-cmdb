@@ -539,7 +539,7 @@ export default {
           const len = content ? content.toString().length : 0
           const d = {
             props: {
-              disabled: len < 60,
+              disabled: len < 14,
               content: content,
               'min-width': '200px',
               'max-width': '500px'
@@ -550,12 +550,7 @@ export default {
             <Tooltip {...d}>
               <div class="ivu-table-cell-tooltip ivu-tooltip">
                 <div class="ivu-tooltip-rel">
-                  <span class="ivu-table-cell-tooltip-content">
-                    {content}{' '}
-                    {params.column.propertyName === 'orchestration' && this.$route.name === 'workflowExecution' && (
-                      <WeCMDBOrchestration onHandleSubmit={this.handleSubmit} col={params.column} row={params.row} />
-                    )}
-                  </span>
+                  <span class="ivu-table-cell-tooltip-content">{content}</span>
                 </div>
               </div>
             </Tooltip>
