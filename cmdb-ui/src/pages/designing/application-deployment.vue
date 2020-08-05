@@ -3,7 +3,7 @@
     <Row class="artifact-management">
       <Col span="6">
         <span style="margin-right: 10px">{{ $t('system') }}</span>
-        <Select filterable @on-change="onSystemDesignSelect" v-model="systemVersion" label-in-name style="width: 70%;">
+        <Select filterable @on-change="onSystemDesignSelect" v-model="systemVersion" label-in-name style="width: 85%;">
           <Option v-for="item in systems" :value="item.guid" :key="item.guid">{{ item.key_name }}</Option>
         </Select>
       </Col>
@@ -14,17 +14,6 @@
     <hr style="margin: 10px 0" />
     <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
       <TabPane :label="$t('application_logic_diagram')" name="logic-graph" :index="1">
-        <!--
-
-        <div class="graph-container" id="graph">
-          <Spin size="large" fix v-if="spinShow">
-            <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-            <div>{{ $t('loading') }}</div>
-          </Spin>
-          <div v-else-if="!systemData.length" class="no-data">
-            {{ $t('no_data') }}
-          </div>
-        </div> -->
         <Alert show-icon closable v-if="isDataChanged">
           Data has beed changed, click Reload button to reload graph.
           <Button slot="desc" @click="reloadHandler">Reload</Button>
@@ -49,22 +38,6 @@
           </Spin>
         </div>
       </TabPane>
-      <!-- TODO -->
-      <!-- <TabPane :label="$t('physical_deployment_diagram')" name="physicalGraph" :index="3">
-        <div>
-          <PhysicalGraph
-            v-if="physicalGraphData.length"
-            :graphData="physicalGraphData"
-            :links="physicalGraphLinks"
-            :callback="graphCallback"
-          ></PhysicalGraph>
-          <div v-else class="no-data">{{ $t('no_data') }}</div>
-          <Spin size="large" fix v-if="physicalSpin">
-            <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-            <div>{{ $t('loading') }}</div>
-          </Spin>
-        </div>
-      </TabPane> -->
       <TabPane
         v-for="ci in tabList"
         :key="ci.id"
