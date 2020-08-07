@@ -536,24 +536,43 @@ export default {
             content = params.row.weTableForm[col.key]
           }
 
-          const len = content ? content.toString().length : 0
-          const d = {
-            props: {
-              disabled: len < 14,
-              content: content,
-              'min-width': '200px',
-              'max-width': '500px'
-            }
-          }
+          // const len = content ? content.toString().length : 0
+          // const d = {
+          //   props: {
+          //     disabled: len < 14,
+          //     content: content,
+          //     'min-width': '200px',
+          //     'max-width': '500px'
+          //   }
+          // }
 
-          return (
-            <Tooltip {...d}>
-              <div class="ivu-table-cell-tooltip ivu-tooltip">
-                <div class="ivu-tooltip-rel">
-                  <span class="ivu-table-cell-tooltip-content">{content}</span>
-                </div>
-              </div>
-            </Tooltip>
+          // return (
+          //   <Tooltip {...d}>
+          //     <div class="ivu-table-cell-tooltip ivu-tooltip">
+          //       <div class="ivu-tooltip-rel">
+          //         <span class="ivu-table-cell-tooltip-content">{content}</span>
+          //       </div>
+          //     </div>
+          //   </Tooltip>
+          // )
+          const containerId = 'ref' + Math.ceil(Math.random() * 1000000)
+          return h(
+            'span',
+            {
+              class: 'ivu-table-cell-tooltip-content',
+              on: {
+                ref: containerId,
+                mouseenter: event => {
+                  // console.log(document.getElementById(containerId).clientWidth)
+                  // console.log(document.getElementById(containerId).scrollWidth)
+                }
+              },
+              attrs: {
+                title: content,
+                id: containerId
+              }
+            },
+            content
           )
         }
       }
