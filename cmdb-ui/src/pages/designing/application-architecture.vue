@@ -4,7 +4,13 @@
       <Col span="16">
         <Row>
           <span style="margin-right: 10px">{{ $t('system_design') }}</span>
-          <Select v-model="systemDesignVersion" @on-change="onSystemDesignSelect" label-in-name style="width: 35%;">
+          <Select
+            v-model="systemDesignVersion"
+            @on-change="onSystemDesignSelect"
+            filterable
+            label-in-name
+            style="width: 35%;"
+          >
             <OptionGroup v-for="(data, idx) in systemDesigns" :key="idx" :label="data[0].name">
               <Option
                 v-for="item in data"
@@ -112,6 +118,7 @@
                       <Form-item :label="$t('invoking_sequential_design')">
                         <Row>
                           <Select
+                            filterable
                             :placeholder="$t('select_placeholder')"
                             v-model="invokeSequenceForm.selectedInvokeSequence"
                             style="width:calc(100% - 80px)"
@@ -264,6 +271,7 @@ export default {
   },
   data () {
     return {
+      currentSystem: null,
       tabList: [],
       systemDesigns: [],
       systemDesignsOrigin: [],
@@ -446,16 +454,38 @@ export default {
       if (isTableViewOnly) {
         this.queryGraphData(isTableViewOnly)
       } else {
-        const { statusCode, data } = await updateSystemDesign(this.systemDesignVersion)
-        if (statusCode === 'OK') {
-          if (data.length) {
-            this.getSystemDesigns(() => {
-              this.queryGraphData(isTableViewOnly)
-            })
-          } else {
-            this.queryGraphData(isTableViewOnly)
-          }
+        if (this.currentSystem.fixed_date) {
+          this.confirmOnArch(isTableViewOnly)
+          return
         }
+        this.getGraphData(isTableViewOnly)
+      }
+    },
+    confirmOnArch (isTableViewOnly) {
+      this.$Modal.confirm({
+        title:
+          this.$t('appArchFirstPart') +
+          `${this.currentSystem.name}${this.currentSystem.fixed_date}` +
+          this.$t('appArchSecPart'),
+        loading: true,
+        'z-index': 1000000,
+        onOk: async () => {
+          this.getGraphData()
+        },
+        onCancel: () => {}
+      })
+    },
+    async getGraphData (isTableViewOnly) {
+      const { statusCode, data } = await updateSystemDesign(this.systemDesignVersion)
+      if (statusCode === 'OK') {
+        if (data.length) {
+          this.getSystemDesigns(() => {
+            this.queryGraphData(isTableViewOnly)
+          })
+        } else {
+          this.queryGraphData(isTableViewOnly)
+        }
+        this.$Modal.remove()
       }
     },
     async queryGraphData (isTableViewOnly) {
@@ -1269,6 +1299,7 @@ export default {
     },
     onSystemDesignSelect (key) {
       this.allowArch = this.systemDesignsOrigin.some(x => x.r_guid === key) // 是否允许架构变更，当guid等于r_guid时允许
+      this.currentSystem = this.systemDesignsOrigin.find(x => x.guid === key)
       this.allowFixVersion = false
       this.isTableViewOnly = true
       if (
