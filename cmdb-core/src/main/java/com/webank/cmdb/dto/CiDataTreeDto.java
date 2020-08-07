@@ -20,6 +20,7 @@ public class CiDataTreeDto {
     private String fixedDate;
     private String stateCode;
     private String description;
+    private String code;
     private Object data;
     private List<CiDataTreeDto> children = new LinkedList<>();
 }
