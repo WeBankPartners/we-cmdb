@@ -273,5 +273,7 @@
   "add_node": "Add Node",
   "link_information": "Link Information",
   "add_link": "Add Link",
-  "operating_area": "Operating Area"
+  "operating_area": "Operating Area",
+  "appArchFirstPart": "Whether based on ",
+  "appArchSecPart": " change"
 }
