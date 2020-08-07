@@ -355,10 +355,13 @@ export default {
                 return this.renderFormItem(obj, index)
               })}
             <Col span={6}>
-              <div style="display: flex; margin-bottom: 20px">
+              <div style="display: flex;">
                 {this.tableColumns.filter(_ => !!_.searchSeqNo).sort(compare).length > DEFAULT_FILTER_NUMBER &&
                   (!this.isShowHiddenFilters ? (
-                    <FormItem style="position: relative; bottom: -22px;">
+                    <FormItem>
+                      <div slot="label" style="visibility: hidden;">
+                        <span>Placeholder</span>
+                      </div>
                       <Button
                         type="info"
                         ghost
@@ -372,7 +375,10 @@ export default {
                       </Button>
                     </FormItem>
                   ) : (
-                    <FormItem style="position: relative; bottom: -22px;">
+                    <FormItem>
+                      <div slot="label" style="visibility: hidden;">
+                        <span>Placeholder</span>
+                      </div>
                       <Button
                         type="info"
                         ghost
@@ -387,12 +393,18 @@ export default {
                     </FormItem>
                   ))}
 
-                <FormItem style="position: relative; bottom: -22px;">
+                <FormItem>
+                  <div slot="label" style="visibility: hidden;">
+                    <span>Placeholder</span>
+                  </div>
                   <Button type="primary" icon="ios-search" onClick={() => this.handleSubmit('form')}>
                     {this.$t('search')}
                   </Button>
                 </FormItem>
-                <FormItem style="position: relative; bottom: -22px;">
+                <FormItem>
+                  <div slot="label" style="visibility: hidden;">
+                    <span>Placeholder</span>
+                  </div>
                   <Button icon="md-refresh" onClick={() => this.reset('form')}>
                     {this.$t('reset')}
                   </Button>
@@ -524,29 +536,43 @@ export default {
             content = params.row.weTableForm[col.key]
           }
 
-          const len = content ? content.toString().length : 0
-          const d = {
-            props: {
-              disabled: len < 60,
-              content: content,
-              'min-width': '200px',
-              'max-width': '500px'
-            }
-          }
+          // const len = content ? content.toString().length : 0
+          // const d = {
+          //   props: {
+          //     disabled: len < 14,
+          //     content: content,
+          //     'min-width': '200px',
+          //     'max-width': '500px'
+          //   }
+          // }
 
-          return (
-            <Tooltip {...d}>
-              <div class="ivu-table-cell-tooltip ivu-tooltip">
-                <div class="ivu-tooltip-rel">
-                  <span class="ivu-table-cell-tooltip-content">
-                    {content}{' '}
-                    {params.column.propertyName === 'orchestration' && this.$route.name === 'workflowExecution' && (
-                      <WeCMDBOrchestration onHandleSubmit={this.handleSubmit} col={params.column} row={params.row} />
-                    )}
-                  </span>
-                </div>
-              </div>
-            </Tooltip>
+          // return (
+          //   <Tooltip {...d}>
+          //     <div class="ivu-table-cell-tooltip ivu-tooltip">
+          //       <div class="ivu-tooltip-rel">
+          //         <span class="ivu-table-cell-tooltip-content">{content}</span>
+          //       </div>
+          //     </div>
+          //   </Tooltip>
+          // )
+          const containerId = 'ref' + Math.ceil(Math.random() * 1000000)
+          return h(
+            'span',
+            {
+              class: 'ivu-table-cell-tooltip-content',
+              on: {
+                ref: containerId,
+                mouseenter: event => {
+                  // console.log(document.getElementById(containerId).clientWidth)
+                  // console.log(document.getElementById(containerId).scrollWidth)
+                }
+              },
+              attrs: {
+                title: content,
+                id: containerId
+              }
+            },
+            content
           )
         }
       }

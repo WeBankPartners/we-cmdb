@@ -143,6 +143,10 @@
         </plugin>
         <!-- 最佳实践 -->
         <plugin name="ci-data-confirm" targetPackage="" targetEntity="" registerName="any_ci" targetEntityFilterRule="">
+            <roleBinds>
+                <roleBind permission="MGMT" roleName="SUPER_ADMIN"/>
+                <roleBind permission="USE" roleName="SUPER_ADMIN"/>
+            </roleBinds>
             <interface action="confirm" path="/wecmdb/data/confirm" filterRule="">
                 <inputParameters>
                     <parameter datatype="string" required="N" sensitiveData="N" mappingType="context">guid</parameter>
@@ -156,6 +160,10 @@
             </interface>
         </plugin>
         <plugin name="ci-data-refresh" targetPackage="wecmdb" targetEntity="app_instance" registerName="app_instance" targetEntityFilterRule="">
+            <roleBinds>
+                <roleBind permission="MGMT" roleName="SUPER_ADMIN"/>
+                <roleBind permission="USE" roleName="SUPER_ADMIN"/>
+            </roleBinds>
             <interface action="refresh" path="/wecmdb/data/refresh" filterRule="{state_code eq 'created'}{fixed_date is NULL}">
                 <inputParameters>
                     <parameter datatype="string" required="N" sensitiveData="N"  mappingType="entity" mappingEntityExpression="wecmdb:app_instance.guid">guid</parameter>
@@ -168,6 +176,10 @@
             </interface>
         </plugin>
         <plugin name="ci-data-refresh" targetPackage="wecmdb" targetEntity="rdb_instance" registerName="rdb_instance" targetEntityFilterRule="">
+            <roleBinds>
+                <roleBind permission="MGMT" roleName="SUPER_ADMIN"/>
+                <roleBind permission="USE" roleName="SUPER_ADMIN"/>
+            </roleBinds>
             <interface action="refresh" path="/wecmdb/data/refresh" filterRule="{state_code eq 'created'}{fixed_date is NULL}">
                 <inputParameters>
                     <parameter datatype="string" required="N" sensitiveData="N" mappingType="entity" mappingEntityExpression="wecmdb:rdb_instance.guid">guid</parameter>

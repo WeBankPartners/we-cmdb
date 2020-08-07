@@ -732,8 +732,8 @@ export default {
 .operation-area {
   position: absolute;
   width: 450px;
-  top: 10px;
-  right: 0px;
+  top: 0;
+  right: 0;
 }
 .operation-container {
   height: calc(100vh - 310px);
