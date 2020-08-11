@@ -6,14 +6,19 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
+import com.webank.cmdb.config.ApplicationProperties.AppConfigProperties;
 import com.webank.cmdb.config.ApplicationProperties.DatasourceProperties;
 import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
 import com.webank.cmdb.config.ApplicationProperties.UIProperties;
 
 @Configuration
 @EnableCaching
-@ComponentScan({ "com.webank.cmdb.service", "com.webank.cmdb.support.mvc", "com.webank.cmdb.util","com.webank.cmdb.support.cache" })
+@ComponentScan({ "com.webank.cmdb.service", "com.webank.cmdb.support.mvc", "com.webank.cmdb.util",
+        "com.webank.cmdb.support.cache" })
 @Import({ DatabaseConfig.class })
-@EnableConfigurationProperties({ ApplicationProperties.class ,DatasourceProperties.class, UIProperties.class, SecurityProperties.class})
+@EnableConfigurationProperties({ ApplicationProperties.class, DatasourceProperties.class, UIProperties.class,
+        SecurityProperties.class, AppConfigProperties.class })
+@EnableEncryptableProperties
 public class SpringAppConfig {
 }
