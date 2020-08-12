@@ -1973,7 +1973,8 @@ public class CiServiceImpl implements CiService {
         data.put("r_guid", x[2]);
         data.put("state_code", x[3]);
         data.put("fixed_date", x[4]);
-        data.put("description", x[5]);
+        data.put("code", x[5]);
+        data.put("description", x[6]);
 
         CiDataTreeDto ci = new CiDataTreeDto();
         ci.setCiTypeId(fromCiTypeId);
@@ -1981,6 +1982,7 @@ public class CiServiceImpl implements CiService {
         ci.setRootGuid((String) data.get("r_guid"));
         ci.setStateCode((String) data.get("state_code"));
         ci.setFixedDate((String) data.get("fixed_date"));
+        ci.setCode((String) data.get("code"));
         ci.setDescription((String) data.get("description"));
         ci.setData(data);
         cis.add(ci);
