@@ -1,6 +1,7 @@
 import '../table.scss'
 import moment from 'moment'
 import EditModal from './edit-modal.js'
+import { createPopper } from '@popperjs/core'
 const DEFAULT_FILTER_NUMBER = 5
 const MIN_WIDTH = 200
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
@@ -36,7 +37,9 @@ export default {
       },
       modalTitle: '',
       modalLoading: false,
-      tableLoading: false
+      tableLoading: false,
+      tipContent: '',
+      randomId: ''
     }
   },
   component: {
@@ -44,6 +47,15 @@ export default {
   },
   mounted () {
     this.formatTableData()
+
+    let len = 32
+    let chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz'
+    let maxPos = chars.length
+    let randomId = ''
+    for (let i = 0; i < len; i++) {
+      randomId += chars.charAt(Math.floor(Math.random() * maxPos))
+    }
+    this.randomId = randomId
   },
   watch: {
     tableData (val) {
@@ -536,26 +548,8 @@ export default {
             content = params.row.weTableForm[col.key]
           }
 
-          // const len = content ? content.toString().length : 0
-          // const d = {
-          //   props: {
-          //     disabled: len < 14,
-          //     content: content,
-          //     'min-width': '200px',
-          //     'max-width': '500px'
-          //   }
-          // }
-
-          // return (
-          //   <Tooltip {...d}>
-          //     <div class="ivu-table-cell-tooltip ivu-tooltip">
-          //       <div class="ivu-tooltip-rel">
-          //         <span class="ivu-table-cell-tooltip-content">{content}</span>
-          //       </div>
-          //     </div>
-          //   </Tooltip>
-          // )
           const containerId = 'ref' + Math.ceil(Math.random() * 1000000)
+
           return h(
             'span',
             {
@@ -563,13 +557,36 @@ export default {
               on: {
                 ref: containerId,
                 mouseenter: event => {
-                  // console.log(document.getElementById(containerId).clientWidth)
-                  // console.log(document.getElementById(containerId).scrollWidth)
+                  // this.tipContent = content
+                  // const popcorn = document.querySelector('#' + containerId)
+                  // const tooltip = document.querySelector('#' + this.randomId)
+                  // createPopper(popcorn, tooltip, {
+                  //   placement: 'bottom'
+                  // })
+                  if (
+                    document.getElementById(containerId).scrollWidth > document.getElementById(containerId).clientWidth
+                  ) {
+                    this.tipContent = content
+                    setTimeout(
+                      randomId => {
+                        const popcorn = document.querySelector('#' + containerId)
+                        const tooltip = document.querySelector('#' + randomId)
+                        createPopper(popcorn, tooltip, {
+                          placement: 'bottom'
+                        })
+                      },
+                      500,
+                      this.randomId
+                    )
+                  }
+                },
+                mouseleave: event => {
+                  this.tipContent = ''
                 }
               },
               attrs: {
-                title: content,
                 id: containerId
+                // title: content
               }
             },
             content
@@ -665,6 +682,12 @@ export default {
           modalLoading={modalLoading}
           onGetGroupList={v => this.$emit('getGroupList', v)}
         ></EditModal>
+        <div
+          id={this.randomId}
+          style="background-color: rgba(70,76,91,.9);padding: 8px 12px;color: #fff;text-align: left;border-radius: 4px;border-radius: 4px;box-shadow: 0 1px 6px rgba(0,0,0,.2);white-space: nowrap;max-width: 250px;min-height: 34px;"
+        >
+          {this.tipContent}
+        </div>
       </div>
     )
   }
