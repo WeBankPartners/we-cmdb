@@ -1116,6 +1116,11 @@ public class UIWrapperService {
             return inputFilters;
         }
         QueryRequest queryData = defaultQueryObject();
+        if(inputFilters.getPageable() != null){
+            queryData.setPageable(inputFilters.getPageable());
+        }
+        
+        queryData.setPaging(inputFilters.isPaging());
         
         if (inputFilters.getFilters().size() == 1) {
             queryData.getFilters().add(inputFilters.getFilters().get(0));
@@ -1125,7 +1130,20 @@ public class UIWrapperService {
         inputFilters.getFilters().add(fixDate);
         inputFilters.addNotEmptyFilter(CONSTANT_FIXED_DATE);
         inputFilters.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID));
-        List<CiData> ciDatas = queryCiData(ciTypeId, inputFilters).getContents();
+        
+        QueryRequest firstQueryReq = new QueryRequest();
+        firstQueryReq.getDialect().setShowCiHistory(true);
+        firstQueryReq.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
+        firstQueryReq.getFilters().add(fixDate);
+        firstQueryReq.addNotEmptyFilter(CONSTANT_FIXED_DATE);
+        firstQueryReq.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID));
+        firstQueryReq.setPageable(null);
+        firstQueryReq.setPaging(false);
+        for(Filter f : inputFilters.getFilters() ){
+            firstQueryReq.getFilters().add(f);
+        }
+      
+        List<CiData> ciDatas = queryCiData(ciTypeId, firstQueryReq).getContents();
         if (ciDatas == null || ciDatas.size() <= 0) {
             return inputFilters;
         }
@@ -1134,6 +1152,8 @@ public class UIWrapperService {
         }).collect(Collectors.toList());
         queryData.addInFilter(CmdbConstants.GUID, guids);
         queryData.getDialect().setShowCiHistory(true);
+        
+        
         return queryData;
     }
 
