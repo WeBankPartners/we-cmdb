@@ -121,7 +121,7 @@ public class ClassUtils {
     public static Map<String, Object> convertBeanToMap(Object ciObj, DynamicEntityMeta entityMeta, boolean includeNullVal, List<String> requestFields) {
         Map<String, Object> ciMap = new HashMap<>();
         BeanMap ciObjMap = new BeanMap(ciObj);
-        Collection<FieldNode> nodes = entityMeta.getAllFieldNodes(false);
+        Collection<FieldNode> nodes = entityMeta.getAllFieldNodes(true);
         for (FieldNode node : nodes) {
             String name = node.getName();
             if (isRequestField(requestFields, name)) {

@@ -1,7 +1,11 @@
 package com.webank.cmdb.repository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.webank.cmdb.dynamicEntity.DynamicEntityMeta;
+import org.apache.commons.beanutils.BeanMap;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +13,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.webank.cmdb.domain.AdmCiTypeAttr;
+
+import javax.persistence.EntityManager;
 
 @CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "admCiTypeAttrRepository")
 public interface AdmCiTypeAttrRepository extends JpaRepository<AdmCiTypeAttr, Integer> {
@@ -79,5 +85,21 @@ public interface AdmCiTypeAttrRepository extends JpaRepository<AdmCiTypeAttr, In
     AdmCiTypeAttr getOne(Integer id);
 
     List<AdmCiTypeAttr> findAllByFilterRuleNotNull();
+
+
+    @Cacheable(value="admCiTypeAttrRepository-getSortedMapForMultiRef",key = "#attr.idAdmCiTypeAttr")
+    default Map<String, Integer> getSortedMapForMultiRef(EntityManager entityManager, AdmCiTypeAttr attr, DynamicEntityMeta multRefMeta) {
+        Map<String, Integer> sortMap = new HashMap<>();
+        String joinTable = attr.retrieveJoinTalbeName();
+        String querySql = "select id,from_guid,to_guid, seq_no from " + joinTable;
+        javax.persistence.Query query = entityManager.createNativeQuery(querySql, multRefMeta.getEntityClazz());
+        List results = query.getResultList();
+
+        for (Object bean : results) {
+            BeanMap beanMap = new BeanMap(bean);
+            sortMap.put((String) beanMap.get("to_guid"), (Integer) beanMap.get("seq_no"));
+        }
+        return sortMap;
+    }
 
 }

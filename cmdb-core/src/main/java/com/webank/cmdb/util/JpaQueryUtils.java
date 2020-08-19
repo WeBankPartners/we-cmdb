@@ -325,20 +325,6 @@ public class JpaQueryUtils {
         }
     }
 
-    public static Map<String, Integer> getSortedMapForMultiRef(EntityManager entityManager, AdmCiTypeAttr attr, DynamicEntityMeta multRefMeta) {
-        Map<String, Integer> sortMap = new HashMap<>();
-        String joinTable = attr.retrieveJoinTalbeName();
-        String querySql = "select id,from_guid,to_guid, seq_no from " + joinTable;
-        Query query = entityManager.createNativeQuery(querySql, multRefMeta.getEntityClazz());
-        List results = query.getResultList();
-
-        for (Object bean : results) {
-            BeanMap beanMap = new BeanMap(bean);
-            sortMap.put((String) beanMap.get("to_guid"), (Integer) beanMap.get("seq_no"));
-        }
-        return sortMap;
-    }
-
     public static void applyGroupBy(List<String> groupBys, CriteriaQuery<?> query, Map<String, Expression> selectionMap) {
         List<Expression<?>> grouping = new LinkedList<>();
         groupBys.stream().forEach(groupBy -> {

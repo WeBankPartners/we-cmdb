@@ -27,10 +27,7 @@ import java.util.Stack;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
@@ -437,6 +434,7 @@ public class CiServiceImpl implements CiService {
         EntityManager entityManager = priEntityManager.getEntityManager();
         try {
             CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            EntityGraph rootEg = entityManager.createEntityGraph(entityMeta.getEntityClazz());
 
             CriteriaQuery query = null;
             if (isSelRowCount) {
@@ -475,9 +473,16 @@ public class CiServiceImpl implements CiService {
                 query.select(root);
             }
 
+
             Map<String, Class<?>> fieldTypeMap = new HashMap<>();
             entityMeta.getAllFieldNodes(false).forEach(x -> {
                 fieldTypeMap.put(x.getName(), x.getType());
+            });
+
+            entityMeta.getAllFieldNodes(true).forEach(node -> {
+                if(node.isJoinNode() && Strings.isNullOrEmpty(node.getMappedBy()) && ciRequest.isColumnSelected(node.getName())){
+                    rootEg.addAttributeNodes(node.getName());
+                }
             });
 
             if (ciRequest != null) {
@@ -505,6 +510,10 @@ public class CiServiceImpl implements CiService {
 
             if (ciRequest != null && !isSelRowCount) {
                 JpaQueryUtils.applyPaging(ciRequest.isPaging(), ciRequest.getPageable(), typedQuery);
+            }
+
+            if(!isSelRowCount) {
+                typedQuery.setHint("javax.persistence.fetchgraph", rootEg);
             }
 
             List<Object> results = (List<Object>) typedQuery.getResultList();
@@ -582,7 +591,7 @@ public class CiServiceImpl implements CiService {
                     continue;
                 }
                 if(!fieldNode.isJoinNode()) {
-                    value = convertFieldValue(fieldName, value, attrMap.get(attrId));
+                    value = convertFieldValue(fieldName, value, attrMap.get(attrId),ciObjMap);
                     ciMap.put(fieldName, value);
                 } else if (fieldNode.isJoinNode() && DynamicEntityType.MultiSelection.equals(fieldNode.getEntityType())) {
                     Set codeImSet = (Set) value;
@@ -609,10 +618,10 @@ public class CiServiceImpl implements CiService {
                     if(InputType.MultRef.getCode().equals(attr.getInputType())) {
                         referCis = fetchCiDomainObjForMultRef(attr, referCis);
                     }
-                    
+
                     DynamicEntityMeta multRefMeta = multRefMetaMap.get(attrId);
-                    Map<String, Integer> sortMap = JpaQueryUtils.getSortedMapForMultiRef(entityManager, attr, multRefMeta);
-    
+                    Map<String, Integer> sortMap = ciTypeAttrRepository.getSortedMapForMultiRef(entityManager, attr, multRefMeta);
+
                     List ciList = getSortedMultRefList(referCis, sortMap);
     
                     ciMap.put(fieldName, ciList);
@@ -623,6 +632,7 @@ public class CiServiceImpl implements CiService {
         }
         return ciMap;
     }
+
 
     private Set<Object> fetchCiDomainObjForMultRef(AdmCiTypeAttr attr, Set<Object> referCis) {
         Integer refCiTypeId = attr.getReferenceId();
@@ -657,7 +667,7 @@ public class CiServiceImpl implements CiService {
         return ciList;
     }
 
-    private Object convertFieldValue(String fieldName, Object value, AdmCiTypeAttr attr) {
+    private Object convertFieldValue(String fieldName, Object value, AdmCiTypeAttr attr, Map<String, Object> ciObjMap) {
         if (attr == null)
             return value;
 
@@ -665,17 +675,31 @@ public class CiServiceImpl implements CiService {
         if (InputType.Droplist.equals(inputType) ) {
             value = convertCodeValue(fieldName, value);
         } else if (InputType.Reference.equals(inputType)) {
-            int ciTypeId = attr.getReferenceId();
-            if (value != null) {
-                String guid = value.toString();
-                if (!StringUtils.isBlank(guid)) {
-                    Object childCi = null;
-                    try {
-                        childCi = getCacheableCi(ciTypeId, guid);
-                    } catch (Exception ex) {
-                        throw new ServiceException(String.format("Failed to get ci data [ciType:%d, guid:%s]", ciTypeId, guid), ex);
+            if(ciObjMap != null && !Strings.isNullOrEmpty(String.valueOf(value))) {
+                AdmCiType admCiType = ciTypeRepository.findById(attr.getCiTypeId()).get();
+                String attrName = DynamicEntityUtils.getJoinFieldName(admCiType, attr, true);
+                DynamicEntityMeta entityMeta = getDynamicEntityMeta(attr.getReferenceId());
+                Object entityBean = ciObjMap.get(attrName);
+                Map<String,Object> resultMap = DynamicEntityUtils.convertCiDataMap(entityMeta, entityBean);
+                if (!authorizationService.isCiDataPermitted(admCiType.getIdAdmCiType(), entityBean, ACTION_ENQUIRY)) {
+                    resultMap = CollectionUtils.retainsEntries(resultMap, Sets.newHashSet("guid", "key_name"));
+                    logger.info("Access denied - {}, returns guid and key_name only.", resultMap);
+                }
+                value = resultMap;
+            }
+            else {
+                int ciTypeId = attr.getReferenceId();
+                if (value != null) {
+                    String guid = value.toString();
+                    if (!StringUtils.isBlank(guid)) {
+                        Object childCi = null;
+                        try {
+                            childCi = getCacheableCi(ciTypeId, guid);
+                        } catch (Exception ex) {
+                            throw new ServiceException(String.format("Failed to get ci data [ciType:%d, guid:%s]", ciTypeId, guid), ex);
+                        }
+                        value = childCi;
                     }
-                    value = childCi;
                 }
             }
         } else if (InputType.Date.equals(inputType) || value instanceof Timestamp) {
@@ -843,18 +867,7 @@ public class CiServiceImpl implements CiService {
             if (entityBean == null) {
                 throw new InvalidArgumentException(String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid));
             }
-            Map<String, Object> resultMap = Maps.newHashMap();
-            BeanMap ciObjMap = new BeanMap(entityBean);
-            for (Map.Entry kv : ciObjMap.entrySet()) {
-                String fieldName = kv.getKey().toString();
-                FieldNode fieldNode = entityMeta.getFieldNode(fieldName);
-                Object value = kv.getValue();
-                if (fieldNode != null) {
-                    if (!fieldNode.isJoinNode()) {
-                        resultMap.put(fieldName, value);
-                    }
-                }
-            }
+            Map<String, Object> resultMap = DynamicEntityUtils.convertCiDataMap(entityMeta, entityBean);
             if (!authorizationService.isCiDataPermitted(ciTypeId, entityBean, ACTION_ENQUIRY)) {
                 resultMap = CollectionUtils.retainsEntries(resultMap, Sets.newHashSet("guid", "key_name"));
                 logger.info("Access denied - {}, returns guid and key_name only.", resultMap);
@@ -864,7 +877,7 @@ public class CiServiceImpl implements CiService {
             priEntityManager.close();
         }
     }
-    
+
     @Cacheable("ciServiceImpl-getCacheableCi")
     Map<String, Object> getCacheableCi(int ciTypeId, String guid) {
         return getCi(ciTypeId,guid);
@@ -1701,7 +1714,7 @@ public class CiServiceImpl implements CiService {
             if (fieldInfo.getAttrId() != null) {
                 attr = ciTypeAttrRepository.getOne(fieldInfo.getAttrId());
             }
-            Object convertedObj = convertFieldValue(expr.getAlias(), response[exprIndexMap.get(expr)], attr);
+            Object convertedObj = convertFieldValue(expr.getAlias(), response[exprIndexMap.get(expr)], attr,null);
             rowMap.put(fieldInfo.getAlias(), convertedObj);
         }
         
