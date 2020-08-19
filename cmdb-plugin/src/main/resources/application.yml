@@ -3,7 +3,17 @@ server:
   address: localhost
   servlet:
     context-path: /wecmdb
-
+  tomcat:
+    accesslog:
+      enabled: false
+      buffered: false
+      directory: /data/wecmdb/log
+      prefix: access_log
+      suffix: .log
+      file-date-format: -yyyy-MM-dd
+      pattern: '%D %{Host}i %t "%r" %{Content-Length}i %s %b "-"'
+      rotate: true
+      
 plugins:
   pacakge-name: wecmdb
 
