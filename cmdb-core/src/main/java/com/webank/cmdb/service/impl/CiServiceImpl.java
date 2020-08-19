@@ -47,7 +47,6 @@ import com.webank.cmdb.config.log.CiTypeId;
 import com.webank.cmdb.config.log.Guid;
 import com.webank.cmdb.domain.*;
 import com.webank.cmdb.repository.*;
-import javafx.scene.paint.Stop;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +56,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Strings;
