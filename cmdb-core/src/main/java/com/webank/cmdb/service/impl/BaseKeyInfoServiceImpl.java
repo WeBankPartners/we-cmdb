@@ -11,6 +11,8 @@ import java.util.Optional;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.webank.cmdb.config.log.OperationLogPointcut;
@@ -28,6 +30,7 @@ import com.webank.cmdb.repository.AdmBasekeyCodeRepository;
 import com.webank.cmdb.service.BaseKeyInfoService;
 
 @Service
+@CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "baseKeyInfoServiceImpl")
 public class BaseKeyInfoServiceImpl implements BaseKeyInfoService {
     @Autowired
     private AdmBasekeyCatRepository basekeyCatRepository;
@@ -316,6 +319,7 @@ public class BaseKeyInfoServiceImpl implements BaseKeyInfoService {
         return null;
     }
 
+    @Cacheable("baseKeyInfoServiceImpl-getCode")
     @Override
     public CatCodeDto getCode(int codeId) {
         validateCodeId(codeId);
