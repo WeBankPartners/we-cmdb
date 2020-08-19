@@ -79,6 +79,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         return ciTypePermitted;
     }
 
+    @Cacheable("authorizationService-getPermittedData")
     @Override
     public List<Map<String, Set<?>>> getPermittedData(int ciTypeId, String action) {
         UserCiTypeAuthority userAuthority = getUserAuthority(ciTypeId);
@@ -86,7 +87,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         return userAuthority.getPermittedData(action);
     }
 
-    @Cacheable("authorizationService-getUserAuthority")
     private UserCiTypeAuthority getUserAuthority(int ciTypeId) {
         String username = getCurrentUsername();
         List<AdmRole> roles = getRoles();
