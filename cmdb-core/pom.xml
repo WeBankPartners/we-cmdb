@@ -160,11 +160,6 @@
 			</exclusions>
 			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>com.github.ulisesbocchio</groupId>
-            <artifactId>jasypt-spring-boot-starter</artifactId>
-            <version>3.0.3</version>
-        </dependency>
 	</dependencies>
 
 	<profiles>
