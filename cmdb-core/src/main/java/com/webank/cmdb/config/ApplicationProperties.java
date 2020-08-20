@@ -10,28 +10,6 @@ import lombok.Data;
 public class ApplicationProperties {
     private DataSize maxFileSize = DataSize.ofKilobytes(64);
     
-    @ConfigurationProperties(prefix = "cmdb.config")
-    public class AppConfigProperties {
-        private String propertyRsaKey = null;
-        private String propertyRsaPubKey = null;
-
-        public String getPropertyRsaKey() {
-            return propertyRsaKey;
-        }
-
-        public void setPropertyRsaKey(String propertyRsaKey) {
-            this.propertyRsaKey = propertyRsaKey;
-        }
-
-        public String getPropertyRsaPubKey() {
-            return propertyRsaPubKey;
-        }
-
-        public void setPropertyRsaPubKey(String propertyRsaPubKey) {
-            this.propertyRsaPubKey = propertyRsaPubKey;
-        }
-    }
-
     @Data
     @ConfigurationProperties(prefix = "cmdb.datasource")
     public class DatasourceProperties {
