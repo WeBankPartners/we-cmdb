@@ -39,7 +39,8 @@ export default {
       modalLoading: false,
       tableLoading: false,
       tipContent: '',
-      randomId: ''
+      randomId: '',
+      timer: null
     }
   },
   component: {
@@ -557,30 +558,28 @@ export default {
               on: {
                 ref: containerId,
                 mouseenter: event => {
-                  // this.tipContent = content
-                  // const popcorn = document.querySelector('#' + containerId)
-                  // const tooltip = document.querySelector('#' + this.randomId)
-                  // createPopper(popcorn, tooltip, {
-                  //   placement: 'bottom'
-                  // })
                   if (
                     document.getElementById(containerId).scrollWidth > document.getElementById(containerId).clientWidth
                   ) {
-                    this.tipContent = content
-                    setTimeout(
-                      randomId => {
+                    this.timer = setTimeout(
+                      params => {
+                        this.tipContent = content
                         const popcorn = document.querySelector('#' + containerId)
-                        const tooltip = document.querySelector('#' + randomId)
+                        const tooltip = document.querySelector('#' + params.randomId)
                         createPopper(popcorn, tooltip, {
                           placement: 'bottom'
                         })
                       },
-                      500,
-                      this.randomId
+                      800,
+                      {
+                        randomId: this.randomId,
+                        content
+                      }
                     )
                   }
                 },
                 mouseleave: event => {
+                  clearInterval(this.timer)
                   this.tipContent = ''
                 }
               },
@@ -682,11 +681,12 @@ export default {
           modalLoading={modalLoading}
           onGetGroupList={v => this.$emit('getGroupList', v)}
         ></EditModal>
-        <div
-          id={this.randomId}
-          style="background-color: rgba(70,76,91,.9);padding: 8px 12px;color: #fff;text-align: left;border-radius: 4px;border-radius: 4px;box-shadow: 0 1px 6px rgba(0,0,0,.2);white-space: nowrap;max-width: 250px;min-height: 34px;"
-        >
-          {this.tipContent}
+        <div id={this.randomId} style="z-index: 100;">
+          {this.tipContent && (
+            <div style="word-break: break-word;background-color: rgba(70,76,91,.9);padding: 8px 12px;color: #fff;text-align: left;border-radius: 4px;border-radius: 4px;box-shadow: 0 1px 6px rgba(0,0,0,.2);width: 250px;">
+              {this.tipContent}
+            </div>
+          )}
         </div>
       </div>
     )
