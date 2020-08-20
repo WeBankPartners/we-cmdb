@@ -556,7 +556,6 @@ export default {
             {
               class: 'ivu-table-cell-tooltip-content',
               on: {
-                ref: containerId,
                 mouseenter: event => {
                   if (
                     document.getElementById(containerId).scrollWidth > document.getElementById(containerId).clientWidth
@@ -585,7 +584,6 @@ export default {
               },
               attrs: {
                 id: containerId
-                // title: content
               }
             },
             content
