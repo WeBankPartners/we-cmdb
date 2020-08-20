@@ -9,6 +9,8 @@ import javax.servlet.ServletRequestListener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jasig.cas.client.validation.Cas20ServiceTicketValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
@@ -55,6 +57,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableGlobalMethodSecurity(jsr250Enabled = true)
 @ComponentScan({ "com.webank.cmdb.controller", "com.webank.cmdb.support.mvc", "com.webank.cmdb.stateTransition" })
 public class SpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
+    public static final Logger logger = LoggerFactory.getLogger(SpringWebConfig.class);
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -163,6 +166,8 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
         List<String> convertedList = new ArrayList<String>();
         if (checkRequired) {
             if (StringUtils.isNotBlank(securityProperties.getWhitelistIpAddress())) {
+                logger.info("White list is enabled: {}",securityProperties.getWhitelistIpAddress());
+
                 List<String> whiteListIpAddress = Arrays.asList(securityProperties.getWhitelistIpAddress().split(","));
                 for (String ipAddress : whiteListIpAddress) {
                     convertedList.add(String.format("hasIpAddress('%s')", ipAddress));
