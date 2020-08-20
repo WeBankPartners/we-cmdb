@@ -14,8 +14,11 @@ import com.webank.cmdb.domain.AdmRoleCiType;
 import com.webank.cmdb.support.exception.CmdbException;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 
 @Slf4j
+@CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "roleCiTypeAuthority")
 public class RoleCiTypeAuthority implements Authority {
 
     private String role;
@@ -54,6 +57,7 @@ public class RoleCiTypeAuthority implements Authority {
         return ACCESS_DENIED;
     }
 
+    @Cacheable("roleCiTypeAuthority-isCiTypePermitted")
     @Override
     public boolean isCiTypePermitted(String action) {
         return this.roleCiType.isActionPermissionEnabled(action);
