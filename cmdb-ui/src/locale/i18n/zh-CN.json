@@ -275,5 +275,6 @@
   "add_link": "新增连线",
   "operating_area": "操作区",
   "appArchFirstPart": "是否基于",
-  "appArchSecPart": "版本做架构变更"
+  "appArchSecPart": "版本做架构变更",
+  "selectAll": "全选"
 }
