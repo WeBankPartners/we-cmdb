@@ -275,5 +275,6 @@
   "add_link": "Add Link",
   "operating_area": "Operating Area",
   "appArchFirstPart": "Whether based on ",
-  "appArchSecPart": " change"
+  "appArchSecPart": " change",
+  "selectAll": "Select All"
 }
