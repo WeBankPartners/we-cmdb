@@ -289,11 +289,6 @@ export default {
           key: 'executionPermission'
         }
       ],
-      isCreationAllselected: false,
-      isRemovalAllselected: false,
-      isModificationAllselected: false,
-      isEnquiryAllselected: false,
-      isExecutionAllselected: false,
       cacheOriginCiTypePermission: [], // 便于撤销还原
       ciTypePermissions: [],
       allMenusOriginResponse: [],
@@ -660,8 +655,6 @@ export default {
     },
     ciTypesPermissionsHandler (ciIndex, code) {
       this.ciTypePermissions[ciIndex][code] = this.ciTypePermissions[ciIndex][code] === 'Y' ? 'N' : 'Y'
-
-      // this.setPermissionAction(!(ci[code] === 'Y'), type, ci.ciTypeId)
     },
     batchPermission (val, operationType) {
       const value = val ? 'Y' : 'N'
