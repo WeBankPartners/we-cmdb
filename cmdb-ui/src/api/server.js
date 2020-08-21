@@ -22,7 +22,7 @@ export const addRole = data => req.post(`/admin/roles/create`, data)
 export const addUser = data => req.post(`/admin/users/create`, data)
 export const addUsersToRole = (users, roleName) => req.post(`/admin/roles/${roleName}/users`, users)
 export const assignCiTypePermissionForRoleInBatch = (ciTypePermissions, roleName) =>
-  req.post(`admin/roles/${roleName}/citypes/permissions`, ciTypePermissions)
+  req.post(`/admin/roles/${roleName}/citypes/permissions`, ciTypePermissions)
 export const romoveUsersFromRole = (users, roleName) => req.delete(`/admin/roles/${roleName}/users`, { data: users })
 export const addMenusToRole = (menuCodes, roleName) => req.post(`/admin/roles/${roleName}/menu-permissions`, menuCodes)
 export const removeMenusFromRole = (menuCodes, roleName) =>

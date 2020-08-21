@@ -673,7 +673,6 @@ export default {
       }
     },
     async savePermissionsInBatch () {
-      console.log(this.ciTypePermissions)
       const ciTypePermissions = this.ciTypePermissions.map(permission => {
         const {
           ciTypeId,
@@ -695,7 +694,6 @@ export default {
         }
       })
       let { statusCode, message } = await assignCiTypePermissionForRoleInBatch(ciTypePermissions, this.currentRoleName)
-      console.log(statusCode, message)
       if (statusCode === 'OK') {
         this.$Notice.success({
           title: 'success',
