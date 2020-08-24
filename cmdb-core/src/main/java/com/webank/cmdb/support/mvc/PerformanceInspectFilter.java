@@ -23,7 +23,7 @@ public class PerformanceInspectFilter extends OncePerRequestFilter {
     private final static Logger logger = LoggerFactory.getLogger(PerformanceInspectFilter.class);
 
     private static final String PERFORMANCE_INSPECT_REQUEST = "com.webank.cmdb.support.mvc.PerformanceInspectInterceptor_request";
-    private static final int DEFAULT_MAX_PAYLOAD_LENGTH = 1000;
+    private static final int DEFAULT_MAX_PAYLOAD_LENGTH = 3000;
 
     private int maxPayloadLength = DEFAULT_MAX_PAYLOAD_LENGTH;
 
