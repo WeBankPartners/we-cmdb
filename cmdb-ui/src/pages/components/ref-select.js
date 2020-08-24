@@ -61,7 +61,7 @@ export default {
         })
         : await queryCiData({
           id: this.ciType.id,
-          queryObject: { filters: [], paging: false }
+          queryObject: { filters: [], paging: false, resultColumns: ['guid', 'key_name', 'id', 'description'] }
         })
       if (noPagingRes.statusCode === 'OK') {
         this.selectDisabled = false
