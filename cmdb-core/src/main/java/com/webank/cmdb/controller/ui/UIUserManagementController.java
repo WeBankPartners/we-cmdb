@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.cmdb.controller.ui.helper.UIUserManagerService;
 import com.webank.cmdb.controller.ui.helper.UIWrapperService;
+import com.webank.cmdb.dto.CiTypePermissionOperationDto;
 import com.webank.cmdb.dto.MenuDto;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
@@ -254,6 +255,13 @@ public class UIUserManagementController {
     @ResponseBody
     public void deleteRoleCiTypeCtrlAttributes(@PathVariable(value = "role-citype-id") int roleCiTypeId, @RequestBody List<Integer> roleCiTypeCtrlAttrIds) {
         wrapperService.deleteRoleCiTypeCtrlAttributes(roleCiTypeCtrlAttrIds);
+    }
+    
+    @RolesAllowed({ MENU_ADMIN_PERMISSION_MANAGEMENT })
+    @PostMapping("/roles/{role-name}/citypes/permissions")
+    @ResponseBody
+    public void assignCiTypePermissionForRoleInBatch(@PathVariable(value = "role-name") String roleName, @RequestBody List<CiTypePermissionOperationDto> permissionOperationDtos) {
+        userManagerService.assignCiTypePermissionForRoleInBatch(roleName, permissionOperationDtos);
     }
 
 }
