@@ -25,6 +25,7 @@ public class PerformanceInspectFilter extends OncePerRequestFilter {
     private static final String PERFORMANCE_INSPECT_REQUEST = "com.webank.cmdb.support.mvc.PerformanceInspectInterceptor_request";
     private static final int DEFAULT_MAX_PAYLOAD_LENGTH = 3000;
 
+    @Value("${cmdb.performance.inspect.payload-limit:3000}")
     private int maxPayloadLength = DEFAULT_MAX_PAYLOAD_LENGTH;
 
     @Value("${cmdb.performance.inspect.threshold:500}")
