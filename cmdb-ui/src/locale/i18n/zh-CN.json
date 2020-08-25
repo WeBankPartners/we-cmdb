@@ -253,7 +253,7 @@
   "change_key_name": "更改别名",
   "keyname_should_be_unique": "别名必须唯一且不能为空!",
   "copyToNew": "复制新增",
-  "input_set_of_copy": "请输入新增的数量",
+  "input_set_of_copy": "复制当前数据",
   "set": "份",
   "auto_fill_rule_incomplete": "填充规则不完整！",
   "exceeding_file_size_limit": "超出文件大小限制",
