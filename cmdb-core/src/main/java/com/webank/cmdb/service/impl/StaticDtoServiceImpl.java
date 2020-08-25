@@ -146,7 +146,8 @@ public class StaticDtoServiceImpl implements StaticDtoService {
         try {
             return dtoClzz.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new ServiceException(String.format("Fail to create dto [%s] bean.", dtoClzz.toString()));
+            throw new ServiceException(String.format("Fail to create dto [%s] bean.", dtoClzz.toString()))
+            .withErrorCode("3105", dtoClzz.toString());
         }
     }
 
@@ -236,7 +237,8 @@ public class StaticDtoServiceImpl implements StaticDtoService {
         if (domainFieldName != null) {
             Field domainField = domainFieldMap.get(domainFieldName);
             if (domainField == null) {
-                throw new ServiceException(String.format("Can not find field [%s] for domain class [%s].", domainFieldName, domainClzz.toString()));
+                throw new ServiceException(String.format("Can not find field [%s] for domain class [%s].", domainFieldName, domainClzz.toString()))
+                .withErrorCode("3100", domainFieldName, domainClzz.toString());
             }
             if (value != null) {
                 value = convertToDomainValue(value, domainField);
@@ -357,7 +359,7 @@ public class StaticDtoServiceImpl implements StaticDtoService {
                 rtnDto.setCallbackId(callbackId);
                 rtnDtos.add(rtnDto);
             } catch (Exception e) {
-                e.printStackTrace();
+//                e.printStackTrace();
                 logger.warn(String.format("Error happened when updated DTO class [%s]", dtoClzz.toString()), e);
                 String errorMsg = String.format("Fail to update record with %s = [%s], error = [%s]", CALLBACK_ID, callbackId, ExceptionHolder.extractExceptionMessage(e));
                 ExceptionHolders.add(new ExceptionHolder(callbackId, request, errorMsg, e));

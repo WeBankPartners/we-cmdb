@@ -577,7 +577,8 @@ public class CiTypeServiceImpl implements CiTypeService {
     private void applySingleCiTypeAttr(AdmCiTypeAttr admCiTypeAttr) {
         AdmCiType admCiType = staticEntityRepository.findEntityById(AdmCiType.class, admCiTypeAttr.getCiTypeId());
         if (admCiType == null) {
-            throw new ServiceException(String.format("Can not find out ci Type [%d]", admCiTypeAttr.getCiTypeId()));
+            throw new ServiceException(String.format("Can not find out ci Type [%d]", admCiTypeAttr.getCiTypeId()))
+            .withErrorCode("3121", admCiTypeAttr.getCiTypeId());
         }
 
         if (CiStatus.fromCode(admCiType.getStatus()) == CiStatus.NotCreated) {

@@ -106,7 +106,8 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
             } else if (AuthenticationType.PLATFORM_AUTH.getCode().equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
                 configurePlatformAuthentication(registry);
             } else {
-                throw new CmdbException("Unsupported authentication-provider: " + securityProperties.getAuthenticationProvider());
+                throw new CmdbException("Unsupported authentication-provider: " + securityProperties.getAuthenticationProvider())
+                .withErrorCode("3082", securityProperties.getAuthenticationProvider());
             }
         } else {
             registry = configureWhiteListAuthentication(registry, false);

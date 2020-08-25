@@ -175,7 +175,7 @@ public class UIWrapperService {
 
     public QueryResponse<CategoryDto> getPrivateEnumByCiTypeId(Integer ciTypeId) {
         if (ciTypeId == null) {
-            throw new CmdbException("'ciTypeId' is required");
+            throw new CmdbException("3085", "'ciTypeId' is required");
         }
         CatTypeDto catType = getEnumCategoryTypeByCiTypeId(ciTypeId);
         if (catType == null) {

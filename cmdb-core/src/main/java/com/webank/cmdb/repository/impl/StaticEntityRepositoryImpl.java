@@ -426,7 +426,8 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
         try {
             entityBean = domainClazz.newInstance();
         } catch (Exception e) {
-            throw new ServiceException(String.format("Fail to create domain [%s] entity bean.", domainClazz.toString()));
+            throw new ServiceException(String.format("Fail to create domain [%s] entity bean.", domainClazz.toString()))
+            .withErrorCode("3116", domainClazz.toString());
         }
         BeanMap beanMap = new BeanMap(entityBean);
 
@@ -582,7 +583,7 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
             sb.append(" FROM adm_ci_type_attr_base ");
             selectSql = sb.toString();
         }catch (Exception ex){
-            throw new CmdbException("Failed to retrieved default AdmCiTypeAttr fields.",ex);
+            throw new CmdbException("Failed to retrieved default AdmCiTypeAttr fields.",ex).withErrorCode("3083");
         }
 
         List<AdmCiTypeAttr> admCiTypeAttrs = new ArrayList<>();
@@ -595,7 +596,7 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
                 try {
                     attrFieldInfo.getSetter().invoke(attr,row[i]);
                 } catch (Exception e) {
-                    throw new CmdbException("Failed to retrieved default AdmCiTypeAttr fields.",e);
+                    throw new CmdbException("Failed to retrieved default AdmCiTypeAttr fields.",e).withErrorCode("3083");
                 }
             }
             attr.setCiTypeId(admCiType.getIdAdmCiType());

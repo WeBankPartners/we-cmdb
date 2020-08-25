@@ -45,7 +45,8 @@ public class DynamicEntityMeta {
 
         Integer codeId = multiSelAttr.getReferenceId();
         if (codeId == null) {
-            throw new ServiceException(String.format("Failed to create intermediate entity meta for attribute [%d], can not find out code [%d]", multiSelAttr.getIdAdmCiTypeAttr(), codeId));
+            throw new ServiceException(String.format("Failed to create intermediate entity meta for attribute [%d], can not find out code [%d]", multiSelAttr.getIdAdmCiTypeAttr(), codeId))
+            .withErrorCode("3113", multiSelAttr.getIdAdmCiTypeAttr(), codeId);
         }
 
         DynamicEntityMeta meta = MultiValueFeildOperationUtils.createDynamicEntityMetaForMultiSelect(multiSelAttr);
@@ -81,14 +82,16 @@ public class DynamicEntityMeta {
             String propertyType = attr.getPropertyType();
             FieldType fieldType = FieldType.fromCode(propertyType);
             if (FieldType.None.equals(fieldType)) {
-                throw new ServiceException(String.format("Can not find out class type of property type [%s] for CI type [%d]", propertyType, ciType.getIdAdmCiType()));
+                throw new ServiceException(String.format("Can not find out class type of property type [%s] for CI type [%d]", propertyType, ciType.getIdAdmCiType()))
+                .withErrorCode("3114", propertyType, ciType.getIdAdmCiType());
             }
             Class<?> typeClazz = fieldType.getType();
             FieldNode fieldNode;
             String fieldName;
             if (InputType.Reference.getCode().equals(attr.getInputType())) {// ManyToOne
                 if (attr.getReferenceId() == null) {
-                    throw new ServiceException(String.format("Internal error happen. (referenceId is null for attr [%d])", attr.getIdAdmCiTypeAttr()));
+                    throw new ServiceException(String.format("Internal error happen. (referenceId is null for attr [%d])", attr.getIdAdmCiTypeAttr()))
+                    .withErrorCode("3115", attr.getIdAdmCiTypeAttr());
                 }
                 int ciTypeId = attr.getReferenceId();
                 AdmCiType refCiType = ciTypeRepository.getOne(ciTypeId);
