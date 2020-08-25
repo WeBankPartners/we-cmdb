@@ -253,7 +253,7 @@
   "change_key_name": "Change KeyName",
   "keyname_should_be_unique": "The keyName should unique and cannot be empty!",
   "copyToNew": "Copy",
-  "input_set_of_copy": "Please input count of copy",
+  "input_set_of_copy": "Copy current data",
   "set": "Copy",
   "auto_fill_rule_incomplete": "Autofill Rule is incomplete!",
   "exceeding_file_size_limit": "Exceeding file size limit",
