@@ -204,7 +204,7 @@ public class OperationLogAspect {
         case Implementation:
             return success ? ImplementationSuccess : ImplementationFailure;
         }
-        throw new CmdbException("Unsupported operation: " + annotation.operation());
+        throw new CmdbException("Unsupported operation: " + annotation.operation()).withErrorCode("3067", annotation.operation());
     }
 
     private Class deriveObjectClass(OperationLogPointcut annotation, Object firstArgument) {
@@ -212,7 +212,7 @@ public class OperationLogAspect {
             return annotation.objectClass();
         }
         if (firstArgument == null) {
-            throw new CmdbException("Object class is required for no argument methods.");
+            throw new CmdbException("3068","Object class is required for no argument methods.");
         }
         if (firstArgument instanceof Class) {
             return (Class) firstArgument;

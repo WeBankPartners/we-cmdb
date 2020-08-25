@@ -116,7 +116,7 @@ public class RoleCiTypeCtrlAttrDto extends BasicResourceDto<RoleCiTypeCtrlAttrDt
         } else if (ACTION_GRANT.equalsIgnoreCase(action)) {
             grantPermission = value;
         } else {
-            throw new CmdbException("Unsupported action code: " + action);
+            throw new CmdbException("Unsupported action code: " + action).withErrorCode("3054", action);
         }
     }
 
@@ -134,7 +134,7 @@ public class RoleCiTypeCtrlAttrDto extends BasicResourceDto<RoleCiTypeCtrlAttrDt
         } else if (ACTION_GRANT.equalsIgnoreCase(action)) {
             return grantPermission;
         } else {
-            throw new CmdbException("Unsupported action code: " + action);
+            throw new CmdbException("Unsupported action code: " + action).withErrorCode("3054", action);
         }
     }
 
