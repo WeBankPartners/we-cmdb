@@ -65,10 +65,11 @@ public class CmdbUserDetailService implements UserDetailsService {
         if (securityProperties.isEnabled()) {
             AdmUser user = admUserRepository.findByCode(username);
             if (user == null) {
-                throw new CmdbException(String.format("Username [%s] not found.", username));
+                throw new CmdbException(String.format("Username [%s] not found.", username)).withErrorCode("3079", username);
             }
             if (StringUtils.isBlank(user.getEncryptedPassword())) {
-                throw new CmdbException(String.format("Can not authenticate the user [%s] as password not found.", username));
+                throw new CmdbException(String.format("Can not authenticate the user [%s] as password not found.", username))
+                .withErrorCode("3080", username);
             }
             password = user.getEncryptedPassword();
         } else {
