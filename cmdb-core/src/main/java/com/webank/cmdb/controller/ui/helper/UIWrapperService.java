@@ -108,7 +108,8 @@ public class UIWrapperService {
     public void initCiTypeId() throws IOException {
         CategoryDto categoryDto = getEnumCategoryByName(uiProperties.getEnumCodeofView());
         if (categoryDto == null) {
-            throw new CmdbException(String.format("The enum category name [%s] not found.", uiProperties.getEnumCodeofView()));
+            throw new CmdbException(String.format("The enum category name [%s] not found.", uiProperties.getEnumCodeofView()))
+            .withErrorCode("3041", uiProperties.getEnumCodeofView());
         }
         QueryRequest queryObject = defaultQueryObject().addEqualsFilter(CONSTANT_CAT_ID, categoryDto.getCatId());
 
@@ -178,10 +179,12 @@ public class UIWrapperService {
         }
         CatTypeDto catType = getEnumCategoryTypeByCiTypeId(ciTypeId);
         if (catType == null) {
-            throw new CmdbException(String.format("Can not found CategoryType by CiTypeId(%d)", ciTypeId));
+            throw new CmdbException(String.format("Can not found CategoryType by CiTypeId(%d)", ciTypeId))
+            .withErrorCode("3042", ciTypeId);
         }
         if (catType.getCatTypeId() == null) {
-            throw new CmdbException(String.format("Can not found CategoryTypeId by CiTypeId(%d)", ciTypeId));
+            throw new CmdbException(String.format("Can not found CategoryTypeId by CiTypeId(%d)", ciTypeId))
+            .withErrorCode("3043", ciTypeId);
         }
         return getEnumCategoriesByTypeId(catType.getCatTypeId());
     }
@@ -240,7 +243,7 @@ public class UIWrapperService {
     public List<CatCodeDto> createEnumCodes(CatCodeDto catCode) {
 
         if (catCode == null || catCode.getCatId().equals(0)) {
-            throw new CmdbException("Category Id is required");
+            throw new CmdbException("3044", "Category Id is required");
         }
         if (catCode.getCatId().equals(getLayerCategoryId())) {
             catCode.setSeqNo(getMaxLayerSeqNumber() + 1);
@@ -255,7 +258,7 @@ public class UIWrapperService {
     public List<CatCodeDto> createEnumCodes(List<CatCodeDto> catCodes) {
         catCodes.stream().forEach(catCode -> {
             if (catCode == null || catCode.getCatId().equals(0)) {
-                throw new CmdbException("Category Id is required");
+                throw new CmdbException("3044", "Category Id is required");
             }
             if (catCode.getCatId().equals(getLayerCategoryId())) {
                 catCode.setSeqNo(getMaxLayerSeqNumber() + 1);
@@ -278,7 +281,7 @@ public class UIWrapperService {
     private List<CatCodeDto> getEnumCodesByCategoryName(String categoryName) {
         CategoryDto categories = getEnumCategoryByName(categoryName);
         if (categories == null)
-            throw new CmdbException("Category not found.");
+            throw new CmdbException("3045", "Category not found.");
         return getEnumCodesByCategoryId(categories.getCatId());
     }
 
@@ -750,7 +753,7 @@ public class UIWrapperService {
     public RoleCiTypeCtrlAttrDto createRoleCiTypeCtrlAttribute(RoleCiTypeCtrlAttrDto roleCiTypeCtrlAttr) {
         List<RoleCiTypeCtrlAttrDto> roleCiTypeCtrlAttrs = createRoleCiTypeCtrlAttributes(roleCiTypeCtrlAttr);
         if (isEmpty(roleCiTypeCtrlAttrs)) {
-            throw new CmdbException("Create role CiType ctrl attr failure.");
+            throw new CmdbException("3046", "Create role CiType ctrl attr failure.");
         }
         return roleCiTypeCtrlAttrs.get(0);
     }
@@ -780,7 +783,7 @@ public class UIWrapperService {
     public RoleCiTypeCtrlAttrConditionDto createRoleCiTypeCtrlAttrCondition(RoleCiTypeCtrlAttrConditionDto roleCiTypeCtrlAttrCondition) {
         List<RoleCiTypeCtrlAttrConditionDto> roleCiTypeCtrlAttrConditions = createRoleCiTypeCtrlAttrConditions(roleCiTypeCtrlAttrCondition);
         if (isEmpty(roleCiTypeCtrlAttrConditions)) {
-            throw new CmdbException("Create role CiType ctrl attr condition failure.");
+            throw new CmdbException("3047", "Create role CiType ctrl attr condition failure.");
         }
         return roleCiTypeCtrlAttrConditions.get(0);
     }
@@ -808,7 +811,7 @@ public class UIWrapperService {
     public RoleCiTypeCtrlAttrDto updateRoleCiTypeCtrlAttribute(RoleCiTypeCtrlAttrDto roleCiTypeCtrlAttr) {
         List<RoleCiTypeCtrlAttrDto> roleCiTypeCtrlAttrs = updateRoleCiTypeCtrlAttributes(Lists.newArrayList(BeanMapUtils.convertBeanToMap(roleCiTypeCtrlAttr)));
         if (isEmpty(roleCiTypeCtrlAttrs))
-            throw new CmdbException("Update role CiType ctrl attr failure.");
+            throw new CmdbException("3048", "Update role CiType ctrl attr failure.");
         return roleCiTypeCtrlAttrs.get(0);
     }
 
@@ -1268,7 +1271,8 @@ public class UIWrapperService {
             JavaType javaType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, CiRoutineItem.class);
             routineItems = (List<CiRoutineItem>) mapper.readValue(routine.getBytes(), javaType);
         } catch (Exception e) {
-            throw new CmdbException(String.format("Failed to parse the routine [%s]", routine));
+            throw new CmdbException(String.format("Failed to parse the routine [%s]", routine))
+            .withErrorCode("3049", routine);
         }
 
         AdhocIntegrationQueryDto rootDto = new AdhocIntegrationQueryDto();
@@ -1460,7 +1464,8 @@ public class UIWrapperService {
     private List<CatCodeDto> getEnumCodeByCodeAndCategoryName(String code, String categoryName) {
         CategoryDto categoryDto = getEnumCategoryByName(categoryName);
         if (categoryDto == null) {
-            throw new CmdbException(String.format("The enum category name [%s] not found.", categoryName));
+            throw new CmdbException(String.format("The enum category name [%s] not found.", categoryName))
+            .withErrorCode("3050", categoryName);
         }
 
         QueryRequest queryObject = defaultQueryObject().addEqualsFilter(CONSTANT_CAT_ID, categoryDto.getCatId())
@@ -1769,7 +1774,7 @@ public class UIWrapperService {
                 List<RoleDto> roles = createRoles(roleDto);
                 role = roles.get(0).toDomain();
             } else {
-                throw new CmdbException(String.format("Can not found Role by name (%s)", roleName));
+                throw new CmdbException(String.format("Can not found Role by name (%s)", roleName)).withErrorCode("3051", roleName);
             }
         }
         return role.getIdAdmRole();
@@ -1816,10 +1821,10 @@ public class UIWrapperService {
 
         Map<String, Object> ciDataMap = ciService.getCi(ciTypeId, param.get(CmdbConstants.GUID).toString());
         if(param.get("originalValue")==null||ciDataMap.get(param.get("field"))==null) {
-            throw new CmdbException(String.format("Password is null"));
+            throw new CmdbException("3052","Password is null");
         }
         if(!param.get("originalValue").toString().equals(ciDataMap.get(param.get("field")).toString())) {
-            throw new CmdbException(String.format("Password mistake"));
+            throw new CmdbException("3053", String.format("Password mistake"));
         }
         return ciService.update(ciTypeId, Arrays.asList(data));        
     }
