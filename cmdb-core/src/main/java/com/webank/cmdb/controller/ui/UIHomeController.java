@@ -43,7 +43,7 @@ public class UIHomeController {
     @ResponseBody
     public Object retrieveRoleMenus(Principal principal) {
         if (principal == null) {
-            throw new CmdbException("Logon user not found.");
+            throw new CmdbException("3057", "Logon user not found.");
         }
         return userManagerService.getMenuDtosByUsername(principal.getName(), true);
     }
