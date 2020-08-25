@@ -331,7 +331,9 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
             }
             break;
         case None:
-            throw new ServiceException(String.format("Can not find out class type of property type [%s] for CI type [%s(%d)]", propertyType, getCiTypeName(ciTypeId), ciTypeId));
+            String ciTypeName = getCiTypeName(ciTypeId);
+            throw new ServiceException(String.format("Can not find out class type of property type [%s] for CI type [%s(%s)]", propertyType, ciTypeName, ciTypeId))
+            .withErrorCode("3087", propertyType, ciTypeName, ciTypeId);
         default:
             break;
         }

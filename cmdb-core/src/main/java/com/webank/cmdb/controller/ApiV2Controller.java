@@ -289,7 +289,7 @@ public class ApiV2Controller {
         } catch (IOException e) {
             String msg = String.format("Failed to upload image file. (fileName:%s)", file.getName());
             logger.warn(msg, e);
-            throw new ServiceException(msg);
+            throw new ServiceException(msg).withErrorCode("3098", file.getName());
         }
     }
 
@@ -307,7 +307,7 @@ public class ApiV2Controller {
         } catch (IOException e) {
             String msg = String.format("Failed to get image file. (imageId:%s)", imageId);
             logger.warn(msg, e);
-            throw new ServiceException(msg);
+            throw new ServiceException(msg).withErrorCode("3097", imageId);
         }
     }
 

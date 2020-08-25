@@ -38,7 +38,8 @@ public class DynamicEntityHolder {
             entityObj = entityConst.newInstance();
             entityBeanMap = BeanMap.create(entityObj);
         } catch (Exception e) {
-            throw new ServiceException(String.format("Failed to create CI entity bean for CI type (%s)", entityMeta.getQulifiedName()));
+            throw new ServiceException(String.format("Failed to create CI entity bean for CI type (%s)", entityMeta.getQulifiedName()))
+            .withErrorCode("3112", entityMeta.getQulifiedName());
         }
 
     }

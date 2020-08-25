@@ -177,7 +177,7 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
         for (RoleCiTypeCtrlAttrConditionDto attrCondition : attrConditions) {
             Integer conditionId = attrCondition.getConditionId();
             if(conditionId == null){
-                throw new CmdbException("Condition id is missed.");
+                throw new CmdbException("3086", "Condition id is missed.");
             }
 
             Optional<AdmRoleCiTypeCtrlAttrCondition> conditionOpt = roleCiTypeCtrlAttrConditionRepository.findById(conditionId);

@@ -1685,7 +1685,7 @@ public class CiServiceImpl implements CiService {
 
     private Map<String, Object> convertResponse(List<Expression> selections, Object[] response, List<FieldInfo> fieldInfos) {
         if (selections.size() > fieldInfos.size()) {
-            throw new ServiceException("Selections size should not be larger than field infor size.");
+            throw new ServiceException("3117", "Selections size should not be larger than field infor size.");
         }
         
         Map<Expression,Integer> exprIndexMap = new HashMap<>();
@@ -1756,7 +1756,8 @@ public class CiServiceImpl implements CiService {
                 }
                 attrExpression.alias(keyName);
                 if (attrExprMap.containsKey(keyName)) {
-                    throw new ServiceException(String.format("There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()));
+                    throw new ServiceException(String.format("There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()))
+                    .withErrorCode("3118", keyName, curQuery.getName());
                 }
                 attrExprMap.put(keyName, new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr(),keyName));
                 currentCiTypeAttrExprMap.put(attr.getPropertyName(), attrExprMap.get(keyName));
@@ -1797,7 +1798,8 @@ public class CiServiceImpl implements CiService {
 
                 attrExpression.alias(keyName);
                 if (attrExprMap.containsKey(keyName)) {
-                    throw new ServiceException(String.format("There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()));
+                    throw new ServiceException(String.format("There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()))
+                    .withErrorCode("3118", keyName, curQuery.getName());
                 }
                 attrExprMap.put(keyName, new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr(),keyName));
                 currentCiTypeAttrExprMap.put(attr.getPropertyName(), attrExprMap.get(keyName));
@@ -1846,7 +1848,8 @@ public class CiServiceImpl implements CiService {
         AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId, propertyName);
         validateStatusOfCiTypeAttr(attr);
         if (attr == null) {
-            throw new ServiceException(String.format("Can not find out [%s] for CI Type [%d].", propertyName, curCiTypeId));
+            throw new ServiceException(String.format("Can not find out [%s] for CI Type [%d].", propertyName, curCiTypeId))
+            .withErrorCode("3119", propertyName, curCiTypeId);
         }
 
         String alias = null;
@@ -2003,7 +2006,7 @@ public class CiServiceImpl implements CiService {
         try {
             srcFilters = CollectionUtils.clone(queryRequest.getFilters(), Lists.newLinkedList());
         } catch (CloneNotSupportedException e) {
-            throw new ServiceException("Failed to clone int query filters.", e);
+            throw new ServiceException("Failed to clone int query filters.", e).withErrorCode("3120");
         }
 
         List resultList = doIntegrateQuery(intQueryDto, queryRequest, true, selectedFields);
