@@ -36,7 +36,7 @@ public enum FieldType {
     static public Class<?> getTypeFromCode(String code) {
         FieldType fieldType = fromCode(code);
         if (None.equals(fieldType)) {
-            throw new ServiceException(String.format("Can not find out type for code [%s].", code));
+            throw new ServiceException(String.format("Can not find out type for code [%s].", code)).withErrorCode("3104", code);
         }
         return fieldType.getType();
     }

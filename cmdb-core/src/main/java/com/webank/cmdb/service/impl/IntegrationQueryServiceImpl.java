@@ -468,7 +468,7 @@ public class IntegrationQueryServiceImpl implements IntegrationQueryService {
         // path.add(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL,destCiTypeOpt.get().getTableName()));
 
         if(curCiType == null) {
-            throw new ServiceException("Can not find out current CI type");
+            throw new ServiceException("3102","Can not find out current CI type");
         }
         
         Integer destAttrId = criteria.getAttribute().getAttrId();

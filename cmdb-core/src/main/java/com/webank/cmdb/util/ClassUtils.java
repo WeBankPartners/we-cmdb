@@ -111,7 +111,7 @@ public class ClassUtils {
                 return field.getName();
             }
         }
-        throw new ServiceException(String.format("Can not find out id field for the DTO class [%s]", dtoClzz.toString()));
+        throw new ServiceException(String.format("Can not find out id field for the DTO class [%s]", dtoClzz.toString())).withErrorCode("3108", dtoClzz.toString());
     }
 
     public static Map<String, Object> convertBeanToMap(Object ciObj, DynamicEntityMeta entityMeta, boolean includeNullVal) {
