@@ -256,8 +256,38 @@ export default {
         isEditable: true,
         isAuto: false
       },
-
-      batchOperations: [],
+      batchOperations: [
+        {
+          name: this.$t('permission_management_data_creation'),
+          allSelect: false,
+          emptySelect: false,
+          key: 'creationPermission'
+        },
+        {
+          name: this.$t('permission_management_data_removal'),
+          allSelect: false,
+          emptySelect: false,
+          key: 'removalPermission'
+        },
+        {
+          name: this.$t('permission_management_data_modification'),
+          allSelect: false,
+          emptySelect: false,
+          key: 'modificationPermission'
+        },
+        {
+          name: this.$t('permission_management_data_enquiry'),
+          allSelect: false,
+          emptySelect: false,
+          key: 'enquiryPermission'
+        },
+        {
+          name: this.$t('permission_management_data_execution'),
+          allSelect: false,
+          emptySelect: false,
+          key: 'executionPermission'
+        }
+      ],
       cacheOriginCiTypePermission: [] // 便于撤销还原
     }
   },
