@@ -45,7 +45,7 @@ public class PriorityEntityManager {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 if (method.getName() == "close" && void.class.equals(method.getReturnType())) {
-                    throw new ServiceException("EntityManager close method should not be called directly.");
+                    throw new ServiceException("3103", "EntityManager close method should not be called directly.");
                 } else {
                     return method.invoke(entityManager, args);
                 }
