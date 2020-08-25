@@ -321,7 +321,8 @@ public class JpaQueryUtils {
         Query query = entityManager.createNativeQuery(updateSeqSqlBuilder.toString());
         int updateCount = query.executeUpdate();
         if (updateCount != 1) {
-            throw new ServiceException(String.format("Failed to update seq_no for mult reference [from_guid:%s,to_guid:%s]", curGuid, refGuids.get(i)));
+            throw new ServiceException(String.format("Failed to update seq_no for mult reference [from_guid:%s,to_guid:%s]", curGuid, refGuids.get(i)))
+            .withErrorCode("3099", curGuid, refGuids.get(i));
         }
     }
 

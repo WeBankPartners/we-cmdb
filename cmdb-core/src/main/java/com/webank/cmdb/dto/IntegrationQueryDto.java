@@ -55,7 +55,8 @@ public class IntegrationQueryDto {
         for (AdmIntegrateTemplateAlias alias : aliases) {
             if (alias.getParentIntegrateTemplateRelation() == null) {
                 if (rootAlias != null) {
-                    throw new ServiceException(String.format("There are more then 1 root aliase for integrate template [%d].", intTemplate.getIdAdmIntegrateTemplate()));
+                    throw new ServiceException(String.format("There are more then 1 root aliase for integrate template [%d].", intTemplate.getIdAdmIntegrateTemplate()))
+                    .withErrorCode("3110", intTemplate.getIdAdmIntegrateTemplate());
                 } else {
                     rootAlias = alias;
                 }
@@ -63,7 +64,8 @@ public class IntegrationQueryDto {
         }
         
         if(rootAlias == null) {
-            throw new ServiceException(String.format("Can not find out root alias for integrate template [%d].", intTemplate.getIdAdmIntegrateTemplate()));
+            throw new ServiceException(String.format("Can not find out root alias for integrate template [%d].", intTemplate.getIdAdmIntegrateTemplate()))
+            .withErrorCode("3111", intTemplate.getIdAdmIntegrateTemplate());
         }
 
         return buildDtoTree(rootAlias, null, null);
