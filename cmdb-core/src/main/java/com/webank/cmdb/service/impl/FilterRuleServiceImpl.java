@@ -227,28 +227,28 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         FilterRuleDto.RightTypeEnum rightType = FilterRuleDto.RightTypeEnum.fromCode(typeCode);
         Object rightValue = ruleRight.getValue();
         if(rightType == FilterRuleDto.RightTypeEnum.None){
-            throw new CmdbException(String.format("Type (%s) is invalid.",typeCode));
+            throw new CmdbException("3000", String.format("Type (%s) is invalid.",typeCode), typeCode);
         }else if(rightType == FilterRuleDto.RightTypeEnum.Expression){
             if(!(rightValue instanceof  String)){
-                throw new CmdbException("Right value should be String for expression type.");
+                throw new CmdbException("3001", "Right value should be String for expression type.");
             }
             String rightExpression = (String)rightValue;
             try {
                 AdhocIntegrationQueryDto rightAdhocIntegrationQuery = routeQueryExpressionService.parseRouteExpression(rightExpression);
                 List<String> resultColumns = rightAdhocIntegrationQuery.getQueryRequest().getResultColumns();
                 if(resultColumns.size() != 1){
-                    throw new CmdbException(String.format("Right expression should contain only one result column. (%s)",rightExpression));
+                    throw new CmdbException(String.format("3002", "Right expression should contain only one result column. (%s)",rightExpression), rightExpression);
                 }
                 Integer leftLastCiTypeId = getLastNodeCiTypeId(leftIntegrationQuery);
                 Integer rightLastCiTypeId = getLastNodeCiTypeId(rightAdhocIntegrationQuery);
                 if(!leftLastCiTypeId.equals(rightLastCiTypeId)){
-                    throw new CmdbException("The last node CI type is not matched for left and right expression");
+                    throw new CmdbException("3003", "The last node CI type is not matched for left and right expression");
                 }
 
                 Integer leftResultAttrId = getLastNodeAttrId(leftIntegrationQuery);
                 Integer rightResultAttrId = getLastNodeAttrId(rightAdhocIntegrationQuery);
                 if(!leftResultAttrId.equals(rightResultAttrId)){
-                    throw new CmdbException("The last node result attribute is not matched for left and right expression.");
+                    throw new CmdbException("3004", "The last node result attribute is not matched for left and right expression.");
                 }
 
             }catch(Exception ex){
