@@ -26,7 +26,7 @@ public class RoleCiTypeAuthority implements Authority {
     public RoleCiTypeAuthority(AdmRoleCiType roleCiType) {
         this.roleCiType = roleCiType;
         if (roleCiType == null)
-            throw new CmdbException("roleCiType could not be null.");
+            throw new CmdbException("3056", "roleCiType could not be null.");
         this.role = (roleCiType.getAdmRole() == null) ? String.valueOf(roleCiType.getRoleId()) : roleCiType.getAdmRole().getRoleName();
         if (isNotEmpty(roleCiType.getAdmRoleCiTypeCtrlAttrs())) {
             ruleAuthorities = roleCiType.getAdmRoleCiTypeCtrlAttrs().stream().map(RoleCiTypeRuleAuthority::new).collect(Collectors.toList());

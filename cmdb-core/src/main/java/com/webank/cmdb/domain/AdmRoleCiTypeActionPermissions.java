@@ -38,7 +38,7 @@ public interface AdmRoleCiTypeActionPermissions {
         } else if (ACTION_GRANT.equalsIgnoreCase(action)) {
             return getGrantPermission();
         } else {
-            throw new CmdbException("Unsupported action code: " + action);
+            throw new CmdbException("Unsupported action code: " + action).withErrorCode("3054", action);
         }
     }
 
