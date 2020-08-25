@@ -67,13 +67,16 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
             if(AttrConditionType.Expression.codeEquals(attrCondition.getConditionType())){
                 Optional<AdmCiTypeAttr> ciTypeAttrOpt = admCiTypeAttrRepository.findById(attrCondition.getCiTypeAttrId());
                 if(!ciTypeAttrOpt.isPresent()){
-                    throw new CmdbException(String.format("CiType attribute (id:%d) is not exited.",attrCondition.getCiTypeAttrId()));
+                    throw new CmdbException(String.format("CiType attribute (id:%d) is not exited.",attrCondition.getCiTypeAttrId()))
+                    .withErrorCode("3024", attrCondition.getCiTypeAttrId());
                 }
                 if(! new Integer(1).equals(ciTypeAttrOpt.get().getIsAccessControlled())){
-                    throw new CmdbException(String.format("Attribute (%d) is not access controlled.",attrCondition.getCiTypeAttrId()));
+                    throw new CmdbException(String.format("Attribute (%d) is not access controlled.",attrCondition.getCiTypeAttrId()))
+                    .withErrorCode("3025", attrCondition.getCiTypeAttrId());
                 }
                 if(!InputType.Reference.codeEquals(ciTypeAttrOpt.get().getInputType())){
-                    throw new CmdbException(String.format("Attribute (%d) is not refrence type.",attrCondition.getCiTypeAttrId()));
+                    throw new CmdbException(String.format("Attribute (%d) is not refrence type.",attrCondition.getCiTypeAttrId()))
+                    .withErrorCode("3026", attrCondition.getCiTypeAttrId());
                 }
                 Integer referencedCiTypeId = ciTypeAttrOpt.get().getReferenceId();
 
@@ -82,12 +85,14 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
                     try {
                         adhocIntegrationQuery = routeQueryExpressionService.parseRouteExpression(conditionValueExpr);
                     }catch (CmdbExpressException ex){
-                        throw new CmdbException(String.format("Route expression is invalid (%s). (%s)",conditionValueExpr, ex.getMessage()),ex);
+                        throw new CmdbException(String.format("Route expression is invalid (%s). (%s)",conditionValueExpr, ex.getMessage()),ex)
+                        .withErrorCode("3027", conditionValueExpr, ex.getMessage());
                     }
 
                     List<String> resultColumns = adhocIntegrationQuery.getQueryRequest().getResultColumns();
                     if(resultColumns==null || resultColumns.size()!=1){
-                        throw  new CmdbException(String.format("Expression (%s) must have one result column.",conditionValueExpr));
+                        throw  new CmdbException(String.format("Expression (%s) must have one result column.",conditionValueExpr))
+                        .withErrorCode("3028", conditionValueExpr);
                     }
 
                     int resultAttrId = getResultAttrId(adhocIntegrationQuery.getCriteria(),resultColumns.get(0));
@@ -95,12 +100,15 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
                     if(referenceCiTypeNotMatched(referencedCiTypeId, resultAttrOpt)){
                         Optional<AdmCiType> referedCiTypeOpt = admCiTypeRepository.findById(referencedCiTypeId);
                         throw new CmdbException(String.format("Result column (%s) dose not reference to CiType (%s)",resultColumns.get(0),
-                                referedCiTypeOpt.get().getTableName()));
+                                referedCiTypeOpt.get().getTableName()))
+                        .withErrorCode("3029", resultColumns.get(0),
+                                referedCiTypeOpt.get().getTableName());
                     }
 
                     String resultPropertyName = resultAttrOpt.get().getPropertyName();
                     if(!"guid".equalsIgnoreCase(resultPropertyName)){
-                        throw new CmdbException(String.format("Result column (%s) is not guid.",resultPropertyName));
+                        throw new CmdbException(String.format("Result column (%s) is not guid.",resultPropertyName))
+                        .withErrorCode("3030", resultPropertyName);
                     }
                 }
 
@@ -128,7 +136,8 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
             for (IntegrationQueryDto child : integrationQuery.getChildren()) {
                 return getResultAttrId(child,resultColumn);
             }
-            throw new CmdbException(String.format("Can not find out result column (%s) attribute id.",resultColumn));
+            throw new CmdbException(String.format("Can not find out result column (%s) attribute id.",resultColumn))
+            .withErrorCode("3031", resultColumn);
         }
     }
 
@@ -173,7 +182,8 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
 
             Optional<AdmRoleCiTypeCtrlAttrCondition> conditionOpt = roleCiTypeCtrlAttrConditionRepository.findById(conditionId);
             if(!conditionOpt.isPresent()){
-                throw new CmdbException(String.format("AdmRoleCiTypeCtrlAttrCondition is not existed for id (%d).",conditionId));
+                throw new CmdbException(String.format("AdmRoleCiTypeCtrlAttrCondition is not existed for id (%d).",conditionId))
+                .withErrorCode("3032", conditionId);
             }
 
             AdmRoleCiTypeCtrlAttrCondition admCondition = conditionOpt.get();
@@ -214,7 +224,8 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
         for (Integer id : attrIds) {
             Optional<AdmRoleCiTypeCtrlAttr> admRoleCiTypeAttr = roleCiTypeAttrRepository.findById(id);
             if(!admRoleCiTypeAttr.isPresent()){
-                throw new CmdbException(String.format("RoleCiTypeCtrlAttr (id:%d) is not existed.",id));
+                throw new CmdbException(String.format("RoleCiTypeCtrlAttr (id:%d) is not existed.",id))
+                .withErrorCode("3033", id);
             }
             deleteRoleCiTypeCtrlAttrConditions(admRoleCiTypeAttr.get().getAdmRoleCiTypeCtrlAttrConditions());
             roleCiTypeAttrRepository.delete(admRoleCiTypeAttr.get());
@@ -231,7 +242,8 @@ public class RoleCiTypeAccessCtrlServiceImpl implements RoleCiTypeAccessCtrlServ
 
         if(conditions.get().size()>1){
             throw new CmdbException(String.format("Found more than one CtrlAttrCondition record. (ctlAttrId:%d,ciTypeAttrId:%d)",
-                    ctlAttrId,ciTypeAttrId));
+                    ctlAttrId,ciTypeAttrId))
+            .withErrorCode("3034", ctlAttrId,ciTypeAttrId);
         }
         List<RoleCiTypeCtrlAttrConditionDto> conditionDtos = new LinkedList<>();
         AdmRoleCiTypeCtrlAttrCondition admCondition = conditions.get().get(0);
