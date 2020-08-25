@@ -38,9 +38,13 @@
                 >{{ operation.name }}</Checkbox
               >
             </template>
-            <Button icon="md-person" type="dashed" size="small" style="margin-right:21px;visibility: hidden;">{{
-              $t('details')
-            }}</Button>
+            <Button
+              icon="md-person"
+              type="dashed"
+              size="small"
+              style="margin-right:21px;margin-left:6px;visibility: hidden;"
+              >{{ $t('details') }}</Button
+            >
           </div>
         </div>
         <div class="tagContainers">
@@ -159,80 +163,7 @@ export default {
       roles: [],
       dataPermissionDisabled: false,
       permissionManageModal: false,
-      ciTypePermissions: [
-        {
-          roleCiTypeId: 814,
-          ciTypeId: 1,
-          roleId: 17,
-          ciTypeName: '管理角色',
-          creationPermission: 'N',
-          removalPermission: 'N',
-          modificationPermission: 'N',
-          enquiryPermission: 'N',
-          executionPermission: 'N',
-          grantPermission: 'N',
-          ciType: {
-            layerCode: {
-              cat: {
-                codes: []
-              },
-              ciTypes: []
-            },
-            catalogCode: {
-              cat: {
-                codes: []
-              },
-              ciTypes: []
-            },
-            ciStateType: {
-              cat: {
-                codes: []
-              },
-              ciTypes: []
-            }
-          },
-          role: {
-            roleUsers: [],
-            roleMenus: []
-          }
-        },
-        {
-          roleCiTypeId: 870,
-          ciTypeId: 66,
-          roleId: 17,
-          ciTypeName: '对象存储实例',
-          creationPermission: 'N',
-          removalPermission: 'N',
-          modificationPermission: 'N',
-          enquiryPermission: 'N',
-          executionPermission: 'N',
-          grantPermission: 'N',
-          ciType: {
-            layerCode: {
-              cat: {
-                codes: []
-              },
-              ciTypes: []
-            },
-            catalogCode: {
-              cat: {
-                codes: []
-              },
-              ciTypes: []
-            },
-            ciStateType: {
-              cat: {
-                codes: []
-              },
-              ciTypes: []
-            }
-          },
-          role: {
-            roleUsers: [],
-            roleMenus: []
-          }
-        }
-      ],
+      ciTypePermissions: [],
       currentRoleCiTypeId: '',
       // for WeCMDBTable
       newOuterActions,
