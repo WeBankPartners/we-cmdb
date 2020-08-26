@@ -1,9 +1,13 @@
 package com.webank.cmdb.dynamicEntity;
 
+import com.google.common.collect.Maps;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.support.exception.ServiceException;
+import org.apache.commons.beanutils.BeanMap;
+
+import java.util.Map;
 
 public class DynamicEntityUtils {
     public static String getEntityQuanlifiedName(String tableName) {
@@ -62,6 +66,22 @@ public class DynamicEntityUtils {
 
     public static String getJoinMapperByFieldName(String tableName, String propertyName) {
         return tableName + "_" + propertyName;
+    }
+
+    public static Map<String, Object> convertCiDataMap(DynamicEntityMeta entityMeta, Object entityBean) {
+        Map<String, Object> resultMap = Maps.newHashMap();
+        BeanMap ciObjMap = new BeanMap(entityBean);
+        for (Map.Entry kv : ciObjMap.entrySet()) {
+            String fieldName = kv.getKey().toString();
+            FieldNode fieldNode = entityMeta.getFieldNode(fieldName);
+            Object value = kv.getValue();
+            if (fieldNode != null) {
+                if (!fieldNode.isJoinNode()) {
+                    resultMap.put(fieldName, value);
+                }
+            }
+        }
+        return resultMap;
     }
 
 }
