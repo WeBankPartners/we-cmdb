@@ -2,6 +2,7 @@ package com.webank.cmdb;
 
 import javax.servlet.Filter;
 
+import com.webank.cmdb.support.mvc.PerformanceInspectFilter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
@@ -34,6 +35,6 @@ public class Application extends AbstractAnnotationConfigDispatcherServletInitia
 
     @Override
     protected Filter[] getServletFilters() {
-        return new Filter[] { new OpenEntityManagerInViewFilter() };
+        return new Filter[] {  };
     }
 }

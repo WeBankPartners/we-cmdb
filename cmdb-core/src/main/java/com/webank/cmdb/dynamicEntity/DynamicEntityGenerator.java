@@ -173,7 +173,7 @@ public class DynamicEntityGenerator implements Opcodes {
 
                 {
                     annotationVisitor0 = methodVisitor.visitAnnotation("Ljavax/persistence/ManyToMany;", true);
-                    annotationVisitor0.visitEnum("fetch", "Ljavax/persistence/FetchType;", "EAGER");
+                    annotationVisitor0.visitEnum("fetch", "Ljavax/persistence/FetchType;", "LAZY");
                     {
                         AnnotationVisitor annotationVisitor1 = annotationVisitor0.visitArray("cascade");
                         annotationVisitor1.visitEnum(null, "Ljavax/persistence/CascadeType;", CascadeType.PERSIST.toString());
@@ -246,7 +246,7 @@ public class DynamicEntityGenerator implements Opcodes {
             annotationVisitor0 = methodVisitor.visitAnnotation("Ljavax/persistence/OneToMany;", true);
             annotationVisitor0.visit("mappedBy", field.getMappedBy());
             if (DynamicEntityType.MultiSelection.equals(field.getEntityType())) {
-                annotationVisitor0.visitEnum("fetch", "Ljavax/persistence/FetchType;", "EAGER");
+                annotationVisitor0.visitEnum("fetch", "Ljavax/persistence/FetchType;", "LAZY");
                 AnnotationVisitor annotationVisitor1 = annotationVisitor0.visitArray("cascade");
                 annotationVisitor1.visitEnum(null, "Ljavax/persistence/CascadeType;", CascadeType.ALL.toString());
                 annotationVisitor1.visitEnd();
