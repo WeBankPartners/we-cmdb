@@ -207,4 +207,13 @@ public class QueryRequest {
         return defaultQueryObject().addEqualsFilter(name, value);
     }
 
+    public boolean isColumnSelected(String column){
+        if(this.resultColumns==null || resultColumns.size()==0){
+            return true;
+        }else if(resultColumns.contains(column)){
+            return true;
+        }else{
+            return false;
+        }
+    }
 }

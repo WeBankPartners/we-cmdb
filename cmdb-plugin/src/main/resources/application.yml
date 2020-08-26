@@ -3,6 +3,16 @@ server:
   address: localhost
   servlet:
     context-path: /wecmdb
+  tomcat:
+    accesslog:
+      enabled: false
+      buffered: false
+      directory: /data/wecmdb/log
+      prefix: access_log
+      suffix: .log
+      file-date-format: -yyyy-MM-dd
+      pattern: '%D %{Host}i %t "%r" %{Content-Length}i %s %b "-"'
+      rotate: true
 
 plugins:
   pacakge-name: wecmdb
@@ -22,6 +32,16 @@ spring:
     url: jdbc:mysql://db-server:3306/db_schema?characterEncoding=utf8&serverTimezone=UTC
     username: db_user
     password: db_password
+    hikari:
+      pool-name: WeCMDB_HikariCP
+      minimum-idle: 20
+      idle-timeout: 180000
+      maximum-pool-size: 200
+      auto-commit: true
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+      driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     database: MySQL
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
