@@ -92,6 +92,7 @@
                     @click="saveOperation('parentPanalData')"
                     :disabled="!isEdit"
                     class="opetation-btn"
+                    :loading="btnLoading"
                     >{{ $t('save') }}</Button
                   >
                 </div>
@@ -229,6 +230,7 @@
                       @click="saveOperation('panalData', groupingKey)"
                       :disabled="!isEdit"
                       class="opetation-btn"
+                      :loading="btnLoading"
                       >{{ $t('save') }}</Button
                     >
                   </div>
@@ -309,7 +311,7 @@
           </div>
           <FormItem>
             <div class="opetation-btn-zone">
-              <Button type="primary" @click="createNode">{{ $t('save') }}</Button>
+              <Button type="primary" @click="createNode" :loading="btnLoading">{{ $t('save') }}</Button>
               <Button @click="cancleAddNode" class="opetation-btn">{{ $t('cancel') }}</Button>
             </div>
           </FormItem>
@@ -421,6 +423,7 @@
                       @click="saveOperation('linkData', groupingKey)"
                       :disabled="!isEdit || isEditEnable(link.meta.nextOperations)"
                       class="opetation-btn"
+                      :loading="btnLoading"
                       >{{ $t('save') }}</Button
                     >
                   </div>
@@ -497,7 +500,7 @@
           </div>
           <FormItem>
             <div class="opetation-btn-zone">
-              <Button type="primary" @click="createLine">{{ $t('save') }}</Button>
+              <Button type="primary" @click="createLine" :loading="btnLoading">{{ $t('save') }}</Button>
               <Button @click="cancleAddLine" class="opetation-btn">{{ $t('cancel') }}</Button>
             </div>
           </FormItem>
@@ -525,6 +528,7 @@ export default {
   name: '',
   data () {
     return {
+      btnLoading: false,
       isShow: true,
       graphCiTypeId: '',
       graphTableName: '',
@@ -697,6 +701,7 @@ export default {
       this.newLineForm.sort((a, b) => a.searchSeqNo - b.searchSeqNo)
     },
     async createLine () {
+      this.btnLoading = true
       // eslint-disable-next-line no-unused-vars
       let activeLineData = null
       // eslint-disable-next-line no-unused-vars
@@ -729,6 +734,7 @@ export default {
         createData: [tmpLineData]
       }
       const { statusCode, data } = await createCiDatas(params)
+      this.btnLoading = false
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
         this.showAddLineArea = false
@@ -900,6 +906,7 @@ export default {
       })
     },
     async createNode () {
+      this.btnLoading = true
       // eslint-disable-next-line no-unused-vars
       let activePanalData = null
       // eslint-disable-next-line no-unused-vars
@@ -932,6 +939,7 @@ export default {
         createData: [tmpPanalData]
       }
       const { statusCode, data } = await createCiDatas(params)
+      this.btnLoading = false
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
         this.showAddNodeArea = false
@@ -973,6 +981,7 @@ export default {
     },
     // 保存数据
     async saveOperation (dataSource, tableName) {
+      this.btnLoading = true
       // eslint-disable-next-line no-unused-vars
       let activePanalData = null
       // eslint-disable-next-line no-unused-vars
@@ -1020,6 +1029,7 @@ export default {
         updateData: [tmpPanalData]
       }
       const { statusCode, data } = await updateCiDatas(params)
+      this.btnLoading = false
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
         this.isEdit = false
