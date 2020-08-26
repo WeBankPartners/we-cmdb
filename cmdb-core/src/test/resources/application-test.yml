@@ -4,6 +4,9 @@ spring:
     url: jdbc:h2:mem:cmdb;MODE=MYSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=true;MV_STORE=FALSE;INIT=CREATE SCHEMA IF NOT EXISTS cmdb_test\;SET SCHEMA cmdb_test
     username: sa
     password:
+    hikari:
+      pool-name: WeCMDB_HikariCP
+      driver-class-name: org.h2.Driver
   jpa:
     database: MySQL
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
