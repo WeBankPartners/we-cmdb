@@ -547,7 +547,7 @@ export default {
           .on('mousewheel.zoom', null)
         this.graph.graphviz = graph
           .graphviz()
-          .width(window.innerWidth - 60)
+          .width(window.innerWidth - 95)
           .height(window.innerHeight - 260)
           .zoom(true)
           .fit(true)

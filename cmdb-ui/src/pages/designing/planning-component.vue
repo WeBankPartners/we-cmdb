@@ -275,7 +275,7 @@ export default {
         .on('mousewheel.zoom', null)
       let graphZoom = graph
         .graphviz()
-        .width(window.innerWidth - 60)
+        .width(window.innerWidth - 90)
         .height(window.innerHeight - 255)
         .zoom(true)
         .fit(true)
@@ -414,12 +414,7 @@ export default {
           this.activeNodeInfo = {}
         }
       })
-      let divWidth = window.innerWidth - 20
-      let divHeight = window.innerHeight - 220
       let children = idcData.children || []
-      let svg = d3.select('#graph').select('svg')
-      svg.attr('width', divWidth).attr('height', divHeight)
-      svg.attr('viewBox', '0 0 ' + divWidth + ' ' + divHeight)
       children.forEach(zone => {
         d3.select(`#g_${zone.guid}`)
           .select('polygon')
