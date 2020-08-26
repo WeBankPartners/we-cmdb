@@ -171,6 +171,7 @@ export default {
     newGraphNameModalVisible: function (val) {
       if (!val) {
         this.btnLoading = false
+        this.newGraphName = ''
       }
     }
   },
