@@ -22,29 +22,60 @@
     <Col span="15" offset="1">
       <Card>
         <p slot="title">{{ $t('data_management') }}</p>
-        <div class="data-permissions" v-for="ci in ciTypePermissions" :key="ci.ciTypeId">
-          <span class="ciTypes" :title="ci.ciTypeName">{{ ci.ciTypeName }}</span>
-          <div class="ciTypes-options">
-            <Checkbox
-              v-for="act in actionsType"
-              :disabled="dataPermissionDisabled"
-              :indeterminate="ci[act.actionCode] === 'P'"
-              :value="ci[act.actionCode] === 'Y'"
-              :key="act.actionCode"
-              @click.prevent.native="ciTypesPermissionsHandler(ci, act.actionCode, act.type)"
-            >
-              {{ act.actionName }}
-            </Checkbox>
+        <div v-if="ciTypePermissions.length" class="batch-operation">
+          <div style="float:left">{{ $t('selectAll') }}</div>
+          <div class="" style="text-align:right;">
+            <template v-for="(operation, opretionIndex) in batchOperations">
+              <Checkbox
+                :key="opretionIndex"
+                :value="operation.allSelect"
+                :indeterminate="operation.emptySelect"
+                @on-change="
+                  val => {
+                    batchPermission(val, operation.key)
+                  }
+                "
+                >{{ operation.name }}</Checkbox
+              >
+            </template>
             <Button
-              icon="ios-build"
+              icon="md-person"
               type="dashed"
               size="small"
-              :disabled="dataPermissionDisabled || !ciTypesWithAccessControlledAttr[ci.ciTypeId]"
-              @click="openPermissionManageModal(ci.roleCiTypeId)"
+              style="margin-right:21px;margin-left:6px;visibility: hidden;"
+              >{{ $t('details') }}</Button
             >
-              {{ $t('details') }}
-            </Button>
           </div>
+        </div>
+        <div class="tagContainers">
+          <div class="data-permissions" v-for="(ci, ciIndex) in ciTypePermissions" :key="ci.ciTypeId">
+            <span class="ciTypes" :title="ci.ciTypeName">{{ ci.ciTypeName }}</span>
+            <div class="ciTypes-options">
+              <Checkbox
+                v-for="act in actionsType"
+                :disabled="dataPermissionDisabled"
+                :indeterminate="ci[act.actionCode] === 'P'"
+                :value="ci[act.actionCode] === 'Y'"
+                :key="act.actionCode"
+                @click.prevent.native="ciTypesPermissionsHandler(ciIndex, act.actionCode)"
+              >
+                {{ act.actionName }}
+              </Checkbox>
+              <Button
+                icon="md-person"
+                type="dashed"
+                size="small"
+                :disabled="dataPermissionDisabled || !ciTypesWithAccessControlledAttr[ci.ciTypeId]"
+                @click="openPermissionManageModal(ci.roleCiTypeId)"
+              >
+                {{ $t('details') }}
+              </Button>
+            </div>
+          </div>
+        </div>
+        <div v-if="ciTypePermissions.length" class="batch-operation-btn">
+          <Button type="primary" @click="savePermissionsInBatch">{{ $t('save') }}</Button>
+          <Button @click="canclePermissionsOperation">{{ $t('cancel') }}</Button>
         </div>
       </Card>
     </Col>
@@ -81,9 +112,10 @@ import {
   deleteRoleCiTypeCtrlAttributes,
   getPermissionsByRole,
   getWecubeRoles,
-  addDataPermissionAction,
-  removeDataPermissionAction,
-  getAllCITypesByLayerWithAttr
+  // addDataPermissionAction,
+  // removeDataPermissionAction,
+  getAllCITypesByLayerWithAttr,
+  assignCiTypePermissionForRoleInBatch
 } from '@/api/server.js'
 export default {
   data () {
@@ -154,7 +186,40 @@ export default {
         ],
         isEditable: true,
         isAuto: false
-      }
+      },
+      batchOperations: [
+        {
+          name: this.$t('permission_management_data_creation'),
+          allSelect: false,
+          emptySelect: false,
+          key: 'creationPermission'
+        },
+        {
+          name: this.$t('permission_management_data_removal'),
+          allSelect: false,
+          emptySelect: false,
+          key: 'removalPermission'
+        },
+        {
+          name: this.$t('permission_management_data_modification'),
+          allSelect: false,
+          emptySelect: false,
+          key: 'modificationPermission'
+        },
+        {
+          name: this.$t('permission_management_data_enquiry'),
+          allSelect: false,
+          emptySelect: false,
+          key: 'enquiryPermission'
+        },
+        {
+          name: this.$t('permission_management_data_execution'),
+          allSelect: false,
+          emptySelect: false,
+          key: 'executionPermission'
+        }
+      ],
+      cacheOriginCiTypePermission: [] // 便于撤销还原
     }
   },
   computed: {
@@ -196,6 +261,23 @@ export default {
           ...this.defaultOptionAttrs
         }
       ]
+    }
+  },
+  watch: {
+    ciTypePermissions: {
+      handler (newValue) {
+        this.batchOperations.forEach(_ => {
+          _.allSelect = newValue.every(ciPermisstion => {
+            return ciPermisstion[_.key] === 'Y'
+          })
+          const emptySelect = newValue.every(ciPermisstion => {
+            return ciPermisstion[_.key] === 'N'
+          })
+          _.emptySelect = !_.allSelect && !emptySelect
+        })
+      },
+      immediate: true,
+      deep: true
     }
   },
   methods: {
@@ -469,8 +551,14 @@ export default {
       this.permissionManageModal = false
       this.permissionEntryPointsForEdit = []
     },
-    ciTypesPermissionsHandler (ci, code, type) {
-      this.setPermissionAction(!(ci[code] === 'Y'), type, ci.ciTypeId)
+    ciTypesPermissionsHandler (ciIndex, code) {
+      this.ciTypePermissions[ciIndex][code] = this.ciTypePermissions[ciIndex][code] === 'Y' ? 'N' : 'Y'
+    },
+    batchPermission (val, operationType) {
+      const value = val ? 'Y' : 'N'
+      this.ciTypePermissions.forEach(_ => {
+        _[operationType] = value
+      })
     },
     async getPermissions (queryAfterEditing, checked, roleOrUser, byUser = false) {
       if (checked) {
@@ -487,6 +575,7 @@ export default {
           this.ciTypePermissions = []
         }
       }
+      this.cacheOriginCiTypePermission = JSON.parse(JSON.stringify(this.ciTypePermissions))
     },
     async handleRoleClick (checked, rolename) {
       // this.currentRoleId = id;
@@ -536,19 +625,52 @@ export default {
         this.ciTypesWithAccessControlledAttr = _ciTypesWithAccessControlledAttr
       }
     },
-    permissionResponseHandeler (res) {
-      this.getPermissions(true, true, this.currentRoleName)
-    },
-    async setPermissionAction (checked, name, id) {
-      if (!this.currentRoleName) return
-      if (checked) {
-        const addRes = await addDataPermissionAction(this.currentRoleName, id, name)
-        this.permissionResponseHandeler(addRes)
-      } else {
-        const delRes = await removeDataPermissionAction(this.currentRoleName, id, name)
-        this.permissionResponseHandeler(delRes)
+    async savePermissionsInBatch () {
+      const ciTypePermissions = this.ciTypePermissions.map(permission => {
+        const {
+          ciTypeId,
+          ciTypeName,
+          creationPermission,
+          enquiryPermission,
+          executionPermission,
+          modificationPermission,
+          removalPermission
+        } = permission
+        return {
+          ciTypeId: ciTypeId,
+          ciTypeName,
+          creationPermission,
+          enquiryPermission,
+          executionPermission,
+          modificationPermission,
+          removalPermission
+        }
+      })
+      let { statusCode, message } = await assignCiTypePermissionForRoleInBatch(ciTypePermissions, this.currentRoleName)
+      if (statusCode === 'OK') {
+        this.$Notice.success({
+          title: 'success',
+          desc: message
+        })
+        this.getPermissions(true, true, this.currentRoleName)
       }
+    },
+    canclePermissionsOperation () {
+      this.ciTypePermissions = JSON.parse(JSON.stringify(this.cacheOriginCiTypePermission))
     }
+    // permissionResponseHandeler (res) {
+    //   this.getPermissions(true, true, this.currentRoleName)
+    // },
+    // async setPermissionAction (checked, name, id) {
+    //   if (!this.currentRoleName) return
+    //   if (checked) {
+    //     const addRes = await addDataPermissionAction(this.currentRoleName, id, name)
+    //     this.permissionResponseHandeler(addRes)
+    //   } else {
+    //     const delRes = await removeDataPermissionAction(this.currentRoleName, id, name)
+    //     this.permissionResponseHandeler(delRes)
+    //   }
+    // }
   },
   created () {
     this.getAllRoles()
@@ -558,6 +680,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.tagContainers {
+  overflow: auto;
+  height: calc(100vh - 280px);
+}
 .ivu-tag {
   display: block;
   border: #515a61 1px dashed !important;
@@ -621,5 +747,16 @@ export default {
   span {
     margin-right: 5px;
   }
+}
+.batch-operation {
+  padding-bottom: 0 5px 8px 5px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid #2d8cf0;
+}
+.batch-operation-btn {
+  text-align: right;
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 1px solid #2d8cf0;
 }
 </style>
