@@ -1785,7 +1785,7 @@ public class UIWrapperService {
     }
 
     private void propertiesAssignment(QueryResponse<CatCodeDto> response) throws IOException {
-        if(response != null) {
+        if(response != null && response.getContents().size() > 0) {
             StringBuilder sb = new StringBuilder("{");
             response.getContents().stream().forEach(catCodeDto -> sb.append("\""+catCodeDto.getCode()).append("\":\"").append(catCodeDto.getValue()+"\"").append(","));
             sb.deleteCharAt(sb.lastIndexOf(","));
