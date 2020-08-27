@@ -7,7 +7,6 @@ import java.util.Optional;
 import javax.persistence.EntityManager;
 
 import com.google.common.base.Stopwatch;
-import javafx.scene.paint.Stop;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
