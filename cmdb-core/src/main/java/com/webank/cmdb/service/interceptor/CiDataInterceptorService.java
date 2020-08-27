@@ -1,5 +1,6 @@
 package com.webank.cmdb.service.interceptor;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.webank.cmdb.constant.*;
@@ -16,6 +17,7 @@ import com.webank.cmdb.repository.AdmCiTypeRepository;
 import com.webank.cmdb.service.AuthorizationService;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.util.*;
+import javafx.scene.paint.Stop;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
@@ -23,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
 import javax.persistence.EntityManager;
 import java.io.IOException;
@@ -261,8 +264,11 @@ public class CiDataInterceptorService {
     }
 
     public void refreshAutoFill(DynamicEntityHolder entityHolder,EntityManager entityManager, Map<String, Object> ciData){
+        Stopwatch stopwatch = Stopwatch.createStarted();
         handleAutoFill(entityHolder, entityManager);
         handleReferenceAutoFill(entityHolder, entityManager, ciData);
+        stopwatch.stop();
+        logger.info("[Performance measure][refreshAutoFill]Elapsed time in refreshAutoFill:{}",stopwatch.toString());
     }
 
     private void updateSeqNoForMultiReferenceFields(DynamicEntityHolder entityHolder, Map<String, Object> updateCi, EntityManager entityManager) {
