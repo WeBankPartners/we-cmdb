@@ -396,7 +396,7 @@
                       filterable
                       v-model="item.form.inputType"
                       @on-change="onInputTypeChange($event, item.form.status !== 'notCreated')"
-                      :disabled="item.form.status !== 'notCreated'"
+                      :disabled="item.propertyName === 'state' || item.form.status !== 'notCreated'"
                     >
                       <Option v-for="item in allInputTypes" :value="item" :key="item">{{ item }}</Option>
                     </Select>
