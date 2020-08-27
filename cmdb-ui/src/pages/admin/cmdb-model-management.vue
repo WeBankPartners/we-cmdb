@@ -8,8 +8,8 @@
               <p>
                 {{ $t('architecture_diagram') }}
                 <span class="header-buttons-container margin-left">
-                  <Tooltip :content="$t('add_layer')" placement="top-start">
-                    <Button size="small" @click="isAddNewLayerModalVisible = true" icon="md-add"></Button>
+                  <Tooltip :content="$t('add_level')" placement="top-start">
+                    <Button size="small" @click="openLayerModal('level')">{{ $t('add_level') }}</Button>
                   </Tooltip>
                 </span>
               </p>
@@ -41,6 +41,9 @@
                   {{ item.value }}
                 </Option>
               </Select>
+              <Tooltip :content="$t('add_layer')" placement="top-start">
+                <Button size="small" @click="openLayerModal('layer')" class="btn-add-c" icon="md-add"></Button>
+              </Tooltip>
             </Col>
           </Row>
           <div class="graph-container" id="graph">
@@ -48,7 +51,7 @@
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
             </Spin>
           </div>
-          <Modal v-model="isAddNewLayerModalVisible" :title="$t('add_layer')" @on-visible-change="addLayerModalToggle">
+          <Modal v-model="isAddNewLayerModalVisible" :title="$t('new')" @on-visible-change="addLayerModalToggle">
             <Form class="validation-form" ref="newLayerForm" :model="newLayer" label-position="left" :label-width="100">
               <FormItem label="Key" prop="addNewLayerCode">
                 <Input v-model="newLayer.addNewLayerCode" />
@@ -396,7 +399,7 @@
                       filterable
                       v-model="item.form.inputType"
                       @on-change="onInputTypeChange($event, item.form.status !== 'notCreated')"
-                      :disabled="item.form.status !== 'notCreated'"
+                      :disabled="item.propertyName === 'state' || item.form.status !== 'notCreated'"
                     >
                       <Option v-for="item in allInputTypes" :value="item" :key="item">{{ item }}</Option>
                     </Select>
@@ -830,7 +833,8 @@ import {
   implementCiType,
   implementCiAttr,
   getSpecialConnector,
-  getCiTypeAttributes
+  getCiTypeAttributes,
+  createEnumCode
 } from '@/api/server'
 import STATUS_LIST from '@/const/graph-status-list.js'
 import { PROPERTY_TYPE_MAP } from '@/const/data-types.js'
@@ -875,6 +879,7 @@ export default {
         addNewLayerValue: '',
         addNewLayerDescription: ''
       },
+      levelOrLayer: '',
       isAddNewLayerModalVisible: false,
       isEditLayerNameModalVisible: false,
       isAddNewCITypeModalVisible: false,
@@ -926,6 +931,10 @@ export default {
     }
   },
   methods: {
+    openLayerModal (tag) {
+      this.levelOrLayer = tag
+      this.isAddNewLayerModalVisible = true
+    },
     addLayerModalToggle (isShow) {
       if (!isShow) {
         this.newLayer = {
@@ -1098,7 +1107,7 @@ export default {
         tempClusterAryForGraph.push(tempClusterObjForGraph[index].join(''))
       })
       dots.push(tempClusterAryForGraph.join(''))
-      dots.push('{' + layerTag + '[style=invis]}')
+      dots.push('{' + layerTag + '[penwidth=0]}')
 
       // generate edges
       nodes.forEach(node => {
@@ -1336,24 +1345,50 @@ export default {
     addNewLayer (formName) {
       this.$refs[formName].validate(async valid => {
         if (valid) {
-          this.buttonLoading.newLayer = true
-          let payload = {
-            code: this.newLayer.addNewLayerCode,
-            codeDescription: this.newLayer.addNewLayerDescription,
-            value: this.newLayer.addNewLayerValue
+          if (this.levelOrLayer === 'level') {
+            await this.addLevel()
+          } else {
+            await this.addLayer()
           }
-          let res = await createLayer(payload)
-          this.buttonLoading.newLayer = false
-          if (res.statusCode === 'OK') {
-            this.$Notice.success({
-              title: this.$t('add_layer_success'),
-              desc: res.message
-            })
-          }
-          this.isAddNewLayerModalVisible = false
-          this.initGraph()
         }
       })
+    },
+    async addLayer () {
+      this.buttonLoading.newLayer = true
+      let payload = {
+        catId: 3,
+        status: 'active',
+        code: this.newLayer.addNewLayerCode,
+        value: this.newLayer.addNewLayerValue
+      }
+      let res = await createEnumCode([payload])
+      this.buttonLoading.newLayer = false
+      if (res.statusCode === 'OK') {
+        this.$Notice.success({
+          title: 'Success !',
+          desc: res.message
+        })
+      }
+      this.isAddNewLayerModalVisible = false
+      this.initGraph()
+    },
+    async addLevel () {
+      this.buttonLoading.newLayer = true
+      let payload = {
+        code: this.newLayer.addNewLayerCode,
+        codeDescription: this.newLayer.addNewLayerDescription,
+        value: this.newLayer.addNewLayerValue
+      }
+      let res = await createLayer(payload)
+      this.buttonLoading.newLayer = false
+      if (res.statusCode === 'OK') {
+        this.$Notice.success({
+          title: this.$t('add_level_success'),
+          desc: res.message
+        })
+      }
+      this.isAddNewLayerModalVisible = false
+      this.initGraph()
     },
     async editLayerName () {
       let res = await updateLayer([
@@ -1422,7 +1457,7 @@ export default {
           this.$Modal.remove()
           if (statusCode === 'OK') {
             this.$Notice.success({
-              title: this.$t('delete_layer_success'),
+              title: this.$t('delete_level_success'),
               desc: message
             })
             this.reRenderGraph()
@@ -2028,5 +2063,10 @@ export default {
     font-size: 12px;
     color: #ed4014;
   }
+}
+.btn-add-c {
+  height: 30px;
+  width: 30px;
+  margin-left: 8px;
 }
 </style>
