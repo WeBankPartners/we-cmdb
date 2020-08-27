@@ -258,7 +258,7 @@ public class CiServiceImpl implements CiService {
         entityManagerFactory = dynamicEntityManagerFactory.getEntityManagerFactory(entityHolders, dyClassLoader).getEntityManagerFactory();
         isLoaded = true;
         stopwatch.stop();
-        logger.info("[Performance measure] Dynamic entity meta data loaded. elapsed time:{} ",stopwatch.toString());
+        logger.info("[Performance measure][reload] Dynamic entity meta data loaded. elapsed time:{} ",stopwatch.toString());
     }
 
     private void initDynamicEnitityMeta(List<DynamicEntityMeta> entityHolders, Map<Integer, String> ciTypeIdToClassName, Map<String, byte[]> entityClassBufMap, AdmCiType ciType, DynamicEntityMeta entityMeta, boolean derivedEntity) {
@@ -350,12 +350,12 @@ public class CiServiceImpl implements CiService {
             totalCount = convertResultToInteger(results);
 
             stopwatch.stop();
-            logger.info("[Performance measure] Elapsed time in getting count: {}",stopwatch.toString());
+            logger.info("[Performance measure][query] Elapsed time in getting count: {}",stopwatch.toString());
 
             stopwatch.reset().start();
             results = doQuery(ciRequest, entityMeta, false);
             stopwatch.stop();
-            logger.info("[Performance measure] Elapsed time in doing query: {}",stopwatch.toString());
+            logger.info("[Performance measure][query] Elapsed time in doing query: {}",stopwatch.toString());
 
             stopwatch.reset().start();
             results.forEach(x -> {
@@ -370,7 +370,7 @@ public class CiServiceImpl implements CiService {
                    ciInfoResp.addContent(ciData);
                 }
             });
-            logger.info("[Performance measure] Elapsed time in rendering result: {}",stopwatch.toString());
+            logger.info("[Performance measure][query] Elapsed time in rendering result: {}",stopwatch.toString());
         } finally {
             priEntityManager.close();
         }
@@ -1055,24 +1055,43 @@ public class CiServiceImpl implements CiService {
     }
 
     private Map<String, Object> doUpdate(EntityManager entityManager, int ciTypeId, Map<String, Object> ci, boolean enableStateTransition) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
 
         String guid = ci.get(GUID).toString();
         Object entityBean = validateCi(ciTypeId, guid, entityMeta, entityManager, ACTION_MODIFICATION);
+        stopwatch.stop();
+        logger.info("[Performance measure][doUpdate] Elapsed time in validating CI: {}",stopwatch.toString());
         DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
 
+        stopwatch.reset().start();
         ciDataInterceptorService.preUpdate(entityHolder, ci);
+        stopwatch.stop();
+        logger.info("[Performance measure][doUpdate] Elapsed time in pre updating: {}",stopwatch.toString());
+
+        stopwatch.reset().start();
         Map<String, Object> convertedCi = MultiValueFeildOperationUtils.convertMultiValueFieldsForCICreation(entityManager, ciTypeId, ci, (String) ci.get(CmdbConstants.DEFAULT_FIELD_GUID), ciTypeAttrRepository, this);
+        stopwatch.stop();
+        logger.info("[Performance measure][doUpdate] Elapsed time in convertMultiValueFieldsForCICreation: {}",stopwatch.toString());
+
+        stopwatch.reset().start();
         Map<String, Object> updatedMap = null;
         if (onlyIncludeRefreshableFields(ciTypeId, convertedCi.keySet()) || !enableStateTransition) {
             entityHolder.update(convertedCi, CmdbThreadLocal.getIntance().getCurrentUser(), entityManager);
             entityManager.merge(entityHolder.getEntityObj());
+            stopwatch.stop();
+            logger.info("[Performance measure][doUpdate] Elapsed time in merging: {}",stopwatch.toString());
         } else {
             updatedMap = stateTransEngine.process(entityManager, ciTypeId, guid, StateOperation.Update.getCode(), convertedCi, entityHolder);
             ci.put(CmdbConstants.DEFAULT_FIELD_STATE,StateOperation.Update.getCode());
+            stopwatch.stop();
+            logger.info("[Performance measure][doUpdate] Elapsed time in state transition processing.: {}",stopwatch.toString());
         }
 
+        stopwatch.reset().start();
         ciDataInterceptorService.postUpdate(entityHolder, entityManager, ci);
+        stopwatch.stop();
+        logger.info("[Performance measure][doUpdate] Elapsed time in post updating: {}",stopwatch.toString());
         updatedMap = ClassUtils.convertBeanToMap(entityHolder.getEntityObj(), entityHolder.getEntityMeta(), false);
         return updatedMap;
     }
@@ -1352,13 +1371,13 @@ public class CiServiceImpl implements CiService {
         List resultList = doIntegrateQuery(intQueryDto, intQueryReq, true, selectedFields);
         int totalCount = convertResultToInteger(resultList);
         stopwatch.stop();
-        logger.info("[Performance measure] Elapsed time in getting integrate query count: {}",stopwatch.toString());
+        logger.info("[Performance measure][integrateQuery] Elapsed time in getting integrate query count: {}",stopwatch.toString());
 
         stopwatch.reset().start();
         intQueryReq.setFilters(srcFilters);
         resultList = doIntegrateQuery(intQueryDto, intQueryReq, false, selectedFields);
         stopwatch.stop();
-        logger.info("[Performance measure] Elapsed time in executing integrate query: {}",stopwatch.toString());
+        logger.info("[Performance measure][integrateQuery] Elapsed time in executing integrate query: {}",stopwatch.toString());
 
         stopwatch.reset().start();
         List<Expression> selections = new LinkedList<>();
@@ -1399,7 +1418,7 @@ public class CiServiceImpl implements CiService {
             logger.debug("Return integrate response:{}", JsonUtil.toJsonString(response));
         }
         stopwatch.stop();
-        logger.info("[Performance measure] Elapsed time in rendering integrate query result: {}",stopwatch.toString());
+        logger.info("[Performance measure][integrateQuery] Elapsed time in rendering integrate query result: {}",stopwatch.toString());
         return response;
     }
 
@@ -2039,13 +2058,13 @@ public class CiServiceImpl implements CiService {
         List resultList = doIntegrateQuery(intQueryDto, queryRequest, true, selectedFields);
         int totalCount = convertResultToInteger(resultList);
         stopwatch.stop();
-        logger.info("[Performance measure] Elapsed time in getting ahoc integrate query count: {}",stopwatch.toString());
+        logger.info("[Performance measure][adhocIntegrateQuery] Elapsed time in getting ahoc integrate query count: {}",stopwatch.toString());
 
         stopwatch.reset().start();
         queryRequest.setFilters(srcFilters);
         resultList = doIntegrateQuery(intQueryDto, queryRequest, false, selectedFields);
         stopwatch.stop();
-        logger.info("[Performance measure] Elapsed time in getting ahoc integrate query: {}",stopwatch.toString());
+        logger.info("[Performance measure][adhocIntegrateQuery] Elapsed time in getting ahoc integrate query: {}",stopwatch.toString());
 
         stopwatch.reset().start();
         List<Expression> selections = new LinkedList<>();
@@ -2077,7 +2096,7 @@ public class CiServiceImpl implements CiService {
             logger.debug("Return integrate response:{}", JsonUtil.toJsonString(response));
         }
         stopwatch.stop();
-        logger.info("[Performance measure] Elapsed time in rendering ahoc integrate query result: {}",stopwatch.toString());
+        logger.info("[Performance measure][adhocIntegrateQuery] Elapsed time in rendering ahoc integrate query result: {}",stopwatch.toString());
         return response;
     }
 
@@ -2126,7 +2145,7 @@ public class CiServiceImpl implements CiService {
         request.getFilters().addAll(filters);
         List<Object> results = doQuery(request, entityMeta, false);
         stopwatch.stop();
-        logger.info("[Performance measure] Elapsed time in query with filter: {}",stopwatch.toString());
+        logger.info("[Performance measure][queryWithFilters] Elapsed time in query with filter: {}",stopwatch.toString());
 
         stopwatch.reset().start();
         List<Map<String, Object>> resultList = Lists.newLinkedList();
@@ -2146,7 +2165,7 @@ public class CiServiceImpl implements CiService {
 
         });
         stopwatch.stop();
-        logger.info("[Performance measure] Elapsed time in rendering result with filter: {}",stopwatch.toString());
+        logger.info("[Performance measure][queryWithFilters] Elapsed time in rendering result with filter: {}",stopwatch.toString());
         return resultList;
     }
 
@@ -2277,7 +2296,7 @@ public class CiServiceImpl implements CiService {
             }
         });
         stopwatch.stop();
-        logger.info("[Performance measure] Elapsed time in processing lookupReferenceByCis(int ciTypeId, String guid, boolean checkFinalState) invocation:{}",stopwatch.toString());
+        logger.info("[Performance measure][lookupReferenceByCis] Elapsed time in processing lookupReferenceByCis(int ciTypeId, String guid, boolean checkFinalState) invocation:{}",stopwatch.toString());
         return dependentCis;
     }
 
@@ -2314,7 +2333,7 @@ public class CiServiceImpl implements CiService {
             }
         });
         stopwatch.stop();
-        logger.info("[Performance measure] Elapsed time in processing lookupReferenceToCis(int ciTypeId, String guid) invocation:{}",stopwatch.toString());
+        logger.info("[Performance measure][lookupReferenceToCis] Elapsed time in processing invocation:{}",stopwatch.toString());
         return dependentCis;
     }
 
