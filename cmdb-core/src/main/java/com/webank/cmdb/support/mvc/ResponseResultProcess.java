@@ -87,7 +87,7 @@ public class ResponseResultProcess implements ResponseBodyAdvice<Object> {
         logger.warn("Get exception:", ex);
         if (ex instanceof InvalidArgumentException) {
             InvalidArgumentException invalidArgExp = (InvalidArgumentException) ex;
-            return new ResponseDto<Object>(ResponseDto.STATUS_ERROR_INVALID_ARGUMENT, invalidArgExp.getCauseData(), ex.getMessage());
+            return new ResponseDto<Object>(ResponseDto.STATUS_ERROR_INVALID_ARGUMENT, invalidArgExp.getCauseData(), determineI18nErrorMessage(request, invalidArgExp));
         } else if (ex instanceof MethodArgumentNotValidException) {
             FieldError fieldError = ((MethodArgumentNotValidException) ex).getBindingResult().getFieldError();
             return new ResponseDto<String>(ResponseDto.STATUS_ERROR_INVALID_ARGUMENT, null, String.format("Please input valid field value.(%s:%s)", fieldError.getField(), fieldError.getRejectedValue()));
@@ -123,6 +123,7 @@ public class ResponseResultProcess implements ResponseBodyAdvice<Object> {
     }
     
     private String determineI18nErrorMessage(HttpServletRequest request, CmdbException ex) {
+    	logger.info("I18N:try to find message {}", ex.getErrorCode());
         Locale locale = request.getLocale();
         if (locale == null) {
             locale = DEF_LOCALE;
@@ -131,6 +132,7 @@ public class ResponseResultProcess implements ResponseBodyAdvice<Object> {
             String msgCode = MSG_ERR_CODE_PREFIX + ex.getErrorCode();
             try{
                 String errMsg = messageSource.getMessage(msgCode, ex.getArgs(), locale);
+                logger.info("I18N:found errmsg {} : {}", msgCode, errMsg);
                 return errMsg;
             }catch(NoSuchMessageException e1){
                 logger.debug("cannot find such message for {}", ex.getErrorCode());

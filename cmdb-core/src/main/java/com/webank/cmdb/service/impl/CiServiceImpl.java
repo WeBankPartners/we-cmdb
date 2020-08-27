@@ -1100,7 +1100,8 @@ public class CiServiceImpl implements CiService {
 
     private void validateUpdateCiData(int ciTypeId, Map<String, Object> ci) {
         if (ci.get(GUID) == null) {
-            throw new InvalidArgumentException(String.format("Required field 'guid' is missing for updating ciTypeId [%s]", ciTypeId));
+            throw new InvalidArgumentException(String.format("Required field 'guid' is missing for updating ciTypeId [%s]", ciTypeId))
+            .withErrorCode("3138", ciTypeId);
         }
     }
 
