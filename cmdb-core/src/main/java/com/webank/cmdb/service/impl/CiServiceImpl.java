@@ -246,7 +246,8 @@ public class CiServiceImpl implements CiService {
             try {
                 meta.setEntityClazz(dyClassLoader.loadClass(meta.getQulifiedName()));
             } catch (ClassNotFoundException e) {
-                throw new ServiceException(String.format("Can not load class [%s].", meta.getQulifiedName()), e);
+                throw new ServiceException(String.format("Can not load class [%s].", meta.getQulifiedName()), e)
+                .withErrorCode("3124", meta.getQulifiedName());
             }
         }
         /*
@@ -546,7 +547,7 @@ public class CiServiceImpl implements CiService {
                         expression = attributeMap.get(columnName);
                     }
                     if (expression == null) {
-                        throw new CmdbException(String.format("Attribute[%s] not found.", columnName));
+                        throw new CmdbException(String.format("Attribute[%s] not found.", columnName)).withErrorCode("3125", columnName);
                     }
                     CriteriaBuilder.In inPredicate = criteriaBuilder.in(expression);
                     values.forEach(inPredicate::value);
@@ -673,7 +674,8 @@ public class CiServiceImpl implements CiService {
                     try {
                         childCi = getCacheableCi(ciTypeId, guid);
                     } catch (Exception ex) {
-                        throw new ServiceException(String.format("Failed to get ci data [ciType:%d, guid:%s]", ciTypeId, guid), ex);
+                        throw new ServiceException(String.format("Failed to get ci data [ciType:%d, guid:%s]", ciTypeId, guid), ex)
+                        .withErrorCode("3126", ciTypeId, guid);
                     }
                     value = childCi;
                 }
@@ -1020,7 +1022,7 @@ public class CiServiceImpl implements CiService {
                     throw exc;
                 } else {
                     transaction.rollback();
-                    throw new ServiceException("Failed to update ci data.", exc);
+                    throw new ServiceException("Failed to update ci data.", exc).withErrorCode("3127");
                 }
             }
         } finally {
@@ -1105,7 +1107,7 @@ public class CiServiceImpl implements CiService {
                 throw ex;
             } catch (Exception ex) {
                 transaction.rollback();
-                throw new ServiceException("Failed to create ci.", ex);
+                throw new ServiceException("Failed to create ci.", ex).withErrorCode("3128");
             }
         } finally {
             priEntityManager.close();
@@ -1159,14 +1161,15 @@ public class CiServiceImpl implements CiService {
                     transaction.commit();
                 } else {
                     transaction.rollback();
-                    throw new BatchChangeException(String.format("Fail to create [%s] records, detail error in the data block", exceptionHolders.size()), exceptionHolders);
+                    throw new BatchChangeException(String.format("Fail to create [%s] records, detail error in the data block", exceptionHolders.size()), exceptionHolders)
+                    .withErrorCode("3129", exceptionHolders.size());
                 }
             } catch (Exception exc) {
                 if (exc instanceof BatchChangeException) {
                     throw exc;
                 } else {
                     transaction.rollback();
-                    throw new ServiceException("Exception happen for Ci creation.", exc);
+                    throw new ServiceException("Exception happen for Ci creation.", exc).withErrorCode("3130");
                 }
             }
 
@@ -1235,14 +1238,15 @@ public class CiServiceImpl implements CiService {
                     transaction.commit();
                 } else {
                     transaction.rollback();
-                    throw new BatchChangeException(String.format("Fail to delete [%d] records, detail error in the data block", exceptionHolders.size()), exceptionHolders);
+                    throw new BatchChangeException(String.format("Fail to delete [%s] records, detail error in the data block", exceptionHolders.size()), exceptionHolders)
+                    .withErrorCode("3131", exceptionHolders.size());
                 }
             } catch (Exception ex) {
                 if (ex instanceof BatchChangeException) {
                     throw ex;
                 } else {
                     transaction.rollback();
-                    throw new ServiceException("Failed to delete ci data.", ex);
+                    throw new ServiceException("Failed to delete ci data.", ex).withErrorCode("3132");
                 }
             }
         } finally {
@@ -1320,7 +1324,7 @@ public class CiServiceImpl implements CiService {
         try {
             srcFilters = CollectionUtils.clone(intQueryReq.getFilters(), Lists.newLinkedList());
         } catch (CloneNotSupportedException e) {
-            throw new ServiceException("Failed to clone int query filters.", e);
+            throw new ServiceException("Failed to clone int query filters.", e).withErrorCode("3133");
         }
 
         IntegrationQueryDto intQueryDto = intQueryService.getIntegrationQuery(intQueryId);
@@ -2332,7 +2336,8 @@ public class CiServiceImpl implements CiService {
             return ciKeyPairs;
         }
         catch(Exception ex) {
-            throw new ServiceException(String.format("Failed to query guids for CI type [%d]", ciTypeId),ex);
+            throw new ServiceException(String.format("Failed to query guids for CI type [%d]", ciTypeId),ex)
+            .withErrorCode("3134", ciTypeId);
         }finally {
             priEntityManager.close();
         }

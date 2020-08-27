@@ -50,7 +50,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         }
         String username = getCurrentUsername();
         if (!isCiDataPermitted(ciTypeId, ciData, action)) {
-            throw new CmdbAccessDeniedException(String.format("Access denied. No %s permission on ci-type[%d] found for %s", action, ciTypeId, username));
+            throw new CmdbAccessDeniedException(String.format("Access denied. No %s permission on ci-type[%d] found for %s", action, ciTypeId, username))
+            .withErrorCode("3122", action, ciTypeId, username);
         } else {
             log.info(String.format("Access granted. %s on ci-type[%d] permitted for %s", action, ciTypeId, username));
         }
@@ -91,7 +92,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         String username = getCurrentUsername();
         List<AdmRole> roles = getRoles();
         if (isEmpty(roles))
-            throw new CmdbAccessDeniedException("No role found for user: " + username);
+            throw new CmdbAccessDeniedException("No role found for user: " + username).withErrorCode("3123", username);
 
         List<Integer> roleIds = roles.stream().map(AdmRole::getIdAdmRole).collect(Collectors.toList());
         List<AdmRoleCiType> roleCiTypes = roleCiTypeRepository.findAdmRoleCiTypesByCiTypeIdAndRoleIds(ciTypeId, roleIds);
