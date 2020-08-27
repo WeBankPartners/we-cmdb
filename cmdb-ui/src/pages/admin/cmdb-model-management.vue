@@ -1098,7 +1098,7 @@ export default {
         tempClusterAryForGraph.push(tempClusterObjForGraph[index].join(''))
       })
       dots.push(tempClusterAryForGraph.join(''))
-      dots.push('{' + layerTag + '[style=invis]}')
+      dots.push('{' + layerTag + '[penwidth=0]}')
 
       // generate edges
       nodes.forEach(node => {
