@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import javax.persistence.EntityManager;
 
+import com.google.common.base.Stopwatch;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,7 @@ public class InsertUpdateAction implements Action {
 
     @Override
     public Map<String, Object> perform(EntityManager entityManager, int ciTypeId, String guid, AdmStateTransition transition, Map<String, Object> ciData, DynamicEntityHolder entityHolder, Date date) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
         Object ciBean = ciService.cloneCiAsParent(entityManager, ciTypeId, guid);
         entityHolder = new DynamicEntityHolder(entityHolder.getEntityMeta(), ciBean);
 
@@ -55,7 +57,10 @@ public class InsertUpdateAction implements Action {
         entityManager.flush();
         Optional<AdmBasekeyCode> codeOpt = codeRepisotory.findById(transition.getTargetState());
         logger.info("Updating ci [{}] to state [{}({})]", guid, transition.getTargetState(), transition.getTargetState(), codeOpt.isPresent() ? codeOpt.get().getCode() : "");
-        return ClassUtils.convertBeanToMap(mergedObj, ciService.getDynamicEntityMeta(ciTypeId), false);
+        Map<String, Object> result = ClassUtils.convertBeanToMap(mergedObj, ciService.getDynamicEntityMeta(ciTypeId), false);
+        stopwatch.stop();
+        logger.info("[Performance measure][InsertUpdateAction] Elapsed time in perform InsertUpdateAction: {}",stopwatch.toString());
+        return result;
     }
 
     @Override
