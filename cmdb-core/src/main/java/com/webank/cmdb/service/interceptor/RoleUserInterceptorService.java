@@ -42,13 +42,15 @@ public class RoleUserInterceptorService extends BasicInterceptorService<RoleUser
 
     private void validateIfIdExisted(Integer id, Optional<AdmRoleUser> roleUser) {
         if (!roleUser.isPresent()) {
-            throw new InvalidArgumentException(String.format("Can not find out RoleUser with id [%s]", id));
+            throw new InvalidArgumentException(String.format("Can not find out RoleUser with id [%s]", id))
+            .withErrorCode("3158", id);
         }
     }
 
     private void validateIfSystemRole(AdmRoleUser roleUser) {
         if (roleUser.getIsSystem() == CmdbConstants.IS_SYSTEM_YES) {
-            throw new InvalidArgumentException(String.format("Cannot be deleted as it is system RoleUser [%s].", roleUser));
+            throw new InvalidArgumentException(String.format("Cannot be deleted as it is system RoleUser [%s].", roleUser))
+            .withErrorCode("3157", roleUser);
         }
     }
 }
