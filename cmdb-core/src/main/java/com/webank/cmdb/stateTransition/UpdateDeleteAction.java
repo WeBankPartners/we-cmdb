@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 
+import com.google.common.base.Stopwatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,7 @@ public class UpdateDeleteAction implements Action {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public Map<String, Object> perform(EntityManager entityManager, int ciTypeId, String guid, AdmStateTransition transition, Map<String, Object> ciData, DynamicEntityHolder ciHolder, Date date) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
         if (ciHolder == null) {
             ciHolder = ciService.getCiHolder(ciTypeId, guid);
         }
@@ -68,7 +70,10 @@ public class UpdateDeleteAction implements Action {
         if (pCi != null) {
             entityManager.remove(pCi);
         }
-        return ClassUtils.convertBeanToMap(ciHolder.getEntityObj(), ciHolder.getEntityMeta(), false);
+        Map<String, Object> result = ClassUtils.convertBeanToMap(ciHolder.getEntityObj(), ciHolder.getEntityMeta(), false);
+        stopwatch.stop();
+        logger.info("[Performance measure][UpdateDeleteAction] Elapsed time in perform UpdateDeleteAction:{}",stopwatch.toString());
+        return result;
     }
 
 }
