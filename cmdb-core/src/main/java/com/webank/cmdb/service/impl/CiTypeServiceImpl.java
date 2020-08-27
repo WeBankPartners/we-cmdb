@@ -582,7 +582,8 @@ public class CiTypeServiceImpl implements CiTypeService {
         }
 
         if (CiStatus.fromCode(admCiType.getStatus()) == CiStatus.NotCreated) {
-            throw new DependencyException(String.format("Can not create ciTypeAttr [%s] due to it's ciType [%s] is not created yet", admCiTypeAttr.getPropertyName(), admCiType.getTableName()));
+            throw new DependencyException(String.format("Can not create ciTypeAttr [%s] due to it's ciType [%s] is not created yet", admCiTypeAttr.getPropertyName(), admCiType.getTableName()))
+            .withErrorCode("3135", admCiTypeAttr.getPropertyName(), admCiType.getTableName());
         }
         if(DEFAULT_FIELDS.isEmpty()){
             DEFAULT_FIELDS = staticEntityRepository.retrieveDefaultAdmCiTypeAttrs(new AdmCiType()).stream().map(AdmCiTypeAttr::getPropertyName).collect(Collectors.toList());
