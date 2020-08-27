@@ -42,6 +42,6 @@ public class Application extends AbstractAnnotationConfigDispatcherServletInitia
 
     @Override
     protected Filter[] getServletFilters() {
-        return new Filter[] { new OpenEntityManagerInViewFilter() };
+        return new Filter[] { };
     }
 }
