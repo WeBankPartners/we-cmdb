@@ -110,7 +110,7 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
     private void validateAutoFillRule(Object isAuto, Object autoFillRule) {
         if (isAuto != null && ((Boolean) isAuto)) {
             if (autoFillRule == null || StringUtils.isBlank((String)autoFillRule)) {
-                throw new InvalidArgumentException("Auto fill rule can't be null as isAuto = Yes");
+                throw new InvalidArgumentException("Auto fill rule can't be null as isAuto = Yes").withErrorCode("3185");
             }
         }
     }
@@ -152,21 +152,25 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
             case OrchestrationMuliRef:
             case Orchestration:
                 if (referenceId == null) {
-                    throw new InvalidArgumentException(String.format("Reference id is required for ref attr [inputType = %s].", inputType));
+                    throw new InvalidArgumentException(String.format("Reference id is required for ref attr [inputType = %s].", inputType))
+                    .withErrorCode("3184", inputType);
                 }
 
                 if (referenceName == null) {
-                    throw new InvalidArgumentException(String.format("Reference name is required for ref attr [inputType = %s].", inputType));
+                    throw new InvalidArgumentException(String.format("Reference name is required for ref attr [inputType = %s].", inputType))
+                    .withErrorCode("3183", inputType);
                 }
 
                 if (!ciTypeRepository.existsById((Integer) referenceId)) {
-                    throw new InvalidArgumentException(String.format("Can not find out Reference id [%s].", referenceId));
+                    throw new InvalidArgumentException(String.format("Can not find out Reference id [%s].", referenceId))
+                    .withErrorCode("3182", referenceId);
                 }
                 break;
             case Droplist:
             case MultSelDroplist:
                 if (referenceId == null) {
-                    throw new InvalidArgumentException(String.format("Reference id is required for select attr [inputType = %s].", inputType));
+                    throw new InvalidArgumentException(String.format("Reference id is required for select attr [inputType = %s].", inputType))
+                    .withErrorCode("3181", inputType);
                 }
                 break;
             default:
@@ -178,24 +182,26 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
     private void validateIfNameUniqueByCiTypeId(Object oldAttrName, Object attrName, Object ciTypeId) {
         if (attrName != null) {
             if (StringUtils.isBlank((String) attrName)) {
-                throw new InvalidArgumentException(String.format("Attr name [%s] is not allow to be empty.", attrName));
+                throw new InvalidArgumentException(String.format("Attr name [%s] is not allow to be empty.", attrName))
+                .withErrorCode("3180", attrName);
             }
 
             if (ciTypeId != null && !attrName.equals(oldAttrName) && ciTypeAttrRepository.existsByNameAndCiTypeId((String) attrName, (Integer) ciTypeId)) {
-                throw new InvalidArgumentException(String.format("Dupliate attr name [%s] with the same ci type id [%s], not allow to add/update.", attrName, ciTypeId));
+                throw new InvalidArgumentException(String.format("Dupliate attr name [%s] with the same ci type id [%s], not allow to add/update.", attrName, ciTypeId))
+                .withErrorCode("3179", attrName, ciTypeId);
             }
         }
     }
 
     private void validateIfUsedForAttrGroup(Integer id) {
         if (attrGroupRepository.existsByCiTypeAttrId(id)) {
-            throw new InvalidArgumentException(String.format("CiType is used for attr group [id=%s]", id));
+            throw new InvalidArgumentException(String.format("CiType is used for attr group [id=%s]", id)).withErrorCode("3178", id);
         }
     }
 
     private void validateIfIdAbsent(Integer id) {
         if (id == null) {
-            throw new InvalidArgumentException("Field 'ciTypeAttrId' must not be absent.");
+            throw new InvalidArgumentException("Field 'ciTypeAttrId' must not be absent.").withErrorCode("3177");
         }
     }
 
@@ -231,7 +237,8 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
         if (ciTypeId != null) {
             AdmCiType ciType = staticEntityRepository.findEntityById(AdmCiType.class, (Integer) ciTypeId);
             if (CiStatus.Decommissioned.getCode().equals(ciType.getStatus())) {
-                throw new InvalidArgumentException(String.format("Attr [name=%s] is not allow to add/update since it's ci type have been decommissioned.", attrName));
+                throw new InvalidArgumentException(String.format("Attr [name=%s] is not allow to add/update since it's ci type have been decommissioned.", attrName))
+                .withErrorCode("3176", attrName);
             }
         }
     }
@@ -293,41 +300,49 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
         if (propertyName != null) {
             String propertyNameStr = (String)propertyName;
             if (CmdbConstants.MYSQL_SCHEMA_KEYWORDS.contains(propertyNameStr.trim().toUpperCase())) {
-                throw new InvalidArgumentException(String.format("Invalid property name [%s] as it is database key words.", propertyNameStr));
+                throw new InvalidArgumentException(String.format("Invalid property name [%s] as it is database key words.", propertyNameStr))
+                .withErrorCode("3175", propertyNameStr);
             }
 
             if (!propertyNameStr.equals(oldPropertyName) && ciTypeAttrRepository.existsByPropertyNameAndCiTypeId(propertyNameStr, ciTypeId)) {
-                throw new InvalidArgumentException(String.format("Property name [%s] already existed for ciType [%s(%d)]", propertyNameStr, getCiTypeName(ciTypeId), ciTypeId));
+            	String ciTypeName = getCiTypeName(ciTypeId);
+                throw new InvalidArgumentException(String.format("Property name [%s] already existed for ciType [%s(%d)]", propertyNameStr, ciTypeName, ciTypeId))
+                .withErrorCode("3174", propertyNameStr, ciTypeName, ciTypeId);
             }
 
             if (propertyNameStr.length() > CmdbConstants.MAX_LENGTH_OF_COLUMN) {
-                throw new InvalidArgumentException(String.format("Field propertyName [%s] is too long, max length is [%d]", propertyNameStr, CmdbConstants.MAX_LENGTH_OF_COLUMN));
+                throw new InvalidArgumentException(String.format("Field propertyName [%s] is too long, max length is [%d]", propertyNameStr, CmdbConstants.MAX_LENGTH_OF_COLUMN))
+                .withErrorCode("3173", propertyNameStr, CmdbConstants.MAX_LENGTH_OF_COLUMN);
             }
 
             if (!Pattern.matches("[a-zA-Z0-9_]+", propertyNameStr)) {
-                throw new InvalidArgumentException(String.format("Field propertyName [%s] must be composed by letters, '_' or numbers", propertyNameStr));
+                throw new InvalidArgumentException(String.format("Field propertyName [%s] must be composed by letters, '_' or numbers", propertyNameStr))
+                .withErrorCode("3172", propertyNameStr);
             }
 
             if (StringUtils.isAllUpperCase(propertyNameStr.toString().substring(0, 1))) {
-                throw new InvalidArgumentException(String.format("Field propertyName [%s] must be start with lowercase.", propertyNameStr));
+                throw new InvalidArgumentException(String.format("Field propertyName [%s] must be start with lowercase.", propertyNameStr))
+                .withErrorCode("3171", propertyNameStr);
             }
         }
     }
 
     private void validatePropertyTypeAndLength(String propertyType, Integer length, Integer ciTypeId) {
         if (propertyType == null) {
-            throw new InvalidArgumentException("Field 'propertyType' is required.");
+            throw new InvalidArgumentException("Field 'propertyType' is required.").withErrorCode("3170");
         }
 
         switch (FieldType.fromCode(propertyType)) {
         case Varchar:
         case Int:
             if (length == null) {
-                throw new InvalidArgumentException(String.format("Length can not be null for property type [%s]", propertyType));
+                throw new InvalidArgumentException(String.format("Length can not be null for property type [%s]", propertyType))
+                .withErrorCode("3169", propertyType);
             }
 
             if (length < 0) {
-                throw new InvalidArgumentException(String.format("Invalid length [%d], it should be > 0", length));
+                throw new InvalidArgumentException(String.format("Invalid length [%d], it should be > 0", length))
+                .withErrorCode("3168", length);
             }
             break;
         case None:
@@ -341,12 +356,13 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
 
     private void validateCiTypeId(Integer ciTypeId) {
         if (ciTypeId == null) {
-            throw new InvalidArgumentException("ciTypeId can not be null.");
+            throw new InvalidArgumentException("ciTypeId can not be null.").withErrorCode("3167");
         }
 
         AdmCiType ciType = staticEntityRepository.findEntityById(AdmCiType.class, ciTypeId);
         if (ciType == null) {
-            throw new InvalidArgumentException(String.format("Can not find out CiType [%d].", ciTypeId));
+            throw new InvalidArgumentException(String.format("Can not find out CiType [%d].", ciTypeId))
+            .withErrorCode("3166", ciTypeId);
         }
     }
 
@@ -355,7 +371,8 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
         if (!intTemplRlt.isEmpty()) {
             List<Integer> ids = new ArrayList<>();
             intTemplRlt.forEach(x -> ids.add(x.getIdRelation()));
-            throw new InvalidArgumentException(String.format("CiType is used for template relation [%s]", StringUtils.join(ids, ",")));
+            throw new InvalidArgumentException(String.format("CiType is used for template relation [%s]", StringUtils.join(ids, ",")))
+            .withErrorCode("3165", StringUtils.join(ids, ","));
         }
     }
 
@@ -364,26 +381,29 @@ public class CiTypeAttrsInterceptorService extends BasicInterceptorService<CiTyp
         if (!intTemplAliasAttr.isEmpty()) {
             List<String> cnAlias = new ArrayList<>();
             intTemplAliasAttr.forEach(x -> cnAlias.add(x.getCnAlias()));
-            throw new InvalidArgumentException(String.format("CiType is used for template alias attr [%s]", StringUtils.join(cnAlias, ",")));
+            throw new InvalidArgumentException(String.format("CiType is used for template alias attr [%s]", StringUtils.join(cnAlias, ",")))
+            .withErrorCode("3164", StringUtils.join(cnAlias, ","));
         }
     }
 
     private void validateIfSystemAttr(AdmCiTypeAttr ciTypeAttr) {
         if (ciTypeAttr.getIsSystem() == CmdbConstants.IS_SYSTEM_YES) {
-            throw new InvalidArgumentException("System attr is not allow to update/delete.");
+            throw new InvalidArgumentException("System attr is not allow to update/delete.").withErrorCode("3163");
         }
     }
 
     private void validateDeletableStatus(Integer id, AdmCiTypeAttr ciTypeAttr) {
         String status = ciTypeAttr.getStatus();
         if (!CiStatus.fromCode(status).equals(CiStatus.NotCreated)) {
-            throw new InvalidArgumentException(String.format("CiType attr's status is [%s], attr is created, [%d] can not be deleted.", status, id));
+            throw new InvalidArgumentException(String.format("CiType attr's status is [%s], attr is created, [%d] can not be deleted.", status, id))
+            .withErrorCode("3162", status, id);
         }
     }
 
     private void validateIfAttrExist(Integer id, Optional<AdmCiTypeAttr> ciTypeAttrOpt) {
         if (!ciTypeAttrOpt.isPresent()) {
-            throw new InvalidArgumentException(String.format("Can not find out CiTypeAttr [%d]", id));
+            throw new InvalidArgumentException(String.format("Can not find out CiTypeAttr [%d]", id))
+            .withErrorCode("3161", id);
         }
     }
 

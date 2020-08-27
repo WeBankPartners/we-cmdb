@@ -69,14 +69,15 @@ public class EnumCatTypesInterceptorService extends BasicInterceptorService<CatT
 
     private void validateRequiredFields(String catTypeName) {
         if (StringUtils.isBlank(catTypeName)) {
-            throw new InvalidArgumentException("Field 'catTypeName' is required.");
+            throw new InvalidArgumentException("Field 'catTypeName' is required.").withErrorCode("3193");
         }
 
     }
 
     private void validateIfHaveCats(AdmBasekeyCatType catType) {
         if (!catRepository.findAllByIdAdmBasekeyCatType(catType.getIdAdmBasekeyCatType()).isEmpty()) {
-            throw new InvalidArgumentException(String.format("Not allow to delete cat type [name = %s] since it has cats.", catType.getName()));
+            throw new InvalidArgumentException(String.format("Not allow to delete cat type [name = %s] since it has cats.", catType.getName()))
+            .withErrorCode("3192", catType.getName());
         }
 
     }
@@ -84,11 +85,13 @@ public class EnumCatTypesInterceptorService extends BasicInterceptorService<CatT
     private void validateIfCatTypeNameIsUnique(Object oldName, Object name) {
         if (name != null) {
             if (StringUtils.isBlank((String) name)) {
-                throw new InvalidArgumentException(String.format("Cat type name [%s] is not allow to be empty.", name));
+                throw new InvalidArgumentException(String.format("Cat type name [%s] is not allow to be empty.", name))
+                .withErrorCode("3191", name);
             }
 
             if (!name.equals(oldName) && catTypeRepository.existsByName((String) name)) {
-                throw new InvalidArgumentException(String.format("Duplicate cat type name [%s] found, not allow to add/update.", name));
+                throw new InvalidArgumentException(String.format("Duplicate cat type name [%s] found, not allow to add/update.", name))
+                .withErrorCode("3190", name);
             }
         }
     }
@@ -96,11 +99,13 @@ public class EnumCatTypesInterceptorService extends BasicInterceptorService<CatT
     private void validateIfCiTypeIdExistAndUnique(Object oldCiTypeId, Object ciTypeId) {
         if (ciTypeId != null) {
             if (!ciTypeRepository.existsById((Integer) ciTypeId)) {
-                throw new InvalidArgumentException(String.format("Can not find out CiType [%s].", ciTypeId));
+                throw new InvalidArgumentException(String.format("Can not find out CiType [%s].", ciTypeId))
+                .withErrorCode("3189", ciTypeId);
             }
 
             if (!ciTypeId.equals(oldCiTypeId) && catTypeRepository.existsByCiTypeId((Integer) ciTypeId)) {
-                throw new InvalidArgumentException(String.format("Duplicate ciTypeId [%s] found, not allow to add/update.", ciTypeId));
+                throw new InvalidArgumentException(String.format("Duplicate ciTypeId [%s] found, not allow to add/update.", ciTypeId))
+                .withErrorCode("3188", ciTypeId);
             }
         }
     }
@@ -108,13 +113,14 @@ public class EnumCatTypesInterceptorService extends BasicInterceptorService<CatT
     private void validateIfSysOrCommonType(Integer id) {
         AdmBasekeyCatType catType = catTypeRepository.getOne(id);
         if (catType.getType() == CmdbConstants.ENUM_CAT_TYPE_SYS || catType.getType() == CmdbConstants.ENUM_CAT_TYPE_COMMON) {
-            throw new InvalidArgumentException(String.format("System/Common cat type [name = %s, type = %s] is not allow to update or delete.", catType.getName(), catType.getType()));
+            throw new InvalidArgumentException(String.format("System/Common cat type [name = %s, type = %s] is not allow to update or delete.", catType.getName(), catType.getType()))
+            .withErrorCode("3187", catType.getName(), catType.getType());
         }
     }
 
     private void validateIfIdAbsent(Integer id) {
         if (id == null) {
-            throw new InvalidArgumentException("Field 'catTypeId' is required.");
+            throw new InvalidArgumentException("Field 'catTypeId' is required.").withErrorCode("3186");
         }
     }
 

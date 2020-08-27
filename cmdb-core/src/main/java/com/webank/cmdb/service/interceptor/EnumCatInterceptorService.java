@@ -85,29 +85,32 @@ public class EnumCatInterceptorService extends BasicInterceptorService<CategoryD
         if (!attrs.isEmpty()) {
             List<String> attrNames = new ArrayList<>();
             attrs.forEach(x -> attrNames.add(x.getName()));
-            throw new InvalidArgumentException(String.format("Not allow to delete cat [name = %s] since it used for ci type attrs [names = %s].", cat.getCatName(), StringUtils.join(attrNames, ",")));
+            throw new InvalidArgumentException(String.format("Not allow to delete cat [name = %s] since it used for ci type attrs [names = %s].", cat.getCatName(), StringUtils.join(attrNames, ",")))
+            .withErrorCode("3214", cat.getCatName(), StringUtils.join(attrNames, ","));
         }
     }
 
     private void validateGroupTypeId(Object groupTypeId) {
         if (groupTypeId != null && !catRepository.existsById((Integer) groupTypeId)) {
-            throw new InvalidArgumentException(String.format("Can not find out group type id [%s].", groupTypeId));
+            throw new InvalidArgumentException(String.format("Can not find out group type id [%s].", groupTypeId)).withErrorCode("3215", groupTypeId);
         }
     }
 
     private void validateIfCatNameUniqueByCatTypeId(AdmBasekeyCat oldCat, Object catName, Object catTypeId) {
         if (catName != null) {
             if (StringUtils.isBlank((String) catName)) {
-                throw new InvalidArgumentException(String.format("Cat name [%s] is not allow to be empty.", catName));
+                throw new InvalidArgumentException(String.format("Cat name [%s] is not allow to be empty.", catName)).withErrorCode("3216", catName);
             }
 
             if (catTypeId != null) {
                 if (oldCat == null && catRepository.existsByCatNameAndIdAdmBasekeyCatType((String) catName, (Integer) catTypeId)) {
-                    throw new InvalidArgumentException(String.format("Dupliate cat name [%s] with the same cat type [%s], not allow to add/update.", catName, catTypeId));
+                    throw new InvalidArgumentException(String.format("Dupliate cat name [%s] with the same cat type [%s], not allow to add/update.", catName, catTypeId))
+                    .withErrorCode("3217", catName, catTypeId);
                 }
 
                 if (oldCat != null && catRepository.existsByCatNameAndIdAdmBasekeyCatTypeAndIdAdmBasekeyCatNot((String) catName, (Integer) catTypeId, oldCat.getIdAdmBasekeyCat())) {
-                    throw new InvalidArgumentException(String.format("Dupliate cat name [%s] with the same cat type [%s], not allow to add/update.", catName, catTypeId));
+                    throw new InvalidArgumentException(String.format("Dupliate cat name [%s] with the same cat type [%s], not allow to add/update.", catName, catTypeId))
+                    .withErrorCode("3218", catName, catTypeId);
                 }
             }
         }
@@ -115,7 +118,7 @@ public class EnumCatInterceptorService extends BasicInterceptorService<CategoryD
 
     private void validateIfIdAbsent(Integer id) {
         if (id == null) {
-            throw new InvalidArgumentException("Field 'catId' is required.");
+            throw new InvalidArgumentException("Field 'catId' is required.").withErrorCode("3219");
         }
     }
 
@@ -123,34 +126,37 @@ public class EnumCatInterceptorService extends BasicInterceptorService<CategoryD
         if (catTypeId != null) {
             Optional<AdmBasekeyCatType> catType = catTypeRepository.findById((Integer) catTypeId);
             if (!catType.isPresent()) {
-                throw new InvalidArgumentException(String.format("Can not find out catType id [%s].", catTypeId));
+                throw new InvalidArgumentException(String.format("Can not find out catType id [%s].", catTypeId)).withErrorCode("3220", catTypeId);
             }
 
             if (catType.get().getType() == CmdbConstants.ENUM_CAT_TYPE_SYS) {
-                throw new InvalidArgumentException(String.format("Not allow to add/update/delete cat [id = %s] for system catType [type = %s]", catTypeId, catType.get().getType()));
+                throw new InvalidArgumentException(String.format("Not allow to add/update/delete cat [id = %s] for system catType [type = %s]", catTypeId, catType.get().getType()))
+                .withErrorCode("3221", catTypeId, catType.get().getType());
             }
         }
     }
 
     private void validateReqiredFields(CategoryDto dto) {
         if (dto.getCatTypeId() == null) {
-            throw new InvalidArgumentException("Field 'catTypeId' is required.");
+            throw new InvalidArgumentException("Field 'catTypeId' is required.").withErrorCode("3222");
         }
 
         if (dto.getCatName() == null) {
-            throw new InvalidArgumentException("Field 'catName' is required.");
+            throw new InvalidArgumentException("Field 'catName' is required.").withErrorCode("3223");
         }
     }
 
     private void validateIfHaveCodes(AdmBasekeyCat cat) {
         if (!codeRepository.findByAdmBasekeyCat_idAdmBasekeyCat(cat.getIdAdmBasekeyCat()).isEmpty()) {
-            throw new InvalidArgumentException(String.format("Not allow to delete cat [name = %s] since it has codes.", cat.getCatName()));
+            throw new InvalidArgumentException(String.format("Not allow to delete cat [name = %s] since it has codes.", cat.getCatName()))
+            .withErrorCode("3224", cat.getCatName());
         }
     }
 
     private void validateIfGroupForOtherCats(Integer id, AdmBasekeyCat cat) {
         if (!catRepository.findAllByGroupTypeId(id).isEmpty()) {
-            throw new InvalidArgumentException(String.format("Not allow to delete cat [name = %s] since it used for grouping other cats.", cat.getCatName()));
+            throw new InvalidArgumentException(String.format("Not allow to delete cat [name = %s] since it used for grouping other cats.", cat.getCatName()))
+            .withErrorCode("3225", cat.getCatName());
         }
     }
 }

@@ -113,7 +113,8 @@ public class CiTypeServiceImpl implements CiTypeService {
     public CiTypeDto getCiType(int ciTypeId) {
         Optional<AdmCiType> admCiType = ciTypeRepository.findById(ciTypeId);
         if (!admCiType.isPresent()) {
-            throw new InvalidArgumentException("Can not find out CiType with given argument.", "ciTypeId", ciTypeId);
+            throw new InvalidArgumentException("Can not find out CiType with given argument.", "ciTypeId", ciTypeId)
+            .withErrorCode("3194", "ciTypeId", ciTypeId);
         }
         return CiTypeDto.fromAdmCIType(admCiType.get());
     }
@@ -130,7 +131,8 @@ public class CiTypeServiceImpl implements CiTypeService {
     private AdmTenement validateTenement(int tenementId) {
         Optional<AdmTenement> admTenement = tenementRepository.findById(tenementId);
         if (!admTenement.isPresent()) {
-            throw new InvalidArgumentException("Can not find out AdmTenement with given argument.", "tenementId", tenementId);
+            throw new InvalidArgumentException("Can not find out AdmTenement with given argument.", "tenementId", tenementId)
+            .withErrorCode("3195", "tenementId", tenementId);
         }
         return admTenement.get();
     }
@@ -144,7 +146,7 @@ public class CiTypeServiceImpl implements CiTypeService {
      */
     private String checkTableName(CiTypeDto ciType) {
         if (Strings.isNullOrEmpty(ciType.getTableName())) {
-            throw new InvalidArgumentException("The table name is empty.");
+            throw new InvalidArgumentException("The table name is empty.").withErrorCode("3196");
         }
         /*
          * String tablePrefix = TABLE_DELIMITER; String tableName = ""; if
@@ -153,7 +155,8 @@ public class CiTypeServiceImpl implements CiTypeService {
          */
         String tableName = ciType.getTableName();
         if (ciTypeRepository.findByTableName(tableName) != null || databaseService.isTableExisted(tableName)) {
-            throw new InvalidArgumentException("The specific table is existed.", "tableName", tableName);
+            throw new InvalidArgumentException("The specific table is existed.", "tableName", tableName)
+            .withErrorCode("3197", "tableName", tableName);
         }
         return tableName;
     }
@@ -161,7 +164,8 @@ public class CiTypeServiceImpl implements CiTypeService {
     @Override
     public void updateCiType(int ciTypeId, CiTypeDto ciType) {
         if (!ciTypeRepository.existsById(ciTypeId)) {
-            throw new InvalidArgumentException("Can not find out CiType with given argument.", "ciTypeId", ciTypeId);
+            throw new InvalidArgumentException("Can not find out CiType with given argument.", "ciTypeId", ciTypeId)
+            .withErrorCode("3198", "ciTypeId", ciTypeId);
         }
 
         Map<String, Object> updateMap = new HashMap<>();
@@ -209,7 +213,8 @@ public class CiTypeServiceImpl implements CiTypeService {
     private Optional<AdmCiType> validateCiType(int ciTypeId) {
         Optional<AdmCiType> optCiType = ciTypeRepository.findById(ciTypeId);
         if (!optCiType.isPresent()) {
-            throw new InvalidArgumentException("Can not find out CiType with given argument.", "ciTypeId", ciTypeId);
+            throw new InvalidArgumentException("Can not find out CiType with given argument.", "ciTypeId", ciTypeId)
+            .withErrorCode("3199", "ciTypeId", ciTypeId);
         }
         return optCiType;
     }
@@ -229,7 +234,8 @@ public class CiTypeServiceImpl implements CiTypeService {
     private AdmCiTypeAttr validateCiTypeAttr(int ciTypeAttrId) {
         Optional<AdmCiTypeAttr> optCiTypeAttr = ciTypeAttrRepository.findById(ciTypeAttrId);
         if (!optCiTypeAttr.isPresent()) {
-            throw new InvalidArgumentException("Can not find out CiTypeAttr with given argument.", "ciTypeAttrId", ciTypeAttrId);
+            throw new InvalidArgumentException("Can not find out CiTypeAttr with given argument.", "ciTypeAttrId", ciTypeAttrId)
+            .withErrorCode("3200", "ciTypeAttrId", ciTypeAttrId);
         }
         return optCiTypeAttr.get();
     }
@@ -251,7 +257,8 @@ public class CiTypeServiceImpl implements CiTypeService {
 
         AdmCiType admCiType = ciTypeRepository.getOne(ciTypeId);
         if (databaseService.isTableExisted(admCiType.getTableName())) {
-            throw new InvalidArgumentException("Table is existed.", "tablename", admCiType.getTableName());
+            throw new InvalidArgumentException("Table is existed.", "tablename", admCiType.getTableName())
+            .withErrorCode("3201", "tablename", admCiType.getTableName());
         }
 
         String createTableSql = createCiTypeSQL(admCiType);
@@ -309,7 +316,8 @@ public class CiTypeServiceImpl implements CiTypeService {
     @Override
     public void addAttrGroup(@CiTypeId CiTypeAttrGroupDto attrGroup) {
         if (attrGroupRepository.countByName(attrGroup.getName()) > 0) {
-            throw new InvalidArgumentException("The unique group name is existed.", "name", attrGroup.getName());
+            throw new InvalidArgumentException("The unique group name is existed.", "name", attrGroup.getName())
+            .withErrorCode("3202", "name", attrGroup.getName());
         }
 
         attrGroup.getCiTypeAttrs().forEach(x -> {
@@ -340,7 +348,8 @@ public class CiTypeServiceImpl implements CiTypeService {
         List<BigInteger> countResults = ciTypeAttrGroupRepository.countByCiTypeAttrIds(attrIds);
         for (BigInteger count : countResults) {
             if (count.intValue() >= attrIds.size())
-                throw new InvalidArgumentException("The unique group is existed.", "ciTypeAttrs", "");
+                throw new InvalidArgumentException("The unique group is existed.", "ciTypeAttrs", "")
+                .withErrorCode("3203", "ciTypeAttrs", "");
         }
         ;
     }
@@ -355,11 +364,13 @@ public class CiTypeServiceImpl implements CiTypeService {
         if (PriorityUpdateOper.Up == priorityOper) { // up
             exchangeCiType = ciTypeRepository.findFirstByCatalogIdAndSeqNoLessThanOrderBySeqNoDesc(ciType.getCatalogId(), ciType.getSeqNo());
             if (exchangeCiType == null)
-                throw new InvalidArgumentException("The CiType is already in the first place.", "ciTypeId", ciTypeId);
+                throw new InvalidArgumentException("The CiType is already in the first place.", "ciTypeId", ciTypeId)
+                .withErrorCode("3204", "ciTypeId", ciTypeId);
         } else { // Down
             exchangeCiType = ciTypeRepository.findFirstByCatalogIdAndSeqNoGreaterThanOrderBySeqNoAsc(ciType.getCatalogId(), ciType.getSeqNo());
             if (exchangeCiType == null)
-                throw new InvalidArgumentException("The CiType is already in the last place.", "ciTypeId", ciTypeId);
+                throw new InvalidArgumentException("The CiType is already in the last place.", "ciTypeId", ciTypeId)
+                .withErrorCode("3205", "ciTypeId", ciTypeId);
         }
 
         int tempSeqNo = ciType.getSeqNo();
@@ -375,11 +386,13 @@ public class CiTypeServiceImpl implements CiTypeService {
     @Override
     public void deleteAttrGroup(int attrGroupId) {
         if (!attrGroupRepository.existsById(attrGroupId)) {
-            throw new InvalidArgumentException("The attribute unique group is not existed.", "attrGroupId", attrGroupId);
+            throw new InvalidArgumentException("The attribute unique group is not existed.", "attrGroupId", attrGroupId)
+            .withErrorCode("3206", "attrGroupId", attrGroupId);
         }
 
         if (ciTypeAttrGroupRepository.countByAdmAttrGroup_idAdmAttrGroup(attrGroupId) == 0) {
-            throw new InvalidArgumentException("The CI type attribute unique group is not existed.", "attrGroupId", attrGroupId);
+            throw new InvalidArgumentException("The CI type attribute unique group is not existed.", "attrGroupId", attrGroupId)
+            .withErrorCode("3207", "attrGroupId", attrGroupId);
         }
 
         ciTypeAttrGroupRepository.deleteByAdmAttrGroup_idAdmAttrGroup(attrGroupId);
@@ -533,13 +546,15 @@ public class CiTypeServiceImpl implements CiTypeService {
         for (AdmCiTypeAttr attr : admCiType.getAdmCiTypeAttrs()) {
             if (isRefAttr(attr.getInputType()) || isSelectAttr(attr.getInputType())) {
                 if (attr.getReferenceId() == null) {
-                    throw new InvalidArgumentException(String.format("Can not create ciType [name = %s] with reference id of property name [%s] is null.", admCiType.getName(), attr.getPropertyName()));
+                    throw new InvalidArgumentException(String.format("Can not create ciType [name = %s] with reference id of property name [%s] is null.", admCiType.getName(), attr.getPropertyName()))
+                    .withErrorCode("3208", admCiType.getName(), attr.getPropertyName());
                 }
 
                 if (isRefAttr(attr.getInputType()) && validateReqired) {
                     AdmCiType refCiType = staticEntityRepository.findEntityById(AdmCiType.class, attr.getReferenceId());
                     if (admCiType.getIdAdmCiType() != attr.getReferenceId() && CiStatus.fromCode(refCiType.getStatus()) == CiStatus.NotCreated) {
-                        throw new InvalidArgumentException(String.format("Can not create ciType [name = %s] as ref ciType [%s] have not created yet. ", admCiType.getName(), refCiType.getName()));
+                        throw new InvalidArgumentException(String.format("Can not create ciType [name = %s] as ref ciType [%s] have not created yet. ", admCiType.getName(), refCiType.getName()))
+                        .withErrorCode("3209", admCiType.getName(), refCiType.getName());
                     }
                 }
             }
@@ -631,7 +646,8 @@ public class CiTypeServiceImpl implements CiTypeService {
         AdmCiType ciType = validateCiType(ciTypeId).get();
         CiStatus ciStatus = CiStatus.fromCode(ciType.getStatus());
         if (!ciStatus.isImplementOperationSupported(operation)) {
-            throw new InvalidArgumentException(String.format(" Implement operation [%s] is not supported for status [%s].", operation.getCode(), ciStatus.getCode()));
+            throw new InvalidArgumentException(String.format(" Implement operation [%s] is not supported for status [%s].", operation.getCode(), ciStatus.getCode()))
+            .withErrorCode("3210", operation.getCode(), ciStatus.getCode());
         }
 
         switch (ciStatus) {
@@ -667,7 +683,8 @@ public class CiTypeServiceImpl implements CiTypeService {
         if (!attrs.isEmpty()) {
             List<AdmCiType> ciTypes = ciTypeRepository.findAllById(attrs.stream().map(AdmCiTypeAttr::getCiTypeId).collect(Collectors.toList()));
             List<String> ciTypeNames = ciTypes.stream().map(AdmCiType::getName).collect(Collectors.toList());
-            throw new InvalidArgumentException(String.format("CiType [%s] can not be decommission as it used by other ciTypes %s", ciType.getName(), ciTypeNames));
+            throw new InvalidArgumentException(String.format("CiType [%s] can not be decommission as it used by other ciTypes %s", ciType.getName(), ciTypeNames))
+            .withErrorCode("3211", ciType.getName(), ciTypeNames);
         }
     }
 
@@ -678,12 +695,14 @@ public class CiTypeServiceImpl implements CiTypeService {
         AdmCiType ciType = ciTypeAttr.getAdmCiType();
         CiStatus ciTypeStatus = CiStatus.fromCode(ciType.getStatus());
         if (CiStatus.NotCreated.equals(ciTypeStatus) || CiStatus.Decommissioned.equals(ciTypeStatus)) {
-            throw new InvalidArgumentException(String.format("CiType [%d] is not support, status is [%s]", ciType.getIdAdmCiType(), ciType.getStatus()));
+            throw new InvalidArgumentException(String.format("CiType [%d] is not support, status is [%s]", ciType.getIdAdmCiType(), ciType.getStatus()))
+            .withErrorCode("3212", ciType.getIdAdmCiType(), ciType.getStatus());
         }
 
         CiStatus ciStatus = CiStatus.fromCode(ciTypeAttr.getStatus());
         if (!ciStatus.isImplementOperationSupported(operation)) {
-            throw new InvalidArgumentException(String.format(" Implement operation [%s] is not supported for ci type sttr status [%s].", operation.getCode(), ciStatus.getCode()));
+            throw new InvalidArgumentException(String.format(" Implement operation [%s] is not supported for ci type sttr status [%s].", operation.getCode(), ciStatus.getCode()))
+            .withErrorCode("3213", operation.getCode(), ciStatus.getCode());
         }
 
         switch (ciStatus) {
