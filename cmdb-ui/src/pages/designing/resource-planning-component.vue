@@ -365,7 +365,7 @@ export default {
           .graphviz()
           .fit(true)
           .zoom(true)
-          .width(window.innerWidth - 60)
+          .width(window.innerWidth - 90)
           .height(window.innerHeight - 275)
       }
       initEvent()
@@ -420,14 +420,6 @@ export default {
           this.activeNodeInfo = {}
         }
       })
-
-      let width = window.innerWidth - 20
-      let height = window.innerHeight - 230
-      let svg = d3.select('#resourcePlanningGraph').select('svg')
-      svg
-        .attr('width', width)
-        .attr('height', height)
-        .attr('viewBox', `0 0 ${width} ${height}`)
     },
     genDOT (data) {
       this.graphNodes = {}
