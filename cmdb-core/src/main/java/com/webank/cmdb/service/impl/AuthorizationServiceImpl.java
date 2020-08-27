@@ -7,7 +7,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.webank.cmdb.support.cache.CacheUtils;
+import com.webank.cmdb.support.cache.RequestScopedCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     private RoleCiTypeRepository roleCiTypeRepository;
     @Autowired
     private AdmRoleRepository admRoleRepository;
+    @Autowired
+    private RequestScopedCacheManager requestScopedCacheManager;
 
     @Override
     public void authorizeCiData(int ciTypeId, Object ciData, String action) {
@@ -68,6 +73,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         return decision.isAccessGranted();
     }
 
+    @Cacheable("authorizationService-isCiTypePermitted")
     @Override
     public boolean isCiTypePermitted(int ciTypeId, String action) {
         if (!securityProperties.isEnabled()) {
@@ -80,6 +86,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         return ciTypePermitted;
     }
 
+    @Cacheable("authorizationService-getPermittedData")
     @Override
     public List<Map<String, Set<?>>> getPermittedData(int ciTypeId, String action) {
         UserCiTypeAuthority userAuthority = getUserAuthority(ciTypeId);
@@ -87,17 +94,20 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         return userAuthority.getPermittedData(action);
     }
 
-    @Cacheable("authorizationService-getUserAuthority")
     private UserCiTypeAuthority getUserAuthority(int ciTypeId) {
-        String username = getCurrentUsername();
-        List<AdmRole> roles = getRoles();
-        if (isEmpty(roles))
-            throw new CmdbAccessDeniedException("No role found for user: " + username).withErrorCode("3123", username);
+        UserCiTypeAuthority result = (UserCiTypeAuthority)CacheUtils.cacheLocaleCall(requestScopedCacheManager,"authorizationService-getUserAuthority",ciTypeId,()->{
+            String username = getCurrentUsername();
+            List<AdmRole> roles = getRoles();
+            if (isEmpty(roles))
+                throw new CmdbAccessDeniedException("No role found for user: " + username).withErrorCode("3123", username);
 
-        List<Integer> roleIds = roles.stream().map(AdmRole::getIdAdmRole).collect(Collectors.toList());
-        List<AdmRoleCiType> roleCiTypes = roleCiTypeRepository.findAdmRoleCiTypesByCiTypeIdAndRoleIds(ciTypeId, roleIds);
+            List<Integer> roleIds = roles.stream().map(AdmRole::getIdAdmRole).collect(Collectors.toList());
+            List<AdmRoleCiType> roleCiTypes = roleCiTypeRepository.findAdmRoleCiTypesByCiTypeIdAndRoleIds(ciTypeId, roleIds);
 
-        return new UserCiTypeAuthority(username, ciTypeId, roleCiTypes);
+            return new UserCiTypeAuthority(username, ciTypeId, roleCiTypes);
+        });
+
+        return result;
     }
 
     private List<AdmRole> getRoles() {
