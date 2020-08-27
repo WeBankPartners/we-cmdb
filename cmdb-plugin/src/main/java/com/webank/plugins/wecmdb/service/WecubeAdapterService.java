@@ -1,5 +1,6 @@
 package com.webank.plugins.wecmdb.service;
 
+import com.google.common.base.Stopwatch;
 import com.webank.cmdb.constant.FieldType;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.InputType;
@@ -15,6 +16,8 @@ import com.webank.plugins.wecmdb.dto.wecube.*;
 import com.webank.plugins.wecmdb.exception.PluginException;
 import com.webank.plugins.wecmdb.helper.ConfirmHelper;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +30,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class WecubeAdapterService {
+    private final static Logger logger = LoggerFactory.getLogger(WecubeAdapterService.class);
+
     private static final String ERROR_MESSAGE = "errorMessage";
     private static final String ERROR_CODE = "errorCode";
     private static final String CONFIRM = "confirm";
@@ -375,10 +380,19 @@ public class WecubeAdapterService {
     }
 
     public List<Map<String, Object>> updateCiData(String entityName, List<Map<String, Object>> originRequest) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
         List<Map<String, Object>> convertedRequest = convertedRequest(originRequest);
         List<Map<String, Object>> updatedCiData = ciService.update(retrieveCiTypeIdByTableName(entityName), convertedRequest);
+        stopwatch.stop();
+        logger.info("[Performance measure] Elapsed time in updating: {}",stopwatch.toString());
+
+        stopwatch.reset().start();
         QueryRequest queryObject = QueryRequest.defaultQueryObject().addInFilter(GUID, updatedCiData.stream().map(item -> item.get(GUID)).collect(Collectors.toList()));
-        return convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
+        List<Map<String, Object>> result = convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
+        stopwatch.stop();
+        logger.info("[Performance measure] Elapsed time in converting updated ci data: {}",stopwatch.toString());
+
+        return result;
     }
 
     private List<Map<String, Object>> convertedRequest(List<Map<String, Object>> originRequest) {
