@@ -9,7 +9,7 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "cmdb")
 public class ApplicationProperties {
     private DataSize maxFileSize = DataSize.ofKilobytes(64);
-
+    
     @Data
     @ConfigurationProperties(prefix = "cmdb.datasource")
     public class DatasourceProperties {

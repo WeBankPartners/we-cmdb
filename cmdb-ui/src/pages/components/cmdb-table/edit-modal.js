@@ -34,7 +34,7 @@ export default {
   },
   computed: {
     tableWidth () {
-      return WIDTH * this.columns.length
+      return WIDTH * this.columns.length + 100
     }
   },
   watch: {
@@ -108,6 +108,9 @@ export default {
         this.editData = this.editData.concat(JSON.parse(JSON.stringify(copyRows)))
         if (this.editData.length > 20) break
       }
+    },
+    removeAddData (index) {
+      this.editData = this.editData.splice(index)
     },
     renderDataRows () {
       let setValueHandler = (v, col, row) => {
@@ -256,6 +259,12 @@ export default {
                     )
                   }
                 })}
+                <span
+                  onClick={() => this.removeAddData(index)}
+                  style={`border-radius: 4px;vertical-align: middle;color:red;font-size:20px;margin-left:8px;cursor:pointer;border: 1px solid red`}
+                >
+                  <Icon type="ios-trash-outline" />
+                </span>
               </div>
             )
           })}
@@ -312,6 +321,11 @@ export default {
                   </div>
                 )
               })}
+              <div
+                style={`width:80px;display:inline-block;padding:5px;height: 30px;font-weight:600;background-color: #e8eaec`}
+              >
+                {this.$t('delete')}
+              </div>
             </div>
           )}
           {this.modalVisible && this.renderDataRows()}
