@@ -329,7 +329,7 @@ public class StaticDtoServiceImpl implements StaticDtoService {
         }
 
         List<T> rtnDtos = new LinkedList<>();
-        List<ExceptionHolder> ExceptionHolders = new LinkedList<>();
+        List<ExceptionHolder> exceptionHolders = new LinkedList<>();
 
         StaticInterceptorService interceptor = interceptors.get(dtoClzz.getName());
 
@@ -362,13 +362,14 @@ public class StaticDtoServiceImpl implements StaticDtoService {
 //                e.printStackTrace();
                 logger.warn(String.format("Error happened when updated DTO class [%s]", dtoClzz.toString()), e);
                 String errorMsg = String.format("Fail to update record with %s = [%s], error = [%s]", CALLBACK_ID, callbackId, ExceptionHolder.extractExceptionMessage(e));
-                ExceptionHolders.add(new ExceptionHolder(callbackId, request, errorMsg, e));
+                exceptionHolders.add(new ExceptionHolder(callbackId, request, errorMsg, e));
                 continue;
             }
         }
 
-        if (ExceptionHolders.size() > 0) {
-            throw new BatchChangeException(String.format("Fail to update [%s] records, detail error in the data block", ExceptionHolders.size()), ExceptionHolders);
+        if (exceptionHolders.size() > 0) {
+            throw new BatchChangeException(String.format("Fail to update [%s] records, detail error in the data block", exceptionHolders.size()), exceptionHolders)
+            .withErrorCode("3137", exceptionHolders.size());
         }
         return rtnDtos;
     }
@@ -383,7 +384,7 @@ public class StaticDtoServiceImpl implements StaticDtoService {
 
         StaticInterceptorService interceptor = interceptors.get(dtoClzz.getName());
         List<T> rtnDtos = new LinkedList<>();
-        List<ExceptionHolder> ExceptionHolders = new LinkedList<>();
+        List<ExceptionHolder> exceptionHolders = new LinkedList<>();
 
         ids.forEach(x -> {
             if (interceptor != null) {
@@ -394,15 +395,16 @@ public class StaticDtoServiceImpl implements StaticDtoService {
             } catch (Exception e) {
                 logger.warn(String.format("Error happened when deleting DTO class [%s]", dtoClzz.toString()), e);
                 String errorMsg = String.format("Fail to delete record with id = [%d], error = [%s]", x, ExceptionHolder.extractExceptionMessage(e));
-                ExceptionHolders.add(new ExceptionHolder(String.valueOf(x), x, errorMsg, e));
+                exceptionHolders.add(new ExceptionHolder(String.valueOf(x), x, errorMsg, e));
             }
             if (interceptor != null) {
                 interceptor.postDelete(x);
             }
         });
 
-        if (ExceptionHolders.size() > 0) {
-            throw new BatchChangeException(String.format("Fail to delete [%s] records, detail error in the data block", ExceptionHolders.size()), ExceptionHolders);
+        if (exceptionHolders.size() > 0) {
+            throw new BatchChangeException(String.format("Fail to delete [%s] records, detail error in the data block", exceptionHolders.size()), exceptionHolders)
+            .withErrorCode("3136", exceptionHolders.size());
         }
 
     }
