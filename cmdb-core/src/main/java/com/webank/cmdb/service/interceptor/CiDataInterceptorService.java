@@ -17,7 +17,6 @@ import com.webank.cmdb.repository.AdmCiTypeRepository;
 import com.webank.cmdb.service.AuthorizationService;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.util.*;
-import javafx.scene.paint.Stop;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
