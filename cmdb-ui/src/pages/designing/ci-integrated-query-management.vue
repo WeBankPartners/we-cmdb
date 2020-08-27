@@ -46,7 +46,6 @@
           >{{ $t('update') }}</Button
         >
         <Modal v-model="newGraphNameModalVisible" :title="$t('add_integrated_query_name')">
-          asdf
           <Input v-model="newGraphName" :placeholder="$t('input_placeholder')" />
           <div slot="footer">
             <Button @click="newGraphNameModalVisible = false">{{ $t('cancel') }}</Button>
@@ -166,6 +165,14 @@ export default {
         obj[ciType.label] = ciType.attrList || []
       })
       return obj
+    }
+  },
+  watch: {
+    newGraphNameModalVisible: function (val) {
+      if (!val) {
+        this.btnLoading = false
+        this.newGraphName = ''
+      }
     }
   },
   created () {
