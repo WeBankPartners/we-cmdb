@@ -384,13 +384,13 @@ public class WecubeAdapterService {
         List<Map<String, Object>> convertedRequest = convertedRequest(originRequest);
         List<Map<String, Object>> updatedCiData = ciService.update(retrieveCiTypeIdByTableName(entityName), convertedRequest);
         stopwatch.stop();
-        logger.info("[Performance measure] Elapsed time in updating: {}",stopwatch.toString());
+        logger.info("[Performance measure][updateCiData] Elapsed time in updating: {}",stopwatch.toString());
 
         stopwatch.reset().start();
         QueryRequest queryObject = QueryRequest.defaultQueryObject().addInFilter(GUID, updatedCiData.stream().map(item -> item.get(GUID)).collect(Collectors.toList()));
         List<Map<String, Object>> result = convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
         stopwatch.stop();
-        logger.info("[Performance measure] Elapsed time in converting updated ci data: {}",stopwatch.toString());
+        logger.info("[Performance measure][updateCiData] Elapsed time in converting updated ci data: {}",stopwatch.toString());
 
         return result;
     }
