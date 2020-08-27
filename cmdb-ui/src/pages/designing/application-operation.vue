@@ -83,6 +83,7 @@
                   @click="saveOperation('parentPanalData')"
                   :disabled="!isEdit"
                   class="opetation-btn"
+                  :loading="btnLoading"
                   >{{ $t('save') }}</Button
                 >
               </div>
@@ -216,6 +217,7 @@
                     @click="saveOperation('panalData', newPanalKey)"
                     :disabled="!isEdit"
                     class="opetation-btn"
+                    :loading="btnLoading"
                     >{{ $t('save') }}</Button
                   >
                 </div>
@@ -295,7 +297,7 @@
         </div>
         <FormItem>
           <div class="opetation-btn-zone">
-            <Button type="primary" @click="createNode">{{ $t('save') }}</Button>
+            <Button type="primary" @click="createNode" :loading="btnLoading">{{ $t('save') }}</Button>
             <Button @click="cancleAddNode" class="opetation-btn">{{ $t('cancel') }}</Button>
           </div>
         </FormItem>
@@ -321,6 +323,7 @@ export default {
   name: '',
   data () {
     return {
+      btnLoading: false,
       graphCiTypeId: '',
       graphTableName: '',
       initParams: {},
@@ -470,6 +473,7 @@ export default {
       })
     },
     async createNode () {
+      this.btnLoading = true
       // eslint-disable-next-line no-unused-vars
       let activePanalData = null
       // eslint-disable-next-line no-unused-vars
@@ -503,6 +507,7 @@ export default {
         createData: [tmpPanalData]
       }
       const { statusCode, data } = await createCiDatas(params)
+      this.btnLoading = false
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
         this.showAddNodeArea = false
@@ -542,6 +547,7 @@ export default {
     },
     // 保存数据
     async saveOperation (dataSource, tableName) {
+      this.btnLoading = true
       // eslint-disable-next-line no-unused-vars
       let activePanalData = null
       // eslint-disable-next-line no-unused-vars
@@ -585,6 +591,7 @@ export default {
         updateData: [tmpPanalData]
       }
       const { statusCode, data } = await updateCiDatas(params)
+      this.btnLoading = false
       if (statusCode === 'OK') {
         this.$Message.success('Success!')
         this.isEdit = false
