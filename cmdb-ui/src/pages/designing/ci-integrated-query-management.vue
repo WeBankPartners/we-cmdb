@@ -45,13 +45,12 @@
           :loading="updateLoading"
           >{{ $t('update') }}</Button
         >
-        <Modal
-          v-model="newGraphNameModalVisible"
-          :title="$t('add_integrated_query_name')"
-          @on-ok="beforeSaveGraph('create')"
-          @on-cancel="() => {}"
-        >
+        <Modal v-model="newGraphNameModalVisible" :title="$t('add_integrated_query_name')">
           <Input v-model="newGraphName" :placeholder="$t('input_placeholder')" />
+          <div slot="footer">
+            <Button @click="newGraphNameModalVisible = false">{{ $t('cancel') }}</Button>
+            <Button type="primary" @click="beforeSaveGraph('create')" :loading="btnLoading">{{ $t('save') }}</Button>
+          </div>
         </Modal>
       </Col>
     </Row>
@@ -121,6 +120,7 @@ export default {
   components: { CiGraph },
   data () {
     return {
+      btnLoading: false,
       isNewIntQuery: false,
       selectedCI: {
         id: 0,
@@ -165,6 +165,14 @@ export default {
         obj[ciType.label] = ciType.attrList || []
       })
       return obj
+    }
+  },
+  watch: {
+    newGraphNameModalVisible: function (val) {
+      if (!val) {
+        this.btnLoading = false
+        this.newGraphName = ''
+      }
     }
   },
   created () {
@@ -432,11 +440,13 @@ export default {
         if (type === 'update') {
           this.updateLoading = true
         }
+        this.btnLoading = true
         const { statusCode, message } = this.isNewIntQuery
           ? await saveIntQuery(this.selectedCI.id, this.newGraphName, reqData)
           : await updateIntQuery(this.selectedQuery.id, reqData)
         this.updateLoading = false
         if (statusCode === 'OK') {
+          this.btnLoading = false
           this.$Notice.success({
             title: 'Success',
             desc: message
