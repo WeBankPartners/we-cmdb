@@ -302,7 +302,8 @@ public class StaticDtoServiceImpl implements StaticDtoService {
             if (domainField != null) {
                 domainVals.put(domainField, kv.getValue());
             } else {
-                throw new InvalidArgumentException(String.format("Can not map dto attribute [%s] to domain.", kv.getKey()));
+                throw new InvalidArgumentException(String.format("Can not map dto attribute [%s] to domain.", kv.getKey()))
+                .withErrorCode("3276", kv.getKey());
             }
 
         }
