@@ -61,7 +61,8 @@ public class EnumServiceImpl implements EnumService {
     private AdmBasekeyCat validateCategory(int catId) {
         Optional<AdmBasekeyCat> basekeyCat = basekeyCatRepository.findById(catId);
         if (!basekeyCat.isPresent()) {
-            throw new InvalidArgumentException("The specific category is not existed.", "catId", catId);
+            throw new InvalidArgumentException("The specific category is not existed.", "catId", catId)
+            .withErrorCode("3236", "catId", catId);
         }
         return basekeyCat.get();
     }

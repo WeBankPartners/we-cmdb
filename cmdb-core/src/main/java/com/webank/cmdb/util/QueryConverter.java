@@ -29,7 +29,8 @@ public class QueryConverter {
         if (!Strings.isNullOrEmpty(sortingField)) {
             String sortDomainField = dtoToDomainFieldMap.get(sortingField);
             if (Strings.isNullOrEmpty(sortDomainField)) {
-                throw new AttributeNotFoundException(String.format("Can not find domain field for %s.", sortDomainField));
+                throw new AttributeNotFoundException(String.format("Can not find domain field for %s.", sortDomainField))
+                .withErrorCode("3255", sortDomainField);
             }
             dtoQueryRequest.getSorting().setField(sortDomainField);
         }
@@ -127,7 +128,8 @@ public class QueryConverter {
         if (curNode == null) {
             Class dtoClass = parentNode.getRefResourceClass(curRes);
             if (dtoClass == null) {
-                throw new InvalidArgumentException(String.format("Can not find out resource [%s] in dto class [%s]", curRes, parentNode.getDtoClass().toString()));
+                throw new InvalidArgumentException(String.format("Can not find out resource [%s] in dto class [%s]", curRes, parentNode.getDtoClass().toString()))
+                .withErrorCode("3256", curRes, parentNode.getDtoClass().toString());
             }
             curNode = new DtoNode(curRes, dtoClass);
             parentNode.getChildrenNodes().add(curNode);
