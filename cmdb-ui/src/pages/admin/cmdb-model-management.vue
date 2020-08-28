@@ -152,12 +152,11 @@
                       :max-tag-count="3"
                       v-model="item.form.zoomLevelId"
                       filterable
-                      @on-change="changeLayer"
                       :disabled="item.form.status === 'decommissioned'"
                     >
-                      <Option v-for="item in zoomLevelIdList" :value="item.codeId" :key="item.codeId">
-                        {{ item.value }}
-                      </Option>
+                      <Option v-for="item in zoomLevelIdList" :value="item.codeId" :key="item.codeId">{{
+                        item.value
+                      }}</Option>
                     </Select>
                   </FormItem>
                   <FormItem :label="$t('refrence_layer')">
