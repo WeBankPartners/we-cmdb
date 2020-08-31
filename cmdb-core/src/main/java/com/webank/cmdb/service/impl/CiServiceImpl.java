@@ -2055,14 +2055,18 @@ public class CiServiceImpl implements CiService {
             throw new ServiceException("Failed to clone int query filters.", e);
         }
 
-        List resultList = doIntegrateQuery(intQueryDto, queryRequest, true, selectedFields);
-        int totalCount = convertResultToInteger(resultList);
+        int totalCount = 0;
+        if(queryRequest.getPageable().isPaging()){
+            List resultList = doIntegrateQuery(intQueryDto, queryRequest, true, selectedFields);
+            totalCount = convertResultToInteger(resultList);
+        }
+
         stopwatch.stop();
         logger.info("[Performance measure][adhocIntegrateQuery] Elapsed time in getting ahoc integrate query count: {}",stopwatch.toString());
 
         stopwatch.reset().start();
         queryRequest.setFilters(srcFilters);
-        resultList = doIntegrateQuery(intQueryDto, queryRequest, false, selectedFields);
+        List resultList = doIntegrateQuery(intQueryDto, queryRequest, false, selectedFields);
         stopwatch.stop();
         logger.info("[Performance measure][adhocIntegrateQuery] Elapsed time in getting ahoc integrate query: {}",stopwatch.toString());
 
@@ -2090,7 +2094,9 @@ public class CiServiceImpl implements CiService {
         }
 
         QueryResponse response = new QueryResponse(null, results);
-        setupPageInfo(queryRequest, totalCount, response);
+        if(queryRequest.getPageable().isPaging()) {
+            setupPageInfo(queryRequest, totalCount, response);
+        }
 
         if (logger.isDebugEnabled()) {
             logger.debug("Return integrate response:{}", JsonUtil.toJsonString(response));
