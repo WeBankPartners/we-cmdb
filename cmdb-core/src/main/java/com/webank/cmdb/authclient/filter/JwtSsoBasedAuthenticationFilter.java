@@ -32,11 +32,11 @@ import io.jsonwebtoken.JwtException;
 public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
     private static final Logger log = LoggerFactory.getLogger(JwtSsoBasedAuthenticationFilter.class);
     
-    private String HEADER_AUTHORIZATION = "Authorization";
-    private String PREFIX_BEARER_TOKEN = "Bearer ";
-    private String CLAIM_KEY_TYPE = "type";
-    private String CLAIM_KEY_AUTHORITIES = "authority";
-    private String TOKEN_TYPE_ACCESS = "accessToken";
+    private static String HEADER_AUTHORIZATION = "Authorization";
+    private static String PREFIX_BEARER_TOKEN = "Bearer ";
+    private static String CLAIM_KEY_TYPE = "type";
+    private static String CLAIM_KEY_AUTHORITIES = "authority";
+    private static String TOKEN_TYPE_ACCESS = "accessToken";
 
     private JwtSsoTokenParser jwtParser = null;
 
