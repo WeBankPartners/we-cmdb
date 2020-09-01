@@ -513,7 +513,18 @@ export default {
                         loading={_.isLoading && _.isLoading(params.row)}
                         style="marginRight: 5px"
                         onClick={() => {
-                          this.$emit('actionFun', _.actionType, params.row)
+                          if (_.actionType === 'confirm') {
+                            this.$Modal.confirm({
+                              title: this.$t('operation_confirm'),
+                              'z-index': 1000000,
+                              onOk: async () => {
+                                this.$emit('actionFun', _.actionType, params.row)
+                              },
+                              onCancel: () => {}
+                            })
+                          } else {
+                            this.$emit('actionFun', _.actionType, params.row)
+                          }
                         }}
                       >
                         {_.label}

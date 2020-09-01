@@ -82,6 +82,7 @@
   "architecture_diagram_operation_tips": "请点击架构图进行操作",
   "delete_confirm": "确认删除？",
   "save_confirm": "确认保存？",
+  "operation_confirm": "确认当前操作？",
   "delete_enum_success_message": "删除枚举成功",
   "add_enum_success_message": "新增枚举成功",
   "update_enum_success_message": "更新枚举成功",
