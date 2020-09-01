@@ -244,6 +244,4 @@ INSERT INTO `adm_user` (`id_adm_user`, `name`, `code`, `encrypted_password`, `de
 	(1, 'admin', 'admin', '$2a$10$Gh3WDwZ8kFpxbmo/h.oywuN.LuYwgrlx53ZeG.mz7P4eKgct7IYZm', 'admin', NULL, 0, 1);
 /*!40000 ALTER TABLE `adm_user` ENABLE KEYS */;
 
-/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 SET FOREIGN_KEY_CHECKS=1;
