@@ -6,7 +6,9 @@ export default {
   data () {
     return {
       editData: [],
-      noOfCopy: 1
+      noOfCopy: 1,
+      filterColumns: [],
+      filteredColumns: []
     }
   },
   props: {
@@ -34,7 +36,8 @@ export default {
   },
   computed: {
     tableWidth () {
-      return WIDTH * this.columns.length + 100
+      const cols = this.isEdit ? this.filteredColumns : this.columns
+      return WIDTH * cols.length + 100
     }
   },
   watch: {
@@ -48,6 +51,16 @@ export default {
       handler (val) {
         if (val) {
           this.editData = this.resetPassword(JSON.parse(JSON.stringify(this.data)))
+          if (this.isEdit && this.filterColumns.length === 0) {
+            this.columns.forEach((column, index) => {
+              if (index < 4) {
+                this.filterColumns.push(column.name || column.title)
+              }
+            })
+            this.filteredColumns = this.columns.filter(column =>
+              this.filterColumns.find(c => column.name === c || column.title === c)
+            )
+          }
         }
       }
     }
@@ -139,12 +152,13 @@ export default {
           row[attr.propertyName] = attr.value
         })
       }
+      const cols = this.isEdit ? this.filteredColumns : this.columns
       return (
         <div style={`width: ${this.tableWidth}px`}>
           {this.editData.map((d, index) => {
             return (
               <div key={index} style={`width: ${this.tableWidth}px`}>
-                {this.columns.map((column, i) => {
+                {cols.map((column, i) => {
                   if (column.component === 'WeCMDBCIPassword') {
                     return (
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
@@ -270,9 +284,31 @@ export default {
           })}
         </div>
       )
+    },
+    checkboxChangeHandler (v) {
+      this.filteredColumns = []
+      this.filteredColumns = this.columns.filter(column => v.find(c => column.name === c || column.title === c))
+    },
+    renderCheckbox () {
+      return (
+        <div style={'padding:10px'}>
+          <CheckboxGroup
+            on-on-change={this.checkboxChangeHandler}
+            onInput={v => {
+              this.filterColumns = v
+            }}
+            value={this.filterColumns}
+          >
+            {this.columns.map((column, index) => {
+              return <Checkbox label={column.name || column.title}></Checkbox>
+            })}
+          </CheckboxGroup>
+        </div>
+      )
     }
   },
   render (h) {
+    const cols = this.isEdit ? this.filteredColumns : this.columns
     return (
       <Modal
         mask-closable={false}
@@ -299,10 +335,11 @@ export default {
             </Button>
           </div>
         )}
+        {this.isEdit && this.renderCheckbox()}
         <div style="overflow: auto">
           {this.modalVisible && (
             <div style={`width: ${this.tableWidth}px`}>
-              {this.columns.map((column, index) => {
+              {cols.map((column, index) => {
                 const d = {
                   props: {
                     'min-width': '130px',
