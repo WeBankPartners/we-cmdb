@@ -123,6 +123,10 @@ public class QueryRequest {
     public void setDialect(Dialect dialect) {
         this.dialect = dialect;
     }
+
+    public boolean isPagingRequested(){
+        return (paging && pageable!=null);
+    }
     
     public QueryRequest addEqualsFilter(String name, Object value) {
         filters.add(new Filter(name, "eq", value));
