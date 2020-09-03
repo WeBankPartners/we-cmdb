@@ -1,9 +1,6 @@
 package com.webank.cmdb.util;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.logging.log4j.util.Strings;
@@ -69,4 +66,7 @@ public class CollectionUtils {
         return map;
     }
 
+    static public boolean isNotEmpty(Collection collection){
+        return (collection != null && collection.size()>0);
+    }
 }

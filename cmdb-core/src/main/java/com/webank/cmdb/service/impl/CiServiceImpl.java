@@ -347,19 +347,22 @@ public class CiServiceImpl implements CiService {
         QueryResponse<CiData> ciInfoResp = new QueryResponse<>();
         try {
             Stopwatch stopwatch = Stopwatch.createStarted();
-            results = doQuery(ciRequest, entityMeta, true, null);
+            boolean isRefColumnRequested = isRefColumnRequested(entityMeta,ciRequest);
+            results = doQuery(ciRequest, entityMeta, true, null, isRefColumnRequested);
             totalCount = convertResultToInteger(results);
 
             stopwatch.stop();
             logger.info("[Performance measure][query] Elapsed time in getting count: {}",stopwatch.toString());
 
+            //JPA EntityGraph don't support paging ( performance will be impacted ),
+            //Need get guid in first if reference columns is requested and paging is enabled for performance purpose.
             List<String> guids = null;
-            if(requestRefColumn(entityMeta,ciRequest) && ciRequest.isPaging()==true && ciRequest.getPageable() != null){
+            if(isRefColumnRequested && ciRequest.isPagingRequested()){
                 guids = doQueryForGuids(ciRequest,entityMeta);
             }
 
             stopwatch.reset().start();
-            results = doQuery(ciRequest, entityMeta, false, guids);
+            results = doQuery(ciRequest, entityMeta, false, guids, isRefColumnRequested);
             stopwatch.stop();
             logger.info("[Performance measure][query] Elapsed time in doing query: {}",stopwatch.toString());
 
@@ -390,7 +393,7 @@ public class CiServiceImpl implements CiService {
         return ciInfoResp;
     }
 
-    private boolean requestRefColumn(DynamicEntityMeta entityMeta,QueryRequest ciRequest){
+    private boolean isRefColumnRequested(DynamicEntityMeta entityMeta, QueryRequest ciRequest){
         for (FieldNode node : entityMeta.getAllFieldNodes(true)) {
             if(isRequestedJoinNode(ciRequest, node)){
                 return true;
@@ -456,12 +459,28 @@ public class CiServiceImpl implements CiService {
         return nextOperations;
     }
 
-    private List<Object> doQuery(QueryRequest ciRequest, DynamicEntityMeta entityMeta, boolean isSelRowCount, List<String> guids) {
+    /**
+     * EntityGraph will be introduced if reference column is requested for later result render
+     * Guids filter is for paging purpose
+     *
+     * isSelRowCount    isRefColumnRequested     paging     |      EntityGraph               Guids filter
+     *    true                 *                   *        |        not applied              not applied
+     *    false                n                   *        |        not applied              not applied
+     *    false                y                   n        |        applied                  not applied
+     *    false                y                   y        |        applied                  applied
+     *
+     * @param ciRequest
+     * @param entityMeta
+     * @param isSelRowCount
+     * @param guids
+     * @param isRefColumnRequested
+     * @return
+     */
+    private List<Object> doQuery(QueryRequest ciRequest, DynamicEntityMeta entityMeta, boolean isSelRowCount, List<String> guids, boolean isRefColumnRequested) {
         PriorityEntityManager priEntityManager = getEntityManager();
         EntityManager entityManager = priEntityManager.getEntityManager();
         try {
             CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-            EntityGraph rootEg = entityManager.createEntityGraph(entityMeta.getEntityClazz());
 
             CriteriaQuery query = null;
             if (isSelRowCount) {
@@ -488,18 +507,10 @@ public class CiServiceImpl implements CiService {
                 fieldTypeMap.put(x.getName(), x.getType());
             });
 
-            entityMeta.getAllFieldNodes(true).forEach(node -> {
-                if(isRequestedJoinNode(ciRequest, node)){
-                    rootEg.addAttributeNodes(node.getName());
-                }
-            });
-
+            //Add guid predicate for better performance
             List<Predicate> predicates = Lists.newLinkedList();
-            if(!isSelRowCount && guids!=null && guids.size()>0){
-                Path guidPath = root.get("guid");
-                CriteriaBuilder.In<Object> in = cb.in(guidPath);
-                guids.stream().forEach(guid -> in.value(guid));
-                predicates.add(in);
+            if(!isSelRowCount && ciRequest!=null && ciRequest.isPagingRequested() && CollectionUtils.isNotEmpty(guids)){
+                applyGuidFilter(guids, cb, root, predicates);
             }
 
             if (ciRequest != null) {
@@ -511,7 +522,9 @@ public class CiServiceImpl implements CiService {
                 JpaQueryUtils.applyPaging(ciRequest.isPaging(), ciRequest.getPageable(), typedQuery);
             }
 
-            if(!isSelRowCount) {
+            if(!isSelRowCount && isRefColumnRequested) {
+                EntityGraph rootEg = entityManager.createEntityGraph(entityMeta.getEntityClazz());
+                addAttrToEntityGraph(ciRequest, entityMeta, rootEg);
                 typedQuery.setHint("javax.persistence.fetchgraph", rootEg);
             }
 
@@ -521,6 +534,21 @@ public class CiServiceImpl implements CiService {
             priEntityManager.close();
         }
 
+    }
+
+    private void addAttrToEntityGraph(QueryRequest ciRequest, DynamicEntityMeta entityMeta, EntityGraph rootEg) {
+        entityMeta.getAllFieldNodes(true).forEach(node -> {
+            if (isRequestedJoinNode(ciRequest, node)) {
+                rootEg.addAttributeNodes(node.getName());
+            }
+        });
+    }
+
+    private void applyGuidFilter(List<String> guids, CriteriaBuilder cb, Root root, List<Predicate> predicates) {
+        Path guidPath = root.get(GUID);
+        CriteriaBuilder.In<Object> in = cb.in(guidPath);
+        guids.stream().forEach(guid -> in.value(guid));
+        predicates.add(in);
     }
 
     private boolean isRequestedJoinNode(QueryRequest ciRequest, FieldNode node) {
@@ -587,7 +615,7 @@ public class CiServiceImpl implements CiService {
 
             Map<String, Expression> selectionMap = buildSelectionMap(entityMeta, filterNames, root);
 
-            Path guidPath = root.get("guid");
+            Path guidPath = root.get(DEFAULT_FIELD_GUID);
             query.select(guidPath);
 
             Map<String, Class<?>> fieldTypeMap = new HashMap<>();
@@ -2203,11 +2231,12 @@ public class CiServiceImpl implements CiService {
     }
 
     @Override
-    public List<Map<String, Object>> queryWithFilters(int ciTypeId, List<Filter> filters) {
-        return queryWithFilters(ciTypeId, filters, true);
+    public List<Map<String, Object>> queryWithFilters(int ciTypeId, List<Filter> filters, List<String> resultColumns) {
+        return queryWithFilters(ciTypeId, filters, true,resultColumns);
     }
 
-    private List<Map<String, Object>> queryWithFilters(int ciTypeId, List<Filter> filters, boolean needValidate) {
+    private List<Map<String, Object>> queryWithFilters(int ciTypeId, List<Filter> filters, boolean needValidate,
+                                                       List<String> resultColumns) {
         if (logger.isDebugEnabled()) {
             logger.debug("CI query by id request, ciTypeId:{}, filters:{}", ciTypeId, JsonUtil.toJson(filters));
         }
@@ -2219,9 +2248,10 @@ public class CiServiceImpl implements CiService {
 
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
 
-        QueryRequest request = new QueryRequest();
+        QueryRequest request = new QueryRequest().withResultColumns(resultColumns);
         request.getFilters().addAll(filters);
-        List<Object> results = doQuery(request, entityMeta, false, null);
+        boolean isRefColumnRequested = isRefColumnRequested(entityMeta,request);
+        List<Object> results = doQuery(request, entityMeta, false, null, isRefColumnRequested);
         stopwatch.stop();
         logger.info("[Performance measure][queryWithFilters] Elapsed time in query with filter: {}",stopwatch.toString());
 
@@ -2355,7 +2385,10 @@ public class CiServiceImpl implements CiService {
                 InputType.MultRef.getCode(), ciTypeId, CiStatus.Created.getCode(),1));
 
     	referredAttrs.forEach(attr -> {
-            List<Map<String, Object>> ciData = queryWithFilters(attr.getCiTypeId(), Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), guid)), false);
+            List<Map<String, Object>> ciData = queryWithFilters(attr.getCiTypeId(),
+                    Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), guid)),
+                    false,
+                    Lists.newArrayList(GUID, DEFAULT_FIELD_KEY_NAME));
             if (ciData != null && ciData.size() > 0) {
                 ciData.forEach(data -> {
                     if (checkFinalState && isFinalStateCi(attr, data)) {
@@ -2365,8 +2398,8 @@ public class CiServiceImpl implements CiService {
                     Map ciMap = Maps.newHashMap();
                     MapUtils.putAll(ciMap, new Object[] {
                             "ciTypeId", attr.getCiTypeId(),
-                            "guid", data.get("guid"),
-                            "keyName", data.get("key_name"),
+                            GUID, data.get(GUID),
+                            DEFAULT_FIELD_KEY_NAME, data.get(DEFAULT_FIELD_KEY_NAME),
                             "propertyName", attr.getPropertyName()
                     });
                     dependentCis.add(ciMap);
@@ -2399,12 +2432,13 @@ public class CiServiceImpl implements CiService {
         ;
         referredAttrs.forEach(attr -> {
             if (attr.getReferenceId() != null && ci.get(attr.getPropertyName()) != null) {
-                List<Map<String, Object>> ciData = queryWithFilters(attr.getReferenceId(), Lists.newArrayList(new Filter("guid", FilterOperator.Equal.getCode(),
-                        ci.get(attr.getPropertyName()))));
+                List<Map<String, Object>> ciData = queryWithFilters(attr.getReferenceId(),
+                        Lists.newArrayList(new Filter(GUID, FilterOperator.Equal.getCode(),ci.get(attr.getPropertyName()))),
+                        Lists.newArrayList(GUID));
                 if (ciData != null && ciData.size() > 0) {
                     ciData.forEach(data -> {
                         Map ciMap = Maps.newHashMap();
-                        MapUtils.putAll(ciMap, new Object[] { "ciTypeId", attr.getReferenceId(), "guid", data.get("guid"), "propertyName", attr.getPropertyName() });
+                        MapUtils.putAll(ciMap, new Object[] { "ciTypeId", attr.getReferenceId(), GUID, data.get(GUID), "propertyName", attr.getPropertyName() });
                         dependentCis.add(ciMap);
                     });
                 }
@@ -2423,7 +2457,9 @@ public class CiServiceImpl implements CiService {
             if (!CiStatus.Created.getCode().equals(attr.getStatus())) {
                 return;
             }
-            List<Map<String, Object>> ciData = queryWithFilters(attr.getCiTypeId(), Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), guid)));
+            List<Map<String, Object>> ciData = queryWithFilters(attr.getCiTypeId(),
+                    Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), guid)),
+                    Lists.newArrayList());
             if (ciData != null && !ciData.isEmpty()) {
                 ciData.forEach(data -> {
                     Map ciMap = Maps.newLinkedHashMap();
