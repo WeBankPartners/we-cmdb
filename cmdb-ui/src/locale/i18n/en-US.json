@@ -81,6 +81,8 @@
   "input_area": "Modeling Additions",
   "architecture_diagram_operation_tips": "Please click the model diagram for further operation",
   "delete_confirm": "Confirm to delete?",
+  "save_confirm": "Confirm to save?",
+  "operation_confirm": "Confirm current operation?",
   "delete_enum_success_message": "Enum deleted successfully",
   "add_enum_success_message": "Enum added successfully",
   "update_enum_success_message": "Enum updated successfully",
