@@ -110,7 +110,7 @@ export default {
       }
     },
     removeAddData (index) {
-      this.editData = this.editData.splice(index)
+      this.editData.splice(index, 1)
     },
     renderDataRows () {
       let setValueHandler = (v, col, row) => {
