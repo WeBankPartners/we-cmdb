@@ -2241,7 +2241,6 @@ public class CiServiceImpl implements CiService {
         if (logger.isDebugEnabled()) {
             logger.debug("CI query by id request, ciTypeId:{}, filters:{}", ciTypeId, JsonUtil.toJson(filters));
         }
-        Stopwatch stopwatch = Stopwatch.createStarted();
 
         if (needValidate) {
             validateCiType(ciTypeId);
@@ -2249,33 +2248,31 @@ public class CiServiceImpl implements CiService {
 
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
 
-        QueryRequest request = new QueryRequest().withResultColumns(resultColumns);
-        request.getFilters().addAll(filters);
-        boolean isRefColumnRequested = isRefColumnRequested(entityMeta,request);
-        List<Object> results = doQuery(request, entityMeta, false, null, isRefColumnRequested);
-        stopwatch.stop();
-        logger.info("[Performance measure][queryWithFilters] Elapsed time in query with filter: {}",stopwatch.toString());
+        PriorityEntityManager priEntityManager = getEntityManager();
+        EntityManager entityManager = priEntityManager.getEntityManager();
+        try {
+            QueryRequest request = new QueryRequest().withResultColumns(resultColumns);
+            request.getFilters().addAll(filters);
+            boolean isRefColumnRequested = isRefColumnRequested(entityMeta,request);
 
-        stopwatch.reset().start();
-        List<Map<String, Object>> resultList = Lists.newLinkedList();
-        results.forEach(x -> {
-            // DynamicEntityHolder entityBean =
-            // DynamicEntityHolder.createDynamicEntityBean(entityMeta, x);
-            Map<String, Object> entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, false);
+            Stopwatch stopwatch = Stopwatch.createStarted();
+            List<Object> results = doQuery(request, entityMeta, false, null, isRefColumnRequested);
+            stopwatch.stop();
+            logger.info("[Performance measure][queryWithFilters] Elapsed time in query with filter: {}",stopwatch.toString());
 
-            PriorityEntityManager priEntityManager = getEntityManager();
-            EntityManager entityManager = priEntityManager.getEntityManager();
-            try {
+            stopwatch.reset().start();
+            List<Map<String, Object>> resultList = Lists.newLinkedList();
+            results.forEach(x -> {
+                Map<String, Object> entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, false);
                 Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
                 resultList.add(enhacedMap);
-            } finally {
-                priEntityManager.close();
-            }
-
-        });
-        stopwatch.stop();
-        logger.info("[Performance measure][queryWithFilters] Elapsed time in rendering result with filter: {}",stopwatch.toString());
-        return resultList;
+            });
+            stopwatch.stop();
+            logger.info("[Performance measure][queryWithFilters] Elapsed time in rendering result with filter: {}",stopwatch.toString());
+            return resultList;
+        } finally {
+            priEntityManager.close();
+        }
     }
 
     @OperationLogPointcut(operation = Modification, objectClass = CiData.class)
