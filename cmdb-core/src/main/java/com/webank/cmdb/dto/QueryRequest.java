@@ -203,6 +203,19 @@ public class QueryRequest {
         return this;
     }
 
+    public QueryRequest withPaging(int startIndex,int pageSize){
+        this.paging = true;
+        this.pageable.setStartIndex(startIndex);
+        this.pageable.setPageSize(pageSize);
+        return this;
+    }
+
+    public QueryRequest withSorting(boolean asc,String field){
+        this.sorting.setAsc(asc);
+        this.sorting.setField(field);
+        return this;
+    }
+
     public static QueryRequest defaultQueryObject() {
         return new QueryRequest();
     }
