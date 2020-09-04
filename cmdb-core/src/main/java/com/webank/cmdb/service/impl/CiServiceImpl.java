@@ -518,7 +518,6 @@ public class CiServiceImpl implements CiService {
             }
             
             TypedQuery<?> typedQuery = entityManager.createQuery(query);
-            //
             if (ciRequest != null && !isSelRowCount && CollectionUtils.isEmpty(guids)) {
                 JpaQueryUtils.applyPaging(ciRequest.isPaging(), ciRequest.getPageable(), typedQuery);
             }
