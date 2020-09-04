@@ -705,7 +705,6 @@ export default {
         title: this.$t('save_confirm'),
         'z-index': 1000000,
         onOk: async () => {
-          this.$Modal.remove()
           this.btnLoading = true
           // eslint-disable-next-line no-unused-vars
           let activeLineData = null
@@ -794,7 +793,6 @@ export default {
           }
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
-            this.$Modal.remove()
             this.$Message.success('success!')
             this.$emit('operationReload', '', {
               type: 'remove',
@@ -803,7 +801,6 @@ export default {
               }
             })
           }
-          this.$Modal.remove()
         },
         onCancel: () => {}
       })
@@ -908,7 +905,6 @@ export default {
             this.operateData.children = children
             this.$emit('operationReload', this.operateData)
           }
-          this.$Modal.remove()
         },
         onCancel: () => {}
       })
@@ -918,7 +914,6 @@ export default {
         title: this.$t('save_confirm'),
         'z-index': 1000000,
         onOk: async () => {
-          this.$Modal.remove()
           this.btnLoading = true
           // eslint-disable-next-line no-unused-vars
           let activePanalData = null
@@ -1001,7 +996,6 @@ export default {
         title: this.$t('save_confirm'),
         'z-index': 1000000,
         onOk: async () => {
-          this.$Modal.remove()
           this.btnLoading = true
           // eslint-disable-next-line no-unused-vars
           let activePanalData = null
