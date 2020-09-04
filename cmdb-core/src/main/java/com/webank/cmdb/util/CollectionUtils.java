@@ -69,4 +69,9 @@ public class CollectionUtils {
     static public boolean isNotEmpty(Collection collection){
         return (collection != null && collection.size()>0);
     }
+
+    static public boolean isEmpty(Collection collection){
+        return !isNotEmpty(collection);
+    }
+
 }
