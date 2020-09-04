@@ -1174,9 +1174,13 @@ export default {
         codeId: found.codeId,
         systemGuid: this.systemVersion
       }
-      this.$refs[this.tableRef][0].isTableLoading(true)
+      if (this.$refs[this.tableRef].length > 0) {
+        this.$refs[this.tableRef][0].isTableLoading(true)
+      }
       const { statusCode, data } = await getDeployCiData(requst, this.payload)
-      this.$refs[this.tableRef][0].isTableLoading(false)
+      if (this.$refs[this.tableRef].length > 0) {
+        this.$refs[this.tableRef][0].isTableLoading(false)
+      }
       if (statusCode === 'OK') {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
