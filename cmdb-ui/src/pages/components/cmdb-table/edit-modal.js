@@ -110,7 +110,7 @@ export default {
       }
     },
     removeAddData (index) {
-      this.editData = this.editData.splice(index)
+      this.editData.splice(index, 1)
     },
     renderDataRows () {
       let setValueHandler = (v, col, row) => {
@@ -259,12 +259,14 @@ export default {
                     )
                   }
                 })}
-                <span
-                  onClick={() => this.removeAddData(index)}
-                  style={`border-radius: 4px;vertical-align: middle;color:red;font-size:20px;margin-left:8px;cursor:pointer;border: 1px solid red`}
-                >
-                  <Icon type="ios-trash-outline" />
-                </span>
+                {!this.isEdit && (
+                  <span
+                    onClick={() => this.removeAddData(index)}
+                    style={`border-radius: 4px;vertical-align: middle;color:red;font-size:20px;margin-left:8px;cursor:pointer;border: 1px solid red`}
+                  >
+                    <Icon type="ios-trash-outline" />
+                  </span>
+                )}
               </div>
             )
           })}
@@ -321,11 +323,13 @@ export default {
                   </div>
                 )
               })}
-              <div
-                style={`width:80px;display:inline-block;padding:5px;height: 30px;font-weight:600;background-color: #e8eaec`}
-              >
-                {this.$t('delete')}
-              </div>
+              {!this.isEdit && (
+                <div
+                  style={`width:80px;display:inline-block;padding:5px;height: 30px;font-weight:600;background-color: #e8eaec`}
+                >
+                  {this.$t('delete')}
+                </div>
+              )}
             </div>
           )}
           {this.modalVisible && this.renderDataRows()}
