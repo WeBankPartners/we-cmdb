@@ -167,7 +167,9 @@ public class CiDataInterceptorService {
                 if (val == null || ((val instanceof String) && "".equals(val))) {
                     return;
                 }
-                if (!ciService.queryWithFilters(ciTypeId, Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), val))).isEmpty()) {
+                if (!ciService.queryWithFilters(ciTypeId,
+                        Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), val)),
+                        Lists.newArrayList(GUID)).isEmpty()) {
                     throw new InvalidArgumentException(String.format("The given attribute [properyName:%s] val [%s] is not unique.", attr.getPropertyName(), String.valueOf(val)));
                 }
             });
@@ -194,7 +196,7 @@ public class CiDataInterceptorService {
         List<Filter> filters = new ArrayList<>();
         filters.add(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), newValue));
         filters.add(new Filter("guid", FilterOperator.NotEqual.getCode(), guid));
-        return !ciService.queryWithFilters(ciTypeId, filters).isEmpty();
+        return !ciService.queryWithFilters(ciTypeId, filters, Lists.newArrayList(GUID)).isEmpty();
     }
 
     private void validateRefInputType(DynamicEntityHolder entityHolder, Map<String, Object> ci) {
@@ -207,7 +209,9 @@ public class CiDataInterceptorService {
                 if (StringUtils.isBlank(guid)) {
                     return;
                 }
-                if (ciService.queryWithFilters(refCiTypeId, Lists.newArrayList(new Filter("guid", FilterOperator.Equal.getCode(), guid))).isEmpty()) {
+                if (ciService.queryWithFilters(refCiTypeId,
+                        Lists.newArrayList(new Filter(GUID, FilterOperator.Equal.getCode(), guid)),
+                        Lists.newArrayList(GUID)).isEmpty()) {
                     throw new InvalidArgumentException(String.format("The given guid [%s] can not be found for CiType [%s(%d)]", guid, getCiTypeName(refCiTypeId), refCiTypeId));
                 }
             });
