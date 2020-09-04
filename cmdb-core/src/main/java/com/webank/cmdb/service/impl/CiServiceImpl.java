@@ -463,11 +463,11 @@ public class CiServiceImpl implements CiService {
      * EntityGraph will be introduced if reference column is requested for later result render
      * Guids filter is for paging purpose
      *
-     * isSelRowCount    isRefColumnRequested     paging     |      EntityGraph               Guids filter
-     *    true                 *                   *        |        not applied              not applied
-     *    false                n                   *        |        not applied              not applied
-     *    false                y                   n        |        applied                  not applied
-     *    false                y                   y        |        applied                  applied
+     * isSelRowCount    isRefColumnRequested     paging     |      EntityGraph               Guids filter          Paging apply
+     *    true                 *                   *        |        not applied              not applied           no
+     *    false                n                   *        |        not applied              not applied           yes
+     *    false                y                   n        |        applied                  not applied           no
+     *    false                y                   y        |        applied                  applied               no
      *
      * @param ciRequest
      * @param entityMeta
@@ -518,7 +518,8 @@ public class CiServiceImpl implements CiService {
             }
             
             TypedQuery<?> typedQuery = entityManager.createQuery(query);
-            if (ciRequest != null && !isSelRowCount) {
+            //
+            if (ciRequest != null && !isSelRowCount && CollectionUtils.isEmpty(guids)) {
                 JpaQueryUtils.applyPaging(ciRequest.isPaging(), ciRequest.getPageable(), typedQuery);
             }
 
