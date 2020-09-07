@@ -888,6 +888,7 @@ export default {
         .attr('stroke-opacity', '1')
     },
     handleTabClick (name) {
+      this.payload.sorting = {}
       this.payload.filters = []
       this.currentTab = name
       if (name !== 'architectureDesign' && name !== 'physicalGraph' && name !== 'serviceInvoke') {
