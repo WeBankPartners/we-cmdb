@@ -465,7 +465,7 @@ export default {
       const colLength = columns.length // 获取传入展示的column长度
       this.colWidth = Math.floor(tableWidth / colLength)
       this.columns = columns.map((_, idx) => {
-        const isLast = colLength - 1 === idx
+        // const isLast = colLength - 1 === idx
         if (_.children) {
           const children = _.children.filter(_ => _.isDisplayed || _.displaySeqNo).sort(compare)
           return {
@@ -476,7 +476,7 @@ export default {
             })
           }
         } else {
-          return this.renderCol(_, isLast)
+          return this.renderCol(_, false)
         }
       })
 
