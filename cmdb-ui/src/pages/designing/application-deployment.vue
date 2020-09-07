@@ -738,6 +738,7 @@ export default {
       return dot
     },
     handleTabClick (name) {
+      this.payload.sorting = {}
       this.payload.filters = []
       this.currentTab = name
       if (
@@ -884,6 +885,7 @@ export default {
       }
     },
     sortHandler (data) {
+      console.log(data.order)
       if (data.order === 'normal') {
         delete this.payload.sorting
       } else {
