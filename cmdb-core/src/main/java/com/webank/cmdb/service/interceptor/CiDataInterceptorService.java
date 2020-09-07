@@ -309,12 +309,15 @@ public class CiDataInterceptorService {
             queryValueFromRuleAndSave(entityHolder, entityManager, currentGuid, attrWithRule);
         } else {
             List<String> rootGuids = getRootGuids(currentGuid, currentAttr, attrWithRule.getAutoFillRule());
+            logger.info("Fetched root guids ({}) for attrWithRule ({}) with current attr ({}) and guid ({})", Arrays.toString(rootGuids.toArray()),
+                    attrWithRule.getIdAdmCiTypeAttr(),currentAttr.getIdAdmCiTypeAttr(),currentGuid);
             rootGuids.forEach(rootGuid -> queryValueFromRuleAndSave(entityHolder, entityManager, rootGuid, attrWithRule));
         }
     }
 
     private void queryValueFromRuleAndSave(DynamicEntityHolder entityHolder, EntityManager entityManager, String currentGuid, AdmCiTypeAttr attrWithRule) {
         Object value = null;
+        logger.info("Query rule value for guid ({}) with attrWithRule ({})", currentGuid, attrWithRule.getIdAdmCiTypeAttr());
         String rawValue = queryValueByRule(currentGuid, null, attrWithRule.getAutoFillRule(),new StringBuilder());
         if (!StringUtils.isBlank(rawValue)) {
             switch (InputType.fromCode(attrWithRule.getInputType())) {
@@ -667,6 +670,7 @@ public class CiDataInterceptorService {
                 List<AdmCiTypeAttr> attrsWithMatchRule = ciTypeAttrRepository.findAllByMatchAutoFillRule("\\\\\\\"attrId\\\\\\\":" + attr.getIdAdmCiTypeAttr());
                 attrsWithMatchRule.forEach(attrWithMatchRule -> {
                     if (attrWithMatchRule.getIsAuto() == CmdbConstants.IS_AUTO_YES) {
+                        logger.info("Executing autofill on matched attr ({}) for attr ({})",attrWithMatchRule.getIdAdmCiTypeAttr(),attr.getIdAdmCiTypeAttr());
                         executeAutoFill(entityHolder, entityManager, entityHolder.get("guid").toString(), attr, attrWithMatchRule);
                     }
                 });
