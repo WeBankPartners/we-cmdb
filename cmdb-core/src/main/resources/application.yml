@@ -16,7 +16,7 @@ server:
 
 spring:
   banner:
-    location: classpath:/cmdb.txt
+    location: classpath:/wecmdb.txt
   profiles:
     #en-local、ch-local
     active: dev

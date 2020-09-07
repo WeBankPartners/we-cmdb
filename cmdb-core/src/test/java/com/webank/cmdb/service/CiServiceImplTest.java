@@ -6,6 +6,7 @@ import static org.junit.Assert.assertThat;
 
 import javax.transaction.Transactional;
 
+import com.webank.cmdb.dto.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +16,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.google.common.collect.Lists;
 import com.webank.cmdb.controller.AbstractBaseControllerTest;
-import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
-import com.webank.cmdb.dto.IntegrationQueryDto;
-import com.webank.cmdb.dto.QueryRequest;
-import com.webank.cmdb.dto.QueryResponse;
-import com.webank.cmdb.dto.Relationship;
 import com.webank.cmdb.support.exception.InvalidArgumentException;
 
 import java.util.Map;
@@ -137,4 +133,58 @@ public class CiServiceImplTest extends AbstractBaseControllerTest {
         assertThat(response.getContents().size(),equalTo(14));
         assertThat(response.getContents().get(0).size(),equalTo(2));
     }
+
+    @Test
+    @Transactional
+    public void querySubSystemDesignWithoutPagingThenReturnAllSystemDesignCiData(){
+        QueryRequest queryRequest = QueryRequest.defaultQueryObject();
+        QueryResponse queryResponse = ciService.query(2,queryRequest);
+        assertThat(queryRequest, notNullValue());
+        assertThat(queryResponse.getContents().size(),equalTo(14));
+    }
+
+    /**
+     * SystemDesign has reference to SubSysDesign
+     * Query on SystemDesign should enable guid filter for paging
+     */
+    @Test
+    @Transactional
+    public void querySubSystemDesignWithtPage1ThenReturnOnePageCiData(){
+        QueryRequest queryRequest = QueryRequest.defaultQueryObject().withPaging(0,3);
+        QueryResponse<CiData> queryResponse = ciService.query(2,queryRequest);
+        assertThat(queryRequest, notNullValue());
+        assertThat(queryResponse.getContents().size(),equalTo(3));
+
+        //sorting
+        queryRequest = QueryRequest.defaultQueryObject().withPaging(0,3).withSorting(true,"guid");
+        queryResponse = ciService.query(2,queryRequest);
+        assertThat(queryRequest, notNullValue());
+        assertThat(queryResponse.getContents().size(),equalTo(3));
+        assertThat(queryResponse.getContents().get(0).getData().get("guid"),equalTo("0002_0000000001"));
+
+        queryRequest = QueryRequest.defaultQueryObject().withPaging(3,3).withSorting(true,"guid");
+        queryResponse = ciService.query(2,queryRequest);
+        assertThat(queryRequest, notNullValue());
+        assertThat(queryResponse.getContents().size(),equalTo(3));
+        assertThat(queryResponse.getContents().get(0).getData().get("guid"),equalTo("0002_0000000004"));
+
+        //Desc sorting
+        queryRequest = QueryRequest.defaultQueryObject().withPaging(3,3).withSorting(false,"guid");
+        queryResponse = ciService.query(2,queryRequest);
+        assertThat(queryRequest, notNullValue());
+        assertThat(queryResponse.getContents().size(),equalTo(3));
+        assertThat(queryResponse.getContents().get(0).getData().get("guid"),equalTo("0002_0000000011"));
+    }
+
+    @Test
+    @Transactional
+    public void querySubSystemDesignWithoutRefColumnThenReturnPageCiData(){
+        QueryRequest queryRequest = QueryRequest.defaultQueryObject().withPaging(0,3)
+                .withResultColumns(Lists.newArrayList("guid","key_name"));
+        QueryResponse<CiData> queryResponse = ciService.query(2,queryRequest);
+        assertThat(queryRequest, notNullValue());
+        assertThat(queryResponse.getContents().size(),equalTo(3));
+        assertThat(queryResponse.getContents().get(0).getData().size(),equalTo(2));
+    }
+
 }

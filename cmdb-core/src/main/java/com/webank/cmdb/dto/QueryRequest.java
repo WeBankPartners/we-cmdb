@@ -123,6 +123,10 @@ public class QueryRequest {
     public void setDialect(Dialect dialect) {
         this.dialect = dialect;
     }
+
+    public boolean isPagingRequested(){
+        return (paging && pageable!=null);
+    }
     
     public QueryRequest addEqualsFilter(String name, Object value) {
         filters.add(new Filter(name, "eq", value));
@@ -196,6 +200,19 @@ public class QueryRequest {
 
     public QueryRequest withResultColumns(List<String> resultColumns) {
         this.resultColumns = resultColumns;
+        return this;
+    }
+
+    public QueryRequest withPaging(int startIndex,int pageSize){
+        this.paging = true;
+        this.pageable.setStartIndex(startIndex);
+        this.pageable.setPageSize(pageSize);
+        return this;
+    }
+
+    public QueryRequest withSorting(boolean asc,String field){
+        this.sorting.setAsc(asc);
+        this.sorting.setField(field);
         return this;
     }
 
