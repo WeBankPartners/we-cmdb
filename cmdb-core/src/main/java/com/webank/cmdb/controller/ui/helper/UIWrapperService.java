@@ -539,10 +539,11 @@ public class UIWrapperService {
         if (queryObject == null) {
             queryObject = QueryRequest.defaultQueryObject().descendingSortBy(CmdbConstants.DEFAULT_FIELD_CREATED_DATE);
         } else if (queryObject.getSorting() == null || queryObject.getSorting().getField() == null) {
-            queryObject.getDialect().setShowCiHistory(true);
             queryObject.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_CREATED_DATE));
         }
         queryObject.addNotEqualsFilter("state", uiProperties.getEnumIdOfStateDelete());
+        int pageSize = queryObject.getPageable().getPageSize();
+        queryObject.getPageable().setPageSize(Integer.MAX_VALUE);
         QueryResponse<CiData> query = ciService.query(ciTypeId, queryObject);
         List<String> ciDataIds = new ArrayList<>();
         if (query.getContents() == null || query.getContents().size() <= 0) {
@@ -564,6 +565,7 @@ public class UIWrapperService {
         }
         queryObject.addInFilter(CmdbConstants.DEFAULT_FIELD_GUID, ciDataIds);
         queryObject.getDialect().setShowCiHistory(true);
+        queryObject.getPageable().setPageSize(pageSize);
         return ciService.query(ciTypeId, queryObject);
     }
 
