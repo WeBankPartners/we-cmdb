@@ -133,13 +133,11 @@ export default {
       if (target.nodeName !== 'SPAN') return
       const nodeType = target.getAttribute('nodeType')
       const attrIndex = target.getAttribute('attr-index')
-      console.log(nodeType, target.getAttribute('citype'), this.ciTypesObjByTableName)
       switch (nodeType) {
         case 'add':
           break
         case 'node':
         case 'attr':
-          console.log(nodeType, target.getAttribute('citype'), this.ciTypesObjByTableName)
           const ciTypeId = target.getAttribute('ciTypeId') * 1
           const _attrIndex = nodeType === 'node' ? +attrIndex : +attrIndex - 1
           this.showRefOptions(_attrIndex, ciTypeId)
@@ -539,7 +537,6 @@ export default {
       )
     },
     renderSpan (v) {
-      console.log(v, 111)
       const p = {
         ...v.props,
         domProps: {
