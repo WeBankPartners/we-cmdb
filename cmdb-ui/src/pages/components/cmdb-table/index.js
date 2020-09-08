@@ -465,7 +465,7 @@ export default {
       const colLength = columns.length // 获取传入展示的column长度
       this.colWidth = Math.floor(tableWidth / colLength)
       this.columns = columns.map((_, idx) => {
-        const isLast = colLength - 1 === idx
+        // const isLast = colLength - 1 === idx
         if (_.children) {
           const children = _.children.filter(_ => _.isDisplayed || _.displaySeqNo).sort(compare)
           return {
@@ -476,7 +476,7 @@ export default {
             })
           }
         } else {
-          return this.renderCol(_, isLast)
+          return this.renderCol(_, false)
         }
       })
 
@@ -513,7 +513,18 @@ export default {
                         loading={_.isLoading && _.isLoading(params.row)}
                         style="marginRight: 5px"
                         onClick={() => {
-                          this.$emit('actionFun', _.actionType, params.row)
+                          if (_.actionType === 'confirm') {
+                            this.$Modal.confirm({
+                              title: this.$t('operation_confirm'),
+                              'z-index': 1000000,
+                              onOk: async () => {
+                                this.$emit('actionFun', _.actionType, params.row)
+                              },
+                              onCancel: () => {}
+                            })
+                          } else {
+                            this.$emit('actionFun', _.actionType, params.row)
+                          }
                         }}
                       >
                         {_.label}
