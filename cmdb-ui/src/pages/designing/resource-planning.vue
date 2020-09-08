@@ -579,6 +579,7 @@ export default {
       }
     },
     handleTabClick (name) {
+      this.payload.sorting = {}
       this.payload.filters = []
       this.currentTab = name
       if (this.currentTab !== 'resource-design') {
