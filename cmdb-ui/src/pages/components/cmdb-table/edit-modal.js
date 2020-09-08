@@ -49,7 +49,6 @@ export default {
     },
     modalVisible: {
       handler (val) {
-        console.log(this.columns)
         if (val) {
           this.editData = this.resetPassword(JSON.parse(JSON.stringify(this.data)))
           if (this.isEdit && this.filterColumns.length === 0) {
