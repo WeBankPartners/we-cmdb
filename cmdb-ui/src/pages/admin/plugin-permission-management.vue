@@ -315,7 +315,8 @@ export default {
               allCiTypes: this.allCiTypes,
               isFilterAttr: true,
               displayAttrType: ['ref', 'multiRef'],
-              rootCis: [h.propertyName]
+              rootCis: [h.propertyName],
+              rootCiTypeId: h.referenceId
             }
           })
           .concat(
