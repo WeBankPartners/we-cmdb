@@ -308,7 +308,7 @@ public class CiDataInterceptorService {
         if (currentAttr.getCiTypeId() == attrWithRule.getCiTypeId()) {
             queryValueFromRuleAndSave(entityHolder, entityManager, currentGuid, attrWithRule);
         } else {
-            List<String> rootGuids = getRootGuids(currentGuid, currentAttr, attrWithRule.getAutoFillRule());
+            Set<String> rootGuids = getRootGuids(currentGuid, currentAttr, attrWithRule.getAutoFillRule());
             logger.info("Fetched root guids ({}) for attrWithRule ({}) with current attr ({}) and guid ({})", Arrays.toString(rootGuids.toArray()),
                     attrWithRule.getIdAdmCiTypeAttr(),currentAttr.getIdAdmCiTypeAttr(),currentGuid);
             rootGuids.forEach(rootGuid -> queryValueFromRuleAndSave(entityHolder, entityManager, rootGuid, attrWithRule));
@@ -465,8 +465,8 @@ public class CiDataInterceptorService {
         return ciService.adhocIntegrateQuery(adhocDto);
     }
     
-    private List<String> getRootGuids(String guid, AdmCiTypeAttr attrWithGuid, Object autoFillRuleValue) {
-        List<String> guids = new ArrayList<>();
+    private Set<String> getRootGuids(String guid, AdmCiTypeAttr attrWithGuid, Object autoFillRuleValue) {
+        Set<String> guids = new HashSet<>();
         List<AutoFillItem> autoRuleItems = parserRule(autoFillRuleValue);
         for (AutoFillItem item : autoRuleItems) {
             if (AutoFillType.Rule.getCode().equals(item.getType())) {
@@ -481,7 +481,12 @@ public class CiDataInterceptorService {
                     if (routinesAttrs.contains(attrWithGuid.getIdAdmCiTypeAttr())) {
                         QueryResponse response = queryIntegrateWithRoutines(guid, attrWithGuid, routines);
                         List<Map<String, Object>> contents = response.getContents();
-                        contents.forEach(content -> guids.add(content.get("root$guid").toString()));
+                        contents.forEach(content -> {
+                            String rootGuid = content.get("root$guid").toString();
+                            if(!guids.contains(rootGuid)){
+                                guids.add(rootGuid);
+                            }
+                        });
                     }
                 } catch (IOException e) {
                     throw new InvalidArgumentException(String.format("Failed to convert auto fill rule [%s]. ", item), e);
