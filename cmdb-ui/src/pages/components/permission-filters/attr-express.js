@@ -20,7 +20,8 @@ export default {
     banRootCiDelete: { default: false, type: Boolean, required: false }, // 为 true 时，禁止删除根节点
     hideFilterModal: { default: false, type: Boolean, required: false }, // 为 true 时，禁止添加过滤项
     hideFirstFilter: { default: false, type: Boolean, required: false }, // 为 true 时，禁止在根节点除添加过滤项
-    hideFirstRefBy: { default: false, type: Boolean, required: false } // 为 true 时，根节点后的第一个节点隐藏 refBy 的节点，即只显示 refTo 的节点
+    hideFirstRefBy: { default: false, type: Boolean, required: false }, // 为 true 时，根节点后的第一个节点隐藏 refBy 的节点，即只显示 refTo 的节点
+    rootCiTypeId: { required: false }
   },
   data () {
     return {
@@ -75,6 +76,7 @@ export default {
         let innerText = _
         let filter = false
         let citype = null
+        let ciTypeId = null
         let attr = null
         let nodeType = 'node'
         let className = 'attr-express-node'
@@ -82,20 +84,24 @@ export default {
           // refBy
           innerText = '~' + _
           citype = _.split(/[)({[]/)[2]
+          ciTypeId = this.ciTypesObjByTableName[citype].ciTypeId
           attr = _.split(/[)({[]/)[1]
         } else if (_.indexOf('>') >= 0) {
           // refTo
           innerText = '.' + _
           citype = _.split(/[>{[]/)[1]
+          ciTypeId = this.ciTypesObjByTableName[citype].ciTypeId
           attr = _.split(/[>{[]/)[0]
         } else if (i === 0) {
           // 根节点
           citype = _.split(/[:[{]/)[0]
+          ciTypeId = this.rootCiTypeId
         } else if (_.indexOf('[') === 0) {
           // 属性节点
           innerText = ':' + _
           nodeType = 'attr'
           citype = this.expression[i - 1].props.attrs.citype
+          ciTypeId = this.ciTypesObjByTableName[citype].ciTypeId
           attr = _.replace(/[[\]]/g, '')
         } else {
           // 枚举属性
@@ -110,6 +116,7 @@ export default {
             attrs: {
               'attr-index': i,
               citype,
+              ciTypeId,
               attr,
               filter,
               nodeType
@@ -131,7 +138,7 @@ export default {
           break
         case 'node':
         case 'attr':
-          const ciTypeId = this.ciTypesObjByTableName[target.getAttribute('citype')].ciTypeId
+          const ciTypeId = target.getAttribute('ciTypeId') * 1
           const _attrIndex = nodeType === 'node' ? +attrIndex : +attrIndex - 1
           this.showRefOptions(_attrIndex, ciTypeId)
           break
@@ -212,6 +219,7 @@ export default {
                     'attr-index': attrIndex + 1,
                     filter: false,
                     citype: ciType,
+                    ciTypeId: this.ciTypesObjByTableName[ciType].ciTypeId,
                     nodeType: 'node'
                   }
                 },
@@ -259,6 +267,7 @@ export default {
                   'attr-index': attrIndex + 1,
                   filter: false,
                   citype: ciType,
+                  ciTypeId: this.ciTypesObjByTableName[ciType].ciTypeId,
                   attr,
                   nodeType: _nodeType
                 }
@@ -306,6 +315,7 @@ export default {
             'attr-index': _attrIndex,
             filter: false,
             citype: '',
+            ciTypeId: '',
             nodeType: 'enum'
           }
         }
