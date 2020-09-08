@@ -46,6 +46,7 @@ export default {
     },
     modalVisible: {
       handler (val) {
+        console.log(this.columns)
         if (val) {
           this.editData = this.resetPassword(JSON.parse(JSON.stringify(this.data)))
         }
@@ -169,6 +170,7 @@ export default {
                           isFilterAttr={true}
                           displayAttrType={column.displayAttrType}
                           rootCis={column.rootCis}
+                          rootCiTypeId={column.rootCiTypeId}
                           value={d[column.propertyName]}
                           onInput={v => {
                             setValueHandler(v, column, d)
