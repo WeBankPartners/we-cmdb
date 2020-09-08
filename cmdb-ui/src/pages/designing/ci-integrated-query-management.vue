@@ -451,6 +451,7 @@ export default {
             title: 'Success',
             desc: message
           })
+          this.newGraphNameModalVisible = false
           if (this.isNewIntQuery) {
             this.getQueryNameList(this.selectedCI.id)
           }
