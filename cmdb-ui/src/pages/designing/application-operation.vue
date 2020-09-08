@@ -438,7 +438,6 @@ export default {
           if (statusCode === 'OK') {
             this.$Message.success('success!')
           }
-          this.$Modal.remove()
           const ciData = await queryCiData({
             id: activePanal.ciTypeId,
             queryObject: {
@@ -473,66 +472,73 @@ export default {
       })
     },
     async createNode () {
-      this.btnLoading = true
-      // eslint-disable-next-line no-unused-vars
-      let activePanalData = null
-      // eslint-disable-next-line no-unused-vars
-      let ciTypeId = null
-      activePanalData = this.newNodeFormData
-      let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
-      for (let key in activePanalData) {
-        if (activePanalData[key] && typeof activePanalData[key] === 'object') {
-          // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
-          if (Array.isArray(activePanalData[key]) && !key.endsWith('_tmp')) {
-            let tmp = []
-            if (activePanalData[key + '_tmp']) {
-              tmp = activePanalData[key + '_tmp'].map(_ => {
-                return _.guid || _.codeId
-              })
-            } else {
-              tmp = activePanalData[key].map(_ => {
-                return _.data.guid || _.data.codeId
-              })
-            }
-            tmpPanalData[key] = tmp
-          } else {
-            // Object数据处理
-            tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid || ''
-          }
-        }
-      }
-      tmpPanalData = this.clearInvalidParameter(tmpPanalData)
-      let params = {
-        id: this.selectedNodeType,
-        createData: [tmpPanalData]
-      }
-      const { statusCode, data } = await createCiDatas(params)
-      this.btnLoading = false
-      if (statusCode === 'OK') {
-        this.$Message.success('Success!')
-        this.showAddNodeArea = false
-
-        const ciData = await queryCiData({
-          id: this.selectedNodeType,
-          queryObject: {
-            filters: [
-              {
-                name: 'guid',
-                value: data[0].guid,
-                operator: 'eq'
+      this.$Modal.confirm({
+        title: this.$t('save_confirm'),
+        'z-index': 1000000,
+        onOk: async () => {
+          this.btnLoading = true
+          // eslint-disable-next-line no-unused-vars
+          let activePanalData = null
+          // eslint-disable-next-line no-unused-vars
+          let ciTypeId = null
+          activePanalData = this.newNodeFormData
+          let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
+          for (let key in activePanalData) {
+            if (activePanalData[key] && typeof activePanalData[key] === 'object') {
+              // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
+              if (Array.isArray(activePanalData[key]) && !key.endsWith('_tmp')) {
+                let tmp = []
+                if (activePanalData[key + '_tmp']) {
+                  tmp = activePanalData[key + '_tmp'].map(_ => {
+                    return _.guid || _.codeId
+                  })
+                } else {
+                  tmp = activePanalData[key].map(_ => {
+                    return _.data.guid || _.data.codeId
+                  })
+                }
+                tmpPanalData[key] = tmp
+              } else {
+                // Object数据处理
+                tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid || ''
               }
-            ]
+            }
           }
-        })
-        const addNode = {
-          ciTypeId: this.selectedNodeType,
-          data: ciData.data.contents[0].data,
-          guid: ciData.data.contents[0].data.guid,
-          imageFileId: ''
-        }
-        this.$emit('operationReload', this.operateData.guid, addNode, '', 'addNode')
-        this.cancleAddNode()
-      }
+          tmpPanalData = this.clearInvalidParameter(tmpPanalData)
+          let params = {
+            id: this.selectedNodeType,
+            createData: [tmpPanalData]
+          }
+          const { statusCode, data } = await createCiDatas(params)
+          this.btnLoading = false
+          if (statusCode === 'OK') {
+            this.$Message.success('Success!')
+            this.showAddNodeArea = false
+
+            const ciData = await queryCiData({
+              id: this.selectedNodeType,
+              queryObject: {
+                filters: [
+                  {
+                    name: 'guid',
+                    value: data[0].guid,
+                    operator: 'eq'
+                  }
+                ]
+              }
+            })
+            const addNode = {
+              ciTypeId: this.selectedNodeType,
+              data: ciData.data.contents[0].data,
+              guid: ciData.data.contents[0].data.guid,
+              imageFileId: ''
+            }
+            this.$emit('operationReload', this.operateData.guid, addNode, '', 'addNode')
+            this.cancleAddNode()
+          }
+        },
+        onCancel: () => {}
+      })
     },
     cancleAddNode () {
       this.isEdit = false
@@ -547,91 +553,98 @@ export default {
     },
     // 保存数据
     async saveOperation (dataSource, tableName) {
-      this.btnLoading = true
-      // eslint-disable-next-line no-unused-vars
-      let activePanalData = null
-      // eslint-disable-next-line no-unused-vars
-      let ciTypeId = null
-      if (dataSource === 'parentPanalData') {
-        activePanalData = this[dataSource].data
-        ciTypeId = this.parentPanalForm[0].ciTypeId
-      }
-      if (dataSource === 'panalData') {
-        const activePanal = this.newPanalData[tableName].find(item => item.guid === this.defaultPanal[0])
-        activePanalData = activePanal.data
-
-        ciTypeId = activePanal.ciTypeId
-      }
-
-      let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
-      for (let key in activePanalData) {
-        if (activePanalData[key] && typeof activePanalData[key] === 'object') {
-          // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
-          if (Array.isArray(activePanalData[key]) && !key.endsWith('_tmp')) {
-            let tmp = []
-            if (activePanalData[key + '_tmp']) {
-              tmp = activePanalData[key + '_tmp'].map(_ => {
-                return _.data.guid || _.data.codeId
-              })
-            } else {
-              tmp = activePanalData[key].map(_ => {
-                return _.data.guid || _.data.codeId
-              })
-            }
-            tmpPanalData[key] = tmp
-          } else {
-            // Object数据处理
-            tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid || ''
+      this.$Modal.confirm({
+        title: this.$t('save_confirm'),
+        'z-index': 1000000,
+        onOk: async () => {
+          this.btnLoading = true
+          // eslint-disable-next-line no-unused-vars
+          let activePanalData = null
+          // eslint-disable-next-line no-unused-vars
+          let ciTypeId = null
+          if (dataSource === 'parentPanalData') {
+            activePanalData = this[dataSource].data
+            ciTypeId = this.parentPanalForm[0].ciTypeId
           }
-        }
-      }
-      tmpPanalData = this.clearInvalidParameter(tmpPanalData)
-      let params = {
-        id: ciTypeId,
-        updateData: [tmpPanalData]
-      }
-      const { statusCode, data } = await updateCiDatas(params)
-      this.btnLoading = false
-      if (statusCode === 'OK') {
-        this.$Message.success('Success!')
-        this.isEdit = false
-        const ciData = await queryCiData({
-          id: ciTypeId,
-          queryObject: {
-            filters: [
-              {
-                name: 'guid',
-                value: data[0].guid,
-                operator: 'eq'
+          if (dataSource === 'panalData') {
+            const activePanal = this.newPanalData[tableName].find(item => item.guid === this.defaultPanal[0])
+            activePanalData = activePanal.data
+
+            ciTypeId = activePanal.ciTypeId
+          }
+
+          let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
+          for (let key in activePanalData) {
+            if (activePanalData[key] && typeof activePanalData[key] === 'object') {
+              // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
+              if (Array.isArray(activePanalData[key]) && !key.endsWith('_tmp')) {
+                let tmp = []
+                if (activePanalData[key + '_tmp']) {
+                  tmp = activePanalData[key + '_tmp'].map(_ => {
+                    return _.data.guid || _.data.codeId
+                  })
+                } else {
+                  tmp = activePanalData[key].map(_ => {
+                    return _.data.guid || _.data.codeId
+                  })
+                }
+                tmpPanalData[key] = tmp
+              } else {
+                // Object数据处理
+                tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid || ''
               }
-            ]
+            }
           }
-        })
-        if (dataSource === 'parentPanalData') {
-          // let editNode = {
-          //   children: this.parentOriginData.children,
-          //   ciTypeId: ciTypeId,
-          //   data: data[0],
-          //   guid: this.parentOriginData.guid,
-          //   imageFileId: this.parentOriginData.imageFileId,
-          //   parentGuid: this.parentOriginData.parentGuid
-          // }
-          this.operateData.data = data[0]
-          this.$emit('operationReload', this.operateData.guid, this.operateData, '', 'parentNode')
-        }
-        if (dataSource === 'panalData') {
-          const index = this.getIndex(this.operateData.children, ciData.data.contents[0].data.guid)
-          let editNode = {
-            children: this.operateData.children[index].children,
-            ciTypeId: ciTypeId,
-            data: ciData.data.contents[0].data,
-            guid: ciData.data.contents[0].data.guid,
-            imageFileId: this.operateData.children[index].imageFileId,
-            parentGuid: this.operateData.children[index].parentGuid
+          tmpPanalData = this.clearInvalidParameter(tmpPanalData)
+          let params = {
+            id: ciTypeId,
+            updateData: [tmpPanalData]
           }
-          this.$emit('operationReload', this.operateData.guid, editNode, index, 'edit')
-        }
-      }
+          const { statusCode, data } = await updateCiDatas(params)
+          this.btnLoading = false
+          if (statusCode === 'OK') {
+            this.$Message.success('Success!')
+            this.isEdit = false
+            const ciData = await queryCiData({
+              id: ciTypeId,
+              queryObject: {
+                filters: [
+                  {
+                    name: 'guid',
+                    value: data[0].guid,
+                    operator: 'eq'
+                  }
+                ]
+              }
+            })
+            if (dataSource === 'parentPanalData') {
+              // let editNode = {
+              //   children: this.parentOriginData.children,
+              //   ciTypeId: ciTypeId,
+              //   data: data[0],
+              //   guid: this.parentOriginData.guid,
+              //   imageFileId: this.parentOriginData.imageFileId,
+              //   parentGuid: this.parentOriginData.parentGuid
+              // }
+              this.operateData.data = data[0]
+              this.$emit('operationReload', this.operateData.guid, this.operateData, '', 'parentNode')
+            }
+            if (dataSource === 'panalData') {
+              const index = this.getIndex(this.operateData.children, ciData.data.contents[0].data.guid)
+              let editNode = {
+                children: this.operateData.children[index].children,
+                ciTypeId: ciTypeId,
+                data: ciData.data.contents[0].data,
+                guid: ciData.data.contents[0].data.guid,
+                imageFileId: this.operateData.children[index].imageFileId,
+                parentGuid: this.operateData.children[index].parentGuid
+              }
+              this.$emit('operationReload', this.operateData.guid, editNode, index, 'edit')
+            }
+          }
+        },
+        onCancel: () => {}
+      })
     },
     async managementData (operateData) {
       this.parentPanal = ''
