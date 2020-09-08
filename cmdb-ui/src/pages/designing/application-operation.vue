@@ -438,7 +438,6 @@ export default {
           if (statusCode === 'OK') {
             this.$Message.success('success!')
           }
-          this.$Modal.remove()
           const ciData = await queryCiData({
             id: activePanal.ciTypeId,
             queryObject: {
@@ -477,7 +476,6 @@ export default {
         title: this.$t('save_confirm'),
         'z-index': 1000000,
         onOk: async () => {
-          this.$Modal.remove()
           this.btnLoading = true
           // eslint-disable-next-line no-unused-vars
           let activePanalData = null
@@ -559,7 +557,6 @@ export default {
         title: this.$t('save_confirm'),
         'z-index': 1000000,
         onOk: async () => {
-          this.$Modal.remove()
           this.btnLoading = true
           // eslint-disable-next-line no-unused-vars
           let activePanalData = null
