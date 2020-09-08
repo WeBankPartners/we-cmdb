@@ -230,35 +230,40 @@ export default {
           key: 'enquiryPermission',
           inputKey: 'enquiryPermission',
           defaultDisplaySeqNo: 1,
-          ...this.defaultOptionAttrs
+          ...this.defaultOptionAttrs,
+          isDisplayed: true
         },
         {
           title: this.$t('new'),
           key: 'creationPermission',
           inputKey: 'creationPermission',
           defaultDisplaySeqNo: 2,
-          ...this.defaultOptionAttrs
+          ...this.defaultOptionAttrs,
+          isDisplayed: true
         },
         {
           title: this.$t('modify'),
           key: 'modificationPermission',
           inputKey: 'modificationPermission',
           defaultDisplaySeqNo: 3,
-          ...this.defaultOptionAttrs
+          ...this.defaultOptionAttrs,
+          isDisplayed: true
         },
         {
           title: this.$t('execute'),
           key: 'executionPermission',
           inputKey: 'executionPermission',
           defaultDisplaySeqNo: 4,
-          ...this.defaultOptionAttrs
+          ...this.defaultOptionAttrs,
+          isDisplayed: true
         },
         {
           title: this.$t('delete'),
           key: 'removalPermission',
           inputKey: 'removalPermission',
           defaultDisplaySeqNo: 5,
-          ...this.defaultOptionAttrs
+          ...this.defaultOptionAttrs,
+          isDisplayed: true
         }
       ]
     }
@@ -315,7 +320,8 @@ export default {
               allCiTypes: this.allCiTypes,
               isFilterAttr: true,
               displayAttrType: ['ref', 'multiRef'],
-              rootCis: [h.propertyName]
+              rootCis: [h.propertyName],
+              rootCiTypeId: h.referenceId
             }
           })
           .concat(
