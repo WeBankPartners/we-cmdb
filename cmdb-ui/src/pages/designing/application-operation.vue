@@ -298,7 +298,7 @@
         <FormItem>
           <div class="opetation-btn-zone">
             <Button type="primary" @click="createNode" :loading="btnLoading">{{ $t('save') }}</Button>
-            <Button @click="cancleAddNode" class="opetation-btn">{{ $t('cancel') }}</Button>
+            <Button @click="cancelAddNode" class="opetation-btn">{{ $t('cancel') }}</Button>
           </div>
         </FormItem>
       </Form>
@@ -534,13 +534,13 @@ export default {
               imageFileId: ''
             }
             this.$emit('operationReload', this.operateData.guid, addNode, '', 'addNode')
-            this.cancleAddNode()
+            this.cancelAddNode()
           }
         },
         onCancel: () => {}
       })
     },
-    cancleAddNode () {
+    cancelAddNode () {
       this.isEdit = false
       this.showAddNodeArea = false
       this.showNewNodeForm = false
@@ -651,7 +651,7 @@ export default {
       this.defaultPanal = ''
       this.panalData = []
       this.newPanalDataKeys = []
-      this.cancleAddNode()
+      this.cancelAddNode()
       this.operateData = operateData
       let tmp = JSON.parse(JSON.stringify(this.operateData))
       this.parentOriginData = JSON.parse(JSON.stringify(this.operateData))
