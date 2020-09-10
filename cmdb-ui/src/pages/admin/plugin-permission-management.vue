@@ -75,7 +75,7 @@
         </div>
         <div v-if="ciTypePermissions.length" class="batch-operation-btn">
           <Button type="primary" @click="savePermissionsInBatch">{{ $t('save') }}</Button>
-          <Button @click="canclePermissionsOperation">{{ $t('cancel') }}</Button>
+          <Button @click="cancelPermissionsOperation">{{ $t('cancel') }}</Button>
         </div>
       </Card>
     </Col>
@@ -661,7 +661,7 @@ export default {
         this.getPermissions(true, true, this.currentRoleName)
       }
     },
-    canclePermissionsOperation () {
+    cancelPermissionsOperation () {
       this.ciTypePermissions = JSON.parse(JSON.stringify(this.cacheOriginCiTypePermission))
     }
     // permissionResponseHandeler (res) {
