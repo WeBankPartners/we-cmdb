@@ -18,16 +18,6 @@
 
 English / [中文](README.md)
 
-## Live Demo
-[Live Demo](http://124.156.108.126:8090/wecmdb)
-
-<img src="./cmdb-wiki/docs/manual/images/ci-data-management-en.gif" />
-
-> Note:
->  1. Live Demo will reset on 2:00 - 4:00am every day. The environment is not available during the period, and all changes will be discarded.
->  2. Multiple people use [admin] at the same time, may influence each other, if you want to get better experience, please set up your private environment refer to: [WeCMDB experience manaul](https://github.com/WeBankPartners/we-cmdb/releases)
-
-
 
 ## Introduction
 To ensure the accuracy and the integrity of CMDB data is a widely recognized challenge in the domain of IT operation. In order to answer the questions such as "how to record with accuracy the IT information ranging from physical layer, logical layer to application layer as well as the relations between them", "how to accomplish complicated IT operation processes using those information" and "how to implement automation and intelligence", we realize that CMDB is becoming the foundation for carrying out IT operation properly. 
