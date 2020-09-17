@@ -19,11 +19,6 @@
 
 中文 / [English](README_EN.md)
 
-## 试用链接
-[点此试用WeCMDB](https://sandbox.webank.com/wecmdb/)<br>
-
-## 功能演示
-<img src="./cmdb-wiki/docs/manual/images/ci-data-management.gif" />
 
 ## 引言
 在IT运维领域中，CMDB信息的准确性和完整性一直是行业内公认的挑战。如何保证企业的IT信息从物理层，到逻辑层，到应用层以及其关系信息被准确记录，以及如何利用CMDB的信息完成各种复杂的IT运维流程，甚至实现自动化、智能化，CMDB已成为IT运维可正常开展的基石。随着云计算和互联网业务高速发展，IT资源信息成几何级增加。如何管理日益增长的IT数据，拥有一套强大的CMDB系统显得尤为重要。
