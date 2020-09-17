@@ -20,6 +20,9 @@ plugins:
 spring:
   banner:
     location: classpath:/cmdb.txt
+  messages:
+    basename: message/cmdb_core_err_message
+    encoding: UTF-8
   profiles:
     #en-local、ch-local
     active: dev

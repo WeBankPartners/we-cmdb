@@ -26,7 +26,7 @@ class RoleCiTypeRuleAuthority implements Authority {
     RoleCiTypeRuleAuthority(AdmRoleCiTypeCtrlAttr roleCiTypeRule) {
         this.roleCiTypeRule = roleCiTypeRule;
         if (roleCiTypeRule == null)
-            throw new CmdbException("roleCiTypeRule could not be null.");
+            throw new CmdbException("3055", "roleCiTypeRule could not be null.");
         if (isNotEmpty(roleCiTypeRule.getAdmRoleCiTypeCtrlAttrConditions())) {
             conditionMatchers = roleCiTypeRule.getAdmRoleCiTypeCtrlAttrConditions().stream().map(RoleCiTypeRuleConditionMatcher::new).collect(Collectors.toList());
         }

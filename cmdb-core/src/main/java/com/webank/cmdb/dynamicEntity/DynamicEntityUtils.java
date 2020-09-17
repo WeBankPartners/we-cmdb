@@ -36,7 +36,8 @@ public class DynamicEntityUtils {
             } else if (ownCiType.getIdAdmCiType().equals(attr.getReferenceId())) {// own ci type is referenced by attr
                 return attr.getAdmCiType().getTableName() + "$" + attr.getPropertyName();
             } else {
-                throw new ServiceException(String.format("There is no relationship between citype [%d] and ci type attr [%d]", ownCiType.getIdAdmCiType(), attr.getIdAdmCiTypeAttr()));
+                throw new ServiceException(String.format("There is no relationship between citype [%d] and ci type attr [%d]", ownCiType.getIdAdmCiType(), attr.getIdAdmCiTypeAttr()))
+                .withErrorCode("3106", ownCiType.getIdAdmCiType(), attr.getIdAdmCiTypeAttr());
             }
         } else if (attr.getInputType().equals(InputType.MultRef.getCode())) {
             if (attr.getCiTypeId().equals(ownCiType.getIdAdmCiType())) {
@@ -44,13 +45,15 @@ public class DynamicEntityUtils {
             } else if (ownCiType.getIdAdmCiType().equals(attr.getReferenceId())) {// own ci type is referenced by attr
                 return attr.getAdmCiType().getTableName() + "$" + attr.getPropertyName();
             } else {
-                throw new ServiceException(String.format("There is no relationship between citype [%d] and ci type attr [%d]", ownCiType.getIdAdmCiType(), attr.getIdAdmCiTypeAttr()));
+                throw new ServiceException(String.format("There is no relationship between citype [%d] and ci type attr [%d]", ownCiType.getIdAdmCiType(), attr.getIdAdmCiTypeAttr()))
+                .withErrorCode("3106", ownCiType.getIdAdmCiType(), attr.getIdAdmCiTypeAttr());
             }
         } else {// multiReference & multiSelection
             if (attr.getCiTypeId().equals(ownCiType.getIdAdmCiType())) {
                 return attr.getPropertyName();
             } else {
-                throw new ServiceException(String.format("There is no relationship between citype [%d] and ci type attr [%d]", ownCiType.getIdAdmCiType(), attr.getIdAdmCiTypeAttr()));
+                throw new ServiceException(String.format("There is no relationship between citype [%d] and ci type attr [%d]", ownCiType.getIdAdmCiType(), attr.getIdAdmCiTypeAttr()))
+                .withErrorCode("3106", ownCiType.getIdAdmCiType(), attr.getIdAdmCiTypeAttr());
             }
 
         }
