@@ -701,69 +701,77 @@ export default {
       this.newLineForm.sort((a, b) => a.searchSeqNo - b.searchSeqNo)
     },
     async createLine () {
-      this.btnLoading = true
-      // eslint-disable-next-line no-unused-vars
-      let activeLineData = null
-      // eslint-disable-next-line no-unused-vars
-      let ciTypeId = null
-      activeLineData = this.newLineFormData
-      let tmpLineData = JSON.parse(JSON.stringify(activeLineData))
-      for (let key in activeLineData) {
-        if (activeLineData[key] && typeof activeLineData[key] === 'object') {
-          // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
-          if (Array.isArray(activeLineData[key]) && !key.endsWith('_tmp')) {
-            let tmp = []
-            if (activeLineData[key + '_tmp']) {
-              tmp = activeLineData[key + '_tmp'].map(_ => {
-                return _.guid || _.codeId
-              })
-            } else {
-              tmp = activeLineData[key].map(_ => {
-                return _.data.guid || _.data.codeId
-              })
-            }
-            tmpLineData[key] = tmp
-          } else {
-            // Object数据处理
-            tmpLineData[key] = activeLineData[key].codeId || activeLineData[key].guid
-          }
-        }
-      }
-      let params = {
-        id: this.currentLineId,
-        createData: [tmpLineData]
-      }
-      const { statusCode, data } = await createCiDatas(params)
-      this.btnLoading = false
-      if (statusCode === 'OK') {
-        this.$Message.success('Success!')
-        this.showAddLineArea = false
-        const ciData = await queryCiData({
-          id: this.currentLineId,
-          queryObject: {
-            filters: [
-              {
-                name: 'guid',
-                value: data[0].guid,
-                operator: 'eq'
+      this.$Modal.confirm({
+        title: this.$t('save_confirm'),
+        'z-index': 1000000,
+        onOk: async () => {
+          this.$Modal.remove()
+          this.btnLoading = true
+          // eslint-disable-next-line no-unused-vars
+          let activeLineData = null
+          // eslint-disable-next-line no-unused-vars
+          let ciTypeId = null
+          activeLineData = this.newLineFormData
+          let tmpLineData = JSON.parse(JSON.stringify(activeLineData))
+          for (let key in activeLineData) {
+            if (activeLineData[key] && typeof activeLineData[key] === 'object') {
+              // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
+              if (Array.isArray(activeLineData[key]) && !key.endsWith('_tmp')) {
+                let tmp = []
+                if (activeLineData[key + '_tmp']) {
+                  tmp = activeLineData[key + '_tmp'].map(_ => {
+                    return _.guid || _.codeId
+                  })
+                } else {
+                  tmp = activeLineData[key].map(_ => {
+                    return _.data.guid || _.data.codeId
+                  })
+                }
+                tmpLineData[key] = tmp
+              } else {
+                // Object数据处理
+                tmpLineData[key] = activeLineData[key].codeId || activeLineData[key].guid
               }
-            ]
+            }
           }
-        })
-        let tmp = null
-        if (ciData.statusCode === 'OK') {
-          tmp = ciData.data.contents[0].data
-          tmp.meta = ciData.data.contents[0].meta
-          tmp.ciTypeId = Number(ciTypeId)
-        }
-        this.$emit('operationReload', '', {
-          type: 'add',
-          lineInfo: {
-            data: tmp
+          let params = {
+            id: this.currentLineId,
+            createData: [tmpLineData]
           }
-        })
-        this.cancleAddLine()
-      }
+          const { statusCode, data } = await createCiDatas(params)
+          this.btnLoading = false
+          if (statusCode === 'OK') {
+            this.$Message.success('Success!')
+            this.showAddLineArea = false
+            const ciData = await queryCiData({
+              id: this.currentLineId,
+              queryObject: {
+                filters: [
+                  {
+                    name: 'guid',
+                    value: data[0].guid,
+                    operator: 'eq'
+                  }
+                ]
+              }
+            })
+            let tmp = null
+            if (ciData.statusCode === 'OK') {
+              tmp = ciData.data.contents[0].data
+              tmp.meta = ciData.data.contents[0].meta
+              tmp.ciTypeId = Number(ciTypeId)
+            }
+            this.$emit('operationReload', '', {
+              type: 'add',
+              lineInfo: {
+                data: tmp
+              }
+            })
+            this.cancleAddLine()
+          }
+        },
+        onCancel: () => {}
+      })
     },
     cancleAddLine () {
       this.isEdit = false
@@ -906,67 +914,75 @@ export default {
       })
     },
     async createNode () {
-      this.btnLoading = true
-      // eslint-disable-next-line no-unused-vars
-      let activePanalData = null
-      // eslint-disable-next-line no-unused-vars
-      let ciTypeId = null
-      activePanalData = this.newNodeFormData
-      let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
-      for (let key in activePanalData) {
-        if (activePanalData[key] && typeof activePanalData[key] === 'object') {
-          // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
-          if (Array.isArray(activePanalData[key]) && !key.endsWith('_tmp')) {
-            let tmp = []
-            if (activePanalData[key + '_tmp']) {
-              tmp = activePanalData[key + '_tmp'].map(_ => {
-                return _.data.guid || _.data.codeId
-              })
-            } else {
-              tmp = activePanalData[key].map(_ => {
-                return _.data.guid || _.data.codeId
-              })
-            }
-            tmpPanalData[key] = tmp
-          } else {
-            // Object数据处理
-            tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid || ''
-          }
-        }
-      }
-      let params = {
-        id: this.selectedNodeType,
-        createData: [tmpPanalData]
-      }
-      const { statusCode, data } = await createCiDatas(params)
-      this.btnLoading = false
-      if (statusCode === 'OK') {
-        this.$Message.success('Success!')
-        this.showAddNodeArea = false
-        const ciData = await queryCiData({
-          id: this.selectedNodeType,
-          queryObject: {
-            filters: [
-              {
-                name: 'guid',
-                value: data[0].guid,
-                operator: 'eq'
+      this.$Modal.confirm({
+        title: this.$t('save_confirm'),
+        'z-index': 1000000,
+        onOk: async () => {
+          this.$Modal.remove()
+          this.btnLoading = true
+          // eslint-disable-next-line no-unused-vars
+          let activePanalData = null
+          // eslint-disable-next-line no-unused-vars
+          let ciTypeId = null
+          activePanalData = this.newNodeFormData
+          let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
+          for (let key in activePanalData) {
+            if (activePanalData[key] && typeof activePanalData[key] === 'object') {
+              // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
+              if (Array.isArray(activePanalData[key]) && !key.endsWith('_tmp')) {
+                let tmp = []
+                if (activePanalData[key + '_tmp']) {
+                  tmp = activePanalData[key + '_tmp'].map(_ => {
+                    return _.data.guid || _.data.codeId
+                  })
+                } else {
+                  tmp = activePanalData[key].map(_ => {
+                    return _.data.guid || _.data.codeId
+                  })
+                }
+                tmpPanalData[key] = tmp
+              } else {
+                // Object数据处理
+                tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid || ''
               }
-            ]
+            }
           }
-        })
-        ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
-        const params = {
-          ciTypeId: this.selectedNodeType,
-          guid: ciData.data.contents[0].data.guid,
-          data: ciData.data.contents[0].data,
-          text: [ciData.data.contents[0].data.code]
-        }
-        this.panalData.push(params)
-        this.operateData.children = this.panalData
-        this.$emit('operationReload', this.operateData)
-        this.cancleAddNode()
-      }
+          let params = {
+            id: this.selectedNodeType,
+            createData: [tmpPanalData]
+          }
+          const { statusCode, data } = await createCiDatas(params)
+          this.btnLoading = false
+          if (statusCode === 'OK') {
+            this.$Message.success('Success!')
+            this.showAddNodeArea = false
+            const ciData = await queryCiData({
+              id: this.selectedNodeType,
+              queryObject: {
+                filters: [
+                  {
+                    name: 'guid',
+                    value: data[0].guid,
+                    operator: 'eq'
+                  }
+                ]
+              }
+            })
+            ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
+            const params = {
+              ciTypeId: this.selectedNodeType,
+              guid: ciData.data.contents[0].data.guid,
+              data: ciData.data.contents[0].data,
+              text: [ciData.data.contents[0].data.code]
+            }
+            this.panalData.push(params)
+            this.operateData.children = this.panalData
+            this.$emit('operationReload', this.operateData)
+            this.cancleAddNode()
+          }
+        },
+        onCancel: () => {}
+      })
     },
     cancleAddNode () {
       this.isEdit = false
@@ -981,99 +997,109 @@ export default {
     },
     // 保存数据
     async saveOperation (dataSource, tableName) {
-      this.btnLoading = true
-      // eslint-disable-next-line no-unused-vars
-      let activePanalData = null
-      // eslint-disable-next-line no-unused-vars
-      let ciTypeId = null
-      if (dataSource === 'parentPanalData') {
-        activePanalData = this[dataSource].data
-        ciTypeId = this.parentPanalForm[0].ciTypeId
-      }
-      if (dataSource === 'panalData') {
-        const activePanal = this.groupingNode[tableName].find(item => item.guid === this.defaultPanal[0])
-        activePanalData = activePanal.data
-        ciTypeId = activePanal.ciTypeId
-      }
-      if (dataSource === 'linkData') {
-        activePanalData = this.groupingLink[tableName].find(item => item.guid === this.linkPanal[0])
-        ciTypeId = activePanalData.ciTypeId
-        delete activePanalData.ciTypeId
-      }
-
-      let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
-      for (let key in activePanalData) {
-        if (activePanalData[key] && typeof activePanalData[key] === 'object') {
-          // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
-          if (Array.isArray(activePanalData[key]) && !key.endsWith('_tmp')) {
-            let tmp = []
-            if (activePanalData[key + '_tmp']) {
-              tmp = activePanalData[key + '_tmp'].map(_ => {
-                return _.data.guid || _.data.codeId
-              })
-            } else {
-              tmp = activePanalData[key].map(_ => {
-                return _.data.guid || _.data.codeId
-              })
-            }
-            tmpPanalData[key] = tmp
-          } else {
-            // Object数据处理
-            tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid || ''
+      this.$Modal.confirm({
+        title: this.$t('save_confirm'),
+        'z-index': 1000000,
+        onOk: async () => {
+          this.$Modal.remove()
+          this.btnLoading = true
+          // eslint-disable-next-line no-unused-vars
+          let activePanalData = null
+          // eslint-disable-next-line no-unused-vars
+          let ciTypeId = null
+          if (dataSource === 'parentPanalData') {
+            activePanalData = this[dataSource].data
+            ciTypeId = this.parentPanalForm[0].ciTypeId
           }
-        }
-      }
-      tmpPanalData = this.clearInvalidParameter(tmpPanalData)
-      let params = {
-        id: ciTypeId,
-        updateData: [tmpPanalData]
-      }
-      const { statusCode, data } = await updateCiDatas(params)
-      this.btnLoading = false
-      if (statusCode === 'OK') {
-        this.$Message.success('Success!')
-        this.isEdit = false
-        const ciData = await queryCiData({
-          id: ciTypeId,
-          queryObject: {
-            filters: [
-              {
-                name: 'guid',
-                value: data[0].guid,
-                operator: 'eq'
+          if (dataSource === 'panalData') {
+            const activePanal = this.groupingNode[tableName].find(item => item.guid === this.defaultPanal[0])
+            activePanalData = activePanal.data
+            ciTypeId = activePanal.ciTypeId
+          }
+          if (dataSource === 'linkData') {
+            activePanalData = this.groupingLink[tableName].find(item => item.guid === this.linkPanal[0])
+            ciTypeId = activePanalData.ciTypeId
+            delete activePanalData.ciTypeId
+          }
+
+          let tmpPanalData = JSON.parse(JSON.stringify(activePanalData))
+          for (let key in activePanalData) {
+            if (activePanalData[key] && typeof activePanalData[key] === 'object') {
+              // muti类型处理 '_tmp' 为组件添加数据，暂存编辑后数据，有值以此为准
+              if (Array.isArray(activePanalData[key]) && !key.endsWith('_tmp')) {
+                let tmp = []
+                if (activePanalData[key + '_tmp']) {
+                  tmp = activePanalData[key + '_tmp'].map(_ => {
+                    return _.data.guid || _.data.codeId
+                  })
+                } else {
+                  tmp = activePanalData[key].map(_ => {
+                    return _.data.guid || _.data.codeId
+                  })
+                }
+                tmpPanalData[key] = tmp
+              } else {
+                // Object数据处理
+                tmpPanalData[key] = activePanalData[key].codeId || activePanalData[key].guid || ''
               }
-            ]
-          }
-        })
-        let tmp = null
-        if (dataSource === 'parentPanalData') {
-          this.operateData.data = data[0]
-        }
-        if (dataSource === 'panalData') {
-          ciData.data.contents[0].meta.nextOperations = Array.from(new Set(ciData.data.contents[0].meta.nextOperations))
-          ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
-          const index = this.getIndex(this.operateData.children, ciData.data.contents[0].data.guid)
-          this.operateData.children[index].data = ciData.data.contents[0].data
-          this.$emit('operationReload', this.operateData)
-          return
-        }
-        if (dataSource === 'linkData') {
-          tmp = ciData.data.contents[0].data
-          tmp.meta = ciData.data.contents[0].meta
-          tmp.ciTypeId = Number(ciTypeId)
-
-          const index = this.getIndex(this.linkData, ciData.data.contents[0].data.guid)
-          this.linkData[index] = tmp
-          this.$emit('operationReload', '', {
-            type: 'edit',
-            lineInfo: {
-              data: this.linkData[index]
             }
-          })
-          return
-        }
-        this.$emit('operationReload', this.operateData)
-      }
+          }
+          tmpPanalData = this.clearInvalidParameter(tmpPanalData)
+          let params = {
+            id: ciTypeId,
+            updateData: [tmpPanalData]
+          }
+          const { statusCode, data } = await updateCiDatas(params)
+          this.btnLoading = false
+          if (statusCode === 'OK') {
+            this.$Message.success('Success!')
+            this.isEdit = false
+            const ciData = await queryCiData({
+              id: ciTypeId,
+              queryObject: {
+                filters: [
+                  {
+                    name: 'guid',
+                    value: data[0].guid,
+                    operator: 'eq'
+                  }
+                ]
+              }
+            })
+            let tmp = null
+            if (dataSource === 'parentPanalData') {
+              this.operateData.data = data[0]
+            }
+            if (dataSource === 'panalData') {
+              ciData.data.contents[0].meta.nextOperations = Array.from(
+                new Set(ciData.data.contents[0].meta.nextOperations)
+              )
+              ciData.data.contents[0].data.meta = ciData.data.contents[0].meta
+              const index = this.getIndex(this.operateData.children, ciData.data.contents[0].data.guid)
+              this.operateData.children[index].data = ciData.data.contents[0].data
+              this.$emit('operationReload', this.operateData)
+              return
+            }
+            if (dataSource === 'linkData') {
+              tmp = ciData.data.contents[0].data
+              tmp.meta = ciData.data.contents[0].meta
+              tmp.ciTypeId = Number(ciTypeId)
+
+              const index = this.getIndex(this.linkData, ciData.data.contents[0].data.guid)
+              this.linkData[index] = tmp
+              this.$emit('operationReload', '', {
+                type: 'edit',
+                lineInfo: {
+                  data: this.linkData[index]
+                }
+              })
+              return
+            }
+            this.$emit('operationReload', this.operateData)
+          }
+        },
+        onCancel: () => {}
+      })
     },
     async managementData (operateData) {
       this.currentTab = 1
