@@ -12,7 +12,8 @@ export default {
     isFilterAttr: { default: false, type: Boolean, required: false },
     displayAttrType: { type: Array, required: false },
     hiddenAttrType: { type: Array, required: false },
-    rootCis: { default: () => [], type: Array, required: true }
+    rootCis: { default: () => [], type: Array, required: true },
+    rootCiTypeId: { required: false }
   },
   data () {
     return {
@@ -22,6 +23,7 @@ export default {
   },
   methods: {
     addExpression (v) {
+      console.log(v)
       let _value = JSON.parse(JSON.stringify(this.value))
       _value.push(v)
       this.$emit('input', _value)
@@ -79,6 +81,7 @@ export default {
               isFilterAttr={this.isFilterAttr}
               displayAttrType={this.displayAttrType}
               hiddenAttrType={this.hiddenAttrType}
+              rootCiTypeId={this.rootCiTypeId}
             />
           ])}
           {this.renderAddIcon()}
