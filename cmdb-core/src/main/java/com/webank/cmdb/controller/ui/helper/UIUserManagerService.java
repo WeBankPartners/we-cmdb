@@ -75,17 +75,25 @@ public class UIUserManagerService {
 
     public void deleteRole(int roleId) {
         List<UserDto> users = uiWrapperService.getUsersByRoleId(roleId);
-        if (isNotEmpty(users))
+        if (isNotEmpty(users)){
             throw new CmdbException(String.format("Failed to delete role[%d] because it is used for User: %s", roleId,
-                    users.stream().map(UserDto::getUsername).collect(Collectors.joining(","))));
+                    users.stream().map(UserDto::getUsername).collect(Collectors.joining(","))))
+            .withErrorCode("3074", roleId,
+                    users.stream().map(UserDto::getUsername).collect(Collectors.joining(",")));
+        }
         List<String> menus = getMenuDtosByRoleId(roleId);
-        if (isNotEmpty(menus))
+        if (isNotEmpty(menus)){
             throw new CmdbException(
-                    String.format("Failed to delete role[%d] because it is used for Menu: %s", roleId, menus));
+                    String.format("Failed to delete role[%d] because it is used for Menu: %s", roleId, menus))
+            .withErrorCode("3075", roleId, menus);
+        }
         List<RoleCiTypeDto> roleCiTypes = getRoleCiTypesByRoleId(roleId);
-        if (isNotEmpty(roleCiTypes))
+        if (isNotEmpty(roleCiTypes)){
             throw new CmdbException(String.format("Failed to delete role[%d] because it is used for CiType: %s", roleId,
-                    roleCiTypes.stream().map(p -> String.valueOf(p.getCiTypeId())).collect(Collectors.joining(","))));
+                    roleCiTypes.stream().map(p -> String.valueOf(p.getCiTypeId())).collect(Collectors.joining(","))))
+            .withErrorCode("3076", roleId,
+                    roleCiTypes.stream().map(p -> String.valueOf(p.getCiTypeId())).collect(Collectors.joining(",")));
+        }
         uiWrapperService.deleteRoles(roleId);
     }
 
@@ -192,8 +200,9 @@ public class UIUserManagerService {
 
     public Map<String, Object> getRoleCiTypeCtrlAttributesByRoleCiTypeId(int roleCiTypeId) {
         RoleCiTypeDto roleCiType = uiWrapperService.getRoleCiTypeById(roleCiTypeId);
-        if (roleCiType == null)
-            throw new CmdbException("CiType permission not found for roleCiTypeId:" + roleCiTypeId);
+        if (roleCiType == null){
+            throw new CmdbException("CiType permission not found for roleCiTypeId:" + roleCiTypeId).withErrorCode("3073", roleCiTypeId);
+        }
         List<CiTypeAttrDto> accessControlAttributes = uiWrapperService
                 .getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
         for (CiTypeAttrDto ciTypeAttrDto : accessControlAttributes) {
@@ -307,7 +316,7 @@ public class UIUserManagerService {
         if (model.containsKey("conditionType")) {
             condition.setConditionType((String) model.get("conditionType"));
         } else {
-            throw new CmdbException("ConditionType is missed.");
+            throw new CmdbException("3077", "ConditionType is missed.");
         }
         if (model.containsKey("conditionId"))
             condition.setConditionId((Integer) model.get("conditionId"));
@@ -321,8 +330,9 @@ public class UIUserManagerService {
             }
         }
 
-        if (model.containsKey(CONSTANT_CALLBACK_ID))
+        if (model.containsKey(CONSTANT_CALLBACK_ID)){
             condition.setCallbackId(String.valueOf(model.get(CONSTANT_CALLBACK_ID)));
+        }
         return condition;
     }
 
@@ -368,7 +378,8 @@ public class UIUserManagerService {
                         .findById(ctrlAttrDto.getRoleCiTypeCtrlAttrId());
                 if (!admRoleCiTypeAttr.isPresent()) {
                     throw new CmdbException(String.format("RoleCiTypeCtrlAttr (id:%d) is not existed.",
-                            ctrlAttrDto.getRoleCiTypeCtrlAttrId()));
+                            ctrlAttrDto.getRoleCiTypeCtrlAttrId()))
+                    .withErrorCode("3078", ctrlAttrDto.getRoleCiTypeCtrlAttrId());
                 }
                 roleCiTypeAccessCtrlService.deleteRoleCiTypeCtrlAttrConditions(
                         admRoleCiTypeAttr.get().getAdmRoleCiTypeCtrlAttrConditions());
@@ -425,8 +436,9 @@ public class UIUserManagerService {
 
     private void assignMenuPermissionForRole(int roleId, String menuName) {
         AdmMenu menu = admMenusRepository.findByName(menuName);
-        if (menu == null)
-            throw new CmdbException("Unknown menu name " + menuName);
+        if (menu == null){
+            throw new CmdbException("Unknown menu name " + menuName).withErrorCode("3058", menuName);
+        }
         AdmRoleMenu roleMenu = new AdmRoleMenu();
         roleMenu.setAdmMenu(menu);
         roleMenu.setIdAdmRole(roleId);
@@ -445,14 +457,15 @@ public class UIUserManagerService {
 
     private void removeMenuPermissionForRole(int roleId, String menuName) {
         AdmMenu menu = admMenusRepository.findByName(menuName);
-        if (menu == null)
-            throw new CmdbException("Unknown menu name " + menuName);
+        if (menu == null){
+            throw new CmdbException("Unknown menu name " + menuName).withErrorCode("3058", menuName);
+        }
 
         menu.getAssignedRoles().forEach(roleMenu -> {
             if (roleMenu.getIsSystem() == CmdbConstants.IS_SYSTEM_YES) {
                 throw new CmdbException(
                         String.format("Failed to revoke menu permission as it is system permission. [%s]",
-                                roleMenu.getAdmMenu().getName()));
+                                roleMenu.getAdmMenu().getName())).withErrorCode("3059", roleMenu.getAdmMenu().getName());
             }
         });
 
@@ -465,7 +478,8 @@ public class UIUserManagerService {
     public void assignCiTypePermissionForRole(int roleId, int ciTypeId, String actionCode) {
         RoleCiTypeDto roleCiType = uiWrapperService.getRoleCiTypeByRoleIdAndCiTypeId(roleId, ciTypeId);
         if (roleCiType == null) {
-            throw new CmdbException(String.format("Permission for role[%d] ciType[%d] not found.", roleId, ciTypeId));
+            throw new CmdbException(String.format("Permission for role[%d] ciType[%d] not found.", roleId, ciTypeId))
+            .withErrorCode("3060", roleId, ciTypeId);
         } else {
             roleCiType.enableActionPermission(actionCode);
             uiWrapperService.updateRoleCiTypes(roleCiType);
@@ -519,7 +533,8 @@ public class UIUserManagerService {
     public void removeCiTypePermissionForRole(int roleId, int ciTypeId, String actionCode) {
         RoleCiTypeDto roleCiType = uiWrapperService.getRoleCiTypeByRoleIdAndCiTypeId(roleId, ciTypeId);
         if (roleCiType == null) {
-            throw new CmdbException(String.format("Permission for role[%d] ciType[%d] not found.", roleId, ciTypeId));
+            throw new CmdbException(String.format("Permission for role[%d] ciType[%d] not found.", roleId, ciTypeId))
+            .withErrorCode("3060", roleId, ciTypeId);
         } else {
             roleCiType.disableActionPermission(actionCode);
             uiWrapperService.updateRoleCiTypes(roleCiType);
@@ -539,15 +554,15 @@ public class UIUserManagerService {
 
     public List<UserDto> createUser(UserDto userDto) {
         if (userDto == null)
-            throw new CmdbException("User parameter should not be null.");
+            throw new CmdbException("3061","User parameter should not be null.");
         if (userDto.getUsername() == null)
-            throw new CmdbException("Username should not be null.");
+            throw new CmdbException("3062","Username should not be null.");
         if (userDto.getFullName() == null)
             userDto.setFullName(userDto.getUsername());
         if (userDto.getDescription() == null)
             userDto.setDescription(userDto.getFullName());
         if (checkUserExists(userDto.getUsername())) {
-            throw new CmdbException(String.format("Username[%s] already exists.", userDto.getUsername()));
+            throw new CmdbException(String.format("Username[%s] already exists.", userDto.getUsername())).withErrorCode("3063", userDto.getUsername());
         }
 
         return staticDtoService.create(UserDto.class, Arrays.asList(userDto));
@@ -580,16 +595,16 @@ public class UIUserManagerService {
             QueryResponse<UserAndPasswordDto> queryData = findByName(currentUser);
             UserAndPasswordDto user = CollectionUtils.pickRandomOne(queryData.getContents());
             if (user == null) {
-                throw new CmdbException("This user does not exist");
+                throw new CmdbException("3064", "This user does not exist");
             }
             if (!passwordEncoder.matches((String) password.get("password"), user.getPassword())) {
-                throw new CmdbException("The original password is wrong.");
+                throw new CmdbException("3065","The original password is wrong.");
             }
             String newPassword = passwordEncoder.encode((String) password.get("newPassword"));
             user.setPassword(newPassword);
             staticDtoService.update(UserDto.class, user.getUserId(), BeanMapUtils.convertBeanToMap(user));
         } else {
-            throw new CmdbException("Logon user not found.");
+            throw new CmdbException("3057", "Logon user not found.");
         }
         responseDto.setStatusMessage("The password was successfully modified.");
         return responseDto;
@@ -604,7 +619,7 @@ public class UIUserManagerService {
         QueryResponse<UserAndPasswordDto> queryData = findByName((String) userDto.get("username"));
         UserAndPasswordDto user = CollectionUtils.pickRandomOne(queryData.getContents());
         if (user == null) {
-            throw new CmdbException("This user does not exist");
+            throw new CmdbException("3066", "This user does not exist");
         } else {
             user.setPassword(passwordEncoder.encode(randomPassword));
             staticDtoService.update(UserDto.class, user.getUserId(), BeanMapUtils.convertBeanToMap(user));

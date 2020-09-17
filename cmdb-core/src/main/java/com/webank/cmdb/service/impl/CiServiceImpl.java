@@ -245,7 +245,8 @@ public class CiServiceImpl implements CiService {
             try {
                 meta.setEntityClazz(dyClassLoader.loadClass(meta.getQulifiedName()));
             } catch (ClassNotFoundException e) {
-                throw new ServiceException(String.format("Can not load class [%s].", meta.getQulifiedName()), e);
+                throw new ServiceException(String.format("Can not load class [%s].", meta.getQulifiedName()), e)
+                .withErrorCode("3124", meta.getQulifiedName());
             }
         }
         /*
@@ -424,10 +425,10 @@ public class CiServiceImpl implements CiService {
         if (ciRequest.getFilters() != null && ciRequest.getFilters().size() > 0) {
             for (Filter filter : ciRequest.getFilters()) {
                 if (Strings.isNullOrEmpty(filter.getName())) {
-                    throw new InvalidArgumentException("Filter name can not be null or empty.");
+                    throw new InvalidArgumentException("Filter name can not be null or empty.").withErrorCode("3257");
                 }
                 if (Strings.isNullOrEmpty(filter.getOperator())) {
-                    throw new InvalidArgumentException("Filter operator can not be null or empty.");
+                    throw new InvalidArgumentException("Filter operator can not be null or empty.").withErrorCode("3258");
                 }
             }
         }
@@ -435,7 +436,8 @@ public class CiServiceImpl implements CiService {
             AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(ciTypeId, ciRequest.getSorting().getField());
             if (attr != null) {
                 if (InputType.MultRef.getCode().equals(attr.getInputType()) || InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
-                    throw new InvalidArgumentException(String.format("Multiple reference and multiple selection feild [%s] don't support sorting.", ciRequest.getSorting().getField()));
+                    throw new InvalidArgumentException(String.format("Multiple reference and multiple selection feild [%s] don't support sorting.", ciRequest.getSorting().getField()))
+                    .withErrorCode("3259", ciRequest.getSorting().getField());
                 }
             }
 
@@ -673,7 +675,7 @@ public class CiServiceImpl implements CiService {
                         expression = attributeMap.get(columnName);
                     }
                     if (expression == null) {
-                        throw new CmdbException(String.format("Attribute[%s] not found.", columnName));
+                        throw new CmdbException(String.format("Attribute[%s] not found.", columnName)).withErrorCode("3125", columnName);
                     }
                     CriteriaBuilder.In inPredicate = criteriaBuilder.in(expression);
                     values.forEach(inPredicate::value);
@@ -814,7 +816,8 @@ public class CiServiceImpl implements CiService {
                         try {
                             childCi =  getCi(ciTypeId,guid);
                         } catch (Exception ex) {
-                            throw new ServiceException(String.format("Failed to get ci data [ciType:%d, guid:%s]", ciTypeId, guid), ex);
+                            throw new ServiceException(String.format("Failed to get ci data [ciType:%d, guid:%s]", ciTypeId, guid), ex)
+                            .withErrorCode("3126", ciTypeId, guid);
                         }
                         value = childCi;
                     }
@@ -928,7 +931,8 @@ public class CiServiceImpl implements CiService {
             String fieldName = fieldIter.next();
             AdmCiTypeAttr attr = atrMap.get(fieldName);
             if (attr == null) {
-                throw new InvalidArgumentException(String.format("Invalid attribute name (%s) for ciTypeId: %d", fieldName, ciTypeId));
+                throw new InvalidArgumentException(String.format("Invalid attribute name (%s) for ciTypeId: %d", fieldName, ciTypeId))
+                .withErrorCode("3260", fieldName, ciTypeId);
             }
             // system field should not be updated, remove them
             else if ((CmdbConstants.IS_AUTO_YES.equals(attr.getIsAuto()) || CmdbConstants.IS_EDITABLE_NO.equals(attr.getEditIsEditable())) && !CmdbConstants.GUID.equals(fieldName)) {
@@ -963,13 +967,15 @@ public class CiServiceImpl implements CiService {
     private void validateCiType(int ciTypeId) {
         Optional<AdmCiType> optCiType = ciTypeRepository.findById(ciTypeId);
         if (!optCiType.isPresent()) {
-            throw new InvalidArgumentException("Can not find out CiType with given argument.", "ciTypeId", ciTypeId);
+            throw new InvalidArgumentException("Can not find out CiType with given argument.", "ciTypeId", ciTypeId)
+            .withErrorCode("3261", "ciTypeId", ciTypeId);
         }
 
         AdmCiType ciType = optCiType.get();
         CiStatus status = CiStatus.fromCode(ciType.getStatus());
         if (!status.supportCiDataOperation()) {
-            throw new InvalidArgumentException(String.format("The Ci type [%d] status is %s.", ciTypeId, status.getCode()));
+            throw new InvalidArgumentException(String.format("The Ci type [%d] status is %s.", ciTypeId, status.getCode()))
+            .withErrorCode("3262", ciTypeId, status.getCode());
         }
     }
 
@@ -983,7 +989,8 @@ public class CiServiceImpl implements CiService {
         try {
             Object entityBean = JpaQueryUtils.findEager(entityManager, entityMeta.getEntityClazz(), guid);
             if (entityBean == null) {
-                throw new InvalidArgumentException(String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid));
+                throw new InvalidArgumentException(String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid))
+                .withErrorCode("3263", ciTypeId, guid);
             }
             Map<String, Object> resultMap = DynamicEntityUtils.convertCiDataMap(entityMeta, entityBean);
             if (!authorizationService.isCiDataPermitted(ciTypeId, entityBean, ACTION_ENQUIRY)) {
@@ -1025,7 +1032,8 @@ public class CiServiceImpl implements CiService {
     private Object validateCi(int ciTypeId, String guid, DynamicEntityMeta entityMeta, EntityManager entityManager, String action) {
         Object entityBean = entityManager.find(entityMeta.getEntityClazz(), guid);
         if (entityBean == null) {
-            throw new InvalidArgumentException(String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid));
+            throw new InvalidArgumentException(String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid))
+            .withErrorCode("3263", ciTypeId, guid);
         }
         if (action != null) {
             authorizationService.authorizeCiData(ciTypeId, entityBean, action);
@@ -1139,14 +1147,15 @@ public class CiServiceImpl implements CiService {
                     transaction.commit();
                 } else {
                     transaction.rollback();
-                    throw new BatchChangeException(String.format("Fail to update [%d] records, detail error in the data block", exceptionHolders.size()), exceptionHolders);
+                    throw new BatchChangeException(String.format("Fail to update [%d] records, detail error in the data block", exceptionHolders.size()), exceptionHolders)
+                    .withErrorCode("3264", exceptionHolders.size());
                 }
             } catch (Exception exc) {
                 if (exc instanceof BatchChangeException) {
                     throw exc;
                 } else {
                     transaction.rollback();
-                    throw new ServiceException("Failed to update ci data.", exc);
+                    throw new ServiceException("Failed to update ci data.", exc).withErrorCode("3127");
                 }
             }
         } finally {
@@ -1223,7 +1232,8 @@ public class CiServiceImpl implements CiService {
 
     private void validateUpdateCiData(int ciTypeId, Map<String, Object> ci) {
         if (ci.get(GUID) == null) {
-            throw new InvalidArgumentException(String.format("Required field 'guid' is missing for updating ciTypeId [%s]", ciTypeId));
+            throw new InvalidArgumentException(String.format("Required field 'guid' is missing for updating ciTypeId [%s]", ciTypeId))
+            .withErrorCode("3138", ciTypeId);
         }
     }
 
@@ -1250,7 +1260,7 @@ public class CiServiceImpl implements CiService {
                 throw ex;
             } catch (Exception ex) {
                 transaction.rollback();
-                throw new ServiceException("Failed to create ci.", ex);
+                throw new ServiceException("Failed to create ci.", ex).withErrorCode("3128");
             }
         } finally {
             priEntityManager.close();
@@ -1304,14 +1314,15 @@ public class CiServiceImpl implements CiService {
                     transaction.commit();
                 } else {
                     transaction.rollback();
-                    throw new BatchChangeException(String.format("Fail to create [%s] records, detail error in the data block", exceptionHolders.size()), exceptionHolders);
+                    throw new BatchChangeException(String.format("Fail to create [%s] records, detail error in the data block", exceptionHolders.size()), exceptionHolders)
+                    .withErrorCode("3129", exceptionHolders.size());
                 }
             } catch (Exception exc) {
                 if (exc instanceof BatchChangeException) {
                     throw exc;
                 } else {
                     transaction.rollback();
-                    throw new ServiceException("Exception happen for Ci creation.", exc);
+                    throw new ServiceException("Exception happen for Ci creation.", exc).withErrorCode("3130");
                 }
             }
 
@@ -1380,14 +1391,15 @@ public class CiServiceImpl implements CiService {
                     transaction.commit();
                 } else {
                     transaction.rollback();
-                    throw new BatchChangeException(String.format("Fail to delete [%d] records, detail error in the data block", exceptionHolders.size()), exceptionHolders);
+                    throw new BatchChangeException(String.format("Fail to delete [%s] records, detail error in the data block", exceptionHolders.size()), exceptionHolders)
+                    .withErrorCode("3131", exceptionHolders.size());
                 }
             } catch (Exception ex) {
                 if (ex instanceof BatchChangeException) {
                     throw ex;
                 } else {
                     transaction.rollback();
-                    throw new ServiceException("Failed to delete ci data.", ex);
+                    throw new ServiceException("Failed to delete ci data.", ex).withErrorCode("3132");
                 }
             }
         } finally {
@@ -1466,7 +1478,7 @@ public class CiServiceImpl implements CiService {
         try {
             srcFilters = CollectionUtils.clone(intQueryReq.getFilters(), Lists.newLinkedList());
         } catch (CloneNotSupportedException e) {
-            throw new ServiceException("Failed to clone int query filters.", e);
+            throw new ServiceException("Failed to clone int query filters.", e).withErrorCode("3133");
         }
 
         IntegrationQueryDto intQueryDto = intQueryService.getIntegrationQuery(intQueryId);
@@ -1755,7 +1767,8 @@ public class CiServiceImpl implements CiService {
             }
 
             if (!selFieldMap.containsKey(x.getName())) {
-                throw new InvalidArgumentException(String.format("The given fileter name [%s] can not be found out in integration query criteria. ", x.getName()));
+                throw new InvalidArgumentException(String.format("The given fileter name [%s] can not be found out in integration query criteria. ", x.getName()))
+                .withErrorCode("3265", x.getName());
             }
         });
     }
@@ -1839,7 +1852,7 @@ public class CiServiceImpl implements CiService {
 
     private Map<String, Object> convertResponse(List<Expression> selections, Object[] response, List<FieldInfo> fieldInfos) {
         if (selections.size() > fieldInfos.size()) {
-            throw new ServiceException("Selections size should not be larger than field infor size.");
+            throw new ServiceException("3117", "Selections size should not be larger than field infor size.");
         }
         
         Map<Expression,Integer> exprIndexMap = new HashMap<>();
@@ -1883,7 +1896,8 @@ public class CiServiceImpl implements CiService {
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(curCiTypeId);
         AdmCiType curCiType = ciTypeRepository.getOne(curCiTypeId);
         if (CiStatus.NotCreated.getCode().equals(curCiType.getStatus())) {
-            throw new InvalidArgumentException(String.format("Can not build integration as the given CiType [%s], status is [%s].", curCiType.getName(), curCiType.getStatus()));
+            throw new InvalidArgumentException(String.format("Can not build integration as the given CiType [%s], status is [%s].", curCiType.getName(), curCiType.getStatus()))
+            .withErrorCode("3266", curCiType.getName(), curCiType.getStatus());
         }
         path.push(curCiType.getTableName());
 
@@ -1910,7 +1924,8 @@ public class CiServiceImpl implements CiService {
                 }
                 attrExpression.alias(keyName);
                 if (attrExprMap.containsKey(keyName)) {
-                    throw new ServiceException(String.format("There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()));
+                    throw new ServiceException(String.format("There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()))
+                    .withErrorCode("3118", keyName, curQuery.getName());
                 }
                 attrExprMap.put(keyName, new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr(),keyName));
                 currentCiTypeAttrExprMap.put(attr.getPropertyName(), attrExprMap.get(keyName));
@@ -1918,7 +1933,8 @@ public class CiServiceImpl implements CiService {
         } else {
             Relationship relt = curQuery.getParentRs();
             if (relt == null) {
-                throw new InvalidArgumentException(String.format("There is not parent relationship for CiType [%d]", curQuery.getCiTypeId()));
+                throw new InvalidArgumentException(String.format("There is not parent relationship for CiType [%d]", curQuery.getCiTypeId()))
+                .withErrorCode("3267", curQuery.getCiTypeId());
             }
             int reltAttrId = relt.getAttrId();
             AdmCiTypeAttr reltAttr = ciTypeAttrRepository.getOne(reltAttrId);
@@ -1951,7 +1967,8 @@ public class CiServiceImpl implements CiService {
 
                 attrExpression.alias(keyName);
                 if (attrExprMap.containsKey(keyName)) {
-                    throw new ServiceException(String.format("There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()));
+                    throw new ServiceException(String.format("There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()))
+                    .withErrorCode("3118", keyName, curQuery.getName());
                 }
                 attrExprMap.put(keyName, new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr(),keyName));
                 currentCiTypeAttrExprMap.put(attr.getPropertyName(), attrExprMap.get(keyName));
@@ -1992,7 +2009,8 @@ public class CiServiceImpl implements CiService {
 
     private void validateStatusOfCiTypeAttr(AdmCiTypeAttr attr) {
         if (CiStatus.NotCreated.getCode().equals(attr.getStatus())) {
-            throw new InvalidArgumentException(String.format("Can not build integration as the given ci type attr [%s], status is [%s].", attr.getName(), attr.getStatus()));
+            throw new InvalidArgumentException(String.format("Can not build integration as the given ci type attr [%s], status is [%s].", attr.getName(), attr.getStatus()))
+            .withErrorCode("3268", attr.getName(), attr.getStatus());
         }
     }
 
@@ -2000,7 +2018,8 @@ public class CiServiceImpl implements CiService {
         AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId, propertyName);
         validateStatusOfCiTypeAttr(attr);
         if (attr == null) {
-            throw new ServiceException(String.format("Can not find out [%s] for CI Type [%d].", propertyName, curCiTypeId));
+            throw new ServiceException(String.format("Can not find out [%s] for CI Type [%d].", propertyName, curCiTypeId))
+            .withErrorCode("3119", propertyName, curCiTypeId);
         }
 
         String alias = null;
@@ -2158,7 +2177,7 @@ public class CiServiceImpl implements CiService {
         try {
             srcFilters = CollectionUtils.clone(queryRequest.getFilters(), Lists.newLinkedList());
         } catch (CloneNotSupportedException e) {
-            throw new ServiceException("Failed to clone int query filters.", e);
+            throw new ServiceException("Failed to clone int query filters.", e).withErrorCode("3120");
         }
 
         List resultList = doIntegrateQuery(intQueryDto, queryRequest, true, selectedFields);
@@ -2209,22 +2228,26 @@ public class CiServiceImpl implements CiService {
     private void validateForQuery(IntegrationQueryDto intQueryDto) {
         Integer ciTypeId = intQueryDto.getCiTypeId();
         if (!ciTypeRepository.existsById(ciTypeId)) {
-            throw new InvalidArgumentException(String.format("CiType [%d] is not existed.", ciTypeId));
+            throw new InvalidArgumentException(String.format("CiType [%d] is not existed.", ciTypeId))
+            .withErrorCode("3269", ciTypeId);
         }
 
         if ((intQueryDto.getAttrs() == null || intQueryDto.getAttrs().size() == 0)) {// attr list is empty
             if (intQueryDto.getAttrKeyNames() != null && intQueryDto.getAttrKeyNames().size() > 0) {
-                throw new InvalidArgumentException(String.format("Attribute list is empty but attr key name list has values for citype [%d]", ciTypeId));
+                throw new InvalidArgumentException(String.format("Attribute list is empty but attr key name list has values for citype [%d]", ciTypeId))
+                .withErrorCode("3270", ciTypeId);
             }
         } else {// attr list is not empty
             if (intQueryDto.getAttrKeyNames() == null || intQueryDto.getAttrKeyNames().size() == 0) {
-                throw new InvalidArgumentException(String.format("Attribute list is not empty while attr key name list is empty for citype [%d]", ciTypeId));
+                throw new InvalidArgumentException(String.format("Attribute list is not empty while attr key name list is empty for citype [%d]", ciTypeId))
+                .withErrorCode("3271", ciTypeId);
             }
         }
 
         for (int attrId : intQueryDto.getAttrs()) {
             if (!ciTypeAttrRepository.existsById(attrId)) {
-                throw new InvalidArgumentException(String.format("CiType attr [%d] is not existed.", attrId));
+                throw new InvalidArgumentException(String.format("CiType attr [%d] is not existed.", attrId))
+                .withErrorCode("3272", attrId);
             }
         }
 
@@ -2312,7 +2335,7 @@ public class CiServiceImpl implements CiService {
             }
             return results;
         } else {
-            throw new InvalidArgumentException("Operation [%s] is not supported.", operation);
+            throw new InvalidArgumentException("Operation [%s] is not supported.", operation).withErrorCode("3273", operation);
         }
     }
 
@@ -2331,7 +2354,8 @@ public class CiServiceImpl implements CiService {
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
         Object fromBean = JpaQueryUtils.findEager(entityManager, entityMeta.getEntityClazz(), guid);
         if (fromBean == null) {
-            throw new InvalidArgumentException(String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid));
+            throw new InvalidArgumentException(String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid))
+            .withErrorCode("3274", ciTypeId, guid);
         }
         String newGuid = sequenceService.getNextGuid(entityMeta.getTableName(), ciTypeId);
 
@@ -2363,7 +2387,8 @@ public class CiServiceImpl implements CiService {
         try {
             Object entityBean = JpaQueryUtils.findEager(entityManager, entityMeta.getEntityClazz(), guid);
             if (entityBean == null) {
-                throw new InvalidArgumentException(String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid));
+                throw new InvalidArgumentException(String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid))
+                .withErrorCode("3275", ciTypeId, guid);
             }
             return new DynamicEntityHolder(entityMeta, entityBean);
         } finally {
@@ -2510,7 +2535,8 @@ public class CiServiceImpl implements CiService {
             return ciKeyPairs;
         }
         catch(Exception ex) {
-            throw new ServiceException(String.format("Failed to query guids for CI type [%d]", ciTypeId),ex);
+            throw new ServiceException(String.format("Failed to query guids for CI type [%d]", ciTypeId),ex)
+            .withErrorCode("3134", ciTypeId);
         }finally {
             priEntityManager.close();
         }

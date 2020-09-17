@@ -58,7 +58,7 @@ public class FilterRuleServiceImpl implements FilterRuleService {
             try {
                 filterRuleDto = JsonUtil.toObject(filterRuleString,FilterRuleDto.class);
             } catch (IOException e) {
-                throw new CmdbException("Can not parse filter rule json.",e);
+                throw new CmdbException("Can not parse filter rule json.",e).withErrorCode("3008");
             }
             return queryReferenceData(filterRuleDto, request);
         }
@@ -85,7 +85,7 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         try {
             filterRule = JsonUtil.toObject(filterRuleJson,FilterRuleDto.class);
         } catch (IOException e) {
-            throw new CmdbException("Filter rule json string is invalid.",e);
+            throw new CmdbException("Filter rule json string is invalid.",e).withErrorCode("3009");
         }
 
         for (FilterUnit filterUnit : filterRule) {
@@ -96,15 +96,17 @@ public class FilterRuleServiceImpl implements FilterRuleService {
                     leftIntegrationQuery = routeQueryExpressionService.parseRouteExpression(leftExpr);
                     List<String> resultColumns = leftIntegrationQuery.getQueryRequest().getResultColumns();
                     if(resultColumns.size() != 1){
-                        throw new CmdbException(String.format("Left expression should contain only one result column. (%s)",leftExpr));
+                        throw new CmdbException(String.format("Left expression should contain only one result column. (%s)",leftExpr))
+                        .withErrorCode("3010", leftExpr);
                     }
                 }catch (Exception ex){
-                    throw new CmdbException(String.format("Left expression is invalid. (%s)",leftExpr),ex);
+                    throw new CmdbException(String.format("Left expression is invalid. (%s)",leftExpr),ex).withErrorCode("3011", leftExpr);
                 }
                 String filterOperatorCode = ruleUnit.getOperator();
                 FilterOperator filterOperator = FilterOperator.fromCode(filterOperatorCode);
                 if(filterOperator == FilterOperator.None){
-                    throw new CmdbException(String.format("Filter operator is invalid. (%s)",filterOperatorCode));
+                    throw new CmdbException(String.format("Filter operator is invalid. (%s)",filterOperatorCode))
+                    .withErrorCode("3012", filterOperatorCode);
                 }
 
                 validateRuleRight(ruleUnit,leftIntegrationQuery);
@@ -218,7 +220,7 @@ public class FilterRuleServiceImpl implements FilterRuleService {
             }
 
         }
-        throw new CmdbException("Can not find out last node attr id.");
+        throw new CmdbException("3013","Can not find out last node attr id.");
     }
 
     private void validateRuleRight(RuleUnit ruleUnit,AdhocIntegrationQueryDto leftIntegrationQuery) {
@@ -227,40 +229,41 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         FilterRuleDto.RightTypeEnum rightType = FilterRuleDto.RightTypeEnum.fromCode(typeCode);
         Object rightValue = ruleRight.getValue();
         if(rightType == FilterRuleDto.RightTypeEnum.None){
-            throw new CmdbException(String.format("Type (%s) is invalid.",typeCode));
+            throw new CmdbException("3000", String.format("Type (%s) is invalid.",typeCode), typeCode);
         }else if(rightType == FilterRuleDto.RightTypeEnum.Expression){
             if(!(rightValue instanceof  String)){
-                throw new CmdbException("Right value should be String for expression type.");
+                throw new CmdbException("3001", "Right value should be String for expression type.");
             }
             String rightExpression = (String)rightValue;
             try {
                 AdhocIntegrationQueryDto rightAdhocIntegrationQuery = routeQueryExpressionService.parseRouteExpression(rightExpression);
                 List<String> resultColumns = rightAdhocIntegrationQuery.getQueryRequest().getResultColumns();
                 if(resultColumns.size() != 1){
-                    throw new CmdbException(String.format("Right expression should contain only one result column. (%s)",rightExpression));
+                    throw new CmdbException(String.format("3002", "Right expression should contain only one result column. (%s)",rightExpression), rightExpression);
                 }
                 Integer leftLastCiTypeId = getLastNodeCiTypeId(leftIntegrationQuery);
                 Integer rightLastCiTypeId = getLastNodeCiTypeId(rightAdhocIntegrationQuery);
                 if(!leftLastCiTypeId.equals(rightLastCiTypeId)){
-                    throw new CmdbException("The last node CI type is not matched for left and right expression");
+                    throw new CmdbException("3003", "The last node CI type is not matched for left and right expression");
                 }
 
                 Integer leftResultAttrId = getLastNodeAttrId(leftIntegrationQuery);
                 Integer rightResultAttrId = getLastNodeAttrId(rightAdhocIntegrationQuery);
                 if(!leftResultAttrId.equals(rightResultAttrId)){
-                    throw new CmdbException("The last node result attribute is not matched for left and right expression.");
+                    throw new CmdbException("3004", "The last node result attribute is not matched for left and right expression.");
                 }
 
             }catch(Exception ex){
-                throw new CmdbException(String.format("Right expression is invalid. (%s)",rightExpression),ex);
+                throw new CmdbException(String.format("Right expression is invalid. (%s)",rightExpression),ex)
+                .withErrorCode("3005", rightExpression);
             }
         }else if(rightType == FilterRuleDto.RightTypeEnum.Array){
             if(!(rightValue instanceof List)){
-                throw new CmdbException(String.format("Right value should be list."));
+                throw new CmdbException("3006", "Right value should be list.");
             }
         }else if(rightType == FilterRuleDto.RightTypeEnum.Value){
             if(!(rightValue instanceof  String || rightValue instanceof Number)){
-                throw new CmdbException("Right value should be String or Number for value type.");
+                throw new CmdbException("3007", "Right value should be String or Number for value type.");
             }
         }
     }
@@ -354,7 +357,8 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         QueryRequest leftQueryRequest = leftAdhocIntegrationQuery.getQueryRequest();
         List<String> resultColumns = leftQueryRequest.getResultColumns();
         if(resultColumns == null || resultColumns.size()!=1){
-            throw new CmdbException(String.format("Result columns list size is not 1. (%s) ",leftExpression));
+            throw new CmdbException(String.format("Result columns list size is not 1. (%s) ",leftExpression))
+            .withErrorCode("3014", leftExpression);
         }
 
         String exprResultColumn = resultColumns.get(0);
@@ -398,18 +402,21 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         String operator = ruleUnit.getOperator();
         FilterOperator filterOperator = FilterOperator.fromCode(operator);
         if(filterOperator == FilterOperator.None){
-            throw new CmdbException(String.format("Filter operator (%s) is not supported.",operator));
+            throw new CmdbException(String.format("Filter operator (%s) is not supported.",operator))
+            .withErrorCode("3015", operator);
         }
 
         switch (filterOperator){
             case Contains:
             case LIKE: {
                 if (ruleRight.getType() != FilterRuleDto.RightTypeEnum.Value.getCode()) {
-                    throw new CmdbException(String.format("Filter right type should be string. (%s)", ruleRight.getType()));
+                    throw new CmdbException(String.format("Filter right type should be string. (%s)", ruleRight.getType()))
+                    .withErrorCode("3016", ruleRight.getType());
                 }
                 Object rightVal = processRuleRight(ruleRight, request, associatedCiData);
                 if (!(rightVal instanceof String)) {
-                    throw new CmdbException(String.format("Only support String (%s) for Contains and Like operator .", rightVal.getClass().toString()));
+                    throw new CmdbException(String.format("Only support String (%s) for Contains and Like operator .", rightVal.getClass().toString()))
+                    .withErrorCode("3017", rightVal.getClass().toString());
                 }
                 rightValFilter = new Filter(exprResultColumn, filterOperator.getCode(), rightVal);
             }
@@ -424,7 +431,8 @@ public class FilterRuleServiceImpl implements FilterRuleService {
             case NotEqual: {
                 Object rightVal = processRuleRight(ruleRight, request, associatedCiData);
                 if(!(rightVal instanceof String || rightVal instanceof Number)){
-                    throw new CmdbException(String.format("Only support String and Number for Equal/NotEqual. current type is (%s)",rightVal.getClass().toString()));
+                    throw new CmdbException(String.format("Only support String and Number for Equal/NotEqual. current type is (%s)",rightVal.getClass().toString()))
+                    .withErrorCode("3018", rightVal.getClass().toString());
                 }
                 rightValFilter = new Filter(exprResultColumn, filterOperator.getCode(),rightVal);
             }
@@ -435,7 +443,8 @@ public class FilterRuleServiceImpl implements FilterRuleService {
             case GreaterEqual:{
                 Object rightVal = processRuleRight(ruleRight, request, associatedCiData);
                 if(!(rightVal instanceof Number)){
-                    throw new CmdbException(String.format("Only support number for Greater/GreaterEqual/Less/LessEqual. Current type is (%s)",rightVal.getClass().toString()));
+                    throw new CmdbException(String.format("Only support number for Greater/GreaterEqual/Less/LessEqual. Current type is (%s)",rightVal.getClass().toString()))
+                    .withErrorCode("3019", rightVal.getClass().toString());
                 }
                 rightValFilter = new Filter(exprResultColumn, filterOperator.getCode(),rightVal);
             }
@@ -508,16 +517,19 @@ public class FilterRuleServiceImpl implements FilterRuleService {
                 return processRuleRightAsExpression((String) ruleRight.getValue(),request,associatedCiData);
             case Array:
                 if(!(ruleRight.getValue() instanceof  List)){
-                    throw new CmdbException(String.format("Right value is not list for type (%s).",ruleRight.getType()));
+                    throw new CmdbException(String.format("Right value is not list for type (%s).",ruleRight.getType()))
+                    .withErrorCode("3020", ruleRight.getType());
                 }
                 return ruleRight.getValue();
             case Value:
                 if(!(ruleRight.getValue() instanceof  String || ruleRight.getValue() instanceof Number)){
-                    throw new CmdbException(String.format("Right value is not String/Number for type (%s).",ruleRight.getType()));
+                    throw new CmdbException(String.format("Right value is not String/Number for type (%s).",ruleRight.getType()))
+                    .withErrorCode("3021", ruleRight.getType());
                 }
                 return ruleRight.getValue();
             default:
-                throw new CmdbException(String.format("Not support type of rule right (%s).",ruleRight.getType()));
+                throw new CmdbException(String.format("Not support type of rule right (%s).",ruleRight.getType()))
+                .withErrorCode("3022", ruleRight.getType());
         }
     }
 
@@ -548,7 +560,7 @@ public class FilterRuleServiceImpl implements FilterRuleService {
         QueryRequest queryRequest = adhocIntegrationQuery.getQueryRequest();
 
         if(rootIntegrationQuery.getChildren().size() != 1){
-            throw new CmdbException("Invalid expression for filter rule. The children size is incorrect.");
+            throw new CmdbException("3023", "Invalid expression for filter rule. The children size is incorrect.");
         }
 
         IntegrationQueryDto integrationQueryDto = rootIntegrationQuery.getChildren().get(0);
