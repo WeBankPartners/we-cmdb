@@ -55,6 +55,7 @@ cmdb:
 
   security:
     enabled: true
+    jwt-signing-key: ${JWT_SIGNING_KEY:}
 
     #Authentication provider options: LOCAL, CAS or PLATFORM-AUTH. Effective ONLY when security-enabled set as true.
     authentication-provider: PLATFORM-AUTH
