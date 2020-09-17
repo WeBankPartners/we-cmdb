@@ -72,7 +72,7 @@ public interface CiService extends CmdbService {
 
     QueryResponse adhocIntegrateQuery(AdhocIntegrationQueryDto adhocQueryRequest);
 
-    List<Map<String, Object>> queryWithFilters(int ciType, List<Filter> filters);
+    List<Map<String, Object>> queryWithFilters(int ciType, List<Filter> filters,List<String> resultColumns);
 
     List<Map<String, Object>> operateState(List<CiIndentity> ciIds, String operation);
 

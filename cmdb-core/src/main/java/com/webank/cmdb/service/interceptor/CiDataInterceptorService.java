@@ -167,7 +167,9 @@ public class CiDataInterceptorService {
                 if (val == null || ((val instanceof String) && "".equals(val))) {
                     return;
                 }
-                if (!ciService.queryWithFilters(ciTypeId, Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), val))).isEmpty()) {
+                if (!ciService.queryWithFilters(ciTypeId,
+                        Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), val)),
+                        Lists.newArrayList(GUID)).isEmpty()) {
                     throw new InvalidArgumentException(String.format("The given attribute [properyName:%s] val [%s] is not unique.", attr.getPropertyName(), String.valueOf(val)));
                 }
             });
@@ -194,7 +196,7 @@ public class CiDataInterceptorService {
         List<Filter> filters = new ArrayList<>();
         filters.add(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), newValue));
         filters.add(new Filter("guid", FilterOperator.NotEqual.getCode(), guid));
-        return !ciService.queryWithFilters(ciTypeId, filters).isEmpty();
+        return !ciService.queryWithFilters(ciTypeId, filters, Lists.newArrayList(GUID)).isEmpty();
     }
 
     private void validateRefInputType(DynamicEntityHolder entityHolder, Map<String, Object> ci) {
@@ -207,7 +209,9 @@ public class CiDataInterceptorService {
                 if (StringUtils.isBlank(guid)) {
                     return;
                 }
-                if (ciService.queryWithFilters(refCiTypeId, Lists.newArrayList(new Filter("guid", FilterOperator.Equal.getCode(), guid))).isEmpty()) {
+                if (ciService.queryWithFilters(refCiTypeId,
+                        Lists.newArrayList(new Filter(GUID, FilterOperator.Equal.getCode(), guid)),
+                        Lists.newArrayList(GUID)).isEmpty()) {
                     throw new InvalidArgumentException(String.format("The given guid [%s] can not be found for CiType [%s(%d)]", guid, getCiTypeName(refCiTypeId), refCiTypeId));
                 }
             });
@@ -304,13 +308,16 @@ public class CiDataInterceptorService {
         if (currentAttr.getCiTypeId() == attrWithRule.getCiTypeId()) {
             queryValueFromRuleAndSave(entityHolder, entityManager, currentGuid, attrWithRule);
         } else {
-            List<String> rootGuids = getRootGuids(currentGuid, currentAttr, attrWithRule.getAutoFillRule());
+            Set<String> rootGuids = getRootGuids(currentGuid, currentAttr, attrWithRule.getAutoFillRule());
+            logger.info("Fetched root guids ({}) for attrWithRule ({}) with current attr ({}) and guid ({})", Arrays.toString(rootGuids.toArray()),
+                    attrWithRule.getIdAdmCiTypeAttr(),currentAttr.getIdAdmCiTypeAttr(),currentGuid);
             rootGuids.forEach(rootGuid -> queryValueFromRuleAndSave(entityHolder, entityManager, rootGuid, attrWithRule));
         }
     }
 
     private void queryValueFromRuleAndSave(DynamicEntityHolder entityHolder, EntityManager entityManager, String currentGuid, AdmCiTypeAttr attrWithRule) {
         Object value = null;
+        logger.info("Query rule value for guid ({}) with attrWithRule ({})", currentGuid, attrWithRule.getIdAdmCiTypeAttr());
         String rawValue = queryValueByRule(currentGuid, null, attrWithRule.getAutoFillRule(),new StringBuilder());
         if (!StringUtils.isBlank(rawValue)) {
             switch (InputType.fromCode(attrWithRule.getInputType())) {
@@ -458,8 +465,8 @@ public class CiDataInterceptorService {
         return ciService.adhocIntegrateQuery(adhocDto);
     }
     
-    private List<String> getRootGuids(String guid, AdmCiTypeAttr attrWithGuid, Object autoFillRuleValue) {
-        List<String> guids = new ArrayList<>();
+    private Set<String> getRootGuids(String guid, AdmCiTypeAttr attrWithGuid, Object autoFillRuleValue) {
+        Set<String> guids = new HashSet<>();
         List<AutoFillItem> autoRuleItems = parserRule(autoFillRuleValue);
         for (AutoFillItem item : autoRuleItems) {
             if (AutoFillType.Rule.getCode().equals(item.getType())) {
@@ -474,7 +481,12 @@ public class CiDataInterceptorService {
                     if (routinesAttrs.contains(attrWithGuid.getIdAdmCiTypeAttr())) {
                         QueryResponse response = queryIntegrateWithRoutines(guid, attrWithGuid, routines);
                         List<Map<String, Object>> contents = response.getContents();
-                        contents.forEach(content -> guids.add(content.get("root$guid").toString()));
+                        contents.forEach(content -> {
+                            String rootGuid = content.get("root$guid").toString();
+                            if(!guids.contains(rootGuid)){
+                                guids.add(rootGuid);
+                            }
+                        });
                     }
                 } catch (IOException e) {
                     throw new InvalidArgumentException(String.format("Failed to convert auto fill rule [%s]. ", item), e);
@@ -663,6 +675,7 @@ public class CiDataInterceptorService {
                 List<AdmCiTypeAttr> attrsWithMatchRule = ciTypeAttrRepository.findAllByMatchAutoFillRule("\\\\\\\"attrId\\\\\\\":" + attr.getIdAdmCiTypeAttr());
                 attrsWithMatchRule.forEach(attrWithMatchRule -> {
                     if (attrWithMatchRule.getIsAuto() == CmdbConstants.IS_AUTO_YES) {
+                        logger.info("Executing autofill on matched attr ({}) for attr ({})",attrWithMatchRule.getIdAdmCiTypeAttr(),attr.getIdAdmCiTypeAttr());
                         executeAutoFill(entityHolder, entityManager, entityHolder.get("guid").toString(), attr, attrWithMatchRule);
                     }
                 });
