@@ -1,5 +1,7 @@
 import './edit-modal.scss'
+import lodash from 'lodash'
 import moment from 'moment'
+import { queryCiData } from '@/api/server.js'
 const WIDTH = 300
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 export default {
@@ -8,7 +10,8 @@ export default {
       editData: [],
       noOfCopy: 1,
       filterColumns: [],
-      filteredColumns: []
+      filteredColumns: [],
+      inputSearch: {}
     }
   },
   props: {
@@ -47,6 +50,17 @@ export default {
       },
       immediate: true
     },
+    columns: {
+      handler (vals) {
+        this.inputSearch = {}
+        vals.forEach(_ => {
+          if (_.component === 'Input') {
+            this.inputSearch[_.inputKey] = { options: [] }
+          }
+        })
+      },
+      immediate: true
+    },
     modalVisible: {
       handler (val) {
         if (val) {
@@ -66,6 +80,32 @@ export default {
     }
   },
   methods: {
+    handleInputSearch: lodash.debounce(async function (value, column, data) {
+      const res = await queryCiData({
+        id: column.ciTypeId,
+        queryObject: {
+          filters: [{ name: column.inputKey, operator: 'contains', value: value }],
+          paging: false,
+          resultColumns: [column.inputKey]
+        }
+      })
+      // TODO: how to trigger autocomplete select ???
+      this.$nextTick(() => {
+        this.inputSearch[column.inputKey].options = Array.from(
+          new Set(res.data.contents.map(_ => _.data[column.inputKey]))
+        )
+      })
+      // data[column.inputKey] = value
+      console.log('result of queryCiData: ', JSON.stringify(this.inputSearch[column.inputKey].options))
+    }, 500),
+    // async handleInputSearch (value, column, data) {
+    //   const res = await queryCiData({
+    //     id: column.ciTypeId,
+    //     queryObject: { filters: [{name: column.inputKey, operator: "contains", value: value}], paging: false, resultColumns: [column.inputKey] }
+    //   })
+    //   this.inputSearch[column.inputKey].options = Array.from(new Set(res.data.contents.map(_ => _.data[column.inputKey])))
+    //   console.log('result of queryCiData: ', JSON.stringify(this.inputSearch[column.inputKey].options))
+    // },
     resetPassword (data) {
       let needResets = []
       this.columns.forEach(col => {
@@ -126,6 +166,7 @@ export default {
       this.editData.splice(index, 1)
     },
     renderDataRows () {
+      let handleInputSearch = this.handleInputSearch
       let setValueHandler = (v, col, row) => {
         let attrsWillReset = []
         if (['select', 'ref', 'multiSelect', 'multiRef'].indexOf(col.inputType) > -1) {
@@ -147,8 +188,10 @@ export default {
         } else if (['date'].indexOf(col.inputType) >= 0) {
           v = moment(v).format(DATE_FORMAT)
         }
+        console.log('setValueHandler 1', row, col.inputKey, v)
         row[col.inputKey] = v
         attrsWillReset.forEach(attr => {
+          console.log('setValueHandler 2', row, attr.propertyName, attr.value)
           row[attr.propertyName] = attr.value
         })
       }
@@ -201,6 +244,31 @@ export default {
                             setValueHandler(v, column, d)
                           }}
                         />
+                      </div>
+                    )
+                  } else if (column.component === 'Input') {
+                    const props = {
+                      ...column,
+                      data: this.inputSearch[column.inputKey].options,
+                      value: d[column.inputKey] || column.defaultValue
+                    }
+                    const fun = {
+                      'on-search': function (v) {
+                        console.log('input search: ', v)
+                        handleInputSearch(v, column, d)
+                      },
+                      'on-change': function (v) {
+                        console.log('input changed: ', v)
+                        setValueHandler(v, column, d)
+                      }
+                    }
+                    const data = {
+                      props,
+                      on: fun
+                    }
+                    return (
+                      <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
+                        <AutoComplete {...data} />
                       </div>
                     )
                   } else {
