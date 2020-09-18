@@ -797,9 +797,16 @@ public class CiServiceImpl implements CiService {
                 AdmCiType admCiType = ciTypeRepository.findById(attr.getCiTypeId()).get();
                 String attrName = DynamicEntityUtils.getJoinFieldName(admCiType, attr, true);
                 DynamicEntityMeta entityMeta = getDynamicEntityMeta(attr.getReferenceId());
-                Object entityBean = ciObjMap.get(attrName);
+                PriorityEntityManager priEntityManager = getEntityManager();
+                EntityManager entityManager = priEntityManager.getEntityManager();
+                Object entityBean = null;
+                try{
+                    entityBean = getCiBeanObject(entityManager,attr.getReferenceId(),String.valueOf(value));
+                }finally {
+                    priEntityManager.close();
+                }
                 Map<String,Object> resultMap = DynamicEntityUtils.convertCiDataMap(entityMeta, entityBean);
-                if (!authorizationService.isCiDataPermitted(admCiType.getIdAdmCiType(), entityBean, ACTION_ENQUIRY)) {
+                if (!authorizationService.isCiDataPermitted(attr.getReferenceId(), entityBean, ACTION_ENQUIRY)) {
                     resultMap = CollectionUtils.retainsEntries(resultMap, Sets.newHashSet("guid", "key_name"));
                     logger.info("Access denied - {}, returns guid and key_name only.", resultMap);
                 }
