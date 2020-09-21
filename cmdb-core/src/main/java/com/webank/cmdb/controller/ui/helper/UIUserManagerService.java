@@ -167,6 +167,13 @@ public class UIUserManagerService {
             List<RoleCiTypeDto> addedRoleCiTypes = uiWrapperService.createRoleCiTypes(toAddRoleCiTypes);
             roleCiTypes.addAll(addedRoleCiTypes);
         }
+        
+        for(RoleCiTypeDto roleCiType : roleCiTypes) {
+            CiTypeDto ciType = pickoutFromCiTypesByCiTypeId(roleCiType.getCiTypeId(), allCiTypes);
+            if(ciType != null) {
+                roleCiType.setCiTypeName(ciType.getName());
+            }
+        }
         roleCiTypes.sort(new CiTypeIdComparator());
         CiTypePermissionUtil.evaluatePartialActionPermissions(roleCiTypes);
         return roleCiTypes;
@@ -179,6 +186,20 @@ public class UIUserManagerService {
         }
         CiTypePermissionUtil.evaluatePartialActionPermissions(roleCiTypes);
         return roleCiTypes;
+    }
+    
+    private CiTypeDto pickoutFromCiTypesByCiTypeId(Integer ciTypeId, List<CiTypeDto> allCiTypes) {
+        if(allCiTypes == null || allCiTypes.isEmpty() || ciTypeId == null) {
+            return null;
+        }
+        
+        for(CiTypeDto ciType : allCiTypes) {
+            if(ciTypeId == ciType.getCiTypeId()) {
+                return ciType;
+            }
+        }
+        
+        return null;
     }
 
     private List<RoleCiTypeDto> mergePermissionsByCiTypeId(List<RoleCiTypeDto> roleCiTypes) {
