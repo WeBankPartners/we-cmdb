@@ -1822,9 +1822,20 @@ public class UIWrapperService {
         data.put(CmdbConstants.GUID, param.get(CmdbConstants.GUID));
 
         Map<String, Object> ciDataMap = ciService.getCi(ciTypeId, param.get(CmdbConstants.GUID).toString());
-        if(param.get("originalValue")==null||ciDataMap.get(param.get("field"))==null) {
+        
+        String paramOriginalValue = (String) param.get("originalValue");
+        String dbOriginalValue = (String)ciDataMap.get(param.get("field"));
+        log.info("paramOriginalValue:{},dbOriginalValue:{}");
+        if(StringUtils.isBlank(dbOriginalValue) && !StringUtils.isBlank(paramOriginalValue)) {
             throw new CmdbException("3052","Password is null");
         }
+        
+        if(!StringUtils.isBlank(dbOriginalValue) && StringUtils.isBlank(paramOriginalValue)) {
+            throw new CmdbException("3052","Password is null");
+        }
+//        if(param.get("originalValue")==null||ciDataMap.get(param.get("field"))==null) {
+//            throw new CmdbException("3052","Password is null");
+//        }
         if(!param.get("originalValue").toString().equals(ciDataMap.get(param.get("field")).toString())) {
             throw new CmdbException("3053", String.format("Password mistake"));
         }
