@@ -1,6 +1,7 @@
 import '../table.scss'
 import moment from 'moment'
 import EditModal from './edit-modal.js'
+import { dataToCsv, download } from './export-csv.js'
 import { createPopper } from '@popperjs/core'
 const DEFAULT_FILTER_NUMBER = 5
 const MIN_WIDTH = 200
@@ -438,12 +439,41 @@ export default {
     sortHandler (sort) {
       this.$emit('sortHandler', sort)
     },
-    export (data) {
-      this.$refs.table.exportCsv({
-        filename: data.filename,
-        columns: this.columns,
-        data: data.data
+    export (params) {
+      // remove checkbox column
+      params.columns = this.columns.filter(_ => {
+        if (_.title || _.key) {
+          return _
+        }
       })
+      params.quoted = true
+      // normalize filename
+      if (params.filename) {
+        if (params.filename.indexOf('.csv') === -1) {
+          params.filename += '.csv'
+        }
+      } else {
+        params.filename = 'table.csv'
+      }
+      // process data
+      let columns = []
+      let datas = []
+      if (params.columns && params.data) {
+        columns = params.columns
+        datas = params.data
+      } else {
+        columns = this.$refs.table.allColumns
+        if (!('original' in params)) params.original = true
+        datas = params.original ? this.$refs.table.data : this.$refs.table.rebuildData
+      }
+      // noheader
+      let noHeader = false
+      if ('noHeader' in params) noHeader = params.noHeader
+      // array to csv text
+      const data = dataToCsv(columns, datas, params, noHeader)
+      // callback or download
+      if (params.callback) params.callback(data)
+      else download(params.filename, data)
     },
     onColResize (newWidth, oldWidth, column, event) {
       let cols = [...this.columns]
