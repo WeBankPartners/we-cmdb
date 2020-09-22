@@ -506,30 +506,44 @@ export default {
                         : _.visible.value === !!params.row[_.visible.key]
                       : true
                   ) {
-                    return (
-                      <Button
-                        {...{ props: { ..._.props } }}
-                        disabled={_.isDisabled && _.isDisabled(params.row)}
-                        loading={_.isLoading && _.isLoading(params.row)}
-                        style="marginRight: 5px"
-                        onClick={() => {
-                          if (_.actionType === 'confirm') {
+                    if (_.actionType === 'confirm') {
+                      return (
+                        <Button
+                          {...{ props: { ..._.props } }}
+                          disabled={_.isDisabled && _.isDisabled(params.row)}
+                          loading={_.isLoading && _.isLoading(params.row)}
+                          style="marginRight: 5px"
+                          onClick={() => {
                             this.$Modal.confirm({
-                              title: this.$t('operation_confirm'),
+                              title: this.$t('operation_confirm').replace('{state}', params.row.state_code),
                               'z-index': 1000000,
                               onOk: async () => {
                                 this.$emit('actionFun', _.actionType, params.row)
                               },
                               onCancel: () => {}
                             })
-                          } else {
+                          }}
+                        >
+                          <Tooltip content={this.$t('operation_confirm_tips')} placement="left-start" max-width="250">
+                            <span>{_.label}</span>
+                          </Tooltip>
+                        </Button>
+                      )
+                    } else {
+                      return (
+                        <Button
+                          {...{ props: { ..._.props } }}
+                          disabled={_.isDisabled && _.isDisabled(params.row)}
+                          loading={_.isLoading && _.isLoading(params.row)}
+                          style="marginRight: 5px"
+                          onClick={() => {
                             this.$emit('actionFun', _.actionType, params.row)
-                          }
-                        }}
-                      >
-                        {_.label}
-                      </Button>
-                    )
+                          }}
+                        >
+                          {_.label}
+                        </Button>
+                      )
+                    }
                   }
                 })}
               </div>
