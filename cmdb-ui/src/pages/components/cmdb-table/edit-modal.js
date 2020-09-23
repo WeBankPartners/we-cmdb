@@ -81,31 +81,23 @@ export default {
   },
   methods: {
     handleInputSearch: lodash.debounce(async function (value, column, data) {
-      const res = await queryCiData({
-        id: column.ciTypeId,
-        queryObject: {
-          filters: [{ name: column.inputKey, operator: 'contains', value: value }],
-          paging: false,
-          resultColumns: [column.inputKey]
-        }
-      })
-      // TODO: how to trigger autocomplete select ???
-      this.$nextTick(() => {
+      if (value.length > 0) {
+        // this.$set(this.inputSearch[column.inputKey], 'options', ['host01', 'host02', 'host11'].map(_ =>  _ + value))
+        const res = await queryCiData({
+          id: column.ciTypeId,
+          queryObject: {
+            filters: [{ name: column.inputKey, operator: 'contains', value: value }],
+            paging: false,
+            resultColumns: [column.inputKey]
+          }
+        })
         this.inputSearch[column.inputKey].options = Array.from(
           new Set(res.data.contents.map(_ => _.data[column.inputKey]))
         )
-      })
-      // data[column.inputKey] = value
-      console.log('result of queryCiData: ', JSON.stringify(this.inputSearch[column.inputKey].options))
+        // trigger select options change
+        data[column.inputKey] = value
+      }
     }, 500),
-    // async handleInputSearch (value, column, data) {
-    //   const res = await queryCiData({
-    //     id: column.ciTypeId,
-    //     queryObject: { filters: [{name: column.inputKey, operator: "contains", value: value}], paging: false, resultColumns: [column.inputKey] }
-    //   })
-    //   this.inputSearch[column.inputKey].options = Array.from(new Set(res.data.contents.map(_ => _.data[column.inputKey])))
-    //   console.log('result of queryCiData: ', JSON.stringify(this.inputSearch[column.inputKey].options))
-    // },
     resetPassword (data) {
       let needResets = []
       this.columns.forEach(col => {
@@ -188,10 +180,8 @@ export default {
         } else if (['date'].indexOf(col.inputType) >= 0) {
           v = moment(v).format(DATE_FORMAT)
         }
-        console.log('setValueHandler 1', row, col.inputKey, v)
         row[col.inputKey] = v
         attrsWillReset.forEach(attr => {
-          console.log('setValueHandler 2', row, attr.propertyName, attr.value)
           row[attr.propertyName] = attr.value
         })
       }
@@ -247,18 +237,19 @@ export default {
                       </div>
                     )
                   } else if (column.component === 'Input') {
+                    if (!d[column.inputKey]) {
+                      d[column.inputKey] = column.defaultValue
+                    }
                     const props = {
                       ...column,
                       data: this.inputSearch[column.inputKey].options,
-                      value: d[column.inputKey] || column.defaultValue
+                      value: d[column.inputKey]
                     }
                     const fun = {
                       'on-search': function (v) {
-                        console.log('input search: ', v)
                         handleInputSearch(v, column, d)
                       },
-                      'on-change': function (v) {
-                        console.log('input changed: ', v)
+                      'on-select': function (v) {
                         setValueHandler(v, column, d)
                       }
                     }
@@ -268,7 +259,7 @@ export default {
                     }
                     return (
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
-                        <AutoComplete {...data} />
+                        <AutoComplete {...data}></AutoComplete>
                       </div>
                     )
                   } else {
