@@ -87,7 +87,8 @@ export default {
           id: column.ciTypeId,
           queryObject: {
             filters: [{ name: column.inputKey, operator: 'contains', value: value }],
-            paging: false,
+            paging: true,
+            pageable: { pageSize: 20, startIndex: 0 },
             resultColumns: [column.inputKey]
           }
         })
