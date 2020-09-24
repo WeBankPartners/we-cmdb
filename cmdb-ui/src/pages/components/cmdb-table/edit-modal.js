@@ -95,10 +95,14 @@ export default {
         this.inputSearch[column.inputKey].options = Array.from(
           new Set(res.data.contents.map(_ => _.data[column.inputKey]))
         )
-        // trigger select options change
-        data[column.inputKey] = value
+        // iview autocomplete not supported delay options change
+        // when we change options, it will show last search options
+        // so we trigger render by changing value
+        let oldVal = data[column.inputKey]
+        data[column.inputKey] = oldVal + ' '
+        data[column.inputKey] = oldVal
       }
-    }, 500),
+    }, 800),
     resetPassword (data) {
       let needResets = []
       this.columns.forEach(col => {
