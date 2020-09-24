@@ -1,5 +1,7 @@
 import './edit-modal.scss'
+import lodash from 'lodash'
 import moment from 'moment'
+import { queryCiData } from '@/api/server.js'
 const WIDTH = 300
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 export default {
@@ -8,7 +10,8 @@ export default {
       editData: [],
       noOfCopy: 1,
       filterColumns: [],
-      filteredColumns: []
+      filteredColumns: [],
+      inputSearch: {}
     }
   },
   props: {
@@ -47,6 +50,17 @@ export default {
       },
       immediate: true
     },
+    columns: {
+      handler (vals) {
+        this.inputSearch = {}
+        vals.forEach(_ => {
+          if (_.component === 'Input') {
+            this.inputSearch[_.inputKey] = { options: [] }
+          }
+        })
+      },
+      immediate: true
+    },
     modalVisible: {
       handler (val) {
         if (val) {
@@ -66,6 +80,29 @@ export default {
     }
   },
   methods: {
+    handleInputSearch: lodash.debounce(async function (value, column, data) {
+      if (value.length > 0) {
+        // this.$set(this.inputSearch[column.inputKey], 'options', ['host01', 'host02', 'host11'].map(_ =>  _ + value))
+        const res = await queryCiData({
+          id: column.ciTypeId,
+          queryObject: {
+            filters: [{ name: column.inputKey, operator: 'contains', value: value }],
+            paging: true,
+            pageable: { pageSize: 20, startIndex: 0 },
+            resultColumns: [column.inputKey]
+          }
+        })
+        this.inputSearch[column.inputKey].options = Array.from(
+          new Set(res.data.contents.map(_ => _.data[column.inputKey]))
+        )
+        // iview autocomplete not supported delay options change
+        // when we change options, it will show last search options
+        // so we trigger render by changing value
+        let oldVal = data[column.inputKey]
+        data[column.inputKey] = oldVal + ' '
+        data[column.inputKey] = oldVal
+      }
+    }, 800),
     resetPassword (data) {
       let needResets = []
       this.columns.forEach(col => {
@@ -126,6 +163,7 @@ export default {
       this.editData.splice(index, 1)
     },
     renderDataRows () {
+      let handleInputSearch = this.handleInputSearch
       let setValueHandler = (v, col, row) => {
         let attrsWillReset = []
         if (['select', 'ref', 'multiSelect', 'multiRef'].indexOf(col.inputType) > -1) {
@@ -201,6 +239,32 @@ export default {
                             setValueHandler(v, column, d)
                           }}
                         />
+                      </div>
+                    )
+                  } else if (column.component === 'Input') {
+                    if (!d[column.inputKey]) {
+                      d[column.inputKey] = column.defaultValue
+                    }
+                    const props = {
+                      ...column,
+                      data: this.inputSearch[column.inputKey].options,
+                      value: d[column.inputKey]
+                    }
+                    const fun = {
+                      'on-search': function (v) {
+                        handleInputSearch(v, column, d)
+                      },
+                      'on-select': function (v) {
+                        setValueHandler(v, column, d)
+                      }
+                    }
+                    const data = {
+                      props,
+                      on: fun
+                    }
+                    return (
+                      <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
+                        <AutoComplete {...data}></AutoComplete>
                       </div>
                     )
                   } else {
