@@ -256,6 +256,9 @@ export default {
                       },
                       'on-select': function (v) {
                         setValueHandler(v, column, d)
+                      },
+                      input: function (v) {
+                        setValueHandler(v, column, d)
                       }
                     }
                     const data = {
