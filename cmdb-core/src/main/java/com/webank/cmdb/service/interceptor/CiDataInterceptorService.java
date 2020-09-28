@@ -536,7 +536,7 @@ public class CiDataInterceptorService {
                 if("guid".equals(filter.getName())){
                     fixedFilterName = item.getCiTypeId() + "$guid_" + position;
                 }else{
-                    fixedFilterName = item.getCiTypeId() + "$" + filter.getName();
+                    fixedFilterName = item.getCiTypeId() + "$" + filter.getName() +"_" + position;
                 }
                 filter.setName(fixedFilterName);
                 filters.add(filter);
