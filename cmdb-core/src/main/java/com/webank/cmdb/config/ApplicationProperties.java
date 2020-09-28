@@ -67,5 +67,6 @@ public class ApplicationProperties {
         private String casServerUrl;
         private String casRedirectAppAddr;
         private String whitelistIpAddress;
+        private String jwtSigningKey = "Platform+Auth+Server+Secret";
     }
 }

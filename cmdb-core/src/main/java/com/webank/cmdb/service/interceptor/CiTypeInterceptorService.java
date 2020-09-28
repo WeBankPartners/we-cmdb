@@ -139,7 +139,8 @@ public class CiTypeInterceptorService extends BasicInterceptorService<CiTypeDto,
             if (!attrs.isEmpty()) {
                 List<AdmCiType> ciTypes = ciTypeRepository.findAllById(attrs.stream().map(AdmCiTypeAttr::getCiTypeId).collect(Collectors.toList()));
                 List<String> ciTypeNames = ciTypes.stream().map(AdmCiType::getName).collect(Collectors.toList());
-                throw new InvalidArgumentException(String.format("CiType [%s] can not be deleted as it used by other ciTypes %s", ciTypeOpt.get().getName(), ciTypeNames));
+                throw new InvalidArgumentException(String.format("CiType [%s] can not be deleted as it used by other ciTypes %s", ciTypeOpt.get().getName(), ciTypeNames))
+                .withErrorCode("3156", ciTypeOpt.get().getName(), ciTypeNames);
             }
         }
     }
@@ -159,29 +160,32 @@ public class CiTypeInterceptorService extends BasicInterceptorService<CiTypeDto,
 
     private void validateIfNameIsUnique(Object oldName, Object name) {
         if (name != null && !name.equals(oldName) && ciTypeRepository.existsByName((String) name)) {
-            throw new InvalidArgumentException(String.format("Duplicate name [%s] found, not allow to add/delete.", name));
+            throw new InvalidArgumentException(String.format("Duplicate name [%s] found, not allow to add/delete.", name))
+            .withErrorCode("3155", name);
         }
     }
 
     private void validateRequiredFields(AdmCiType domainBean) {
         if (domainBean.getName() == null) {
-            throw new InvalidArgumentException("Field 'name' is required.");
+            throw new InvalidArgumentException("Field 'name' is required.").withErrorCode("3154");
         }
 
         if (domainBean.getTableName() == null) {
-            throw new InvalidArgumentException("Field 'tableName' is required.");
+            throw new InvalidArgumentException("Field 'tableName' is required.").withErrorCode("3153");
         }
     }
 
     private void validateTableExisted(String tableName) {
         if (databaseService.isTableExisted(tableName)) {
-            throw new InvalidArgumentException(String.format("The given table name [%s] is existed.", tableName));
+            throw new InvalidArgumentException(String.format("The given table name [%s] is existed.", tableName))
+            .withErrorCode("3152", tableName);
         }
     }
 
     private void validateImageId(Object imageFileId) {
         if (imageFileId != null && !fileRepository.existsById((Integer) imageFileId)) {
-            throw new InvalidArgumentException(String.format("Can not find out image file id [%s]", imageFileId));
+            throw new InvalidArgumentException(String.format("Can not find out image file id [%s]", imageFileId))
+            .withErrorCode("3151", imageFileId);
         }
     }
 
@@ -189,17 +193,21 @@ public class CiTypeInterceptorService extends BasicInterceptorService<CiTypeDto,
         if (tableName != null) {
             String tableNameStr = (String) tableName;
             if (CmdbConstants.MYSQL_SCHEMA_KEYWORDS.contains(tableNameStr.trim().toUpperCase())) {
-                throw new InvalidArgumentException(String.format("Invalid table name [%s] as it is database key words.", tableNameStr));
+                throw new InvalidArgumentException(String.format("Invalid table name [%s] as it is database key words.", tableNameStr))
+                .withErrorCode("3150", tableNameStr);
             }
 
             if (tableNameStr.length() > CmdbConstants.MAX_LENGTH_OF_TABLE) {
-                throw new InvalidArgumentException(String.format("Field tableName [%s] is too long, max length is [%d]", tableNameStr, CmdbConstants.MAX_LENGTH_OF_TABLE));
+                throw new InvalidArgumentException(String.format("Field tableName [%s] is too long, max length is [%d]", tableNameStr, CmdbConstants.MAX_LENGTH_OF_TABLE))
+                .withErrorCode("3149", tableNameStr, CmdbConstants.MAX_LENGTH_OF_TABLE);
             }
             if (!tableNameStr.equals(oldTableName) && ciTypeRepository.findByTableName(tableNameStr) != null) {
-                throw new InvalidArgumentException(String.format("The tableName [%s] is already existed", tableNameStr));
+                throw new InvalidArgumentException(String.format("The tableName [%s] is already existed", tableNameStr))
+                .withErrorCode("3148", tableNameStr);
             }
             if (!Pattern.matches("[a-zA-Z0-9_]+", tableNameStr)) {
-                throw new InvalidArgumentException(String.format("Field tableName [%s] must be composed by letters, '_' or numbers", tableNameStr));
+                throw new InvalidArgumentException(String.format("Field tableName [%s] must be composed by letters, '_' or numbers", tableNameStr))
+                .withErrorCode("3147", tableNameStr);
             }
         }
     }
@@ -208,12 +216,13 @@ public class CiTypeInterceptorService extends BasicInterceptorService<CiTypeDto,
         if (codeId != null) {
             Optional<AdmBasekeyCode> code = codeRepository.findById((Integer) codeId);
             if (!code.isPresent()) {
-                throw new InvalidArgumentException(String.format("Can not find out code id [%s].", codeId));
+                throw new InvalidArgumentException(String.format("Can not find out code id [%s].", codeId)).withErrorCode("3146", codeId);
             }
 
             AdmBasekeyCat cat = catRepository.getOne(code.get().getCatId());
             if (cat != null && !catname.equals(cat.getCatName())) {
-                throw new InvalidArgumentException(String.format("Invalid code id [%s], expected code id of catName [%s]", codeId, catname));
+                throw new InvalidArgumentException(String.format("Invalid code id [%s], expected code id of catName [%s]", codeId, catname))
+                .withErrorCode("3145", codeId, catname);
             }
         }
     }
@@ -231,7 +240,8 @@ public class CiTypeInterceptorService extends BasicInterceptorService<CiTypeDto,
         if (tableName != null && !tableName.equals(oldTableName)) {
             Optional<AdmCiType> ciType = ciTypeRepository.findById((Integer) ciTypeId);
             if (ciType.isPresent() && !CiStatus.NotCreated.getCode().equals(ciType.get().getStatus())) {
-                throw new InvalidArgumentException(String.format("CiType with tableName [%s] is created, not allow to change.", ciType.get().getTableName()));
+                throw new InvalidArgumentException(String.format("CiType with tableName [%s] is created, not allow to change.", ciType.get().getTableName()))
+                .withErrorCode("3139", ciType.get().getTableName());
             }
             validateIfTableNameIsUnique(oldTableName, tableName);
         }
@@ -242,7 +252,8 @@ public class CiTypeInterceptorService extends BasicInterceptorService<CiTypeDto,
         if (!intTempAlias.isEmpty()) {
             List<String> alias = new ArrayList<>();
             intTempAlias.forEach(x -> alias.add(x.getAlias()));
-            throw new InvalidArgumentException(String.format("CiType is used for template alias [%s]", StringUtils.join(alias, ",")));
+            throw new InvalidArgumentException(String.format("CiType is used for template alias [%s]", StringUtils.join(alias, ",")))
+            .withErrorCode("3140", StringUtils.join(alias, ","));
         }
     }
 
@@ -251,7 +262,8 @@ public class CiTypeInterceptorService extends BasicInterceptorService<CiTypeDto,
         if (!intTemp.isEmpty()) {
             List<String> names = new ArrayList<>();
             intTemp.forEach(x -> names.add(x.getName()));
-            throw new InvalidArgumentException(String.format("CiType is used for template [%s]", StringUtils.join(names, ",")));
+            throw new InvalidArgumentException(String.format("CiType is used for template [%s]", StringUtils.join(names, ",")))
+            .withErrorCode("3141", StringUtils.join(names, ","));
         }
     }
 
@@ -261,7 +273,8 @@ public class CiTypeInterceptorService extends BasicInterceptorService<CiTypeDto,
         }
         String status = ciTypeOpt.get().getStatus();
         if (!CiStatus.fromCode(status).equals(CiStatus.NotCreated)) {
-            throw new InvalidArgumentException(String.format("CiType's status is [%s], table is created, [%d] can not be deleted.", status, id));
+            throw new InvalidArgumentException(String.format("CiType's status is [%s], table is created, [%d] can not be deleted.", status, id))
+            .withErrorCode("3142", status, id);
         } else {
             ciTypeAttrRepository.deleteAll(ciTypeAttrRepository.findAllByCiTypeId(id));
         }
@@ -269,13 +282,13 @@ public class CiTypeInterceptorService extends BasicInterceptorService<CiTypeDto,
 
     private void validateIfCiTypeExist(Integer id, Optional<AdmCiType> ciTypeOpt) {
         if (!ciTypeOpt.isPresent()) {
-            throw new InvalidArgumentException(String.format("Can not find out CiType [%d]", id));
+            throw new InvalidArgumentException(String.format("Can not find out CiType [%d]", id)).withErrorCode("3143", id);
         }
     }
 
     private void validateIfIdAbsent(Integer id) {
         if (id == null) {
-            throw new InvalidArgumentException("Field 'ciTypeId' must not be absent.");
+            throw new InvalidArgumentException("Field 'ciTypeId' must not be absent.").withErrorCode("3144");
         }
     }
 }
