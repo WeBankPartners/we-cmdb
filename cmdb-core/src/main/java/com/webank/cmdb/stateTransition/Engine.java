@@ -75,12 +75,14 @@ public class Engine {
 
             Optional<AdmBasekeyCode> optActionCode = codeRepository.findById(stateTransition.getAction());
             if (!optActionCode.isPresent()) {
-                throw new ServiceException(String.format("Can not find out corresponding action code [%d]", stateTransition.getAction()));
+                throw new ServiceException(String.format("Can not find out corresponding action code [%s]", stateTransition.getAction()))
+                .withErrorCode("3088", stateTransition.getAction());
             }
 
             Action action = ActionRegistry.getInstance().getAction(optActionCode.get().getCode());
             if (action == null) {
-                throw new ServiceException(String.format("Can not find out corresponding action [%s].", optActionCode.get().getCode()));
+                throw new ServiceException(String.format("Can not find out corresponding action [%s].", optActionCode.get().getCode()))
+                .withErrorCode("3089", optActionCode.get().getCode());
             }
             return action.perform(entityManager, ciTypeId, guid, stateTransition, ciData, entityHolder, date);
         } else {
@@ -103,18 +105,20 @@ public class Engine {
         if ("insert".equals(operation)) {
             List<AdmStateTransition> transitions = stateTransitionRepository.findByOperationCode_codeAndTargetStateCode_catId("insert", catId);
             if (transitions == null) {
-                throw new ServiceException(String.format("There is not transition recode found [insert, catId:%d].", catId));
+                throw new ServiceException(String.format("There is not transition recode found [insert, catId:%s].", catId)).withErrorCode("3090", catId);
             } else if (transitions.size() != 1) {
-                throw new ServiceException(String.format("There are more than 1 state transition recode found [insert, catId:%d].", catId));
+                throw new ServiceException(String.format("There are more than 1 state transition recode found [insert, catId:%s].", catId))
+                .withErrorCode("3091", catId);
             }
             stateTransition = transitions.get(0);
         } else {
             if(ciHolder == null) {
-                throw new ServiceException("ciHolder should not be null.");
+                throw new ServiceException("3092", "ciHolder should not be null.");
             }
             Integer stateId = (Integer) ciHolder.get("state");
             if (stateId == null) {
-                throw new ServiceException(String.format("Can not find out state field for Ci [%s]", ciHolder.get(CmdbConstants.DEFAULT_FIELD_GUID)));
+                throw new ServiceException(String.format("Can not find out state field for Ci [%s]", ciHolder.get(CmdbConstants.DEFAULT_FIELD_GUID)))
+                .withErrorCode("3093", ciHolder.get(CmdbConstants.DEFAULT_FIELD_GUID));
             }
 
             String fixedDate = (String) ciHolder.get("fixed_date");
@@ -130,7 +134,8 @@ public class Engine {
                             action = transition.getAction();
                         } else {
                             if (!action.equals(transition.getAction())) {
-                                throw new ServiceException(String.format("Action is different for discard operation [stateId:%d,fixedDate:%s,operation:%s]", stateId, fixedDate, operation));
+                                throw new ServiceException(String.format("Action is different for discard operation [stateId:%d,fixedDate:%s,operation:%s]", stateId, fixedDate, operation))
+                                .withErrorCode("3094", stateId, fixedDate, operation);
                             }
                         }
                     }
@@ -148,17 +153,19 @@ public class Engine {
     private void validateCat(int ciTypeId, int catId) {
         Optional<AdmBasekeyCat> optCat = catRepository.findById(catId);
         if (!optCat.isPresent()) {
-            throw new ServiceException(String.format("Can not find out corresponding state cat [%d] for Ci Type [%d].", catId, ciTypeId));
+            throw new ServiceException(String.format("Can not find out corresponding state cat [%d] for Ci Type [%d].", catId, ciTypeId)).withErrorCode("3109", catId, ciTypeId);
         }
     }
 
     private int getCatId(int ciTypeId) {
         AdmCiTypeAttr stateAttr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(ciTypeId, "state");
         if (stateAttr == null) {
-            throw new ServiceException(String.format("Can not find out state attribute for CiType [%d]", ciTypeId));
+            throw new ServiceException(String.format("Can not find out state attribute for CiType [%d]", ciTypeId))
+            .withErrorCode("3095", ciTypeId);
         }
         if (!InputType.Droplist.equals(InputType.fromCode(stateAttr.getInputType()))) {
-            throw new ServiceException(String.format("State attribute [%d] is not configured properly.", stateAttr.getIdAdmCiTypeAttr()));
+            throw new ServiceException(String.format("State attribute [%d] is not configured properly.", stateAttr.getIdAdmCiTypeAttr()))
+            .withErrorCode("3096", stateAttr.getIdAdmCiTypeAttr());
         }
 
         int catId = stateAttr.getReferenceId();
