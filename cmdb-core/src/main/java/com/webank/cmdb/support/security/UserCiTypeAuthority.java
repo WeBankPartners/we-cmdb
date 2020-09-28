@@ -26,7 +26,7 @@ public class UserCiTypeAuthority implements Authority {
     public UserCiTypeAuthority(String username, int ciTypeId, List<AdmRoleCiType> roleCiTypes) {
         this.username = username;
         if (username == null)
-            throw new CmdbException("username could not be null.");
+            throw new CmdbException("3035", "username could not be null.");
         this.ciTypeId = ciTypeId;
 
         if (isNotEmpty(roleCiTypes)) {

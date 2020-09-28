@@ -45,7 +45,7 @@ public class UIFileManagementController {
         if (file.getSize() > applicationProperties.getMaxFileSize().toBytes()) {
             String errorMessage = String.format("Upload file failed due to file size (%s bytes) exceeded limitation (%s KB).", file.getSize(), applicationProperties.getMaxFileSize().toKilobytes());
             log.warn(errorMessage);
-            throw new CmdbException(errorMessage);
+            throw new CmdbException("3036", errorMessage, file.getSize(), applicationProperties.getMaxFileSize().toKilobytes());
         }
 
         try {
@@ -54,7 +54,7 @@ public class UIFileManagementController {
         } catch (IOException e) {
             String msg = String.format("Failed to upload image file. (fileName:%s)", file.getName());
             log.warn(msg, e);
-            throw new CmdbException(msg);
+            throw new CmdbException("3037", msg, file.getName());
         }
     }
 
@@ -72,7 +72,7 @@ public class UIFileManagementController {
         } catch (IOException e) {
             String msg = String.format("Failed to get image file. (imageId:%s)", fileId);
             log.warn(msg, e);
-            throw new ServiceException(msg);
+            throw new ServiceException("3038",msg, fileId);
         }
     }
 }

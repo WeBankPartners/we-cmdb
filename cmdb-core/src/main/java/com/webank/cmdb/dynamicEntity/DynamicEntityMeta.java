@@ -1,7 +1,15 @@
 package com.webank.cmdb.dynamicEntity;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.logging.log4j.util.Strings;
 
 import com.webank.cmdb.constant.CiStatus;
 import com.webank.cmdb.constant.CmdbConstants;
@@ -11,10 +19,10 @@ import com.webank.cmdb.constant.FieldType;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
-import com.webank.cmdb.support.exception.AttributeNotFoundException;
-import com.webank.cmdb.support.exception.ServiceException;
 import com.webank.cmdb.repository.AdmCiTypeRepository;
-import org.apache.logging.log4j.util.Strings;
+import com.webank.cmdb.support.exception.AttributeNotFoundException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.ServiceException;
 
 /**
  * Hold meta information for dynamic entity
@@ -40,12 +48,14 @@ public class DynamicEntityMeta {
 
     public static DynamicEntityMeta createForMultSel(AdmCiTypeAttr multiSelAttr) {
         if (!InputType.MultSelDroplist.getCode().equals(multiSelAttr.getInputType())) {
-            throw new IllegalArgumentException(String.format("The given attribute [%d] is not multiple selection.", multiSelAttr.getIdAdmCiTypeAttr()));
+            throw new InvalidArgumentException(String.format("The given attribute [%d] is not multiple selection.", multiSelAttr.getIdAdmCiTypeAttr()))
+            .withErrorCode("3254", multiSelAttr.getIdAdmCiTypeAttr());
         }
 
         Integer codeId = multiSelAttr.getReferenceId();
         if (codeId == null) {
-            throw new ServiceException(String.format("Failed to create intermediate entity meta for attribute [%d], can not find out code [%d]", multiSelAttr.getIdAdmCiTypeAttr(), codeId));
+            throw new ServiceException(String.format("Failed to create intermediate entity meta for attribute [%d], can not find out code [%d]", multiSelAttr.getIdAdmCiTypeAttr(), codeId))
+            .withErrorCode("3113", multiSelAttr.getIdAdmCiTypeAttr(), codeId);
         }
 
         DynamicEntityMeta meta = MultiValueFeildOperationUtils.createDynamicEntityMetaForMultiSelect(multiSelAttr);
@@ -55,7 +65,8 @@ public class DynamicEntityMeta {
 
     public static DynamicEntityMeta createForMultRef(AdmCiTypeAttr multiSelAttr) {
         if (!InputType.MultRef.getCode().equals(multiSelAttr.getInputType())) {
-            throw new IllegalArgumentException(String.format("The given attribute [%d] is not multiple reference.", multiSelAttr.getIdAdmCiTypeAttr()));
+            throw new InvalidArgumentException(String.format("The given attribute [%d] is not multiple reference.", multiSelAttr.getIdAdmCiTypeAttr()))
+            .withErrorCode("3254", multiSelAttr.getIdAdmCiTypeAttr());
         }
 
         DynamicEntityMeta meta = MultiValueFeildOperationUtils.createDynamicEntityMetaForMultiReference(multiSelAttr);
@@ -81,14 +92,16 @@ public class DynamicEntityMeta {
             String propertyType = attr.getPropertyType();
             FieldType fieldType = FieldType.fromCode(propertyType);
             if (FieldType.None.equals(fieldType)) {
-                throw new ServiceException(String.format("Can not find out class type of property type [%s] for CI type [%d]", propertyType, ciType.getIdAdmCiType()));
+                throw new ServiceException(String.format("Can not find out class type of property type [%s] for CI type [%d]", propertyType, ciType.getIdAdmCiType()))
+                .withErrorCode("3114", propertyType, ciType.getIdAdmCiType());
             }
             Class<?> typeClazz = fieldType.getType();
             FieldNode fieldNode;
             String fieldName;
             if (InputType.Reference.getCode().equals(attr.getInputType())) {// ManyToOne
                 if (attr.getReferenceId() == null) {
-                    throw new ServiceException(String.format("Internal error happen. (referenceId is null for attr [%d])", attr.getIdAdmCiTypeAttr()));
+                    throw new ServiceException(String.format("Internal error happen. (referenceId is null for attr [%d])", attr.getIdAdmCiTypeAttr()))
+                    .withErrorCode("3115", attr.getIdAdmCiTypeAttr());
                 }
                 int ciTypeId = attr.getReferenceId();
                 AdmCiType refCiType = ciTypeRepository.getOne(ciTypeId);
@@ -262,7 +275,8 @@ public class DynamicEntityMeta {
         if (fieldNode != null)
             return fieldNode.getType();
         else
-            throw new AttributeNotFoundException(String.format("Attribute:[%s] can not be found for %s", attrName, qulifiedName));
+            throw new AttributeNotFoundException(String.format("Attribute:[%s] can not be found for %s", attrName, qulifiedName))
+            .withErrorCode("3253", attrName, qulifiedName);
     }
 
     public Integer getCiTypeId() {
