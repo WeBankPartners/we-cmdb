@@ -301,6 +301,11 @@ export default {
         const headerLength = data.header.length
         let _attrsPermissionsColumns = data.header
           .map((h, index) => {
+            let tableName = ''
+            const isRef = h.inputType === 'ref' || h.inputType === 'multiRef'
+            if (isRef) {
+              tableName = this.allCiTypes.find(_ => _.ciTypeId === h.referenceId).tableName
+            }
             return {
               ...h,
               title: h.name,
@@ -320,7 +325,7 @@ export default {
               allCiTypes: this.allCiTypes,
               isFilterAttr: true,
               displayAttrType: ['ref', 'multiRef'],
-              rootCis: [h.propertyName],
+              rootCis: [isRef ? tableName : h.propertyName],
               rootCiTypeId: h.referenceId
             }
           })
