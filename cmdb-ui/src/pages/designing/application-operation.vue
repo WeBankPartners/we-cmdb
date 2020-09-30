@@ -477,6 +477,9 @@ export default {
         'z-index': 1000000,
         onOk: async () => {
           this.btnLoading = true
+          setTimeout(() => {
+            this.btnLoading = false
+          }, 5000)
           // eslint-disable-next-line no-unused-vars
           let activePanalData = null
           // eslint-disable-next-line no-unused-vars
@@ -558,6 +561,9 @@ export default {
         'z-index': 1000000,
         onOk: async () => {
           this.btnLoading = true
+          setTimeout(() => {
+            this.btnLoading = false
+          }, 5000)
           // eslint-disable-next-line no-unused-vars
           let activePanalData = null
           // eslint-disable-next-line no-unused-vars
