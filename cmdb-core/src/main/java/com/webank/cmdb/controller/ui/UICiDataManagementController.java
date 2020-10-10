@@ -476,7 +476,7 @@ public class UICiDataManagementController {
             wrapperService.updateCiDataForPassword(ciTypeId, param);
             responseDto.setStatusCode(ResponseDto.STATUS_OK);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Errors while update password.", e);
             responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
             responseDto.setStatusMessage(e.getMessage());
         }

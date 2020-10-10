@@ -799,9 +799,16 @@ public class CiServiceImpl implements CiService {
                 AdmCiType admCiType = ciTypeRepository.findById(attr.getCiTypeId()).get();
                 String attrName = DynamicEntityUtils.getJoinFieldName(admCiType, attr, true);
                 DynamicEntityMeta entityMeta = getDynamicEntityMeta(attr.getReferenceId());
-                Object entityBean = ciObjMap.get(attrName);
+                PriorityEntityManager priEntityManager = getEntityManager();
+                EntityManager entityManager = priEntityManager.getEntityManager();
+                Object entityBean = null;
+                try{
+                    entityBean = getCiBeanObject(entityManager,attr.getReferenceId(),String.valueOf(value));
+                }finally {
+                    priEntityManager.close();
+                }
                 Map<String,Object> resultMap = DynamicEntityUtils.convertCiDataMap(entityMeta, entityBean);
-                if (!authorizationService.isCiDataPermitted(admCiType.getIdAdmCiType(), entityBean, ACTION_ENQUIRY)) {
+                if (!authorizationService.isCiDataPermitted(attr.getReferenceId(), entityBean, ACTION_ENQUIRY)) {
                     resultMap = CollectionUtils.retainsEntries(resultMap, Sets.newHashSet("guid", "key_name"));
                     logger.info("Access denied - {}, returns guid and key_name only.", resultMap);
                 }
@@ -2180,14 +2187,18 @@ public class CiServiceImpl implements CiService {
             throw new ServiceException("Failed to clone int query filters.", e).withErrorCode("3120");
         }
 
-        List resultList = doIntegrateQuery(intQueryDto, queryRequest, true, selectedFields);
-        int totalCount = convertResultToInteger(resultList);
+        int totalCount = 0;
+        if(queryRequest.getPageable().isPaging()){
+            List resultList = doIntegrateQuery(intQueryDto, queryRequest, true, selectedFields);
+            totalCount = convertResultToInteger(resultList);
+        }
+
         stopwatch.stop();
         logger.info("[Performance measure][adhocIntegrateQuery] Elapsed time in getting ahoc integrate query count: {}",stopwatch.toString());
 
         stopwatch.reset().start();
         queryRequest.setFilters(srcFilters);
-        resultList = doIntegrateQuery(intQueryDto, queryRequest, false, selectedFields);
+        List resultList = doIntegrateQuery(intQueryDto, queryRequest, false, selectedFields);
         stopwatch.stop();
         logger.info("[Performance measure][adhocIntegrateQuery] Elapsed time in getting ahoc integrate query: {}",stopwatch.toString());
 
@@ -2215,7 +2226,9 @@ public class CiServiceImpl implements CiService {
         }
 
         QueryResponse response = new QueryResponse(null, results);
-        setupPageInfo(queryRequest, totalCount, response);
+        if(queryRequest.getPageable().isPaging()) {
+            setupPageInfo(queryRequest, totalCount, response);
+        }
 
         if (logger.isDebugEnabled()) {
             logger.debug("Return integrate response:{}", JsonUtil.toJsonString(response));
