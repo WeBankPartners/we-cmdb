@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StopWatch;
 
 import javax.persistence.EntityManager;
 import java.io.IOException;
@@ -474,10 +473,23 @@ public class CiDataInterceptorService {
 	}
     
     private QueryResponse queryIntegrateWithRoutines(String guid, AdmCiTypeAttr attrWithGuid, List<AutoFillIntegrationQueryDto> routines) {
-        AdhocIntegrationQueryDto adhocDto = buildRootDto(routines.get(0), guid, attrWithGuid);
+        int attrIndex = getPositionInRoutine(routines,attrWithGuid);
+        AdhocIntegrationQueryDto adhocDto = buildRootDto(routines.get(0), guid, attrWithGuid,attrIndex);
         travelFillQueryDto(routines, adhocDto.getCriteria(), adhocDto.getQueryRequest(),1, attrWithGuid);
         
         return ciService.adhocIntegrateQuery(adhocDto);
+    }
+
+    private int getPositionInRoutine(List<AutoFillIntegrationQueryDto> routines, AdmCiTypeAttr attrWithGuid){
+        if(attrWithGuid != null){
+            for(int i=0;i<routines.size();i++){
+                AutoFillIntegrationQueryDto autoFillIntegrationQueryDto = routines.get(i);
+                if(autoFillIntegrationQueryDto.getCiTypeId()==attrWithGuid.getCiTypeId()){
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
     
     private Set<String> getRootGuids(String guid, AdmCiTypeAttr attrWithGuid, Object autoFillRuleValue) {
@@ -512,7 +524,7 @@ public class CiDataInterceptorService {
         return guids;
     }
 
-    private IntegrationQueryDto travelFillQueryDto(List<AutoFillIntegrationQueryDto> routines, IntegrationQueryDto parentDto, QueryRequest queryRequest, int position, AdmCiTypeAttr attrWithGuid) {
+    private IntegrationQueryDto travelFillQueryDto(List<AutoFillIntegrationQueryDto> routines, IntegrationQueryDto parentDto, QueryRequest queryRequest, final int position, AdmCiTypeAttr attrWithGuid) {
         if (position >= routines.size()) {
             return null;
         }
@@ -530,17 +542,19 @@ public class CiDataInterceptorService {
         List<Integer> attrs = new ArrayList();
         if (position < routines.size() - 1) {
             attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(), "guid"));
-            if (attrWithGuid!=null && attrWithGuid.getCiTypeId() == item.getCiTypeId()) {
-                fileds.add(item.getCiTypeId() + "$guid");
-            } else {
                 fileds.add(item.getCiTypeId() + "$guid_" + position);
-            }
         }
         if (item.getFilters().size() > 0) {
             List<Filter> filters = new ArrayList<Filter>(queryRequest.getFilters());
             item.getFilters().stream().forEach(filter -> {
                 attrs.add(getAttrIdByPropertyNameAndCiTypeId(item.getCiTypeId(), filter.getName()));
-                filter.setName(item.getCiTypeId() + "$" + filter.getName());
+                String fixedFilterName = null;
+                if("guid".equals(filter.getName())){
+                    fixedFilterName = item.getCiTypeId() + "$guid_" + position;
+                }else{
+                    fixedFilterName = item.getCiTypeId() + "$" + filter.getName() +"_" + position;
+                }
+                filter.setName(fixedFilterName);
                 filters.add(filter);
                 fileds.add(filter.getName());
             });
@@ -548,7 +562,7 @@ public class CiDataInterceptorService {
         }
         dto.setAttrs(attrs);
         dto.setAttrKeyNames(fileds);
-        IntegrationQueryDto childDto = travelFillQueryDto(routines, dto, queryRequest, ++position, attrWithGuid);
+        IntegrationQueryDto childDto = travelFillQueryDto(routines, dto, queryRequest, position+1, attrWithGuid);
 
         if (childDto == null) {
             addTargetName(parentDto, dto);
@@ -573,13 +587,16 @@ public class CiDataInterceptorService {
         parentDto.setAttrKeyNames(attrKeyNames);
     }
 
-    private AdhocIntegrationQueryDto buildRootDto(IntegrationQueryDto routineDto, String guid, AdmCiTypeAttr attrWithGuid) {
+    private AdhocIntegrationQueryDto buildRootDto(IntegrationQueryDto routineDto, String guid, AdmCiTypeAttr attrWithGuid, int attrIndex) {
         AdhocIntegrationQueryDto adhocDto = new AdhocIntegrationQueryDto();
 
         QueryRequest queryRequest = new QueryRequest();
         String aliasName = "root$guid";
         if (attrWithGuid != null && attrWithGuid.getCiTypeId() != routineDto.getCiTypeId()) {
             aliasName = attrWithGuid.getCiTypeId() + "$guid";
+            if(attrIndex != -1){
+                aliasName = aliasName + "_" + attrIndex;
+            }
         }
 
         Filter filter = new Filter(aliasName, "eq", guid);
