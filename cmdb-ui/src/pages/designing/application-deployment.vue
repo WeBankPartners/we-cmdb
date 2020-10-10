@@ -10,7 +10,8 @@
           @on-clear="onClearDesignSelect"
           v-model="systemVersion"
           label-in-name
-          style="width: 85%;">
+          style="width: 85%;"
+        >
           <Option v-for="item in systems" :value="item.guid" :key="item.guid">{{ item.key_name }}</Option>
         </Select>
       </Col>
