@@ -601,6 +601,7 @@ public class CiDataInterceptorService {
 
         Filter filter = new Filter(aliasName, "eq", guid);
         queryRequest.setFilters(Arrays.asList(filter));
+        queryRequest.getPageable().setPaging(false);
 
         IntegrationQueryDto rootDto = new IntegrationQueryDto();
         rootDto.setName("root");
