@@ -1,0 +1,42 @@
+{
+    "filters": [],
+    "paging": false,
+    "dialect": {
+        "associatedData": {
+            "code": "demonginx01_IP3424:10001",
+            "deploy_package": "0045_0000000007",
+            "memory": "1",
+            "deploy_package_url": "",
+            "r_guid": "0050_0000000015",
+            "monitor_port": "10001",
+            "description": "",
+            "deploy_user_password": "******",
+            "storage": "20",
+            "host_resource_instance": "0032_0000000021",
+            "rw_dir": "",
+            "start_script": "/data/PRD_TaDEMO_PROXY_NGINX/demo-app-nginx_0.1.1/bin/start.sh",
+            "monitor_key_name": "IP3424:10001",
+            "port_conflict": "IP3424:10001",
+            "state": 40,
+            "fixed_date": "2020-09-01 17:30:04",
+            "deploy_script": "/data/PRD_TaDEMO_PROXY_NGINX/demo-app-nginx_0.1.1/bin/deploy.sh",
+            "deploy_user": "root",
+            "stop_script": "/data/PRD_TaDEMO_PROXY_NGINX/demo-app-nginx_0.1.1/bin/stop.sh",
+            "app_log_files": "",
+            "cpu": "1",
+            "created_by": "umadmin",
+            "key_name": "demonginx01_IP3424:10001",
+            "p_guid": null,
+            "unit": "0048_0000000020",
+            "port": "10001",
+            "rw_file": "",
+            "variable_values": "port,\u0001backend_server_ip_1,\u0001backend_server_port_1,\u0001backend_server_ip_2,\u0001backend_server_port_2,\u0001context_path\u0001=\u0001,\u0001IP9754,\u000110001,\u0001IP3675,\u000110001,\u0001~*^.+$",
+            "name": "demonginx01",
+            "updated_by": null,
+            "guid": "0050_0000000015",
+            "created_date": "2020-05-22 16:30:47",
+            "updated_date": null,
+            "state_code": "created"
+        }
+    }
+}
