@@ -27,6 +27,7 @@
     "d3-graphviz": "^2.6.1",
     "highlight.js": "^9.15.8",
     "less-loader": "^4.1.0",
+    "lodash": "^4.17.20",
     "mermaid": "^8.1.0",
     "moment": "^2.24.0",
     "view-design": "^4.0.2",

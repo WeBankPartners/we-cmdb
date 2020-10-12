@@ -10,4 +10,13 @@ public class ServiceException extends CmdbException {
     public ServiceException(String message, Exception ex) {
         super(message, ex);
     }
+
+    public ServiceException(String errorCode, String message, Object... objects) {
+        super(errorCode, message, objects);
+    }
+
+    public ServiceException(String message, Throwable cause) {
+        super(message, cause);
+    }
+    
 }

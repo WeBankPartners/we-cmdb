@@ -66,11 +66,11 @@ public class CollectionUtils {
         if (isEmpty(elements))
             return groups;
         if (keyMapperOfGroup == null)
-            throw new CmdbException("Key mapper of Group Object cannot be null for grouping function.");
+            throw new CmdbException("3069", "Key mapper of Group Object cannot be null for grouping function.");
         if (childrenMapperOfGroup == null)
-            throw new CmdbException("Children mapper of Group Object cannot be null for grouping function.");
+            throw new CmdbException("3070", "Children mapper of Group Object cannot be null for grouping function.");
         if (parentMapperOfElement == null)
-            throw new CmdbException("Parent mapper of Element Object cannot be null for grouping function.");
+            throw new CmdbException("3071", "Parent mapper of Element Object cannot be null for grouping function.");
         List<G> resultGroups = new ArrayList<>(groups);
         Map<Object, G> groupMap = asMap(resultGroups, keyMapperOfGroup);
 
@@ -83,7 +83,7 @@ public class CollectionUtils {
                 return;
             List<E> children = childrenMapperOfGroup.apply(group);
             if (children == null)
-                throw new CmdbException("Children property should not be null.");
+                throw new CmdbException("3072", "Children property should not be null.");
             children.add(element);
         });
         return resultGroups;
