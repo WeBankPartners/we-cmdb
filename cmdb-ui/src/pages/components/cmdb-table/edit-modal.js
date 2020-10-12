@@ -1,12 +1,17 @@
 import './edit-modal.scss'
+import lodash from 'lodash'
 import moment from 'moment'
+import { queryCiData } from '@/api/server.js'
 const WIDTH = 300
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 export default {
   data () {
     return {
       editData: [],
-      noOfCopy: 1
+      noOfCopy: 1,
+      filterColumns: [],
+      filteredColumns: [],
+      inputSearch: {}
     }
   },
   props: {
@@ -34,7 +39,8 @@ export default {
   },
   computed: {
     tableWidth () {
-      return WIDTH * this.columns.length + 100
+      const cols = this.isEdit ? this.filteredColumns : this.columns
+      return WIDTH * cols.length + 100
     }
   },
   watch: {
@@ -44,15 +50,59 @@ export default {
       },
       immediate: true
     },
+    columns: {
+      handler (vals) {
+        this.inputSearch = {}
+        vals.forEach(_ => {
+          if (_.component === 'Input') {
+            this.inputSearch[_.inputKey] = { options: [] }
+          }
+        })
+      },
+      immediate: true
+    },
     modalVisible: {
       handler (val) {
         if (val) {
           this.editData = this.resetPassword(JSON.parse(JSON.stringify(this.data)))
+          if (this.isEdit && this.filterColumns.length === 0) {
+            this.columns.forEach((column, index) => {
+              if (index < 4) {
+                this.filterColumns.push(column.name || column.title)
+              }
+            })
+            this.filteredColumns = this.columns.filter(column =>
+              this.filterColumns.find(c => column.name === c || column.title === c)
+            )
+          }
         }
       }
     }
   },
   methods: {
+    handleInputSearch: lodash.debounce(async function (value, column, data) {
+      if (value.length > 0) {
+        // this.$set(this.inputSearch[column.inputKey], 'options', ['host01', 'host02', 'host11'].map(_ =>  _ + value))
+        const res = await queryCiData({
+          id: column.ciTypeId,
+          queryObject: {
+            filters: [{ name: column.inputKey, operator: 'contains', value: value }],
+            paging: true,
+            pageable: { pageSize: 20, startIndex: 0 },
+            resultColumns: [column.inputKey]
+          }
+        })
+        this.inputSearch[column.inputKey].options = Array.from(
+          new Set(res.data.contents.map(_ => _.data[column.inputKey]))
+        )
+        // iview autocomplete not supported delay options change
+        // when we change options, it will show last search options
+        // so we trigger render by changing value
+        let oldVal = data[column.inputKey]
+        data[column.inputKey] = oldVal + ' '
+        data[column.inputKey] = oldVal
+      }
+    }, 800),
     resetPassword (data) {
       let needResets = []
       this.columns.forEach(col => {
@@ -110,9 +160,10 @@ export default {
       }
     },
     removeAddData (index) {
-      this.editData = this.editData.splice(index)
+      this.editData.splice(index, 1)
     },
     renderDataRows () {
+      let handleInputSearch = this.handleInputSearch
       let setValueHandler = (v, col, row) => {
         let attrsWillReset = []
         if (['select', 'ref', 'multiSelect', 'multiRef'].indexOf(col.inputType) > -1) {
@@ -139,12 +190,13 @@ export default {
           row[attr.propertyName] = attr.value
         })
       }
+      const cols = this.isEdit ? this.filteredColumns : this.columns
       return (
         <div style={`width: ${this.tableWidth}px`}>
           {this.editData.map((d, index) => {
             return (
               <div key={index} style={`width: ${this.tableWidth}px`}>
-                {this.columns.map((column, i) => {
+                {cols.map((column, i) => {
                   if (column.component === 'WeCMDBCIPassword') {
                     return (
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
@@ -169,6 +221,7 @@ export default {
                           isFilterAttr={true}
                           displayAttrType={column.displayAttrType}
                           rootCis={column.rootCis}
+                          rootCiTypeId={column.rootCiTypeId}
                           value={d[column.propertyName]}
                           onInput={v => {
                             setValueHandler(v, column, d)
@@ -186,6 +239,35 @@ export default {
                             setValueHandler(v, column, d)
                           }}
                         />
+                      </div>
+                    )
+                  } else if (column.component === 'Input') {
+                    if (!d[column.inputKey]) {
+                      d[column.inputKey] = column.defaultValue
+                    }
+                    const props = {
+                      ...column,
+                      data: this.inputSearch[column.inputKey].options,
+                      value: d[column.inputKey]
+                    }
+                    const fun = {
+                      'on-search': function (v) {
+                        handleInputSearch(v, column, d)
+                      },
+                      'on-select': function (v) {
+                        setValueHandler(v, column, d)
+                      },
+                      input: function (v) {
+                        setValueHandler(v, column, d)
+                      }
+                    }
+                    const data = {
+                      props,
+                      on: fun
+                    }
+                    return (
+                      <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
+                        <AutoComplete {...data}></AutoComplete>
                       </div>
                     )
                   } else {
@@ -259,20 +341,44 @@ export default {
                     )
                   }
                 })}
-                <span
-                  onClick={() => this.removeAddData(index)}
-                  style={`border-radius: 4px;vertical-align: middle;color:red;font-size:20px;margin-left:8px;cursor:pointer;border: 1px solid red`}
-                >
-                  <Icon type="ios-trash-outline" />
-                </span>
+                {!this.isEdit && (
+                  <span
+                    onClick={() => this.removeAddData(index)}
+                    style={`border-radius: 4px;vertical-align: middle;color:red;font-size:20px;margin-left:8px;cursor:pointer;border: 1px solid red`}
+                  >
+                    <Icon type="ios-trash-outline" />
+                  </span>
+                )}
               </div>
             )
           })}
         </div>
       )
+    },
+    checkboxChangeHandler (v) {
+      this.filteredColumns = []
+      this.filteredColumns = this.columns.filter(column => v.find(c => column.name === c || column.title === c))
+    },
+    renderCheckbox () {
+      return (
+        <div style={'padding:10px'}>
+          <CheckboxGroup
+            on-on-change={this.checkboxChangeHandler}
+            onInput={v => {
+              this.filterColumns = v
+            }}
+            value={this.filterColumns}
+          >
+            {this.columns.map((column, index) => {
+              return <Checkbox label={column.name || column.title}></Checkbox>
+            })}
+          </CheckboxGroup>
+        </div>
+      )
     }
   },
   render (h) {
+    const cols = this.isEdit ? this.filteredColumns : this.columns
     return (
       <Modal
         mask-closable={false}
@@ -299,10 +405,11 @@ export default {
             </Button>
           </div>
         )}
+        {this.isEdit && this.renderCheckbox()}
         <div style="overflow: auto">
           {this.modalVisible && (
             <div style={`width: ${this.tableWidth}px`}>
-              {this.columns.map((column, index) => {
+              {cols.map((column, index) => {
                 const d = {
                   props: {
                     'min-width': '130px',
@@ -321,11 +428,13 @@ export default {
                   </div>
                 )
               })}
-              <div
-                style={`width:80px;display:inline-block;padding:5px;height: 30px;font-weight:600;background-color: #e8eaec`}
-              >
-                {this.$t('delete')}
-              </div>
+              {!this.isEdit && (
+                <div
+                  style={`width:80px;display:inline-block;padding:5px;height: 30px;font-weight:600;background-color: #e8eaec`}
+                >
+                  {this.$t('delete')}
+                </div>
+              )}
             </div>
           )}
           {this.modalVisible && this.renderDataRows()}

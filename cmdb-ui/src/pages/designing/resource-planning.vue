@@ -27,7 +27,9 @@
             <Button slot="desc" @click="reloadHandler">Reload</Button>
           </Alert>
           <!-- <div class="graph-container-big" id="resourcePlanningGraph"></div> -->
-          <ResourcePlanningComponent ref="resourcePlanningComponent"></ResourcePlanningComponent>
+          <div v-show="showResourcePlanning">
+            <ResourcePlanningComponent ref="resourcePlanningComponent"></ResourcePlanningComponent>
+          </div>
         </TabPane>
         <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name" :index="ci.seqNo + 1">
           <div
@@ -163,7 +165,8 @@ export default {
       compareData: [],
       compareVisible: false,
       copyRows: [],
-      copyEditData: null
+      copyEditData: null,
+      showResourcePlanning: false
     }
   },
   computed: {
@@ -175,6 +178,12 @@ export default {
     }
   },
   watch: {
+    selectedIdcs (val) {
+      if (!val.length) {
+        this.showResourcePlanning = false
+      }
+      console.log(val)
+    },
     currentTab () {
       this.copyRows = []
       this.copyEditData = null
@@ -255,6 +264,7 @@ export default {
           id: this.initParams[RESOURCE_PLANNING_LINK_ID],
           queryObject: {}
         }
+        this.showResourcePlanning = true
         this.$refs.resourcePlanningComponent.onIdcDataChange(selectedIdcs)
         const promiseArray = [getIdcImplementTreeByGuid(selectedIdcs), queryCiData(payload)]
         const [idcData, links] = await Promise.all(promiseArray)
@@ -579,6 +589,7 @@ export default {
       }
     },
     handleTabClick (name) {
+      this.payload.sorting = {}
       this.payload.filters = []
       this.currentTab = name
       if (this.currentTab !== 'resource-design') {

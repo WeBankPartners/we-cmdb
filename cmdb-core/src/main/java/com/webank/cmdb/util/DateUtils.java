@@ -30,10 +30,12 @@ public class DateUtils {
             try {
                 date = dateFmt.parse(value);
             } catch (ParseException e) {
-                throw new InvalidArgumentException(String.format("Failed to parse date string [%s].", value), e);
+                throw new InvalidArgumentException(String.format("Failed to parse date string [%s].", value), e)
+                .withErrorCode("3251", value);
             }
         } else {
-            throw new InvalidArgumentException("Only support 'yyyy-MM-dd HH:mm:ss' and 'yyyy-MM-dd' for datetime.");
+            throw new InvalidArgumentException("Only support 'yyyy-MM-dd HH:mm:ss' and 'yyyy-MM-dd' for datetime.")
+            .withErrorCode("3252");
         }
 
         return date;

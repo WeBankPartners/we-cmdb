@@ -20,6 +20,9 @@ plugins:
 spring:
   banner:
     location: classpath:/cmdb.txt
+  messages:
+    basename: message/cmdb_core_err_message
+    encoding: UTF-8
   profiles:
     #en-local、ch-local
     active: dev
@@ -45,7 +48,7 @@ spring:
   jpa:
     database: MySQL
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: none
 
@@ -55,6 +58,7 @@ cmdb:
 
   security:
     enabled: true
+    jwt-signing-key: ${JWT_SIGNING_KEY:}
 
     #Authentication provider options: LOCAL, CAS or PLATFORM-AUTH. Effective ONLY when security-enabled set as true.
     authentication-provider: PLATFORM-AUTH

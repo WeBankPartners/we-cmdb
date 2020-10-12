@@ -105,7 +105,7 @@ public class UICiDataManagementController {
         if (file.getSize() > applicationProperties.getMaxFileSize().toBytes()) {
             String errorMessage = String.format("Upload image icon for CiType (%s) failed due to file size (%s bytes) exceeded limitation (%s KB).", ciTypeId, file.getSize(), applicationProperties.getMaxFileSize().toKilobytes());
             log.warn(errorMessage);
-            throw new CmdbException(errorMessage);
+            throw new CmdbException("3039", errorMessage,ciTypeId, file.getSize(), applicationProperties.getMaxFileSize().toKilobytes() );
         }
 
         try {
@@ -114,7 +114,7 @@ public class UICiDataManagementController {
         } catch (IOException e) {
             String msg = String.format("Failed to upload image file. (fileName:%s)", file.getName());
             log.warn(msg, e);
-            throw new CmdbException(msg);
+            throw new CmdbException("3040", msg, file.getName());
         }
     }
 
@@ -476,7 +476,7 @@ public class UICiDataManagementController {
             wrapperService.updateCiDataForPassword(ciTypeId, param);
             responseDto.setStatusCode(ResponseDto.STATUS_OK);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Errors while update password.", e);
             responseDto.setStatusCode(ResponseDto.STATUS_ERROR);
             responseDto.setStatusMessage(e.getMessage());
         }

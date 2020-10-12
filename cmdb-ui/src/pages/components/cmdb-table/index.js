@@ -1,6 +1,7 @@
 import '../table.scss'
 import moment from 'moment'
 import EditModal from './edit-modal.js'
+import { dataToCsv, download } from './export-csv.js'
 import { createPopper } from '@popperjs/core'
 const DEFAULT_FILTER_NUMBER = 5
 const MIN_WIDTH = 200
@@ -438,12 +439,41 @@ export default {
     sortHandler (sort) {
       this.$emit('sortHandler', sort)
     },
-    export (data) {
-      this.$refs.table.exportCsv({
-        filename: data.filename,
-        columns: this.columns,
-        data: data.data
+    export (params) {
+      // remove checkbox column
+      params.columns = this.columns.filter(_ => {
+        if (_.title || _.key) {
+          return _
+        }
       })
+      params.quoted = true
+      // normalize filename
+      if (params.filename) {
+        if (params.filename.indexOf('.csv') === -1) {
+          params.filename += '.csv'
+        }
+      } else {
+        params.filename = 'table.csv'
+      }
+      // process data
+      let columns = []
+      let datas = []
+      if (params.columns && params.data) {
+        columns = params.columns
+        datas = params.data
+      } else {
+        columns = this.$refs.table.allColumns
+        if (!('original' in params)) params.original = true
+        datas = params.original ? this.$refs.table.data : this.$refs.table.rebuildData
+      }
+      // noheader
+      let noHeader = false
+      if ('noHeader' in params) noHeader = params.noHeader
+      // array to csv text
+      const data = dataToCsv(columns, datas, params, noHeader)
+      // callback or download
+      if (params.callback) params.callback(data)
+      else download(params.filename, data)
     },
     onColResize (newWidth, oldWidth, column, event) {
       let cols = [...this.columns]
@@ -465,7 +495,7 @@ export default {
       const colLength = columns.length // 获取传入展示的column长度
       this.colWidth = Math.floor(tableWidth / colLength)
       this.columns = columns.map((_, idx) => {
-        const isLast = colLength - 1 === idx
+        // const isLast = colLength - 1 === idx
         if (_.children) {
           const children = _.children.filter(_ => _.isDisplayed || _.displaySeqNo).sort(compare)
           return {
@@ -476,7 +506,7 @@ export default {
             })
           }
         } else {
-          return this.renderCol(_, isLast)
+          return this.renderCol(_, false)
         }
       })
 
@@ -506,30 +536,44 @@ export default {
                         : _.visible.value === !!params.row[_.visible.key]
                       : true
                   ) {
-                    return (
-                      <Button
-                        {...{ props: { ..._.props } }}
-                        disabled={_.isDisabled && _.isDisabled(params.row)}
-                        loading={_.isLoading && _.isLoading(params.row)}
-                        style="marginRight: 5px"
-                        onClick={() => {
-                          if (_.actionType === 'confirm') {
+                    if (_.actionType === 'confirm') {
+                      return (
+                        <Button
+                          {...{ props: { ..._.props } }}
+                          disabled={_.isDisabled && _.isDisabled(params.row)}
+                          loading={_.isLoading && _.isLoading(params.row)}
+                          style="marginRight: 5px"
+                          onClick={() => {
                             this.$Modal.confirm({
-                              title: this.$t('operation_confirm'),
+                              title: this.$t('operation_confirm').replace('{state}', params.row.state_code),
                               'z-index': 1000000,
                               onOk: async () => {
                                 this.$emit('actionFun', _.actionType, params.row)
                               },
                               onCancel: () => {}
                             })
-                          } else {
+                          }}
+                        >
+                          <Tooltip content={this.$t('operation_confirm_tips')} placement="left-start" max-width="250">
+                            <span>{_.label}</span>
+                          </Tooltip>
+                        </Button>
+                      )
+                    } else {
+                      return (
+                        <Button
+                          {...{ props: { ..._.props } }}
+                          disabled={_.isDisabled && _.isDisabled(params.row)}
+                          loading={_.isLoading && _.isLoading(params.row)}
+                          style="marginRight: 5px"
+                          onClick={() => {
                             this.$emit('actionFun', _.actionType, params.row)
-                          }
-                        }}
-                      >
-                        {_.label}
-                      </Button>
-                    )
+                          }}
+                        >
+                          {_.label}
+                        </Button>
+                      )
+                    }
                   }
                 })}
               </div>

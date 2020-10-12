@@ -39,14 +39,15 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.webank.cmdb.support.cache.CacheHandlerInterceptor;
+import com.webank.cmdb.authclient.filter.Http401AuthenticationEntryPoint;
+import com.webank.cmdb.authclient.filter.JwtClientConfig;
+import com.webank.cmdb.authclient.filter.JwtSsoBasedAuthenticationFilter;
 import com.webank.cmdb.config.ApplicationProperties.SecurityProperties;
 import com.webank.cmdb.constant.AuthenticationType;
 import com.webank.cmdb.controller.interceptor.HttpAccessUsernameInterceptor;
+import com.webank.cmdb.support.cache.CacheHandlerInterceptor;
 import com.webank.cmdb.support.exception.CmdbException;
 import com.webank.cmdb.support.mvc.CustomRolesPrefixPostProcessor;
-import com.webank.wecube.platform.auth.client.filter.Http401AuthenticationEntryPoint;
-import com.webank.wecube.platform.auth.client.filter.JwtSsoBasedAuthenticationFilter;
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
@@ -58,7 +59,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @ComponentScan({ "com.webank.cmdb.controller", "com.webank.cmdb.support.mvc", "com.webank.cmdb.stateTransition" })
 public class SpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
     public static final Logger logger = LoggerFactory.getLogger(SpringWebConfig.class);
-
+    
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -109,7 +110,8 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
             } else if (AuthenticationType.PLATFORM_AUTH.getCode().equalsIgnoreCase(securityProperties.getAuthenticationProvider())) {
                 configurePlatformAuthentication(registry);
             } else {
-                throw new CmdbException("Unsupported authentication-provider: " + securityProperties.getAuthenticationProvider());
+                throw new CmdbException("Unsupported authentication-provider: " + securityProperties.getAuthenticationProvider())
+                .withErrorCode("3082", securityProperties.getAuthenticationProvider());
             }
         } else {
             registry = configureWhiteListAuthentication(registry, false);
@@ -202,7 +204,9 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     }
 
     protected Filter jwtSsoBasedAuthenticationFilter() throws Exception {
-        JwtSsoBasedAuthenticationFilter filter = new JwtSsoBasedAuthenticationFilter(authenticationManager());
+    	JwtClientConfig jwtClientConfig = new JwtClientConfig();
+    	jwtClientConfig.setSigningKey(securityProperties.getJwtSigningKey());
+        JwtSsoBasedAuthenticationFilter filter = new JwtSsoBasedAuthenticationFilter(authenticationManager(), jwtClientConfig);
         return (Filter) filter;
     }
 

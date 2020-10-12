@@ -217,7 +217,7 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           .zoom(true)
-          .scale(1.2)
+          .fit(true)
           .width(window.innerWidth - 92)
           .height(window.innerHeight - 190)
           .attributer(function (d) {

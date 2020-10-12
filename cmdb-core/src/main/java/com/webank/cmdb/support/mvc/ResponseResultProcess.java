@@ -3,10 +3,18 @@ package com.webank.cmdb.support.mvc;
 import java.rmi.ServerException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +34,7 @@ import com.webank.cmdb.dto.CustomResponseDto;
 import com.webank.cmdb.dto.ResponseDto;
 import com.webank.cmdb.support.exception.BatchChangeException;
 import com.webank.cmdb.support.exception.BatchChangeException.ExceptionHolder;
+import com.webank.cmdb.support.exception.CmdbException;
 import com.webank.cmdb.support.exception.InvalidArgumentException;
 
 @ControllerAdvice
@@ -34,6 +43,13 @@ public class ResponseResultProcess implements ResponseBodyAdvice<Object> {
     private static final String SUCCESS = "Success";
 
     private final static Logger logger = LoggerFactory.getLogger(ResponseResultProcess.class);
+    
+    public static final String MSG_ERR_CODE_PREFIX = "cmdb.core.msg.errorcode.";
+
+    public static final Locale DEF_LOCALE = Locale.ENGLISH;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
@@ -66,25 +82,31 @@ public class ResponseResultProcess implements ResponseBodyAdvice<Object> {
 
     @ResponseBody
     @ExceptionHandler(Exception.class)
-    public ResponseDto<?> handleException(Exception ex) {
+    public ResponseDto<?> handleException(HttpServletRequest request, final Exception ex,
+            HttpServletResponse response) {
         logger.warn("Get exception:", ex);
         if (ex instanceof InvalidArgumentException) {
             InvalidArgumentException invalidArgExp = (InvalidArgumentException) ex;
-            return new ResponseDto<Object>(ResponseDto.STATUS_ERROR_INVALID_ARGUMENT, invalidArgExp.getCauseData(), ex.getMessage());
+            return new ResponseDto<Object>(ResponseDto.STATUS_ERROR_INVALID_ARGUMENT, invalidArgExp.getCauseData(), determineI18nErrorMessage(request, invalidArgExp));
         } else if (ex instanceof MethodArgumentNotValidException) {
             FieldError fieldError = ((MethodArgumentNotValidException) ex).getBindingResult().getFieldError();
             return new ResponseDto<String>(ResponseDto.STATUS_ERROR_INVALID_ARGUMENT, null, String.format("Please input valid field value.(%s:%s)", fieldError.getField(), fieldError.getRejectedValue()));
         } else if (ex instanceof HttpMessageNotReadableException) {
             return new ResponseDto<String>(ResponseDto.STATUS_ERROR_INVALID_MESSAGE, null, ex.getMessage());
         } else if (ex instanceof ServerException) {
+            
             return new ResponseDto(ResponseDto.STATUS_ERROR, null, ex.getMessage());
         } else if (ex instanceof BatchChangeException) {
-            return processBatchChangeException(ex);
+            return processBatchChangeException(request, ex);
+        }
+        
+        if(ex instanceof CmdbException){
+            return new ResponseDto(ResponseDto.STATUS_ERROR, null, determineI18nErrorMessage(request, (CmdbException)ex));
         }
         return new ResponseDto(ResponseDto.STATUS_ERROR, null, ex.getMessage());
     }
 
-    private ResponseDto<?> processBatchChangeException(Exception ex) {
+    private ResponseDto<?> processBatchChangeException(HttpServletRequest request, Exception ex) {
         BatchChangeException batchChangeExcept = (BatchChangeException) ex;
         List<ExceptionHolder> exceptionHolders = ((BatchChangeException) ex).getExceptionHolders();
         List<Map> rtnData = Lists.newLinkedList();
@@ -97,6 +119,27 @@ public class ResponseResultProcess implements ResponseBodyAdvice<Object> {
             rtnData.add(dataMap);
         });
 
-        return new ResponseDto(ResponseDto.STATUS_ERROR_BATCH_CHANGE, rtnData, ex.getMessage());
+        return new ResponseDto(ResponseDto.STATUS_ERROR_BATCH_CHANGE, rtnData, determineI18nErrorMessage(request, batchChangeExcept));
+    }
+    
+    private String determineI18nErrorMessage(HttpServletRequest request, CmdbException ex) {
+    	logger.info("I18N:try to find message {}", ex.getErrorCode());
+        Locale locale = request.getLocale();
+        if (locale == null) {
+            locale = DEF_LOCALE;
+        }
+        if (StringUtils.isNoneBlank(ex.getErrorCode())) {
+            String msgCode = MSG_ERR_CODE_PREFIX + ex.getErrorCode();
+            try{
+                String errMsg = messageSource.getMessage(msgCode, ex.getArgs(), locale);
+                logger.info("I18N:found errmsg {} : {}", msgCode, errMsg);
+                return errMsg;
+            }catch(NoSuchMessageException e1){
+                logger.debug("cannot find such message for {}", ex.getErrorCode());
+                return ex.getMessage();
+            }
+        } else {
+            return ex.getMessage();
+        }
     }
 }

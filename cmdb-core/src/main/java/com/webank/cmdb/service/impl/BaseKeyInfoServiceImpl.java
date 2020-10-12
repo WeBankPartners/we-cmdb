@@ -107,7 +107,8 @@ public class BaseKeyInfoServiceImpl implements BaseKeyInfoService {
     private void validateCateTypeNameForCreation(CatTypeDto baseKeyCatTypeDto) {
         boolean isExisted = basekeyCatTypeRepository.existsByName(baseKeyCatTypeDto.getCatTypeName());
         if (isExisted) {
-            throw new InvalidArgumentException("The specific category type is already existed.", "cateTypeName", baseKeyCatTypeDto.getCatTypeName());
+            throw new InvalidArgumentException("The specific category type is already existed.", "cateTypeName", baseKeyCatTypeDto.getCatTypeName())
+            .withErrorCode("3226", "cateTypeName", baseKeyCatTypeDto.getCatTypeName());
         }
     }
 
@@ -122,7 +123,8 @@ public class BaseKeyInfoServiceImpl implements BaseKeyInfoService {
         Optional<AdmBasekeyCatType> catType = validateCatType(catTypeId);
 
         if (basekeyCatRepository.countByCatNameAndCatType(catDto.getCatName(), catTypeId) > 0) {
-            throw new InvalidArgumentException("The given category name is already existed.", "catName", catDto.getCatName());
+            throw new InvalidArgumentException("The given category name is already existed.", "catName", catDto.getCatName())
+            .withErrorCode("3227", "catName", catDto.getCatName());
         }
 
         AdmBasekeyCat groupCat = null;
@@ -149,7 +151,8 @@ public class BaseKeyInfoServiceImpl implements BaseKeyInfoService {
     private Optional<AdmBasekeyCatType> validateCatType(int catTypeId) {
         Optional<AdmBasekeyCatType> catType = basekeyCatTypeRepository.findById(catTypeId);
         if (!catType.isPresent()) {
-            throw new InvalidArgumentException("The specific category type is not existed.", "cateTypeId", catTypeId);
+            throw new InvalidArgumentException("The specific category type is not existed.", "cateTypeId", catTypeId)
+            .withErrorCode("3228", "cateTypeId", catTypeId);
         }
         return catType;
     }
@@ -182,14 +185,16 @@ public class BaseKeyInfoServiceImpl implements BaseKeyInfoService {
     private void validateCodeForCreation(int catId, CatCodeDto codeDto) {
         boolean hasSameCatAndCode = basekeyCodeRepository.countByCatIdAndCode(catId, codeDto.getCode()) > 0;
         if (hasSameCatAndCode) {
-            throw new InvalidArgumentException("The given code is existed.", "code", codeDto.getCode());
+            throw new InvalidArgumentException("The given code is existed.", "code", codeDto.getCode())
+            .withErrorCode("3229", "code", codeDto.getCode());
         }
     }
 
     private Optional<AdmBasekeyCat> validateCategory(int catId) {
         Optional<AdmBasekeyCat> basekeyCat = basekeyCatRepository.findById(catId);
         if (!basekeyCat.isPresent()) {
-            throw new InvalidArgumentException("The specific category is not existed.", "catId", catId);
+            throw new InvalidArgumentException("The specific category is not existed.", "catId", catId)
+            .withErrorCode("3230", "catId", catId);
         }
         return basekeyCat;
     }
@@ -204,7 +209,8 @@ public class BaseKeyInfoServiceImpl implements BaseKeyInfoService {
 
     private void validateCodeId(int codeId) {
         if (!basekeyCodeRepository.existsById(codeId)) {
-            throw new InvalidArgumentException("The specific base key codeId is not existed.", "codeId", codeId);
+            throw new InvalidArgumentException("The specific base key codeId is not existed.", "codeId", codeId)
+            .withErrorCode("3231", "codeId", codeId);
         }
     }
 
@@ -217,11 +223,13 @@ public class BaseKeyInfoServiceImpl implements BaseKeyInfoService {
         AdmBasekeyCat keyCat = existingKeyCode.getAdmBasekeyCat();
 
         if (basekeyCodeRepository.countForSameCatAndCode(keyCat.getIdAdmBasekeyCat(), codeId, codeDto.getCode()) > 0) {
-            throw new InvalidArgumentException("The given code is existed.", "code", codeDto.getCode());
+            throw new InvalidArgumentException("The given code is existed.", "code", codeDto.getCode())
+            .withErrorCode("3232", "code", codeDto.getCode());
         }
         Integer groupCodeId = (Integer)codeDto.getGroupCodeId();
         if (groupCodeId != null && basekeyCodeRepository.existsById(groupCodeId)) {
-            throw new InvalidArgumentException("The give group code is not existed.", "groupCodeId", groupCodeId);
+            throw new InvalidArgumentException("The give group code is not existed.", "groupCodeId", groupCodeId)
+            .withErrorCode("3233", "groupCodeId", groupCodeId);
         }
 
         AdmBasekeyCat admBasekeyCat = null;
@@ -259,12 +267,14 @@ public class BaseKeyInfoServiceImpl implements BaseKeyInfoService {
         if (PriorityUpdateOper.Up == oper) {
             exchangeCode = basekeyCodeRepository.getForLessSeq(keyCat.getIdAdmBasekeyCat(), curKeyCode.getSeqNo());
             if (exchangeCode == null) {
-                throw new InvalidArgumentException("The specific Base key code is already in the first place.", "codeId", codeId);
+                throw new InvalidArgumentException("The specific Base key code is already in the first place.", "codeId", codeId)
+                .withErrorCode("3234",  "codeId", codeId);
             }
         } else { // Down
             exchangeCode = basekeyCodeRepository.getForLargerSeq(keyCat.getIdAdmBasekeyCat(), curKeyCode.getSeqNo());
             if (exchangeCode == null) {
-                throw new InvalidArgumentException("The specific Base key code is already in the last place.", "codeId", codeId);
+                throw new InvalidArgumentException("The specific Base key code is already in the last place.", "codeId", codeId)
+                .withErrorCode("3235", "codeId", codeId);
             }
         }
 

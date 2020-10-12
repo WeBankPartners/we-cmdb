@@ -75,7 +75,7 @@
         </div>
         <div v-if="ciTypePermissions.length" class="batch-operation-btn">
           <Button type="primary" @click="savePermissionsInBatch">{{ $t('save') }}</Button>
-          <Button @click="canclePermissionsOperation">{{ $t('cancel') }}</Button>
+          <Button @click="cancelPermissionsOperation">{{ $t('cancel') }}</Button>
         </div>
       </Card>
     </Col>
@@ -230,35 +230,40 @@ export default {
           key: 'enquiryPermission',
           inputKey: 'enquiryPermission',
           defaultDisplaySeqNo: 1,
-          ...this.defaultOptionAttrs
+          ...this.defaultOptionAttrs,
+          isDisplayed: true
         },
         {
           title: this.$t('new'),
           key: 'creationPermission',
           inputKey: 'creationPermission',
           defaultDisplaySeqNo: 2,
-          ...this.defaultOptionAttrs
+          ...this.defaultOptionAttrs,
+          isDisplayed: true
         },
         {
           title: this.$t('modify'),
           key: 'modificationPermission',
           inputKey: 'modificationPermission',
           defaultDisplaySeqNo: 3,
-          ...this.defaultOptionAttrs
+          ...this.defaultOptionAttrs,
+          isDisplayed: true
         },
         {
           title: this.$t('execute'),
           key: 'executionPermission',
           inputKey: 'executionPermission',
           defaultDisplaySeqNo: 4,
-          ...this.defaultOptionAttrs
+          ...this.defaultOptionAttrs,
+          isDisplayed: true
         },
         {
           title: this.$t('delete'),
           key: 'removalPermission',
           inputKey: 'removalPermission',
           defaultDisplaySeqNo: 5,
-          ...this.defaultOptionAttrs
+          ...this.defaultOptionAttrs,
+          isDisplayed: true
         }
       ]
     }
@@ -296,6 +301,11 @@ export default {
         const headerLength = data.header.length
         let _attrsPermissionsColumns = data.header
           .map((h, index) => {
+            let tableName = ''
+            const isRef = h.inputType === 'ref' || h.inputType === 'multiRef'
+            if (isRef) {
+              tableName = this.allCiTypes.find(_ => _.ciTypeId === h.referenceId).tableName
+            }
             return {
               ...h,
               title: h.name,
@@ -315,7 +325,8 @@ export default {
               allCiTypes: this.allCiTypes,
               isFilterAttr: true,
               displayAttrType: ['ref', 'multiRef'],
-              rootCis: [h.propertyName]
+              rootCis: [isRef ? tableName : h.propertyName],
+              rootCiTypeId: h.referenceId
             }
           })
           .concat(
@@ -655,7 +666,7 @@ export default {
         this.getPermissions(true, true, this.currentRoleName)
       }
     },
-    canclePermissionsOperation () {
+    cancelPermissionsOperation () {
       this.ciTypePermissions = JSON.parse(JSON.stringify(this.cacheOriginCiTypePermission))
     }
     // permissionResponseHandeler (res) {

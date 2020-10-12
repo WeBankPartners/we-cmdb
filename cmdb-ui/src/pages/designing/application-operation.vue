@@ -298,7 +298,7 @@
         <FormItem>
           <div class="opetation-btn-zone">
             <Button type="primary" @click="createNode" :loading="btnLoading">{{ $t('save') }}</Button>
-            <Button @click="cancleAddNode" class="opetation-btn">{{ $t('cancel') }}</Button>
+            <Button @click="cancelAddNode" class="opetation-btn">{{ $t('cancel') }}</Button>
           </div>
         </FormItem>
       </Form>
@@ -438,7 +438,6 @@ export default {
           if (statusCode === 'OK') {
             this.$Message.success('success!')
           }
-          this.$Modal.remove()
           const ciData = await queryCiData({
             id: activePanal.ciTypeId,
             queryObject: {
@@ -477,8 +476,10 @@ export default {
         title: this.$t('save_confirm'),
         'z-index': 1000000,
         onOk: async () => {
-          this.$Modal.remove()
           this.btnLoading = true
+          setTimeout(() => {
+            this.btnLoading = false
+          }, 5000)
           // eslint-disable-next-line no-unused-vars
           let activePanalData = null
           // eslint-disable-next-line no-unused-vars
@@ -536,13 +537,13 @@ export default {
               imageFileId: ''
             }
             this.$emit('operationReload', this.operateData.guid, addNode, '', 'addNode')
-            this.cancleAddNode()
+            this.cancelAddNode()
           }
         },
         onCancel: () => {}
       })
     },
-    cancleAddNode () {
+    cancelAddNode () {
       this.isEdit = false
       this.showAddNodeArea = false
       this.showNewNodeForm = false
@@ -559,8 +560,10 @@ export default {
         title: this.$t('save_confirm'),
         'z-index': 1000000,
         onOk: async () => {
-          this.$Modal.remove()
           this.btnLoading = true
+          setTimeout(() => {
+            this.btnLoading = false
+          }, 5000)
           // eslint-disable-next-line no-unused-vars
           let activePanalData = null
           // eslint-disable-next-line no-unused-vars
@@ -654,7 +657,7 @@ export default {
       this.defaultPanal = ''
       this.panalData = []
       this.newPanalDataKeys = []
-      this.cancleAddNode()
+      this.cancelAddNode()
       this.operateData = operateData
       let tmp = JSON.parse(JSON.stringify(this.operateData))
       this.parentOriginData = JSON.parse(JSON.stringify(this.operateData))

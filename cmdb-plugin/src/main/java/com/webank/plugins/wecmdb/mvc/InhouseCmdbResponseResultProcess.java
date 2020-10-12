@@ -14,13 +14,13 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import com.webank.cmdb.dto.CustomResponseDto;
 import com.webank.plugins.wecmdb.dto.inhouse.InhouseCmdbResponse;
-import com.webank.plugins.wecmdb.dto.wecube.WecubeResponse;
 
 @ControllerAdvice(assignableTypes = com.webank.plugins.wecmdb.controller.InhouseCmdbAdapterController.class)
 public class InhouseCmdbResponseResultProcess implements ResponseBodyAdvice<Object> {
     private final static Logger logger = LoggerFactory.getLogger(InhouseCmdbResponseResultProcess.class);
     private static final String SUCCESS = "Success";
-
+    
+    
     @ResponseBody
     @ExceptionHandler(Exception.class)
     public InhouseCmdbResponse handleException(Exception ex) {

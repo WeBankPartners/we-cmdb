@@ -127,7 +127,8 @@ public class AdmCiTypeAttr implements Serializable {
         if (InputType.MultRef.getCode().equals(inputType) || InputType.MultSelDroplist.getCode().equals(inputType)) {
             return this.admCiType.getTableName() + "$" + getPropertyName();
         } else {
-            throw new ServiceException(String.format("Cmdb internal error, attribute [%d] is not multiple reference or multiple list.", idAdmCiTypeAttr));
+            throw new ServiceException(String.format("Cmdb internal error, attribute [%d] is not multiple reference or multiple list.", idAdmCiTypeAttr))
+            .withErrorCode("3101", idAdmCiTypeAttr);
         }
     }
 

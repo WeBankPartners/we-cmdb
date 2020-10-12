@@ -3,7 +3,15 @@
     <Row class="artifact-management">
       <Col span="6">
         <span style="margin-right: 10px">{{ $t('system') }}</span>
-        <Select filterable @on-change="onSystemDesignSelect" v-model="systemVersion" label-in-name style="width: 85%;">
+        <Select
+          filterable
+          clearable
+          @on-change="onSystemDesignSelect"
+          @on-clear="onClearDesignSelect"
+          v-model="systemVersion"
+          label-in-name
+          style="width: 85%;"
+        >
           <Option v-for="item in systems" :value="item.guid" :key="item.guid">{{ item.key_name }}</Option>
         </Select>
       </Col>
@@ -31,7 +39,7 @@
           <Button slot="desc" @click="reloadHandler">Reload</Button>
         </Alert>
 
-        <div class="graph-container" id="graphTree">
+        <div v-show="showApplicationLogicTree" class="graph-container" id="graphTree">
           <Spin size="large" fix v-if="treeSpinShow">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
             <div>{{ $t('loading') }}</div>
@@ -155,7 +163,8 @@ export default {
       copyEditData: null,
       isHandleNodeClick: false,
       instancesInUnit: {},
-      showApplicationDeploymentComponent: false
+      showApplicationDeploymentComponent: false,
+      showApplicationLogicTree: false
     }
   },
   computed: {
@@ -321,7 +330,11 @@ export default {
       this.querySysTree()
       this.isDataChanged = false
     },
+    onClearDesignSelect () {
+      this.showApplicationDeploymentComponent = false
 
+      this.showApplicationLogicTree = false
+    },
     onSystemDesignSelect (key) {
       this.isShowTabs = false
       this.systemData = []
@@ -612,6 +625,7 @@ export default {
 
       initEvent()
       this.renderTreeGraph(this.systemTreeData)
+      this.showApplicationLogicTree = true
       this.treeSpinShow = false
     },
     loadImage (nodesString) {
@@ -738,6 +752,7 @@ export default {
       return dot
     },
     handleTabClick (name) {
+      this.payload.sorting = {}
       this.payload.filters = []
       this.currentTab = name
       if (
@@ -884,6 +899,7 @@ export default {
       }
     },
     sortHandler (data) {
+      console.log(data.order)
       if (data.order === 'normal') {
         delete this.payload.sorting
       } else {
@@ -1174,9 +1190,13 @@ export default {
         codeId: found.codeId,
         systemGuid: this.systemVersion
       }
-      this.$refs[this.tableRef][0].isTableLoading(true)
+      if (this.$refs[this.tableRef].length > 0) {
+        this.$refs[this.tableRef][0].isTableLoading(true)
+      }
       const { statusCode, data } = await getDeployCiData(requst, this.payload)
-      this.$refs[this.tableRef][0].isTableLoading(false)
+      if (this.$refs[this.tableRef].length > 0) {
+        this.$refs[this.tableRef][0].isTableLoading(false)
+      }
       if (statusCode === 'OK') {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
