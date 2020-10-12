@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.webank.cmdb.controller.ui.helper.UIWrapperService;
 import com.webank.cmdb.dto.QueryRequest;
 
+@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class UIWrapperServiceTests {
