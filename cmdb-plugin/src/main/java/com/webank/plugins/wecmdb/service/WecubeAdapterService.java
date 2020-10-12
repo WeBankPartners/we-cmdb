@@ -421,6 +421,7 @@ public class WecubeAdapterService {
                 results.add(resultItem);
             }catch(Exception e) {
                 String errorMessage = String.format("Failed to update CI [guid = %s], error = %s", guid, e.getMessage());
+                logger.warn(errorMessage, e);
                 resultItem.put(ERROR_CODE, FAIL);
                 resultItem.put(ERROR_MESSAGE, errorMessage);
                 exceptionHolders.add(new ExceptionHolder(operateCiDataUpdateDto.getCallbackParameter(), operateCiDataUpdateDto, errorMessage, null));
