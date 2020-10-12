@@ -7,7 +7,9 @@
           <Select
             v-model="systemDesignVersion"
             @on-change="onSystemDesignSelect"
+            @on-clear="onClearDesignSelect"
             filterable
+            clearable
             label-in-name
             style="width: 35%;"
           >
@@ -58,7 +60,7 @@
             <div v-else-if="!appLogicData.length" class="no-data">
               {{ $t('no_data') }}
             </div>
-            <div style="padding-right: 20px">
+            <div v-show="appLogicData.length" style="padding-right: 20px">
               <div class="graph-container" id="appLogicGraph"></div>
             </div>
           </TabPane>
@@ -76,7 +78,7 @@
             </div>
             <Row>
               <Col span="18" style="min-height:40px;">
-                <div>
+                <div v-show="serviceInvokeData.length">
                   <div class="graph-container" id="serviceInvokeGraph"></div>
                 </div>
               </Col>
@@ -456,6 +458,15 @@ export default {
         this.getCurrentData()
       }
     },
+    onClearDesignSelect () {
+      // 清理应用逻辑图
+      this.appLogicData = []
+      // 清理服务调用图
+      this.serviceInvokeData = []
+      this.isShowInvokeSequence = false
+      // 清理物理部署图
+      this.physicalGraphData = []
+    },
     async getAllDesignTreeFromSystemDesign () {
       this.allUnitDesign = []
       const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
@@ -830,6 +841,7 @@ export default {
         .attr('stroke-opacity', '1')
     },
     handleTabClick (name) {
+      this.payload.sorting = {}
       this.payload.filters = []
       this.currentTab = name
       if (name !== 'architectureDesign' && name !== 'physicalGraph' && name !== 'serviceInvoke') {

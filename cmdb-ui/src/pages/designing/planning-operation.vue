@@ -250,7 +250,7 @@
           @on-open-change="getNodeTypes"
           filterable
           clearable
-          @on-clear="cancleAddNode"
+          @on-clear="cancelAddNode"
         >
           <Option v-for="(item, index) in canCreateNodeTypes" :value="item.value" :key="item.value + index">{{
             item.label
@@ -312,7 +312,7 @@
           <FormItem>
             <div class="opetation-btn-zone">
               <Button type="primary" @click="createNode" :loading="btnLoading">{{ $t('save') }}</Button>
-              <Button @click="cancleAddNode" class="opetation-btn">{{ $t('cancel') }}</Button>
+              <Button @click="cancelAddNode" class="opetation-btn">{{ $t('cancel') }}</Button>
             </div>
           </FormItem>
         </Form>
@@ -443,7 +443,7 @@
           @on-open-change="getLineTypes"
           filterable
           clearable
-          @on-clear="cancleAddLine"
+          @on-clear="cancelAddLine"
         >
           <Option v-for="(item, index) in canCreateLineTypes" :value="item.value" :key="item.value + index">{{
             item.label
@@ -501,7 +501,7 @@
           <FormItem>
             <div class="opetation-btn-zone">
               <Button type="primary" @click="createLine" :loading="btnLoading">{{ $t('save') }}</Button>
-              <Button @click="cancleAddLine" class="opetation-btn">{{ $t('cancel') }}</Button>
+              <Button @click="cancelAddLine" class="opetation-btn">{{ $t('cancel') }}</Button>
             </div>
           </FormItem>
         </Form>
@@ -594,8 +594,8 @@ export default {
     },
     changeTab (tabNum) {
       this.currentTab = tabNum
-      this.cancleAddLine()
-      this.cancleAddNode()
+      this.cancelAddLine()
+      this.cancelAddNode()
     },
     async linkManagementData (linkData) {
       this.linkData = linkData
@@ -705,8 +705,10 @@ export default {
         title: this.$t('save_confirm'),
         'z-index': 1000000,
         onOk: async () => {
-          this.$Modal.remove()
           this.btnLoading = true
+          setTimeout(() => {
+            this.btnLoading = false
+          }, 5000)
           // eslint-disable-next-line no-unused-vars
           let activeLineData = null
           // eslint-disable-next-line no-unused-vars
@@ -767,13 +769,13 @@ export default {
                 data: tmp
               }
             })
-            this.cancleAddLine()
+            this.cancelAddLine()
           }
         },
         onCancel: () => {}
       })
     },
-    cancleAddLine () {
+    cancelAddLine () {
       this.isEdit = false
       this.showAddLineArea = false
       this.showNewLineForm = false
@@ -794,7 +796,6 @@ export default {
           }
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
-            this.$Modal.remove()
             this.$Message.success('success!')
             this.$emit('operationReload', '', {
               type: 'remove',
@@ -803,7 +804,6 @@ export default {
               }
             })
           }
-          this.$Modal.remove()
         },
         onCancel: () => {}
       })
@@ -908,7 +908,6 @@ export default {
             this.operateData.children = children
             this.$emit('operationReload', this.operateData)
           }
-          this.$Modal.remove()
         },
         onCancel: () => {}
       })
@@ -918,8 +917,10 @@ export default {
         title: this.$t('save_confirm'),
         'z-index': 1000000,
         onOk: async () => {
-          this.$Modal.remove()
           this.btnLoading = true
+          setTimeout(() => {
+            this.btnLoading = false
+          }, 5000)
           // eslint-disable-next-line no-unused-vars
           let activePanalData = null
           // eslint-disable-next-line no-unused-vars
@@ -978,13 +979,13 @@ export default {
             this.panalData.push(params)
             this.operateData.children = this.panalData
             this.$emit('operationReload', this.operateData)
-            this.cancleAddNode()
+            this.cancelAddNode()
           }
         },
         onCancel: () => {}
       })
     },
-    cancleAddNode () {
+    cancelAddNode () {
       this.isEdit = false
       this.showAddNodeArea = false
       this.showNewNodeForm = false
@@ -1001,8 +1002,10 @@ export default {
         title: this.$t('save_confirm'),
         'z-index': 1000000,
         onOk: async () => {
-          this.$Modal.remove()
           this.btnLoading = true
+          setTimeout(() => {
+            this.btnLoading = false
+          }, 5000)
           // eslint-disable-next-line no-unused-vars
           let activePanalData = null
           // eslint-disable-next-line no-unused-vars
@@ -1108,7 +1111,7 @@ export default {
       this.panalData = []
       this.groupingNode = {}
       this.groupingNodeKeys = []
-      this.cancleAddNode()
+      this.cancelAddNode()
       this.operateData = operateData
       let tmp = JSON.parse(JSON.stringify(this.operateData))
       delete tmp.children
