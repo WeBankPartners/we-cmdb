@@ -142,5 +142,18 @@
                 </outputParameters>
             </interface>
         </plugin>
+        <plugin name="ci-data-attribute-update" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+            <interface action="attribute-update" path="/wecmdb/data/update" filterRule="">
+                <inputParameters>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">entityName</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">guid</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">attrName</parameter>
+                    <parameter datatype="string" required="N" sensitiveData="N" mappingType="constant">attrVal</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">guid</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
     </plugins>
 </package>
