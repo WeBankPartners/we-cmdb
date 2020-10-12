@@ -441,6 +441,9 @@ export default {
           this.updateLoading = true
         }
         this.btnLoading = true
+        setTimeout(() => {
+          this.btnLoading = false
+        }, 5000)
         const { statusCode, message } = this.isNewIntQuery
           ? await saveIntQuery(this.selectedCI.id, this.newGraphName, reqData)
           : await updateIntQuery(this.selectedQuery.id, reqData)
@@ -451,6 +454,7 @@ export default {
             title: 'Success',
             desc: message
           })
+          this.newGraphNameModalVisible = false
           if (this.isNewIntQuery) {
             this.getQueryNameList(this.selectedCI.id)
           }
