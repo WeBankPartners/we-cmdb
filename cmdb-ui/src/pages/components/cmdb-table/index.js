@@ -581,6 +581,32 @@ export default {
           }
         })
     },
+    // 优化差异化变量tooltip显示
+    managementContent (str) {
+      let arr = str.split(',')
+      const sIndex = arr.findIndex(item => item.indexOf('=') > 0)
+      let keyArr = []
+      let valueArr = []
+      arr.forEach((item, index) => {
+        if (index < sIndex) {
+          keyArr.push(item)
+        } else if (index === sIndex) {
+          let splitTag = item.split('=')
+          keyArr.push(splitTag[0])
+          valueArr.unshift(splitTag[1])
+        } else {
+          valueArr.push(item)
+        }
+      })
+      // 差异化表达式中字段加了奇葩字符，加此空格优化显示
+      keyArr[0] = ' ' + keyArr[0]
+      let res = []
+      const len = Math.max(keyArr.length, valueArr.length)
+      for (let j = 0; j < len; j++) {
+        res.push((keyArr[j] || '***') + '=' + (valueArr[j] || ''))
+      }
+      return res.join('\n')
+    },
     renderCol (col, isLastCol = false) {
       return {
         ...col,
@@ -603,7 +629,6 @@ export default {
           } else {
             content = params.row.weTableForm[col.key]
           }
-
           const containerId = 'ref' + Math.ceil(Math.random() * 1000000)
 
           return h(
@@ -617,7 +642,11 @@ export default {
                   ) {
                     this.timer = setTimeout(
                       params => {
-                        this.tipContent = content
+                        if (col.key === 'variable_values') {
+                          this.tipContent = this.managementContent(content)
+                        } else {
+                          this.tipContent = content
+                        }
                         const popcorn = document.querySelector('#' + containerId)
                         const tooltip = document.querySelector('#' + params.randomId)
                         createPopper(popcorn, tooltip, {
@@ -737,7 +766,7 @@ export default {
         <div id={this.randomId} style="z-index: 100;">
           {this.tipContent && (
             <div style="word-break: break-word;background-color: rgba(70,76,91,.9);padding: 8px 12px;color: #fff;text-align: left;border-radius: 4px;border-radius: 4px;box-shadow: 0 1px 6px rgba(0,0,0,.2);width: 250px;">
-              {this.tipContent}
+              <p style="white-space: pre-wrap;">{this.tipContent}</p>
             </div>
           )}
         </div>
