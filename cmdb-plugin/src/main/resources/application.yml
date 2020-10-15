@@ -77,10 +77,10 @@ platform:
       sub-system-private-key: MockPrivateKey
       auth-server-public-key: MockPublicKey
 
-logging:
-  level:
-    root: INFO
-    com:
-      webank:
-        cmdb: INFO
+#logging:
+#  level:
+#    root: INFO
+#    com:
+#      webank:
+#        cmdb: INFO
     
