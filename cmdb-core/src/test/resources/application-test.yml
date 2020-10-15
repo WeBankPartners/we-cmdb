@@ -21,12 +21,12 @@ cmdb:
     enabled: false
     whitelist-ip-address: 127.0.0.1
 
-logging:
-  level:
-    root: WARN
-    com:
-      webank:
-        cmdb: INFO
-    org:
-      hibernate:
-        SQL: INFO
+#logging:
+#  level:
+#    root: WARN
+#    com:
+#      webank:
+#        cmdb: INFO
+#    org:
+#      hibernate:
+#        SQL: INFO
