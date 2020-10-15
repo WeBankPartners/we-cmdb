@@ -14,14 +14,15 @@ import com.webank.cmdb.config.ApplicationProperties;
 import com.webank.cmdb.config.DatabaseConfig;
 import com.webank.cmdb.config.SpringAppConfig;
 import com.webank.cmdb.config.SpringWebConfig;
+import com.webank.plugins.wecmdb.config.PluginApplicationProperties;
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
 @EnableSwagger2
-@EnableConfigurationProperties({ApplicationProperties.class})
+@EnableConfigurationProperties({PluginApplicationProperties.class,ApplicationProperties.class})
 @EnableEncryptableProperties
-@ComponentScan({ "com.webank.plugins.wecmdb.service", "com.webank.plugins.wecmdb.controller", "com.webank.plugins.wecmdb.mvc", "com.webank.cmdb.config", "com.webank.cmdb.repository" })
+@ComponentScan({ "com.webank.plugins.wecmdb.propenc", "com.webank.plugins.wecmdb.service", "com.webank.plugins.wecmdb.controller", "com.webank.plugins.wecmdb.mvc", "com.webank.cmdb.config", "com.webank.cmdb.repository" })
 @Import({ DatabaseConfig.class })
 public class Application extends AbstractAnnotationConfigDispatcherServletInitializer {
 

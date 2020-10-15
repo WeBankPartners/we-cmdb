@@ -82,7 +82,6 @@ public class WecubeAdapterService {
         return staticDtoService.query(CiTypeAttrDto.class, queryObject);
     }
 
-    @Transactional
     public List<Map<String, Object>> confirmBatchCiData(List<OperateCiDto> operateCiDtos, List<ExceptionHolder> exceptionHolders) {
         List<Map<String, Object>> results = new ArrayList<>();
         operateCiDtos.forEach(operateCiDto -> {
@@ -396,7 +395,6 @@ public class WecubeAdapterService {
         return result;
     }
     
-    @Transactional
     public List<Map<String, Object>> updateCiDataByGuid(List<OperateCiDataUpdateDto> operateCiDataUpdateDtos, List<ExceptionHolder> exceptionHolders){
         List<Map<String, Object>> results = new ArrayList<>();
         operateCiDataUpdateDtos.forEach(operateCiDataUpdateDto -> {
