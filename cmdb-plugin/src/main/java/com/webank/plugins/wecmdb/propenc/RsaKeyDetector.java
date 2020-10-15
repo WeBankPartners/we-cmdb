@@ -27,6 +27,7 @@ public class RsaKeyDetector {
     }
 
     public RsaKeyDetector(String rasKeyFilePath) {
+        log.info("init {} with {}", RsaKeyDetector.class.getSimpleName(), rasKeyFilePath);
         if (rasKeyFilePath == null || rasKeyFilePath.trim().length() < 1) {
             rsaKeyFile = null;
             return;
