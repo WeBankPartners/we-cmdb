@@ -1,4 +1,5 @@
 target/
+cmdb-core/data/
 # Ignore the generated front-end resource
 **/resources/static/
 # Ignore the generated index.html
