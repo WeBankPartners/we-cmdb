@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
 
-    <property name="logPath" value="${CMDB_LOG_PATH:-./data/wecmdb/log}"/>
+    <property name="logPath" value="${CMDB_LOG_PATH:-/data/wecmdb/log}"/>
     <property name="logFile" value="cmdb-core"/>
 
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">

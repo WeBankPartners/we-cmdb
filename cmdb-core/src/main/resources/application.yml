@@ -62,9 +62,3 @@ cmdb:
 
     #Effective ONLY when security-enabled set as true
     whitelist-ip-address: 127.0.0.1
-logging:
-  level:
-    root: INFO
-    com:
-      webank:
-        cmdb: INFO
