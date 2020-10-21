@@ -111,6 +111,22 @@ public class WecubeAdapterController {
         }
         return response;
     }
+    
+    @PostMapping("/data/update")
+    @ResponseBody
+    public OperateCiJsonResponse updateCiData(@RequestBody OperateCiDataUpdateDtoInputs inputs) {
+        List<OperateCiDataUpdateDto> operateCiDataUpdateDtos = inputs.getInputs();
+        OperateCiJsonResponse response = new OperateCiJsonResponse();
+        List<ExceptionHolder> exceptionHolders = new ArrayList<ExceptionHolder>();
+        List<Map<String, Object>> results = wecubeAdapterService.updateCiDataByGuid(operateCiDataUpdateDtos, exceptionHolders);
+        
+        if (exceptionHolders.size() > 0) {
+            response = OperateCiJsonResponse.errorWithData(String.format("Fail to update [%s] CIs, detail error in the data block", inputs), results);
+        } else {
+            response = OperateCiJsonResponse.okayWithData(results);
+        }
+        return response;
+    }
 
     @PostMapping("/data/refresh")
     @ResponseBody
