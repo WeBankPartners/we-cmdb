@@ -2,7 +2,7 @@
 <configuration scan="true" scanPeriod="30 seconds">
 
     <property name="logPath" value="${CMDB_LOG_PATH:-/data/wecmdb/log}"/>
-    <property name="logFile" value="cmdb-core"/>
+    <property name="logFile" value="wecmdb-plugin"/>
 
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
         <resetJUL>true</resetJUL>
@@ -36,8 +36,9 @@
     </appender>
 
     <root level="info">
-    <!-- 
+     <!--
         <appender-ref ref="console"/>
+     
      -->
         <appender-ref ref="rollingFile"/>
     </root>

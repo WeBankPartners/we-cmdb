@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="ci-data-page">
     <Tabs type="card" :value="currentTab" closable @on-tab-remove="handleTabRemove" @on-click="handleTabClick">
       <TabPane :closable="false" name="CMDB" :label="$t('cmdb_model')">
         <card>
@@ -217,7 +217,7 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           .zoom(true)
-          .scale(1.2)
+          .fit(true)
           .width(window.innerWidth - 92)
           .height(window.innerHeight - 190)
           .attributer(function (d) {
@@ -917,7 +917,10 @@ export default {
     max-height: 450px;
     overflow-y: auto;
   }
-
+  .ivu-select-selection {
+    min-height: 24px !important;
+    height: 26px !important;
+  }
   .copy-form {
     display: flex;
     flex-flow: column nowrap;
@@ -950,12 +953,17 @@ export default {
   /deep/ .ivu-input,
   /deep/ .ivu-select-selection {
     height: 28px;
-
+    min-height: 28px !important;
     .ivu-select-placeholder,
     .ivu-select-selected-value {
       height: 28px;
       line-height: 28px;
     }
+  }
+
+  /deep/ .ivu-select-multiple .ivu-tag {
+    height: 21px;
+    line-height: 21px;
   }
 
   /deep/ .ivu-input-suffix i {

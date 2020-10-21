@@ -75,7 +75,7 @@
         </div>
         <div v-if="ciTypePermissions.length" class="batch-operation-btn">
           <Button type="primary" @click="savePermissionsInBatch">{{ $t('save') }}</Button>
-          <Button @click="canclePermissionsOperation">{{ $t('cancel') }}</Button>
+          <Button @click="cancelPermissionsOperation">{{ $t('cancel') }}</Button>
         </div>
       </Card>
     </Col>
@@ -301,6 +301,11 @@ export default {
         const headerLength = data.header.length
         let _attrsPermissionsColumns = data.header
           .map((h, index) => {
+            let tableName = ''
+            const isRef = h.inputType === 'ref' || h.inputType === 'multiRef'
+            if (isRef) {
+              tableName = this.allCiTypes.find(_ => _.ciTypeId === h.referenceId).tableName
+            }
             return {
               ...h,
               title: h.name,
@@ -320,7 +325,7 @@ export default {
               allCiTypes: this.allCiTypes,
               isFilterAttr: true,
               displayAttrType: ['ref', 'multiRef'],
-              rootCis: [h.propertyName],
+              rootCis: [isRef ? tableName : h.propertyName],
               rootCiTypeId: h.referenceId
             }
           })
@@ -661,7 +666,7 @@ export default {
         this.getPermissions(true, true, this.currentRoleName)
       }
     },
-    canclePermissionsOperation () {
+    cancelPermissionsOperation () {
       this.ciTypePermissions = JSON.parse(JSON.stringify(this.cacheOriginCiTypePermission))
     }
     // permissionResponseHandeler (res) {

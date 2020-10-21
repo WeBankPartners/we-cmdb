@@ -7,6 +7,8 @@
           <Select
             v-model="systemDesignVersion"
             @on-change="onSystemDesignSelect"
+            @on-clear="onClearDesignSelect"
+            clearable
             filterable
             label-in-name
             style="width: 35%;"
@@ -100,7 +102,7 @@
             </div>
             <Row>
               <Col span="18" style="min-height:40px;">
-                <div>
+                <div v-show="serviceInvokeData.length">
                   <div class="graph-container" id="serviceInvokeGraph"></div>
                 </div>
               </Col>
@@ -508,6 +510,15 @@ export default {
       } else {
         this.getCurrentData()
       }
+    },
+    onClearDesignSelect () {
+      // 清理应用逻辑图
+      this.showApplicationArchitectureComponent = false
+      // 清理服务调用图
+      this.serviceInvokeData = []
+      this.isShowInvokeSequence = false
+      // 清理物理部署图
+      this.physicalGraphData = []
     },
     async getAllDesignTreeFromSystemDesign () {
       this.showApplicationArchitectureComponent = true
