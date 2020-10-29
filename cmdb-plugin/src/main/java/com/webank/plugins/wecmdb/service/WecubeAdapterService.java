@@ -405,7 +405,7 @@ public class WecubeAdapterService {
 
             if (StringUtils.isBlank(operateCiDataUpdateDto.getGuid())) {
                 String errorMessage = "Field 'guid' is required for CI data update.";
-                resultItem.put(ERROR_CODE, SUCCESS);
+                resultItem.put(ERROR_CODE, FAIL);
                 resultItem.put(ERROR_MESSAGE, errorMessage);
                 results.add(resultItem);
                 return;
