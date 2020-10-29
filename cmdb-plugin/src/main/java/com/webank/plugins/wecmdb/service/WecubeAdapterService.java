@@ -408,7 +408,6 @@ public class WecubeAdapterService {
                 resultItem.put(ERROR_CODE, FAIL);
                 resultItem.put(ERROR_MESSAGE, errorMessage);
                 results.add(resultItem);
-                return;
             }
             
             String guid = operateCiDataUpdateDto.getGuid();
@@ -426,7 +425,6 @@ public class WecubeAdapterService {
                 resultItem.put(ERROR_MESSAGE, errorMessage);
                 exceptionHolders.add(new ExceptionHolder(operateCiDataUpdateDto.getCallbackParameter(), operateCiDataUpdateDto, errorMessage, null));
                 results.add(resultItem);
-                return;
             }
         });
 
