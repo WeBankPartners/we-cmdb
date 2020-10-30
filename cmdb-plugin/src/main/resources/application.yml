@@ -16,6 +16,7 @@ server:
 
 plugins:
   pacakge-name: wecmdb
+  property-encrypt-key-path: ${PROPERTY_ENCRYPT_KEY_PATH:/data/certs/rsa_key}
 
 spring:
   banner:
@@ -77,10 +78,10 @@ platform:
       sub-system-private-key: MockPrivateKey
       auth-server-public-key: MockPublicKey
 
-logging:
-  level:
-    root: INFO
-    com:
-      webank:
-        cmdb: INFO
+#logging:
+#  level:
+#    root: INFO
+#    com:
+#      webank:
+#        cmdb: INFO
     

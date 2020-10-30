@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +82,6 @@ public class WecubeAdapterService {
         return staticDtoService.query(CiTypeAttrDto.class, queryObject);
     }
 
-    @Transactional
     public List<Map<String, Object>> confirmBatchCiData(List<OperateCiDto> operateCiDtos, List<ExceptionHolder> exceptionHolders) {
         List<Map<String, Object>> results = new ArrayList<>();
         operateCiDtos.forEach(operateCiDto -> {
@@ -393,6 +393,55 @@ public class WecubeAdapterService {
         logger.info("[Performance measure][updateCiData] Elapsed time in converting updated ci data: {}",stopwatch.toString());
 
         return result;
+    }
+    
+    public List<Map<String, Object>> updateCiDataByGuid(List<OperateCiDataUpdateDto> operateCiDataUpdateDtos, List<ExceptionHolder> exceptionHolders){
+        List<Map<String, Object>> results = new ArrayList<>();
+        operateCiDataUpdateDtos.forEach(operateCiDataUpdateDto -> {
+            Map<String, Object> resultItem = new HashMap<>();
+            resultItem.put(CALLBACK_PARAMETER, operateCiDataUpdateDto.getCallbackParameter());
+            resultItem.put(ERROR_CODE, SUCCESS);
+            resultItem.put(ERROR_MESSAGE, "");
+
+            if (StringUtils.isBlank(operateCiDataUpdateDto.getGuid())) {
+                String errorMessage = "Field 'guid' is required for CI data update.";
+                resultItem.put(ERROR_CODE, FAIL);
+                resultItem.put(ERROR_MESSAGE, errorMessage);
+                results.add(resultItem);
+            }
+            
+            String guid = operateCiDataUpdateDto.getGuid();
+            
+            try {
+                updateSingleCiDataByGuid(operateCiDataUpdateDto);
+                resultItem.put("guid", guid);
+                resultItem.put(ERROR_CODE, SUCCESS);
+                resultItem.put(ERROR_MESSAGE, "ok");
+                results.add(resultItem);
+            }catch(Exception e) {
+                String errorMessage = String.format("Failed to update CI [guid = %s], error = %s", guid, e.getMessage());
+                logger.warn(errorMessage, e);
+                resultItem.put(ERROR_CODE, FAIL);
+                resultItem.put(ERROR_MESSAGE, errorMessage);
+                exceptionHolders.add(new ExceptionHolder(operateCiDataUpdateDto.getCallbackParameter(), operateCiDataUpdateDto, errorMessage, null));
+                results.add(resultItem);
+            }
+        });
+
+        return results;
+    }
+    
+    private void updateSingleCiDataByGuid(OperateCiDataUpdateDto operateCiDataUpdateDto) {
+        String entityName = operateCiDataUpdateDto.getEntityName();
+        String guid = operateCiDataUpdateDto.getGuid();
+        String attrName = operateCiDataUpdateDto.getAttrName();
+        Object attrVal = operateCiDataUpdateDto.getAttrVal();
+        
+        Map<String, Object> convertedUpdateReq = new HashMap<String, Object>();
+        convertedUpdateReq.put("guid", guid);
+        convertedUpdateReq.put(attrName, attrVal);
+        
+        updateCiData(entityName, Arrays.asList(convertedUpdateReq));
     }
 
     private List<Map<String, Object>> convertedRequest(List<Map<String, Object>> originRequest) {
