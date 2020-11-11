@@ -87,7 +87,6 @@ public interface AdmCiTypeAttrRepository extends JpaRepository<AdmCiTypeAttr, In
     List<AdmCiTypeAttr> findAllByFilterRuleNotNull();
 
 
-    @Cacheable(value="admCiTypeAttrRepository-getSortedMapForMultiRef",key = "#attr.idAdmCiTypeAttr")
     default Map<String, Integer> getSortedMapForMultiRef(EntityManager entityManager, AdmCiTypeAttr attr, DynamicEntityMeta multRefMeta) {
         Map<String, Integer> sortMap = new HashMap<>();
         String joinTable = attr.retrieveJoinTalbeName();
