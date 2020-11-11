@@ -405,10 +405,9 @@ public class WecubeAdapterService {
 
             if (StringUtils.isBlank(operateCiDataUpdateDto.getGuid())) {
                 String errorMessage = "Field 'guid' is required for CI data update.";
-                resultItem.put(ERROR_CODE, SUCCESS);
+                resultItem.put(ERROR_CODE, FAIL);
                 resultItem.put(ERROR_MESSAGE, errorMessage);
                 results.add(resultItem);
-                return;
             }
             
             String guid = operateCiDataUpdateDto.getGuid();
@@ -416,6 +415,8 @@ public class WecubeAdapterService {
             try {
                 updateSingleCiDataByGuid(operateCiDataUpdateDto);
                 resultItem.put("guid", guid);
+                resultItem.put(ERROR_CODE, SUCCESS);
+                resultItem.put(ERROR_MESSAGE, "ok");
                 results.add(resultItem);
             }catch(Exception e) {
                 String errorMessage = String.format("Failed to update CI [guid = %s], error = %s", guid, e.getMessage());
@@ -424,7 +425,6 @@ public class WecubeAdapterService {
                 resultItem.put(ERROR_MESSAGE, errorMessage);
                 exceptionHolders.add(new ExceptionHolder(operateCiDataUpdateDto.getCallbackParameter(), operateCiDataUpdateDto, errorMessage, null));
                 results.add(resultItem);
-                return;
             }
         });
 
