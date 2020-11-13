@@ -91,6 +91,9 @@ export default {
       immediate: true
     }
   },
+  beforeDestroy () {
+    this.$emit('getSelectedRows', [], false)
+  },
   computed: {},
   methods: {
     pushNewAddedRowToSelections (data) {
