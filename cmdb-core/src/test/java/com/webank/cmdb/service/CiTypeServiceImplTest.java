@@ -5,19 +5,13 @@ import com.webank.cmdb.constant.CiStatus;
 import com.webank.cmdb.controller.AbstractBaseControllerTest;
 import com.webank.cmdb.dto.CiTypeAttrDto;
 import com.webank.cmdb.dto.CiTypeDto;
-import com.webank.cmdb.dynamicEntity.DynamicEntityHolder;
-import com.webank.cmdb.stateTransition.Engine;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.util.Collections;
-
-import static org.mockito.Mockito.*;
 
 public class CiTypeServiceImplTest extends AbstractBaseControllerTest {
     @Autowired
@@ -26,18 +20,11 @@ public class CiTypeServiceImplTest extends AbstractBaseControllerTest {
     StaticDtoService staticDtoService;
     @Autowired
     private EntityManager entityManager;
-    @MockBean
-    private Engine stateTransEngine;
 
     private int appliedCiTypeId;
     private int appliedAttrId;
     private int unappliedCiTypeId;
     private int refAttrId;
-
-    @Before
-    public void setup() {
-        allowAnyStateTransition();
-    }
 
     @Transactional
     @Test
@@ -52,17 +39,6 @@ public class CiTypeServiceImplTest extends AbstractBaseControllerTest {
                 .build());
 
         Assert.assertNotNull(guid);
-    }
-
-    private void allowAnyStateTransition() {
-        when(stateTransEngine.process(
-                any(EntityManager.class),
-                anyInt(),
-                anyString(),
-                anyString(),
-                anyMap(),
-                any(DynamicEntityHolder.class)
-        )).thenReturn(Collections.emptyMap());
     }
 
     private void givenAppliedCiTypeAndAttr() {
