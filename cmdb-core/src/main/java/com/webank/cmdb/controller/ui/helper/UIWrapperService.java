@@ -1836,9 +1836,15 @@ public class UIWrapperService {
 //        if(param.get("originalValue")==null||ciDataMap.get(param.get("field"))==null) {
 //            throw new CmdbException("3052","Password is null");
 //        }
-        if(!param.get("originalValue").toString().equals(ciDataMap.get(param.get("field")).toString())) {
-            throw new CmdbException("3053", String.format("Password mistake"));
+
+        if(!StringUtils.isBlank(dbOriginalValue)){
+            if(!dbOriginalValue.equals(paramOriginalValue)){
+                throw new CmdbException("3053", String.format("Password mistake"));
+            }
         }
+ //       if(!param.get("originalValue").toString().equals(ciDataMap.get(param.get("field")).toString())) {
+ //           throw new CmdbException("3053", String.format("Password mistake"));
+ //       }
         return ciService.update(ciTypeId, Arrays.asList(data));        
     }
 }
