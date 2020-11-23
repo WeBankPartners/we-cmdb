@@ -478,7 +478,7 @@
                     <Select
                       clearable
                       v-model="item.form.referenceId"
-                      :disabled="item.form.status === 'decommissioned'"
+                      :disabled="item.form.status !== 'notCreated'"
                       filterable
                     >
                       <Option
