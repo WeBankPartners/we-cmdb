@@ -18,7 +18,7 @@ req.interceptors.response.use(
         Vue.prototype.$Notice.error({
           title: 'Error',
           desc: errorMes,
-          duration: 0
+          duration: 10
         })
       }
       if (!res.headers['username']) {

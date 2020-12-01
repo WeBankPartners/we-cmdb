@@ -146,7 +146,8 @@ export default {
           r_guid: '',
           p_guid: '',
           state: '',
-          fixed_date: ''
+          fixed_date: '',
+          isNewAddedRow: true
         }
         columns.forEach(x => {
           obj[x] = row[x]
@@ -242,9 +243,9 @@ export default {
                       </div>
                     )
                   } else if (column.component === 'Input') {
-                    if (!d[column.inputKey]) {
-                      d[column.inputKey] = column.defaultValue
-                    }
+                    // if (!d[column.inputKey]) {
+                    //   d[column.inputKey] = column.defaultValue
+                    // }
                     const props = {
                       ...column,
                       data: this.inputSearch[column.inputKey].options,

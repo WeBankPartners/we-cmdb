@@ -12,19 +12,7 @@ import static com.webank.cmdb.constant.CmdbConstants.*;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.Stack;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.persistence.*;
@@ -368,12 +356,16 @@ public class CiServiceImpl implements CiService {
             logger.info("[Performance measure][query] Elapsed time in doing query: {}",stopwatch.toString());
 
             stopwatch.reset().start();
+
+            Map<Integer, AdmCiTypeAttr> attrMap = getIntegerAdmCiTypeAttrMap(entityMeta.getCiTypeId());
+            Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap);
+
             results.forEach(x -> {
                 Map<String, Object> entityBeanMap = null;
                 
                 entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true, ciRequest.getResultColumns());
 
-                Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
+                Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager, attrMap, multiSortCiMap);
                 List<String> nextOperations = getNextOperations(entityBeanMap);
                 CiData ciData = new CiData(enhacedMap, nextOperations);
                 if(!(ciData.getData().get(DEFAULT_FIELD_FIXED_DATE) != null && "".equals(ciData.getData().get(DEFAULT_FIELD_FIXED_DATE)) && CIDATA_STATE_DELETED.equals(ciData.getData().get(DEFAULT_FIELD_STATE_CODE)))) {
@@ -392,6 +384,30 @@ public class CiServiceImpl implements CiService {
         }
 
         return ciInfoResp;
+    }
+
+    private Map<Integer,Map<String, Integer>> getMltiSortedCIMap(DynamicEntityMeta entityMeta, EntityManager entityManager, Map<Integer, AdmCiTypeAttr> attrMap) {
+        Map<Integer,Map<String, Integer>> multiSortMap = new HashMap<>();
+        Collection<FieldNode> fieldNodes = entityMeta.getAllFieldNodes(true);
+        for (FieldNode fieldNode : fieldNodes) {
+            if(fieldNode.isJoinNode() && DynamicEntityType.MultiReference.equals(fieldNode.getEntityType()) && Strings.isNullOrEmpty(fieldNode.getMappedBy())) {
+                Integer attrId = fieldNode.getAttrId();
+                AdmCiTypeAttr attr = attrMap.get(attrId);
+                DynamicEntityMeta multRefMeta = multRefMetaMap.get(attrId);
+                Map<String, Integer> sortMap = ciTypeAttrRepository.getSortedMapForMultiRef(entityManager, attr, multRefMeta);
+                multiSortMap.put(attrId,sortMap);
+            }
+        }
+        return multiSortMap;
+    }
+
+    private Map<Integer, AdmCiTypeAttr> getIntegerAdmCiTypeAttrMap(Integer ciTypeId) {
+        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(ciTypeId);
+        Map<Integer, AdmCiTypeAttr> attrMap = new HashMap<>();
+        for (AdmCiTypeAttr attr : attrs) {
+            attrMap.put(attr.getIdAdmCiTypeAttr(), attr);
+        }
+        return attrMap;
     }
 
     private boolean isRefColumnRequested(DynamicEntityMeta entityMeta, QueryRequest ciRequest){
@@ -687,14 +703,9 @@ public class CiServiceImpl implements CiService {
         return criteriaBuilder.or(rulePredicates);
     }
 
-    private Map<String, Object> enrichCiObject(DynamicEntityMeta entityMeta, Map<String, Object> ciObjMap, EntityManager entityManager) {
+    private Map<String, Object> enrichCiObject(DynamicEntityMeta entityMeta, Map<String, Object> ciObjMap, EntityManager entityManager,
+                                               Map<Integer, AdmCiTypeAttr> attrMap, Map<Integer,Map<String, Integer>> multiSortCiMap) {
         Map<String, Object> ciMap = new HashMap<>();
-        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(entityMeta.getCiTypeId());
-
-        Map<Integer, AdmCiTypeAttr> attrMap = new HashMap<>();
-        for (AdmCiTypeAttr attr : attrs) {
-            attrMap.put(attr.getIdAdmCiTypeAttr(), attr);
-        }
 
         for (Map.Entry kv : ciObjMap.entrySet()) {
             String fieldName = kv.getKey().toString();
@@ -1114,6 +1125,7 @@ public class CiServiceImpl implements CiService {
         validateDynamicEntityManager();
         List<Map<String, Object>> rtnCis = new LinkedList<>();
         List<ExceptionHolder> exceptionHolders = new LinkedList<>();
+        Map<Integer, AdmCiTypeAttr> attrMap = getIntegerAdmCiTypeAttrMap(ciTypeId);
 
         PriorityEntityManager priEntityManager = getEntityManager();
         EntityManager entityManager = priEntityManager.getEntityManager();
@@ -1138,7 +1150,9 @@ public class CiServiceImpl implements CiService {
 
                         Map<String, Object> updatedDomainMap = doUpdate(entityManager, ciTypeId, ci, true);
 
-                        Map<String, Object> enhacedMap = enrichCiObject(entityMeta, updatedDomainMap, entityManager);
+                        Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap);
+                        Map<String, Object> enhacedMap = enrichCiObject(entityMeta, updatedDomainMap, entityManager,
+                                attrMap,multiSortCiMap);
 
                         enhacedMap.put(CALLBACK_ID, callbackId);
                         rtnCis.add(enhacedMap);
@@ -2297,9 +2311,13 @@ public class CiServiceImpl implements CiService {
 
             stopwatch.reset().start();
             List<Map<String, Object>> resultList = Lists.newLinkedList();
+
+            Map<Integer, AdmCiTypeAttr> attrMap = getIntegerAdmCiTypeAttrMap(entityMeta.getCiTypeId());
+            Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap);
+
             results.forEach(x -> {
                 Map<String, Object> entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, false);
-                Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager);
+                Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager, attrMap,multiSortCiMap);
                 resultList.add(enhacedMap);
             });
             stopwatch.stop();
@@ -2333,7 +2351,10 @@ public class CiServiceImpl implements CiService {
                     ci.put(CmdbConstants.DEFAULT_FIELD_STATE,operation);
                     ci.put(GUID, ciId);
                     ciDataInterceptorService.handleReferenceAutoFill(entityHolder,entityManager,ci);
-                    Map<String, Object> enhacedMap = enrichCiObject(entityMeta, result, entityManager);
+                    Map<Integer, AdmCiTypeAttr> attrMap = getIntegerAdmCiTypeAttrMap(entityMeta.getCiTypeId());
+                    Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap);
+
+                    Map<String, Object> enhacedMap = enrichCiObject(entityMeta, result, entityManager,attrMap,multiSortCiMap);
                     results.add(enhacedMap);
                 }
                 transaction.commit();

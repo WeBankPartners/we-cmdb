@@ -711,10 +711,14 @@ public class CiDataInterceptorService {
             if (ci.containsKey(attr.getPropertyName())) {
                 List<AdmCiTypeAttr> attrsWithMatchRule = ciTypeAttrRepository.findAllByMatchAutoFillRule("\\\\\\\"attrId\\\\\\\":" + attr.getIdAdmCiTypeAttr());
                 attrsWithMatchRule.forEach(attrWithMatchRule -> {
-                    if (attrWithMatchRule.getIsAuto() == CmdbConstants.IS_AUTO_YES) {
-                        logger.info("Executing autofill on matched attr ({}) for attr ({})",attrWithMatchRule.getIdAdmCiTypeAttr(),attr.getIdAdmCiTypeAttr());
-                        executeAutoFill(entityHolder, entityManager, entityHolder.get("guid").toString(), attr, attrWithMatchRule);
-                    }
+                    Integer isAutoFillEnabled = attrWithMatchRule.getIsAuto();
+                    if (!CmdbConstants.IS_AUTO_YES.equals(isAutoFillEnabled)) return;
+
+                    CiStatus attrCiStatus = CiStatus.fromCode(attrWithMatchRule.getStatus());
+                    if (!attrCiStatus.supportCiDataOperation()) return;
+
+                    logger.info("Executing autofill on matched attr ({}) for attr ({})",attrWithMatchRule.getIdAdmCiTypeAttr(),attr.getIdAdmCiTypeAttr());
+                    executeAutoFill(entityHolder, entityManager, entityHolder.get("guid").toString(), attr, attrWithMatchRule);
                 });
             }
         });
