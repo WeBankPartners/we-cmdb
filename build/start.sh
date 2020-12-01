@@ -1,5 +1,5 @@
 #!/bin/sh
-mkdir -p /log
+mkdir -p /data/wecmdb/log
 
 JAVA_OPT="-verbose:gc -Xloggc:/data/wecmdb/log/wecmdb_gc_%p.log -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCApplicationStoppedTime -XX:+PrintAdaptiveSizePolicy"
 JAVA_OPT="${JAVA_OPT} -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=30m"
