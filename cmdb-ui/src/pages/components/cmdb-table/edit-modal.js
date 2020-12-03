@@ -243,9 +243,6 @@ export default {
                       </div>
                     )
                   } else if (column.component === 'Input') {
-                    // if (!d[column.inputKey]) {
-                    //   d[column.inputKey] = column.defaultValue
-                    // }
                     const props = {
                       ...column,
                       data: this.inputSearch[column.inputKey].options,
