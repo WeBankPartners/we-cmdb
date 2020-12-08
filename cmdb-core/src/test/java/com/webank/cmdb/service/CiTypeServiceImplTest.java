@@ -33,7 +33,7 @@ public class CiTypeServiceImplTest extends AbstractBaseControllerTest {
         givenUnappliedCiTypeAndRef();
         givenAutoFillRuleForUnappliedAttrReferencingAppliedCiAttr();
 
-        String guid = ciService.create(appliedCiTypeId, new ImmutableMap.Builder<String, Object>()
+        String guid = ciService.create(appliedCiTypeId, ImmutableMap.<String, Object>builder()
                 .put("code", "code")
                 .put("appliedAttr", "appliedAttr")
                 .build());

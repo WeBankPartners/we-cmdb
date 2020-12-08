@@ -1,16 +1,18 @@
 package com.webank.plugins.wecmdb.service;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableMap;
 import com.webank.cmdb.constant.FieldType;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.InputType;
-import com.webank.cmdb.dto.*;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.dto.QueryRequest;
-import com.webank.cmdb.support.exception.BatchChangeException.ExceptionHolder;
+import com.webank.cmdb.dto.*;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.service.StaticDtoService;
+import com.webank.cmdb.support.exception.BatchChangeException.ExceptionHolder;
 import com.webank.cmdb.util.BeanMapUtils;
+import com.webank.cmdb.util.PriorityEntityManager;
 import com.webank.cmdb.util.Sorting;
 import com.webank.plugins.wecmdb.dto.wecube.*;
 import com.webank.plugins.wecmdb.exception.PluginException;
@@ -21,20 +23,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class WecubeAdapterService {
     private final static Logger logger = LoggerFactory.getLogger(WecubeAdapterService.class);
 
-    private static final String ERROR_MESSAGE = "errorMessage";
-    private static final String ERROR_CODE = "errorCode";
+    public static final String ERROR_MESSAGE = "errorMessage";
+    public static final String ERROR_CODE = "errorCode";
     private static final String CONFIRM = "confirm";
     private static final String CALLBACK_PARAMETER = "callbackParameter";
     private static final String PLUGIN_PACKAGE_NAME = "wecmdb";
@@ -49,8 +48,8 @@ public class WecubeAdapterService {
     private static final Map<String, String> dataTypeMapping = new HashMap<>();
     private static final String DISPLAY_NAME = "displayName";
     private static final String CITYPE_ID = "ciTypeId";
-    private static final String SUCCESS = "0";
-    private static final String FAIL = "1";
+    public static final String SUCCESS = "0";
+    public static final String FAIL = "1";
     
     static {
         dataTypeMapping.put(FieldType.Varchar.getCode(), DataType.String.getCode());
@@ -82,48 +81,9 @@ public class WecubeAdapterService {
         return staticDtoService.query(CiTypeAttrDto.class, queryObject);
     }
 
-    public List<Map<String, Object>> confirmBatchCiData(List<OperateCiDto> operateCiDtos, List<ExceptionHolder> exceptionHolders) {
-        List<Map<String, Object>> results = new ArrayList<>();
-        operateCiDtos.forEach(operateCiDto -> {
-            Map<String, Object> resultItem = new HashMap<>();
-            resultItem.put(CALLBACK_PARAMETER, operateCiDto.getCallbackParameter());
-            resultItem.put(ERROR_CODE, SUCCESS);
-            resultItem.put(ERROR_MESSAGE, "");
-
-            if (StringUtils.isBlank(operateCiDto.getGuid())) {
-                String errorMessage = "Field 'guid' is required for CI data confirmation.";
-                resultItem.put(ERROR_CODE, SUCCESS);
-                resultItem.put(ERROR_MESSAGE, errorMessage);
-                //ExceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
-                results.add(resultItem);
-                return;
-            }
-
-            List<String> guids = ConfirmHelper.parseGuid(operateCiDto.getGuid());
-            List<CiIndentity> ciIds = new ArrayList<>();
-            guids.forEach(guid -> {
-                try {
-                    ciIds.add(new CiIndentity(extractCiTypeIdFromGuid(guid), guid));
-                    List<Map<String, Object>> confirmedCis = ciService.operateState(ciIds, CONFIRM);
-                    resultItem.putAll(confirmedCis.get(0));
-                    results.add(resultItem);
-                } catch (Exception e) {
-                    String errorMessage = String.format("Failed to confirm CI [guid = %s], error = %s", guid, e.getMessage());
-                    resultItem.put(ERROR_CODE, FAIL);
-                    resultItem.put(ERROR_MESSAGE, errorMessage);
-                    exceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
-                    results.add(resultItem);
-                    return;
-                }
-            });
-        });
-
-        return results;
-    }
-    
     private int extractCiTypeIdFromGuid(String guid) {
         String ciTypeId = guid.split("_")[0].replaceAll("^(0+)", "");
-        return Integer.valueOf(ciTypeId).intValue();
+        return Integer.parseInt(ciTypeId);
     }
 
     public List<EntityDto> getDataModel() {
@@ -142,7 +102,7 @@ public class WecubeAdapterService {
                 entityDto.setName(ciTypeDto.getTableName());
                 entityDto.setDisplayName(ciTypeDto.getName());
                 entityDto.setDescription(ciTypeDto.getDescription());
-                
+
                 QueryRequest queryCiTypeAattr = QueryRequest.defaultQueryObject()
                         .addEqualsFilter(CITYPE_ID, ciTypeDto.getCiTypeId())
                         .addEqualsFilter(STATUS, STATUS_CREATED);
@@ -214,6 +174,7 @@ public class WecubeAdapterService {
     private String mapToWecubeDataType(CiTypeAttrDto ciTypeAttrDto) {
         return dataTypeMapping.get(ciTypeAttrDto.getPropertyType());
     }
+
     public List<Map<String, Object>> retrieveCiData(String entityName, String filter, String sorting, String selectAttrs) {
         QueryRequest queryObject = QueryRequest.defaultQueryObject();
 
@@ -223,7 +184,6 @@ public class WecubeAdapterService {
 
         return convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
     }
-
     private void applySelectAttrs(String selectAttrs, QueryRequest queryObject) {
         if (!StringUtils.isBlank(selectAttrs)) {
             String[] attrs = selectAttrs.split(",");
@@ -262,6 +222,7 @@ public class WecubeAdapterService {
             queryObject.addEqualsFilter(ID.equals(filterAttr) ? GUID : filterAttr, filterValue);
         }
     }
+
     public List<Map<String, Object>> getCiDataWithConditions(String entityName, com.webank.plugins.wecmdb.dto.wecube.QueryRequest queryObject) {
         QueryRequest queryRequest = new QueryRequest();
         if (queryObject == null){
@@ -373,13 +334,110 @@ public class WecubeAdapterService {
         }
     }
 
-    public List<Map<String, Object>> createCiData(String entityName, List<Map<String, Object>> request) {
-        List<Map<String, Object>> createdCiData = ciService.create(retrieveCiTypeIdByTableName(entityName), request);
-        QueryRequest queryObject = QueryRequest.defaultQueryObject().addInFilter(GUID, createdCiData.stream().map(item -> item.get(GUID)).collect(Collectors.toList()));
-        return convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
+    public List<Map<String, Object>> batchCreateCiData(List<CiDataInputDto> inputs) {
+        try(PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
+            EntityManager entityManager = priorityEntityManager.getEntityManager();
+
+            EntityTransaction transaction = entityManager.getTransaction();
+            boolean outerTransactionActive = transaction.isActive();
+            if (!outerTransactionActive) {
+                transaction.begin();
+            }
+
+            List<Map<String, Object>> results = inputs.stream().map(input -> {
+                String callbackParameter = input.getCallbackParameter();
+                Map<String, Object> resultItem = new HashMap<>();
+                resultItem.put(CALLBACK_PARAMETER, callbackParameter);
+
+                try {
+                    String entityName = input.getEntityName();
+                    Map<String, Object> ciData = input.getCiData();
+                    Map<String, Object> createdCiData = batchCreateCiData(callbackParameter, entityName, Collections.singletonList(ciData)).get(0);
+                    resultItem.put(ERROR_CODE, SUCCESS);
+                    resultItem.put(ERROR_MESSAGE, "ok");
+                    resultItem.put("ciData", createdCiData);
+                } catch(Exception e) {
+                    String errorMessage = e.getMessage();
+                    resultItem.put(ERROR_CODE, FAIL);
+                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                }
+                return resultItem;
+            }).collect(Collectors.toList());
+
+            return processResults(results, transaction, outerTransactionActive);
+        }
     }
 
-    public List<Map<String, Object>> updateCiData(String entityName, List<Map<String, Object>> originRequest) {
+    public List<Map<String, Object>> batchCreateCiData(String callbackParameter, String entityName, List<Map<String, Object>> originalRequest) {
+        List<Map<String, Object>> convertedRequest = convertedRequest(originalRequest);
+        List<Map<String, Object>> createdCiData = ciService.create(retrieveCiTypeIdByTableName(entityName), convertedRequest);
+        QueryRequest queryObject = QueryRequest.defaultQueryObject()
+                .addInFilter(GUID, createdCiData.stream().map(item -> item.get(GUID)).collect(Collectors.toList()));
+        List<Map<String, Object>> convertCiData = convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
+        return convertCiData.stream().map(ciDataMap -> {
+            ciDataMap.put(CALLBACK_PARAMETER, callbackParameter);
+            return ciDataMap;
+        }).collect(Collectors.toList());
+    }
+
+    public List<Map<String, Object>> batchQueryCiData(List<CiDataQueryInputDto> inputs) {
+        return inputs.stream().map(input -> {
+            String callbackParameter = input.getCallbackParameter();
+            Map<String, Object> resultItem = new HashMap<>();
+            resultItem.put(CALLBACK_PARAMETER, callbackParameter);
+
+            try {
+                String entityName = input.getEntityName();
+                com.webank.plugins.wecmdb.dto.wecube.QueryRequest queryObject = input.getQueryObject();
+                List<Map<String, Object>> matchedResults = getCiDataWithConditions(entityName, queryObject);
+                resultItem.put(ERROR_CODE, SUCCESS);
+                resultItem.put(ERROR_MESSAGE, "ok");
+                resultItem.put("matchedResults", matchedResults);
+            } catch(Exception e) {
+                String errorMessage = e.getMessage();
+                resultItem.put(ERROR_CODE, FAIL);
+                resultItem.put(ERROR_MESSAGE, errorMessage);
+            }
+            return resultItem;
+        }).collect(Collectors.toList());
+    }
+
+    public List<Map<String, Object>> batchUpdateCiData(List<CiDataInputDto> inputs) {
+        try(PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
+            EntityManager entityManager = priorityEntityManager.getEntityManager();
+
+            EntityTransaction transaction = entityManager.getTransaction();
+            boolean outerTransactionActive = transaction.isActive();
+            if(!outerTransactionActive) {
+                transaction.begin();
+            }
+
+            List<Map<String, Object>> results = inputs.stream().map(input -> {
+                String callbackParameter = input.getCallbackParameter();
+                String entityName = input.getEntityName();
+                Map<String, Object> ciData = input.getCiData();
+                Map<String, Object> resultItem = new HashMap<>();
+                resultItem.put(CALLBACK_PARAMETER, callbackParameter);
+
+                try {
+                    Map<String, Object> updatedCiData = batchUpdateCiData(entityName, Collections.singletonList(ciData)).get(0);
+                    resultItem.put(ERROR_CODE, SUCCESS);
+                    resultItem.put(ERROR_MESSAGE, "ok");
+                    resultItem.put("ciData", updatedCiData);
+                } catch(Exception e) {
+                    String errorMessage = e.getMessage();
+                    logger.warn(errorMessage, e);
+                    resultItem.put(ERROR_CODE, FAIL);
+                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                }
+                return resultItem;
+            }).collect(Collectors.toList());
+
+            return processResults(results, transaction, outerTransactionActive);
+        }
+    }
+
+    public List<Map<String, Object>> batchUpdateCiData(String entityName, List<Map<String, Object>> originRequest) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         List<Map<String, Object>> convertedRequest = convertedRequest(originRequest);
         List<Map<String, Object>> updatedCiData = ciService.update(retrieveCiTypeIdByTableName(entityName), convertedRequest);
@@ -394,117 +452,233 @@ public class WecubeAdapterService {
 
         return result;
     }
-    
-    public List<Map<String, Object>> updateCiDataByGuid(List<OperateCiDataUpdateDto> operateCiDataUpdateDtos, List<ExceptionHolder> exceptionHolders){
-        List<Map<String, Object>> results = new ArrayList<>();
-        operateCiDataUpdateDtos.forEach(operateCiDataUpdateDto -> {
-            Map<String, Object> resultItem = new HashMap<>();
-            resultItem.put(CALLBACK_PARAMETER, operateCiDataUpdateDto.getCallbackParameter());
-            resultItem.put(ERROR_CODE, SUCCESS);
-            resultItem.put(ERROR_MESSAGE, "");
 
-            if (StringUtils.isBlank(operateCiDataUpdateDto.getGuid())) {
-                String errorMessage = "Field 'guid' is required for CI data update.";
-                resultItem.put(ERROR_CODE, FAIL);
-                resultItem.put(ERROR_MESSAGE, errorMessage);
-                results.add(resultItem);
+    public List<Map<String, Object>> batchDeleteCiData(List<OperateCiDto> inputs) {
+        try(PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
+            EntityManager entityManager = priorityEntityManager.getEntityManager();
+
+            EntityTransaction transaction = entityManager.getTransaction();
+            boolean outerTransactionActive = transaction.isActive();
+            if (!outerTransactionActive) {
+                transaction.begin();
             }
-            
-            String guid = operateCiDataUpdateDto.getGuid();
-            
-            try {
-                updateSingleCiDataByGuid(operateCiDataUpdateDto);
+
+            List<Map<String, Object>> results = inputs.stream().map(input -> {
+                String callbackParameter = input.getCallbackParameter();
+                String entityName = input.getEntityName();
+                String guid = input.getGuid();
+                Map<String, Object> resultItem = new HashMap<>();
+                resultItem.put(CALLBACK_PARAMETER, callbackParameter);
+
+                try {
+                    int ciTypeId = retrieveCiTypeIdByTableName(entityName);
+                    ciService.delete(ciTypeId, Collections.singletonList(guid));
+                    resultItem.put(ERROR_CODE, SUCCESS);
+                    resultItem.put(ERROR_MESSAGE, "ok");
+                } catch(Exception e) {
+                    String errorMessage = e.getMessage();
+                    resultItem.put(ERROR_CODE, FAIL);
+                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                }
+                return resultItem;
+            }).collect(Collectors.toList());
+
+            return processResults(results, transaction, outerTransactionActive);
+        }
+    }
+
+    public List<Map<String, Object>> batchPatchCiData(List<OperateCiDataUpdateDto> operateCiDataUpdateDtos) {
+        try(PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
+            EntityManager entityManager = priorityEntityManager.getEntityManager();
+
+            EntityTransaction transaction = entityManager.getTransaction();
+            boolean outerTransactionActive = transaction.isActive();
+            if(!outerTransactionActive) {
+                transaction.begin();
+            }
+
+            List<Map<String, Object>> results = operateCiDataUpdateDtos.stream().map(input -> {
+                String callbackParameter = input.getCallbackParameter();
+                Map<String, Object> resultItem = new HashMap<>();
+                resultItem.put(CALLBACK_PARAMETER, callbackParameter);
+
+                if (StringUtils.isBlank(input.getGuid())) {
+                    String errorMessage = "Field 'guid' is required for CI data update.";
+                    resultItem.put(ERROR_CODE, FAIL);
+                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                    return resultItem;
+                }
+
+                String guid = input.getGuid();
                 resultItem.put("guid", guid);
+                try {
+                    updateSingleCiDataByGuid(input);
+                    resultItem.put(ERROR_CODE, SUCCESS);
+                    resultItem.put(ERROR_MESSAGE, "ok");
+                } catch(Exception e) {
+                    String errorMessage = String.format("Failed to update CI [guid = %s], error = %s", guid, e.getMessage());
+                    logger.warn(errorMessage, e);
+                    resultItem.put(ERROR_CODE, FAIL);
+                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                }
+                return resultItem;
+            }).collect(Collectors.toList());
+
+            return processResults(results, transaction, outerTransactionActive);
+        }
+    }
+
+    public List<Map<String, Object>> batchConfirmCiData(List<OperateCiDto> operateCiDtos) {
+        try(PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
+            EntityManager entityManager = priorityEntityManager.getEntityManager();
+
+            EntityTransaction transaction = entityManager.getTransaction();
+            boolean outerTransactionActive = transaction.isActive();
+            if(!outerTransactionActive) {
+                transaction.begin();
+            }
+
+            List<Map<String, Object>> results = new ArrayList<>();
+            operateCiDtos.forEach(operateCiDto -> {
+                Map<String, Object> resultItem = new HashMap<>();
+                resultItem.put(CALLBACK_PARAMETER, operateCiDto.getCallbackParameter());
                 resultItem.put(ERROR_CODE, SUCCESS);
                 resultItem.put(ERROR_MESSAGE, "ok");
-                results.add(resultItem);
-            }catch(Exception e) {
-                String errorMessage = String.format("Failed to update CI [guid = %s], error = %s", guid, e.getMessage());
-                logger.warn(errorMessage, e);
-                resultItem.put(ERROR_CODE, FAIL);
-                resultItem.put(ERROR_MESSAGE, errorMessage);
-                exceptionHolders.add(new ExceptionHolder(operateCiDataUpdateDto.getCallbackParameter(), operateCiDataUpdateDto, errorMessage, null));
-                results.add(resultItem);
-            }
-        });
 
-        return results;
+                if (StringUtils.isBlank(operateCiDto.getGuid())) {
+                    String errorMessage = "Field 'guid' is required for CI data confirmation.";
+                    resultItem.put(ERROR_CODE, FAIL);
+                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                    results.add(resultItem);
+                    return;
+                }
+
+                List<String> guids = ConfirmHelper.parseGuid(operateCiDto.getGuid());
+                List<CiIndentity> ciIds = new ArrayList<>();
+                guids.forEach(guid -> {
+                    try {
+                        ciIds.add(new CiIndentity(extractCiTypeIdFromGuid(guid), guid));
+                        List<Map<String, Object>> confirmedCis = ciService.operateState(ciIds, CONFIRM);
+                        resultItem.putAll(confirmedCis.get(0));
+                        results.add(resultItem);
+                    } catch (Exception e) {
+                        String errorMessage = String.format("Failed to confirm CI [guid = %s], error = %s", guid, e.getMessage());
+                        resultItem.put(ERROR_CODE, FAIL);
+                        resultItem.put(ERROR_MESSAGE, errorMessage);
+                        results.add(resultItem);
+                    }
+                });
+            });
+
+            return processResults(results, transaction, outerTransactionActive);
+        }
     }
-    
+
+    public List<Map<String, Object>> batchRefreshCiData(List<OperateCiDto> inputs) {
+        try(PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
+            EntityManager entityManager = priorityEntityManager.getEntityManager();
+
+            EntityTransaction transaction = entityManager.getTransaction();
+            boolean outerTransactionActive = transaction.isActive();
+            if (!outerTransactionActive) {
+                transaction.begin();
+            }
+
+            List<Map<String, Object>> results = inputs.stream().map(input -> {
+                String callbackParameter = input.getCallbackParameter();
+                String guid = input.getGuid();
+                Map<String, Object> resultItem = new HashMap<>();
+                resultItem.put(CALLBACK_PARAMETER, callbackParameter);
+
+                if (StringUtils.isBlank(guid)) {
+                    String errorMessage = "Field 'guid' is required for CI data refreshing.";
+                    resultItem.put(ERROR_CODE, FAIL);
+                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                    return resultItem;
+                }
+
+                try {
+                    CiIndentity ciIndentity = new CiIndentity(extractCiTypeIdFromGuid(guid), guid);
+                    ciService.refresh(Collections.singletonList(ciIndentity));
+                    resultItem.put("guid", guid);
+                    resultItem.put(ERROR_CODE, SUCCESS);
+                    resultItem.put(ERROR_MESSAGE, "ok");
+                } catch (Exception e) {
+                    String errorMessage = String.format("Failed to refresh CI [guid = %s], error = %s", guid, e.getMessage());
+                    resultItem.put(ERROR_CODE, FAIL);
+                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                }
+
+                return resultItem;
+            }).collect(Collectors.toList());
+
+            return processResults(results, transaction, outerTransactionActive);
+        }
+    }
+
+    private List<Map<String, Object>> processResults(List<Map<String, Object>> results,
+                                                     EntityTransaction transaction, boolean outerTransactionActive) {
+        boolean errorOccurred = results.stream().anyMatch(WecubeAdapterService::isErrorResult);
+        if (errorOccurred) {
+            tryRollback(transaction, outerTransactionActive);
+            return results.stream().map(result -> {
+                if(isErrorResult(result)) {
+                    return result;
+                }
+                else {
+                    Object callbackParameter = result.get(CALLBACK_PARAMETER);
+                    return ImmutableMap.<String, Object>builder()
+                            .put(ERROR_CODE, SUCCESS)
+                            .put(ERROR_MESSAGE, "rollbacked")
+                            .put(CALLBACK_PARAMETER, callbackParameter)
+                            .build();
+                }
+            }).collect(Collectors.toList());
+        } else {
+            tryCommit(transaction, outerTransactionActive);
+            return results;
+        }
+    }
+
+    public static boolean isErrorResult(Map<String, Object> result) {
+        return FAIL.equals(result.get(ERROR_CODE));
+    }
+
+    private void tryCommit(EntityTransaction transaction, boolean outerTransactionActive) {
+        if (!outerTransactionActive) {
+            transaction.commit();
+        }
+    }
+
+    private void tryRollback(EntityTransaction transaction, boolean outerTransactionActive) {
+        if (!outerTransactionActive) {
+            transaction.rollback();
+        } else {
+            transaction.setRollbackOnly();
+        }
+    }
+
     private void updateSingleCiDataByGuid(OperateCiDataUpdateDto operateCiDataUpdateDto) {
         String entityName = operateCiDataUpdateDto.getEntityName();
         String guid = operateCiDataUpdateDto.getGuid();
         String attrName = operateCiDataUpdateDto.getAttrName();
         Object attrVal = operateCiDataUpdateDto.getAttrVal();
-        
-        Map<String, Object> convertedUpdateReq = new HashMap<String, Object>();
+
+        Map<String, Object> convertedUpdateReq = new HashMap<>();
         convertedUpdateReq.put("guid", guid);
         convertedUpdateReq.put(attrName, attrVal);
-        
-        updateCiData(entityName, Arrays.asList(convertedUpdateReq));
+
+        batchUpdateCiData(entityName, Collections.singletonList(convertedUpdateReq));
     }
 
-    private List<Map<String, Object>> convertedRequest(List<Map<String, Object>> originRequest) {
+    private List<Map<String, Object>> convertedRequest(List<Map<String, Object>> requests) {
         List<Map<String, Object>> convertedRequest = new ArrayList<>();
-        originRequest.forEach(origin -> {
-            Map<String, Object> convertedMap = new HashMap<>();
-            origin.forEach((name, value) -> {
-                convertedMap.put(ID.equals(name) ? GUID : name, value);
-            });
+        requests.forEach(origin -> {
+            Map<String, Object> convertedMap = new HashMap<>(origin);
+            if(convertedMap.get(GUID) == null) convertedMap.put(GUID, origin.get(ID));
+            convertedMap.remove(ID);
             convertedRequest.add(convertedMap);
         });
         return convertedRequest;
-    }
-
-    public void deleteCiData(String entityName, List<Map<String, Object>> request) {
-        validateBeforeDeleteCiData(request);
-        List<String> ids = request.stream().map(item -> item.get(ID).toString()).collect(Collectors.toList());
-        ciService.delete(retrieveCiTypeIdByTableName(entityName), ids);
-    }
-
-    private void validateBeforeDeleteCiData(List<Map<String, Object>> request) {
-        request.forEach(item -> {
-            if (item.get(ID) == null || StringUtils.isBlank(item.get(ID).toString())) {
-                throw new PluginException(String.format("Field 'id' is required for deletion, request [%s]", request));
-            }
-        });
-    }
-
-    public List<Map<String, Object>> refreshBatchCiData(List<OperateCiDto> operateCiDtos, List<ExceptionHolder> exceptionHolders) {
-        List<Map<String, Object>> results = new ArrayList<>();
-        operateCiDtos.forEach(operateCiDto -> {
-            Map<String, Object> resultItem = new HashMap<>();
-            resultItem.put(CALLBACK_PARAMETER, operateCiDto.getCallbackParameter());
-            resultItem.put(ERROR_CODE, SUCCESS);
-            resultItem.put(ERROR_MESSAGE, "");
-
-            if (StringUtils.isBlank(operateCiDto.getGuid())) {
-                String errorMessage = "Field 'guid' is required for CI data refreshing.";
-                resultItem.put(ERROR_CODE, SUCCESS);
-                resultItem.put(ERROR_MESSAGE, errorMessage);
-                results.add(resultItem);
-                return;
-            }
-
-            List<String> guids = ConfirmHelper.parseGuid(operateCiDto.getGuid());
-            List<CiIndentity> ciIds = new ArrayList<>();
-            guids.forEach(guid -> {
-                try {
-                    ciIds.add(new CiIndentity(extractCiTypeIdFromGuid(guid), guid));
-                    List<Map<String, Object>> refreshedCis = ciService.refresh(ciIds);
-                    resultItem.putAll(refreshedCis.get(0));
-                    results.add(resultItem);
-                } catch (Exception e) {
-                    String errorMessage = String.format("Failed to refresh CI [guid = %s], error = %s", guid, e.getMessage());
-                    resultItem.put(ERROR_CODE, FAIL);
-                    resultItem.put(ERROR_MESSAGE, errorMessage);
-                    exceptionHolders.add(new ExceptionHolder(operateCiDto.getCallbackParameter(), operateCiDto, errorMessage, null));
-                    results.add(resultItem);
-                    return;
-                }
-            });
-        });
-
-        return results;
     }
 }
