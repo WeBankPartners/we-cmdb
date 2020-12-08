@@ -266,7 +266,7 @@ public class CiServiceImpl implements CiService {
         }
     }
 
-    private PriorityEntityManager getEntityManager() {
+    public PriorityEntityManager getEntityManager() {
         if (!isLoaded) {
             reload();
         }
@@ -1117,7 +1117,7 @@ public class CiServiceImpl implements CiService {
 
     @OperationLogPointcut(operation = Modification, objectClass = CiData.class)
     @Override
-    public List<Map<String, Object>> update(@CiTypeId int ciTypeId,@CiDataType List<Map<String, Object>> cis) {
+    public List<Map<String, Object>> update(@CiTypeId int ciTypeId, @CiDataType List<Map<String, Object>> cis) {
         if (logger.isDebugEnabled()) {
             logger.debug("CIs update request, ciTypeId:{}, query request:{}", ciTypeId, JsonUtil.toJsonString(cis));
         }
@@ -1127,11 +1127,13 @@ public class CiServiceImpl implements CiService {
         List<ExceptionHolder> exceptionHolders = new LinkedList<>();
         Map<Integer, AdmCiTypeAttr> attrMap = getIntegerAdmCiTypeAttrMap(ciTypeId);
 
-        PriorityEntityManager priEntityManager = getEntityManager();
-        EntityManager entityManager = priEntityManager.getEntityManager();
-        try {
+        try(PriorityEntityManager priEntityManager = getEntityManager()) {
+            EntityManager entityManager = priEntityManager.getEntityManager();
             EntityTransaction transaction = entityManager.getTransaction();
-            transaction.begin();
+            boolean outerTransactionActive = transaction.isActive();
+            if(!outerTransactionActive) {
+                transaction.begin();
+            }
             try {
                 for (Map<String, Object> ci : cis) {
                     String callbackId = null;
@@ -1164,10 +1166,17 @@ public class CiServiceImpl implements CiService {
                     }
                 }
 
-                if (exceptionHolders.size() == 0) {
-                    transaction.commit();
+                if (exceptionHolders.isEmpty()) {
+                    if(!outerTransactionActive) {
+                        transaction.commit();
+                    }
                 } else {
-                    transaction.rollback();
+                    if (outerTransactionActive) {
+                        transaction.setRollbackOnly();
+                    } else {
+                        transaction.rollback();
+                    }
+
                     throw new BatchChangeException(String.format("Fail to update [%d] records, detail error in the data block", exceptionHolders.size()), exceptionHolders)
                     .withErrorCode("3264", exceptionHolders.size());
                 }
@@ -1175,12 +1184,14 @@ public class CiServiceImpl implements CiService {
                 if (exc instanceof BatchChangeException) {
                     throw exc;
                 } else {
-                    transaction.rollback();
+                    if (outerTransactionActive) {
+                        transaction.setRollbackOnly();
+                    } else {
+                        transaction.rollback();
+                    }
                     throw new ServiceException("Failed to update ci data.", exc).withErrorCode("3127");
                 }
             }
-        } finally {
-            priEntityManager.close();
         }
 
         if (logger.isDebugEnabled()) {
@@ -1290,18 +1301,19 @@ public class CiServiceImpl implements CiService {
 
     @OperationLogPointcut(operation = Creation, objectClass = CiData.class)
     @Override
-    public List<Map<String, Object>> create(@CiTypeId int ciTypeId,@CiDataType List<Map<String, Object>> cis) {
+    public List<Map<String, Object>> create(@CiTypeId int ciTypeId, @CiDataType List<Map<String, Object>> cis) {
         List<Map<String, Object>> rtnCis = new LinkedList<Map<String, Object>>();
-        // List<Map<String, Object>> failedRtnCis = new LinkedList<Map<String,
-        // Object>>();
         List<ExceptionHolder> exceptionHolders = new LinkedList<>();
         validateDynamicEntityManager();
 
-        PriorityEntityManager priEntityManager = getEntityManager();
-        EntityManager entityManager = priEntityManager.getEntityManager();
-        try {
+        try(PriorityEntityManager priEntityManager = getEntityManager()) {
+            EntityManager entityManager = priEntityManager.getEntityManager();
             EntityTransaction transaction = entityManager.getTransaction();
-            transaction.begin();
+            boolean outerTransactionActive = transaction.isActive();
+            if(!outerTransactionActive) {
+                transaction.begin();
+            }
+
             try {
                 for (Map<String, Object> ci : cis) {
                     String callbackId = null;
@@ -1331,10 +1343,17 @@ public class CiServiceImpl implements CiService {
                         exceptionHolders.add(new ExceptionHolder(callbackId, ci, errorMessage, e));
                     }
                 }
-                if (exceptionHolders.size() == 0) {
-                    transaction.commit();
+                if (exceptionHolders.isEmpty()) {
+                    if(!outerTransactionActive) {
+                        transaction.commit();
+                    }
                 } else {
-                    transaction.rollback();
+                    if(!outerTransactionActive) {
+                        transaction.rollback();
+                    }
+                    else {
+                        transaction.setRollbackOnly();
+                    }
                     throw new BatchChangeException(String.format("Fail to create [%s] records, detail error in the data block", exceptionHolders.size()), exceptionHolders)
                     .withErrorCode("3129", exceptionHolders.size());
                 }
@@ -1342,14 +1361,17 @@ public class CiServiceImpl implements CiService {
                 if (exc instanceof BatchChangeException) {
                     throw exc;
                 } else {
-                    transaction.rollback();
+                    if(!outerTransactionActive) {
+                        transaction.rollback();
+                    }
+                    else {
+                        transaction.setRollbackOnly();
+                    }
                     throw new ServiceException("Exception happen for Ci creation.", exc).withErrorCode("3130");
                 }
             }
 
             return rtnCis;
-        } finally {
-            priEntityManager.close();
         }
     }
 
@@ -1390,11 +1412,14 @@ public class CiServiceImpl implements CiService {
         validateDynamicEntityManager();
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
 
-        PriorityEntityManager priEntityManager = getEntityManager();
-        EntityManager entityManager = priEntityManager.getEntityManager();
-        try {
+        try(PriorityEntityManager priorityEntityManager = getEntityManager()) {
+            EntityManager entityManager = priorityEntityManager.getEntityManager();
             EntityTransaction transaction = entityManager.getTransaction();
-            transaction.begin();
+            boolean outerTransactionActive = transaction.isActive();
+            if (!outerTransactionActive) {
+                transaction.begin();
+            }
+
             try {
                 for (String guid : ids) {
                     try {
@@ -1408,10 +1433,17 @@ public class CiServiceImpl implements CiService {
                         exceptionHolders.add(new ExceptionHolder(null, guid, errorMessage, e));
                     }
                 }
-                if (exceptionHolders.size() == 0) {
-                    transaction.commit();
+                if (exceptionHolders.isEmpty()) {
+                    if (!outerTransactionActive) {
+                        transaction.commit();
+                    }
                 } else {
-                    transaction.rollback();
+                    if (!outerTransactionActive) {
+                        transaction.rollback();
+                    }
+                    else {
+                        transaction.setRollbackOnly();
+                    }
                     throw new BatchChangeException(String.format("Fail to delete [%s] records, detail error in the data block", exceptionHolders.size()), exceptionHolders)
                     .withErrorCode("3131", exceptionHolders.size());
                 }
@@ -1419,40 +1451,54 @@ public class CiServiceImpl implements CiService {
                 if (ex instanceof BatchChangeException) {
                     throw ex;
                 } else {
-                    transaction.rollback();
+                    if (!outerTransactionActive) {
+                        transaction.rollback();
+                    }
+                    else {
+                        transaction.setRollbackOnly();
+                    }
                     throw new ServiceException("Failed to delete ci data.", ex).withErrorCode("3132");
                 }
             }
-        } finally {
-            priEntityManager.close();
         }
     }
 
     @OperationLogPointcut(operation = Modification, objectClass = CiData.class)
     @Override
-    public List<Map<String, Object>>  refresh(@Guid List<CiIndentity> ciIds) {
+    public List<Map<String, Object>> refresh(@Guid List<CiIndentity> ciIds) {
         List<Map<String, Object>> results = Lists.newLinkedList();
-        PriorityEntityManager priEntityManager = getEntityManager();
-        EntityManager entityManager = priEntityManager.getEntityManager();
-
-        EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        try {
-            for (CiIndentity ciId : ciIds) {
-
-                DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciId.getCiTypeId());
-                Object entityBean = validateCi(ciId.getCiTypeId(), ciId.getGuid(), entityMeta, entityManager, null);
-                DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
-
-                ciDataInterceptorService.refreshAutoFill(entityHolder,entityManager,entityHolder.getEntityBeanMap());
-                results.add(ImmutableMap.of("guid",ciId.getGuid()));
+        try(PriorityEntityManager priorityEntityManager = getEntityManager()) {
+            EntityManager entityManager = priorityEntityManager.getEntityManager();
+            EntityTransaction transaction = entityManager.getTransaction();
+            boolean outerTransactionActive = transaction.isActive();
+            if (!outerTransactionActive) {
+                transaction.begin();
             }
-            transaction.commit();
-        }finally {
-            transaction.rollback();
-            priEntityManager.close();
+
+            try {
+                for (CiIndentity ciId : ciIds) {
+                    DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciId.getCiTypeId());
+                    Object entityBean = validateCi(ciId.getCiTypeId(), ciId.getGuid(), entityMeta, entityManager, null);
+                    DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
+
+                    ciDataInterceptorService.refreshAutoFill(entityHolder, entityManager, entityHolder.getEntityBeanMap());
+                    results.add(ImmutableMap.of("guid", ciId.getGuid()));
+                }
+                if (!outerTransactionActive) {
+                    transaction.commit();
+                }
+            } catch(Exception e) {
+                if (!outerTransactionActive) {
+                    transaction.rollback();
+                }
+                else {
+                    transaction.setRollbackOnly();
+                }
+                throw e;
+            }
+
+            return results;
         }
-        return results;
     }
 
     public void doDelete(EntityManager entityManager, int ciTypeId, String guid, boolean enableStateTransition) {
@@ -2337,9 +2383,12 @@ public class CiServiceImpl implements CiService {
             List<Map<String, Object>> results = Lists.newLinkedList();
             PriorityEntityManager priEntityManager = getEntityManager();
             EntityManager entityManager = priEntityManager.getEntityManager();
-
             EntityTransaction transaction = entityManager.getTransaction();
-            transaction.begin();
+            boolean outerTransactionActive = transaction.isActive();
+
+            if(!outerTransactionActive) {
+                transaction.begin();
+            }
             try {
                 Date date = new Date();
                 for (CiIndentity ciId : ciIds) {
@@ -2357,12 +2406,13 @@ public class CiServiceImpl implements CiService {
                     Map<String, Object> enhacedMap = enrichCiObject(entityMeta, result, entityManager,attrMap,multiSortCiMap);
                     results.add(enhacedMap);
                 }
-                transaction.commit();
+                if(!outerTransactionActive) {
+                    transaction.commit();
+                }
             } catch (Exception ex) {
-                transaction.rollback();
-                // String errorMessage = String.format("Failed to operate [%s]
-                // status.",operation);
-                // logger.warn(errorMessage, ex);
+                if(!outerTransactionActive) {
+                    transaction.rollback();
+                }
                 throw ex;
             } finally {
                 priEntityManager.close();
