@@ -17,6 +17,8 @@ server:
 plugins:
   pacakge-name: wecmdb
   property-encrypt-key-path: ${PROPERTY_ENCRYPT_KEY_PATH:/data/certs/rsa_key}
+  gateway-url:
+  keep-data-model-sync:
 
 spring:
   banner:
