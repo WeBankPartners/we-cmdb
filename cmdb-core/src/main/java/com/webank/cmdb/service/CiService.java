@@ -19,6 +19,7 @@ import com.webank.cmdb.dynamicEntity.DynamicEntityHolder;
 import com.webank.cmdb.dynamicEntity.DynamicEntityMeta;
 import com.webank.cmdb.util.FilterInfo;
 import com.webank.cmdb.util.Pageable;
+import com.webank.cmdb.util.PriorityEntityManager;
 import com.webank.cmdb.util.Sorting;
 
 public interface CiService extends CmdbService {
@@ -96,4 +97,5 @@ public interface CiService extends CmdbService {
 
     List<Map<String, Object>> filterOfPassword(int ciTypeId, List<Map<String, Object>> cis);
 
+    PriorityEntityManager getEntityManager();
 }
