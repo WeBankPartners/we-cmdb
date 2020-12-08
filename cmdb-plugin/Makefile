@@ -12,11 +12,11 @@ clean:
 .PHONY:build
 build: clean
 	mkdir -p /data/repository
-	docker run --rm --name plugin-build -v /data/repository:/usr/src/mymaven/repository   -v $(mkfile_dir)/scripts/maven_settings.xml:/usr/share/maven/ref/settings-docker.xml  -v $(mkfile_dir)/../:/usr/src/mymaven -w /usr/src/mymaven maven:3.3-jdk-8 mvn -U clean install -Dmaven.test.skip=true -DbuildType=plugin -s /usr/share/maven/ref/settings-docker.xml dependency:resolve
+	docker run --rm --name plugin-build -v /data/repository:/usr/src/mymaven/repository   -v $(mkfile_dir)/scripts/maven_settings.xml:/usr/share/maven/ref/settings-docker.xml  -v $(mkfile_dir)/../:/usr/src/mymaven -w /usr/src/mymaven maven:3.3-jdk-8 mvn -U clean install -DskipTests=true -DbuildType=plugin -s /usr/share/maven/ref/settings-docker.xml dependency:resolve
 
 build_core_plugin: clean
 	mkdir -p /data/repository
-	docker run --rm --name plugin-build -v /data/repository:/usr/src/mymaven/repository   -v $(mkfile_dir)/scripts/maven_settings.xml:/usr/share/maven/ref/settings-docker.xml  -v $(mkfile_dir)/../:/usr/src/mymaven -w /usr/src/mymaven maven:3.3-jdk-8 mvn -U clean install -Pcore_plugin -Dmaven.test.skip=true -s /usr/share/maven/ref/settings-docker.xml dependency:resolve
+	docker run --rm --name plugin-build -v /data/repository:/usr/src/mymaven/repository   -v $(mkfile_dir)/scripts/maven_settings.xml:/usr/share/maven/ref/settings-docker.xml  -v $(mkfile_dir)/../:/usr/src/mymaven -w /usr/src/mymaven maven:3.3-jdk-8 mvn -U clean install -Pcore_plugin -DskipTests=true -s /usr/share/maven/ref/settings-docker.xml dependency:resolve
 
 image: build_core_plugin
 	docker build -t $(project_name):$(version) .
