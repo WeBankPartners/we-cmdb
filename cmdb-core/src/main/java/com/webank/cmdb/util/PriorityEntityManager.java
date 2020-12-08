@@ -11,7 +11,7 @@ import javax.persistence.EntityManagerFactory;
 import com.google.common.collect.Maps;
 import com.webank.cmdb.support.exception.ServiceException;
 
-public class PriorityEntityManager {
+public class PriorityEntityManager implements AutoCloseable {
     private static final String ENTITY_MANAGE = "em";
 
     private EntityManagerFactory entityManagerFactory;
