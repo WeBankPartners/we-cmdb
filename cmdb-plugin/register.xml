@@ -37,6 +37,7 @@
         <systemParameter name="WECMDB_DATA_CENTER" scopeType="global" defaultValue="data_center"/>
         <systemParameter name="WECMDB_NETWORK_ZONE" scopeType="global" defaultValue="network_zone"/>
         <systemParameter name="WECMDB_RESOURCE_SET" scopeType="global" defaultValue="resource_set"/>
+        <systemParameter name="WECMDB_KEEP_DATA_MODEL_SYNC" scopeType="global" defaultValue="false"/>
     </systemParameters>
 
     <!-- 5.权限设定 -->
@@ -60,7 +61,12 @@
 
     <!-- 6.运行资源 - 描述部署运行本插件包需要的基础资源(如主机、虚拟机、容器、数据库等) -->
     <resourceDependencies>
-        <docker imageName="{{REPOSITORY}}:{{VERSION}}" containerName="{{REPOSITORY}}-{{VERSION}}" portBindings="{{ALLOCATE_PORT}}:8081,{{MONITOR_PORT}}:18081" volumeBindings="{{BASE_MOUNT_PATH}}/wecmdb/log:/data/wecmdb/log,/etc/localtime:/etc/localtime,{{BASE_MOUNT_PATH}}/certs:/data/certs" envVariables="DB_HOST={{DB_HOST}},DB_PORT={{DB_PORT}},DB_SCHEMA={{DB_SCHEMA}},DB_USER={{DB_USER}},DB_PWD={{DB_PWD}},JWT_SIGNING_KEY={{JWT_SIGNING_KEY}}"/>
+        <docker imageName="{{REPOSITORY}}:{{VERSION}}"
+                containerName="{{REPOSITORY}}-{{VERSION}}"
+                portBindings="{{ALLOCATE_PORT}}:8081,{{MONITOR_PORT}}:18081"
+                volumeBindings="{{BASE_MOUNT_PATH}}/wecmdb/log:/data/wecmdb/log,/etc/localtime:/etc/localtime,{{BASE_MOUNT_PATH}}/certs:/data/certs"
+                envVariables="DB_HOST={{DB_HOST}},DB_PORT={{DB_PORT}},DB_SCHEMA={{DB_SCHEMA}},DB_USER={{DB_USER}},DB_PWD={{DB_PWD}},JWT_SIGNING_KEY={{JWT_SIGNING_KEY}},PLUGINS_GATEWAYURL={{GATEWAY_URL}},PLUGINS_KEEPDATAMODELSYNC={{WECMDB_KEEP_DATA_MODEL_SYNC}}"
+        />
         <mysql schema="wecmdb_embedded" initFileName="init.sql" upgradeFileName="upgrade.sql"/>
     </resourceDependencies>
 
@@ -69,34 +75,34 @@
         <plugin name="ci-data-create" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
             <interface action="create" path="/wecmdb/entities/create" filterRule="">
                 <inputParameters>
-                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">entity-name</parameter>
-                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">cidata</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">entityName</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">ciData</parameter>
                 </inputParameters>
                 <outputParameters>
-                    <parameter datatype="string" sensitiveData="N" mappingType="context">resultCode</parameter>
-                    <parameter datatype="string" sensitiveData="N" mappingType="context">resultMessage</parameter>
-                    <parameter datatype="string" sensitiveData="N" mappingType="context">results</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">ciData</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorCode</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorMessage</parameter>
                 </outputParameters>
             </interface>
         </plugin>
         <plugin name="ci-data-update" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
             <interface action="update" path="/wecmdb/entities/update" filterRule="">
                 <inputParameters>
-                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">entity-name</parameter>
-                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">cidata</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">entityName</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">ciData</parameter>
                 </inputParameters>
                 <outputParameters>
-                    <parameter datatype="string" sensitiveData="N" mappingType="context">resultCode</parameter>
-                    <parameter datatype="string" sensitiveData="N" mappingType="context">resultMessage</parameter>
-                    <parameter datatype="string" sensitiveData="N" mappingType="context">results</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">ciData</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorCode</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorMessage</parameter>
                 </outputParameters>
             </interface>
         </plugin>
         <plugin name="ci-data-delete" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
             <interface action="delete" path="/wecmdb/entities/delete" filterRule="">
                 <inputParameters>
-                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">entity-name</parameter>
-                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">cidata</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">entityName</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">guid</parameter>
                 </inputParameters>
                 <outputParameters>
                     <parameter datatype="string" sensitiveData="N" mappingType="context">resultCode</parameter>
@@ -105,15 +111,15 @@
             </interface>
         </plugin>
         <plugin name="ci-data-query" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
-            <interface action="query" path="/wecmdb/entities" filterRule="">
+            <interface action="query" path="/wecmdb/entities/query" filterRule="">
                 <inputParameters>
-                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">entity-name</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">entityName</parameter>
                     <parameter datatype="string" required="Y" sensitiveData="N" mappingType="constant">queryObject</parameter>
                 </inputParameters>
                 <outputParameters>
-                    <parameter datatype="string" sensitiveData="N" mappingType="context">resultCode</parameter>
-                    <parameter datatype="string" sensitiveData="N" mappingType="context">resultMessage</parameter>
-                    <parameter datatype="string" sensitiveData="N" mappingType="context">results</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">matchedResults</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorCode</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorMessage</parameter>
                 </outputParameters>
             </interface>
         </plugin>
@@ -123,9 +129,9 @@
                     <parameter datatype="string" required="N" sensitiveData="N" mappingType="constant">guid</parameter>
                 </inputParameters>
                 <outputParameters>
-                    <parameter datatype="string" sensitiveData="N" mappingType="context">status</parameter>
-                    <parameter datatype="string" sensitiveData="N" mappingType="context">message</parameter>
                     <parameter datatype="string" sensitiveData="N" mappingType="context">guid</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorCode</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorMessage</parameter>
                 </outputParameters>
             </interface>
         </plugin>
@@ -135,10 +141,10 @@
                     <parameter datatype="string" required="N" sensitiveData="N" mappingType="constant">guid</parameter>
                 </inputParameters>
                 <outputParameters>
-                    <parameter datatype="string" sensitiveData="N" mappingType="context">status</parameter>
-                    <parameter datatype="string" sensitiveData="N" mappingType="context">message</parameter>
                     <parameter datatype="string" sensitiveData="N" mappingType="context">guid</parameter>
                     <parameter datatype="string" sensitiveData="N" mappingType="context">fixed_date</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorCode</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorMessage</parameter>
                 </outputParameters>
             </interface>
         </plugin>
