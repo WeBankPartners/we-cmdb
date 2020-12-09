@@ -44,9 +44,12 @@ public class WeCubeDataModelSynchronizer {
 
     private Mono<ClientResponse> addAuthToken(ClientRequest request, ExchangeFunction next) {
         SecurityContext context = SecurityContextHolder.getContext();
-        Authentication authentication = context.getAuthentication();
-        String authToken = String.valueOf(authentication.getCredentials());
+        if(context == null) return next.exchange(request);
 
+        Authentication authentication = context.getAuthentication();
+        if(authentication == null) return next.exchange(request);
+
+        String authToken = String.valueOf(authentication.getCredentials());
         ClientRequest requestWithAuthToken = ClientRequest.from(request)
                 .header("Authorization", authToken)
                 .build();
