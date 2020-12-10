@@ -271,7 +271,7 @@ public class WecubeAdapterService {
     private List<Map<String, Object>> convertCiData(QueryRequest queryObject, Integer ciTypeId) {
         List<Map<String, Object>> convertedCiData = new ArrayList<>();
 
-        QueryResponse ciDataResult = ciService.query(ciTypeId, queryObject);
+        QueryResponse<CiData> ciDataResult = ciService.query(ciTypeId, queryObject);
         List<CiTypeAttrDto> ciTypeAttrDtos = getCiTypeAttrs(ciTypeId);
         if (ciDataResult != null && !ciDataResult.getContents().isEmpty()) {
             List<CiData> cis = ciDataResult.getContents();
