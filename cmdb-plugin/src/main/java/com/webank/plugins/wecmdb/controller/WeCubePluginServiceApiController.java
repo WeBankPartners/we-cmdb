@@ -1,6 +1,5 @@
 package com.webank.plugins.wecmdb.controller;
 
-import com.webank.cmdb.support.exception.BatchChangeException.ExceptionHolder;
 import com.webank.cmdb.support.exception.InvalidArgumentException;
 import com.webank.plugins.wecmdb.dto.wecube.*;
 import com.webank.plugins.wecmdb.service.WecubeAdapterService;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
