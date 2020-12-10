@@ -24,11 +24,17 @@ public class WeCubeDataModelApiController {
     @ResponseBody
     public DataModelResponseDto<List<EntityDto>> getDataModel() {
         List<EntityDto> dataModelEntities = wecubeAdapterService.getDataModel();
-        return DataModelResponseDto.<List<EntityDto>>builder()
-                .status(DataModelResponseDto.STATUS_OK)
-                .message(DataModelResponseDto.MESSAGE_SUCCESS)
-                .data(dataModelEntities)
-                .build();
+        return DataModelResponseDto.okWithData(dataModelEntities);
+    }
+
+    @GetMapping("/entities/{entity-name}")
+    @ResponseBody
+    public DataModelResponseDto<List<Map<String, Object>>> retrieveCiData(@PathVariable(value = "entity-name") String entityName,
+                                 @RequestParam(value = "filter", required = false) String filter,
+                                 @RequestParam(value = "sorting", required = false) String sorting,
+                                 @RequestParam(value = "select", required = false) String select) {
+        List<Map<String, Object>> results = wecubeAdapterService.retrieveCiData(entityName, filter, sorting, select);
+        return DataModelResponseDto.okWithData(results);
     }
 
     @PostMapping("/entities/{entity-name}/query")
@@ -36,11 +42,7 @@ public class WeCubeDataModelApiController {
     public DataModelResponseDto<List<Map<String, Object>>> query(
             @PathVariable("entity-name") String entityName, @RequestBody QueryRequest queryRequest) {
         List<Map<String, Object>> results = wecubeAdapterService.getCiDataWithConditions(entityName, queryRequest);
-        return DataModelResponseDto.<List<Map<String, Object>>>builder()
-                .status(DataModelResponseDto.STATUS_OK)
-                .message(DataModelResponseDto.MESSAGE_SUCCESS)
-                .data(results)
-                .build();
+        return DataModelResponseDto.okWithData(results);
     }
 
     @PostMapping("/entities/{entity-name}/update")
@@ -48,11 +50,7 @@ public class WeCubeDataModelApiController {
     public DataModelResponseDto<List<Map<String, Object>>> update(
             @PathVariable("entity-name") String entityName, @RequestBody List<Map<String, Object>> ciDataList) {
         List<Map<String, Object>> results = wecubeAdapterService.batchUpdateCiData(entityName, ciDataList);
-        return DataModelResponseDto.<List<Map<String, Object>>>builder()
-                .status(DataModelResponseDto.STATUS_OK)
-                .message(DataModelResponseDto.MESSAGE_SUCCESS)
-                .data(results)
-                .build();
+        return DataModelResponseDto.okWithData(results);
     }
 
     @ExceptionHandler
