@@ -30,7 +30,7 @@ public class WeCubeDataModelApiControllerTest extends AbstractBaseControllerTest
 
     @Transactional
     @Test
-    public void ci_data_query_should_return_matched_ci_data() throws Exception {
+    public void ci_data_query_should_succeed_and_return_matched_ci_data() throws Exception {
         String ciTypeName = generateCiTypeName();
         int ciTypeId = givenAppliedCiType(ciTypeName);
         String expectedCode = "code";
@@ -53,7 +53,7 @@ public class WeCubeDataModelApiControllerTest extends AbstractBaseControllerTest
 
     @Transactional
     @Test
-    public void ci_data_update_should_return_updated_ci_data() throws Exception {
+    public void ci_data_update_should_succeed_and_return_updated_ci_data() throws Exception {
         String ciTypeName = generateCiTypeName();
         int ciTypeId = givenAppliedCiType(ciTypeName);
         Map<String, Object> createdDataMap = givenCiData(ciTypeId, ImmutableMap.of("code", "code"));
@@ -72,6 +72,41 @@ public class WeCubeDataModelApiControllerTest extends AbstractBaseControllerTest
                 .andExpect(jsonPath("$.data[0].guid").value(guidToUpdate))
                 .andExpect(jsonPath("$.data[0].code").value(expectedCode));
     }
+
+    @Transactional
+    @Test
+    public void ci_data_create_should_succeed_and_return_created_ci_data() throws Exception {
+        String ciTypeName = generateCiTypeName();
+        givenAppliedCiType(ciTypeName);
+
+        String expectedCode = "expectedCode";
+        Map<String, Object> ciDataMap = ImmutableMap.of("code", expectedCode);
+        String requestBody = new ObjectMapper().writeValueAsString(Collections.singletonList(ciDataMap));
+        mvc.perform(post("/entities/{entity-name}/create", ciTypeName)
+                .contentType(MediaType.APPLICATION_JSON).content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(SUCCESS_STATUS))
+                .andExpect(jsonPath("$.message").value(SUCCESS_MESSAGE))
+                .andExpect(jsonPath("$.data").isNotEmpty())
+                .andExpect(jsonPath("$.data[0].id").isNotEmpty())
+                .andExpect(jsonPath("$.data[0].guid").isNotEmpty())
+                .andExpect(jsonPath("$.data[0].code").value(expectedCode));
+    }
+
+    @Transactional
+    @Test
+    public void ci_data_delete_should_succeed() throws Exception {
+        String ciTypeName = generateCiTypeName();
+        int ciTypeId = givenAppliedCiType(ciTypeName);
+        Map<String, Object> createdCiData = givenCiData(ciTypeId, ImmutableMap.of("code", "code"));
+        String guid = String.valueOf(createdCiData.get("guid"));
+
+        Map<String, Object> ciDataMap = ImmutableMap.of("id", guid);
+        String requestBody = new ObjectMapper().writeValueAsString(Collections.singletonList(ciDataMap));
+        mvc.perform(post("/entities/{entity-name}/delete", ciTypeName)
+                .contentType(MediaType.APPLICATION_JSON).content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(SUCCESS_STATUS))
+                .andExpect(jsonPath("$.message").value(SUCCESS_MESSAGE));
+    }
 }
-
-

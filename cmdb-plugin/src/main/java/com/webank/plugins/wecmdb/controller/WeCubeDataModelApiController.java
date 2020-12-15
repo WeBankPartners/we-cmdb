@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+@SuppressWarnings("rawtypes")
 @RestController
 public class WeCubeDataModelApiController {
     @Autowired
@@ -51,6 +53,25 @@ public class WeCubeDataModelApiController {
             @PathVariable("entity-name") String entityName, @RequestBody List<Map<String, Object>> ciDataList) {
         List<Map<String, Object>> results = wecubeAdapterService.batchUpdateCiData(entityName, ciDataList);
         return DataModelResponseDto.okWithData(results);
+    }
+
+    @PostMapping("/entities/{entity-name}/create")
+    @ResponseBody
+    public DataModelResponseDto<List<Map<String, Object>>> create(
+            @PathVariable("entity-name") String entityName, @RequestBody List<Map<String, Object>> ciDataList) {
+        List<Map<String, Object>> results = wecubeAdapterService.batchCreateCiData(entityName, ciDataList);
+        return DataModelResponseDto.okWithData(results);
+    }
+
+    @PostMapping("/entities/{entity-name}/delete")
+    @ResponseBody
+    public DataModelResponseDto delete(
+            @PathVariable("entity-name") String entityName, @RequestBody List<Map<String, Object>> ciDataList) {
+        List<String> idList = ciDataList.stream()
+                .map(ciData -> String.valueOf(ciData.get("id")))
+                .collect(Collectors.toList());
+        wecubeAdapterService.batchDeleteCiData(entityName, idList);
+        return DataModelResponseDto.ok();
     }
 
     @ExceptionHandler
