@@ -10,7 +10,6 @@ import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.*;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.service.StaticDtoService;
-import com.webank.cmdb.support.exception.BatchChangeException.ExceptionHolder;
 import com.webank.cmdb.util.BeanMapUtils;
 import com.webank.cmdb.util.PriorityEntityManager;
 import com.webank.cmdb.util.Sorting;
@@ -352,7 +351,7 @@ public class WecubeAdapterService {
                 try {
                     String entityName = input.getEntityName();
                     Map<String, Object> ciData = input.getCiData();
-                    Map<String, Object> createdCiData = batchCreateCiData(callbackParameter, entityName, Collections.singletonList(ciData)).get(0);
+                    Map<String, Object> createdCiData = batchCreateCiData(entityName, Collections.singletonList(ciData)).get(0);
                     resultItem.put(ERROR_CODE, SUCCESS);
                     resultItem.put(ERROR_MESSAGE, "ok");
                     resultItem.put("ciData", createdCiData);
@@ -368,16 +367,12 @@ public class WecubeAdapterService {
         }
     }
 
-    public List<Map<String, Object>> batchCreateCiData(String callbackParameter, String entityName, List<Map<String, Object>> originalRequest) {
+    public List<Map<String, Object>> batchCreateCiData(String entityName, List<Map<String, Object>> originalRequest) {
         List<Map<String, Object>> convertedRequest = convertedRequest(originalRequest);
         List<Map<String, Object>> createdCiData = ciService.create(retrieveCiTypeIdByTableName(entityName), convertedRequest);
         QueryRequest queryObject = QueryRequest.defaultQueryObject()
                 .addInFilter(GUID, createdCiData.stream().map(item -> item.get(GUID)).collect(Collectors.toList()));
-        List<Map<String, Object>> convertCiData = convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
-        return convertCiData.stream().map(ciDataMap -> {
-            ciDataMap.put(CALLBACK_PARAMETER, callbackParameter);
-            return ciDataMap;
-        }).collect(Collectors.toList());
+        return convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
     }
 
     public List<Map<String, Object>> batchQueryCiData(List<CiDataQueryInputDto> inputs) {
@@ -471,8 +466,8 @@ public class WecubeAdapterService {
                 resultItem.put(CALLBACK_PARAMETER, callbackParameter);
 
                 try {
-                    int ciTypeId = retrieveCiTypeIdByTableName(entityName);
-                    ciService.delete(ciTypeId, Collections.singletonList(guid));
+                    final List<String> ids = Collections.singletonList(guid);
+                    batchDeleteCiData(entityName, ids);
                     resultItem.put(ERROR_CODE, SUCCESS);
                     resultItem.put(ERROR_MESSAGE, "ok");
                 } catch(Exception e) {
@@ -485,6 +480,11 @@ public class WecubeAdapterService {
 
             return processResults(results, transaction, outerTransactionActive);
         }
+    }
+
+    public void batchDeleteCiData(String entityName, List<String> ids) {
+        int ciTypeId = retrieveCiTypeIdByTableName(entityName);
+        ciService.delete(ciTypeId, ids);
     }
 
     public List<Map<String, Object>> batchPatchCiData(List<OperateCiDataUpdateDto> operateCiDataUpdateDtos) {
