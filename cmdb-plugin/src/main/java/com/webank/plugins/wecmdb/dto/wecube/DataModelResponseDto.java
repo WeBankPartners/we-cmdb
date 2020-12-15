@@ -17,6 +17,9 @@ public class DataModelResponseDto<TData> implements CustomResponseDto {
     String message;
     TData data;
 
+    public static DataModelResponseDto ok() {
+        return okWithData(null);
+    }
     public static <TData> DataModelResponseDto<TData> okWithData(TData data) {
         return DataModelResponseDto.<TData>builder()
                 .status(DataModelResponseDto.STATUS_OK)
