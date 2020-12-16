@@ -617,14 +617,14 @@
           label-position="right"
           :label-width="150"
         >
+          <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
+            <Input v-model="addNewAttrForm.propertyName"></Input>
+          </FormItem>
           <FormItem :label="$t('ci_attribute_name')" prop="name">
             <Input v-model="addNewAttrForm.name"></Input>
           </FormItem>
           <FormItem class="no-need-validation" :label="$t('description')" prop="description">
             <Input v-model="addNewAttrForm.description" type="textarea" :rows="2" :autosize="true" />
-          </FormItem>
-          <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
-            <Input v-model="addNewAttrForm.propertyName"></Input>
           </FormItem>
           <FormItem v-if="addNewAttrForm.inputType !== 'password'" :label="$t('search_filter_number')">
             <InputNumber :min="0" v-model="addNewAttrForm.searchSeqNo"></InputNumber>
