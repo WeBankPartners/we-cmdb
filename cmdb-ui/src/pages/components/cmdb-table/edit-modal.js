@@ -2,6 +2,7 @@ import './edit-modal.scss'
 import lodash from 'lodash'
 import moment from 'moment'
 import { queryCiData } from '@/api/server.js'
+import AutoComplete from './auto-complete.vue'
 const WIDTH = 300
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 export default {
@@ -92,9 +93,20 @@ export default {
             resultColumns: [column.inputKey]
           }
         })
-        this.inputSearch[column.inputKey].options = Array.from(
-          new Set(res.data.contents.map(_ => _.data[column.inputKey]))
-        )
+        let keySet = new Set()
+        this.inputSearch[column.inputKey].options = []
+        res.data.contents.forEach(item => {
+          let val = item.data[column.inputKey] + ''
+          console.log(val)
+          if (!keySet.has(val)) {
+            keySet.add(val)
+            const label = this.labelMatchValue(value, val)
+            this.inputSearch[column.inputKey].options.push({
+              label: label,
+              value: val
+            })
+          }
+        })
         // iview autocomplete not supported delay options change
         // when we change options, it will show last search options
         // so we trigger render by changing value
@@ -103,6 +115,11 @@ export default {
         data[column.inputKey] = oldVal
       }
     }, 800),
+    labelMatchValue (value, val) {
+      const patt = new RegExp(value, 'gmi')
+      let execRes = Array.from(new Set(val.match(patt)))
+      return val.replaceAll(execRes[0], `<span style="color:red">${execRes[0]}</span>`)
+    },
     resetPassword (data) {
       let needResets = []
       this.columns.forEach(col => {
