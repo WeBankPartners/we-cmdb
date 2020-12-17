@@ -65,10 +65,7 @@ public class StaticEntityRepositoryImplTest extends LegacyAbstractBaseController
         request.setPaging(true);
         request.getPageable()
                 .setPageSize(5);
-        request.getSorting()
-                .setAsc(true);
-        request.getSorting()
-                .setField("description");
+        request.withSorting(true, "description");
 
         QueryResponse response = staticEntityRepositoryImpl.query(AdmCiType.class, request);
         assertThat(response.getPageInfo()
