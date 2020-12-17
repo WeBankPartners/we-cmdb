@@ -1,17 +1,20 @@
 package com.webank.cmdb.dto;
 
-import java.util.*;
-
+import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.FilterRelationship;
 import com.webank.cmdb.util.Pageable;
 import com.webank.cmdb.util.Sorting;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
 
 public class QueryRequest {
     protected boolean paging = false;
     protected Pageable pageable = new Pageable();
     protected List<Filter> filters = new LinkedList<>();
     protected String filterRs = FilterRelationship.And.getCode();
-    protected Sorting sorting = new Sorting();
+
+    protected List<Sorting> sortings = new LinkedList<>();
     protected List<String> groupBys = new LinkedList<>();
     protected List<String> refResources = new LinkedList<>();
     protected List<String> resultColumns = new ArrayList<>();
@@ -72,12 +75,16 @@ public class QueryRequest {
         this.filters = filters;
     }
 
-    public Sorting getSorting() {
-        return sorting;
+    public boolean isSortingRequested() {
+        return this.sortings.isEmpty();
     }
 
-    public void setSorting(Sorting sorting) {
-        this.sorting = sorting;
+    public List<Sorting> getSortings() {
+        return sortings;
+    }
+
+    public void setSortings(List<Sorting> sortings) {
+        this.sortings = sortings;
     }
 
     public boolean isPaging() {
@@ -184,12 +191,12 @@ public class QueryRequest {
     }
 
     public QueryRequest ascendingSortBy(String field) {
-        sorting = new Sorting(true, field);
+        withSorting(true, field);
         return this;
     }
 
     public QueryRequest descendingSortBy(String field) {
-        sorting = new Sorting(false, field);
+        withSorting(false, field);
         return this;
     }
 
@@ -210,9 +217,15 @@ public class QueryRequest {
         return this;
     }
 
-    public QueryRequest withSorting(boolean asc,String field){
-        this.sorting.setAsc(asc);
-        this.sorting.setField(field);
+    public QueryRequest withSorting(boolean asc, String field){
+        Sorting sorting = new Sorting(asc,field);
+        this.sortings.add(sorting);
+        return this;
+    }
+
+    public QueryRequest withDefaultSorting(){
+        this.descendingSortBy(CmdbConstants.DEFAULT_FIELD_CREATED_DATE)
+                .descendingSortBy(CmdbConstants.DEFAULT_FIELD_GUID);
         return this;
     }
 
@@ -225,12 +238,10 @@ public class QueryRequest {
     }
 
     public boolean isColumnSelected(String column){
-        if(this.resultColumns==null || resultColumns.size()==0){
+        if(StringUtils.isEmpty(column)){
             return true;
-        }else if(resultColumns.contains(column)){
-            return true;
-        }else{
-            return false;
         }
+
+        return resultColumns.contains(column);
     }
 }
