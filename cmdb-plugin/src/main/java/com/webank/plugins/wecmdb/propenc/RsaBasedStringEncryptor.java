@@ -43,8 +43,9 @@ public class RsaBasedStringEncryptor implements StringEncryptor {
 
             return rawValue;
         } catch (Exception e) {
-            log.error("errors while decrypt {} with private key:{}", cipherValue, e.getMessage());
-            throw new EncryptionException("Failed to decrypt cipher text due to " + e.getMessage());
+            String errorMessage = String.format("errors while decrypt %s with private key:%s", cipherValue, e.getMessage());
+            log.error(errorMessage, e);
+            throw new EncryptionException("Failed to decrypt cipher text due to " + e.getMessage(), e);
         }
     }
 
