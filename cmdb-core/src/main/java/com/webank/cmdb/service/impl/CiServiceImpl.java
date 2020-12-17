@@ -741,7 +741,8 @@ public class CiServiceImpl implements CiService {
                             CatCodeDto codeDto = basekeyInfoService.getCode(codeId);
                             enrichMulSels.add(codeDto);
                         } catch (InvalidArgumentException ex) {
-                            logger.warn("Failed to get cat code for codeId [{}].", codeId);
+                            String errorMessage = String.format("Failed to get cat code for codeId [%s].", codeId);
+                            logger.warn(errorMessage, ex);
                         }
                     }
                     ciMap.put(fieldName, enrichMulSels);
@@ -920,14 +921,16 @@ public class CiServiceImpl implements CiService {
 		try {
 		    codeId = Integer.valueOf(String.valueOf(value));
 		} catch (NumberFormatException ex) {
-		    logger.warn("Failed to get codeId from value:[{}], field:[{}]", value, fieldName);
+            String errorMessage = String.format("Failed to get codeId from value:[%s], field:[%s]", value, fieldName);
+            logger.warn(errorMessage, ex);
 		}
 		if (codeId != null) {
 		    CatCodeDto codeDto = null;
 		    try {
 		        codeDto = basekeyInfoService.getCode(codeId);
 		    } catch (InvalidArgumentException ex) {
-		        logger.warn("Failed to get cat code for codeId [{}].", codeId);
+                String errorMessage = String.format("Failed to get cat code for codeId [%s].", codeId);
+                logger.warn(errorMessage, ex);
 		    }
 		    value = codeDto;
 		}
@@ -1042,7 +1045,7 @@ public class CiServiceImpl implements CiService {
                 transaction.commit();
             } catch (Exception ex) {
                 transaction.rollback();
-                throw new ServiceException(ex.toString());
+                throw new ServiceException(ex.toString(), ex);
             }
         } finally {
             priEntityManager.close();
@@ -1083,7 +1086,7 @@ public class CiServiceImpl implements CiService {
                 throw accEx;
             } catch (Exception ex) {
                 transaction.rollback();
-                throw new ServiceException(ex.toString());
+                throw new ServiceException(ex.toString(), ex);
             }
         } finally {
             priEntityManager.close();
