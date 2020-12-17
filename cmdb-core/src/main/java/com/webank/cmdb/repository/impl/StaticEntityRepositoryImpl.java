@@ -426,7 +426,7 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
         try {
             entityBean = domainClazz.newInstance();
         } catch (Exception e) {
-            throw new ServiceException(String.format("Fail to create domain [%s] entity bean.", domainClazz.toString()))
+            throw new ServiceException(String.format("Fail to create domain [%s] entity bean.", domainClazz.toString()), e)
             .withErrorCode("3116", domainClazz.toString());
         }
         BeanMap beanMap = new BeanMap(entityBean);
