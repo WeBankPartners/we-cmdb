@@ -12,7 +12,6 @@ import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.service.StaticDtoService;
 import com.webank.cmdb.util.BeanMapUtils;
 import com.webank.cmdb.util.PriorityEntityManager;
-import com.webank.cmdb.util.Sorting;
 import com.webank.plugins.wecmdb.dto.wecube.*;
 import com.webank.plugins.wecmdb.exception.PluginException;
 import com.webank.plugins.wecmdb.helper.ConfirmHelper;
@@ -203,7 +202,7 @@ public class WecubeAdapterService {
             String sortingValue = sorting.split(",")[1].trim();
 
             if (SORTING_ASC.equals(sortingValue) || SORTING_DESC.equals(sortingValue)) {
-                queryObject.setSorting(new Sorting(sortingValue.equals(SORTING_ASC) ? true : false, ID.equals(sortingAttr) ? GUID : sortingAttr));
+                queryObject.withSorting(sortingValue.equals(SORTING_ASC), ID.equals(sortingAttr) ? GUID : sortingAttr);
             } else {
                 throw new PluginException("The given value of 'sorting' must be " + SORTING_ASC + " or " + SORTING_DESC + "'");
             }
