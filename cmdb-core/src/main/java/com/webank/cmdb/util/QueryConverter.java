@@ -25,15 +25,17 @@ public class QueryConverter {
             }
         });
 
-        String sortingField = dtoQueryRequest.getSorting().getField();
-        if (!Strings.isNullOrEmpty(sortingField)) {
-            String sortDomainField = dtoToDomainFieldMap.get(sortingField);
-            if (Strings.isNullOrEmpty(sortDomainField)) {
-                throw new AttributeNotFoundException(String.format("Can not find domain field for %s.", sortDomainField))
-                .withErrorCode("3255", sortDomainField);
+        dtoQueryRequest.getSortings().forEach(sorting -> {
+            String sortingField = sorting.getField();
+            if (!Strings.isNullOrEmpty(sortingField)) {
+                String sortDomainField = dtoToDomainFieldMap.get(sortingField);
+                if (Strings.isNullOrEmpty(sortDomainField)) {
+                    throw new AttributeNotFoundException(String.format("Can not find domain field for %s.", sortDomainField))
+                            .withErrorCode("3255", sortDomainField);
+                }
+                sorting.setField(sortDomainField);
             }
-            dtoQueryRequest.getSorting().setField(sortDomainField);
-        }
+        });
 
         return dtoQueryRequest;
     }

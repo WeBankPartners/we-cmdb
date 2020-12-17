@@ -448,14 +448,16 @@ public class CiServiceImpl implements CiService {
                 }
             }
         }
-        if (ciRequest.getSorting() != null && !Strings.isNullOrEmpty(ciRequest.getSorting().getField())) {
-            AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(ciTypeId, ciRequest.getSorting().getField());
-            if (attr != null) {
-                if (InputType.MultRef.getCode().equals(attr.getInputType()) || InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
-                    throw new InvalidArgumentException(String.format("Multiple reference and multiple selection feild [%s] don't support sorting.", ciRequest.getSorting().getField()))
-                    .withErrorCode("3259", ciRequest.getSorting().getField());
+        if (!ciRequest.isSortingRequested()) {
+            ciRequest.getSortings().forEach(sorting -> {
+                AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(ciTypeId, sorting.getField());
+                if (attr != null) {
+                    if (InputType.MultRef.getCode().equals(attr.getInputType()) || InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
+                        throw new InvalidArgumentException(String.format("Multiple reference and multiple selection feild [%s] don't support sorting.", sorting.getField()))
+                                .withErrorCode("3259", sorting.getField());
+                    }
                 }
-            }
+            });
 
         }
     }
@@ -589,7 +591,7 @@ public class CiServiceImpl implements CiService {
         JpaQueryUtils.applyFilter(cb, query, ciRequest.getFilters(), selectionMap, fieldTypeMap, FilterRelationship.fromCode(ciRequest.getFilterRs()), predicates, accessControlPredicate);
 
         if (!isSelRowCount) {
-            JpaQueryUtils.applySorting(ciRequest.getSorting(), cb, query, selectionMap);
+            JpaQueryUtils.applySortings(ciRequest.getSortings(), cb, query, selectionMap);
             if(ciRequest.getGroupBys()!=null && ciRequest.getGroupBys().size()>0) {
                 JpaQueryUtils.applyGroupBy(ciRequest.getGroupBys(),query,selectionMap);
             }
@@ -1684,8 +1686,8 @@ public class CiServiceImpl implements CiService {
                 selectionMap.put(k, v.getExpression());
             });
 
-            if (!isSelRowCount && intQueryReq.getSorting() != null) {
-                JpaQueryUtils.applySorting(intQueryReq.getSorting(), cb, query, selectionMap);
+            if (!isSelRowCount && intQueryReq.isSortingRequested()) {
+                JpaQueryUtils.applySortings(intQueryReq.getSortings(), cb, query, selectionMap);
             }
 
             // TODO: enable biz logic should be removed
