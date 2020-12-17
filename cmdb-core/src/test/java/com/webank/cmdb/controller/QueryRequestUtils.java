@@ -51,16 +51,6 @@ public class QueryRequestUtils extends QueryRequest {
         return this;
     }
 
-    public QueryRequestUtils ascendingSortBy(String field) {
-        sorting = new Sorting(true, field);
-        return this;
-    }
-
-    public QueryRequestUtils descendingSortBy(String field) {
-        sorting = new Sorting(false, field);
-        return this;
-    }
-
     public QueryRequestUtils withReferenceResource(String refResource) {
         refResources.add(refResource);
         return this;
