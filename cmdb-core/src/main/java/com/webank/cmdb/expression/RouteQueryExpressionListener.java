@@ -308,7 +308,7 @@ public class RouteQueryExpressionListener extends RouteQueryBaseListener {
         try {
             number = numFormat.parse(ctx.getText());
         } catch (ParseException e) {
-            throw new CmdbExpressException(String.format("Failed to convert text '%s' to number.",txt));
+            throw new CmdbExpressException(String.format("Failed to convert text '%s' to number.",txt), e);
         }
 
         if(isArrayBegan){
