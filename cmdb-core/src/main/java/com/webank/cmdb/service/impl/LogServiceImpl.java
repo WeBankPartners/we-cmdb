@@ -39,8 +39,8 @@ public class LogServiceImpl implements LogService {
     public QueryResponse<LogDto> query(QueryRequest request) {
         if (request == null) {
             request = QueryRequest.defaultQueryObject().descendingSortBy(CREATED_DATE);
-        } else if (request.getSorting() == null || request.getSorting().getField() == null) {
-            request.setSorting(new Sorting(false, CREATED_DATE));
+        } else if (!request.isSortingRequested()) {
+            request.descendingSortBy(CREATED_DATE);
         }
         QueryResponse<LogDto> domainResponse = staticDtoService.query(LogDto.class, request);
         return domainResponse;

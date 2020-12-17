@@ -1,9 +1,7 @@
 package com.webank.plugins.wecmdb.service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,21 +51,18 @@ public class InhouseCmdbAdapterService {
         request.setPaging(extractPaging(inhouseCmdbQueryRequest));
         request.setPageable(extractPageable(inhouseCmdbQueryRequest));
         request.setFilters(extractFilters(inhouseCmdbQueryRequest));
-        request.setSorting(extractSorting(inhouseCmdbQueryRequest));
+        request.setSortings(extractSorting(inhouseCmdbQueryRequest));
         request.setResultColumns(inhouseCmdbQueryRequest.getResultColumn());
         return request;
     }
 
-    private Sorting extractSorting(InhouseCmdbRequest inhouseCmdbQueryRequest) {
-        Sorting sorting = new Sorting();
+    private List<Sorting> extractSorting(InhouseCmdbRequest inhouseCmdbQueryRequest) {
         Map<String, String> orderby = inhouseCmdbQueryRequest.getOrderby();
-        if (orderby != null) {
-            orderby.forEach((key, value) -> {
-                sorting.setField(key);
-                sorting.setAsc(SORTING_ASC.equals(value));
-            });
-        }
-        return sorting;
+        if(orderby == null) return Collections.emptyList();
+
+        return orderby.entrySet().stream().map(entry -> new Sorting(
+                SORTING_ASC.equals(entry.getValue()), entry.getKey()
+        )).collect(Collectors.toList());
     }
 
     private List<Filter> extractFilters(InhouseCmdbRequest inhouseCmdbQueryRequest) {
