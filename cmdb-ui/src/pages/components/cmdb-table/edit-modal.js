@@ -82,7 +82,7 @@ export default {
   },
   methods: {
     handleInputSearch: lodash.debounce(async function (value, column, data) {
-      if (value.length > 0) {
+      if (value.length > 0 && column.ciTypeId) {
         // this.$set(this.inputSearch[column.inputKey], 'options', ['host01', 'host02', 'host11'].map(_ =>  _ + value))
         const res = await queryCiData({
           id: column.ciTypeId,
@@ -97,7 +97,6 @@ export default {
         this.inputSearch[column.inputKey].options = []
         res.data.contents.forEach(item => {
           let val = item.data[column.inputKey] + ''
-          console.log(val)
           if (!keySet.has(val)) {
             keySet.add(val)
             const label = this.labelMatchValue(value, val)
