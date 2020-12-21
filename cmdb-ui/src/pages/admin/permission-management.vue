@@ -922,7 +922,7 @@ export default {
           let menuObj = MENUS.find(m => m.code === _.code)
           menus.push({
             ..._,
-            title: menuObj ? (this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName) : '',
+            title: menuObj ? (this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName) : _.otherName,
             id: _.id,
             expand: true,
             checked: false,
@@ -938,7 +938,7 @@ export default {
             if (_.parentId === h.id) {
               h.children.push({
                 ..._,
-                title: menuObj ? (this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName) : '',
+                title: menuObj ? (this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName) : _.otherName,
                 id: _.id,
                 expand: true,
                 checked: false,
