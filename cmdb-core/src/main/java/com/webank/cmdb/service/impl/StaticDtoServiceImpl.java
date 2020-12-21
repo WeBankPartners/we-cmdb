@@ -146,7 +146,7 @@ public class StaticDtoServiceImpl implements StaticDtoService {
         try {
             return dtoClzz.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new ServiceException(String.format("Fail to create dto [%s] bean.", dtoClzz.toString()))
+            throw new ServiceException(String.format("Fail to create dto [%s] bean.", dtoClzz.toString()), e)
             .withErrorCode("3105", dtoClzz.toString());
         }
     }
@@ -295,7 +295,7 @@ public class StaticDtoServiceImpl implements StaticDtoService {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                throw new ServiceException(String.format("Service error [%s].", e.getMessage()));
+                throw new ServiceException(String.format("Service error [%s].", e.getMessage()), e);
             }
 
             String domainField = dtoToDomainFieldMap.get(kv.getKey());

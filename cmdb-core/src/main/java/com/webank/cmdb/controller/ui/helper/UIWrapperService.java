@@ -155,7 +155,7 @@ public class UIWrapperService {
             try {
                 enumData.put("private", getPrivateEnumByCiTypeId(ciTypeId).getContents());
             } catch (DataNotFoundException e) {
-                log.warn(e.getMessage());
+                log.warn(e.getMessage(), e);
             }
         }
         return enumData;
@@ -1181,7 +1181,7 @@ public class UIWrapperService {
                         break;
                     }
                 } catch (Exception e) {
-                    log.error("check state & fixed_date error:" + e.getMessage());
+                    log.error("check state & fixed_date error:" + e.getMessage(), e);
                 }
             }
         }
@@ -1279,8 +1279,8 @@ public class UIWrapperService {
             JavaType javaType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, CiRoutineItem.class);
             routineItems = (List<CiRoutineItem>) mapper.readValue(routine.getBytes(), javaType);
         } catch (Exception e) {
-            throw new CmdbException(String.format("Failed to parse the routine [%s]", routine))
-            .withErrorCode("3049", routine);
+            throw new CmdbException(String.format("Failed to parse the routine [%s]", routine), e)
+                .withErrorCode("3049", routine);
         }
 
         AdhocIntegrationQueryDto rootDto = new AdhocIntegrationQueryDto();
