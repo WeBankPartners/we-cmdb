@@ -54,7 +54,7 @@ public class UIFileManagementController {
         } catch (IOException e) {
             String msg = String.format("Failed to upload image file. (fileName:%s)", file.getName());
             log.warn(msg, e);
-            throw new CmdbException("3037", msg, file.getName());
+            throw new CmdbException(msg, e).withErrorCode("3037", msg, file.getName());
         }
     }
 
@@ -72,7 +72,7 @@ public class UIFileManagementController {
         } catch (IOException e) {
             String msg = String.format("Failed to get image file. (imageId:%s)", fileId);
             log.warn(msg, e);
-            throw new ServiceException("3038",msg, fileId);
+            throw new ServiceException(msg, e).withErrorCode("3038",msg, fileId);
         }
     }
 }
