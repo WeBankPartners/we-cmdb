@@ -344,22 +344,15 @@ public class WecubeAdapterService {
 
             List<Map<String, Object>> results = inputs.stream().map(input -> {
                 String callbackParameter = input.getCallbackParameter();
-                Map<String, Object> resultItem = new HashMap<>();
-                resultItem.put(CALLBACK_PARAMETER, callbackParameter);
 
                 try {
                     String entityName = input.getEntityName();
                     Map<String, Object> ciData = input.getCiData();
                     Map<String, Object> createdCiData = batchCreateCiData(entityName, Collections.singletonList(ciData)).get(0);
-                    resultItem.put(ERROR_CODE, SUCCESS);
-                    resultItem.put(ERROR_MESSAGE, "ok");
-                    resultItem.put("ciData", createdCiData);
+                    return buildSuccessResult(callbackParameter, "ciData", createdCiData);
                 } catch(Exception e) {
-                    String errorMessage = e.getMessage();
-                    resultItem.put(ERROR_CODE, FAIL);
-                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                    return handleExceptionResult(callbackParameter, e);
                 }
-                return resultItem;
             }).collect(Collectors.toList());
 
             return processResults(results, transaction, outerTransactionActive);
@@ -377,22 +370,15 @@ public class WecubeAdapterService {
     public List<Map<String, Object>> batchQueryCiData(List<CiDataQueryInputDto> inputs) {
         return inputs.stream().map(input -> {
             String callbackParameter = input.getCallbackParameter();
-            Map<String, Object> resultItem = new HashMap<>();
-            resultItem.put(CALLBACK_PARAMETER, callbackParameter);
 
             try {
                 String entityName = input.getEntityName();
                 com.webank.plugins.wecmdb.dto.wecube.QueryRequest queryObject = input.getQueryObject();
                 List<Map<String, Object>> matchedResults = getCiDataWithConditions(entityName, queryObject);
-                resultItem.put(ERROR_CODE, SUCCESS);
-                resultItem.put(ERROR_MESSAGE, "ok");
-                resultItem.put("matchedResults", matchedResults);
+                return buildSuccessResult(callbackParameter, "matchedResults", matchedResults);
             } catch(Exception e) {
-                String errorMessage = e.getMessage();
-                resultItem.put(ERROR_CODE, FAIL);
-                resultItem.put(ERROR_MESSAGE, errorMessage);
+                return handleExceptionResult(callbackParameter, e);
             }
-            return resultItem;
         }).collect(Collectors.toList());
     }
 
@@ -408,23 +394,15 @@ public class WecubeAdapterService {
 
             List<Map<String, Object>> results = inputs.stream().map(input -> {
                 String callbackParameter = input.getCallbackParameter();
-                String entityName = input.getEntityName();
-                Map<String, Object> ciData = input.getCiData();
-                Map<String, Object> resultItem = new HashMap<>();
-                resultItem.put(CALLBACK_PARAMETER, callbackParameter);
 
                 try {
+                    String entityName = input.getEntityName();
+                    Map<String, Object> ciData = input.getCiData();
                     Map<String, Object> updatedCiData = batchUpdateCiData(entityName, Collections.singletonList(ciData)).get(0);
-                    resultItem.put(ERROR_CODE, SUCCESS);
-                    resultItem.put(ERROR_MESSAGE, "ok");
-                    resultItem.put("ciData", updatedCiData);
+                    return buildSuccessResult(callbackParameter, "ciData", updatedCiData);
                 } catch(Exception e) {
-                    String errorMessage = e.getMessage();
-                    logger.warn(errorMessage, e);
-                    resultItem.put(ERROR_CODE, FAIL);
-                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                    return handleExceptionResult(callbackParameter, e);
                 }
-                return resultItem;
             }).collect(Collectors.toList());
 
             return processResults(results, transaction, outerTransactionActive);
@@ -459,22 +437,16 @@ public class WecubeAdapterService {
 
             List<Map<String, Object>> results = inputs.stream().map(input -> {
                 String callbackParameter = input.getCallbackParameter();
-                String entityName = input.getEntityName();
-                String guid = input.getGuid();
-                Map<String, Object> resultItem = new HashMap<>();
-                resultItem.put(CALLBACK_PARAMETER, callbackParameter);
 
                 try {
+                    String entityName = input.getEntityName();
+                    String guid = input.getGuid();
                     final List<String> ids = Collections.singletonList(guid);
                     batchDeleteCiData(entityName, ids);
-                    resultItem.put(ERROR_CODE, SUCCESS);
-                    resultItem.put(ERROR_MESSAGE, "ok");
+                    return buildSuccessResult(callbackParameter);
                 } catch(Exception e) {
-                    String errorMessage = e.getMessage();
-                    resultItem.put(ERROR_CODE, FAIL);
-                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                    return handleExceptionResult(callbackParameter, e);
                 }
-                return resultItem;
             }).collect(Collectors.toList());
 
             return processResults(results, transaction, outerTransactionActive);
@@ -498,29 +470,19 @@ public class WecubeAdapterService {
 
             List<Map<String, Object>> results = operateCiDataUpdateDtos.stream().map(input -> {
                 String callbackParameter = input.getCallbackParameter();
-                Map<String, Object> resultItem = new HashMap<>();
-                resultItem.put(CALLBACK_PARAMETER, callbackParameter);
+                String guid = input.getGuid();
 
-                if (StringUtils.isBlank(input.getGuid())) {
+                if (StringUtils.isBlank(guid)) {
                     String errorMessage = "Field 'guid' is required for CI data update.";
-                    resultItem.put(ERROR_CODE, FAIL);
-                    resultItem.put(ERROR_MESSAGE, errorMessage);
-                    return resultItem;
+                    return buildErrorResult(callbackParameter, errorMessage);
                 }
 
-                String guid = input.getGuid();
-                resultItem.put("guid", guid);
                 try {
                     updateSingleCiDataByGuid(input);
-                    resultItem.put(ERROR_CODE, SUCCESS);
-                    resultItem.put(ERROR_MESSAGE, "ok");
+                    return buildSuccessResult(callbackParameter, "guid", guid);
                 } catch(Exception e) {
-                    String errorMessage = String.format("Failed to update CI [guid = %s], error = %s", guid, e.getMessage());
-                    logger.warn(errorMessage, e);
-                    resultItem.put(ERROR_CODE, FAIL);
-                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                    return handleExceptionResult(callbackParameter, e);
                 }
-                return resultItem;
             }).collect(Collectors.toList());
 
             return processResults(results, transaction, outerTransactionActive);
@@ -539,16 +501,11 @@ public class WecubeAdapterService {
 
             List<Map<String, Object>> results = new ArrayList<>();
             operateCiDtos.forEach(operateCiDto -> {
-                Map<String, Object> resultItem = new HashMap<>();
-                resultItem.put(CALLBACK_PARAMETER, operateCiDto.getCallbackParameter());
-                resultItem.put(ERROR_CODE, SUCCESS);
-                resultItem.put(ERROR_MESSAGE, "ok");
+                String callbackParameter = operateCiDto.getCallbackParameter();
 
                 if (StringUtils.isBlank(operateCiDto.getGuid())) {
                     String errorMessage = "Field 'guid' is required for CI data confirmation.";
-                    resultItem.put(ERROR_CODE, FAIL);
-                    resultItem.put(ERROR_MESSAGE, errorMessage);
-                    results.add(resultItem);
+                    results.add(buildErrorResult(callbackParameter, errorMessage));
                     return;
                 }
 
@@ -557,14 +514,10 @@ public class WecubeAdapterService {
                 guids.forEach(guid -> {
                     try {
                         ciIds.add(new CiIndentity(extractCiTypeIdFromGuid(guid), guid));
-                        List<Map<String, Object>> confirmedCis = ciService.operateState(ciIds, CONFIRM);
-                        resultItem.putAll(confirmedCis.get(0));
-                        results.add(resultItem);
+                        Map<String, Object> confirmedCiData = ciService.operateState(ciIds, CONFIRM).get(0);
+                        results.add(buildSuccessResult(callbackParameter, confirmedCiData));
                     } catch (Exception e) {
-                        String errorMessage = String.format("Failed to confirm CI [guid = %s], error = %s", guid, e.getMessage());
-                        resultItem.put(ERROR_CODE, FAIL);
-                        resultItem.put(ERROR_MESSAGE, errorMessage);
-                        results.add(resultItem);
+                        results.add(handleExceptionResult(callbackParameter, e));
                     }
                 });
             });
@@ -586,33 +539,59 @@ public class WecubeAdapterService {
             List<Map<String, Object>> results = inputs.stream().map(input -> {
                 String callbackParameter = input.getCallbackParameter();
                 String guid = input.getGuid();
-                Map<String, Object> resultItem = new HashMap<>();
-                resultItem.put(CALLBACK_PARAMETER, callbackParameter);
 
                 if (StringUtils.isBlank(guid)) {
                     String errorMessage = "Field 'guid' is required for CI data refreshing.";
-                    resultItem.put(ERROR_CODE, FAIL);
-                    resultItem.put(ERROR_MESSAGE, errorMessage);
-                    return resultItem;
+                    return buildErrorResult(callbackParameter, errorMessage);
                 }
 
                 try {
                     CiIndentity ciIndentity = new CiIndentity(extractCiTypeIdFromGuid(guid), guid);
                     ciService.refresh(Collections.singletonList(ciIndentity));
-                    resultItem.put("guid", guid);
-                    resultItem.put(ERROR_CODE, SUCCESS);
-                    resultItem.put(ERROR_MESSAGE, "ok");
+                    return buildSuccessResult(callbackParameter, "guid", guid);
                 } catch (Exception e) {
-                    String errorMessage = String.format("Failed to refresh CI [guid = %s], error = %s", guid, e.getMessage());
-                    resultItem.put(ERROR_CODE, FAIL);
-                    resultItem.put(ERROR_MESSAGE, errorMessage);
+                    return handleExceptionResult(callbackParameter, e);
                 }
-
-                return resultItem;
             }).collect(Collectors.toList());
 
             return processResults(results, transaction, outerTransactionActive);
         }
+    }
+
+    private Map<String, Object> buildSuccessResult(String callbackParameter) {
+        return buildSuccessResult(callbackParameter, Collections.emptyMap());
+    }
+
+    private Map<String, Object> buildSuccessResult(String callbackParameter, String dataKeyName, Object data) {
+        return buildSuccessResult(callbackParameter, ImmutableMap.of(dataKeyName, data));
+    }
+
+    private Map<String, Object> buildSuccessResult(String callbackParameter, Map<String, Object> extraDataMap) {
+        Map<String, Object> resultItem = buildSimpleResult(callbackParameter, SUCCESS, "ok");
+        resultItem.putAll(extraDataMap);
+        return resultItem;
+    }
+
+    private Map<String, Object> buildErrorResult(String callbackParameter, String message) {
+        return buildSimpleResult(callbackParameter, FAIL, message);
+    }
+
+    private Map<String, Object> handleExceptionResult(String callbackParameter, Exception e) {
+        String msg = String.format("Error occurred when processing %s", callbackParameter);
+        logger.error(msg, e);
+        return buildErrorResult(callbackParameter, e.getMessage());
+    }
+
+    private Map<String, Object> buildRollbackResult(String callbackParameter) {
+        return buildSimpleResult(callbackParameter, SUCCESS, "rollbacked");
+    }
+
+    private Map<String, Object> buildSimpleResult(String callbackParameter, String errorCode, String errorMessage) {
+        Map<String, Object> resultItem = new HashMap<>();
+        resultItem.put(CALLBACK_PARAMETER, callbackParameter);
+        resultItem.put(ERROR_CODE, errorCode);
+        resultItem.put(ERROR_MESSAGE, errorMessage);
+        return resultItem;
     }
 
     private List<Map<String, Object>> processResults(List<Map<String, Object>> results,
@@ -625,12 +604,8 @@ public class WecubeAdapterService {
                     return result;
                 }
                 else {
-                    Object callbackParameter = result.get(CALLBACK_PARAMETER);
-                    return ImmutableMap.<String, Object>builder()
-                            .put(ERROR_CODE, SUCCESS)
-                            .put(ERROR_MESSAGE, "rollbacked")
-                            .put(CALLBACK_PARAMETER, callbackParameter)
-                            .build();
+                    String callbackParameter = String.valueOf(result.get(CALLBACK_PARAMETER));
+                    return buildRollbackResult(callbackParameter);
                 }
             }).collect(Collectors.toList());
         } else {

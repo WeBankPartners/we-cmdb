@@ -135,7 +135,10 @@ public class ResponseResultProcess implements ResponseBodyAdvice<Object> {
                 logger.info("I18N:found errmsg {} : {}", msgCode, errMsg);
                 return errMsg;
             }catch(NoSuchMessageException e1){
-                logger.debug("cannot find such message for {}", ex.getErrorCode());
+                if(logger.isDebugEnabled()) {
+                    String errorMessage = String.format("cannot find such message for %s", ex.getErrorCode());
+                    logger.debug(errorMessage, e1);
+                }
                 return ex.getMessage();
             }
         } else {

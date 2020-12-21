@@ -742,7 +742,8 @@ public class CiDataInterceptorService {
             ci.put(GUID, guid);
             handleReferenceAutoFill(entityHolder,entityManager,ci);
         } catch (Exception e) {
-            logger.error(String.format("Exception happen for auto fill after ci type (%s) deletion.",ciTypeId));
+            String errorMessage = String.format("Exception happen for auto fill after ci type (%s) deletion.", ciTypeId);
+            logger.error(errorMessage, e);
         }
     }
 }

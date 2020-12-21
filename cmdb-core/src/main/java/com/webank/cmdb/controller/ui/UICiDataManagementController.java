@@ -114,7 +114,7 @@ public class UICiDataManagementController {
         } catch (IOException e) {
             String msg = String.format("Failed to upload image file. (fileName:%s)", file.getName());
             log.warn(msg, e);
-            throw new CmdbException("3040", msg, file.getName());
+            throw new CmdbException(msg, e).withErrorCode("3040", msg, file.getName());
         }
     }
 
