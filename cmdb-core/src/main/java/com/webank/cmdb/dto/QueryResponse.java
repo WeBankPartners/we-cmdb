@@ -39,4 +39,9 @@ public class QueryResponse<T> {
         this.contents.add(ciObj);
     }
 
+    public boolean isEmptyContent() {
+        final List<T> contents = getContents();
+        return contents == null || contents.isEmpty();
+    }
+
 }

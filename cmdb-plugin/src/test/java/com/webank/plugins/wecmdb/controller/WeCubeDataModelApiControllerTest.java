@@ -19,13 +19,25 @@ public class WeCubeDataModelApiControllerTest extends AbstractBaseControllerTest
     private static final String SUCCESS_STATUS = "OK";
     private static final String SUCCESS_MESSAGE = "Success";
 
+    @Transactional
     @Test
     public void ci_data_model_should_return_ci_entities() throws Exception {
+        String ciTypeName = generateCiTypeName();
+        givenAppliedCiType(ciTypeName);
+
+        String ciTypeJsonPath = String.format("$.data[?(@.name == '%s')]", ciTypeName);
         mvc.perform(get("/data-model"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(SUCCESS_STATUS))
                 .andExpect(jsonPath("$.message").value(SUCCESS_MESSAGE))
-                .andExpect(jsonPath("$.data").isNotEmpty());
+                .andExpect(jsonPath("$.data").isNotEmpty())
+                .andExpect(jsonPath(ciTypeJsonPath).exists())
+                .andExpect(jsonPath(ciTypeJsonPath + ".attributes").isNotEmpty())
+                .andExpect(jsonPath(ciTypeJsonPath + ".attributes[?(@.name == 'id')]").exists())
+                .andExpect(jsonPath(ciTypeJsonPath + ".attributes[?(@.name == 'displayName')]").exists())
+                .andExpect(jsonPath(ciTypeJsonPath + ".attributes[0].nullable").exists())
+                .andExpect(jsonPath(ciTypeJsonPath + ".attributes[0].editable").exists())
+        ;
     }
 
     @Transactional
