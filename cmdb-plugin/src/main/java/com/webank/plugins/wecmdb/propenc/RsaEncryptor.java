@@ -56,10 +56,8 @@ public final class RsaEncryptor {
     public static RsaKeyPair initKey() {
         try {
            return _INSTANCE.doInitKey();
-        } catch (NoSuchAlgorithmException e) {
-            throw new EncryptionException(e.getMessage());
-        } catch (UnsupportedEncodingException e) {
-            throw new EncryptionException(e.getMessage());
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+            throw new EncryptionException(e);
         }
     }
     
@@ -72,7 +70,7 @@ public final class RsaEncryptor {
             return _INSTANCE.doDecryptByPrivateKey(data, key);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | InvalidKeyException
                 | IllegalBlockSizeException | BadPaddingException e) {
-            throw new EncryptionException(e.getMessage());
+            throw new EncryptionException(e);
         }
 
     }
@@ -86,7 +84,7 @@ public final class RsaEncryptor {
             return _INSTANCE.doEncryptByPrivateKey(data, key);
         } catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
                 | IllegalBlockSizeException | BadPaddingException e) {
-            throw new EncryptionException(e.getMessage());
+            throw new EncryptionException(e);
         }
     }
     
@@ -99,7 +97,7 @@ public final class RsaEncryptor {
             return _INSTANCE.doDecryptByPublicKey(data, key);
         } catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
                 | IllegalBlockSizeException | BadPaddingException e) {
-            throw new EncryptionException(e.getMessage());
+            throw new EncryptionException(e);
         }
     }
     
@@ -112,7 +110,7 @@ public final class RsaEncryptor {
             return _INSTANCE.doEncryptByPublicKey(data, key);
         } catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
                 | IllegalBlockSizeException | BadPaddingException e) {
-            throw new EncryptionException(e.getMessage());
+            throw new EncryptionException(e);
         }
     }
 

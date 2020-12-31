@@ -60,7 +60,7 @@ public class RsaKeyDetector {
         } catch (IOException e) {
             log.error("errors while reading private key", e);
             String msg = String.format("Failed to read private key {%s}.", this.rsaKeyFile.getAbsolutePath());
-            throw new EncryptionException(msg);
+            throw new EncryptionException(msg, e);
         }
     }
 
