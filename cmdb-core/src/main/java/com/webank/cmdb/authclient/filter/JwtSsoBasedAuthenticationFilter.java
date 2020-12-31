@@ -90,17 +90,17 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
             if (authentication != null && authentication.isAuthenticated()) {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-        } catch (AuthenticationException failed) {
-            log.debug("authentication failed");
+        } catch (AuthenticationException e) {
+            log.debug("authentication failed", e);
 
             SecurityContextHolder.clearContext();
 
-            onUnsuccessfulAuthentication(request, response, failed);
+            onUnsuccessfulAuthentication(request, response, e);
 
             if (this.ignoreFailure) {
                 chain.doFilter(request, response);
             } else {
-                this.getAuthenticationEntryPoint().commence(request, response, failed);
+                this.getAuthenticationEntryPoint().commence(request, response, e);
             }
 
             return;
@@ -148,9 +148,9 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
         try {
             jwt = jwtParser.parseJwt(sAccessToken);
         } catch (ExpiredJwtException e) {
-            throw new BadCredentialsException("Access token has expired.");
+            throw new BadCredentialsException("Access token has expired.", e);
         } catch (JwtException e) {
-            throw new BadCredentialsException("Access token is not available.");
+            throw new BadCredentialsException("Access token is not available.", e);
         }
 
         Claims claims = jwt.getBody();

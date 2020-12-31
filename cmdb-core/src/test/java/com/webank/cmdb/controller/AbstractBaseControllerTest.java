@@ -1,9 +1,18 @@
 package com.webank.cmdb.controller;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.persistence.EntityManager;
 import javax.sql.DataSource;
 
+import com.webank.cmdb.constant.CiStatus;
+import com.webank.cmdb.dto.CiTypeAttrDto;
+import com.webank.cmdb.dto.CiTypeDto;
+import com.webank.cmdb.service.CiTypeService;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -29,16 +38,22 @@ import com.webank.cmdb.util.CmdbThreadLocal;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 public abstract class AbstractBaseControllerTest {
+    private static final AtomicInteger ciTypeSeqNo = new AtomicInteger();
+
     @Autowired
     protected DataSource dataSource;
     @Autowired
     protected MockMvc mvc;
     @Autowired
     protected CiService ciService;
-    @MockBean
-    protected DatabaseService databaseService;
+    @Autowired
+    CiTypeService ciTypeService;
+    @Autowired
+    EntityManager entityManager;
     @Autowired
     private CacheHandlerInterceptor cacheHandlerInterceptor;
+    @MockBean
+    protected DatabaseService databaseService;
 
     public void reload() {
         ciService.invalidate();
@@ -72,5 +87,66 @@ public abstract class AbstractBaseControllerTest {
             return new String(IOUtils.toString(resource.getInputStream()));
         }
         return null;
+    }
+
+    protected int givenAppliedCiType() {
+        return givenAppliedCiType(generateCiTypeName());
+    }
+
+    protected int givenAppliedCiType(String name) {
+        CiTypeDto ciTypeDto = new CiTypeDto();
+        ciTypeDto.setName(name);
+        ciTypeDto.setTableName(name);
+        ciTypeDto.setStatus(CiStatus.NotCreated.getCode());
+
+        CiTypeDto result = ciTypeService.addCiType(ciTypeDto);
+        Integer createdCiTypeId = result.getCiTypeId();
+        entityManager.clear();
+
+        ciTypeService.applyCiType(Collections.singletonList(createdCiTypeId));
+        entityManager.clear();
+
+        return createdCiTypeId;
+    }
+
+    protected int givenAppliedCiAttrForType(int ciTypeId, String name, String autoFillRule) {
+        CiTypeAttrDto attrDto = new CiTypeAttrDto();
+        attrDto.setCiTypeId(ciTypeId);
+        attrDto.setName(name);
+        attrDto.setPropertyName(name);
+        attrDto.setStatus(CiStatus.NotCreated.getCode());
+        attrDto.setInputType("text");
+        attrDto.setPropertyType("varchar");
+        attrDto.setLength(32);
+        attrDto.setIsSystem(false);
+        attrDto.setIsEditable(true);
+        attrDto.setIsNullable(true);
+        attrDto.setIsAuto(autoFillRule != null);
+        attrDto.setAutoFillRule(autoFillRule);
+
+        CiTypeAttrDto result = ciTypeService.addCiTypeAttribute(ciTypeId, attrDto);
+        entityManager.clear();
+        Integer ciTypeAttrId = result.getCiTypeAttrId();
+        ciTypeService.applyCiTypeAttr(Collections.singletonList(ciTypeAttrId));
+        entityManager.clear();
+
+        return ciTypeAttrId;
+    }
+
+    protected Map<String, Object> givenCiData(int ciTypeId, Map<String, Object> ciData) {
+        String guid = ciService.create(ciTypeId, ciData);
+        return getCiDataSafe(ciTypeId, guid);
+    }
+
+    protected Map<String, Object> getCiDataSafe(int ciTypeId, String guid) {
+        try {
+            return ciService.getCi(ciTypeId, guid);
+        } catch(InvalidArgumentException e) {
+            return null;
+        }
+    }
+
+    protected String generateCiTypeName() {
+        return "ciTypeName" + ciTypeSeqNo.incrementAndGet();
     }
 }

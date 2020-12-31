@@ -38,7 +38,7 @@ public class DynamicEntityHolder {
             entityObj = entityConst.newInstance();
             entityBeanMap = BeanMap.create(entityObj);
         } catch (Exception e) {
-            throw new ServiceException(String.format("Failed to create CI entity bean for CI type (%s)", entityMeta.getQulifiedName()))
+            throw new ServiceException(String.format("Failed to create CI entity bean for CI type (%s)", entityMeta.getQulifiedName()), e)
             .withErrorCode("3112", entityMeta.getQulifiedName());
         }
 
@@ -108,7 +108,7 @@ public class DynamicEntityHolder {
                     try {
                         entityHolder.put(k, ClassUtils.toObject(type, String.valueOf(v)));
                     } catch (NumberFormatException ex) {
-                        throw new InvalidArgumentException(String.format("Failed to convert value [%s] to number for field [%s]", String.valueOf(v), k));
+                        throw new InvalidArgumentException(String.format("Failed to convert value [%s] to number for field [%s]", String.valueOf(v), k), ex);
                     }
                 }
             }

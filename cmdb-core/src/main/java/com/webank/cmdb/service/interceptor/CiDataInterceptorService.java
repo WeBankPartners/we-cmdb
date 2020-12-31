@@ -729,8 +729,8 @@ public class CiDataInterceptorService {
         if (!dependentCis.isEmpty()) {
             Map<String,Object> depCiData = dependentCis.get(0);
             throw new InvalidArgumentException(String.format("Ci [%s] is referenced by other ci ( guid:%s, keyName:%s ) currently, can not be deleted.",
-                    guid,depCiData.get("guid"),depCiData.get("keyName")), dependentCis)
-            .withErrorCode("3250", guid,depCiData.get("guid"),depCiData.get("keyName"));
+                    guid,depCiData.get("guid"),depCiData.get("key_name")), dependentCis)
+            .withErrorCode("3250", guid,depCiData.get("guid"),depCiData.get("key_name"));
         }
     }
     public void postDelete(DynamicEntityHolder entityHolder, EntityManager entityManager, int ciTypeId, String guid, DynamicEntityMeta entityMeta) {
@@ -742,7 +742,8 @@ public class CiDataInterceptorService {
             ci.put(GUID, guid);
             handleReferenceAutoFill(entityHolder,entityManager,ci);
         } catch (Exception e) {
-            logger.error(String.format("Exception happen for auto fill after ci type (%s) deletion.",ciTypeId));
+            String errorMessage = String.format("Exception happen for auto fill after ci type (%s) deletion.", ciTypeId);
+            logger.error(errorMessage, e);
         }
     }
 }

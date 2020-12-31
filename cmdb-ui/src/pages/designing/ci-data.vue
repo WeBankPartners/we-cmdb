@@ -202,6 +202,7 @@ export default {
     },
     handleTabClick (name) {
       this.payload.filters = this.payload.filters.filter(x => x.name === 'update_date')
+      delete this.payload.sorting
       this.currentTab = name
     },
     async initGraph (filters = ['created', 'dirty']) {

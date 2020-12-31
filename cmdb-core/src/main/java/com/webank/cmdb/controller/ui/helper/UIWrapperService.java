@@ -155,7 +155,7 @@ public class UIWrapperService {
             try {
                 enumData.put("private", getPrivateEnumByCiTypeId(ciTypeId).getContents());
             } catch (DataNotFoundException e) {
-                log.warn(e.getMessage());
+                log.warn(e.getMessage(), e);
             }
         }
         return enumData;
@@ -505,10 +505,13 @@ public class UIWrapperService {
 
     public QueryResponse<CiData> queryCiDataShowPassword(Integer ciTypeId, QueryRequest queryObject,boolean showPassword) {
         if (queryObject == null) {
-            queryObject = QueryRequest.defaultQueryObject().descendingSortBy(CmdbConstants.DEFAULT_FIELD_CREATED_DATE);
-        } else if (queryObject.getSorting() == null || queryObject.getSorting().getField() == null) {
-            queryObject.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_CREATED_DATE));
+            queryObject = QueryRequest.defaultQueryObject();
         }
+
+        if (!queryObject.isSortingRequested()) {
+            queryObject.withDefaultSorting();
+        }
+
         QueryResponse<CiData> queryData = ciService.query(ciTypeId, queryObject);
         if(showPassword){
             return queryData;
@@ -540,10 +543,13 @@ public class UIWrapperService {
 
     public QueryResponse<CiData> queryCiDataByType(Integer ciTypeId, QueryRequest queryObject) {
         if (queryObject == null) {
-            queryObject = QueryRequest.defaultQueryObject().descendingSortBy(CmdbConstants.DEFAULT_FIELD_CREATED_DATE);
-        } else if (queryObject.getSorting() == null || queryObject.getSorting().getField() == null) {
-            queryObject.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_CREATED_DATE));
+            queryObject = QueryRequest.defaultQueryObject();
         }
+
+        if (!queryObject.isSortingRequested()) {
+            queryObject.withDefaultSorting();
+        }
+
         queryObject.addNotEqualsFilter("state", uiProperties.getEnumIdOfStateDelete());
         int pageSize = queryObject.getPageable().getPageSize();
         queryObject.getPageable().setPageSize(Integer.MAX_VALUE);
@@ -1134,14 +1140,14 @@ public class UIWrapperService {
         inputFilters.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
         inputFilters.getFilters().add(fixDate);
         inputFilters.addNotEmptyFilter(CONSTANT_FIXED_DATE);
-        inputFilters.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID));
+        inputFilters.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
         
         QueryRequest firstQueryReq = new QueryRequest();
         firstQueryReq.getDialect().setShowCiHistory(true);
         firstQueryReq.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
         firstQueryReq.getFilters().add(fixDate);
         firstQueryReq.addNotEmptyFilter(CONSTANT_FIXED_DATE);
-        firstQueryReq.setSorting(new Sorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID));
+        firstQueryReq.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
         firstQueryReq.setPageable(null);
         firstQueryReq.setPaging(false);
         for(Filter f : inputFilters.getFilters() ){
@@ -1175,7 +1181,7 @@ public class UIWrapperService {
                         break;
                     }
                 } catch (Exception e) {
-                    log.error("check state & fixed_date error:" + e.getMessage());
+                    log.error("check state & fixed_date error:" + e.getMessage(), e);
                 }
             }
         }
@@ -1273,8 +1279,8 @@ public class UIWrapperService {
             JavaType javaType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, CiRoutineItem.class);
             routineItems = (List<CiRoutineItem>) mapper.readValue(routine.getBytes(), javaType);
         } catch (Exception e) {
-            throw new CmdbException(String.format("Failed to parse the routine [%s]", routine))
-            .withErrorCode("3049", routine);
+            throw new CmdbException(String.format("Failed to parse the routine [%s]", routine), e)
+                .withErrorCode("3049", routine);
         }
 
         AdhocIntegrationQueryDto rootDto = new AdhocIntegrationQueryDto();
