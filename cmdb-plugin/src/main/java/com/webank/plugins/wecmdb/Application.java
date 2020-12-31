@@ -6,6 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
@@ -22,7 +23,8 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 @EnableConfigurationProperties({PluginApplicationProperties.class,ApplicationProperties.class})
 @EnableEncryptableProperties
-@ComponentScan({ "com.webank.plugins.wecmdb.propenc", "com.webank.plugins.wecmdb.service", "com.webank.plugins.wecmdb.controller", "com.webank.plugins.wecmdb.mvc", "com.webank.cmdb.config", "com.webank.cmdb.repository" })
+@EnableAspectJAutoProxy
+@ComponentScan({ "com.webank.plugins.wecmdb.propenc", "com.webank.plugins.wecmdb.service", "com.webank.plugins.wecmdb.aop", "com.webank.plugins.wecmdb.controller", "com.webank.plugins.wecmdb.mvc", "com.webank.cmdb.config", "com.webank.cmdb.repository" })
 @Import({ DatabaseConfig.class })
 public class Application extends AbstractAnnotationConfigDispatcherServletInitializer {
 
