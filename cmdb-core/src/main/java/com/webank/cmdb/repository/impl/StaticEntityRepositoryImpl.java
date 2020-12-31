@@ -162,7 +162,7 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
     public static class CrossResRequest {
         private boolean isPaging = false;
         private Pageable pageable = new Pageable();
-        private Sorting sorting = new Sorting();
+        private List<Sorting> sortings = new LinkedList<>();
         private List<String> groupBys = new LinkedList<>();
         private List<String> refResource = new LinkedList<>();
         private FilterPath rootFilterPath;
@@ -174,7 +174,7 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
         public CrossResRequest(QueryRequest queryReq) {
             this.isPaging = queryReq.isPaging();
             this.pageable = queryReq.getPageable();
-            this.sorting = queryReq.getSorting();
+            this.sortings = queryReq.getSortings();
             this.groupBys = queryReq.getGroupBys();
             this.refResource = queryReq.getRefResources();
             this.filterRs = FilterRelationship.fromCode(queryReq.getFilterRs());
@@ -196,12 +196,12 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
             this.pageable = pageable;
         }
 
-        public Sorting getSorting() {
-            return sorting;
+        public List<Sorting> getSortings() {
+            return sortings;
         }
 
         public void setSorting(Sorting sorting) {
-            this.sorting = sorting;
+            this.sortings.add(sorting);
         }
 
         public List<String> getGroupBys() {
@@ -403,7 +403,7 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
             }
 
             if (isSelRowCount == false) {
-                JpaQueryUtils.applySorting(ciRequest.getSorting(), cb, query, selectionMap);
+                JpaQueryUtils.applySortings(ciRequest.getSortings(), cb, query, selectionMap);
             }
         }
 
@@ -426,7 +426,7 @@ public class StaticEntityRepositoryImpl implements StaticEntityRepository {
         try {
             entityBean = domainClazz.newInstance();
         } catch (Exception e) {
-            throw new ServiceException(String.format("Fail to create domain [%s] entity bean.", domainClazz.toString()))
+            throw new ServiceException(String.format("Fail to create domain [%s] entity bean.", domainClazz.toString()), e)
             .withErrorCode("3116", domainClazz.toString());
         }
         BeanMap beanMap = new BeanMap(entityBean);

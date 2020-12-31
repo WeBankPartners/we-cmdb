@@ -41,6 +41,10 @@ public class JpaQueryUtils {
         }
     }
 
+    public static void applySortings(List<Sorting> sortings, CriteriaBuilder cb, CriteriaQuery query, Map<String, Expression> selectionMap) {
+        sortings.forEach(sorting -> applySorting(sorting, cb, query, selectionMap));
+    }
+
     public static void applySorting(Sorting sorting, CriteriaBuilder cb, CriteriaQuery query, Map<String, Expression> selectionMap) {
         if (sorting != null && sorting.getField() != null && selectionMap.get(sorting.getField()) == null) {
             throw new InvalidArgumentException(String.format("Sorting field name [%s] is invalid.", sorting.getField()));
