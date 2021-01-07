@@ -48,7 +48,7 @@ public class WecubeAdapterService {
     private static final String CITYPE_ID = "ciTypeId";
     public static final String SUCCESS = "0";
     public static final String FAIL = "1";
-
+    
     static {
         dataTypeMapping.put(FieldType.Varchar.getCode(), DataType.String.getCode());
         dataTypeMapping.put(FieldType.Int.getCode(), DataType.Integer.getCode());
@@ -92,34 +92,32 @@ public class WecubeAdapterService {
     }
 
     private List<EntityDto> convertDataModel(QueryResponse<CiTypeDto> ciTypeDtoResponse) {
-        if (ciTypeDtoResponse == null || ciTypeDtoResponse.isEmptyContent()) {
-            return Collections.emptyList();
+        List<EntityDto> entityDtos = new ArrayList<EntityDto>();
+        if (ciTypeDtoResponse != null && ciTypeDtoResponse.getContents() != null && !ciTypeDtoResponse.getContents().isEmpty()) {
+            List<CiTypeDto> ciTypeDtos = ciTypeDtoResponse.getContents();
+            ciTypeDtos.forEach(ciTypeDto -> {
+                EntityDto entityDto = new EntityDto();
+                entityDto.setName(ciTypeDto.getTableName());
+                entityDto.setDisplayName(ciTypeDto.getName());
+                entityDto.setDescription(ciTypeDto.getDescription());
+
+                QueryRequest queryCiTypeAattr = QueryRequest.defaultQueryObject()
+                        .addEqualsFilter(CITYPE_ID, ciTypeDto.getCiTypeId())
+                        .addEqualsFilter(STATUS, STATUS_CREATED);
+                QueryResponse<CiTypeAttrDto> ciTypeAttrResponse = queryCiTypeAttrs(queryCiTypeAattr);
+                if (ciTypeAttrResponse != null && ciTypeAttrResponse.getContents() != null && !ciTypeAttrResponse.getContents().isEmpty()) {
+                    List<CiTypeAttrDto> ciTypeAttrDtos = ciTypeAttrResponse.getContents();
+                    List<AttributeDto> attributeDtos = new ArrayList<>();
+
+                    populateOriginCiTypeAttrs(ciTypeDto, ciTypeAttrDtos, attributeDtos);
+                    populateRequiredAttrs(ciTypeDto, attributeDtos);
+
+                    entityDto.setAttributes(attributeDtos);
+                }
+                entityDtos.add(entityDto);
+            });
         }
-
-        return ciTypeDtoResponse.getContents().stream().map(ciTypeDto -> {
-            EntityDto entityDto = new EntityDto();
-            entityDto.setName(ciTypeDto.getTableName());
-            entityDto.setDisplayName(ciTypeDto.getName());
-            entityDto.setDescription(ciTypeDto.getDescription());
-
-            QueryRequest ciTypeAttrQueryRequest = QueryRequest.defaultQueryObject()
-                    .addEqualsFilter(CITYPE_ID, ciTypeDto.getCiTypeId())
-                    .addEqualsFilter(STATUS, STATUS_CREATED);
-            QueryResponse<CiTypeAttrDto> ciTypeAttrResponse = queryCiTypeAttrs(ciTypeAttrQueryRequest);
-
-            if (ciTypeAttrResponse == null || ciTypeAttrResponse.isEmptyContent()) {
-                return entityDto;
-            }
-
-            List<CiTypeAttrDto> ciTypeAttrDtos = ciTypeAttrResponse.getContents();
-            List<AttributeDto> attributeDtos = new ArrayList<>();
-
-            populateOriginCiTypeAttrs(ciTypeDto, ciTypeAttrDtos, attributeDtos);
-            populateRequiredAttrs(ciTypeDto, attributeDtos);
-
-            entityDto.setAttributes(attributeDtos);
-            return entityDto;
-        }).collect(Collectors.toList());
+        return entityDtos;
     }
 
     private void populateOriginCiTypeAttrs(CiTypeDto ciTypeDto, List<CiTypeAttrDto> ciTypeAttrDtos, List<AttributeDto> attributeDtos) {
@@ -128,21 +126,18 @@ public class WecubeAdapterService {
             attributeDto.setEntityName(ciTypeDto.getTableName());
             attributeDto.setDescription(ciTypeAttrDto.getDescription());
             attributeDto.setName(ciTypeAttrDto.getPropertyName());
-            attributeDto.setNullable(ciTypeAttrDto.getIsNullable());
-            attributeDto.setEditable(ciTypeAttrDto.getIsEditable());
-
             switch (InputType.fromCode(ciTypeAttrDto.getInputType())) {
-                case Reference:
-                case MultRef: {
-                    attributeDto.setDataType(DataType.Ref.getCode());
-                    attributeDto.setRefPackageName(PLUGIN_PACKAGE_NAME);
-                    attributeDto.setRefEntityName(getCiTypeNameById(ciTypeAttrDto.getReferenceId()));
-                    attributeDto.setRefAttributeName(ID);
-                    break;
-                }
-                default:
-                    attributeDto.setDataType(mapToWecubeDataType(ciTypeAttrDto));
-                    break;
+            case Reference:
+            case MultRef: {
+                attributeDto.setDataType(DataType.Ref.getCode());
+                attributeDto.setRefPackageName(PLUGIN_PACKAGE_NAME);
+                attributeDto.setRefEntityName(getCiTypeNameById(ciTypeAttrDto.getReferenceId()));
+                attributeDto.setRefAttributeName(ID);
+                break;
+            }
+            default:
+                attributeDto.setDataType(mapToWecubeDataType(ciTypeAttrDto));
+                break;
             }
             attributeDtos.add(attributeDto);
         });
@@ -153,8 +148,6 @@ public class WecubeAdapterService {
         attrId.setEntityName(ciTypeDto.getTableName());
         attrId.setDescription("ID");
         attrId.setName(ID);
-        attrId.setNullable(false);
-        attrId.setEditable(false);
         attrId.setDataType(DataType.String.getCode());
         attributeDtos.add(attrId);
 
@@ -162,8 +155,6 @@ public class WecubeAdapterService {
         attrDisplayName.setEntityName(ciTypeDto.getTableName());
         attrDisplayName.setDescription("Display Name");
         attrDisplayName.setName(DISPLAY_NAME);
-        attrDisplayName.setNullable(false);
-        attrDisplayName.setEditable(true);
         attrDisplayName.setDataType(DataType.String.getCode());
         attributeDtos.add(attrDisplayName);
     }
@@ -191,7 +182,6 @@ public class WecubeAdapterService {
 
         return convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
     }
-
     private void applySelectAttrs(String selectAttrs, QueryRequest queryObject) {
         if (!StringUtils.isBlank(selectAttrs)) {
             String[] attrs = selectAttrs.split(",");
@@ -233,9 +223,9 @@ public class WecubeAdapterService {
 
     public List<Map<String, Object>> getCiDataWithConditions(String entityName, com.webank.plugins.wecmdb.dto.wecube.QueryRequest queryObject) {
         QueryRequest queryRequest = new QueryRequest();
-        if (queryObject == null) {
+        if (queryObject == null){
             queryRequest = QueryRequest.defaultQueryObject();
-        } else {
+        }else{
             queryRequest = parameterAdaptation(queryObject);
         }
         return convertCiData(queryRequest, retrieveCiTypeIdByTableName(entityName));
@@ -246,32 +236,32 @@ public class WecubeAdapterService {
         queryObject.getAdditionalFilters().forEach(filter -> {
             Filter guidFilter;
             if (ID.equals(filter.getAttrName())) {
-                guidFilter = new Filter(GUID, filter.getOp(), filter.getCondition());
-            } else {
+                guidFilter = new Filter(GUID,filter.getOp(),filter.getCondition());
+            }else{
                 guidFilter = adapterFilter(filter);
             }
             queryRequest.getFilters().add(guidFilter);
         });
-        if (queryObject.getCriteria() != null && queryObject.getCriteria().getAttrName() != null) {
-            queryRequest.addEqualsFilter(queryObject.getCriteria().getAttrName().equals(ID) ? GUID : queryObject.getCriteria().getAttrName(), queryObject.getCriteria().getCondition());
+        if (queryObject.getCriteria() != null && queryObject.getCriteria().getAttrName() != null){
+            queryRequest.addEqualsFilter(queryObject.getCriteria().getAttrName().equals(ID)?GUID:queryObject.getCriteria().getAttrName(),queryObject.getCriteria().getCondition());
         }
         return queryRequest;
     }
 
     private Filter adapterFilter(com.webank.plugins.wecmdb.dto.wecube.Filter filter) {
         Filter guidFilter;
-        if ("is".equals(filter.getOp())) {
+        if ("is".equals(filter.getOp())){
             if ("NULL".equals(filter.getCondition())) {
                 guidFilter = new Filter(filter.getAttrName(), FilterOperator.Null.getCode(), filter.getCondition());
-            } else {
-                guidFilter = new Filter(filter.getAttrName(), FilterOperator.Equal.getCode(), filter.getCondition());
+            }else{
+                guidFilter = new Filter(filter.getAttrName(),FilterOperator.Equal.getCode(),filter.getCondition());
             }
-        } else if ("isnot".equals(filter.getOp())) {
-            guidFilter = new Filter(filter.getAttrName(), FilterOperator.NotNull.getCode(), filter.getCondition());
-        } else if ("neq".equals(filter.getOp())) {
-            guidFilter = new Filter(filter.getAttrName(), FilterOperator.NotEqual.getCode(), filter.getCondition());
-        } else {
-            guidFilter = new Filter(filter.getAttrName(), filter.getOp(), filter.getCondition());
+        }else if("isnot".equals(filter.getOp())){
+            guidFilter = new Filter(filter.getAttrName(), FilterOperator.NotNull.getCode(),filter.getCondition());
+        }else if("neq".equals(filter.getOp())){
+            guidFilter = new Filter(filter.getAttrName(),FilterOperator.NotEqual.getCode(),filter.getCondition());
+        }else{
+            guidFilter = new Filter(filter.getAttrName(),filter.getOp(),filter.getCondition());
         }
         return guidFilter;
     }
@@ -299,7 +289,7 @@ public class WecubeAdapterService {
     }
 
     private boolean isRequestField(QueryRequest queryObject, String name) {
-        return queryObject.getResultColumns() == null || queryObject.getResultColumns().size() == 0 || queryObject.getResultColumns().contains(name);
+        return queryObject.getResultColumns() == null || queryObject.getResultColumns().size()==0 || queryObject.getResultColumns().contains(name);
     }
 
     private void populateSelectedAttrs(List<CiTypeAttrDto> ciTypeAttrDtos, Map<String, Object> convertedMap, String dataAttrName, Object value) {
@@ -343,7 +333,7 @@ public class WecubeAdapterService {
     }
 
     public List<Map<String, Object>> batchCreateCiData(List<CiDataInputDto> inputs) {
-        try (PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
+        try(PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
             EntityManager entityManager = priorityEntityManager.getEntityManager();
 
             EntityTransaction transaction = entityManager.getTransaction();
@@ -360,7 +350,7 @@ public class WecubeAdapterService {
                     Map<String, Object> ciData = input.getCiData();
                     Map<String, Object> createdCiData = batchCreateCiData(entityName, Collections.singletonList(ciData)).get(0);
                     return buildSuccessResult(callbackParameter, "ciData", createdCiData);
-                } catch (Exception e) {
+                } catch(Exception e) {
                     return handleExceptionResult(callbackParameter, e);
                 }
             }).collect(Collectors.toList());
@@ -386,19 +376,19 @@ public class WecubeAdapterService {
                 com.webank.plugins.wecmdb.dto.wecube.QueryRequest queryObject = input.getQueryObject();
                 List<Map<String, Object>> matchedResults = getCiDataWithConditions(entityName, queryObject);
                 return buildSuccessResult(callbackParameter, "matchedResults", matchedResults);
-            } catch (Exception e) {
+            } catch(Exception e) {
                 return handleExceptionResult(callbackParameter, e);
             }
         }).collect(Collectors.toList());
     }
 
     public List<Map<String, Object>> batchUpdateCiData(List<CiDataInputDto> inputs) {
-        try (PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
+        try(PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
             EntityManager entityManager = priorityEntityManager.getEntityManager();
 
             EntityTransaction transaction = entityManager.getTransaction();
             boolean outerTransactionActive = transaction.isActive();
-            if (!outerTransactionActive) {
+            if(!outerTransactionActive) {
                 transaction.begin();
             }
 
@@ -410,7 +400,7 @@ public class WecubeAdapterService {
                     Map<String, Object> ciData = input.getCiData();
                     Map<String, Object> updatedCiData = batchUpdateCiData(entityName, Collections.singletonList(ciData)).get(0);
                     return buildSuccessResult(callbackParameter, "ciData", updatedCiData);
-                } catch (Exception e) {
+                } catch(Exception e) {
                     return handleExceptionResult(callbackParameter, e);
                 }
             }).collect(Collectors.toList());
@@ -424,19 +414,19 @@ public class WecubeAdapterService {
         List<Map<String, Object>> convertedRequest = convertedRequest(originRequest);
         List<Map<String, Object>> updatedCiData = ciService.update(retrieveCiTypeIdByTableName(entityName), convertedRequest);
         stopwatch.stop();
-        logger.info("[Performance measure][updateCiData] Elapsed time in updating: {}", stopwatch.toString());
+        logger.info("[Performance measure][updateCiData] Elapsed time in updating: {}",stopwatch.toString());
 
         stopwatch.reset().start();
         QueryRequest queryObject = QueryRequest.defaultQueryObject().addInFilter(GUID, updatedCiData.stream().map(item -> item.get(GUID)).collect(Collectors.toList()));
         List<Map<String, Object>> result = convertCiData(queryObject, retrieveCiTypeIdByTableName(entityName));
         stopwatch.stop();
-        logger.info("[Performance measure][updateCiData] Elapsed time in converting updated ci data: {}", stopwatch.toString());
+        logger.info("[Performance measure][updateCiData] Elapsed time in converting updated ci data: {}",stopwatch.toString());
 
         return result;
     }
 
     public List<Map<String, Object>> batchDeleteCiData(List<OperateCiDto> inputs) {
-        try (PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
+        try(PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
             EntityManager entityManager = priorityEntityManager.getEntityManager();
 
             EntityTransaction transaction = entityManager.getTransaction();
@@ -454,7 +444,7 @@ public class WecubeAdapterService {
                     final List<String> ids = Collections.singletonList(guid);
                     batchDeleteCiData(entityName, ids);
                     return buildSuccessResult(callbackParameter);
-                } catch (Exception e) {
+                } catch(Exception e) {
                     return handleExceptionResult(callbackParameter, e);
                 }
             }).collect(Collectors.toList());
@@ -469,12 +459,12 @@ public class WecubeAdapterService {
     }
 
     public List<Map<String, Object>> batchPatchCiData(List<OperateCiDataUpdateDto> operateCiDataUpdateDtos) {
-        try (PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
+        try(PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
             EntityManager entityManager = priorityEntityManager.getEntityManager();
 
             EntityTransaction transaction = entityManager.getTransaction();
             boolean outerTransactionActive = transaction.isActive();
-            if (!outerTransactionActive) {
+            if(!outerTransactionActive) {
                 transaction.begin();
             }
 
@@ -490,7 +480,7 @@ public class WecubeAdapterService {
                 try {
                     updateSingleCiDataByGuid(input);
                     return buildSuccessResult(callbackParameter, "guid", guid);
-                } catch (Exception e) {
+                } catch(Exception e) {
                     return handleExceptionResult(callbackParameter, e);
                 }
             }).collect(Collectors.toList());
@@ -500,12 +490,12 @@ public class WecubeAdapterService {
     }
 
     public List<Map<String, Object>> batchConfirmCiData(List<OperateCiDto> operateCiDtos) {
-        try (PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
+        try(PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
             EntityManager entityManager = priorityEntityManager.getEntityManager();
 
             EntityTransaction transaction = entityManager.getTransaction();
             boolean outerTransactionActive = transaction.isActive();
-            if (!outerTransactionActive) {
+            if(!outerTransactionActive) {
                 transaction.begin();
             }
 
@@ -537,7 +527,7 @@ public class WecubeAdapterService {
     }
 
     public List<Map<String, Object>> batchRefreshCiData(List<OperateCiDto> inputs) {
-        try (PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
+        try(PriorityEntityManager priorityEntityManager = ciService.getEntityManager()) {
             EntityManager entityManager = priorityEntityManager.getEntityManager();
 
             EntityTransaction transaction = entityManager.getTransaction();
@@ -610,9 +600,10 @@ public class WecubeAdapterService {
         if (errorOccurred) {
             tryRollback(transaction, outerTransactionActive);
             return results.stream().map(result -> {
-                if (isErrorResult(result)) {
+                if(isErrorResult(result)) {
                     return result;
-                } else {
+                }
+                else {
                     String callbackParameter = String.valueOf(result.get(CALLBACK_PARAMETER));
                     return buildRollbackResult(callbackParameter);
                 }
@@ -658,7 +649,7 @@ public class WecubeAdapterService {
         List<Map<String, Object>> convertedRequest = new ArrayList<>();
         requests.forEach(origin -> {
             Map<String, Object> convertedMap = new HashMap<>(origin);
-            if (convertedMap.get(GUID) == null) convertedMap.put(GUID, origin.get(ID));
+            if(convertedMap.get(GUID) == null) convertedMap.put(GUID, origin.get(ID));
             convertedMap.remove(ID);
             convertedRequest.add(convertedMap);
         });
