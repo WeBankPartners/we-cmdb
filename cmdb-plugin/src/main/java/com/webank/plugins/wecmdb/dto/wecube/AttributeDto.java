@@ -8,8 +8,6 @@ public class AttributeDto {
     private String refPackageName;
     private String refEntityName;
     private String refAttributeName;
-    private boolean nullable;
-    private boolean editable;
 
     public String getEntityName() {
         return entityName;
@@ -67,19 +65,4 @@ public class AttributeDto {
         this.refAttributeName = refAttributeName;
     }
 
-    public boolean isNullable() {
-        return nullable;
-    }
-
-    public void setNullable(boolean nullable) {
-        this.nullable = nullable;
-    }
-
-    public boolean isEditable() {
-        return editable;
-    }
-
-    public void setEditable(boolean editable) {
-        this.editable = editable;
-    }
 }
