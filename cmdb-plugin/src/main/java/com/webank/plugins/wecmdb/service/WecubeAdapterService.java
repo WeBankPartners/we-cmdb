@@ -504,8 +504,8 @@ public class WecubeAdapterService {
                 String callbackParameter = operateCiDto.getCallbackParameter();
 
                 if (StringUtils.isBlank(operateCiDto.getGuid())) {
-                    String errorMessage = "Field 'guid' is required for CI data confirmation.";
-                    results.add(buildErrorResult(callbackParameter, errorMessage));
+                    String errorMessage = "Field 'guid' is required for CI data confirmation, but the error is ignored.";
+                    results.add(buildSimpleResult(callbackParameter, SUCCESS, errorMessage));
                     return;
                 }
 
