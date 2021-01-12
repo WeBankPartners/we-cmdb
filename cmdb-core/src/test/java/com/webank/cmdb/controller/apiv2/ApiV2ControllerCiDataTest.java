@@ -1,31 +1,5 @@
 package com.webank.cmdb.controller.apiv2;
 
-import static com.webank.cmdb.controller.QueryRequestUtils.defaultQueryObject;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static com.webank.cmdb.util.SpecialSymbolUtils.getAfterSpecialSymbol;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
-
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
@@ -37,6 +11,23 @@ import com.webank.cmdb.controller.LegacyAbstractBaseControllerTest;
 import com.webank.cmdb.controller.QueryRequestUtils;
 import com.webank.cmdb.dto.AutoFillItem;
 import com.webank.cmdb.util.JsonUtil;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
+
+import javax.persistence.EntityManager;
+import javax.transaction.Transactional;
+import java.util.*;
+
+import static com.webank.cmdb.controller.QueryRequestUtils.defaultQueryObject;
+import static com.webank.cmdb.util.SpecialSymbolUtils.getAfterSpecialSymbol;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest {
 
@@ -168,6 +159,36 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
         int total = JsonUtil.asNodeByPath(retContent, "/data/pageInfo/totalRows")
                 .asInt();
         assertThat(total, greaterThanOrEqualTo(11));
+    }
+
+    @Test
+    public void queryCiDataWithSortingThenReturnData() throws Exception {
+        Map<String, Object> sortingMap = ImmutableMap.of("field", "name_en", "asc", true);
+        Map<String, Object> requestMap = ImmutableMap.of("sorting", sortingMap);
+        String reqJson = new ObjectMapper().writeValueAsString(requestMap);
+
+        mvc.perform(post("/api/v2/ci/{ciTypeId}/retrieve", ciTypeId).contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("OK")))
+                .andExpect(jsonPath("$.data.contents.length()", is(12)))
+                .andExpect(jsonPath("$.data.contents[0].data.name_en", is("Deposite system")))
+                .andExpect(jsonPath("$.data.contents[11].data.name_en", is("Subsystem9")))
+        ;
+    }
+
+    @Test
+    public void queryCiDataWithMultipleSortingThenReturnData() throws Exception {
+        Map<String, Object> sortingMap = ImmutableMap.of("field", "name_en", "asc", true);
+        Map<String, Object> requestMap = ImmutableMap.of("sortings", Collections.singletonList(sortingMap));
+        String reqJson = new ObjectMapper().writeValueAsString(requestMap);
+
+        mvc.perform(post("/api/v2/ci/{ciTypeId}/retrieve", ciTypeId).contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("OK")))
+                .andExpect(jsonPath("$.data.contents.length()", is(12)))
+                .andExpect(jsonPath("$.data.contents[0].data.name_en", is("Deposite system")))
+                .andExpect(jsonPath("$.data.contents[11].data.name_en", is("Subsystem9")))
+        ;
     }
 
     @Test
