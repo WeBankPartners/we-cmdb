@@ -14,6 +14,7 @@ public class QueryRequest {
     protected List<Filter> filters = new LinkedList<>();
     protected String filterRs = FilterRelationship.And.getCode();
 
+    protected Sorting sorting = new Sorting();
     protected List<Sorting> sortings = new LinkedList<>();
     protected List<String> groupBys = new LinkedList<>();
     protected List<String> refResources = new LinkedList<>();
@@ -75,16 +76,28 @@ public class QueryRequest {
         this.filters = filters;
     }
 
-    public boolean isSortingRequested() {
-        return this.sortings.isEmpty();
+    public Sorting getSorting() {
+        return sorting;
+    }
+
+    public void setSorting(Sorting sorting) {
+        this.sorting = sorting;
     }
 
     public List<Sorting> getSortings() {
-        return sortings;
+        if(!this.sortings.isEmpty()) return this.sortings;
+
+        if(!StringUtils.isBlank(this.sorting.getField())) return Collections.singletonList(this.sorting);
+
+        return Collections.emptyList();
     }
 
     public void setSortings(List<Sorting> sortings) {
         this.sortings = sortings;
+    }
+
+    public boolean isSortingRequested() {
+        return !this.getSortings().isEmpty();
     }
 
     public boolean isPaging() {

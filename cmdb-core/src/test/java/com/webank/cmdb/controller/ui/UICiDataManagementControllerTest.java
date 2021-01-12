@@ -13,8 +13,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -24,6 +27,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.webank.cmdb.controller.AbstractBaseControllerTest;
 import com.webank.cmdb.util.JsonUtil;
+
+import javax.transaction.Transactional;
 
 @WithMockUser(username = "test", authorities = { ROLE_PREFIX + MENU_DESIGNING_CI_DATA_MANAGEMENT ,ROLE_PREFIX + MENU_APPLICATION_DEPLOYMENT_DESIGN })
 public class UICiDataManagementControllerTest extends AbstractBaseControllerTest {
@@ -119,5 +124,66 @@ public class UICiDataManagementControllerTest extends AbstractBaseControllerTest
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(jsonPath("$.statusCode", is("OK")));
-    } 
+    }
+
+    @Transactional
+    @Test
+    public void queryCiDataWithDefaultSortingThenReturnData() throws Exception {
+        int ciTypeId = givenAppliedCiType();
+        givenCiData(ciTypeId, ImmutableMap.of("code", "code1"));
+        givenCiData(ciTypeId, ImmutableMap.of("code", "code2"));
+
+        mvc.perform(post("/ui/v2/ci-types/{ci-type-id}/ci-data/query", ciTypeId).contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(jsonPath("$.statusCode", is("OK")))
+                .andExpect(jsonPath("$.data.contents.length()", is(2)))
+                .andExpect(jsonPath("$.data.contents[0].data.code", is("code2")))
+                .andExpect(jsonPath("$.data.contents[1].data.code", is("code1")))
+        ;
+    }
+
+    @Transactional
+    @Test
+    public void queryCiDataWithSingleSortingThenReturnData() throws Exception {
+        int ciTypeId = givenAppliedCiType();
+        givenCiData(ciTypeId, ImmutableMap.of("code", "code1"));
+        givenCiData(ciTypeId, ImmutableMap.of("code", "code2"));
+
+        Map<String, Object> sortingMap = ImmutableMap.of("field", "code", "asc", true);
+        Map<String, Object> requestMap = ImmutableMap.of("sorting", sortingMap);
+        String reqJson = new ObjectMapper().writeValueAsString(requestMap);
+
+        mvc.perform(post("/ui/v2/ci-types/{ci-type-id}/ci-data/query", ciTypeId).contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("OK")))
+                .andExpect(jsonPath("$.data.contents.length()", is(2)))
+                .andExpect(jsonPath("$.data.contents[0].data.code", is("code1")))
+                .andExpect(jsonPath("$.data.contents[1].data.code", is("code2")))
+        ;
+    }
+
+    @Transactional
+    @Test
+    public void queryCiDataWithMultipleSortingsThenReturnData() throws Exception {
+        int ciTypeId = givenAppliedCiType();
+        givenCiData(ciTypeId, ImmutableMap.of("code", "code1", "description", "description"));
+        givenCiData(ciTypeId, ImmutableMap.of("code", "code2", "description", "description"));
+
+        Map<String, Object> requestMap = ImmutableMap.of("sortings", Arrays.asList(
+                ImmutableMap.of("field", "description", "asc", false),
+                ImmutableMap.of("field", "code", "asc", true)
+        ));
+        String reqJson = new ObjectMapper().writeValueAsString(requestMap);
+
+        mvc.perform(post("/ui/v2/ci-types/{ci-type-id}/ci-data/query", ciTypeId).contentType(MediaType.APPLICATION_JSON)
+                .content(reqJson))
+                .andExpect(jsonPath("$.statusCode", is("OK")))
+                .andExpect(jsonPath("$.data.contents.length()", is(2)))
+                .andExpect(jsonPath("$.data.contents[0].data.description", is("description")))
+                .andExpect(jsonPath("$.data.contents[0].data.code", is("code1")))
+                .andExpect(jsonPath("$.data.contents[1].data.description", is("description")))
+                .andExpect(jsonPath("$.data.contents[1].data.code", is("code2")))
+        ;
+    }
+
 }
