@@ -948,6 +948,13 @@ export default {
               }
             }
           }
+          const keys = Object.keys(tmpPanalData)
+          keys.forEach(item => {
+            if (item.endsWith('_tmp')) {
+              console.log(item)
+              delete tmpPanalData[item]
+            }
+          })
           let params = {
             id: this.selectedNodeType,
             createData: [tmpPanalData]
