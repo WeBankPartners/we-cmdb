@@ -228,13 +228,7 @@ export default {
 
 <style lang="scss" scoped>
 .ci-password-span {
-  align-items: center;
-  display: flex;
-  height: 100%;
-  justify-content: center;
-  min-height: 50px;
-  padding: 20px;
-  width: 100%;
+  word-break: break-all;
 }
 .ci-password-cell-show {
   display: flex;
