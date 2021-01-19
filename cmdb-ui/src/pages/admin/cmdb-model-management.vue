@@ -244,9 +244,9 @@
             </FormItem>
             <FormItem :label="$t('zoom_level')" prop="zoomLevelId">
               <Select :max-tag-count="3" v-model="addNewCITypeForm.zoomLevelId" filterable>
-                <Option v-for="item in zoomLevelIdList" :value="item.codeId" :key="item.codeId">
-                  {{ item.value }}
-                </Option>
+                <Option v-for="item in zoomLevelIdList" :value="item.codeId" :key="item.codeId">{{
+                  item.value
+                }}</Option>
               </Select>
             </FormItem>
             <FormItem :label="$t('refrence_layer')">
