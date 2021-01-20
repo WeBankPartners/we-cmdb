@@ -280,5 +280,9 @@
   "operating_area": "Operating Area",
   "appArchFirstPart": "Whether based on ",
   "appArchSecPart": " change",
-  "selectAll": "Select All"
+  "selectAll": "Select All",
+  "table_name_is_require": "Name Is Required",
+  "ci_type_id_is_require": "CI Type ID Is Required",
+  "zoom_level_is_require": "Layer Is Required",
+  "icon_is_require": "Icon Is Required"
 }
