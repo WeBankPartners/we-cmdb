@@ -230,8 +230,8 @@
           footer-hide
         >
           <Form
-            class="validation-form"
             ref="addNewCITypeForm"
+            :rules="ruleValidate"
             :model="addNewCITypeForm"
             label-position="left"
             :label-width="100"
@@ -257,7 +257,7 @@
             <FormItem class="no-need-validation" :label="$t('description')" prop="description">
               <Input v-model="addNewCITypeForm.description"></Input>
             </FormItem>
-            <FormItem :label="$t('icon')">
+            <FormItem prop="imageFileId" :label="$t('icon')">
               <img
                 v-if="addNewCITypeForm.imageFileId"
                 :src="`${baseURL}/files/${addNewCITypeForm.imageFileId}.png`"
@@ -276,6 +276,7 @@
               </Button>
               <Upload
                 ref="addUploadButton"
+                style="height: 1px"
                 show-upload-list
                 :action="`${baseURL}/files/upload`"
                 :headers="headers"
@@ -889,8 +890,21 @@ export default {
       currentSelectLayerChildren: [],
       currentSelectedCIChildren: [],
       addNewCITypeForm: {
-        zoomLevelId: 1,
-        imageFileId: 0
+        name: '',
+        tableName: '',
+        zoomLevelId: null,
+        layerId: '',
+        description: '',
+        imageFileId: undefined
+      },
+      ruleValidate: {
+        name: [{ required: true, trigger: 'blur', message: `${this.$t('table_name_is_require')}` }],
+        tableName: [{ required: true, trigger: 'blur', message: `${this.$t('ci_type_id_is_require')}` }],
+        zoomLevelId: [
+          { required: true, type: 'number', trigger: 'change', message: `${this.$t('zoom_level_is_require')}` }
+        ],
+        layerId: [{ required: true, trigger: 'change', message: `${this.$t('refrence_layer')}` }],
+        imageFileId: [{ required: true, message: `${this.$t('icon_is_require')}` }]
       },
       addNewAttrForm: {
         searchSeqNo: 0,
@@ -946,9 +960,9 @@ export default {
     addCiTypeModalToggle (isShow) {
       if (!isShow) {
         this.addNewCITypeForm = {
-          zoomLevelId: 1,
+          zoomLevelId: null,
           layerId: this.addNewCITypeForm.layerId,
-          imageFileId: 0
+          imageFileId: undefined
         }
       }
     },
@@ -1595,10 +1609,10 @@ export default {
       this.addNewCITypeForm = {
         name: '',
         tableName: '',
-        zoomLevelId: 1,
+        zoomLevelId: null,
         layerId: '',
         description: '',
-        imageFileId: 0
+        imageFileId: undefined
       }
     },
     async submitCiType (id, form) {

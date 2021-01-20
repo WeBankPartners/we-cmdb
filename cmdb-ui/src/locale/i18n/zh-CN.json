@@ -280,5 +280,9 @@
   "operating_area": "操作区",
   "appArchFirstPart": "是否基于",
   "appArchSecPart": "版本做架构变更",
-  "selectAll": "全选"
+  "selectAll": "全选",
+  "table_name_is_require": "请输入名称",
+  "ci_type_id_is_require": "请输入CI类型ID",
+  "zoom_level_is_require": "请选择图层",
+  "icon_is_require": "请上传图标"
 }
