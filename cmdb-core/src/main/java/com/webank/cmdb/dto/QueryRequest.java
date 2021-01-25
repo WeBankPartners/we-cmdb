@@ -85,9 +85,9 @@ public class QueryRequest {
     }
 
     public List<Sorting> getSortings() {
-        if(!this.sortings.isEmpty()) return this.sortings;
+        if(this.sortings != null && !this.sortings.isEmpty()) return this.sortings;
 
-        if(!StringUtils.isBlank(this.sorting.getField())) return Collections.singletonList(this.sorting);
+        if(this.sorting != null && !StringUtils.isBlank(this.sorting.getField())) return Collections.singletonList(this.sorting);
 
         return Collections.emptyList();
     }
