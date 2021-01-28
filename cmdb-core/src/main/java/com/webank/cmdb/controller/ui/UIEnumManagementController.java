@@ -1,13 +1,5 @@
 package com.webank.cmdb.controller.ui;
 
-import static com.webank.cmdb.domain.AdmMenu.MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT;
-import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_CMDB_MODEL_MANAGEMENT;
-import static com.webank.cmdb.domain.AdmMenu.MENU_ADMIN_PERMISSION_MANAGEMENT;
-import static com.webank.cmdb.domain.AdmMenu.MENU_APPLICATION_DEPLOYMENT_DESIGN;
-import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_ENQUIRY;
-import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_MANAGEMENT;
-import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_INTEGRATED_QUERY_EXECUTION;
-
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +23,8 @@ import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CategoryDto;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
+
+import static com.webank.cmdb.domain.AdmMenu.*;
 
 @RestController
 @RequestMapping("/ui/v2")
@@ -126,14 +120,30 @@ public class UIEnumManagementController {
         wrapperService.deleteEnumCodes(layerId);
     }
 
-    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT })
+    @RolesAllowed({
+            MENU_ADMIN_CMDB_MODEL_MANAGEMENT,
+            MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT,
+            MENU_IDC_PLANNING_DESIGN,
+            MENU_IDC_RESOURCE_PLANNING,
+            MENU_APPLICATION_ARCHITECTURE_DESIGN,
+            MENU_APPLICATION_ARCHITECTURE_QUERY,
+            MENU_APPLICATION_DEPLOYMENT_DESIGN
+    })
     @PostMapping("/enum/system/codes")
     @ResponseBody
     public Object querySystemEnumCodesWithRefResources(@RequestBody QueryRequest queryObject) {
         return wrapperService.querySystemEnumCodesWithRefResources(queryObject);
     }
 
-    @RolesAllowed({ MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT })
+    @RolesAllowed({
+            MENU_ADMIN_CMDB_MODEL_MANAGEMENT,
+            MENU_CMDB_ADMIN_BASE_DATA_MANAGEMENT,
+            MENU_IDC_PLANNING_DESIGN,
+            MENU_IDC_RESOURCE_PLANNING,
+            MENU_APPLICATION_ARCHITECTURE_DESIGN,
+            MENU_APPLICATION_ARCHITECTURE_QUERY,
+            MENU_APPLICATION_DEPLOYMENT_DESIGN
+    })
     @PostMapping("/enum/non-system/codes")
     @ResponseBody
     public Object queryNonSystemEnumCodesWithRefResources(@RequestBody QueryRequest queryObject) {
