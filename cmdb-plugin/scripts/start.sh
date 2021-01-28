@@ -8,8 +8,12 @@ JAVA_OPT="-Xmx3G -Xms512m -XX:+UseG1GC -XX:MaxGCPauseMillis=200  -XX:MaxTenuring
 JAVA_OPT="${JAVA_OPT} -verbose:gc -Xloggc:/data/wecmdb/log/wecmdb_gc_%p.log -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCApplicationStoppedTime -XX:+PrintAdaptiveSizePolicy"
 JAVA_OPT="${JAVA_OPT} -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=30m"
 
-/bin/sh /scripts/tomcat_exporter/start.sh
+nohup /scripts/start-tomcat-exporter.sh > /tmp/jmx.log 2>&1 &
+
+echo "About to start wecmdb..."
+
 mkdir -p /data/wecmdb/log
+
 java ${JAVA_OPT} -Duser.timezone=Asia/Shanghai \
 -Dcom.sun.management.jmxremote \
 -Dcom.sun.management.jmxremote.port=18082 \
