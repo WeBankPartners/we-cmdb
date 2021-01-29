@@ -768,7 +768,7 @@ export default {
         ></EditModal>
         <div id={this.randomId} style="z-index: 100;">
           {this.tipContent && (
-            <div style="word-break: break-word;background-color: rgba(70,76,91,.9);padding: 8px 12px;color: #fff;text-align: left;border-radius: 4px;border-radius: 4px;box-shadow: 0 1px 6px rgba(0,0,0,.2);width: 250px;">
+            <div style="word-break: break-word;background-color: rgba(70,76,91,.9);padding: 8px 12px;color: #fff;text-align: left;border-radius: 4px;border-radius: 4px;box-shadow: 0 1px 6px rgba(0,0,0,.2);width: 400px;">
               <p style="white-space: pre-wrap;">{this.tipContent}</p>
             </div>
           )}
