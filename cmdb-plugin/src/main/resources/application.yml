@@ -35,9 +35,9 @@ spring:
       spec: expireAfterWrite=30s
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://db-server:3306/db_schema?characterEncoding=utf8&serverTimezone=UTC
-    username: db_user
-    password: db_password
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_SCHEMA:wecmdb_embedded}?characterEncoding=utf8&serverTimezone=${TZ:Asia/Shanghai}
+    username: ${DB_USER:wecmdb_embedded}
+    password: ${DB_PWD:db_password}
     hikari:
       pool-name: WeCMDB_HikariCP
       minimum-idle: 20
