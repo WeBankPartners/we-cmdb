@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import com.webank.cmdb.dto.CiData;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
 
+@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class UIWrapperServiceTest {
@@ -29,6 +31,7 @@ public class UIWrapperServiceTest {
 
     ObjectMapper objectMapper = new ObjectMapper();
 
+    @Ignore
     @Test
     public void testQueryCiData() throws JsonParseException, JsonMappingException, IOException {
         long st = System.currentTimeMillis();
