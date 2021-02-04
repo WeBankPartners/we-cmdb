@@ -358,12 +358,13 @@ public class CiServiceImpl implements CiService {
             stopwatch.reset().start();
 
             Map<Integer, AdmCiTypeAttr> attrMap = getIntegerAdmCiTypeAttrMap(entityMeta.getCiTypeId());
-            Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap);
 
             results.forEach(x -> {
                 Map<String, Object> entityBeanMap = null;
                 
                 entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true, ciRequest.getResultColumns());
+                String fromGuid = (String)entityBeanMap.get("guid");
+                Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap, fromGuid);
 
                 Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager, attrMap, multiSortCiMap);
                 List<String> nextOperations = getNextOperations(entityBeanMap);
@@ -386,7 +387,7 @@ public class CiServiceImpl implements CiService {
         return ciInfoResp;
     }
 
-    private Map<Integer,Map<String, Integer>> getMltiSortedCIMap(DynamicEntityMeta entityMeta, EntityManager entityManager, Map<Integer, AdmCiTypeAttr> attrMap) {
+    private Map<Integer,Map<String, Integer>> getMltiSortedCIMap(DynamicEntityMeta entityMeta, EntityManager entityManager, Map<Integer, AdmCiTypeAttr> attrMap, String fromGuid) {
         Map<Integer,Map<String, Integer>> multiSortMap = new HashMap<>();
         Collection<FieldNode> fieldNodes = entityMeta.getAllFieldNodes(true);
         for (FieldNode fieldNode : fieldNodes) {
@@ -394,7 +395,8 @@ public class CiServiceImpl implements CiService {
                 Integer attrId = fieldNode.getAttrId();
                 AdmCiTypeAttr attr = attrMap.get(attrId);
                 DynamicEntityMeta multRefMeta = multRefMetaMap.get(attrId);
-                Map<String, Integer> sortMap = ciTypeAttrRepository.getSortedMapForMultiRef(entityManager, attr, multRefMeta);
+                //TODO gl to fix full table query
+                Map<String, Integer> sortMap = ciTypeAttrRepository.getSortedMapForMultiRef(entityManager, attr, multRefMeta, fromGuid);
                 multiSortMap.put(attrId,sortMap);
             }
         }
@@ -754,7 +756,10 @@ public class CiServiceImpl implements CiService {
                     }
 
                     DynamicEntityMeta multRefMeta = multRefMetaMap.get(attrId);
-                    Map<String, Integer> sortMap = ciTypeAttrRepository.getSortedMapForMultiRef(entityManager, attr, multRefMeta);
+                    
+                    //1219
+                    String fromGuid = (String)ciObjMap.get("guid");
+                    Map<String, Integer> sortMap = ciTypeAttrRepository.getSortedMapForMultiRef(entityManager, attr, multRefMeta,fromGuid);
 
                     List ciList = getSortedMultRefList(referCis, sortMap);
     
@@ -1157,7 +1162,9 @@ public class CiServiceImpl implements CiService {
 
                         Map<String, Object> updatedDomainMap = doUpdate(entityManager, ciTypeId, ci, true);
 
-                        Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap);
+                        //1219
+                        String fromGuid = (String)ci.get("guid");
+                        Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap, fromGuid);
                         Map<String, Object> enhacedMap = enrichCiObject(entityMeta, updatedDomainMap, entityManager,
                                 attrMap,multiSortCiMap);
 
@@ -2364,10 +2371,11 @@ public class CiServiceImpl implements CiService {
             List<Map<String, Object>> resultList = Lists.newLinkedList();
 
             Map<Integer, AdmCiTypeAttr> attrMap = getIntegerAdmCiTypeAttrMap(entityMeta.getCiTypeId());
-            Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap);
 
             results.forEach(x -> {
                 Map<String, Object> entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, false);
+                String fromGuid = (String)entityBeanMap.get("guid");
+                Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap, fromGuid);
                 Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager, attrMap,multiSortCiMap);
                 resultList.add(enhacedMap);
             });
@@ -2406,7 +2414,8 @@ public class CiServiceImpl implements CiService {
                     ci.put(GUID, ciId);
                     ciDataInterceptorService.handleReferenceAutoFill(entityHolder,entityManager,ci);
                     Map<Integer, AdmCiTypeAttr> attrMap = getIntegerAdmCiTypeAttrMap(entityMeta.getCiTypeId());
-                    Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap);
+                    String fromGuid = (String)result.get("guid");
+                    Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap, fromGuid);
 
                     Map<String, Object> enhacedMap = enrichCiObject(entityMeta, result, entityManager,attrMap,multiSortCiMap);
                     results.add(enhacedMap);
