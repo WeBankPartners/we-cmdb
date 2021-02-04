@@ -34,6 +34,33 @@
             <charset>UTF-8</charset>
         </encoder>
     </appender>
+    
+    <appender name="rollingSqlFile"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+        <File>${logPath}/jpa-sql.log</File>
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${logPath}/jpa-sql-%d{yyyyMMdd}.log
+            </FileNamePattern>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <Pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %thread %msg%n]]>
+            </Pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    
+    <logger name="org.hibernate.SQL" additivity="false" level="TRACE" >
+        <appender-ref ref="rollingSqlFile" />
+    </logger>
+    
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" additivity="false" level="TRACE" >
+        <appender-ref ref="rollingSqlFile" />
+    </logger>
 
     <root level="info">
     <!-- 
