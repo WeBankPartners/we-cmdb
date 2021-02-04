@@ -53,6 +53,7 @@ public class UIWrapperServiceTest {
         System.out.println(System.currentTimeMillis() - st);
     }
 
+    @Ignore
     @Test
     public void testBatchUpdate() throws Exception {
         int ciTypeId = 50;
