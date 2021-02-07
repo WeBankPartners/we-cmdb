@@ -3,19 +3,42 @@ package com.webank.cmdb.service.impl;
 import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Creation;
 import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Modification;
 import static com.webank.cmdb.config.log.OperationLogPointcut.Operation.Removal;
+import static com.webank.cmdb.constant.CmdbConstants.CALLBACK_ID;
+import static com.webank.cmdb.constant.CmdbConstants.CIDATA_STATE_DELETED;
+import static com.webank.cmdb.constant.CmdbConstants.DEFAULT_FIELD_FIXED_DATE;
+import static com.webank.cmdb.constant.CmdbConstants.DEFAULT_FIELD_GUID;
+import static com.webank.cmdb.constant.CmdbConstants.DEFAULT_FIELD_KEY_NAME;
+import static com.webank.cmdb.constant.CmdbConstants.DEFAULT_FIELD_STATE_CODE;
+import static com.webank.cmdb.constant.CmdbConstants.GUID;
 import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_ENQUIRY;
 import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_MODIFICATION;
 import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_REMOVAL;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
-import static com.webank.cmdb.constant.CmdbConstants.*;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.Stack;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
-import javax.persistence.*;
+import javax.persistence.EntityGraph;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
@@ -28,13 +51,6 @@ import javax.persistence.criteria.Root;
 import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
-import com.google.common.base.Stopwatch;
-import com.google.common.collect.ImmutableMap;
-import com.webank.cmdb.config.log.CiDataType;
-import com.webank.cmdb.config.log.CiTypeId;
-import com.webank.cmdb.config.log.Guid;
-import com.webank.cmdb.domain.*;
-import com.webank.cmdb.repository.*;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,12 +61,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.webank.cmdb.config.ApplicationProperties.DatasourceProperties;
+import com.webank.cmdb.config.log.CiDataType;
+import com.webank.cmdb.config.log.CiTypeId;
+import com.webank.cmdb.config.log.Guid;
 import com.webank.cmdb.config.log.OperationLogPointcut;
 import com.webank.cmdb.constant.CiStatus;
 import com.webank.cmdb.constant.CmdbConstants;
@@ -60,6 +82,12 @@ import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.FilterRelationship;
 import com.webank.cmdb.constant.InputType;
 import com.webank.cmdb.constant.StateOperation;
+import com.webank.cmdb.controller.ui.helper.AdmCiTypeCachingService;
+import com.webank.cmdb.domain.AdmBasekeyCat;
+import com.webank.cmdb.domain.AdmCiType;
+import com.webank.cmdb.domain.AdmCiTypeAttr;
+import com.webank.cmdb.domain.AdmIntegrateTemplate;
+import com.webank.cmdb.domain.AdmStateTransition;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CiData;
@@ -83,12 +111,11 @@ import com.webank.cmdb.dynamicEntity.DynamicEntityMeta;
 import com.webank.cmdb.dynamicEntity.DynamicEntityUtils;
 import com.webank.cmdb.dynamicEntity.FieldNode;
 import com.webank.cmdb.dynamicEntity.MultiValueFeildOperationUtils;
-import com.webank.cmdb.support.exception.BatchChangeException;
-import com.webank.cmdb.support.exception.BatchChangeException.ExceptionHolder;
-import com.webank.cmdb.support.exception.CmdbAccessDeniedException;
-import com.webank.cmdb.support.exception.CmdbException;
-import com.webank.cmdb.support.exception.InvalidArgumentException;
-import com.webank.cmdb.support.exception.ServiceException;
+import com.webank.cmdb.repository.AdmBasekeyCatRepository;
+import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
+import com.webank.cmdb.repository.AdmCiTypeRepository;
+import com.webank.cmdb.repository.AdmIntegrateTemplateRepository;
+import com.webank.cmdb.repository.AdmStateTransitionRepository;
 import com.webank.cmdb.service.AuthorizationService;
 import com.webank.cmdb.service.BaseKeyInfoService;
 import com.webank.cmdb.service.CiService;
@@ -96,6 +123,12 @@ import com.webank.cmdb.service.IntegrationQueryService;
 import com.webank.cmdb.service.SequenceService;
 import com.webank.cmdb.service.interceptor.CiDataInterceptorService;
 import com.webank.cmdb.stateTransition.Engine;
+import com.webank.cmdb.support.exception.BatchChangeException;
+import com.webank.cmdb.support.exception.BatchChangeException.ExceptionHolder;
+import com.webank.cmdb.support.exception.CmdbAccessDeniedException;
+import com.webank.cmdb.support.exception.CmdbException;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
+import com.webank.cmdb.support.exception.ServiceException;
 import com.webank.cmdb.util.ClassUtils;
 import com.webank.cmdb.util.CmdbThreadLocal;
 import com.webank.cmdb.util.CollectionUtils;
@@ -105,7 +138,6 @@ import com.webank.cmdb.util.JsonUtil;
 import com.webank.cmdb.util.Pageable;
 import com.webank.cmdb.util.PriorityEntityManager;
 import com.webank.cmdb.util.Sorting;
-import org.springframework.util.Assert;
 
 @Service
 @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -138,7 +170,8 @@ public class CiServiceImpl implements CiService {
     private AdmBasekeyCatRepository cateRepository;
     @Autowired
     private AdmIntegrateTemplateRepository intTempRepository;
-	
+    @Autowired
+    private AdmCiTypeCachingService admCiTypeCachingService;
 
     @Autowired
     @Value("${spring.jpa.show-sql}")
@@ -197,8 +230,10 @@ public class CiServiceImpl implements CiService {
                 return;
             }
 
-            List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findByInputTypeAndReferenceId(InputType.Reference.getCode(), ciType.getIdAdmCiType());
-            attrs.addAll(ciTypeAttrRepository.findByInputTypeAndReferenceId(InputType.MultRef.getCode(), ciType.getIdAdmCiType()));
+            List<AdmCiTypeAttr> attrs = ciTypeAttrRepository
+                    .findByInputTypeAndReferenceId(InputType.Reference.getCode(), ciType.getIdAdmCiType());
+            attrs.addAll(ciTypeAttrRepository.findByInputTypeAndReferenceId(InputType.MultRef.getCode(),
+                    ciType.getIdAdmCiType()));
 
             referedAttrMap.put(ciType.getIdAdmCiType(), attrs);
         });
@@ -213,14 +248,16 @@ public class CiServiceImpl implements CiService {
             List<AdmCiTypeAttr> multSelectAttrs = ciType.retrieveMultSelectionAttrs();
             for (AdmCiTypeAttr attr : multSelectAttrs) {
                 DynamicEntityMeta multSelMeta = DynamicEntityMeta.createForMultSel(attr);
-                initDynamicEnitityMeta(entityHolders, ciTypeIdToClassName, entityClassBufMap, ciType, multSelMeta, true);
+                initDynamicEnitityMeta(entityHolders, ciTypeIdToClassName, entityClassBufMap, ciType, multSelMeta,
+                        true);
                 multSelectMetaMap.put(attr.getIdAdmCiTypeAttr(), multSelMeta);
             }
 
             List<AdmCiTypeAttr> multReferenceAttrs = ciType.retrieveMultReferenceAttrs();
             for (AdmCiTypeAttr attr : multReferenceAttrs) {
                 DynamicEntityMeta multRefMeta = DynamicEntityMeta.createForMultRef(attr);
-                initDynamicEnitityMeta(entityHolders, ciTypeIdToClassName, entityClassBufMap, ciType, multRefMeta, true);
+                initDynamicEnitityMeta(entityHolders, ciTypeIdToClassName, entityClassBufMap, ciType, multRefMeta,
+                        true);
                 multRefMetaMap.put(attr.getIdAdmCiTypeAttr(), multRefMeta);
             }
 
@@ -234,29 +271,34 @@ public class CiServiceImpl implements CiService {
                 meta.setEntityClazz(dyClassLoader.loadClass(meta.getQulifiedName()));
             } catch (ClassNotFoundException e) {
                 throw new ServiceException(String.format("Can not load class [%s].", meta.getQulifiedName()), e)
-                .withErrorCode("3124", meta.getQulifiedName());
+                        .withErrorCode("3124", meta.getQulifiedName());
             }
         }
         /*
          * dynamicEntityMetaMap.forEach((k,v)->{ try {
-         * v.setEntityClazz(dyClassLoader.loadClass(ciTypeIdToClassName.get(k))); }
-         * catch (ClassNotFoundException e) { throw new
-         * ServiceException(String.format("Can not load class [%s].",ciTypeIdToClassName
-         * .get(k)),e); } });
+         * v.setEntityClazz(dyClassLoader.loadClass(ciTypeIdToClassName.get(k)))
+         * ; } catch (ClassNotFoundException e) { throw new
+         * ServiceException(String.format("Can not load class [%s]."
+         * ,ciTypeIdToClassName .get(k)),e); } });
          */
         dynamicEntityManagerFactory.setShowSql(showSql);
-        entityManagerFactory = dynamicEntityManagerFactory.getEntityManagerFactory(entityHolders, dyClassLoader).getEntityManagerFactory();
+        entityManagerFactory = dynamicEntityManagerFactory.getEntityManagerFactory(entityHolders, dyClassLoader)
+                .getEntityManagerFactory();
         isLoaded = true;
         stopwatch.stop();
-        logger.info("[Performance measure][reload] Dynamic entity meta data loaded. elapsed time:{} ",stopwatch.toString());
+        logger.info("[Performance measure][reload] Dynamic entity meta data loaded. elapsed time:{} ",
+                stopwatch.toString());
     }
 
-    private void initDynamicEnitityMeta(List<DynamicEntityMeta> entityHolders, Map<Integer, String> ciTypeIdToClassName, Map<String, byte[]> entityClassBufMap, AdmCiType ciType, DynamicEntityMeta entityMeta, boolean derivedEntity) {
+    private void initDynamicEnitityMeta(List<DynamicEntityMeta> entityHolders, Map<Integer, String> ciTypeIdToClassName,
+            Map<String, byte[]> entityClassBufMap, AdmCiType ciType, DynamicEntityMeta entityMeta,
+            boolean derivedEntity) {
         if (entityMeta.getAttrs() == null || entityMeta.getAttrs().size() == 0) {
             logger.warn("There is not valid attribute of CiType [{}], ignore it.", ciType.getIdAdmCiType());
             return;
         }
-        byte[] classBuf = DynamicEntityGenerator.generate(entityMeta.getQulifiedName(), entityMeta.getTableName(), entityMeta.getAllFieldNodes(true));
+        byte[] classBuf = DynamicEntityGenerator.generate(entityMeta.getQulifiedName(), entityMeta.getTableName(),
+                entityMeta.getAllFieldNodes(true));
         entityClassBufMap.put(entityMeta.getQulifiedName(), classBuf);
         ciTypeIdToClassName.put(ciType.getIdAdmCiType(), entityMeta.getQulifiedName());
 
@@ -278,8 +320,8 @@ public class CiServiceImpl implements CiService {
      * List<AdmCiTypeAttr> referedAttrs) { byte[] classBuf =
      * DynamicEntityGenerator.generate(entityMeta.getQulifiedName(),
      * entityMeta.getTableName(), entityMeta.getAllFieldNodes(), referedAttrs);
-     * Class<?> entityClazz = dyClassLoader.getClass(classBuf); return entityClazz;
-     * }
+     * Class<?> entityClazz = dyClassLoader.getClass(classBuf); return
+     * entityClazz; }
      */
 
     public Map<Integer, DynamicEntityMeta> getDynamicEntityMetaMap() {
@@ -290,12 +332,12 @@ public class CiServiceImpl implements CiService {
     }
 
     @Override
-    public Map<String, DynamicEntityMeta> getTableDynamicEntityMetaMap(){
+    public Map<String, DynamicEntityMeta> getTableDynamicEntityMetaMap() {
         Map<Integer, DynamicEntityMeta> entityMetaMap = getDynamicEntityMetaMap();
         Map<String, DynamicEntityMeta> tableEntityMetaMap = new HashMap<>();
-        for(Map.Entry<Integer, DynamicEntityMeta> entry:entityMetaMap.entrySet()){
+        for (Map.Entry<Integer, DynamicEntityMeta> entry : entityMetaMap.entrySet()) {
             String tableName = entry.getValue().getTableName();
-            tableEntityMetaMap.put(tableName,entry.getValue());
+            tableEntityMetaMap.put(tableName, entry.getValue());
         }
         return tableEntityMetaMap;
     }
@@ -336,24 +378,26 @@ public class CiServiceImpl implements CiService {
         QueryResponse<CiData> ciInfoResp = new QueryResponse<>();
         try {
             Stopwatch stopwatch = Stopwatch.createStarted();
-            boolean isRefColumnRequested = isRefColumnRequested(entityMeta,ciRequest);
+            boolean isRefColumnRequested = isRefColumnRequested(entityMeta, ciRequest);
             results = doQuery(ciRequest, entityMeta, true, null, isRefColumnRequested);
             totalCount = convertResultToInteger(results);
 
             stopwatch.stop();
-            logger.info("[Performance measure][query] Elapsed time in getting count: {}",stopwatch.toString());
+            logger.info("[Performance measure][query] Elapsed time in getting count: {}", stopwatch.toString());
 
-            //JPA EntityGraph don't support paging ( performance will be impacted ),
-            //Need get guid in first if reference columns is requested and paging is enabled for performance purpose.
+            // JPA EntityGraph don't support paging ( performance will be
+            // impacted ),
+            // Need get guid in first if reference columns is requested and
+            // paging is enabled for performance purpose.
             List<String> guids = null;
-            if(isRefColumnRequested && ciRequest.isPagingRequested()){
-                guids = doQueryForGuids(ciRequest,entityMeta);
+            if (isRefColumnRequested && ciRequest.isPagingRequested()) {
+                guids = doQueryForGuids(ciRequest, entityMeta);
             }
 
             stopwatch.reset().start();
             results = doQuery(ciRequest, entityMeta, false, guids, isRefColumnRequested);
             stopwatch.stop();
-            logger.info("[Performance measure][query] Elapsed time in doing query: {}",stopwatch.toString());
+            logger.info("[Performance measure][query] Elapsed time in doing query: {}", stopwatch.toString());
 
             stopwatch.reset().start();
 
@@ -361,19 +405,23 @@ public class CiServiceImpl implements CiService {
 
             results.forEach(x -> {
                 Map<String, Object> entityBeanMap = null;
-                
-                entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true, ciRequest.getResultColumns());
-                String fromGuid = (String)entityBeanMap.get("guid");
-                Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap, fromGuid);
 
-                Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager, attrMap, multiSortCiMap);
+                entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, true, ciRequest.getResultColumns());
+                String fromGuid = (String) entityBeanMap.get("guid");
+                Map<Integer, Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager,
+                        attrMap, fromGuid);
+
+                Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager, attrMap,
+                        multiSortCiMap);
                 List<String> nextOperations = getNextOperations(entityBeanMap);
                 CiData ciData = new CiData(enhacedMap, nextOperations);
-                if(!(ciData.getData().get(DEFAULT_FIELD_FIXED_DATE) != null && "".equals(ciData.getData().get(DEFAULT_FIELD_FIXED_DATE)) && CIDATA_STATE_DELETED.equals(ciData.getData().get(DEFAULT_FIELD_STATE_CODE)))) {
-                   ciInfoResp.addContent(ciData);
+                if (!(ciData.getData().get(DEFAULT_FIELD_FIXED_DATE) != null
+                        && "".equals(ciData.getData().get(DEFAULT_FIELD_FIXED_DATE))
+                        && CIDATA_STATE_DELETED.equals(ciData.getData().get(DEFAULT_FIELD_STATE_CODE)))) {
+                    ciInfoResp.addContent(ciData);
                 }
             });
-            logger.info("[Performance measure][query] Elapsed time in rendering result: {}",stopwatch.toString());
+            logger.info("[Performance measure][query] Elapsed time in rendering result: {}", stopwatch.toString());
         } finally {
             priEntityManager.close();
         }
@@ -387,17 +435,20 @@ public class CiServiceImpl implements CiService {
         return ciInfoResp;
     }
 
-    private Map<Integer,Map<String, Integer>> getMltiSortedCIMap(DynamicEntityMeta entityMeta, EntityManager entityManager, Map<Integer, AdmCiTypeAttr> attrMap, String fromGuid) {
-        Map<Integer,Map<String, Integer>> multiSortMap = new HashMap<>();
+    private Map<Integer, Map<String, Integer>> getMltiSortedCIMap(DynamicEntityMeta entityMeta,
+            EntityManager entityManager, Map<Integer, AdmCiTypeAttr> attrMap, String fromGuid) {
+        Map<Integer, Map<String, Integer>> multiSortMap = new HashMap<>();
         Collection<FieldNode> fieldNodes = entityMeta.getAllFieldNodes(true);
         for (FieldNode fieldNode : fieldNodes) {
-            if(fieldNode.isJoinNode() && DynamicEntityType.MultiReference.equals(fieldNode.getEntityType()) && Strings.isNullOrEmpty(fieldNode.getMappedBy())) {
+            if (fieldNode.isJoinNode() && DynamicEntityType.MultiReference.equals(fieldNode.getEntityType())
+                    && Strings.isNullOrEmpty(fieldNode.getMappedBy())) {
                 Integer attrId = fieldNode.getAttrId();
                 AdmCiTypeAttr attr = attrMap.get(attrId);
                 DynamicEntityMeta multRefMeta = multRefMetaMap.get(attrId);
-                //TODO gl to fix full table query
-                Map<String, Integer> sortMap = ciTypeAttrRepository.getSortedMapForMultiRef(entityManager, attr, multRefMeta, fromGuid);
-                multiSortMap.put(attrId,sortMap);
+                // TODO gl to fix full table query
+                Map<String, Integer> sortMap = ciTypeAttrRepository.getSortedMapForMultiRef(entityManager, attr,
+                        multRefMeta, fromGuid);
+                multiSortMap.put(attrId, sortMap);
             }
         }
         return multiSortMap;
@@ -412,16 +463,17 @@ public class CiServiceImpl implements CiService {
         return attrMap;
     }
 
-    private boolean isRefColumnRequested(DynamicEntityMeta entityMeta, QueryRequest ciRequest){
+    private boolean isRefColumnRequested(DynamicEntityMeta entityMeta, QueryRequest ciRequest) {
         for (FieldNode node : entityMeta.getAllFieldNodes(true)) {
-            if(isRequestedJoinNode(ciRequest, node)){
+            if (isRequestedJoinNode(ciRequest, node)) {
                 return true;
             }
         }
         return false;
     }
 
-    private List<Filter> convertFilterForMultiValueField(EntityManager entityManager, Integer ciTypeId, List<Filter> filters) {
+    private List<Filter> convertFilterForMultiValueField(EntityManager entityManager, Integer ciTypeId,
+            List<Filter> filters) {
         for (Filter filter : filters) {
             String field = filter.getName();
             List convertedValues = Lists.newLinkedList();
@@ -446,17 +498,21 @@ public class CiServiceImpl implements CiService {
                     throw new InvalidArgumentException("Filter name can not be null or empty.").withErrorCode("3257");
                 }
                 if (Strings.isNullOrEmpty(filter.getOperator())) {
-                    throw new InvalidArgumentException("Filter operator can not be null or empty.").withErrorCode("3258");
+                    throw new InvalidArgumentException("Filter operator can not be null or empty.")
+                            .withErrorCode("3258");
                 }
             }
         }
         if (!ciRequest.isSortingRequested()) {
             ciRequest.getSortings().forEach(sorting -> {
-                AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(ciTypeId, sorting.getField());
+                AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(ciTypeId,
+                        sorting.getField());
                 if (attr != null) {
-                    if (InputType.MultRef.getCode().equals(attr.getInputType()) || InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
-                        throw new InvalidArgumentException(String.format("Multiple reference and multiple selection feild [%s] don't support sorting.", sorting.getField()))
-                                .withErrorCode("3259", sorting.getField());
+                    if (InputType.MultRef.getCode().equals(attr.getInputType())
+                            || InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
+                        throw new InvalidArgumentException(String.format(
+                                "Multiple reference and multiple selection feild [%s] don't support sorting.",
+                                sorting.getField())).withErrorCode("3259", sorting.getField());
                     }
                 }
             });
@@ -472,7 +528,9 @@ public class CiServiceImpl implements CiService {
         Integer stateId = (Integer) enhacedMap.get(CmdbConstants.DEFAULT_FIELD_STATE);
 
         String fixedDate = (String) enhacedMap.get(CmdbConstants.DEFAULT_FIELD_FIXED_DATE);
-        List<AdmStateTransition> transitions = this.stateTransitionRepository.findDistinctOperationByCurrentStateAndCurrentStateIsConfirmed(stateId, Strings.isNullOrEmpty(fixedDate) ? 0 : 1);
+        List<AdmStateTransition> transitions = this.stateTransitionRepository
+                .findDistinctOperationByCurrentStateAndCurrentStateIsConfirmed(stateId,
+                        Strings.isNullOrEmpty(fixedDate) ? 0 : 1);
         List<String> nextOperations = Lists.newLinkedList();
         for (AdmStateTransition transition : transitions) {
             String operation = transition.getOperationCode().getCode();
@@ -482,14 +540,13 @@ public class CiServiceImpl implements CiService {
     }
 
     /**
-     * EntityGraph will be introduced if reference column is requested for later result render
-     * Guids filter is for paging purpose
+     * EntityGraph will be introduced if reference column is requested for later
+     * result render Guids filter is for paging purpose
      *
-     * isSelRowCount    isRefColumnRequested     paging     |      EntityGraph               Guids filter          Paging apply
-     *    true                 *                   *        |        not applied              not applied           no
-     *    false                n                   *        |        not applied              not applied           yes
-     *    false                y                   n        |        applied                  not applied           no
-     *    false                y                   y        |        applied                  applied               no
+     * isSelRowCount isRefColumnRequested paging | EntityGraph Guids filter
+     * Paging apply true * * | not applied not applied no false n * | not
+     * applied not applied yes false y n | applied not applied no false y y |
+     * applied applied no
      *
      * @param ciRequest
      * @param entityMeta
@@ -498,7 +555,8 @@ public class CiServiceImpl implements CiService {
      * @param isRefColumnRequested
      * @return
      */
-    private List<Object> doQuery(QueryRequest ciRequest, DynamicEntityMeta entityMeta, boolean isSelRowCount, List<String> guids, boolean isRefColumnRequested) {
+    private List<Object> doQuery(QueryRequest ciRequest, DynamicEntityMeta entityMeta, boolean isSelRowCount,
+            List<String> guids, boolean isRefColumnRequested) {
         PriorityEntityManager priEntityManager = getEntityManager();
         EntityManager entityManager = priEntityManager.getEntityManager();
         try {
@@ -520,7 +578,8 @@ public class CiServiceImpl implements CiService {
             if (isSelRowCount) {
                 query.select(cb.count(root));
             } else {
-                // query.multiselect(selectionMap.values().toArray(new Expression[0]));
+                // query.multiselect(selectionMap.values().toArray(new
+                // Expression[0]));
                 query.select(root);
             }
 
@@ -529,22 +588,24 @@ public class CiServiceImpl implements CiService {
                 fieldTypeMap.put(x.getName(), x.getType());
             });
 
-            //Add guid predicate for better performance
+            // Add guid predicate for better performance
             List<Predicate> predicates = Lists.newLinkedList();
-            if(!isSelRowCount && ciRequest!=null && ciRequest.isPagingRequested() && CollectionUtils.isNotEmpty(guids)){
+            if (!isSelRowCount && ciRequest != null && ciRequest.isPagingRequested()
+                    && CollectionUtils.isNotEmpty(guids)) {
                 applyGuidFilter(guids, cb, root, predicates);
             }
 
             if (ciRequest != null) {
-                applyRequest(predicates, ciRequest, entityMeta, isSelRowCount, cb, query, root, selectionMap, fieldTypeMap);
+                applyRequest(predicates, ciRequest, entityMeta, isSelRowCount, cb, query, root, selectionMap,
+                        fieldTypeMap);
             }
-            
+
             TypedQuery<?> typedQuery = entityManager.createQuery(query);
             if (ciRequest != null && !isSelRowCount && CollectionUtils.isEmpty(guids)) {
                 JpaQueryUtils.applyPaging(ciRequest.isPaging(), ciRequest.getPageable(), typedQuery);
             }
 
-            if(!isSelRowCount && isRefColumnRequested) {
+            if (!isSelRowCount && isRefColumnRequested) {
                 EntityGraph rootEg = entityManager.createEntityGraph(entityMeta.getEntityClazz());
                 addAttrToEntityGraph(ciRequest, entityMeta, rootEg);
                 typedQuery.setHint("javax.persistence.fetchgraph", rootEg);
@@ -574,40 +635,48 @@ public class CiServiceImpl implements CiService {
     }
 
     private boolean isRequestedJoinNode(QueryRequest ciRequest, FieldNode node) {
-        return node.isJoinNode() && Strings.isNullOrEmpty(node.getMappedBy()) && ciRequest.isColumnSelected(node.getName());
+        return node.isJoinNode() && Strings.isNullOrEmpty(node.getMappedBy())
+                && ciRequest.isColumnSelected(node.getName());
     }
 
-    private void applyRequest(List<Predicate> predicates, QueryRequest ciRequest, DynamicEntityMeta entityMeta, boolean isSelRowCount, CriteriaBuilder cb, CriteriaQuery query, Root root, Map<String, Expression> selectionMap, Map<String, Class<?>> fieldTypeMap) {
+    private void applyRequest(List<Predicate> predicates, QueryRequest ciRequest, DynamicEntityMeta entityMeta,
+            boolean isSelRowCount, CriteriaBuilder cb, CriteriaQuery query, Root root,
+            Map<String, Expression> selectionMap, Map<String, Class<?>> fieldTypeMap) {
         Assert.notNull(ciRequest, "CI query request can not be null.");
 
-        if(predicates == null){
+        if (predicates == null) {
             predicates = Lists.newLinkedList();
         }
 
         if (!ciRequest.getDialect().getShowCiHistory()) {
-            predicates.add(cb.equal(selectionMap.get(CmdbConstants.DEFAULT_FIELD_GUID), selectionMap.get(CmdbConstants.DEFAULT_FIELD_ROOT_GUID)));
+            predicates.add(cb.equal(selectionMap.get(CmdbConstants.DEFAULT_FIELD_GUID),
+                    selectionMap.get(CmdbConstants.DEFAULT_FIELD_ROOT_GUID)));
         }
 
-        Predicate accessControlPredicate = buildAccessControlPredicate(entityMeta.getCiTypeId(), cb, selectionMap, false);
+        Predicate accessControlPredicate = buildAccessControlPredicate(entityMeta.getCiTypeId(), cb, selectionMap,
+                false);
 
-        JpaQueryUtils.applyFilter(cb, query, ciRequest.getFilters(), selectionMap, fieldTypeMap, FilterRelationship.fromCode(ciRequest.getFilterRs()), predicates, accessControlPredicate);
+        JpaQueryUtils.applyFilter(cb, query, ciRequest.getFilters(), selectionMap, fieldTypeMap,
+                FilterRelationship.fromCode(ciRequest.getFilterRs()), predicates, accessControlPredicate);
 
         if (!isSelRowCount) {
             JpaQueryUtils.applySortings(ciRequest.getSortings(), cb, query, selectionMap);
-            if(ciRequest.getGroupBys()!=null && ciRequest.getGroupBys().size()>0) {
-                JpaQueryUtils.applyGroupBy(ciRequest.getGroupBys(),query,selectionMap);
+            if (ciRequest.getGroupBys() != null && ciRequest.getGroupBys().size() > 0) {
+                JpaQueryUtils.applyGroupBy(ciRequest.getGroupBys(), query, selectionMap);
             }
-            if(ciRequest.getAggregationFuction()!=null &&ciRequest.getAggregationFuction().size()>0) {
+            if (ciRequest.getAggregationFuction() != null && ciRequest.getAggregationFuction().size() > 0) {
                 JpaQueryUtils.applyAggregation(ciRequest.getAggregationFuction(), cb, query, selectionMap, root);
             }
         }
     }
 
-    private Map<String, Expression> buildSelectionMap(DynamicEntityMeta entityMeta, Set<String> filterNames, Root root) {
+    private Map<String, Expression> buildSelectionMap(DynamicEntityMeta entityMeta, Set<String> filterNames,
+            Root root) {
         Map<String, Expression> selectionMap = new LinkedHashMap<>();
         entityMeta.getAttrs().forEach(attrName -> {
 
-            AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(entityMeta.getCiTypeId(), attrName);
+            AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(entityMeta.getCiTypeId(),
+                    attrName);
             if (attr == null) {
                 return;
             }
@@ -615,7 +684,8 @@ public class CiServiceImpl implements CiService {
             if (filterNames.contains(attrName) && InputType.MultRef.getCode().equals(attr.getInputType())) {
                 Join join = root.join(attrName);
                 selectionMap.put(attrName, join.get("guid"));
-            } else if (filterNames.contains(attrName) && InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
+            } else if (filterNames.contains(attrName)
+                    && InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
                 Join join = root.join(attrName);
                 selectionMap.put(attrName, join.get("to_code"));
             } else {
@@ -625,7 +695,7 @@ public class CiServiceImpl implements CiService {
         return selectionMap;
     }
 
-    private List<String> doQueryForGuids(QueryRequest ciRequest, DynamicEntityMeta entityMeta){
+    private List<String> doQueryForGuids(QueryRequest ciRequest, DynamicEntityMeta entityMeta) {
         PriorityEntityManager priEntityManager = getEntityManager();
         EntityManager entityManager = priEntityManager.getEntityManager();
         try {
@@ -674,7 +744,8 @@ public class CiServiceImpl implements CiService {
         return filterNames;
     }
 
-    private Predicate buildAccessControlPredicate(int ciTypeId, CriteriaBuilder criteriaBuilder, Map<String, Expression> attributeMap, boolean isIntQuery) {
+    private Predicate buildAccessControlPredicate(int ciTypeId, CriteriaBuilder criteriaBuilder,
+            Map<String, Expression> attributeMap, boolean isIntQuery) {
         if (authorizationService.isCiTypePermitted(ciTypeId, ACTION_ENQUIRY)) {
             return criteriaBuilder.conjunction();
         }
@@ -695,7 +766,8 @@ public class CiServiceImpl implements CiService {
                         expression = attributeMap.get(columnName);
                     }
                     if (expression == null) {
-                        throw new CmdbException(String.format("Attribute[%s] not found.", columnName)).withErrorCode("3125", columnName);
+                        throw new CmdbException(String.format("Attribute[%s] not found.", columnName))
+                                .withErrorCode("3125", columnName);
                     }
                     CriteriaBuilder.In inPredicate = criteriaBuilder.in(expression);
                     values.forEach(inPredicate::value);
@@ -707,8 +779,9 @@ public class CiServiceImpl implements CiService {
         return criteriaBuilder.or(rulePredicates);
     }
 
-    private Map<String, Object> enrichCiObject(DynamicEntityMeta entityMeta, Map<String, Object> ciObjMap, EntityManager entityManager,
-                                               Map<Integer, AdmCiTypeAttr> attrMap, Map<Integer,Map<String, Integer>> multiSortCiMap) {
+    private Map<String, Object> enrichCiObject(DynamicEntityMeta entityMeta, Map<String, Object> ciObjMap,
+            EntityManager entityManager, Map<Integer, AdmCiTypeAttr> attrMap,
+            Map<Integer, Map<String, Integer>> multiSortCiMap) {
         Map<String, Object> ciMap = new HashMap<>();
 
         for (Map.Entry kv : ciObjMap.entrySet()) {
@@ -722,19 +795,21 @@ public class CiServiceImpl implements CiService {
                 }
                 AdmCiTypeAttr attr = attrMap.get(attrId);
                 // Don't return the field if editIsHidden is enable
-                if (CiStatus.Decommissioned.getCode().equals(attr.getStatus()) || (attr.getEditIsHiden() != null && attr.getEditIsHiden() != 0)) {
+                if (CiStatus.Decommissioned.getCode().equals(attr.getStatus())
+                        || (attr.getEditIsHiden() != null && attr.getEditIsHiden() != 0)) {
                     continue;
                 }
-                if(!fieldNode.isJoinNode()) {
-                    value = convertFieldValue(fieldName, value, attrMap.get(attrId),ciObjMap);
+                if (!fieldNode.isJoinNode()) {
+                    value = convertFieldValue(fieldName, value, attrMap.get(attrId), ciObjMap);
                     ciMap.put(fieldName, value);
-                } else if (fieldNode.isJoinNode() && DynamicEntityType.MultiSelection.equals(fieldNode.getEntityType())) {
+                } else if (fieldNode.isJoinNode()
+                        && DynamicEntityType.MultiSelection.equals(fieldNode.getEntityType())) {
                     Set codeImSet = (Set) value;
                     List codeImList = Lists.newLinkedList(codeImSet);
                     codeImList.sort((a, b) -> {
                         return (Integer) new BeanMap(a).get("seq_no") - (Integer) new BeanMap(b).get("seq_no");
                     });
-    
+
                     List enrichMulSels = Lists.newLinkedList();
                     for (Object im : codeImList) {
                         BeanMap imBeanMap = new BeanMap(im);
@@ -748,42 +823,44 @@ public class CiServiceImpl implements CiService {
                         }
                     }
                     ciMap.put(fieldName, enrichMulSels);
-                } else if (fieldNode.isJoinNode() && DynamicEntityType.MultiReference.equals(fieldNode.getEntityType()) && Strings.isNullOrEmpty(fieldNode.getMappedBy())) {
+                } else if (fieldNode.isJoinNode() && DynamicEntityType.MultiReference.equals(fieldNode.getEntityType())
+                        && Strings.isNullOrEmpty(fieldNode.getMappedBy())) {
                     Set<Object> referCis = (Set<Object>) value;
                     attr = attrMap.get(attrId);
-                    if(InputType.MultRef.getCode().equals(attr.getInputType())) {
+                    if (InputType.MultRef.getCode().equals(attr.getInputType())) {
                         referCis = fetchCiDomainObjForMultRef(attr, referCis);
                     }
 
                     DynamicEntityMeta multRefMeta = multRefMetaMap.get(attrId);
-                    
-                    //1219
-                    String fromGuid = (String)ciObjMap.get("guid");
-                    Map<String, Integer> sortMap = ciTypeAttrRepository.getSortedMapForMultiRef(entityManager, attr, multRefMeta,fromGuid);
+
+                    // 1219
+                    String fromGuid = (String) ciObjMap.get("guid");
+                    Map<String, Integer> sortMap = ciTypeAttrRepository.getSortedMapForMultiRef(entityManager, attr,
+                            multRefMeta, fromGuid);
 
                     List ciList = getSortedMultRefList(referCis, sortMap);
-    
+
                     ciMap.put(fieldName, ciList);
                 }
             } else {
-                logger.warn("Failed to get field node for field name [{}] in dynamic entity [{}].", fieldName, entityMeta.getEntityClazz().toString());
+                logger.warn("Failed to get field node for field name [{}] in dynamic entity [{}].", fieldName,
+                        entityMeta.getEntityClazz().toString());
             }
         }
         return ciMap;
     }
 
-
     private Set<Object> fetchCiDomainObjForMultRef(AdmCiTypeAttr attr, Set<Object> referCis) {
         Integer refCiTypeId = attr.getReferenceId();
         DynamicEntityMeta refEntityMeta = dynamicEntityMetaMap.get(refCiTypeId);
         Class refEntityClzz = refEntityMeta.getEntityClazz();
-        if(refEntityClzz != null) {
+        if (refEntityClzz != null) {
             Set<Object> realReferCis = new HashSet<Object>();
             referCis.forEach(elem -> {
-                if(elem instanceof HibernateProxy) {
+                if (elem instanceof HibernateProxy) {
                     Object domainObj = ((HibernateProxy) elem).getHibernateLazyInitializer().getImplementation();
                     realReferCis.add(domainObj);
-                }else {
+                } else {
                     realReferCis.add(elem);
                 }
             });
@@ -811,39 +888,39 @@ public class CiServiceImpl implements CiService {
             return value;
 
         InputType inputType = InputType.fromCode(attr.getInputType());
-        if (InputType.Droplist.equals(inputType) ) {
+        if (InputType.Droplist.equals(inputType)) {
             value = convertCodeValue(fieldName, value);
         } else if (InputType.Reference.equals(inputType)) {
-            if(ciObjMap != null && !Strings.isNullOrEmpty(String.valueOf(value))) {
+            if (ciObjMap != null && !Strings.isNullOrEmpty(String.valueOf(value))) {
                 AdmCiType admCiType = ciTypeRepository.findById(attr.getCiTypeId()).get();
                 String attrName = DynamicEntityUtils.getJoinFieldName(admCiType, attr, true);
                 DynamicEntityMeta entityMeta = getDynamicEntityMeta(attr.getReferenceId());
                 PriorityEntityManager priEntityManager = getEntityManager();
                 EntityManager entityManager = priEntityManager.getEntityManager();
                 Object entityBean = null;
-                try{
-                    entityBean = getCiBeanObject(entityManager,attr.getReferenceId(),String.valueOf(value));
-                }finally {
+                try {
+                    entityBean = getCiBeanObject(entityManager, attr.getReferenceId(), String.valueOf(value));
+                } finally {
                     priEntityManager.close();
                 }
-                Map<String,Object> resultMap = DynamicEntityUtils.convertCiDataMap(entityMeta, entityBean);
+                Map<String, Object> resultMap = DynamicEntityUtils.convertCiDataMap(entityMeta, entityBean);
                 if (!authorizationService.isCiDataPermitted(attr.getReferenceId(), entityBean, ACTION_ENQUIRY)) {
                     resultMap = CollectionUtils.retainsEntries(resultMap, Sets.newHashSet("guid", "key_name"));
                     logger.info("Access denied - {}, returns guid and key_name only.", resultMap);
                 }
                 value = resultMap;
-            }
-            else {
+            } else {
                 int ciTypeId = attr.getReferenceId();
                 if (value != null) {
                     String guid = value.toString();
                     if (!StringUtils.isBlank(guid)) {
                         Object childCi = null;
                         try {
-                            childCi =  getCi(ciTypeId,guid);
+                            childCi = getCi(ciTypeId, guid);
                         } catch (Exception ex) {
-                            throw new ServiceException(String.format("Failed to get ci data [ciType:%d, guid:%s]", ciTypeId, guid), ex)
-                            .withErrorCode("3126", ciTypeId, guid);
+                            throw new ServiceException(
+                                    String.format("Failed to get ci data [ciType:%d, guid:%s]", ciTypeId, guid), ex)
+                                            .withErrorCode("3126", ciTypeId, guid);
                         }
                         value = childCi;
                     }
@@ -858,62 +935,62 @@ public class CiServiceImpl implements CiService {
                 String dateTxt = dateFmt.format((Timestamp) value);
                 value = dateTxt;
             }
-        }else if(InputType.MultSelDroplist.equals(inputType)) {
-        	String guid = String.valueOf(value);
+        } else if (InputType.MultSelDroplist.equals(inputType)) {
+            String guid = String.valueOf(value);
             PriorityEntityManager priEntityManager = getEntityManager();
             EntityManager entityManager = priEntityManager.getEntityManager();
             List codeIds = Lists.newLinkedList();
 
             try {
-            	CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-            	Class joinEntityClzz = multSelectMetaMap.get(attr.getIdAdmCiTypeAttr()).getEntityClazz();
-            	CriteriaQuery query = cb.createQuery(joinEntityClzz);
-            	Root root = query.from(joinEntityClzz);
-            	query.select(root);
-            	query.where(cb.equal(root.get("from_guid"), guid));
-            	TypedQuery typedQuery = entityManager.createQuery(query);
-            	List results = typedQuery.getResultList();
-            	if(results != null && results.size()>0) {
-            		for(Object record:results) {
-            			BeanMap map = new BeanMap(record);
-            			Integer codeId = (Integer)(map.get("to_code"));
-            			Object code = convertCodeValue(fieldName, codeId);
-            			codeIds.add(code);
-            		}
-            	}
-            	return codeIds;
-            }finally {
-            	priEntityManager.close();
+                CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+                Class joinEntityClzz = multSelectMetaMap.get(attr.getIdAdmCiTypeAttr()).getEntityClazz();
+                CriteriaQuery query = cb.createQuery(joinEntityClzz);
+                Root root = query.from(joinEntityClzz);
+                query.select(root);
+                query.where(cb.equal(root.get("from_guid"), guid));
+                TypedQuery typedQuery = entityManager.createQuery(query);
+                List results = typedQuery.getResultList();
+                if (results != null && results.size() > 0) {
+                    for (Object record : results) {
+                        BeanMap map = new BeanMap(record);
+                        Integer codeId = (Integer) (map.get("to_code"));
+                        Object code = convertCodeValue(fieldName, codeId);
+                        codeIds.add(code);
+                    }
+                }
+                return codeIds;
+            } finally {
+                priEntityManager.close();
             }
-        }else if(InputType.MultRef.equals(inputType)) {
-        	String guid = String.valueOf(value);
+        } else if (InputType.MultRef.equals(inputType)) {
+            String guid = String.valueOf(value);
             PriorityEntityManager priEntityManager = getEntityManager();
             EntityManager entityManager = priEntityManager.getEntityManager();
             List ciObjs = Lists.newLinkedList();
 
             try {
-            	CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-            	Integer toCiTypeId = attr.getReferenceId();
-            	Class joinEntityClzz = multRefMetaMap.get(attr.getIdAdmCiTypeAttr()).getEntityClazz();
-            	CriteriaQuery query = cb.createQuery(joinEntityClzz);
-            	Root root = query.from(joinEntityClzz);
-            	query.select(root);
-            	query.where(cb.equal(root.get("from_guid"), guid));
-            	TypedQuery typedQuery = entityManager.createQuery(query);
-            	List results = typedQuery.getResultList();
-            	if(results != null && results.size()>0) {
-            		for(Object record:results) {
-            			BeanMap map = new BeanMap(record);
-            			String to_guid = (String)(map.get("to_guid"));
-            			Object toCiObj = getCi(toCiTypeId, to_guid);
-            			ciObjs.add(toCiObj);
-            		}
-            	}
-            	return ciObjs;
-            }finally {
-            	priEntityManager.close();
+                CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+                Integer toCiTypeId = attr.getReferenceId();
+                Class joinEntityClzz = multRefMetaMap.get(attr.getIdAdmCiTypeAttr()).getEntityClazz();
+                CriteriaQuery query = cb.createQuery(joinEntityClzz);
+                Root root = query.from(joinEntityClzz);
+                query.select(root);
+                query.where(cb.equal(root.get("from_guid"), guid));
+                TypedQuery typedQuery = entityManager.createQuery(query);
+                List results = typedQuery.getResultList();
+                if (results != null && results.size() > 0) {
+                    for (Object record : results) {
+                        BeanMap map = new BeanMap(record);
+                        String to_guid = (String) (map.get("to_guid"));
+                        Object toCiObj = getCi(toCiTypeId, to_guid);
+                        ciObjs.add(toCiObj);
+                    }
+                }
+                return ciObjs;
+            } finally {
+                priEntityManager.close();
             }
-        	
+
         }
         /*
          * else if (value == null) { value = ""; }
@@ -921,35 +998,37 @@ public class CiServiceImpl implements CiService {
         return value;
     }
 
-	private Object convertCodeValue(String fieldName, Object value) {
-		Integer codeId = null;
-		try {
-		    codeId = Integer.valueOf(String.valueOf(value));
-		} catch (NumberFormatException ex) {
+    private Object convertCodeValue(String fieldName, Object value) {
+        Integer codeId = null;
+        try {
+            codeId = Integer.valueOf(String.valueOf(value));
+        } catch (NumberFormatException ex) {
             String errorMessage = String.format("Failed to get codeId from value:[%s], field:[%s]", value, fieldName);
             logger.warn(errorMessage, ex);
-		}
-		if (codeId != null) {
-		    CatCodeDto codeDto = null;
-		    try {
-		        codeDto = basekeyInfoService.getCode(codeId);
-		    } catch (InvalidArgumentException ex) {
+        }
+        if (codeId != null) {
+            CatCodeDto codeDto = null;
+            try {
+                codeDto = basekeyInfoService.getCode(codeId);
+            } catch (InvalidArgumentException ex) {
                 String errorMessage = String.format("Failed to get cat code for codeId [%s].", codeId);
                 logger.warn(errorMessage, ex);
-		    }
-		    value = codeDto;
-		}
-		return value;
-	}
+            }
+            value = codeDto;
+        }
+        return value;
+    }
 
     @Override
-    public List<DynamicEntityHolder> filterBy(int ciType, List<FilterInfo> filterInfos, Pageable pageable, Sorting sorting) {
+    public List<DynamicEntityHolder> filterBy(int ciType, List<FilterInfo> filterInfos, Pageable pageable,
+            Sorting sorting) {
         return null;
     }
 
     private void validateCiData(int ciTypeId, Map<String, ?> ciData, boolean isUpdateReq) {
         AdmCiType ciType = ciTypeRepository.getOne(ciTypeId);
-        // check attributes to be added, will throw exception if it dose not exist in CI
+        // check attributes to be added, will throw exception if it dose not
+        // exist in CI
         // meta
         List<AdmCiTypeAttr> attrs = ciType.getAdmCiTypeAttrs();
         Map<String, AdmCiTypeAttr> atrMap = convertAttrMap(attrs);
@@ -959,11 +1038,14 @@ public class CiServiceImpl implements CiService {
             String fieldName = fieldIter.next();
             AdmCiTypeAttr attr = atrMap.get(fieldName);
             if (attr == null) {
-                throw new InvalidArgumentException(String.format("Invalid attribute name (%s) for ciTypeId: %d", fieldName, ciTypeId))
-                .withErrorCode("3260", fieldName, ciTypeId);
+                throw new InvalidArgumentException(
+                        String.format("Invalid attribute name (%s) for ciTypeId: %d", fieldName, ciTypeId))
+                                .withErrorCode("3260", fieldName, ciTypeId);
             }
             // system field should not be updated, remove them
-            else if ((CmdbConstants.IS_AUTO_YES.equals(attr.getIsAuto()) || CmdbConstants.IS_EDITABLE_NO.equals(attr.getEditIsEditable())) && !CmdbConstants.GUID.equals(fieldName)) {
+            else if ((CmdbConstants.IS_AUTO_YES.equals(attr.getIsAuto())
+                    || CmdbConstants.IS_EDITABLE_NO.equals(attr.getEditIsEditable()))
+                    && !CmdbConstants.GUID.equals(fieldName)) {
                 fieldIter.remove();
                 logger.info("Is auto field or not editable [{}] has been removed.", fieldName);
             }
@@ -971,14 +1053,17 @@ public class CiServiceImpl implements CiService {
 
         // check if all not null field has value
         /*
-         * attrs.forEach(x -> { if (CmdbConstants.IS_SYSTEM_NO.equals(x.getIsSystem())
-         * && x.getEditIsNull() != null && x.getEditIsNull() == 0 &&
-         * ciData.get(x.getPropertyName()) == null) { if(isUpdateReq == false) { throw
-         * new InvalidArgumentException(String.format("Attribute [%s] can not be null.",
-         * x.getPropertyName())); } else if(ciData.containsKey(x.getPropertyName())) {
-         * //update requst contain no allow null field throw new
-         * InvalidArgumentException(String.format("Attribute [%s] can not be null.",
-         * x.getPropertyName())); } } });
+         * attrs.forEach(x -> { if
+         * (CmdbConstants.IS_SYSTEM_NO.equals(x.getIsSystem()) &&
+         * x.getEditIsNull() != null && x.getEditIsNull() == 0 &&
+         * ciData.get(x.getPropertyName()) == null) { if(isUpdateReq == false) {
+         * throw new InvalidArgumentException(String.
+         * format("Attribute [%s] can not be null.", x.getPropertyName())); }
+         * else if(ciData.containsKey(x.getPropertyName())) { //update requst
+         * contain no allow null field throw new
+         * InvalidArgumentException(String.
+         * format("Attribute [%s] can not be null.", x.getPropertyName())); } }
+         * });
          */
     }
 
@@ -996,14 +1081,15 @@ public class CiServiceImpl implements CiService {
         Optional<AdmCiType> optCiType = ciTypeRepository.findById(ciTypeId);
         if (!optCiType.isPresent()) {
             throw new InvalidArgumentException("Can not find out CiType with given argument.", "ciTypeId", ciTypeId)
-            .withErrorCode("3261", "ciTypeId", ciTypeId);
+                    .withErrorCode("3261", "ciTypeId", ciTypeId);
         }
 
         AdmCiType ciType = optCiType.get();
         CiStatus status = CiStatus.fromCode(ciType.getStatus());
         if (!status.supportCiDataOperation()) {
-            throw new InvalidArgumentException(String.format("The Ci type [%d] status is %s.", ciTypeId, status.getCode()))
-            .withErrorCode("3262", ciTypeId, status.getCode());
+            throw new InvalidArgumentException(
+                    String.format("The Ci type [%d] status is %s.", ciTypeId, status.getCode())).withErrorCode("3262",
+                            ciTypeId, status.getCode());
         }
     }
 
@@ -1011,14 +1097,16 @@ public class CiServiceImpl implements CiService {
     public Map<String, Object> getCi(int ciTypeId, String guid) {
         validateCiType(ciTypeId);
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
-        // Object entityBean = entityManager.find(entityMeta.getEntityClazz(), guid);
+        // Object entityBean = entityManager.find(entityMeta.getEntityClazz(),
+        // guid);
         PriorityEntityManager priEntityManager = getEntityManager();
         EntityManager entityManager = priEntityManager.getEntityManager();
         try {
             Object entityBean = JpaQueryUtils.findEager(entityManager, entityMeta.getEntityClazz(), guid);
             if (entityBean == null) {
-                throw new InvalidArgumentException(String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid))
-                .withErrorCode("3263", ciTypeId, guid);
+                throw new InvalidArgumentException(
+                        String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid)).withErrorCode("3263",
+                                ciTypeId, guid);
             }
             Map<String, Object> resultMap = DynamicEntityUtils.convertCiDataMap(entityMeta, entityBean);
             if (!authorizationService.isCiDataPermitted(ciTypeId, entityBean, ACTION_ENQUIRY)) {
@@ -1057,11 +1145,12 @@ public class CiServiceImpl implements CiService {
         }
     }
 
-    private Object validateCi(int ciTypeId, String guid, DynamicEntityMeta entityMeta, EntityManager entityManager, String action) {
+    private Object validateCi(int ciTypeId, String guid, DynamicEntityMeta entityMeta, EntityManager entityManager,
+            String action) {
         Object entityBean = entityManager.find(entityMeta.getEntityClazz(), guid);
         if (entityBean == null) {
             throw new InvalidArgumentException(String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid))
-            .withErrorCode("3263", ciTypeId, guid);
+                    .withErrorCode("3263", ciTypeId, guid);
         }
         if (action != null) {
             authorizationService.authorizeCiData(ciTypeId, entityBean, action);
@@ -1109,16 +1198,17 @@ public class CiServiceImpl implements CiService {
         entityManager.merge(entityHolder.getEntityObj());
         entityManager.flush();
     }
-    
+
     @Override
-    public List<Map<String, Object>> filterOfPassword(int ciTypeId, List<Map<String, Object>> cis){
-        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findByInputTypeAndCiTypeId(InputType.Password.getCode(), ciTypeId);
+    public List<Map<String, Object>> filterOfPassword(int ciTypeId, List<Map<String, Object>> cis) {
+        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findByInputTypeAndCiTypeId(InputType.Password.getCode(),
+                ciTypeId);
         for (Map<String, Object> ci : cis) {
             attrs.forEach(attr -> {
                 String name = attr.getPropertyName();
                 Object value = ci.get(name);
-                if(value != null) {
-                     ci.remove(name);
+                if (value != null) {
+                    ci.remove(name);
                 }
             });
         }
@@ -1137,11 +1227,11 @@ public class CiServiceImpl implements CiService {
         List<ExceptionHolder> exceptionHolders = new LinkedList<>();
         Map<Integer, AdmCiTypeAttr> attrMap = getIntegerAdmCiTypeAttrMap(ciTypeId);
 
-        try(PriorityEntityManager priEntityManager = getEntityManager()) {
+        try (PriorityEntityManager priEntityManager = getEntityManager()) {
             EntityManager entityManager = priEntityManager.getEntityManager();
             EntityTransaction transaction = entityManager.getTransaction();
             boolean outerTransactionActive = transaction.isActive();
-            if(!outerTransactionActive) {
+            if (!outerTransactionActive) {
                 transaction.begin();
             }
             try {
@@ -1162,16 +1252,18 @@ public class CiServiceImpl implements CiService {
 
                         Map<String, Object> updatedDomainMap = doUpdate(entityManager, ciTypeId, ci, true);
 
-                        //1219
-                        String fromGuid = (String)ci.get("guid");
-                        Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap, fromGuid);
+                        // 1219
+                        String fromGuid = (String) ci.get("guid");
+                        Map<Integer, Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta,
+                                entityManager, attrMap, fromGuid);
                         Map<String, Object> enhacedMap = enrichCiObject(entityMeta, updatedDomainMap, entityManager,
-                                attrMap,multiSortCiMap);
+                                attrMap, multiSortCiMap);
 
                         enhacedMap.put(CALLBACK_ID, callbackId);
                         rtnCis.add(enhacedMap);
                     } catch (Exception e) {
-                        String errorMessage = String.format("Fail to update ci data ciTypeId [%s], error [%s]", ciTypeId, ExceptionHolder.extractExceptionMessage(e));
+                        String errorMessage = String.format("Fail to update ci data ciTypeId [%s], error [%s]",
+                                ciTypeId, ExceptionHolder.extractExceptionMessage(e));
                         logger.warn(errorMessage, e);
                         ci.put(CALLBACK_ID, callbackId);
                         exceptionHolders.add(new ExceptionHolder(callbackId, ci, errorMessage, e));
@@ -1179,7 +1271,7 @@ public class CiServiceImpl implements CiService {
                 }
 
                 if (exceptionHolders.isEmpty()) {
-                    if(!outerTransactionActive) {
+                    if (!outerTransactionActive) {
                         transaction.commit();
                     }
                 } else {
@@ -1189,8 +1281,9 @@ public class CiServiceImpl implements CiService {
                         transaction.rollback();
                     }
 
-                    throw new BatchChangeException(String.format("Fail to update [%d] records, detail error in the data block", exceptionHolders.size()), exceptionHolders)
-                    .withErrorCode("3264", exceptionHolders.size());
+                    throw new BatchChangeException(String.format(
+                            "Fail to update [%d] records, detail error in the data block", exceptionHolders.size()),
+                            exceptionHolders).withErrorCode("3264", exceptionHolders.size());
                 }
             } catch (Exception exc) {
                 if (exc instanceof BatchChangeException) {
@@ -1213,25 +1306,29 @@ public class CiServiceImpl implements CiService {
         return rtnCis;
     }
 
-    private Map<String, Object> doUpdate(EntityManager entityManager, int ciTypeId, Map<String, Object> ci, boolean enableStateTransition) {
+    private Map<String, Object> doUpdate(EntityManager entityManager, int ciTypeId, Map<String, Object> ci,
+            boolean enableStateTransition) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
 
         String guid = ci.get(GUID).toString();
         Object entityBean = validateCi(ciTypeId, guid, entityMeta, entityManager, ACTION_MODIFICATION);
         stopwatch.stop();
-        logger.info("[Performance measure][doUpdate] Elapsed time in validating CI: {}",stopwatch.toString());
+        logger.info("[Performance measure][doUpdate] Elapsed time in validating CI: {}", stopwatch.toString());
         DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
 
         stopwatch.reset().start();
         ciDataInterceptorService.preUpdate(entityHolder, ci);
         stopwatch.stop();
-        logger.info("[Performance measure][doUpdate] Elapsed time in pre updating: {}",stopwatch.toString());
+        logger.info("[Performance measure][doUpdate] Elapsed time in pre updating: {}", stopwatch.toString());
 
         stopwatch.reset().start();
-        Map<String, Object> convertedCi = MultiValueFeildOperationUtils.convertMultiValueFieldsForCICreation(entityManager, ciTypeId, ci, (String) ci.get(CmdbConstants.DEFAULT_FIELD_GUID), ciTypeAttrRepository, this);
+        Map<String, Object> convertedCi = MultiValueFeildOperationUtils.convertMultiValueFieldsForCICreation(
+                entityManager, ciTypeId, ci, (String) ci.get(CmdbConstants.DEFAULT_FIELD_GUID), ciTypeAttrRepository,
+                this);
         stopwatch.stop();
-        logger.info("[Performance measure][doUpdate] Elapsed time in convertMultiValueFieldsForCICreation: {}",stopwatch.toString());
+        logger.info("[Performance measure][doUpdate] Elapsed time in convertMultiValueFieldsForCICreation: {}",
+                stopwatch.toString());
 
         stopwatch.reset().start();
         Map<String, Object> updatedMap = null;
@@ -1239,18 +1336,20 @@ public class CiServiceImpl implements CiService {
             entityHolder.update(convertedCi, CmdbThreadLocal.getIntance().getCurrentUser(), entityManager);
             entityManager.merge(entityHolder.getEntityObj());
             stopwatch.stop();
-            logger.info("[Performance measure][doUpdate] Elapsed time in merging: {}",stopwatch.toString());
+            logger.info("[Performance measure][doUpdate] Elapsed time in merging: {}", stopwatch.toString());
         } else {
-            updatedMap = stateTransEngine.process(entityManager, ciTypeId, guid, StateOperation.Update.getCode(), convertedCi, entityHolder);
-            ci.put(CmdbConstants.DEFAULT_FIELD_STATE,StateOperation.Update.getCode());
+            updatedMap = stateTransEngine.process(entityManager, ciTypeId, guid, StateOperation.Update.getCode(),
+                    convertedCi, entityHolder);
+            ci.put(CmdbConstants.DEFAULT_FIELD_STATE, StateOperation.Update.getCode());
             stopwatch.stop();
-            logger.info("[Performance measure][doUpdate] Elapsed time in state transition processing.: {}",stopwatch.toString());
+            logger.info("[Performance measure][doUpdate] Elapsed time in state transition processing.: {}",
+                    stopwatch.toString());
         }
 
         stopwatch.reset().start();
         ciDataInterceptorService.postUpdate(entityHolder, entityManager, ci);
         stopwatch.stop();
-        logger.info("[Performance measure][doUpdate] Elapsed time in post updating: {}",stopwatch.toString());
+        logger.info("[Performance measure][doUpdate] Elapsed time in post updating: {}", stopwatch.toString());
         updatedMap = ClassUtils.convertBeanToMap(entityHolder.getEntityObj(), entityHolder.getEntityMeta(), false);
         return updatedMap;
     }
@@ -1276,8 +1375,9 @@ public class CiServiceImpl implements CiService {
 
     private void validateUpdateCiData(int ciTypeId, Map<String, Object> ci) {
         if (ci.get(GUID) == null) {
-            throw new InvalidArgumentException(String.format("Required field 'guid' is missing for updating ciTypeId [%s]", ciTypeId))
-            .withErrorCode("3138", ciTypeId);
+            throw new InvalidArgumentException(
+                    String.format("Required field 'guid' is missing for updating ciTypeId [%s]", ciTypeId))
+                            .withErrorCode("3138", ciTypeId);
         }
     }
 
@@ -1318,11 +1418,11 @@ public class CiServiceImpl implements CiService {
         List<ExceptionHolder> exceptionHolders = new LinkedList<>();
         validateDynamicEntityManager();
 
-        try(PriorityEntityManager priEntityManager = getEntityManager()) {
+        try (PriorityEntityManager priEntityManager = getEntityManager()) {
             EntityManager entityManager = priEntityManager.getEntityManager();
             EntityTransaction transaction = entityManager.getTransaction();
             boolean outerTransactionActive = transaction.isActive();
-            if(!outerTransactionActive) {
+            if (!outerTransactionActive) {
                 transaction.begin();
             }
 
@@ -1336,7 +1436,7 @@ public class CiServiceImpl implements CiService {
                     try {
                         ci.remove(CALLBACK_ID);
                         validateCiType(ciTypeId);
-                        validateCiData(ciTypeId,ci,false);
+                        validateCiData(ciTypeId, ci, false);
                         // validateCiData(ciTypeId, ci, false);
                         // TODO: get operate user
 
@@ -1348,7 +1448,8 @@ public class CiServiceImpl implements CiService {
                         ci.put("guid", guid);
                         rtnCis.add(ci);
                     } catch (Exception e) {
-                        String errorMessage = String.format("Fail to create ci data ciTypeId [%s], error [%s]", ciTypeId, ExceptionHolder.extractExceptionMessage(e));
+                        String errorMessage = String.format("Fail to create ci data ciTypeId [%s], error [%s]",
+                                ciTypeId, ExceptionHolder.extractExceptionMessage(e));
                         logger.warn(errorMessage, e);
                         ci.put(CALLBACK_ID, callbackId);
                         // ci.put("errorMessage", errorMessage);
@@ -1356,27 +1457,26 @@ public class CiServiceImpl implements CiService {
                     }
                 }
                 if (exceptionHolders.isEmpty()) {
-                    if(!outerTransactionActive) {
+                    if (!outerTransactionActive) {
                         transaction.commit();
                     }
                 } else {
-                    if(!outerTransactionActive) {
+                    if (!outerTransactionActive) {
                         transaction.rollback();
-                    }
-                    else {
+                    } else {
                         transaction.setRollbackOnly();
                     }
-                    throw new BatchChangeException(String.format("Fail to create [%s] records, detail error in the data block", exceptionHolders.size()), exceptionHolders)
-                    .withErrorCode("3129", exceptionHolders.size());
+                    throw new BatchChangeException(String.format(
+                            "Fail to create [%s] records, detail error in the data block", exceptionHolders.size()),
+                            exceptionHolders).withErrorCode("3129", exceptionHolders.size());
                 }
             } catch (Exception exc) {
                 if (exc instanceof BatchChangeException) {
                     throw exc;
                 } else {
-                    if(!outerTransactionActive) {
+                    if (!outerTransactionActive) {
                         transaction.rollback();
-                    }
-                    else {
+                    } else {
                         transaction.setRollbackOnly();
                     }
                     throw new ServiceException("Exception happen for Ci creation.", exc).withErrorCode("3130");
@@ -1393,38 +1493,44 @@ public class CiServiceImpl implements CiService {
         return entityBean;
     }
 
-    private DynamicEntityHolder doCreate(EntityManager entityManager, int ciTypeId, String rGuid, Integer state, Map<String, Object> ci, boolean enableStateTransition) {
+    private DynamicEntityHolder doCreate(EntityManager entityManager, int ciTypeId, String rGuid, Integer state,
+            Map<String, Object> ci, boolean enableStateTransition) {
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
         if (entityMeta == null) {
-            throw new InvalidArgumentException(String.format("CiType [%d] is not valid in dynamic entity meta.", ciTypeId));
+            throw new InvalidArgumentException(
+                    String.format("CiType [%d] is not valid in dynamic entity meta.", ciTypeId));
         }
 
         String nextGuid = sequenceService.getNextGuid(entityMeta.getTableName(), entityMeta.getCiTypeId());
 
-        Map<String, Object> convertedCi = MultiValueFeildOperationUtils.convertMultiValueFieldsForCICreation(entityManager, ciTypeId, ci, nextGuid, this.ciTypeAttrRepository, this);
+        Map<String, Object> convertedCi = MultiValueFeildOperationUtils.convertMultiValueFieldsForCICreation(
+                entityManager, ciTypeId, ci, nextGuid, this.ciTypeAttrRepository, this);
 
         DynamicEntityHolder entityHolder = DynamicEntityHolder.createDynamicEntityBean(entityMeta, convertedCi);
 
         ciDataInterceptorService.preCreate(entityHolder, convertedCi);
-        entityHolder.fillAutoFieldsWithDefaultValue(nextGuid, rGuid, state, CmdbThreadLocal.getIntance().getCurrentUser());
+        entityHolder.fillAutoFieldsWithDefaultValue(nextGuid, rGuid, state,
+                CmdbThreadLocal.getIntance().getCurrentUser());
         if (enableStateTransition) {
-            stateTransEngine.process(entityManager, entityMeta.getCiTypeId(), null, StateOperation.Insert.getCode(), entityHolder.getEntityBeanMap(), entityHolder);
+            stateTransEngine.process(entityManager, entityMeta.getCiTypeId(), null, StateOperation.Insert.getCode(),
+                    entityHolder.getEntityBeanMap(), entityHolder);
         }
         entityManager.persist(entityHolder.getEntityObj());
         // entityManager.flush();
         ciDataInterceptorService.postCreate(entityHolder, ci, multRefMetaMap, entityManager);
         return entityHolder;
     }
+
     @OperationLogPointcut(operation = Removal, objectClass = CiData.class)
     @Override
-    public void delete(@CiTypeId int ciTypeId,@Guid List<String> ids) {
+    public void delete(@CiTypeId int ciTypeId, @Guid List<String> ids) {
         List<String> rtnIds = new LinkedList<String>();
         List<ExceptionHolder> exceptionHolders = new LinkedList<ExceptionHolder>();
 
         validateDynamicEntityManager();
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciTypeId);
 
-        try(PriorityEntityManager priorityEntityManager = getEntityManager()) {
+        try (PriorityEntityManager priorityEntityManager = getEntityManager()) {
             EntityManager entityManager = priorityEntityManager.getEntityManager();
             EntityTransaction transaction = entityManager.getTransaction();
             boolean outerTransactionActive = transaction.isActive();
@@ -1440,7 +1546,9 @@ public class CiServiceImpl implements CiService {
                         doDelete(entityManager, ciTypeId, guid, true);
                         rtnIds.add(guid);
                     } catch (Exception e) {
-                        String errorMessage = String.format("Fail to delete ci data ciTypeId [%s] for guid [%s], error [%s]", ciTypeId, guid, ExceptionHolder.extractExceptionMessage(e));
+                        String errorMessage = String.format(
+                                "Fail to delete ci data ciTypeId [%s] for guid [%s], error [%s]", ciTypeId, guid,
+                                ExceptionHolder.extractExceptionMessage(e));
                         logger.warn(errorMessage, e);
                         exceptionHolders.add(new ExceptionHolder(null, guid, errorMessage, e));
                     }
@@ -1452,12 +1560,12 @@ public class CiServiceImpl implements CiService {
                 } else {
                     if (!outerTransactionActive) {
                         transaction.rollback();
-                    }
-                    else {
+                    } else {
                         transaction.setRollbackOnly();
                     }
-                    throw new BatchChangeException(String.format("Fail to delete [%s] records, detail error in the data block", exceptionHolders.size()), exceptionHolders)
-                    .withErrorCode("3131", exceptionHolders.size());
+                    throw new BatchChangeException(String.format(
+                            "Fail to delete [%s] records, detail error in the data block", exceptionHolders.size()),
+                            exceptionHolders).withErrorCode("3131", exceptionHolders.size());
                 }
             } catch (Exception ex) {
                 if (ex instanceof BatchChangeException) {
@@ -1465,8 +1573,7 @@ public class CiServiceImpl implements CiService {
                 } else {
                     if (!outerTransactionActive) {
                         transaction.rollback();
-                    }
-                    else {
+                    } else {
                         transaction.setRollbackOnly();
                     }
                     throw new ServiceException("Failed to delete ci data.", ex).withErrorCode("3132");
@@ -1479,7 +1586,7 @@ public class CiServiceImpl implements CiService {
     @Override
     public List<Map<String, Object>> refresh(@Guid List<CiIndentity> ciIds) {
         List<Map<String, Object>> results = Lists.newLinkedList();
-        try(PriorityEntityManager priorityEntityManager = getEntityManager()) {
+        try (PriorityEntityManager priorityEntityManager = getEntityManager()) {
             EntityManager entityManager = priorityEntityManager.getEntityManager();
             EntityTransaction transaction = entityManager.getTransaction();
             boolean outerTransactionActive = transaction.isActive();
@@ -1493,17 +1600,17 @@ public class CiServiceImpl implements CiService {
                     Object entityBean = validateCi(ciId.getCiTypeId(), ciId.getGuid(), entityMeta, entityManager, null);
                     DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
 
-                    ciDataInterceptorService.refreshAutoFill(entityHolder, entityManager, entityHolder.getEntityBeanMap());
+                    ciDataInterceptorService.refreshAutoFill(entityHolder, entityManager,
+                            entityHolder.getEntityBeanMap());
                     results.add(ImmutableMap.of("guid", ciId.getGuid()));
                 }
                 if (!outerTransactionActive) {
                     transaction.commit();
                 }
-            } catch(Exception e) {
+            } catch (Exception e) {
                 if (!outerTransactionActive) {
                     transaction.rollback();
-                }
-                else {
+                } else {
                     transaction.setRollbackOnly();
                 }
                 throw e;
@@ -1519,7 +1626,8 @@ public class CiServiceImpl implements CiService {
         DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
         if (enableStateTransition) {
             ciDataInterceptorService.preDelete(ciTypeId, guid, true, entityMeta);
-            this.stateTransEngine.process(entityManager, ciTypeId, guid, StateOperation.Delete.getCode(), null, entityHolder);
+            this.stateTransEngine.process(entityManager, ciTypeId, guid, StateOperation.Delete.getCode(), null,
+                    entityHolder);
         } else {
             ciDataInterceptorService.preDelete(ciTypeId, guid, false, entityMeta);
             entityManager.remove(entityBean);
@@ -1530,10 +1638,11 @@ public class CiServiceImpl implements CiService {
     @Override
     public QueryResponse integrateQuery(String queryName, QueryRequest intQueryReq) {
         List<AdmIntegrateTemplate> intQueryTempls = intTempRepository.findAllByName(queryName);
-        if(intQueryTempls!=null && intQueryTempls.size()==0){
-            throw new InvalidArgumentException(String.format("Can not find out AdmIntegrateTemplate by given query name [%s].", queryName));
-        }else{
-            return  integrateQuery(intQueryTempls.get(0).getIdAdmIntegrateTemplate(),intQueryReq);
+        if (intQueryTempls != null && intQueryTempls.size() == 0) {
+            throw new InvalidArgumentException(
+                    String.format("Can not find out AdmIntegrateTemplate by given query name [%s].", queryName));
+        } else {
+            return integrateQuery(intQueryTempls.get(0).getIdAdmIntegrateTemplate(), intQueryReq);
         }
     }
 
@@ -1548,7 +1657,8 @@ public class CiServiceImpl implements CiService {
     @Override
     public QueryResponse integrateQuery(int intQueryId, QueryRequest intQueryReq) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Integate query request, intQuerId:{}, query request:{}", intQueryId, JsonUtil.toJsonString(intQueryReq));
+            logger.debug("Integate query request, intQuerId:{}, query request:{}", intQueryId,
+                    JsonUtil.toJsonString(intQueryReq));
         }
 
         Stopwatch stopwatch = Stopwatch.createStarted();
@@ -1562,26 +1672,29 @@ public class CiServiceImpl implements CiService {
 
         IntegrationQueryDto intQueryDto = intQueryService.getIntegrationQuery(intQueryId);
         if (logger.isDebugEnabled()) {
-            logger.debug("Integration query [{}] integrate query Dto:{}, queryReq:{}", intQueryId, JsonUtil.toJsonString(intQueryDto), JsonUtil.toJsonString(intQueryReq));
+            logger.debug("Integration query [{}] integrate query Dto:{}, queryReq:{}", intQueryId,
+                    JsonUtil.toJsonString(intQueryDto), JsonUtil.toJsonString(intQueryReq));
         }
 
         List resultList = doIntegrateQuery(intQueryDto, intQueryReq, true, selectedFields);
         int totalCount = convertResultToInteger(resultList);
         stopwatch.stop();
-        logger.info("[Performance measure][integrateQuery] Elapsed time in getting integrate query count: {}",stopwatch.toString());
+        logger.info("[Performance measure][integrateQuery] Elapsed time in getting integrate query count: {}",
+                stopwatch.toString());
 
         stopwatch.reset().start();
         intQueryReq.setFilters(srcFilters);
         resultList = doIntegrateQuery(intQueryDto, intQueryReq, false, selectedFields);
         stopwatch.stop();
-        logger.info("[Performance measure][integrateQuery] Elapsed time in executing integrate query: {}",stopwatch.toString());
+        logger.info("[Performance measure][integrateQuery] Elapsed time in executing integrate query: {}",
+                stopwatch.toString());
 
         stopwatch.reset().start();
         List<Expression> selections = new LinkedList<>();
         selectedFields.forEach(x -> {
-        	if(!selections.contains(x.getExpression())) {
-        		selections.add(x.getExpression());
-        	}
+            if (!selections.contains(x.getExpression())) {
+                selections.add(x.getExpression());
+            }
         });
 
         List<Map<String, Object>> results = new LinkedList<>();
@@ -1604,7 +1717,8 @@ public class CiServiceImpl implements CiService {
             }
             /*
              * rows.forEach(x -> { Map<String,Object> rowMap = new HashMap<>();
-             * rowMap.put(selections.get(0).getAlias(), x); results.add(rowMap); });
+             * rowMap.put(selections.get(0).getAlias(), x); results.add(rowMap);
+             * });
              */
         }
 
@@ -1615,13 +1729,15 @@ public class CiServiceImpl implements CiService {
             logger.debug("Return integrate response:{}", JsonUtil.toJsonString(response));
         }
         stopwatch.stop();
-        logger.info("[Performance measure][integrateQuery] Elapsed time in rendering integrate query result: {}",stopwatch.toString());
+        logger.info("[Performance measure][integrateQuery] Elapsed time in rendering integrate query result: {}",
+                stopwatch.toString());
         return response;
     }
 
     private void setupPageInfo(QueryRequest intQueryReq, int totalCount, QueryResponse headerResponse) {
         if (intQueryReq != null && intQueryReq.getPageable() != null) {
-            headerResponse.setPageInfo(new PageInfo(totalCount, intQueryReq.getPageable().getStartIndex(), intQueryReq.getPageable().getPageSize()));
+            headerResponse.setPageInfo(new PageInfo(totalCount, intQueryReq.getPageable().getStartIndex(),
+                    intQueryReq.getPageable().getPageSize()));
         } else {
             headerResponse.setPageInfo(new PageInfo(totalCount, 0, totalCount));
         }
@@ -1632,7 +1748,8 @@ public class CiServiceImpl implements CiService {
         return Integer.valueOf(strVal);
     }
 
-    private List doIntegrateQuery(IntegrationQueryDto intQueryDto, QueryRequest intQueryReq, boolean isSelRowCount, List<FieldInfo> selectedFields) {
+    private List doIntegrateQuery(IntegrationQueryDto intQueryDto, QueryRequest intQueryReq, boolean isSelRowCount,
+            List<FieldInfo> selectedFields) {
 
         PriorityEntityManager priEntityManager = getEntityManager();
         EntityManager entityManager = priEntityManager.getEntityManager();
@@ -1669,16 +1786,14 @@ public class CiServiceImpl implements CiService {
                         }
 
                         if (kv.getKey().endsWith(".guid") || kv.getKey().endsWith(".r_guid")) {
-                            if(!isRequestExplicitly(intQueryReq, (Map.Entry<String, FieldInfo>) kv)) {
+                            if (!isRequestExplicitly(intQueryReq, (Map.Entry<String, FieldInfo>) kv)) {
                                 continue;
                             }
                         }
 
-/*
-                        if(!isRequestField(intQueryReq,kv)){
-                            continue;
-                        }
-*/
+                        /*
+                         * if(!isRequestField(intQueryReq,kv)){ continue; }
+                         */
 
                         selectedFields.add(kv.getValue());
                         if (!selections.contains(kv.getValue().getExpression())) {
@@ -1709,7 +1824,8 @@ public class CiServiceImpl implements CiService {
 
             Predicate accessControlPredicate = buildAccessControlPredicate(cb, selFieldMap, selectionMap);
 
-            JpaQueryUtils.applyFilter(cb, query, intQueryReq.getFilters(), selectionMap, fieldTypeMap, FilterRelationship.fromCode(intQueryReq.getFilterRs()), predicates, accessControlPredicate);
+            JpaQueryUtils.applyFilter(cb, query, intQueryReq.getFilters(), selectionMap, fieldTypeMap,
+                    FilterRelationship.fromCode(intQueryReq.getFilterRs()), predicates, accessControlPredicate);
 
             TypedQuery typedQuery = entityManager.createQuery(query);
             if (!isSelRowCount && intQueryReq.isPaging()) {
@@ -1728,9 +1844,9 @@ public class CiServiceImpl implements CiService {
         return intQueryReq.getResultColumns().contains(kv.getKey());
     }
 
-    private boolean requestGuid(QueryRequest intQueryReq){
+    private boolean requestGuid(QueryRequest intQueryReq) {
         for (String resultColumn : intQueryReq.getResultColumns()) {
-            if(resultColumn.endsWith(".guid")){
+            if (resultColumn.endsWith(".guid")) {
                 return true;
             }
         }
@@ -1738,10 +1854,12 @@ public class CiServiceImpl implements CiService {
     }
 
     private boolean isRequestField(QueryRequest intQueryReq, Map.Entry<String, FieldInfo> kv) {
-        return intQueryReq.getResultColumns() == null || intQueryReq.getResultColumns().isEmpty() || intQueryReq.getResultColumns().contains(kv.getKey());
+        return intQueryReq.getResultColumns() == null || intQueryReq.getResultColumns().isEmpty()
+                || intQueryReq.getResultColumns().contains(kv.getKey());
     }
 
-    private List<Predicate> buildHistoryDataControlPredicate(QueryRequest intQueryReq, CriteriaBuilder cb, Map<String, Expression> selectionMap) {
+    private List<Predicate> buildHistoryDataControlPredicate(QueryRequest intQueryReq, CriteriaBuilder cb,
+            Map<String, Expression> selectionMap) {
         List<Predicate> predicates = Lists.newLinkedList();
         if (!intQueryReq.getDialect().getShowCiHistory()) {
             Map<String, Map<String, Expression>> guidRguidPair = new HashMap<>();
@@ -1759,7 +1877,8 @@ public class CiServiceImpl implements CiService {
         return predicates;
     }
 
-    private void extractGuidKvPair(Map<String, Map<String, Expression>> guidRguidPair, Map.Entry<String, Expression> kv, String postFix) {
+    private void extractGuidKvPair(Map<String, Map<String, Expression>> guidRguidPair, Map.Entry<String, Expression> kv,
+            String postFix) {
         if (kv.getKey().endsWith(postFix)) {
             String keyPrefix = kv.getKey().substring(0, kv.getKey().indexOf(postFix));
             if (guidRguidPair.get(keyPrefix) == null) {
@@ -1770,7 +1889,8 @@ public class CiServiceImpl implements CiService {
         }
     }
 
-    private Predicate buildAccessControlPredicate(CriteriaBuilder criteriaBuilder, Map<String, FieldInfo> selFieldMap, Map<String, Expression> attributeMap) {
+    private Predicate buildAccessControlPredicate(CriteriaBuilder criteriaBuilder, Map<String, FieldInfo> selFieldMap,
+            Map<String, Expression> attributeMap) {
         if (selFieldMap.isEmpty())
             return criteriaBuilder.conjunction();
 
@@ -1808,9 +1928,11 @@ public class CiServiceImpl implements CiService {
 
         for (Map.Entry<String, Expression> kv : selectionMap.entrySet()) {
             if (kv.getKey().endsWith(".biz_key")) {
-                intQueryReq.getFilters().add(new Filter(kv.getKey(), bizKeyFilter.getOperator(), bizKeyFilter.getValue()));
+                intQueryReq.getFilters()
+                        .add(new Filter(kv.getKey(), bizKeyFilter.getOperator(), bizKeyFilter.getValue()));
             } else if (kv.getKey().endsWith(".state")) {
-                intQueryReq.getFilters().add(new Filter(kv.getKey(), statusFilter.getOperator(), statusFilter.getValue()));
+                intQueryReq.getFilters()
+                        .add(new Filter(kv.getKey(), statusFilter.getOperator(), statusFilter.getValue()));
             }
         }
     }
@@ -1837,7 +1959,8 @@ public class CiServiceImpl implements CiService {
         return enableBiz;
     }
 
-    private void validateIntQueryFilter(QueryRequest intQueryReq, Map<String, FieldInfo> selFieldMap, boolean enableBiz) {
+    private void validateIntQueryFilter(QueryRequest intQueryReq, Map<String, FieldInfo> selFieldMap,
+            boolean enableBiz) {
         intQueryReq.getFilters().forEach(x -> {
             if (enableBiz) {
                 if ("biz_key".equals(x.getName()) || "state".equals(x.getName())) {
@@ -1846,8 +1969,9 @@ public class CiServiceImpl implements CiService {
             }
 
             if (!selFieldMap.containsKey(x.getName())) {
-                throw new InvalidArgumentException(String.format("The given fileter name [%s] can not be found out in integration query criteria. ", x.getName()))
-                .withErrorCode("3265", x.getName());
+                throw new InvalidArgumentException(String.format(
+                        "The given fileter name [%s] can not be found out in integration query criteria. ",
+                        x.getName())).withErrorCode("3265", x.getName());
             }
         });
     }
@@ -1861,7 +1985,8 @@ public class CiServiceImpl implements CiService {
         private Integer attrId;
         private String alias;
 
-        public FieldInfo(Expression selection, Class<?> type, int ciTypeId, String inputType, String name, Integer attrId, String alias) {
+        public FieldInfo(Expression selection, Class<?> type, int ciTypeId, String inputType, String name,
+                Integer attrId, String alias) {
             this.expression = selection;
             this.type = type;
             this.ciTypeId = ciTypeId;
@@ -1919,38 +2044,39 @@ public class CiServiceImpl implements CiService {
             this.attrId = attrId;
         }
 
-		public String getAlias() {
-			return alias;
-		}
+        public String getAlias() {
+            return alias;
+        }
 
-		public void setAlias(String alias) {
-			this.alias = alias;
-		}
+        public void setAlias(String alias) {
+            this.alias = alias;
+        }
 
     }
 
-    private Map<String, Object> convertResponse(List<Expression> selections, Object[] response, List<FieldInfo> fieldInfos) {
+    private Map<String, Object> convertResponse(List<Expression> selections, Object[] response,
+            List<FieldInfo> fieldInfos) {
         if (selections.size() > fieldInfos.size()) {
             throw new ServiceException("3117", "Selections size should not be larger than field infor size.");
         }
-        
-        Map<Expression,Integer> exprIndexMap = new HashMap<>();
-        for(int i=0;i<selections.size();i++) {
-        	exprIndexMap.put(selections.get(i), i);
+
+        Map<Expression, Integer> exprIndexMap = new HashMap<>();
+        for (int i = 0; i < selections.size(); i++) {
+            exprIndexMap.put(selections.get(i), i);
         }
 
         Map<String, Object> rowMap = new HashMap<>();
-        
-        for(FieldInfo fieldInfo:fieldInfos) {
-        	Expression expr = fieldInfo.getExpression();
+
+        for (FieldInfo fieldInfo : fieldInfos) {
+            Expression expr = fieldInfo.getExpression();
             AdmCiTypeAttr attr = null;
             if (fieldInfo.getAttrId() != null) {
                 attr = ciTypeAttrRepository.getOne(fieldInfo.getAttrId());
             }
-            Object convertedObj = convertFieldValue(expr.getAlias(), response[exprIndexMap.get(expr)], attr,null);
+            Object convertedObj = convertFieldValue(expr.getAlias(), response[exprIndexMap.get(expr)], attr, null);
             rowMap.put(fieldInfo.getAlias(), convertedObj);
         }
-        
+
         return rowMap;
     }
 
@@ -1966,7 +2092,8 @@ public class CiServiceImpl implements CiService {
         return sb.toString();
     }
 
-    private Map<String, FieldInfo> buildIntQuery(From parentPath, AdmCiType parentCiType, IntegrationQueryDto curQuery, CriteriaQuery query, Map<String, FieldInfo> attrExprMap, boolean enableBiz, Stack<String> path) {
+    private Map<String, FieldInfo> buildIntQuery(From parentPath, AdmCiType parentCiType, IntegrationQueryDto curQuery,
+            CriteriaQuery query, Map<String, FieldInfo> attrExprMap, boolean enableBiz, Stack<String> path) {
         if (path == null) {
             path = new Stack<>();
         }
@@ -1975,8 +2102,10 @@ public class CiServiceImpl implements CiService {
         DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(curCiTypeId);
         AdmCiType curCiType = ciTypeRepository.getOne(curCiTypeId);
         if (CiStatus.NotCreated.getCode().equals(curCiType.getStatus())) {
-            throw new InvalidArgumentException(String.format("Can not build integration as the given CiType [%s], status is [%s].", curCiType.getName(), curCiType.getStatus()))
-            .withErrorCode("3266", curCiType.getName(), curCiType.getStatus());
+            throw new InvalidArgumentException(
+                    String.format("Can not build integration as the given CiType [%s], status is [%s].",
+                            curCiType.getName(), curCiType.getStatus())).withErrorCode("3266", curCiType.getName(),
+                                    curCiType.getStatus());
         }
         path.push(curCiType.getTableName());
 
@@ -1984,7 +2113,8 @@ public class CiServiceImpl implements CiService {
         From curFrom = null;
         if (parentPath == null) {// root query
             curFrom = query.from(entityMeta.getEntityClazz());
-            attrExprMap.put("root", new FieldInfo(curFrom, entityMeta.getEntityClazz(), curCiTypeId, null, "root", null,null));
+            attrExprMap.put("root",
+                    new FieldInfo(curFrom, entityMeta.getEntityClazz(), curCiTypeId, null, "root", null, null));
 
             List<Integer> attrIds = curQuery.getAttrs();
             for (int i = 0; i < attrIds.size(); i++) {
@@ -1993,34 +2123,44 @@ public class CiServiceImpl implements CiService {
                 // String alias = curQuery.getAttrAliases().get(i);
                 String keyName = curQuery.getAttrKeyNames().get(i);
                 Expression attrExpression = null;
-                if(InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
-                	attrExpression = curFrom.get("guid");//need guid to fetch mult selection value
-                	//attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId,"guid");
-                }else if(InputType.MultRef.getCode().equals(attr.getInputType())){
-                	attrExpression = curFrom.get("guid");//need guid to fetch mult ref value
-                }else {
+                if (InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
+                    attrExpression = curFrom.get("guid");// need guid to fetch
+                                                         // mult selection value
+                    // attr =
+                    // ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId,"guid");
+                } else if (InputType.MultRef.getCode().equals(attr.getInputType())) {
+                    attrExpression = curFrom.get("guid");// need guid to fetch
+                                                         // mult ref value
+                } else {
                     attrExpression = curFrom.get(attr.getPropertyName());
                 }
                 attrExpression.alias(keyName);
                 if (attrExprMap.containsKey(keyName)) {
-                    throw new ServiceException(String.format("There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()))
-                    .withErrorCode("3118", keyName, curQuery.getName());
+                    throw new ServiceException(String.format(
+                            "There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()))
+                                    .withErrorCode("3118", keyName, curQuery.getName());
                 }
-                attrExprMap.put(keyName, new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr(),keyName));
+                attrExprMap.put(keyName,
+                        new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()),
+                                attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr(),
+                                keyName));
                 currentCiTypeAttrExprMap.put(attr.getPropertyName(), attrExprMap.get(keyName));
             }
         } else {
             Relationship relt = curQuery.getParentRs();
             if (relt == null) {
-                throw new InvalidArgumentException(String.format("There is not parent relationship for CiType [%d]", curQuery.getCiTypeId()))
-                .withErrorCode("3267", curQuery.getCiTypeId());
+                throw new InvalidArgumentException(
+                        String.format("There is not parent relationship for CiType [%d]", curQuery.getCiTypeId()))
+                                .withErrorCode("3267", curQuery.getCiTypeId());
             }
             int reltAttrId = relt.getAttrId();
             AdmCiTypeAttr reltAttr = ciTypeAttrRepository.getOne(reltAttrId);
             validateStatusOfCiTypeAttr(reltAttr);
             String joinField = null;
-            if(relt.getIsReferedFromParent()) {
-            //if (reltAttr.getCiTypeId().equals(parentCiType.getIdAdmCiType())) {
+            if (relt.getIsReferedFromParent()) {
+                // if
+                // (reltAttr.getCiTypeId().equals(parentCiType.getIdAdmCiType()))
+                // {
                 joinField = DynamicEntityUtils.getJoinFieldName(parentCiType, reltAttr, true);
                 curFrom = parentPath.join(joinField, JoinType.LEFT);
             } else {
@@ -2035,35 +2175,45 @@ public class CiServiceImpl implements CiService {
                 // String alias = curQuery.getAttrAliases().get(i);
                 String keyName = curQuery.getAttrKeyNames().get(i);
                 Expression attrExpression = null;
-                
-                if(InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
-                	attrExpression = curFrom.get("guid");//need guid to fetch mult selection value
-                }else if(InputType.MultRef.getCode().equals(attr.getInputType())){
-                	attrExpression = curFrom.get("guid");//need guid to fetch mult ref value
-                }else {
-                	attrExpression = curFrom.get(attr.getPropertyName());
+
+                if (InputType.MultSelDroplist.getCode().equals(attr.getInputType())) {
+                    attrExpression = curFrom.get("guid");// need guid to fetch
+                                                         // mult selection value
+                } else if (InputType.MultRef.getCode().equals(attr.getInputType())) {
+                    attrExpression = curFrom.get("guid");// need guid to fetch
+                                                         // mult ref value
+                } else {
+                    attrExpression = curFrom.get(attr.getPropertyName());
                 }
 
                 attrExpression.alias(keyName);
                 if (attrExprMap.containsKey(keyName)) {
-                    throw new ServiceException(String.format("There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()))
-                    .withErrorCode("3118", keyName, curQuery.getName());
+                    throw new ServiceException(String.format(
+                            "There are duplicated alias [%s] for integrate query [%s].", keyName, curQuery.getName()))
+                                    .withErrorCode("3118", keyName, curQuery.getName());
                 }
-                attrExprMap.put(keyName, new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr(),keyName));
+                attrExprMap.put(keyName,
+                        new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()),
+                                attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr(),
+                                keyName));
                 currentCiTypeAttrExprMap.put(attr.getPropertyName(), attrExprMap.get(keyName));
             }
         }
 
         String curQueryKeyName = curQuery.getKeyName();
         attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "guid", curQueryKeyName);
-        attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "r_guid",curQueryKeyName);
-     
+        attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "r_guid", curQueryKeyName);
+
         if (enableBiz) {
-            attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "biz_key",curQueryKeyName);
-            attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "state",curQueryKeyName);
+            attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "biz_key", curQueryKeyName);
+            attachAdditionalAttr(attrExprMap, path, curCiTypeId, curFrom, "state", curQueryKeyName);
         }
 
-        List<AdmCiTypeAttr> accessControlledAttributes = ciTypeAttrRepository.findAllByCiTypeIdAndIsAccessControlled(curCiTypeId, 1);
+        // 1219
+//        List<AdmCiTypeAttr> accessControlledAttributes = ciTypeAttrRepository
+//                .findAllByCiTypeIdAndIsAccessControlled(curCiTypeId, 1);
+        List<AdmCiTypeAttr> accessControlledAttributes = this.admCiTypeCachingService
+                .findAllByCiTypeIdAndIsAccessControlled(curCiTypeId, 1);
         if (isNotEmpty(accessControlledAttributes)) {
             for (AdmCiTypeAttr attr : accessControlledAttributes) {
                 String propertyName = attr.getPropertyName();
@@ -2072,7 +2222,9 @@ public class CiServiceImpl implements CiService {
                 if (fieldInfo == null) {
                     Expression attrExpression = curFrom.get(propertyName);
                     attrExpression.alias(keyName);
-                    fieldInfo = new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr(),keyName);
+                    fieldInfo = new FieldInfo(attrExpression, FieldType.getTypeFromCode(attr.getPropertyType()),
+                            attr.getCiTypeId(), attr.getInputType(), attr.getName(), attr.getIdAdmCiTypeAttr(),
+                            keyName);
                 }
                 attrExprMap.put(keyName, fieldInfo);
             }
@@ -2088,23 +2240,26 @@ public class CiServiceImpl implements CiService {
 
     private void validateStatusOfCiTypeAttr(AdmCiTypeAttr attr) {
         if (CiStatus.NotCreated.getCode().equals(attr.getStatus())) {
-            throw new InvalidArgumentException(String.format("Can not build integration as the given ci type attr [%s], status is [%s].", attr.getName(), attr.getStatus()))
-            .withErrorCode("3268", attr.getName(), attr.getStatus());
+            throw new InvalidArgumentException(
+                    String.format("Can not build integration as the given ci type attr [%s], status is [%s].",
+                            attr.getName(), attr.getStatus())).withErrorCode("3268", attr.getName(), attr.getStatus());
         }
     }
 
-    private void attachAdditionalAttr(Map<String, FieldInfo> attrExprMap, Stack<String> path, int curCiTypeId, From curFrom, String propertyName,String curQueryKeyName) {
+    private void attachAdditionalAttr(Map<String, FieldInfo> attrExprMap, Stack<String> path, int curCiTypeId,
+            From curFrom, String propertyName, String curQueryKeyName) {
         AdmCiTypeAttr attr = ciTypeAttrRepository.findFirstByCiTypeIdAndPropertyName(curCiTypeId, propertyName);
         validateStatusOfCiTypeAttr(attr);
         if (attr == null) {
-            throw new ServiceException(String.format("Can not find out [%s] for CI Type [%d].", propertyName, curCiTypeId))
-            .withErrorCode("3119", propertyName, curCiTypeId);
+            throw new ServiceException(
+                    String.format("Can not find out [%s] for CI Type [%d].", propertyName, curCiTypeId))
+                            .withErrorCode("3119", propertyName, curCiTypeId);
         }
 
         String alias = null;
-        if(Strings.isNullOrEmpty(curQueryKeyName)) {
+        if (Strings.isNullOrEmpty(curQueryKeyName)) {
             alias = getTemplAlias(path) + "." + propertyName;
-        }else{
+        } else {
             alias = curQueryKeyName + "." + propertyName;
         }
 
@@ -2112,7 +2267,8 @@ public class CiServiceImpl implements CiService {
         if (expression.getAlias() == null) {
             expression.alias(alias);
         }
-        attrExprMap.put(alias, new FieldInfo(expression, FieldType.getTypeFromCode(attr.getPropertyType()), attr.getCiTypeId(), attr.getInputType(), attr.getName(), null,alias));
+        attrExprMap.put(alias, new FieldInfo(expression, FieldType.getTypeFromCode(attr.getPropertyType()),
+                attr.getCiTypeId(), attr.getInputType(), attr.getName(), null, alias));
     }
 
     @Override
@@ -2123,7 +2279,8 @@ public class CiServiceImpl implements CiService {
         return buildIntQuerHeader(intQueryDto, headers);
     }
 
-    private List<IntQueryResponseHeader> buildIntQuerHeader(IntegrationQueryDto curQuery, List<IntQueryResponseHeader> headers) {
+    private List<IntQueryResponseHeader> buildIntQuerHeader(IntegrationQueryDto curQuery,
+            List<IntQueryResponseHeader> headers) {
         List<Integer> attrIds = curQuery.getAttrs();
         IntQueryResponseHeader header = new IntQueryResponseHeader(curQuery.getName());
         for (int i = 0; i < attrIds.size(); i++) {
@@ -2178,13 +2335,17 @@ public class CiServiceImpl implements CiService {
         return versionDetails;
     }
 
-    private void attachCiWithVersion(List<CiDataTreeDto> versionDetails, int fromCiTypeId, int toCiTypeId, String version, String parentColumnName, Object parentGuid) {
+    private void attachCiWithVersion(List<CiDataTreeDto> versionDetails, int fromCiTypeId, int toCiTypeId,
+            String version, String parentColumnName, Object parentGuid) {
         List<CiDataTreeDto> cis = new LinkedList<CiDataTreeDto>();
 
         String tableName = ciTypeRepository.findByIdAdmCiType(fromCiTypeId).getTableName();
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("SELECT guid, name,r_guid,state_code,fixed_date,code,description from %s where (r_guid,fixed_date) in (SELECT ci.r_guid, max(ci.fixed_date) as fixed_date from %s ci, adm_basekey_code code " + "where ci.state = code.id_adm_basekey "
-                + "and ci.fixed_date is not null " + "and ((ci.fixed_date < '%s' and code.code != '%s' ) or (ci.fixed_date = '%s'))", tableName, tableName, version, "delete", version, version));
+        sb.append(String.format(
+                "SELECT guid, name,r_guid,state_code,fixed_date,code,description from %s where (r_guid,fixed_date) in (SELECT ci.r_guid, max(ci.fixed_date) as fixed_date from %s ci, adm_basekey_code code "
+                        + "where ci.state = code.id_adm_basekey " + "and ci.fixed_date is not null "
+                        + "and ((ci.fixed_date < '%s' and code.code != '%s' ) or (ci.fixed_date = '%s'))",
+                tableName, tableName, version, "delete", version, version));
 
         if (parentColumnName != null) {
             sb.append(String.format(" and %s = '%s'", parentColumnName, parentGuid));
@@ -2207,7 +2368,8 @@ public class CiServiceImpl implements CiService {
                         if (attr.getCiTypeId() > toCiTypeId) {
                             return;
                         }
-                        attachCiWithVersion(ciChildren, attr.getCiTypeId(), toCiTypeId, version, attr.getPropertyName(), ci.getRootGuid());
+                        attachCiWithVersion(ciChildren, attr.getCiTypeId(), toCiTypeId, version, attr.getPropertyName(),
+                                ci.getRootGuid());
                     }
                 }
             });
@@ -2260,26 +2422,28 @@ public class CiServiceImpl implements CiService {
         }
 
         int totalCount = 0;
-        if(queryRequest.getPageable().isPaging()){
+        if (queryRequest.getPageable().isPaging()) {
             List resultList = doIntegrateQuery(intQueryDto, queryRequest, true, selectedFields);
             totalCount = convertResultToInteger(resultList);
         }
 
         stopwatch.stop();
-        logger.info("[Performance measure][adhocIntegrateQuery] Elapsed time in getting ahoc integrate query count: {}",stopwatch.toString());
+        logger.info("[Performance measure][adhocIntegrateQuery] Elapsed time in getting ahoc integrate query count: {}",
+                stopwatch.toString());
 
         stopwatch.reset().start();
         queryRequest.setFilters(srcFilters);
         List resultList = doIntegrateQuery(intQueryDto, queryRequest, false, selectedFields);
         stopwatch.stop();
-        logger.info("[Performance measure][adhocIntegrateQuery] Elapsed time in getting ahoc integrate query: {}",stopwatch.toString());
+        logger.info("[Performance measure][adhocIntegrateQuery] Elapsed time in getting ahoc integrate query: {}",
+                stopwatch.toString());
 
         stopwatch.reset().start();
         List<Expression> selections = new LinkedList<>();
         selectedFields.forEach(field -> {
-        	if(!selections.contains(field.getExpression())) {
-        		selections.add(field.getExpression());
-        	}
+            if (!selections.contains(field.getExpression())) {
+                selections.add(field.getExpression());
+            }
         });
 
         List<Map<String, Object>> results = new LinkedList<>();
@@ -2293,12 +2457,12 @@ public class CiServiceImpl implements CiService {
         } else {
             List<Object> rows = resultList;
             for (int i = 0; i < rows.size(); i++) {
-                results.add(convertResponse(selections, new Object[]{rows.get(i)}, selectedFields));
+                results.add(convertResponse(selections, new Object[] { rows.get(i) }, selectedFields));
             }
         }
 
         QueryResponse response = new QueryResponse(null, results);
-        if(queryRequest.getPageable().isPaging()) {
+        if (queryRequest.getPageable().isPaging()) {
             setupPageInfo(queryRequest, totalCount, response);
         }
 
@@ -2306,7 +2470,9 @@ public class CiServiceImpl implements CiService {
             logger.debug("Return integrate response:{}", JsonUtil.toJsonString(response));
         }
         stopwatch.stop();
-        logger.info("[Performance measure][adhocIntegrateQuery] Elapsed time in rendering ahoc integrate query result: {}",stopwatch.toString());
+        logger.info(
+                "[Performance measure][adhocIntegrateQuery] Elapsed time in rendering ahoc integrate query result: {}",
+                stopwatch.toString());
         return response;
     }
 
@@ -2314,25 +2480,30 @@ public class CiServiceImpl implements CiService {
         Integer ciTypeId = intQueryDto.getCiTypeId();
         if (!ciTypeRepository.existsById(ciTypeId)) {
             throw new InvalidArgumentException(String.format("CiType [%d] is not existed.", ciTypeId))
-            .withErrorCode("3269", ciTypeId);
+                    .withErrorCode("3269", ciTypeId);
         }
 
-        if ((intQueryDto.getAttrs() == null || intQueryDto.getAttrs().size() == 0)) {// attr list is empty
+        if ((intQueryDto.getAttrs() == null || intQueryDto.getAttrs().size() == 0)) {// attr
+                                                                                     // list
+                                                                                     // is
+                                                                                     // empty
             if (intQueryDto.getAttrKeyNames() != null && intQueryDto.getAttrKeyNames().size() > 0) {
-                throw new InvalidArgumentException(String.format("Attribute list is empty but attr key name list has values for citype [%d]", ciTypeId))
-                .withErrorCode("3270", ciTypeId);
+                throw new InvalidArgumentException(String
+                        .format("Attribute list is empty but attr key name list has values for citype [%d]", ciTypeId))
+                                .withErrorCode("3270", ciTypeId);
             }
         } else {// attr list is not empty
             if (intQueryDto.getAttrKeyNames() == null || intQueryDto.getAttrKeyNames().size() == 0) {
-                throw new InvalidArgumentException(String.format("Attribute list is not empty while attr key name list is empty for citype [%d]", ciTypeId))
-                .withErrorCode("3271", ciTypeId);
+                throw new InvalidArgumentException(String.format(
+                        "Attribute list is not empty while attr key name list is empty for citype [%d]", ciTypeId))
+                                .withErrorCode("3271", ciTypeId);
             }
         }
 
         for (int attrId : intQueryDto.getAttrs()) {
             if (!ciTypeAttrRepository.existsById(attrId)) {
                 throw new InvalidArgumentException(String.format("CiType attr [%d] is not existed.", attrId))
-                .withErrorCode("3272", attrId);
+                        .withErrorCode("3272", attrId);
             }
         }
 
@@ -2340,11 +2511,11 @@ public class CiServiceImpl implements CiService {
 
     @Override
     public List<Map<String, Object>> queryWithFilters(int ciTypeId, List<Filter> filters, List<String> resultColumns) {
-        return queryWithFilters(ciTypeId, filters, true,resultColumns);
+        return queryWithFilters(ciTypeId, filters, true, resultColumns);
     }
 
     private List<Map<String, Object>> queryWithFilters(int ciTypeId, List<Filter> filters, boolean needValidate,
-                                                       List<String> resultColumns) {
+            List<String> resultColumns) {
         if (logger.isDebugEnabled()) {
             logger.debug("CI query by id request, ciTypeId:{}, filters:{}", ciTypeId, JsonUtil.toJson(filters));
         }
@@ -2360,12 +2531,13 @@ public class CiServiceImpl implements CiService {
         try {
             QueryRequest request = new QueryRequest().withResultColumns(resultColumns);
             request.getFilters().addAll(filters);
-            boolean isRefColumnRequested = isRefColumnRequested(entityMeta,request);
+            boolean isRefColumnRequested = isRefColumnRequested(entityMeta, request);
 
             Stopwatch stopwatch = Stopwatch.createStarted();
             List<Object> results = doQuery(request, entityMeta, false, null, isRefColumnRequested);
             stopwatch.stop();
-            logger.info("[Performance measure][queryWithFilters] Elapsed time in query with filter: {}",stopwatch.toString());
+            logger.info("[Performance measure][queryWithFilters] Elapsed time in query with filter: {}",
+                    stopwatch.toString());
 
             stopwatch.reset().start();
             List<Map<String, Object>> resultList = Lists.newLinkedList();
@@ -2374,13 +2546,16 @@ public class CiServiceImpl implements CiService {
 
             results.forEach(x -> {
                 Map<String, Object> entityBeanMap = ClassUtils.convertBeanToMap(x, entityMeta, false);
-                String fromGuid = (String)entityBeanMap.get("guid");
-                Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap, fromGuid);
-                Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager, attrMap,multiSortCiMap);
+                String fromGuid = (String) entityBeanMap.get("guid");
+                Map<Integer, Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager,
+                        attrMap, fromGuid);
+                Map<String, Object> enhacedMap = enrichCiObject(entityMeta, entityBeanMap, entityManager, attrMap,
+                        multiSortCiMap);
                 resultList.add(enhacedMap);
             });
             stopwatch.stop();
-            logger.info("[Performance measure][queryWithFilters] Elapsed time in rendering result with filter: {}",stopwatch.toString());
+            logger.info("[Performance measure][queryWithFilters] Elapsed time in rendering result with filter: {}",
+                    stopwatch.toString());
             return resultList;
         } finally {
             priEntityManager.close();
@@ -2392,39 +2567,44 @@ public class CiServiceImpl implements CiService {
     public List<Map<String, Object>> operateState(@Guid List<CiIndentity> ciIds, String operation) {
         StateOperation stateOperation = StateOperation.fromCode(operation);
 
-        if (StateOperation.Confirm.equals(stateOperation) || StateOperation.Discard.equals(stateOperation) || StateOperation.Startup.equals(stateOperation) || StateOperation.Stop.equals(stateOperation)) {
+        if (StateOperation.Confirm.equals(stateOperation) || StateOperation.Discard.equals(stateOperation)
+                || StateOperation.Startup.equals(stateOperation) || StateOperation.Stop.equals(stateOperation)) {
             List<Map<String, Object>> results = Lists.newLinkedList();
             PriorityEntityManager priEntityManager = getEntityManager();
             EntityManager entityManager = priEntityManager.getEntityManager();
             EntityTransaction transaction = entityManager.getTransaction();
             boolean outerTransactionActive = transaction.isActive();
 
-            if(!outerTransactionActive) {
+            if (!outerTransactionActive) {
                 transaction.begin();
             }
             try {
                 Date date = new Date();
                 for (CiIndentity ciId : ciIds) {
                     DynamicEntityMeta entityMeta = getDynamicEntityMetaMap().get(ciId.getCiTypeId());
-                    Object entityBean = validateCi(ciId.getCiTypeId(), ciId.getGuid(), entityMeta, entityManager, ACTION_MODIFICATION);
+                    Object entityBean = validateCi(ciId.getCiTypeId(), ciId.getGuid(), entityMeta, entityManager,
+                            ACTION_MODIFICATION);
                     DynamicEntityHolder entityHolder = new DynamicEntityHolder(entityMeta, entityBean);
-                    Map<String, Object> result = stateTransEngine.process(entityManager, ciId.getCiTypeId(), ciId.getGuid(), operation, null, entityHolder, date);
+                    Map<String, Object> result = stateTransEngine.process(entityManager, ciId.getCiTypeId(),
+                            ciId.getGuid(), operation, null, entityHolder, date);
                     Map ci = new HashMap();
-                    ci.put(CmdbConstants.DEFAULT_FIELD_STATE,operation);
+                    ci.put(CmdbConstants.DEFAULT_FIELD_STATE, operation);
                     ci.put(GUID, ciId);
-                    ciDataInterceptorService.handleReferenceAutoFill(entityHolder,entityManager,ci);
+                    ciDataInterceptorService.handleReferenceAutoFill(entityHolder, entityManager, ci);
                     Map<Integer, AdmCiTypeAttr> attrMap = getIntegerAdmCiTypeAttrMap(entityMeta.getCiTypeId());
-                    String fromGuid = (String)result.get("guid");
-                    Map<Integer,Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager, attrMap, fromGuid);
+                    String fromGuid = (String) result.get("guid");
+                    Map<Integer, Map<String, Integer>> multiSortCiMap = getMltiSortedCIMap(entityMeta, entityManager,
+                            attrMap, fromGuid);
 
-                    Map<String, Object> enhacedMap = enrichCiObject(entityMeta, result, entityManager,attrMap,multiSortCiMap);
+                    Map<String, Object> enhacedMap = enrichCiObject(entityMeta, result, entityManager, attrMap,
+                            multiSortCiMap);
                     results.add(enhacedMap);
                 }
-                if(!outerTransactionActive) {
+                if (!outerTransactionActive) {
                     transaction.commit();
                 }
             } catch (Exception ex) {
-                if(!outerTransactionActive) {
+                if (!outerTransactionActive) {
                     transaction.rollback();
                 }
                 throw ex;
@@ -2433,7 +2613,8 @@ public class CiServiceImpl implements CiService {
             }
             return results;
         } else {
-            throw new InvalidArgumentException("Operation [%s] is not supported.", operation).withErrorCode("3273", operation);
+            throw new InvalidArgumentException("Operation [%s] is not supported.", operation).withErrorCode("3273",
+                    operation);
         }
     }
 
@@ -2444,8 +2625,8 @@ public class CiServiceImpl implements CiService {
     }
 
     /**
-     * 1. clone current ci to a new one and assign a new guid to it 2. assign the
-     * new guid as pguid to current ci
+     * 1. clone current ci to a new one and assign a new guid to it 2. assign
+     * the new guid as pguid to current ci
      */
     @Override
     public Object cloneCiAsParent(EntityManager entityManager, int ciTypeId, String guid) {
@@ -2453,13 +2634,14 @@ public class CiServiceImpl implements CiService {
         Object fromBean = JpaQueryUtils.findEager(entityManager, entityMeta.getEntityClazz(), guid);
         if (fromBean == null) {
             throw new InvalidArgumentException(String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid))
-            .withErrorCode("3274", ciTypeId, guid);
+                    .withErrorCode("3274", ciTypeId, guid);
         }
         String newGuid = sequenceService.getNextGuid(entityMeta.getTableName(), ciTypeId);
 
         BeanMap fromBeanMap = new BeanMap(fromBean);
         DynamicEntityHolder toEntityHolder = DynamicEntityHolder.cloneDynamicEntityBean(entityMeta, fromBean);
-        MultiValueFeildOperationUtils.processMultValueFieldsForCloneCi(entityManager, entityMeta, newGuid, fromBeanMap, toEntityHolder, this);
+        MultiValueFeildOperationUtils.processMultValueFieldsForCloneCi(entityManager, entityMeta, newGuid, fromBeanMap,
+                toEntityHolder, this);
 
         toEntityHolder.put(CmdbConstants.DEFAULT_FIELD_GUID, newGuid);
 
@@ -2467,8 +2649,8 @@ public class CiServiceImpl implements CiService {
         refreshableAttrs.forEach(attr -> {
             fromBeanMap.put(attr.getPropertyName(), null);
         });
-	fromBeanMap.put(CmdbConstants.DEFAULT_FIELD_PARENT_GUID, newGuid);
-	
+        fromBeanMap.put(CmdbConstants.DEFAULT_FIELD_PARENT_GUID, newGuid);
+
         entityManager.merge(fromBean);
         entityManager.persist(toEntityHolder.getEntityObj());
         return fromBean;
@@ -2485,8 +2667,9 @@ public class CiServiceImpl implements CiService {
         try {
             Object entityBean = JpaQueryUtils.findEager(entityManager, entityMeta.getEntityClazz(), guid);
             if (entityBean == null) {
-                throw new InvalidArgumentException(String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid))
-                .withErrorCode("3275", ciTypeId, guid);
+                throw new InvalidArgumentException(
+                        String.format("Can not find CI (ciTypeId:%d, guid:%s)", ciTypeId, guid)).withErrorCode("3275",
+                                ciTypeId, guid);
             }
             return new DynamicEntityHolder(entityMeta, entityBean);
         } finally {
@@ -2498,36 +2681,36 @@ public class CiServiceImpl implements CiService {
     public List<Map<String, Object>> lookupReferenceByCis(int ciTypeId, String guid, boolean checkFinalState) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         List<Map<String, Object>> dependentCis = Lists.newLinkedList();
-        //Fetch attributes which enable delete validation.
-        List<AdmCiTypeAttr> referredAttrs = ciTypeAttrRepository.findByInputTypeAndReferenceIdAndStatusAndIsDeleteValidate(
-                InputType.Reference.getCode(), ciTypeId, CiStatus.Created.getCode(), 1);
+        // Fetch attributes which enable delete validation.
+        List<AdmCiTypeAttr> referredAttrs = ciTypeAttrRepository
+                .findByInputTypeAndReferenceIdAndStatusAndIsDeleteValidate(InputType.Reference.getCode(), ciTypeId,
+                        CiStatus.Created.getCode(), 1);
         referredAttrs.addAll(ciTypeAttrRepository.findByInputTypeAndReferenceIdAndStatusAndIsDeleteValidate(
-                InputType.MultRef.getCode(), ciTypeId, CiStatus.Created.getCode(),1));
+                InputType.MultRef.getCode(), ciTypeId, CiStatus.Created.getCode(), 1));
 
-    	referredAttrs.forEach(attr -> {
+        referredAttrs.forEach(attr -> {
             List<Map<String, Object>> ciData = queryWithFilters(attr.getCiTypeId(),
-                    Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), guid)),
-                    false,
+                    Lists.newArrayList(new Filter(attr.getPropertyName(), FilterOperator.Equal.getCode(), guid)), false,
                     Lists.newArrayList(GUID, DEFAULT_FIELD_KEY_NAME));
             if (ciData != null && ciData.size() > 0) {
                 ciData.forEach(data -> {
                     if (checkFinalState && isFinalStateCi(attr, data)) {
                         return;
-                    };
+                    }
+                    ;
 
                     Map ciMap = Maps.newHashMap();
-                    MapUtils.putAll(ciMap, new Object[] {
-                            "ciTypeId", attr.getCiTypeId(),
-                            GUID, data.get(GUID),
-                            DEFAULT_FIELD_KEY_NAME, data.get(DEFAULT_FIELD_KEY_NAME),
-                            "propertyName", attr.getPropertyName()
-                    });
+                    MapUtils.putAll(ciMap,
+                            new Object[] { "ciTypeId", attr.getCiTypeId(), GUID, data.get(GUID), DEFAULT_FIELD_KEY_NAME,
+                                    data.get(DEFAULT_FIELD_KEY_NAME), "propertyName", attr.getPropertyName() });
                     dependentCis.add(ciMap);
                 });
             }
         });
         stopwatch.stop();
-        logger.info("[Performance measure][lookupReferenceByCis] Elapsed time in processing lookupReferenceByCis(int ciTypeId, String guid, boolean checkFinalState) invocation:{}",stopwatch.toString());
+        logger.info(
+                "[Performance measure][lookupReferenceByCis] Elapsed time in processing lookupReferenceByCis(int ciTypeId, String guid, boolean checkFinalState) invocation:{}",
+                stopwatch.toString());
         return dependentCis;
     }
 
@@ -2547,32 +2730,37 @@ public class CiServiceImpl implements CiService {
     public List<Map<String, Object>> lookupReferenceToCis(int ciTypeId, String guid) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         List<Map<String, Object>> dependentCis = Lists.newLinkedList();
-        List<AdmCiTypeAttr> referredAttrs = ciTypeAttrRepository.findByInputTypeAndCiTypeId(InputType.Reference.getCode(), ciTypeId);
+        List<AdmCiTypeAttr> referredAttrs = ciTypeAttrRepository
+                .findByInputTypeAndCiTypeId(InputType.Reference.getCode(), ciTypeId);
         Map<String, Object> ci = getCi(ciTypeId, guid);
         ;
         referredAttrs.forEach(attr -> {
             if (attr.getReferenceId() != null && ci.get(attr.getPropertyName()) != null) {
                 List<Map<String, Object>> ciData = queryWithFilters(attr.getReferenceId(),
-                        Lists.newArrayList(new Filter(GUID, FilterOperator.Equal.getCode(),ci.get(attr.getPropertyName()))),
+                        Lists.newArrayList(
+                                new Filter(GUID, FilterOperator.Equal.getCode(), ci.get(attr.getPropertyName()))),
                         Lists.newArrayList(GUID));
                 if (ciData != null && ciData.size() > 0) {
                     ciData.forEach(data -> {
                         Map ciMap = Maps.newHashMap();
-                        MapUtils.putAll(ciMap, new Object[] { "ciTypeId", attr.getReferenceId(), GUID, data.get(GUID), "propertyName", attr.getPropertyName() });
+                        MapUtils.putAll(ciMap, new Object[] { "ciTypeId", attr.getReferenceId(), GUID, data.get(GUID),
+                                "propertyName", attr.getPropertyName() });
                         dependentCis.add(ciMap);
                     });
                 }
             }
         });
         stopwatch.stop();
-        logger.info("[Performance measure][lookupReferenceToCis] Elapsed time in processing invocation:{}",stopwatch.toString());
+        logger.info("[Performance measure][lookupReferenceToCis] Elapsed time in processing invocation:{}",
+                stopwatch.toString());
         return dependentCis;
     }
 
     @Override
     public List<Map<String, Object>> lookupReferenceByCisWithFullData(int ciTypeId, String guid) {
         List<Map<String, Object>> dependentCis = Lists.newLinkedList();
-        List<AdmCiTypeAttr> referredAttrs = ciTypeAttrRepository.findByInputTypeAndReferenceId(InputType.Reference.getCode(), ciTypeId);
+        List<AdmCiTypeAttr> referredAttrs = ciTypeAttrRepository
+                .findByInputTypeAndReferenceId(InputType.Reference.getCode(), ciTypeId);
         referredAttrs.forEach(attr -> {
             if (!CiStatus.Created.getCode().equals(attr.getStatus())) {
                 return;
@@ -2622,20 +2810,19 @@ public class CiServiceImpl implements CiService {
             Root root = query.from(entityMeta.getEntityClazz());
             Path guid = root.get(CmdbConstants.DEFAULT_FIELD_GUID);
             Path keyName = root.get(CmdbConstants.DEFAULT_FIELD_KEY_NAME);
-            query.multiselect(guid,keyName).distinct(true);
-            TypedQuery guidQuery =  entityManager.createQuery(query);
+            query.multiselect(guid, keyName).distinct(true);
+            TypedQuery guidQuery = entityManager.createQuery(query);
             List results = guidQuery.getResultList();
             ciKeyPairs = Lists.transform(results, (item) -> {
-            	Object[] row = (Object[]) item;
-            	CiKeyPair ciKeyPair = new CiKeyPair(String.valueOf(row[0]),String.valueOf(row[1]));
-            	return ciKeyPair;
+                Object[] row = (Object[]) item;
+                CiKeyPair ciKeyPair = new CiKeyPair(String.valueOf(row[0]), String.valueOf(row[1]));
+                return ciKeyPair;
             });
             return ciKeyPairs;
-        }
-        catch(Exception ex) {
-            throw new ServiceException(String.format("Failed to query guids for CI type [%d]", ciTypeId),ex)
-            .withErrorCode("3134", ciTypeId);
-        }finally {
+        } catch (Exception ex) {
+            throw new ServiceException(String.format("Failed to query guids for CI type [%d]", ciTypeId), ex)
+                    .withErrorCode("3134", ciTypeId);
+        } finally {
             priEntityManager.close();
         }
     }

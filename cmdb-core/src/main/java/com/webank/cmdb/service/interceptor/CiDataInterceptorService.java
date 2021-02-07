@@ -1,22 +1,23 @@
 package com.webank.cmdb.service.interceptor;
 
-import com.google.common.base.Stopwatch;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.webank.cmdb.constant.*;
-import com.webank.cmdb.domain.AdmCiType;
-import com.webank.cmdb.domain.AdmCiTypeAttr;
-import com.webank.cmdb.dto.*;
-import com.webank.cmdb.dynamicEntity.DynamicEntityHolder;
-import com.webank.cmdb.dynamicEntity.DynamicEntityMeta;
-import com.webank.cmdb.dynamicEntity.FieldNode;
-import com.webank.cmdb.support.exception.InvalidArgumentException;
-import com.webank.cmdb.repository.AdmBasekeyCodeRepository;
-import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
-import com.webank.cmdb.repository.AdmCiTypeRepository;
-import com.webank.cmdb.service.AuthorizationService;
-import com.webank.cmdb.service.CiService;
-import com.webank.cmdb.util.*;
+import static com.webank.cmdb.constant.CmdbConstants.GUID;
+import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_CREATION;
+import static com.webank.cmdb.util.SpecialSymbolUtils.getAfterSpecialSymbol;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import javax.persistence.EntityManager;
+
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
@@ -25,14 +26,43 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import java.io.IOException;
-import java.util.*;
-import java.util.regex.Pattern;
-
-import static com.webank.cmdb.constant.CmdbConstants.GUID;
-import static com.webank.cmdb.domain.AdmRoleCiTypeActionPermissions.ACTION_CREATION;
-import static com.webank.cmdb.util.SpecialSymbolUtils.getAfterSpecialSymbol;
+import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.webank.cmdb.constant.AutoFillType;
+import com.webank.cmdb.constant.CiStatus;
+import com.webank.cmdb.constant.CmdbConstants;
+import com.webank.cmdb.constant.DynamicEntityType;
+import com.webank.cmdb.constant.EnumCodeAttr;
+import com.webank.cmdb.constant.FilterOperator;
+import com.webank.cmdb.constant.InputType;
+import com.webank.cmdb.constant.StateOperation;
+import com.webank.cmdb.controller.ui.helper.AdmCiTypeCachingService;
+import com.webank.cmdb.domain.AdmCiType;
+import com.webank.cmdb.domain.AdmCiTypeAttr;
+import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
+import com.webank.cmdb.dto.AutoFillIntegrationQueryDto;
+import com.webank.cmdb.dto.AutoFillItem;
+import com.webank.cmdb.dto.CatCodeDto;
+import com.webank.cmdb.dto.Filter;
+import com.webank.cmdb.dto.IntegrationQueryDto;
+import com.webank.cmdb.dto.QueryRequest;
+import com.webank.cmdb.dto.QueryResponse;
+import com.webank.cmdb.dto.Relationship;
+import com.webank.cmdb.dynamicEntity.DynamicEntityHolder;
+import com.webank.cmdb.dynamicEntity.DynamicEntityMeta;
+import com.webank.cmdb.dynamicEntity.FieldNode;
+import com.webank.cmdb.repository.AdmBasekeyCodeRepository;
+import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
+import com.webank.cmdb.repository.AdmCiTypeRepository;
+import com.webank.cmdb.service.AuthorizationService;
+import com.webank.cmdb.service.CiService;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
+import com.webank.cmdb.util.ClassUtils;
+import com.webank.cmdb.util.CmdbThreadLocal;
+import com.webank.cmdb.util.DateUtils;
+import com.webank.cmdb.util.JpaQueryUtils;
+import com.webank.cmdb.util.JsonUtil;
 
 @Service
 @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -52,6 +82,8 @@ public class CiDataInterceptorService {
     private CiService ciService;
     @Autowired
     private AuthorizationService authorizationService;
+    @Autowired
+    private AdmCiTypeCachingService admCiTypeCachingService;
 
     private static final List<String> systemFillFields = new ArrayList<>();
     static {
@@ -149,7 +181,9 @@ public class CiDataInterceptorService {
 
     private void validateIsAutoField(DynamicEntityHolder entityHolder, Map<String, Object> updatingCi) {
         int ciTypeId = entityHolder.getEntityMeta().getCiTypeId();
-        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findByCiTypeIdAndIsAuto(ciTypeId, 1);
+        //1219
+//        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findByCiTypeIdAndIsAuto(ciTypeId, 1);
+        List<AdmCiTypeAttr> attrs = this.admCiTypeCachingService.findByCiTypeIdAndIsAuto(ciTypeId, 1);
         if (attrs != null && !attrs.isEmpty()) {
             attrs.forEach(attr -> {
                 Object val = updatingCi.get(attr.getPropertyName());
@@ -184,7 +218,26 @@ public class CiDataInterceptorService {
     }
 
     private void validateUniqueFieldForUpdate(Integer ciTypeId, Map<String, Object> ciData) {
+        //
         List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findByCiTypeIdAndEditIsOnly(ciTypeId, 1);
+        if (attrs != null && !attrs.isEmpty()) {
+            attrs.forEach(attr -> {
+                Object newValue = ciData.get(attr.getPropertyName());
+                if (newValue == null || ((newValue instanceof String) && "".equals(newValue))) {
+                    return;
+                }
+
+                if (ciData.get("guid") != null && isValueExisted(ciTypeId, attr, newValue, ciData.get("guid").toString())) {
+                    throw new InvalidArgumentException(String.format("The given attribute [properyName:%s] val [%s] is not unique.", attr.getPropertyName(), String.valueOf(newValue)))
+                    .withErrorCode("3242", attr.getPropertyName(), String.valueOf(newValue));
+                }
+            });
+        }
+    }
+    
+    private void validateUniqueFieldForUpdateAutoFill(Integer ciTypeId, Map<String, Object> ciData) {
+        //2129
+        List<AdmCiTypeAttr> attrs = this.admCiTypeCachingService.findByCiTypeIdAndEditIsOnly(ciTypeId, 1);
         if (attrs != null && !attrs.isEmpty()) {
             attrs.forEach(attr -> {
                 Object newValue = ciData.get(attr.getPropertyName());
@@ -307,7 +360,9 @@ public class CiDataInterceptorService {
 
     private void handleAutoFill(DynamicEntityHolder entityHolder, EntityManager entityManager) {
         int ciTypeId = entityHolder.getEntityMeta().getCiTypeId();
-        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(ciTypeId);
+        //1219
+//        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(ciTypeId);
+        List<AdmCiTypeAttr> attrs = admCiTypeCachingService.findAllByCiTypeId(ciTypeId);
         if (attrs != null && !attrs.isEmpty()) {
             attrs.forEach(attr -> {
                 if (attr.getIsAuto() == CmdbConstants.IS_AUTO_YES && !StringUtils.isBlank(attr.getAutoFillRule())) {
@@ -351,7 +406,7 @@ public class CiDataInterceptorService {
         Map<String, Object> ci = new HashMap<>();
         ci.put("guid", currentGuid);
         ci.put(attrWithRule.getPropertyName(), value);
-        validateUniqueFieldForUpdate(attrWithRule.getCiTypeId(), ci);
+        validateUniqueFieldForUpdateAutoFill(attrWithRule.getCiTypeId(), ci);
 
         if (entityHolder.getEntityMeta().getCiTypeId() == attrWithRule.getCiTypeId()) {
             entityHolder.update(ci, CmdbThreadLocal.getIntance().getCurrentUser(), entityManager);
@@ -616,7 +671,9 @@ public class CiDataInterceptorService {
     }
 
     private Integer getAttrIdByPropertyNameAndCiTypeId(int ciTypeId, String propertyName) {
-        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(ciTypeId);
+        //1219
+//        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(ciTypeId);
+        List<AdmCiTypeAttr> attrs = this.admCiTypeCachingService.findAllByCiTypeId(ciTypeId);
         for (AdmCiTypeAttr attr : attrs) {
             if (propertyName.equalsIgnoreCase(attr.getPropertyName())) {
                 return attr.getIdAdmCiTypeAttr();
@@ -708,10 +765,17 @@ public class CiDataInterceptorService {
 
     public void handleReferenceAutoFill(DynamicEntityHolder entityHolder, EntityManager entityManager, Map<String, Object> ci) {
         int ciTypeId = entityHolder.getEntityMeta().getCiTypeId();
-        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(ciTypeId);
+        //1219
+//        List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAllByCiTypeId(ciTypeId);
+        List<AdmCiTypeAttr> attrs = this.admCiTypeCachingService.findAllByCiTypeId(ciTypeId);
         attrs.forEach(attr -> {
             if (ci.containsKey(attr.getPropertyName())) {
-                List<AdmCiTypeAttr> attrsWithMatchRule = ciTypeAttrRepository.findAllByMatchAutoFillRule("\\\\\\\"attrId\\\\\\\":" + attr.getIdAdmCiTypeAttr());
+                //1219
+//                List<AdmCiTypeAttr> attrsWithMatchRule = ciTypeAttrRepository
+//                        .findAllByMatchAutoFillRule("\\\\\\\"attrId\\\\\\\":" + attr.getIdAdmCiTypeAttr());
+                
+                List<AdmCiTypeAttr> attrsWithMatchRule = this.admCiTypeCachingService
+                        .findAllByMatchAutoFillRule("\\\"attrId\\\":" + attr.getIdAdmCiTypeAttr());
                 attrsWithMatchRule.forEach(attrWithMatchRule -> {
                     Integer isAutoFillEnabled = attrWithMatchRule.getIsAuto();
                     if (!CmdbConstants.IS_AUTO_YES.equals(isAutoFillEnabled)) return;
