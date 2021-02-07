@@ -39,13 +39,12 @@ public class UIWrapperServiceTest {
         String requestJson = "{\"dialect\":{\"showCiHistory\":false},\"filters\":[],\"pageable\":{\"pageSize\":10,\"startIndex\":0},\"paging\":true}";
 
         QueryRequest queryObject = objectMapper.readValue(requestJson, QueryRequest.class);
-        
+
         Assert.assertNotNull(queryObject);
         Assert.assertEquals(10, queryObject.getPageable().getPageSize());
 
-
         QueryResponse<CiData> ciDataResp = service.queryCiData(ciTypeId, queryObject);
-        
+
         Assert.assertNotNull(ciDataResp);
         Assert.assertNotNull(ciDataResp.getContents());
         Assert.assertEquals(10, ciDataResp.getContents().size());
@@ -60,15 +59,18 @@ public class UIWrapperServiceTest {
         String requestJson = FileUtils
                 .readFileToString(new File(UIWrapperServiceTest.class.getResource("jsondata.txt").getFile()));
         List<Map<String, Object>> ciDatas = objectMapper.readValue(requestJson, List.class);
-        
-//        System.in.read();
+
+        // System.in.read();
+        long st = System.currentTimeMillis();
 
         for (int i = 0; i < 1; i++) {
             List<Map<String, Object>> results = service.updateCiData(ciTypeId, ciDatas);
             System.out.println(results.size());
         }
-        
-//        System.in.read();
+
+        long ed = System.currentTimeMillis();
+        System.out.println(String.format("Time elapsed : %s", (ed - st)));
+        // System.in.read();
     }
 
 }

@@ -14,6 +14,13 @@ import com.webank.cmdb.domain.AdmCiType;
 
 @CacheConfig(cacheManager = "requestScopedCacheManager", cacheNames = "admCiTypeRepository")
 public interface AdmCiTypeRepository extends JpaRepository<AdmCiType, Integer> {
+    
+    @Query("select t from AdmCiType t left join fetch t.admCiTypeAttrs")
+    List<AdmCiType> findAllAdmCiTypesAndAttrs();
+    
+    @Query("select t from AdmCiType t left join fetch t.admCiTypeAttrs where t.idAdmCiType = :admCiTypeId")
+    AdmCiType findAdmCiTypeAndAttrsById(@Param("admCiTypeId")int admCiTypeId);
+    
     List<AdmCiType> findAll();
 
     AdmCiType findTop1ByOrderByIdAdmCiType();
