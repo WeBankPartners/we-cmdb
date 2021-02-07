@@ -56,138 +56,145 @@ public class AdmCiTypeCachingService {
         log.info("total {} AdmCiTypes loaded...", admCiTypes.size());
         lastRefreshedTime = System.currentTimeMillis();
     }
-    
-    protected void tryCacheAdmCiType(AdmCiType admCiType){
-        if(admCiType == null){
+
+    protected void tryCacheAdmCiType(AdmCiType admCiType) {
+        if (admCiType == null) {
             return;
         }
         cachedAdmCiTypes.put(admCiType.getIdAdmCiType(), admCiType);
     }
-    
+
     /**
      * key method in this service
+     * 
      * @param ciTypeId
      * @return
      */
-    protected AdmCiType fetchAdmCiTypeById(Integer ciTypeId){
+    protected AdmCiType fetchAdmCiTypeById(Integer ciTypeId) {
         tryRefresh();
         AdmCiType admCiType = cachedAdmCiTypes.get(ciTypeId);
-        if(admCiType == null){
+        if (admCiType == null) {
             admCiType = ciTypeRepository.findAdmCiTypeAndAttrsById(ciTypeId);
             tryCacheAdmCiType(admCiType);
         }
-        
+
         return admCiType;
     }
 
     public List<AdmCiTypeAttr> findAllByCiTypeId(Integer ciTypeId) {
         AdmCiType admCiType = fetchAdmCiTypeById(ciTypeId);
-        if(admCiType == null){
+        if (admCiType == null) {
             return null;
         }
-        
+
         return admCiType.getAdmCiTypeAttrs();
     }
-    
-    public List<AdmCiTypeAttr>  findByCiTypeIdAndEditIsOnly(int ciTypeId, int editIsOnly){
+
+    public List<AdmCiTypeAttr> findByCiTypeIdAndEditIsOnly(int ciTypeId, int editIsOnly) {
         AdmCiType admCiType = fetchAdmCiTypeById(ciTypeId);
-        if(admCiType == null){
+        if (admCiType == null) {
             return null;
         }
-        
+
         List<AdmCiTypeAttr> admCiTypeAttrs = admCiType.getAdmCiTypeAttrs();
-        if(admCiTypeAttrs == null ){
+        if (admCiTypeAttrs == null) {
             return null;
         }
-        
+
         List<AdmCiTypeAttr> filteredCiTypeAttrs = new LinkedList<AdmCiTypeAttr>();
-        
-        for(AdmCiTypeAttr a : admCiTypeAttrs){
-            if(editIsOnly == a.getEditIsOnly()){
-                filteredCiTypeAttrs.add(a);
-            }
-        }
-        
-        return filteredCiTypeAttrs;
-    }
-    
-    public List<AdmCiTypeAttr> findAllByCiTypeIdAndIsAccessControlled(Integer ciTypeId, Integer isAccessControlled){
-        AdmCiType admCiType = fetchAdmCiTypeById(ciTypeId);
-        if(admCiType == null){
-            return null;
-        }
-        
-        List<AdmCiTypeAttr> admCiTypeAttrs = admCiType.getAdmCiTypeAttrs();
-        if(admCiTypeAttrs == null ){
-            return null;
-        }
-        
-        List<AdmCiTypeAttr> filteredCiTypeAttrs = new LinkedList<AdmCiTypeAttr>();
-        
-        for(AdmCiTypeAttr a : admCiTypeAttrs){
-            if(isAccessControlled == a.getIsAccessControlled()){
-                filteredCiTypeAttrs.add(a);
-            }
-        }
-        
-        return filteredCiTypeAttrs;
-    }
-    
-    public List<AdmCiTypeAttr> findByCiTypeIdAndIsAuto(int ciTypeId, int isAuto){
-        AdmCiType admCiType = fetchAdmCiTypeById(ciTypeId);
-        if(admCiType == null){
-            return null;
-        }
-        
-        List<AdmCiTypeAttr> admCiTypeAttrs = admCiType.getAdmCiTypeAttrs();
-        if(admCiTypeAttrs == null ){
-            return null;
-        }
-        
-        List<AdmCiTypeAttr> filteredCiTypeAttrs = new LinkedList<AdmCiTypeAttr>();
-        
-        for(AdmCiTypeAttr a : admCiTypeAttrs){
-            if(isAuto == a.getIsAuto()){
-                filteredCiTypeAttrs.add(a);
-            }
-        }
-        
-        return filteredCiTypeAttrs;
-    }
-    
-    public List<AdmCiTypeAttr> findAllByMatchAutoFillRule(String value){
-        List<AdmCiTypeAttr> filteredCiTypeAttrs = new LinkedList<AdmCiTypeAttr>();
-        if(StringUtils.isBlank(value)){
-            return filteredCiTypeAttrs;
-        }
-        
-        tryRefresh();
-        
-        for(AdmCiType admCiType : this.cachedAdmCiTypes.values()){
-            List<AdmCiTypeAttr> admCiTypeAttrs = admCiType.getAdmCiTypeAttrs();
-            if(admCiTypeAttrs == null){
+
+        for (AdmCiTypeAttr a : admCiTypeAttrs) {
+            if(a.getEditIsOnly() == null){
                 continue;
             }
-            
-            for(AdmCiTypeAttr attr : admCiTypeAttrs){
-                if(ifMatchByAutoFillRule(attr, value)){
+            if (editIsOnly == a.getEditIsOnly()) {
+                filteredCiTypeAttrs.add(a);
+            }
+        }
+
+        return filteredCiTypeAttrs;
+    }
+
+    public List<AdmCiTypeAttr> findAllByCiTypeIdAndIsAccessControlled(Integer ciTypeId, Integer isAccessControlled) {
+        AdmCiType admCiType = fetchAdmCiTypeById(ciTypeId);
+        if (admCiType == null) {
+            return null;
+        }
+
+        List<AdmCiTypeAttr> admCiTypeAttrs = admCiType.getAdmCiTypeAttrs();
+        if (admCiTypeAttrs == null) {
+            return null;
+        }
+
+        List<AdmCiTypeAttr> filteredCiTypeAttrs = new LinkedList<AdmCiTypeAttr>();
+
+        for (AdmCiTypeAttr a : admCiTypeAttrs) {
+            if(a.getIsAccessControlled() == null){
+                continue;
+            }
+            if (isAccessControlled == a.getIsAccessControlled()) {
+                filteredCiTypeAttrs.add(a);
+            }
+        }
+
+        return filteredCiTypeAttrs;
+    }
+
+    public List<AdmCiTypeAttr> findByCiTypeIdAndIsAuto(int ciTypeId, int isAuto) {
+        AdmCiType admCiType = fetchAdmCiTypeById(ciTypeId);
+        if (admCiType == null) {
+            return null;
+        }
+
+        List<AdmCiTypeAttr> admCiTypeAttrs = admCiType.getAdmCiTypeAttrs();
+        if (admCiTypeAttrs == null) {
+            return null;
+        }
+
+        List<AdmCiTypeAttr> filteredCiTypeAttrs = new LinkedList<AdmCiTypeAttr>();
+
+        for (AdmCiTypeAttr a : admCiTypeAttrs) {
+            if (a.getIsAuto() != null && (isAuto == a.getIsAuto())) {
+                filteredCiTypeAttrs.add(a);
+            }
+        }
+
+        return filteredCiTypeAttrs;
+    }
+
+    public List<AdmCiTypeAttr> findAllByMatchAutoFillRule(String value) {
+        List<AdmCiTypeAttr> filteredCiTypeAttrs = new LinkedList<AdmCiTypeAttr>();
+        if (StringUtils.isBlank(value)) {
+            return filteredCiTypeAttrs;
+        }
+
+        tryRefresh();
+
+        for (AdmCiType admCiType : this.cachedAdmCiTypes.values()) {
+            List<AdmCiTypeAttr> admCiTypeAttrs = admCiType.getAdmCiTypeAttrs();
+            if (admCiTypeAttrs == null) {
+                continue;
+            }
+
+            for (AdmCiTypeAttr attr : admCiTypeAttrs) {
+                if (ifMatchByAutoFillRule(attr, value)) {
                     filteredCiTypeAttrs.add(attr);
                 }
             }
         }
-        
+
         return filteredCiTypeAttrs;
     }
-    
-    private boolean ifMatchByAutoFillRule(AdmCiTypeAttr attr, String value){
-        if(StringUtils.isBlank(attr.getAutoFillRule())){
+
+    private boolean ifMatchByAutoFillRule(AdmCiTypeAttr attr, String value) {
+        if (StringUtils.isBlank(attr.getAutoFillRule())) {
             return false;
         }
-        
-        if(attr.getAutoFillRule().contains(value)){
+
+        if (attr.getAutoFillRule().contains(value)) {
             return true;
         }
-        
+
         return false;
     }
 
