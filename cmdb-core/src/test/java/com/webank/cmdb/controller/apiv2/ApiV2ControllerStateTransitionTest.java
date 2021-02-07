@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.assertj.core.util.Strings;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -39,6 +40,7 @@ import com.webank.cmdb.repository.AdmStateTransitionRepository;
 import com.webank.cmdb.service.CiService;
 import com.webank.cmdb.util.JsonUtil;
 
+@Ignore
 public class ApiV2ControllerStateTransitionTest extends LegacyAbstractBaseControllerTest {
 
     @Autowired
