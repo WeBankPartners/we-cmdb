@@ -755,10 +755,8 @@ public class CiDataInterceptorService {
 
     public void postUpdate(DynamicEntityHolder entityHolder, EntityManager entityManager, Map<String, Object> updateCi) {
         entityManager.flush();
-        logger.info("MARK >>>about to handle autofill...");
         handleReferenceAutoFill(entityHolder, entityManager, updateCi);
 
-        logger.info("MARK >>>about to update multi ref...");
         updateSeqNoForMultiReferenceFields(entityHolder, updateCi, entityManager);
 
     }
