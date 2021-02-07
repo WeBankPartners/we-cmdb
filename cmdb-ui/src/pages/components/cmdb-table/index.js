@@ -1,5 +1,6 @@
 import '../table.scss'
 import moment from 'moment'
+import lodash from 'lodash'
 import EditModal from './edit-modal.js'
 import { dataToCsv, download } from './export-csv.js'
 import { createPopper } from '@popperjs/core'
@@ -143,90 +144,97 @@ export default {
         }
       })
     },
-    handleSubmit (ref) {
-      const generateFilters = (type, i) => {
-        switch (type) {
-          case 'text':
-          case 'textArea':
-            filters.push({
-              name: i,
-              operator: 'contains',
-              value: this.form[i]
-            })
-            break
-          case 'select':
-          case 'ref':
-            filters.push({
-              name: i,
-              operator: 'eq',
-              value: this.form[i]
-            })
-            break
-          case 'date':
-            if (this.form[i][0] !== '' && this.form[i][1] !== '') {
+    handleSubmit: lodash.debounce(
+      function (ref) {
+        const generateFilters = (type, i) => {
+          switch (type) {
+            case 'text':
+            case 'textArea':
               filters.push({
                 name: i,
-                operator: 'gt',
-                value: moment(this.form[i][0]).format(DATE_FORMAT)
-              })
-              filters.push({
-                name: i,
-                operator: 'lt',
-                value: moment(this.form[i][1]).format(DATE_FORMAT)
-              })
-            }
-            break
-
-          case 'multiSelect':
-          case 'multiRef':
-            if (Array.isArray(this.form[i]) && this.form[i].length) {
-              filters.push({
-                name: i,
-                operator: 'in',
+                operator: 'contains',
                 value: this.form[i]
               })
-            }
-            break
-          case 'number':
-            filters.push({
-              name: i,
-              operator: 'eq',
-              value: +this.form[i]
-            })
-            break
-
-          default:
-            filters.push({
-              name: i,
-              operator: 'contains',
-              value: this.form[i]
-            })
-            break
-        }
-      }
-
-      let filters = []
-      for (let i in this.form) {
-        if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
-          this.tableColumns
-            .filter(_ => _.searchSeqNo || _.children)
-            .forEach(_ => {
-              if (_.children) {
-                _.children.forEach(j => {
-                  if (i === j.inputKey) {
-                    generateFilters(j.inputType, i)
-                  }
+              break
+            case 'select':
+            case 'ref':
+              filters.push({
+                name: i,
+                operator: 'eq',
+                value: this.form[i]
+              })
+              break
+            case 'date':
+              if (this.form[i][0] !== '' && this.form[i][1] !== '') {
+                filters.push({
+                  name: i,
+                  operator: 'gt',
+                  value: moment(this.form[i][0]).format(DATE_FORMAT)
                 })
-              } else {
-                if (i === _.inputKey) {
-                  generateFilters(_.inputType, i)
-                }
+                filters.push({
+                  name: i,
+                  operator: 'lt',
+                  value: moment(this.form[i][1]).format(DATE_FORMAT)
+                })
               }
-            })
+              break
+
+            case 'multiSelect':
+            case 'multiRef':
+              if (Array.isArray(this.form[i]) && this.form[i].length) {
+                filters.push({
+                  name: i,
+                  operator: 'in',
+                  value: this.form[i]
+                })
+              }
+              break
+            case 'number':
+              filters.push({
+                name: i,
+                operator: 'eq',
+                value: +this.form[i]
+              })
+              break
+
+            default:
+              filters.push({
+                name: i,
+                operator: 'contains',
+                value: this.form[i]
+              })
+              break
+          }
         }
+
+        let filters = []
+        for (let i in this.form) {
+          if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
+            this.tableColumns
+              .filter(_ => _.searchSeqNo || _.children)
+              .forEach(_ => {
+                if (_.children) {
+                  _.children.forEach(j => {
+                    if (i === j.inputKey) {
+                      generateFilters(j.inputType, i)
+                    }
+                  })
+                } else {
+                  if (i === _.inputKey) {
+                    generateFilters(_.inputType, i)
+                  }
+                }
+              })
+          }
+        }
+        this.$emit('handleSubmit', filters)
+      },
+      2000,
+      {
+        leading: true,
+        trailing: false
       }
-      this.$emit('handleSubmit', filters)
-    },
+    ),
     reset (ref) {
       this.tableColumns.forEach(_ => {
         if (_.children) {
