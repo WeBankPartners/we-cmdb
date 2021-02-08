@@ -20,6 +20,7 @@ import com.webank.cmdb.controller.LegacyAbstractBaseControllerTest;
 import com.webank.cmdb.dto.Filter;
 import com.webank.cmdb.util.JsonUtil;
 
+@Ignore
 public class ApiV2ControllerTest extends LegacyAbstractBaseControllerTest {
     @Test
     public void retrieveAllCateTypesThenReturnAllCatTypes() throws Exception {

@@ -35,6 +35,7 @@ import com.webank.cmdb.support.exception.BatchChangeException;
 import com.webank.cmdb.support.exception.InvalidArgumentException;
 import com.webank.cmdb.util.JsonUtil;
 
+@Ignore
 @SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
@@ -45,6 +46,7 @@ public class CiServiceImplLegacyModelTest extends LegacyAbstractBaseControllerTe
     @Autowired
     private CiService ciService;
 
+    @Ignore
     @Transactional
     @Test
     public void createSubSysToUnitIntegrationQueryAndExecuteThenReturnProperResult() {
@@ -58,6 +60,7 @@ public class CiServiceImplLegacyModelTest extends LegacyAbstractBaseControllerTe
                 .size(), equalTo(13));
     }
 
+    @Ignore
     @Transactional
     @Test
     public void createUnitToSubSysIntegrationQueryAndExecuteThenReturnProperResult() {
@@ -71,6 +74,7 @@ public class CiServiceImplLegacyModelTest extends LegacyAbstractBaseControllerTe
                 .size(), equalTo(2));
     }
 
+    @Ignore
     @Transactional
     @Test
     public void createIntegrationQueryAndExecuteFollowingHeaderThenReturnProperResult() {
@@ -102,6 +106,7 @@ public class CiServiceImplLegacyModelTest extends LegacyAbstractBaseControllerTe
         });
     }
 
+    @Ignore
     @Transactional
     @Test
     public void executeAdhocIntegrateQueryThenReturnProperResult() {

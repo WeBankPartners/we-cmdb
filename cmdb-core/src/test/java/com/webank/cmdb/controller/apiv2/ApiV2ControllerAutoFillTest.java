@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
@@ -20,10 +21,12 @@ import com.webank.cmdb.controller.AbstractBaseControllerTest;
 import com.webank.cmdb.controller.QueryRequestUtils;
 import com.webank.cmdb.util.JsonUtil;
 
+@Ignore
 public class ApiV2ControllerAutoFillTest extends AbstractBaseControllerTest {
     private static final int ciTypeIdOfSubsysDesign = 2;
     private static final int ciTypeIdOfSystemDesign = 1;
 
+    @Ignore
     @Test
     public void whenAutoFillWithoutFilterShouldSuccess() throws Exception {
         Integer keyNameAttrIdOfSystemDesign = 8;
