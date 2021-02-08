@@ -29,6 +29,7 @@ import static org.junit.Assert.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
+@Ignore
 public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest {
 
     @Autowired
@@ -267,6 +268,7 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
                 .andExpect(jsonPath("$.statusCode", is("ERR_BATCH_CHANGE")));
     }
 
+    @Ignore
     @Test
     public void whenCreateCiDataWithAutoFillFromCiDataItselfThenShouldFillValueAsExpected() throws Exception {
         List<AutoFillItem> autoFillItems = new ArrayList<AutoFillItem>();
@@ -298,6 +300,7 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
                 .andExpect(jsonPath("$.data.contents", hasSize(1)));
     }
 
+    @Ignore
     @Test
     public void whenCreateCiDataWithAutoFillFromOtherCiDataThenShouldFillValueAsExpected() throws Exception {
         List<AutoFillItem> autoFillItems = new ArrayList<AutoFillItem>();
@@ -329,6 +332,7 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
                 .andExpect(jsonPath("$.data.contents", hasSize(1)));
     }
 
+    @Ignore
     @Test
     public void whenCreateCiDataWithCombinedRuleThenShouldFillValueAsExpected() throws Exception {
         List<AutoFillItem> autoFillItems = new ArrayList<AutoFillItem>();
@@ -393,6 +397,7 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
                 .andExpect(jsonPath("$.data.contents", hasSize(1)));
     }
 
+    @Ignore
     @Test
     public void whenUpdateCiDataWithSingleRefThenShouldUpdateTheReferredAutoFillDataAccordingly() throws Exception {
         List<AutoFillItem> autoFillItems = new ArrayList<AutoFillItem>();
@@ -431,6 +436,7 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
                 .andExpect(jsonPath("$.data[0].key_name", is(expectedUpdateKeyName)));
     }
 
+    @Ignore
     @Test
     public void whenUpdateCiDataWithMultiRefThenShouldUpdateTheReferredAutoFillDataAccordingly() throws Exception {
         List<AutoFillItem> autoFillItems = new ArrayList<AutoFillItem>();
@@ -489,6 +495,7 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
                 .andExpect(jsonPath("$.data.contents", hasSize(1)));
     }
 
+    @Ignore
     @Test
     public void whenUpdateCiDataWithRuleOnItsGrandChildrenThenShouldUpdateTheReferredAutoFillDataAccordingly() throws Exception {
         List<AutoFillItem> autoFillItems = new ArrayList<AutoFillItem>();
@@ -518,6 +525,7 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
                 .andExpect(jsonPath("$.data.contents", hasSize(2)));
     }
 
+    @Ignore
     @Test
     public void whenUpdateCiDataWithRuleReferToThenShouldAutoFillDataAccordingly() throws Exception {
         List<AutoFillItem> autoFillItems = new ArrayList<AutoFillItem>();
@@ -549,6 +557,7 @@ public class ApiV2ControllerCiDataTest extends LegacyAbstractBaseControllerTest 
                 .andExpect(jsonPath("$.data.contents", hasSize(1)));
     }
 
+    @Ignore
     @Test
     public void whenCreateCiDataWithGuidAsAutoFillLeaveThenShouldFillValueAsExpected() throws Exception {
         List<AutoFillItem> autoFillItems = new ArrayList<AutoFillItem>();
