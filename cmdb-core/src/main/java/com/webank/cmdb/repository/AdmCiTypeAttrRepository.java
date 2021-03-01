@@ -87,10 +87,11 @@ public interface AdmCiTypeAttrRepository extends JpaRepository<AdmCiTypeAttr, In
     List<AdmCiTypeAttr> findAllByFilterRuleNotNull();
 
 
-    default Map<String, Integer> getSortedMapForMultiRef(EntityManager entityManager, AdmCiTypeAttr attr, DynamicEntityMeta multRefMeta) {
+    default Map<String, Integer> getSortedMapForMultiRef(EntityManager entityManager, AdmCiTypeAttr attr, DynamicEntityMeta multRefMeta, String fromGuid) {
         Map<String, Integer> sortMap = new HashMap<>();
         String joinTable = attr.retrieveJoinTalbeName();
-        String querySql = "select id,from_guid,to_guid, seq_no from " + joinTable;
+//        String querySql = "select id,from_guid,to_guid, seq_no from " + joinTable;
+        String querySql = String.format("select id,from_guid,to_guid, seq_no from %s where from_guid='%s'", joinTable, fromGuid);
         javax.persistence.Query query = entityManager.createNativeQuery(querySql, multRefMeta.getEntityClazz());
         List results = query.getResultList();
 

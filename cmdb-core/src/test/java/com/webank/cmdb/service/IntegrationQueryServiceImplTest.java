@@ -13,6 +13,7 @@ import java.util.Set;
 
 import javax.transaction.Transactional;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +34,8 @@ import com.webank.cmdb.dto.IntegrationQueryDto;
 import com.webank.cmdb.dto.QueryRequest;
 import com.webank.cmdb.dto.QueryResponse;
 import com.webank.cmdb.dto.Relationship;
-import com.webank.cmdb.support.exception.InvalidArgumentException;
 import com.webank.cmdb.repository.AdmIntegrateTemplateRepository;
+import com.webank.cmdb.support.exception.InvalidArgumentException;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
@@ -135,6 +136,7 @@ public class IntegrationQueryServiceImplTest extends LegacyAbstractBaseControlle
         return attrAliases;
     }
 
+    @Ignore
     @Transactional
     @Test
     public void createAggregationQueryThenReturnProperResponse() {
