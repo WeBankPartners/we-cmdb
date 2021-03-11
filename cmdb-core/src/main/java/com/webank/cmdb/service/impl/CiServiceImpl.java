@@ -415,8 +415,7 @@ public class CiServiceImpl implements CiService {
                         multiSortCiMap);
                 List<String> nextOperations = getNextOperations(entityBeanMap);
                 CiData ciData = new CiData(enhacedMap, nextOperations);
-                if (!(ciData.getData().get(DEFAULT_FIELD_FIXED_DATE) != null
-                        && "".equals(ciData.getData().get(DEFAULT_FIELD_FIXED_DATE))
+                if (!(StringUtils.isNotBlank((String)ciData.getData().get(DEFAULT_FIELD_FIXED_DATE))
                         && CIDATA_STATE_DELETED.equals(ciData.getData().get(DEFAULT_FIELD_STATE_CODE)))) {
                     ciInfoResp.addContent(ciData);
                 }
