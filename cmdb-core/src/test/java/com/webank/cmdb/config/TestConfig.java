@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.datasource.embedded.ConnectionProperties;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseConfigurer;
 
-//@Configuration
+@Configuration
 @Import(DatabaseConfig.class)
 public class TestConfig {
     private static Logger logger = LoggerFactory.getLogger(TestConfig.class);
