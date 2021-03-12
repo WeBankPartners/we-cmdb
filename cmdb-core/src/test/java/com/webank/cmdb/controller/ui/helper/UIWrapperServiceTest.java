@@ -1,5 +1,6 @@
 package com.webank.cmdb.controller.ui.helper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
@@ -12,7 +13,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.webank.cmdb.dto.QueryRequest;
 
-@Ignore
+//@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class UIWrapperServiceTest {
@@ -21,7 +22,8 @@ public class UIWrapperServiceTest {
     UIWrapperService service;
 
     
-    //http://106.52.160.142:19090/wecmdb/ui/v2/trees/all-design-trees/from-system-design?system-design-guid=0037_0000000002
+    @Ignore
+    //http://localhost:19090/wecmdb/ui/v2/trees/all-design-trees/from-system-design?system-design-guid=0037_0000000002
     @Test
     public void testGetAllDesignTreesFromSystemDesign() {
         //fail("Not yet implemented");
@@ -33,7 +35,8 @@ public class UIWrapperServiceTest {
         
     }
     
-    //http://106.52.160.142:19090/wecmdb/ui/v2/architecture-designs/tabs/ci-data?code-id=151&system-design-guid=0037_0000000002&r-guid=0037_0000000002
+    @Ignore
+    //http://localhost:19090/wecmdb/ui/v2/architecture-designs/tabs/ci-data?code-id=151&system-design-guid=0037_0000000002&r-guid=0037_0000000002
     @Test
     public void testGetArchitectureCiData() {
         
@@ -45,6 +48,20 @@ public class UIWrapperServiceTest {
         Object result = service.getArchitectureCiData(codeId,systemDesignGuid,queryObject, rGuid);
         
         Assert.assertNotNull(result);
+    }
+    
+    
+    //http://localhost:19090/wecmdb/ui/v2/ci-types/39/ci-data/batch-delete
+    @Ignore
+    @Test
+    public void testDeleteCiData() {
+        Integer ciTypeId = 39;
+         List<String> ids = new ArrayList<>();
+         ids.add("0039_0000000006");
+         
+         service.deleteCiData(ciTypeId, ids);
+         
+         System.out.println("Succ");
     }
 
 }
