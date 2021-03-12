@@ -189,7 +189,7 @@ public class CiServiceImpl implements CiService {
 
     private static final Map<String, String> finalStates = new HashMap<>();
     static {
-        finalStates.put(CmdbConstants.CI_STATE_DESIGN, "delete");
+        finalStates.put(CmdbConstants.CI_STATE_DESIGN, "deleted");
         finalStates.put(CmdbConstants.CI_STATE_CREATE, "destroyed");
         finalStates.put(CmdbConstants.CI_STATE_START_STOP, "destroyed");
     }
