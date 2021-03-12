@@ -373,9 +373,9 @@ export default {
     },
     async getAllDeployTreesFromSystemCi () {
       this.showApplicationDeploymentComponent = true
-      this.$refs.applicationDeploymentComponent.getAllDeployTreesFromSystemCi(this.systemVersion)
       const { initParams } = this
       const { statusCode, data } = await getAllDeployTreesFromSystemCi(this.systemVersion)
+      this.$refs.applicationDeploymentComponent.getAllDeployTreesFromSystemCi(this.systemVersion, { statusCode, data })
       if (statusCode === 'OK') {
         this.isShowTabs = true
         this.systemTreeData = data
