@@ -342,6 +342,8 @@ export default {
       this.systemLines = {}
       this.graphNodes = {}
       // this.initADGraph()
+      this.currentTab = 'logic-graph'
+      this.$refs.applicationDeploymentComponent.clearSvg()
       this.initTreeGraph()
     },
     async getSystems () {
