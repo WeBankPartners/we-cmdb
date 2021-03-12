@@ -38,7 +38,7 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import { getEnumCodesByCategoryId, getAllDeployTreesFromSystemCi } from '@/api/server.js'
+import { getEnumCodesByCategoryId } from '@/api/server.js'
 import { colors, stateColor } from '../../const/graph-configuration'
 import { addEvent } from '../util/event.js'
 import {
@@ -126,6 +126,9 @@ export default {
     }
   },
   methods: {
+    clearSvg () {
+      d3.selectAll('svg > *').remove()
+    },
     markZone (guid) {
       const nodeKeys = Object.keys(this.graphDataWithGuid)
       this.cacheIdPath = nodeKeys.includes(`n_${guid}`) ? [`n_${guid}`] : [`g_${guid}`]
@@ -460,10 +463,10 @@ export default {
       formatADLine(updatedOriginData)
       fetchOtherSystemInstances()
     },
-    async getAllDeployTreesFromSystemCi (systemVersion) {
+    async getAllDeployTreesFromSystemCi (systemVersion, getAllDeployTreesFromSystemCi) {
       this.systemVersion = systemVersion
       const { initParams } = this
-      const { statusCode, data } = await getAllDeployTreesFromSystemCi(this.systemVersion)
+      const { statusCode, data } = getAllDeployTreesFromSystemCi
       this.originData = JSON.parse(JSON.stringify(data))
       if (statusCode === 'OK') {
         this.systemTreeData = data
