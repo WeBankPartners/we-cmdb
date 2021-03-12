@@ -36,7 +36,7 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import { getEnumCodesByCategoryId, getAllDesignTreeFromSystemDesign } from '@/api/server'
+import { getEnumCodesByCategoryId } from '@/api/server'
 import { addEvent } from '../util/event.js'
 import { colors, stateColor } from '../../const/graph-configuration'
 import {
@@ -120,6 +120,9 @@ export default {
     }
   },
   methods: {
+    clearSvg () {
+      d3.selectAll('svg > *').remove()
+    },
     markZone (guid) {
       const nodeKeys = Object.keys(this.graphDataWithGuid)
       this.cacheIdPath = nodeKeys.includes(`n_${guid}`) ? [`n_${guid}`] : [`g_${guid}`]
@@ -431,10 +434,9 @@ export default {
       formatAppLogicLine(updatedOriginData)
       this.initGraph()
     },
-    async getAllDesignTreeFromSystemDesign (systemDesignVersion, isTableViewOnly) {
+    async getAllDesignTreeFromSystemDesign (systemDesignVersion, isTableViewOnly, treeData) {
       this.systemDesignVersion = systemDesignVersion
       this.isTableViewOnly = isTableViewOnly
-      const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
       if (treeData.statusCode === 'OK') {
         this.originData = JSON.parse(JSON.stringify(treeData.data))
         this.appInvokeLines = {}
