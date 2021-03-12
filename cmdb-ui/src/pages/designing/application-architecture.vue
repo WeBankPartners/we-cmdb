@@ -1315,15 +1315,11 @@ export default {
       this.currentSystem = this.systemDesignsOrigin.find(x => x.guid === key)
       this.allowFixVersion = false
       this.isTableViewOnly = true
-      if (
-        this.currentTab !== 'architecture-design' &&
-        this.currentTab !== 'physicalGraph' &&
-        this.currentTab === 'serviceInvoke'
-      ) {
-        this.tabList.forEach(ci => {
-          ci.tableData = []
-        })
-      }
+      this.currentTab = 'architectureDesign'
+      this.tabList.forEach(ci => {
+        ci.tableData = []
+      })
+      this.$refs.applicationArchitectureComponent.clearSvg()
     },
     async getSystemDesigns (callback) {
       this.systemDesigns = []

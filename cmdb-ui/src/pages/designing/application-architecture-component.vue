@@ -120,6 +120,9 @@ export default {
     }
   },
   methods: {
+    clearSvg () {
+      d3.selectAll('svg > *').remove()
+    },
     markZone (guid) {
       const nodeKeys = Object.keys(this.graphDataWithGuid)
       this.cacheIdPath = nodeKeys.includes(`n_${guid}`) ? [`n_${guid}`] : [`g_${guid}`]
