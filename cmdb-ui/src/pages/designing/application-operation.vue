@@ -436,6 +436,7 @@ export default {
           }
           const { statusCode } = await deleteCiDatas(params)
           if (statusCode === 'OK') {
+            this.$Modal.remove()
             this.$Message.success('success!')
           }
           const ciData = await queryCiData({
