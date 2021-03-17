@@ -1321,25 +1321,62 @@ public class UIWrapperService {
         return getCiDataHistory(codeId, null, rGuid, queryObject, systemDesignCiTypeId,true);
     }
     
-    private QueryRequest setQueryRequestArchitectureCiData(QueryRequest inputFilters, Filter fixDateFilter, Integer ciTypeId, String rootFixDate) {
+    private QueryRequest handleNullFixDateFilter(QueryRequest inputQueryRequest, Filter fixDateFilter, Integer ciTypeId, String rootFixDate) {
+        QueryRequest firstQueryReq = new QueryRequest();
+        firstQueryReq.getDialect().setShowCiHistory(true);
+        firstQueryReq.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
+        firstQueryReq.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
+        firstQueryReq.setPageable(null);
+        firstQueryReq.setPaging(false);
+        for(Filter f : inputQueryRequest.getFilters() ){
+            firstQueryReq.getFilters().add(f);
+        }
+        List<CiData> ciDatas = queryCiData(ciTypeId, firstQueryReq).getContents();
+        if (ciDatas == null || ciDatas.size() <= 0) {
+            return inputQueryRequest;
+        }
+        
+        List<String> guids = new ArrayList<>();
+        for(CiData ciData : ciDatas) {
+            String ciDataFixDate = (String)ciData.getData().get(CONSTANT_FIXED_DATE);
+            String ciDataState = (String)ciData.getData().get(CmdbConstants.DEFAULT_FIELD_STATE_CODE);
+            
+            if(StringUtils.isNoneBlank(rootFixDate) && StringUtils.isNoneBlank(ciDataFixDate) && (!ciDataFixDate.equals(rootFixDate)) && CmdbConstants.CIDATA_STATE_DELETED.equals(ciDataState)) {
+                continue;
+            }
+            
+            if(StringUtils.isBlank(rootFixDate) && StringUtils.isNoneBlank(ciDataFixDate) && CmdbConstants.CIDATA_STATE_DELETED.equals(ciDataState)) {
+                continue;
+            }
+            
+            String guid = ciData.getData().get(CmdbConstants.GUID).toString();
+            guids.add(guid);
+        }
+        
+        inputQueryRequest.addInFilter(CmdbConstants.GUID, guids);
+        return inputQueryRequest;
+    }
+    
+    private QueryRequest setQueryRequestArchitectureCiData(QueryRequest inputQueryRequest, Filter fixDateFilter, Integer ciTypeId, String rootFixDate) {
         if (fixDateFilter == null) {
-            return inputFilters;
+            //TODO
+            return handleNullFixDateFilter( inputQueryRequest,  fixDateFilter,  ciTypeId,  rootFixDate);
         }
         QueryRequest queryData = defaultQueryObject();
-        if(inputFilters.getPageable() != null){
-            queryData.setPageable(inputFilters.getPageable());
+        if(inputQueryRequest.getPageable() != null){
+            queryData.setPageable(inputQueryRequest.getPageable());
         }
         
-        queryData.setPaging(inputFilters.isPaging());
+        queryData.setPaging(inputQueryRequest.isPaging());
         
-        if (inputFilters.getFilters().size() == 1) {
-            queryData.getFilters().add(inputFilters.getFilters().get(0));
+        if (inputQueryRequest.getFilters().size() == 1) {
+            queryData.getFilters().add(inputQueryRequest.getFilters().get(0));
         }
-        inputFilters.getDialect().setShowCiHistory(true);
-        inputFilters.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
-        inputFilters.getFilters().add(fixDateFilter);
-        inputFilters.addNotEmptyFilter(CONSTANT_FIXED_DATE);
-        inputFilters.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
+        inputQueryRequest.getDialect().setShowCiHistory(true);
+        inputQueryRequest.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
+        inputQueryRequest.getFilters().add(fixDateFilter);
+        inputQueryRequest.addNotEmptyFilter(CONSTANT_FIXED_DATE);
+        inputQueryRequest.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
         
         QueryRequest firstQueryReq = new QueryRequest();
         firstQueryReq.getDialect().setShowCiHistory(true);
@@ -1349,13 +1386,13 @@ public class UIWrapperService {
         firstQueryReq.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
         firstQueryReq.setPageable(null);
         firstQueryReq.setPaging(false);
-        for(Filter f : inputFilters.getFilters() ){
+        for(Filter f : inputQueryRequest.getFilters() ){
             firstQueryReq.getFilters().add(f);
         }
       
         List<CiData> ciDatas = queryCiData(ciTypeId, firstQueryReq).getContents();
         if (ciDatas == null || ciDatas.size() <= 0) {
-            return inputFilters;
+            return inputQueryRequest;
         }
 //        List<String> guids = ciDatas.stream().map(ciData ->{
 //            return ciData.getData().get(CmdbConstants.GUID).toString();
