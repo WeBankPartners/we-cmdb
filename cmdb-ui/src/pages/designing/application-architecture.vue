@@ -11,7 +11,7 @@
             clearable
             filterable
             label-in-name
-            style="width: 35%;"
+            style="width: 35%;z-index:auto"
           >
             <OptionGroup v-for="(data, idx) in systemDesigns" :key="idx" :label="data[0].name">
               <Option
@@ -1363,6 +1363,11 @@ export default {
 }
 </script>
 
+<style>
+.ivu-select-dropdown-transfer {
+  z-index: auto !important;
+}
+</style>
 <style lang="scss" scoped>
 .ivu-card-head p {
   height: 30px;
