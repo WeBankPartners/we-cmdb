@@ -189,7 +189,7 @@ public class CiServiceImpl implements CiService {
 
     private static final Map<String, String> finalStates = new HashMap<>();
     static {
-        finalStates.put(CmdbConstants.CI_STATE_DESIGN, "delete");
+        finalStates.put(CmdbConstants.CI_STATE_DESIGN, "deleted");
         finalStates.put(CmdbConstants.CI_STATE_CREATE, "destroyed");
         finalStates.put(CmdbConstants.CI_STATE_START_STOP, "destroyed");
     }
@@ -415,10 +415,11 @@ public class CiServiceImpl implements CiService {
                         multiSortCiMap);
                 List<String> nextOperations = getNextOperations(entityBeanMap);
                 CiData ciData = new CiData(enhacedMap, nextOperations);
-                if (!(StringUtils.isNotBlank((String)ciData.getData().get(DEFAULT_FIELD_FIXED_DATE))
-                        && CIDATA_STATE_DELETED.equals(ciData.getData().get(DEFAULT_FIELD_STATE_CODE)))) {
+                //to fix deleted state issue
+//                if (!(StringUtils.isNotBlank((String)ciData.getData().get(DEFAULT_FIELD_FIXED_DATE))
+//                        && CIDATA_STATE_DELETED.equals(ciData.getData().get(DEFAULT_FIELD_STATE_CODE)))) {
                     ciInfoResp.addContent(ciData);
-                }
+//                }
             });
             logger.info("[Performance measure][query] Elapsed time in rendering result: {}", stopwatch.toString());
         } finally {
@@ -444,7 +445,6 @@ public class CiServiceImpl implements CiService {
                 Integer attrId = fieldNode.getAttrId();
                 AdmCiTypeAttr attr = attrMap.get(attrId);
                 DynamicEntityMeta multRefMeta = multRefMetaMap.get(attrId);
-                // TODO gl to fix full table query
                 Map<String, Integer> sortMap = ciTypeAttrRepository.getSortedMapForMultiRef(entityManager, attr,
                         multRefMeta, fromGuid);
                 multiSortMap.put(attrId, sortMap);
