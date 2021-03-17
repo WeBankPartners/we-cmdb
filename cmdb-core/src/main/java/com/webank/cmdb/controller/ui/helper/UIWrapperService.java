@@ -1204,8 +1204,8 @@ public class UIWrapperService {
         }
     }
 
-    private QueryRequest setQueryRequest(QueryRequest inputFilters, Filter fixDate, Integer ciTypeId) {
-        if (fixDate == null) {
+    private QueryRequest setQueryRequest(QueryRequest inputFilters, Filter fixDateFilter, Integer ciTypeId) {
+        if (fixDateFilter == null) {
             return inputFilters;
         }
         QueryRequest queryData = defaultQueryObject();
@@ -1220,14 +1220,14 @@ public class UIWrapperService {
         }
         inputFilters.getDialect().setShowCiHistory(true);
         inputFilters.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
-        inputFilters.getFilters().add(fixDate);
+        inputFilters.getFilters().add(fixDateFilter);
         inputFilters.addNotEmptyFilter(CONSTANT_FIXED_DATE);
         inputFilters.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
         
         QueryRequest firstQueryReq = new QueryRequest();
         firstQueryReq.getDialect().setShowCiHistory(true);
         firstQueryReq.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
-        firstQueryReq.getFilters().add(fixDate);
+        firstQueryReq.getFilters().add(fixDateFilter);
         firstQueryReq.addNotEmptyFilter(CONSTANT_FIXED_DATE);
         firstQueryReq.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
         firstQueryReq.setPageable(null);
@@ -1303,13 +1303,88 @@ public class UIWrapperService {
 
     public Object getArchitectureCiData(Integer codeId, String systemDesignGuid, QueryRequest queryObject,String rGuid) {
         Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystemDesign();
-        Filter fixDateFilter = getFixDateFilter(systemDesignCiTypeId, systemDesignGuid);
+        
+        Map<String, Object> ciData = ciService.getCi(systemDesignCiTypeId, systemDesignGuid);
+
+        String fixDate = (String) ciData.get(CONSTANT_FIXED_DATE);
+
+        Filter fixDateFilter = null;
+        if (StringUtils.isNotBlank(fixDate)) {
+            fixDateFilter = new Filter(CONSTANT_FIXED_DATE, FilterOperator.LessEqual.getCode(), fixDate);
+        }
+        
+//        Filter fixDateFilter = getFixDateFilter(systemDesignCiTypeId, systemDesignGuid);
         CatCodeDto code = getEnumCodeById(codeId);
         Integer ciTypeId = Integer.parseInt(code.getCode());
-        queryObject = setQueryRequest(queryObject, fixDateFilter, ciTypeId);
+        queryObject = setQueryRequestArchitectureCiData(queryObject, fixDateFilter, ciTypeId, fixDate);
         
         return getCiDataHistory(codeId, null, rGuid, queryObject, systemDesignCiTypeId,true);
     }
+    
+    private QueryRequest setQueryRequestArchitectureCiData(QueryRequest inputFilters, Filter fixDateFilter, Integer ciTypeId, String rootFixDate) {
+        if (fixDateFilter == null) {
+            return inputFilters;
+        }
+        QueryRequest queryData = defaultQueryObject();
+        if(inputFilters.getPageable() != null){
+            queryData.setPageable(inputFilters.getPageable());
+        }
+        
+        queryData.setPaging(inputFilters.isPaging());
+        
+        if (inputFilters.getFilters().size() == 1) {
+            queryData.getFilters().add(inputFilters.getFilters().get(0));
+        }
+        inputFilters.getDialect().setShowCiHistory(true);
+        inputFilters.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
+        inputFilters.getFilters().add(fixDateFilter);
+        inputFilters.addNotEmptyFilter(CONSTANT_FIXED_DATE);
+        inputFilters.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
+        
+        QueryRequest firstQueryReq = new QueryRequest();
+        firstQueryReq.getDialect().setShowCiHistory(true);
+        firstQueryReq.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
+        firstQueryReq.getFilters().add(fixDateFilter);
+        firstQueryReq.addNotEmptyFilter(CONSTANT_FIXED_DATE);
+        firstQueryReq.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
+        firstQueryReq.setPageable(null);
+        firstQueryReq.setPaging(false);
+        for(Filter f : inputFilters.getFilters() ){
+            firstQueryReq.getFilters().add(f);
+        }
+      
+        List<CiData> ciDatas = queryCiData(ciTypeId, firstQueryReq).getContents();
+        if (ciDatas == null || ciDatas.size() <= 0) {
+            return inputFilters;
+        }
+//        List<String> guids = ciDatas.stream().map(ciData ->{
+//            return ciData.getData().get(CmdbConstants.GUID).toString();
+//        }).collect(Collectors.toList());
+        
+        List<String> guids = new ArrayList<>();
+        for(CiData ciData : ciDatas) {
+            String ciDataFixDate = (String)ciData.getData().get(CONSTANT_FIXED_DATE);
+            String ciDataState = (String)ciData.getData().get(CmdbConstants.DEFAULT_FIELD_STATE_CODE);
+            
+            if(StringUtils.isNoneBlank(rootFixDate) && StringUtils.isNoneBlank(ciDataFixDate) && (!ciDataFixDate.equals(rootFixDate)) && CmdbConstants.CIDATA_STATE_DELETED.equals(ciDataState)) {
+                continue;
+            }
+            
+            if(StringUtils.isBlank(rootFixDate) && StringUtils.isNoneBlank(ciDataFixDate) && CmdbConstants.CIDATA_STATE_DELETED.equals(ciDataState)) {
+                continue;
+            }
+            
+            String guid = ciData.getData().get(CmdbConstants.GUID).toString();
+            guids.add(guid);
+        }
+        
+        queryData.addInFilter(CmdbConstants.GUID, guids);
+        queryData.getDialect().setShowCiHistory(true);
+        
+        
+        return queryData;
+    }
+    
     private Object getCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject, int systemDesignCiTypeId) {
         return getCiDataHistory(codeId, envCode, systemDesignGuid, queryObject, systemDesignCiTypeId,false);
     }
