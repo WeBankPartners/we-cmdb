@@ -445,7 +445,6 @@ public class CiServiceImpl implements CiService {
                 Integer attrId = fieldNode.getAttrId();
                 AdmCiTypeAttr attr = attrMap.get(attrId);
                 DynamicEntityMeta multRefMeta = multRefMetaMap.get(attrId);
-                // TODO gl to fix full table query
                 Map<String, Integer> sortMap = ciTypeAttrRepository.getSortedMapForMultiRef(entityManager, attr,
                         multRefMeta, fromGuid);
                 multiSortMap.put(attrId, sortMap);
