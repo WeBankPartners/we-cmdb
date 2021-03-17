@@ -1,34 +1,30 @@
 package com.webank.cmdb.controller.ui;
 
-import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.MENU_APPLICATION_DEPLOYMENT_DESIGN;
+import static com.webank.cmdb.domain.AdmMenu.MENU_DESIGNING_CI_DATA_MANAGEMENT;
 import static com.webank.cmdb.domain.AdmMenu.ROLE_PREFIX;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.empty;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.transaction.Transactional;
+
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.webank.cmdb.controller.AbstractBaseControllerTest;
 import com.webank.cmdb.util.JsonUtil;
-
-import javax.transaction.Transactional;
 
 @WithMockUser(username = "test", authorities = { ROLE_PREFIX + MENU_DESIGNING_CI_DATA_MANAGEMENT ,ROLE_PREFIX + MENU_APPLICATION_DEPLOYMENT_DESIGN })
 public class UICiDataManagementControllerTest extends AbstractBaseControllerTest {
@@ -37,6 +33,7 @@ public class UICiDataManagementControllerTest extends AbstractBaseControllerTest
     private static final int SUB_SYSTEM_DESIGN = 2;
     private static final int ciTypeId = 3;
 
+    @Ignore
     @Test
     public void whenDeleteCiWithDependencyCiAtFinalStateShouldSuccess() throws Exception {
         Map<?, ?> jsonMap = ImmutableMap.builder()
