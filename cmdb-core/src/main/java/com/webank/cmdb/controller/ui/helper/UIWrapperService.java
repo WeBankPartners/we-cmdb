@@ -1155,7 +1155,11 @@ public class UIWrapperService {
             
             String ciDataMapFixDate = (String)ciDataMap.get(CONSTANT_FIXED_DATE);
             String ciDataMapState = (String)ciDataMap.get(CmdbConstants.DEFAULT_FIELD_STATE_CODE);
-            if(StringUtils.isNoneBlank(rootFixDate) && StringUtils.isNoneBlank(ciDataMapFixDate) && CmdbConstants.CIDATA_STATE_DELETED.equals(ciDataMapState)) {
+            if(StringUtils.isNoneBlank(rootFixDate) && StringUtils.isNoneBlank(ciDataMapFixDate) && (!ciDataMapFixDate.equals(rootFixDate)) && CmdbConstants.CIDATA_STATE_DELETED.equals(ciDataMapState)) {
+                continue;
+            }
+            
+            if(StringUtils.isBlank(rootFixDate) && StringUtils.isNoneBlank(ciDataMapFixDate) && CmdbConstants.CIDATA_STATE_DELETED.equals(ciDataMapState)) {
                 continue;
             }
             
