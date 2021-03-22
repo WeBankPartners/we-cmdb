@@ -70,6 +70,16 @@ export default {
     }
   },
   methods: {
+    transformCiType (id) {
+      const tableName = this.ciTypesObj.find(item => id === item.ciTypeId).tableName
+      console.log(tableName)
+      return tableName
+    },
+    transformciTypeAttr (id) {
+      const propertyName = this.ciTypeAttrsObj.find(item => id === item.ciTypeAttrId).propertyName
+      console.log(propertyName)
+      return propertyName
+    },
     renderEditor () {
       return [
         !this.isReadOnly && this.renderOptions(),
@@ -313,9 +323,9 @@ export default {
           })
         this.options = this.options.concat(
           refFroms.data.map(_ => {
-            const ciTypeName = this.ciTypesObj[_.ciTypeId] ? this.ciTypesObj[_.ciTypeId].name : 'undefined'
+            const ciTypeName = this.ciTypesObj[_.ciTypeId] ? this.ciTypesObj[_.ciTypeId].tableName : 'undefined'
             const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId]
-              ? this.ciTypeAttrsObj[_.ciTypeAttrId].name
+              ? this.ciTypeAttrsObj[_.ciTypeAttrId].propertyName
               : 'undefined'
             const nodeObj = {
               ciTypeId: _.ciTypeId,
@@ -340,8 +350,8 @@ export default {
         this.options = this.options.concat(
           ciAttrs.data.map(_ => {
             const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
-            const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].name : this.ciTypesObj[_.ciTypeId].name
-            const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId].name
+            const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].tableName : this.ciTypesObj[_.ciTypeId].tableName
+            const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId].propertyName
             const nodeName = isRef ? `->(${attrName})${ciTypeName}` : `.${attrName}`
             const nodeObj = {
               ciTypeId: isRef ? _.referenceId : _.ciTypeId,
@@ -584,14 +594,14 @@ export default {
             <span {..._propsWithkeyWord}>{' ] '}</span>
           ]
         }
-        const ciTypeName = this.ciTypesObj[_.ciTypeId].name
+        const ciTypeName = this.ciTypesObj[_.ciTypeId].tableName
         if (!_.parentRs) {
           result.push(this.renderSpan(ciTypeName, _props), ...filterNode)
         } else {
           const inputType = this.ciTypeAttrsObj[_.parentRs.attrId].inputType
           const ref =
             _.parentRs.isReferedFromParent === 1 ? (inputType === 'ref' || inputType === 'multiRef' ? '->' : '.') : '<-'
-          const attrName = this.ciTypeAttrsObj[_.parentRs.attrId].name
+          const attrName = this.ciTypeAttrsObj[_.parentRs.attrId].propertyName
           const enumCode = _.enumCodeAttr ? `.${_.enumCodeAttr}` : ''
           if (
             this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'ref' ||
@@ -897,6 +907,7 @@ export default {
           // 可编辑状态
           <Poptip v-model={this.optionsDisplay}>{this.renderEditor()}</Poptip>
         )}
+        {this.value}
       </div>
     )
   }
