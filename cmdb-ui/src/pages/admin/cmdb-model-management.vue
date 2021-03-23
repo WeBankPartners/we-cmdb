@@ -573,6 +573,7 @@
                     <FilterRule
                       v-model="item.form.filterRule"
                       :allCiTypes="allCiTypesWithAttr"
+					  :rootCiTypeId="item.ciTypeId"
                       :leftRootCi="allCiTypesFormatByCiTypeId[item.form.referenceId].tableName"
                       :rightRootCi="currentSelectedCI.tableName"
                       :banRootCiDelete="true"
