@@ -380,6 +380,8 @@ public class CiDataInterceptorService {
         if (currentAttr.getCiTypeId() == attrWithRule.getCiTypeId()) {
             queryValueFromRuleAndSave(entityHolder, entityManager, currentGuid, attrWithRule);
         } else {
+            
+            //TODO #1224 FIXME to inspect in detail
             Set<String> rootGuids = getRootGuids(currentGuid, currentAttr, attrWithRule.getAutoFillRule());
             logger.info("Fetched root guids ({}) for attrWithRule ({}) with current attr ({}) and guid ({})", Arrays.toString(rootGuids.toArray()),
                     attrWithRule.getIdAdmCiTypeAttr(),currentAttr.getIdAdmCiTypeAttr(),currentGuid);
@@ -534,6 +536,7 @@ public class CiDataInterceptorService {
 	}
     
     private QueryResponse queryIntegrateWithRoutines(String guid, AdmCiTypeAttr attrWithGuid, List<AutoFillIntegrationQueryDto> routines) {
+        //TODO #1224
         int attrIndex = getPositionInRoutine(routines,attrWithGuid);
         AdhocIntegrationQueryDto adhocDto = buildRootDto(routines.get(0), guid, attrWithGuid,attrIndex);
         travelFillQueryDto(routines, adhocDto.getCriteria(), adhocDto.getQueryRequest(),1, attrWithGuid);
@@ -554,6 +557,7 @@ public class CiDataInterceptorService {
     }
     
     private Set<String> getRootGuids(String guid, AdmCiTypeAttr attrWithGuid, Object autoFillRuleValue) {
+        //TODO #1224
         Set<String> guids = new HashSet<>();
         List<AutoFillItem> autoRuleItems = parserRule(autoFillRuleValue);
         for (AutoFillItem item : autoRuleItems) {
@@ -586,6 +590,7 @@ public class CiDataInterceptorService {
     }
 
     private IntegrationQueryDto travelFillQueryDto(List<AutoFillIntegrationQueryDto> routines, IntegrationQueryDto parentDto, QueryRequest queryRequest, final int position, AdmCiTypeAttr attrWithGuid) {
+        //TODO#1224
         if (position >= routines.size()) {
             return null;
         }
