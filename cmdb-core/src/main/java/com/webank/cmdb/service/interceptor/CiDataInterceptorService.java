@@ -41,7 +41,6 @@ import com.webank.cmdb.controller.ui.helper.AdmCiTypeCachingService;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
-import com.webank.cmdb.dto.AutoFillIntegrationQueryDto;
 import com.webank.cmdb.dto.AutoFillIntegrationQueryExDto;
 import com.webank.cmdb.dto.AutoFillItem;
 import com.webank.cmdb.dto.CatCodeDto;
@@ -890,10 +889,11 @@ public class CiDataInterceptorService {
                 // attr.getIdAdmCiTypeAttr());
 
                 // TODO #1224
-                logger.info(">>> {} {} {} {}", attr.getAdmCiType().getIdAdmCiType(), attr.getAdmCiType().getTableName(),
+                logger.info("to calculate for {}-{}:{}-{}", attr.getAdmCiType().getIdAdmCiType(), attr.getAdmCiType().getTableName(),
                         attr.getCiTypeId(), attr.getPropertyName());
+                String attrKeyWordToQuery = "\\\"attrId\\\":" + String.format("%s#%s", attr.getAdmCiType().getTableName(), attr.getPropertyName())+",";
                 List<AdmCiTypeAttr> attrsWithMatchRule = this.admCiTypeCachingService
-                        .findAllByMatchAutoFillRule("\\\"attrId\\\":" + attr.getIdAdmCiTypeAttr()+",");
+                        .findAllByMatchAutoFillRule(attrKeyWordToQuery);
                 attrsWithMatchRule.forEach(attrWithMatchRule -> {
                     Integer isAutoFillEnabled = attrWithMatchRule.getIsAuto();
                     if (!CmdbConstants.IS_AUTO_YES.equals(isAutoFillEnabled))
