@@ -361,7 +361,9 @@ public class AdmCiTypeAttr implements Serializable {
     }
 
     // bi-directional many-to-one association to AdmCiType
-    @ManyToOne(fetch = FetchType.LAZY)
+    //TODO to revert to LAZY #1224
+//    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_adm_ci_type", insertable = false, updatable = false)
     public AdmCiType getAdmCiType() {
         return this.admCiType;

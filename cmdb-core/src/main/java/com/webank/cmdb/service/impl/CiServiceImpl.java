@@ -1179,6 +1179,7 @@ public class CiServiceImpl implements CiService {
                 throw accEx;
             } catch (Exception ex) {
                 transaction.rollback();
+                ex.printStackTrace();
                 throw new ServiceException(ex.toString(), ex);
             }
         } finally {
