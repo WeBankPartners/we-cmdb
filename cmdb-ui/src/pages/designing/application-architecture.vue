@@ -21,6 +21,7 @@
                 :label="`${item.name}${item.fixed_date ? ' ' + item.fixed_date : ''}`"
                 style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
               >
+                <div>{{ item.name }}</div>
                 <div v-if="item.fixed_date" style="color:#ccc; flex-shrink:1; margin-left:10px">
                   {{ item.fixed_date }}
                 </div>
