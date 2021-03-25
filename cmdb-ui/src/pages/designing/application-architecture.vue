@@ -9,7 +9,6 @@
             @on-change="onSystemDesignSelect"
             @on-clear="onClearDesignSelect"
             clearable
-            filterable
             label-in-name
             style="width: 35%;z-index:auto"
           >
@@ -481,13 +480,9 @@ export default {
       const { statusCode, data } = await updateSystemDesign(this.systemDesignVersion)
       if (statusCode === 'OK') {
         if (data.length) {
-          const ori = this.systemDesigns.flat().find(item => item.guid === this.systemDesignVersion)
-          await this.getSystemDesigns()
-          const newSystem = this.systemDesigns
-            .flat()
-            .find(item => item.fixed_date === ori.fixed_date && item.name === ori.name)
-          this.systemDesignVersion = newSystem.guid
-          this.queryGraphData(isTableViewOnly)
+          this.getSystemDesigns(() => {
+            this.queryGraphData(isTableViewOnly)
+          })
         } else {
           this.queryGraphData(isTableViewOnly)
         }
@@ -1343,10 +1338,11 @@ export default {
             x.guid === x.r_guid ? obj[x.r_guid].unshift(x) : obj[x.r_guid].push(x)
             return obj
           }, {})
+
         this.systemDesigns = Object.values(resultObj)
-        // if (callback && callback instanceof Function) {
-        //   callback()
-        // }
+        if (callback && callback instanceof Function) {
+          callback()
+        }
       }
     },
     async getConfigParams () {
