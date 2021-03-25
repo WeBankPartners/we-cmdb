@@ -21,7 +21,6 @@
                 :label="`${item.name}${item.fixed_date ? ' ' + item.fixed_date : ''}`"
                 style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
               >
-                <div>{{ item.name }}</div>
                 <div v-if="item.fixed_date" style="color:#ccc; flex-shrink:1; margin-left:10px">
                   {{ item.fixed_date }}
                 </div>
@@ -472,7 +471,7 @@ export default {
         loading: true,
         'z-index': 1000000,
         onOk: async () => {
-          this.getGraphData()
+          this.getGraphData(isTableViewOnly)
         },
         onCancel: () => {}
       })
@@ -481,9 +480,13 @@ export default {
       const { statusCode, data } = await updateSystemDesign(this.systemDesignVersion)
       if (statusCode === 'OK') {
         if (data.length) {
-          this.getSystemDesigns(() => {
-            this.queryGraphData(isTableViewOnly)
-          })
+          const ori = this.systemDesigns.flat().find(item => item.guid === this.systemDesignVersion)
+          await this.getSystemDesigns()
+          const newSystem = this.systemDesigns
+            .flat()
+            .find(item => item.fixed_date === ori.fixed_date && item.name === ori.name)
+          this.systemDesignVersion = newSystem.guid
+          this.queryGraphData(isTableViewOnly)
         } else {
           this.queryGraphData(isTableViewOnly)
         }
@@ -1340,9 +1343,9 @@ export default {
             return obj
           }, {})
         this.systemDesigns = Object.values(resultObj)
-        if (callback && callback instanceof Function) {
-          callback()
-        }
+        // if (callback && callback instanceof Function) {
+        //   callback()
+        // }
       }
     },
     async getConfigParams () {
