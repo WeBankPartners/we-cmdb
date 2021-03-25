@@ -2,11 +2,15 @@ package com.webank.cmdb.dto;
 
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.webank.cmdb.util.NumericBooleanSerializer;
+
 public class RelationshipEx {
     // @NotNull
     // private Integer ciTypeId;
     @NotNull
     private String attrId = null;
+    @JsonSerialize(using = NumericBooleanSerializer.class)
     private Boolean isReferedFromParent = true;
 
     public RelationshipEx() {
@@ -32,4 +36,5 @@ public class RelationshipEx {
     public void setIsReferedFromParent(Boolean isReferedFromParent) {
         this.isReferedFromParent = isReferedFromParent;
     }
+    
 }
