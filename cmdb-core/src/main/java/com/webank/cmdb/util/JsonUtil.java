@@ -48,6 +48,7 @@ public class JsonUtil {
         try {
             return mapper.writeValueAsString(jsonList);
         } catch (JsonProcessingException e) {
+            e.printStackTrace();
             return String.valueOf(jsonList);
         }
     }
