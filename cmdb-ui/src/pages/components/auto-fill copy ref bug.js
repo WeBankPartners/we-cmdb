@@ -55,6 +55,7 @@ export default {
           obj[attr.ciTypeAttrId] = attr
         })
       })
+      console.log(obj)
       return obj
     }
   },
@@ -71,15 +72,9 @@ export default {
     }
   },
   methods: {
-    getPropertyNameByCiTypeIdAndAttrId (ciTypeIdAndAttrId) {
-      const [ciTypeId, attrId] = ciTypeIdAndAttrId.split('#')
-      const keys = Object.values(this.ciTypeAttrsObj)
-      const attr = keys.find(item => {
-        if (ciTypeId === item.ciTypeTableName && attrId === item.propertyName) {
-          return item
-        }
-      })
-      return attr || ''
+    ciTypeIdToTableName (id) {
+      const tableName = this.ciTypesObj[id].tableName
+      return tableName
     },
     renderEditor () {
       return [
@@ -205,7 +200,7 @@ export default {
         case 'rule':
           this.autoFillArray.push({
             type,
-            value: JSON.stringify([{ ciTypeId: this.ciTypesObj[this.rootCiTypeId].tableName }])
+            value: JSON.stringify([{ ciTypeId: this.ciTypeIdToTableName(this.rootCiTypeId) }])
           })
           this.showRuleOptions(this.autoFillArray.length - 1 + '', '0')
           break
@@ -249,7 +244,8 @@ export default {
       const isAttrNode = attrIndex ? !!JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].parentRs : false
       const attrInputType = isAttrNode
         ? this.getPropertyNameByCiTypeIdAndAttrId(
-          JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].parentRs.attrId
+          JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].ciTypeId,
+          JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].parentRsattrId
         ).inputType
         : ''
       // 删除节点
@@ -282,14 +278,19 @@ export default {
       const node = JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex]
       if (
         !node.parentRs ||
-        this.getPropertyNameByCiTypeIdAndAttrId(node.parentRs.attrId).inputType === 'ref' ||
-        this.getPropertyNameByCiTypeIdAndAttrId(node.parentRs.attrId).inputType === 'multiRef'
+        // this.ciTypeAttrsObj[node.parentRs.attrId].inputType === 'ref' ||
+        // this.ciTypeAttrsObj[node.parentRs.attrId].inputType === 'multiRef'
+        this.getPropertyNameByCiTypeIdAndAttrId(node.ciTypeId, node.parentRs.attrId).inputType === 'ref' ||
+        this.getPropertyNameByCiTypeIdAndAttrId(node.ciTypeId, node.parentRs.attrId).inputType === 'multiRef'
       ) {
         const ciTypeId = JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].ciTypeId
         this.getRefData(ruleIndex, attrIndex, ciTypeId)
       } else if (
-        (node.parentRs && this.getPropertyNameByCiTypeIdAndAttrId(node.parentRs.attrId).inputType === 'select') ||
-        this.getPropertyNameByCiTypeIdAndAttrId(node.parentRs.attrId).inputType === 'multiSelect'
+        // (node.parentRs && this.ciTypeAttrsObj[node.parentRs.attrId].inputType === 'select') ||
+        // this.ciTypeAttrsObj[node.parentRs.attrId].inputType === 'multiSelect'
+        (node.parentRs &&
+          this.getPropertyNameByCiTypeIdAndAttrId(node.ciTypeId, node.parentRs.attrId).inputType === 'select') ||
+        this.getPropertyNameByCiTypeIdAndAttrId(node.ciTypeId, node.parentRs.attrId).inputType === 'multiSelect'
       ) {
         this.showEnumOptions(ruleIndex, attrIndex)
       }
@@ -338,14 +339,21 @@ export default {
         this.options = this.options.concat(
           refFroms.data.map(_ => {
             const ciTypeName = this.ciTypesObj[_.ciTypeId] ? this.ciTypesObj[_.ciTypeId].tableName : 'undefined'
-            console.log(6, _.ciTypeAttrId)
             const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId]
               ? this.ciTypeAttrsObj[_.ciTypeAttrId].propertyName
               : 'undefined'
+            // const nodeObj = {
+            //   ciTypeId: _.ciTypeId,
+            //   parentRs: {
+            //     attrId: _.ciTypeAttrId,
+            //     isReferedFromParent: 0
+            //   }
+            // }
+            console.log(_)
             const nodeObj = {
-              ciTypeId: ciTypeName,
+              ciTypeId: _.ciType.tableName,
               parentRs: {
-                attrId: this.ciTypeAttrsObj[_.ciTypeAttrId].ciTypeTableName + '#' + attrName,
+                attrId: _.propertyName,
                 isReferedFromParent: 0
               }
             }
@@ -366,13 +374,20 @@ export default {
           ciAttrs.data.map(_ => {
             const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
             const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].tableName : this.ciTypesObj[_.ciTypeId].tableName
-            console.log(1)
             const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId].propertyName
             const nodeName = isRef ? `->(${attrName})${ciTypeName}` : `.${attrName}`
+            // const nodeObj = {
+            //   ciTypeId: isRef ? _.referenceId : _.ciTypeId,
+            //   parentRs: {
+            //     attrId: _.ciTypeAttrId,
+            //     isReferedFromParent: 1
+            //   }
+            // }
             const nodeObj = {
               ciTypeId: ciTypeName,
               parentRs: {
-                attrId: this.ciTypeAttrsObj[_.ciTypeAttrId].ciTypeTableName + '#' + attrName,
+                // attrId: _.ciTypeAttrId,
+                attrId: isRef ? attrName : this.getPropertyNameByCiTypeIdAndAttrId(ciTypeName, attrName).propertyName,
                 isReferedFromParent: 1
               }
             }
@@ -468,9 +483,9 @@ export default {
       this.handleInput()
     },
     async showFilterModal (ruleIndex, attrIndex) {
-      this.filterCiTypeId = this.ciTypeTableNameToId(
-        JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].ciTypeId
-      )
+      // this.filterCiTypeId = JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].ciTypeId
+      this.filterCiTypeId = JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].ciTypeId
+      this.filterCiTypeId = this.ciTypeTableNameToId(this.filterCiTypeId)
       const filters = JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].filters || []
       this.filterIndex = [ruleIndex, attrIndex]
       this.modalDisplay = true
@@ -479,7 +494,6 @@ export default {
       if (statusCode === 'OK') {
         this.filterCiAttrs = data
         this.filters = filters.map(_ => {
-          console.log(2)
           const found = data.find(attr => attr.propertyName === _.name)
           if (found) {
             _.inputType = found.inputType
@@ -491,13 +505,26 @@ export default {
         })
       }
     },
+    getPropertyNameByCiTypeIdAndAttrId (parentId, attrId) {
+      const keys = Object.values(this.ciTypeAttrsObj)
+      const attr = keys.find(item => {
+        if (parentId === item.ciTypeTableName && attrId === item.propertyName) {
+          debugger
+          return item
+        }
+      })
+      return attr || ''
+    },
     addNode (ruleIndex, attrIndex, nodeObj) {
       const i = +attrIndex
       let ruleArr = JSON.parse(this.autoFillArray[ruleIndex].value)
       ruleArr.splice(i + 1, ruleArr.length - i - 1, nodeObj)
       this.autoFillArray[ruleIndex].value = JSON.stringify(ruleArr)
       // const inputType = this.ciTypeAttrsObj[ruleArr[ruleArr.length - 1].parentRs.attrId].inputType
-      const inputType = this.getPropertyNameByCiTypeIdAndAttrId(ruleArr[ruleArr.length - 1].parentRs.attrId).inputType
+      const inputType = this.getPropertyNameByCiTypeIdAndAttrId(
+        ruleArr[ruleArr.length - 1].ciTypeId,
+        ruleArr[ruleArr.length - 1].parentRs.attrId
+      ).inputType
       const ciTypeId = nodeObj.ciTypeId
       if (inputType === 'ref' || inputType === 'multiRef') {
         this.options = [
@@ -559,7 +586,10 @@ export default {
         let isLegal = true
         if (attrIndex === JSON.parse(val).length - 1) {
           const lastInputType = JSON.parse(val)[attrIndex].parentRs
-            ? this.getPropertyNameByCiTypeIdAndAttrId(JSON.parse(val)[attrIndex].parentRs.attrId).inputType
+            ? this.getPropertyNameByCiTypeIdAndAttrId(
+              JSON.parse(val)[attrIndex].ciTypeId,
+              JSON.parse(val)[attrIndex].parentRs.attrId
+            ).inputType
             : ''
           if (lastInputType === 'ref' || lastInputType === 'multiRef' || !lastInputType) {
             isLegal = false
@@ -596,7 +626,6 @@ export default {
               let filterValue = []
               const operatorFound = this.operatorList.find(operator => operator.code === filter.operator)
               const operator = operatorFound ? operatorFound.value : filter.operator
-              console.log(3)
               const attrFound = attrs.find(attr => attr.propertyName === filter.name)
               const filterName = attrFound ? attrFound.name : filter.name
               if (filter.type && filter.type === 'autoFill') {
@@ -620,15 +649,18 @@ export default {
         if (!_.parentRs) {
           result.push(this.renderSpan(ciTypeName, _props), ...filterNode)
         } else {
-          const inputType = this.getPropertyNameByCiTypeIdAndAttrId(_.parentRs.attrId).inputType
+          // const inputType = this.ciTypeAttrsObj[_.parentRs.attrId].inputType
+          const inputType = this.getPropertyNameByCiTypeIdAndAttrId(_.ciTypeId, _.parentRs.attrId).inputType
           const ref =
             _.parentRs.isReferedFromParent === 1 ? (inputType === 'ref' || inputType === 'multiRef' ? '->' : '.') : '<-'
-          console.log(4)
-          const attrName = this.getPropertyNameByCiTypeIdAndAttrId(_.parentRs.attrId).propertyName
+          // const attrName = this.ciTypeAttrsObj[_.parentRs.attrId].propertyName
+          const attrName = this.getPropertyNameByCiTypeIdAndAttrId(_.ciTypeId, _.parentRs.attrId).propertyName
           const enumCode = _.enumCodeAttr ? `.${_.enumCodeAttr}` : ''
           if (
-            this.getPropertyNameByCiTypeIdAndAttrId(_.parentRs.attrId).inputType === 'ref' ||
-            this.getPropertyNameByCiTypeIdAndAttrId(_.parentRs.attrId).inputType === 'multiRef'
+            // this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'ref' ||
+            // this.ciTypeAttrsObj[_.parentRs.attrId].inputType === 'multiRef'
+            inputType === 'ref' ||
+            inputType === 'multiRef'
           ) {
             result.push(this.renderSpan(` ${ref}(${attrName})${ciTypeName}`, _props), ...filterNode)
           } else {
@@ -818,7 +850,8 @@ export default {
                   allCiTypes={allCiTypes}
                   isReadOnly={false}
                   onInput={v => (this.filters[i].value = v)}
-                  rootCiTypeId={rootCiTypeId}
+                  // rootCiTypeId={rootCiTypeId}
+                  rootCiTypeId={this.ciTypeIdToTableName(rootCiTypeId)}
                   specialDelimiters={specialDelimiters}
                   value={_.value}
                 />
@@ -833,7 +866,6 @@ export default {
     },
     changeFilter (val, i) {
       this.filters[i].name = val
-      console.log(5)
       const found = this.filterCiAttrs.find(_ => _.propertyName === val)
       const inputType = found.inputType
       switch (inputType) {
@@ -896,7 +928,10 @@ export default {
           if (!lastAttrId) {
             isLegal = false
           }
-          const inputType = lastAttrId ? this.getPropertyNameByCiTypeIdAndAttrId(lastAttrId).inputType : ''
+          // const inputType = lastAttrId ? this.ciTypeAttrsObj[lastAttrId].inputType : ''
+          const inputType = lastAttrId
+            ? this.getPropertyNameByCiTypeIdAndAttrId(lastNode.ciTypeId, lastAttrId).inputType
+            : ''
           if (lastNode.parentRs) {
             if (inputType === 'ref' || inputType === 'multiRef') {
               isLegal = false
