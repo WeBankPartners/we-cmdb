@@ -32,6 +32,7 @@ import com.webank.cmdb.dto.FilterRuleDto;
 import com.webank.cmdb.dto.IntegrationQueryDto;
 import com.webank.cmdb.dto.Relationship;
 import com.webank.cmdb.dto.RelationshipEx;
+import com.webank.cmdb.dto.ResponseDto;
 import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
 import com.webank.cmdb.repository.AdmCiTypeRepository;
 import com.webank.cmdb.service.FilterRuleService;
@@ -52,7 +53,7 @@ public class MaintainController {
 
     @Autowired
     private AdmCiTypeRepository ciTypeRepository;
-    
+
     @Autowired
     private AdmCiTypeCachingService admCiTypeCachingService;
 
@@ -90,7 +91,7 @@ public class MaintainController {
     @PostMapping("/autoFillRule/upgrade")
     @ResponseBody
     @Transactional
-    public String upgradeAutoFillRule() throws IOException {
+    public ResponseDto<String> upgradeAutoFillRule() throws IOException {
         List<AdmCiTypeAttr> attrs = ciTypeAttrRepository.findAll();
         int count = 0;
         for (AdmCiTypeAttr attr : attrs) {
@@ -105,12 +106,12 @@ public class MaintainController {
             String autoFillValueStr = upgradeAutoFillRuleToTableNames(attr.getAutoFillRule());
             attr.setAutoFillRule(autoFillValueStr);
             ciTypeAttrRepository.saveAndFlush(attr);
-            
+
             count++;
         }
 
         admCiTypeCachingService.forceRefresh();
-        return String.format("Total %s auto fill rules upgraded.", count);
+        return new ResponseDto<>(ResponseDto.STATUS_OK, String.format("Total %s auto fill rules upgraded.", count));
     }
 
     private String upgradeAutoFillRuleToTableNames(String autoFillValueStr) throws IOException {
