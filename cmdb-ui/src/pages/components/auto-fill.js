@@ -338,7 +338,6 @@ export default {
         this.options = this.options.concat(
           refFroms.data.map(_ => {
             const ciTypeName = this.ciTypesObj[_.ciTypeId] ? this.ciTypesObj[_.ciTypeId].tableName : 'undefined'
-            console.log(6, _.ciTypeAttrId)
             const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId]
               ? this.ciTypeAttrsObj[_.ciTypeAttrId].propertyName
               : 'undefined'
@@ -366,7 +365,6 @@ export default {
           ciAttrs.data.map(_ => {
             const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
             const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].tableName : this.ciTypesObj[_.ciTypeId].tableName
-            console.log(1)
             const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId].propertyName
             const nodeName = isRef ? `->(${attrName})${ciTypeName}` : `.${attrName}`
             const nodeObj = {
@@ -479,7 +477,6 @@ export default {
       if (statusCode === 'OK') {
         this.filterCiAttrs = data
         this.filters = filters.map(_ => {
-          console.log(2)
           const found = data.find(attr => attr.propertyName === _.name)
           if (found) {
             _.inputType = found.inputType
@@ -596,7 +593,6 @@ export default {
               let filterValue = []
               const operatorFound = this.operatorList.find(operator => operator.code === filter.operator)
               const operator = operatorFound ? operatorFound.value : filter.operator
-              console.log(3)
               const attrFound = attrs.find(attr => attr.propertyName === filter.name)
               const filterName = attrFound ? attrFound.name : filter.name
               if (filter.type && filter.type === 'autoFill') {
@@ -623,7 +619,6 @@ export default {
           const inputType = this.getPropertyNameByCiTypeIdAndAttrId(_.parentRs.attrId).inputType
           const ref =
             _.parentRs.isReferedFromParent === 1 ? (inputType === 'ref' || inputType === 'multiRef' ? '->' : '.') : '<-'
-          console.log(4)
           const attrName = this.getPropertyNameByCiTypeIdAndAttrId(_.parentRs.attrId).propertyName
           const enumCode = _.enumCodeAttr ? `.${_.enumCodeAttr}` : ''
           if (
@@ -833,7 +828,6 @@ export default {
     },
     changeFilter (val, i) {
       this.filters[i].name = val
-      console.log(5)
       const found = this.filterCiAttrs.find(_ => _.propertyName === val)
       const inputType = found.inputType
       switch (inputType) {
@@ -931,7 +925,6 @@ export default {
           // 可编辑状态
           <Poptip v-model={this.optionsDisplay}>{this.renderEditor()}</Poptip>
         )}
-        {this.value}
       </div>
     )
   }
