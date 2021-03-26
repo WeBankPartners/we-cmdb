@@ -75,7 +75,6 @@ export default {
     },
     clearSelect () {
       this.panalData[this.formData.propertyName].guid = ''
-      console.log(this.panalData[this.formData.propertyName])
     }
   }
 }
