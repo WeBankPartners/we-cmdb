@@ -1,5 +1,6 @@
 package com.webank.cmdb.service.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,15 +13,17 @@ import java.util.regex.Pattern;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.cmdb.controller.MaintainController;
+import com.webank.cmdb.controller.ui.helper.UIWrapperService;
 import com.webank.cmdb.domain.AdmCiType;
 import com.webank.cmdb.domain.AdmCiTypeAttr;
 import com.webank.cmdb.dto.AutoFillIntegrationQueryDto;
@@ -60,6 +63,11 @@ public class CiServiceImplTest {
     
     @Autowired
     MaintainController controller;
+    
+    @Autowired
+    private UIWrapperService wrapperService;
+    
+    ObjectMapper objectMapper = new ObjectMapper();
 
     @Before
     public void setUp() {
@@ -71,6 +79,45 @@ public class CiServiceImplTest {
     @Test
     public void testController() throws IOException{
         controller.upgradeAutoFillRule();
+    }
+    
+    
+    //http://localhost:19090/wecmdb/ui/v2/ci-types/48/ci-data/batch-update
+    @Test
+    public void testBatchUpdate() throws IOException {
+        String filename = "testBatchUpdate.json";
+        String filepath = this.getClass().getResource(filename).getFile();
+        String json = FileUtils.readFileToString(new File(filepath), "UTF-8");
+        
+        int ciTypeId = 48;
+        
+        List<Map<String,Object>> rawCiDatas = (List<Map<String, Object>>) objectMapper.readValue(json, Object.class);
+        
+        System.out.println("json:"+json);
+        
+        System.out.println(rawCiDatas);
+        
+        wrapperService.updateCiData(ciTypeId, rawCiDatas);
+    }
+    
+    
+    //http://localhost:19090/wecmdb/ui/v2/ci-types/38/ci-data/batch-create
+    //{"statusCode":"ERR_BATCH_CHANGE","statusMessage":"(CN)Fail to create [1] records, detail error in the data block.","data":[{"errorMessage":"Fail to create ci data ciTypeId [38], error [Data truncation: Data too long for column 'qwer1234' at row 1]"}]}
+    @Test
+    public void testBatchCreate() throws IOException {
+        String filename = "testBatchCreate.json";
+        String filepath = this.getClass().getResource(filename).getFile();
+        String json = FileUtils.readFileToString(new File(filepath), "UTF-8");
+        
+        int ciTypeId = 38;
+        
+        List<Map<String,Object>> rawCiDatas = (List<Map<String, Object>>) objectMapper.readValue(json, Object.class);
+        
+        System.out.println("json:"+json);
+        
+        List<Map<String, Object>> ret = wrapperService.createCiData(ciTypeId, rawCiDatas);
+        
+        System.out.println(ret);
     }
 
     @Transactional

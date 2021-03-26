@@ -1,0 +1,28 @@
+[
+    {
+        "public_key": "",
+        "deploy_path": "/data/PRD_AaDEMO_CLIENT_EE/",
+        "code": "EEEa",
+        "deploy_package": [],
+        "r_guid": "0048_0000000033",
+        "description": "",
+        "manage_role": "0001_0000000001",
+        "resource_set": "0029_0000000120",
+        "unit_type": "0002_0000000009",
+        "created_by": "umadmin",
+        "key_name": "PRD_AaDEMO_CLIENT_EE",
+        "subsys": "0047_0000000004",
+        "protocol": "TCP",
+        "p_guid": null,
+        "security_group_asset_id": "",
+        "updated_by": null,
+        "guid": "0048_0000000033",
+        "state": 37,
+        "created_date": "2021-03-26 06:16:47",
+        "updated_date": null,
+        "fixed_date": null,
+        "state_code": "created",
+        "unit_design": "0039_0000000013",
+        "white_list_type": "N"
+    }
+]

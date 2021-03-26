@@ -401,7 +401,9 @@ public class CiDataInterceptorService {
         if (attrs != null && !attrs.isEmpty()) {
             attrs.forEach(attr -> {
                 if (attr.getIsAuto() == CmdbConstants.IS_AUTO_YES && !StringUtils.isBlank(attr.getAutoFillRule())) {
-                    executeAutoFill(entityHolder, entityManager, (String) entityHolder.get("guid"), attr, attr);
+                    if (CiStatus.Created.getCode().equals(attr.getStatus())) {
+                        executeAutoFill(entityHolder, entityManager, (String) entityHolder.get("guid"), attr, attr);
+                    }
                 }
             });
         }
@@ -590,11 +592,11 @@ public class CiDataInterceptorService {
         if (attrWithGuid != null) {
             for (int i = 0; i < routines.size(); i++) {
                 AutoFillIntegrationQueryExDto autoFillIntegrationQueryDto = routines.get(i);
-                //#1224
+                // #1224
                 if (autoFillIntegrationQueryDto.getCiTypeId().equals(attrWithGuid.getAdmCiType().getTableName())) {
                     return i;
                 }
-                
+
 //                if (autoFillIntegrationQueryDto.getCiTypeId() == attrWithGuid.getCiTypeId()) {
 //                    return i;
 //                }
@@ -615,8 +617,9 @@ public class CiDataInterceptorService {
                     List<Integer> routinesAttrs = new ArrayList<>();
                     routines.forEach(routine -> {
                         if (routine.getParentRs() != null) {
-                            //#1224
-                            Integer parentRsAttrId = getAttrIdByPropertyNameAndCiTypeTableName(routine.getParentRs().getAttrId());
+                            // #1224
+                            Integer parentRsAttrId = getAttrIdByPropertyNameAndCiTypeTableName(
+                                    routine.getParentRs().getAttrId());
                             routinesAttrs.add(parentRsAttrId);
                         }
                     });
@@ -649,7 +652,7 @@ public class CiDataInterceptorService {
         IntegrationQueryExDto item = routines.get(position);
         AdmCiType itemCiType = findCiTypeByTableName(item.getCiTypeId());
         Relationship parentRs = new Relationship();
-        //#1224
+        // #1224
         Integer parentRsAttrId = getAttrIdByPropertyNameAndCiTypeTableName(item.getParentRs().getAttrId());
         parentRs.setAttrId(parentRsAttrId);
 //        parentRs.setAttrId(item.getParentRs().getAttrId());
@@ -663,7 +666,9 @@ public class CiDataInterceptorService {
         List<Integer> attrs = new ArrayList();
         if (position < routines.size() - 1) {
             attrs.add(getAttrIdByPropertyNameAndCiTypeId(itemCiType.getIdAdmCiType(), "guid"));
-            fileds.add(item.getCiTypeId() + "$guid_" + position);
+            // #1224
+            fileds.add(itemCiType.getIdAdmCiType() + "$guid_" + position);
+//            fileds.add(item.getCiTypeId() + "$guid_" + position);
         }
         if (item.getFilters().size() > 0) {
             List<Filter> filters = new ArrayList<Filter>(queryRequest.getFilters());
@@ -711,7 +716,7 @@ public class CiDataInterceptorService {
     private AdhocIntegrationQueryDto buildRootDto(IntegrationQueryExDto routineDto, String guid,
             AdmCiTypeAttr attrWithGuid, int attrIndex) {
         AdhocIntegrationQueryDto adhocDto = new AdhocIntegrationQueryDto();
-        
+
         AdmCiType admCiType = findCiTypeByTableName(routineDto.getCiTypeId());
 
         QueryRequest queryRequest = new QueryRequest();
@@ -727,13 +732,12 @@ public class CiDataInterceptorService {
         queryRequest.setFilters(Arrays.asList(filter));
         queryRequest.getPageable().setPaging(false);
 
-       
         IntegrationQueryDto rootDto = new IntegrationQueryDto();
         rootDto.setName("root");
-        //#1224
+        // #1224
         rootDto.setCiTypeId(admCiType.getIdAdmCiType());
         rootDto.setAttrs(Arrays.asList(getAttrIdByPropertyNameAndCiTypeId(admCiType.getIdAdmCiType(), "guid")));
-        
+
 //        rootDto.setCiTypeId(routineDto.getCiTypeId());
 //        rootDto.setAttrs(Arrays.asList(getAttrIdByPropertyNameAndCiTypeId(routineDto.getCiTypeId(), "guid")));
         rootDto.setAttrKeyNames(Arrays.asList("root$guid"));
@@ -743,22 +747,22 @@ public class CiDataInterceptorService {
 
         return adhocDto;
     }
-    
-    private AdmCiType findCiTypeByTableName(String ciTypeTableName){
+
+    private AdmCiType findCiTypeByTableName(String ciTypeTableName) {
         AdmCiType admCiType = ciTypeRepository.findByTableName(ciTypeTableName);
         return admCiType;
     }
-    
-    //tableName#propertyName
+
+    // tableName#propertyName
     private Integer getAttrIdByPropertyNameAndCiTypeTableName(String attrIdStr) {
         // 1219
         // List<AdmCiTypeAttr> attrs =
         // ciTypeAttrRepository.findAllByCiTypeId(ciTypeId);
-        if(StringUtils.isBlank(attrIdStr)){
+        if (StringUtils.isBlank(attrIdStr)) {
             return null;
         }
-        
-        if(!attrIdStr.contains("#")){
+
+        if (!attrIdStr.contains("#")) {
             return null;
         }
         String[] tableNameAndPropNameParts = attrIdStr.split("#");
@@ -889,19 +893,26 @@ public class CiDataInterceptorService {
                 // attr.getIdAdmCiTypeAttr());
 
                 // TODO #1224
-                logger.info("to calculate for {}-{}:{}-{}", attr.getAdmCiType().getIdAdmCiType(), attr.getAdmCiType().getTableName(),
-                        attr.getCiTypeId(), attr.getPropertyName());
-                String attrKeyWordToQuery = "\\\"attrId\\\":" + String.format("%s#%s", attr.getAdmCiType().getTableName(), attr.getPropertyName())+",";
+                logger.info("to calculate for {}-{}:{}-{}", attr.getAdmCiType().getIdAdmCiType(),
+                        attr.getAdmCiType().getTableName(), attr.getCiTypeId(), attr.getPropertyName());
+                String attrKeyWordToQuery = "\\\"attrId\\\":"
+                        + String.format("\\\"%s#%s\\\"", attr.getAdmCiType().getTableName(), attr.getPropertyName());
                 List<AdmCiTypeAttr> attrsWithMatchRule = this.admCiTypeCachingService
                         .findAllByMatchAutoFillRule(attrKeyWordToQuery);
                 attrsWithMatchRule.forEach(attrWithMatchRule -> {
                     Integer isAutoFillEnabled = attrWithMatchRule.getIsAuto();
-                    if (!CmdbConstants.IS_AUTO_YES.equals(isAutoFillEnabled))
+                    if (!CmdbConstants.IS_AUTO_YES.equals(isAutoFillEnabled)) {
                         return;
+                    }
 
                     CiStatus attrCiStatus = CiStatus.fromCode(attrWithMatchRule.getStatus());
-                    if (!attrCiStatus.supportCiDataOperation())
+                    if (!attrCiStatus.supportCiDataOperation()) {
                         return;
+                    }
+                    
+                    if(!CiStatus.Created.getCode().equals(attrWithMatchRule.getStatus())) {
+                        return;
+                    }
 
                     logger.info("Executing autofill on matched attr ({}) for attr ({})",
                             attrWithMatchRule.getIdAdmCiTypeAttr(), attr.getIdAdmCiTypeAttr());
