@@ -284,5 +284,6 @@
   "table_name_is_require": "请输入名称",
   "ci_type_id_is_require": "请输入CI类型ID",
   "zoom_level_is_require": "请选择图层",
-  "icon_is_require": "请上传图标"
+  "icon_is_require": "请上传图标",
+  "model_management_redo_tip": "回滚CI属性后，属性值可能因长期未更新而导致影响业务使用，请注意手动更新"
 }
