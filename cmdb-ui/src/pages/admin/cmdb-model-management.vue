@@ -352,7 +352,7 @@
                   <Tooltip v-if="item.status === 'decommissioned'" :content="$t('roll_back')" placement="top-start">
                     <Button
                       size="small"
-                      @click.stop.prevent="revertCIAttr(item.ciTypeAttrId)"
+                      @click.stop.prevent="confirmRevertCIAttr(item.ciTypeAttrId)"
                       icon="md-redo"
                       :loading="buttonLoading.revertCIAttr[item.ciTypeAttrId]"
                     ></Button>
@@ -1492,6 +1492,18 @@ export default {
         this.getAllCiTypeWithAttr()
         this.initGraph()
       }
+    },
+    confirmRevertCIAttr (attrId) {
+      this.$Modal.confirm({
+        title: this.$t('model_management_redo_tip'),
+        loading: true,
+        'z-index': 1000000,
+        onOk: async () => {
+          this.revertCIAttr(attrId)
+          this.$Modal.remove()
+        },
+        onCancel: () => {}
+      })
     },
     async revertCIAttr (attrId) {
       this.buttonLoading.revertCIAttr[attrId] = true
