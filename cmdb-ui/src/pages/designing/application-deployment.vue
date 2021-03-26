@@ -901,7 +901,6 @@ export default {
       }
     },
     sortHandler (data) {
-      console.log(data.order)
       if (data.order === 'normal') {
         delete this.payload.sorting
       } else {

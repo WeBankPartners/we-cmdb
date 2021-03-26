@@ -23,7 +23,6 @@ export default {
   },
   methods: {
     addExpression (v) {
-      console.log(v)
       let _value = JSON.parse(JSON.stringify(this.value))
       _value.push(v)
       this.$emit('input', _value)
