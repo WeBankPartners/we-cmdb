@@ -747,8 +747,18 @@ public class CiDataInterceptorService {
         return adhocDto;
     }
 
-    private AdmCiType findCiTypeByTableName(String ciTypeTableName) {
-        AdmCiType admCiType = ciTypeRepository.findByTableName(ciTypeTableName);
+    private AdmCiType findCiTypeByTableName(String ciTypeIdStr) {
+        if(StringUtils.isBlank(ciTypeIdStr)) {
+            return null;
+        }
+        AdmCiType admCiType = null;
+        if(StringUtils.isNumeric(ciTypeIdStr)) {
+            int admCiTypeId = Integer.parseInt(ciTypeIdStr);
+            admCiType = ciTypeRepository.findByIdAdmCiType(admCiTypeId);
+        }else {
+            admCiType = ciTypeRepository.findByTableName(ciTypeIdStr);
+        }
+        
         return admCiType;
     }
 
@@ -759,6 +769,10 @@ public class CiDataInterceptorService {
         // ciTypeAttrRepository.findAllByCiTypeId(ciTypeId);
         if (StringUtils.isBlank(attrIdStr)) {
             return null;
+        }
+        
+        if(StringUtils.isNumeric(attrIdStr)) {
+            return Integer.parseInt(attrIdStr);
         }
 
         if (!attrIdStr.contains("#")) {
