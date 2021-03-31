@@ -356,7 +356,7 @@ public class CiDataInterceptorService {
     public void postCreate(DynamicEntityHolder entityHolder, Map<String, Object> updateCi,
             Map<Integer, DynamicEntityMeta> multRefMetaMap, EntityManager entityManager) {
         entityManager.flush();
-        // TODO #1224
+        //  #1224
         handleAutoFill(entityHolder, entityManager);
         handleReferenceAutoFill(entityHolder, entityManager, updateCi);
         updateSeqNoForMultiReferenceFields(entityHolder, updateCi, entityManager);
@@ -365,7 +365,7 @@ public class CiDataInterceptorService {
     public void refreshAutoFill(DynamicEntityHolder entityHolder, EntityManager entityManager,
             Map<String, Object> ciData) {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        // TODO #1224
+        //  #1224
         handleAutoFill(entityHolder, entityManager);
         handleReferenceAutoFill(entityHolder, entityManager, ciData);
         stopwatch.stop();
@@ -393,7 +393,7 @@ public class CiDataInterceptorService {
 
     private void handleAutoFill(DynamicEntityHolder entityHolder, EntityManager entityManager) {
         int ciTypeId = entityHolder.getEntityMeta().getCiTypeId();
-        // TODO #1224
+        //  #1224
         // 1219
         // List<AdmCiTypeAttr> attrs =
         // ciTypeAttrRepository.findAllByCiTypeId(ciTypeId);
@@ -411,12 +411,11 @@ public class CiDataInterceptorService {
 
     private void executeAutoFill(DynamicEntityHolder entityHolder, EntityManager entityManager, String currentGuid,
             AdmCiTypeAttr currentAttr, AdmCiTypeAttr attrWithRule) {
-        // TODO #1224
+        //  #1224
         if (currentAttr.getCiTypeId() == attrWithRule.getCiTypeId()) {
             queryValueFromRuleAndSave(entityHolder, entityManager, currentGuid, attrWithRule);
         } else {
 
-            // TODO #1224 FIXME to inspect in detail
             Set<String> rootGuids = getRootGuids(currentGuid, currentAttr, attrWithRule.getAutoFillRule());
             logger.info("Fetched root guids ({}) for attrWithRule ({}) with current attr ({}) and guid ({})",
                     Arrays.toString(rootGuids.toArray()), attrWithRule.getIdAdmCiTypeAttr(),
@@ -428,7 +427,7 @@ public class CiDataInterceptorService {
 
     private void queryValueFromRuleAndSave(DynamicEntityHolder entityHolder, EntityManager entityManager,
             String currentGuid, AdmCiTypeAttr attrWithRule) {
-        // TODO #1224
+        //  #1224
         Object value = null;
         logger.info("Query rule value for guid ({}) with attrWithRule ({})", currentGuid,
                 attrWithRule.getIdAdmCiTypeAttr());
@@ -527,7 +526,7 @@ public class CiDataInterceptorService {
 
     private String queryValueByRule(String rootGuid, AdmCiTypeAttr attrWithGuid, Object autoFillRuleValue,
             StringBuilder sb) {
-        // TODO #1224
+        //  #1224
         List<AutoFillItem> autoRuleItems = parserRule(autoFillRuleValue);
         boolean isPreviousExpressionValue = true;
         for (AutoFillItem item : autoRuleItems) {
@@ -580,7 +579,7 @@ public class CiDataInterceptorService {
 
     private QueryResponse queryIntegrateWithRoutines(String guid, AdmCiTypeAttr attrWithGuid,
             List<AutoFillIntegrationQueryExDto> routines) {
-        // TODO #1224
+        //  #1224
         int attrIndex = getPositionInRoutine(routines, attrWithGuid);
         AdhocIntegrationQueryDto adhocDto = buildRootDto(routines.get(0), guid, attrWithGuid, attrIndex);
         travelFillQueryDto(routines, adhocDto.getCriteria(), adhocDto.getQueryRequest(), 1, attrWithGuid);
@@ -606,7 +605,7 @@ public class CiDataInterceptorService {
     }
 
     private Set<String> getRootGuids(String guid, AdmCiTypeAttr attrWithGuid, Object autoFillRuleValue) {
-        // TODO #1224
+        //  #1224
         Set<String> guids = new HashSet<>();
         List<AutoFillItem> autoRuleItems = parserRule(autoFillRuleValue);
         for (AutoFillItem item : autoRuleItems) {
@@ -644,7 +643,7 @@ public class CiDataInterceptorService {
 
     private IntegrationQueryDto travelFillQueryDto(List<AutoFillIntegrationQueryExDto> routines,
             IntegrationQueryDto parentDto, QueryRequest queryRequest, final int position, AdmCiTypeAttr attrWithGuid) {
-        // TODO#1224
+        // #1224
         if (position >= routines.size()) {
             return null;
         }
@@ -871,7 +870,7 @@ public class CiDataInterceptorService {
     public void postUpdate(DynamicEntityHolder entityHolder, EntityManager entityManager,
             Map<String, Object> updateCi) {
         entityManager.flush();
-        // TODO #1224
+        //  #1224
         handleReferenceAutoFill(entityHolder, entityManager, updateCi);
 
         updateSeqNoForMultiReferenceFields(entityHolder, updateCi, entityManager);
@@ -892,7 +891,7 @@ public class CiDataInterceptorService {
                 // .findAllByMatchAutoFillRule("\\\\\\\"attrId\\\\\\\":" +
                 // attr.getIdAdmCiTypeAttr());
 
-                // TODO #1224
+                //  #1224
                 logger.info("to calculate for {}-{}:{}-{}", attr.getAdmCiType().getIdAdmCiType(),
                         attr.getAdmCiType().getTableName(), attr.getCiTypeId(), attr.getPropertyName());
                 String attrKeyWordToQuery = "\\\"attrId\\\":"
@@ -916,7 +915,7 @@ public class CiDataInterceptorService {
 
                     logger.info("Executing autofill on matched attr ({}) for attr ({})",
                             attrWithMatchRule.getIdAdmCiTypeAttr(), attr.getIdAdmCiTypeAttr());
-                    // TODO #1224
+                    //  #1224
                     executeAutoFill(entityHolder, entityManager, entityHolder.get("guid").toString(), attr,
                             attrWithMatchRule);
                 });
@@ -944,7 +943,7 @@ public class CiDataInterceptorService {
             ci.put(CmdbConstants.DEFAULT_FIELD_STATE, StateOperation.Delete);
             ci.put(GUID, guid);
 
-            // TODO #1224
+            //  #1224
             handleReferenceAutoFill(entityHolder, entityManager, ci);
         } catch (Exception e) {
             String errorMessage = String.format("Exception happen for auto fill after ci type (%s) deletion.",
