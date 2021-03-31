@@ -9,6 +9,7 @@
             @on-change="onSystemDesignSelect"
             @on-clear="onClearDesignSelect"
             clearable
+            filterable
             label-in-name
             style="width: 35%;z-index:auto"
           >
