@@ -32,6 +32,10 @@ public class AdmCiTypeCachingService {
     private long refreshTimeIntervalMillis = 10 * 60 * 1000;
 
     private ConcurrentMap<Integer, AdmCiType> cachedAdmCiTypes = new ConcurrentHashMap<Integer, AdmCiType>();
+    
+    public void forceRefresh(){
+        doRefresh();
+    }
 
     protected synchronized void tryRefresh() {
         long intervalMillis = System.currentTimeMillis() - lastRefreshedTime;
