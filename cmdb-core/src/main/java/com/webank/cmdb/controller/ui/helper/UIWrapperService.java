@@ -6,14 +6,17 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.webank.cmdb.domain.*;
-import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
-import com.webank.cmdb.service.*;
-import com.webank.cmdb.util.JsonUtil;
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,12 +26,13 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.webank.cmdb.config.ApplicationProperties.UIProperties;
-import com.webank.cmdb.constant.AggregationFuction;
 import com.webank.cmdb.constant.CmdbConstants;
 import com.webank.cmdb.constant.FilterOperator;
 import com.webank.cmdb.constant.ImplementOperation;
+import com.webank.cmdb.domain.AdmCiType;
+import com.webank.cmdb.domain.AdmCiTypeAttr;
+import com.webank.cmdb.domain.AdmRole;
 import com.webank.cmdb.dto.AdhocIntegrationQueryDto;
 import com.webank.cmdb.dto.CatCodeDto;
 import com.webank.cmdb.dto.CatTypeDto;
@@ -48,17 +52,23 @@ import com.webank.cmdb.dto.RoleCiTypeDto;
 import com.webank.cmdb.dto.RoleDto;
 import com.webank.cmdb.dto.RoleUserDto;
 import com.webank.cmdb.dto.UserDto;
-import com.webank.cmdb.support.exception.CmdbException;
+import com.webank.cmdb.repository.AdmCiTypeAttrRepository;
 import com.webank.cmdb.repository.AdmRoleRepository;
 import com.webank.cmdb.repository.StaticEntityRepository;
+import com.webank.cmdb.service.BaseKeyInfoService;
+import com.webank.cmdb.service.CiService;
+import com.webank.cmdb.service.CiTypeService;
+import com.webank.cmdb.service.FilterRuleService;
+import com.webank.cmdb.service.IntegrationQueryService;
+import com.webank.cmdb.service.RoleCiTypeAccessCtrlService;
+import com.webank.cmdb.service.StaticDtoService;
+import com.webank.cmdb.support.exception.CmdbException;
 import com.webank.cmdb.util.BeanMapUtils;
+import com.webank.cmdb.util.JsonUtil;
 import com.webank.cmdb.util.ResourceDto;
-import com.webank.cmdb.util.Sorting;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.annotation.PostConstruct;
 
 @Service
 @Slf4j
@@ -960,21 +970,46 @@ public class UIWrapperService {
             recursiveGetChildrenData(childrenCiTypeRelativeAttributes.get(j).getCiTypeId(), limitedCiTypes, children, filter);
         }
     }
+    
+    private void recursiveGetChildrenDataByRelativeAttributesFromSystemDesign(List<CiTypeAttrDto> childrenCiTypeRelativeAttributes,
+            String stateEnumCode, String guid, List<ResourceTreeDto> children, Filter fixDateFilter, String rootFixDate) {
+        if (childrenCiTypeRelativeAttributes.size() == 0) {
+            return;
+        }
 
-    private void recursiveGetChildrenDataByRelativeAttributes(List<CiTypeAttrDto> childrenCiTypeRelativeAttributes, String stateEnumCode, String guid, List<ResourceTreeDto> children, Filter fixDate) {
-        if (childrenCiTypeRelativeAttributes.size() != 0) {
-
-            for (CiTypeAttrDto childrenCiTypeRelativeAttribute : childrenCiTypeRelativeAttributes) {
-                QueryRequest defaultQueryObject = QueryRequest.defaultQueryObject();
-                defaultQueryObject.addEqualsFilter(childrenCiTypeRelativeAttribute.getPropertyName(), guid);
-                List<CiTypeAttrDto> attr = getCiTypeAttributesByCiTypeIdAndPropertyName(childrenCiTypeRelativeAttribute.getCiTypeId(), uiProperties.getPropertyNameOfState());
-                if (attr.size() == 0) {
-                    continue;
-                }
-
-                int stateEnumCatOfChildren = attr.get(0).getReferenceId();
-                recursiveGetChildrenDataFilterState(childrenCiTypeRelativeAttribute.getCiTypeId(), stateEnumCatOfChildren, stateEnumCode, children, defaultQueryObject, fixDate);
+        for (CiTypeAttrDto childrenCiTypeRelativeAttribute : childrenCiTypeRelativeAttributes) {
+            QueryRequest defaultQueryObject = QueryRequest.defaultQueryObject();
+            defaultQueryObject.addEqualsFilter(childrenCiTypeRelativeAttribute.getPropertyName(), guid);
+            List<CiTypeAttrDto> attr = getCiTypeAttributesByCiTypeIdAndPropertyName(
+                    childrenCiTypeRelativeAttribute.getCiTypeId(), uiProperties.getPropertyNameOfState());
+            if (attr.size() == 0) {
+                continue;
             }
+
+            int stateEnumCatOfChildren = attr.get(0).getReferenceId();
+            recursiveGetChildrenDataFilterStateFromSystemDesign(childrenCiTypeRelativeAttribute.getCiTypeId(), stateEnumCatOfChildren,
+                    stateEnumCode, children, defaultQueryObject, fixDateFilter, rootFixDate);
+        }
+    }
+
+    private void recursiveGetChildrenDataByRelativeAttributes(List<CiTypeAttrDto> childrenCiTypeRelativeAttributes,
+            String stateEnumCode, String guid, List<ResourceTreeDto> children, Filter fixDate) {
+        if (childrenCiTypeRelativeAttributes.size() == 0) {
+            return;
+        }
+
+        for (CiTypeAttrDto childrenCiTypeRelativeAttribute : childrenCiTypeRelativeAttributes) {
+            QueryRequest defaultQueryObject = QueryRequest.defaultQueryObject();
+            defaultQueryObject.addEqualsFilter(childrenCiTypeRelativeAttribute.getPropertyName(), guid);
+            List<CiTypeAttrDto> attr = getCiTypeAttributesByCiTypeIdAndPropertyName(
+                    childrenCiTypeRelativeAttribute.getCiTypeId(), uiProperties.getPropertyNameOfState());
+            if (attr.size() == 0) {
+                continue;
+            }
+
+            int stateEnumCatOfChildren = attr.get(0).getReferenceId();
+            recursiveGetChildrenDataFilterState(childrenCiTypeRelativeAttribute.getCiTypeId(), stateEnumCatOfChildren,
+                    stateEnumCode, children, defaultQueryObject, fixDate);
         }
     }
 
@@ -1071,9 +1106,19 @@ public class UIWrapperService {
         String stateEnumCode = uiProperties.getEnumCodeOfStateDelete();
         QueryRequest defaultQueryRequest = QueryRequest.defaultQueryObject();
         defaultQueryRequest.addEqualsFilter(CmdbConstants.GUID, systemDesignGuid);
-        Filter fixDateFilter = getFixDateFilter(systemDesignCiTypeId, systemDesignGuid);
+        
+        Map<String, Object> ciData = ciService.getCi(systemDesignCiTypeId, systemDesignGuid);
 
-        recursiveGetChildrenDataFilterState(systemDesignCiTypeId, stateEnumCat, stateEnumCode, designTrees, defaultQueryRequest, fixDateFilter);
+        String fixDate = (String) ciData.get(CONSTANT_FIXED_DATE);
+
+        Filter fixDateFilter = null;
+        if (StringUtils.isNotBlank(fixDate)) {
+            fixDateFilter = new Filter(CONSTANT_FIXED_DATE, FilterOperator.LessEqual.getCode(), fixDate);
+        }
+        
+//        Filter fixDateFilter = getFixDateFilter(systemDesignCiTypeId, systemDesignGuid);
+
+        recursiveGetChildrenDataFilterStateFromSystemDesign(systemDesignCiTypeId, stateEnumCat, stateEnumCode, designTrees, defaultQueryRequest, fixDateFilter, fixDate);
 
         return designTrees;
     }
@@ -1097,8 +1142,41 @@ public class UIWrapperService {
         queryObject.addEqualsFilter("propertyName", propertyName);
         return queryCiTypeAttributes(queryObject);
     }
+    
+    private void recursiveGetChildrenDataFilterStateFromSystemDesign(Integer ciTypeId, int stateEnumCat, String stateEnumCode,
+            List<ResourceTreeDto> resourceTrees, QueryRequest inputFilters, Filter fixDateFilter, String rootFixDate) {
+        inputFilters = setQueryRequest(inputFilters, fixDateFilter, ciTypeId);
 
-    public void recursiveGetChildrenDataFilterState(Integer ciTypeId, int stateEnumCat, String stateEnumCode, List<ResourceTreeDto> resourceTrees, QueryRequest inputFilters, Filter fixDate) {
+        List<CiData> ciDatas = queryCiData(ciTypeId, inputFilters).getContents();
+
+        for (int i = 0; i < ciDatas.size(); i++) {
+            CiData ciData = ciDatas.get(i);
+            Map<String, Object> ciDataMap = ciData.getData();
+            
+            String ciDataMapFixDate = (String)ciDataMap.get(CONSTANT_FIXED_DATE);
+            String ciDataMapState = (String)ciDataMap.get(CmdbConstants.DEFAULT_FIELD_STATE_CODE);
+            if(StringUtils.isNoneBlank(rootFixDate) && StringUtils.isNoneBlank(ciDataMapFixDate) && (!ciDataMapFixDate.equals(rootFixDate)) && CmdbConstants.CIDATA_STATE_DELETED.equals(ciDataMapState)) {
+                continue;
+            }
+            
+            if(StringUtils.isBlank(rootFixDate) && StringUtils.isNoneBlank(ciDataMapFixDate) && CmdbConstants.CIDATA_STATE_DELETED.equals(ciDataMapState)) {
+                continue;
+            }
+            
+            ResourceTreeDto resourceTreeDto = buildNewResourceTreeDto(ciData, ciTypeId);
+
+            resourceTrees.add(resourceTreeDto);
+            List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId,
+                    uiProperties.getReferenceCodeOfBelong());
+            
+            recursiveGetChildrenDataByRelativeAttributesFromSystemDesign(childrenCiTypeRelativeAttributes, stateEnumCode,
+                    ciDataMap.get(CmdbConstants.DEFAULT_FIELD_ROOT_GUID).toString(), resourceTreeDto.getChildren(),
+                    fixDateFilter, rootFixDate);
+        }
+    }
+
+    public void recursiveGetChildrenDataFilterState(Integer ciTypeId, int stateEnumCat, String stateEnumCode,
+            List<ResourceTreeDto> resourceTrees, QueryRequest inputFilters, Filter fixDate) {
         inputFilters = setQueryRequest(inputFilters, fixDate, ciTypeId);
 
         List<CiData> ciDatas = queryCiData(ciTypeId, inputFilters).getContents();
@@ -1117,13 +1195,17 @@ public class UIWrapperService {
              */
 
             resourceTrees.add(resourceTreeDto);
-            List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, uiProperties.getReferenceCodeOfBelong());
-            recursiveGetChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, stateEnumCode, ciDataMap.get(CmdbConstants.DEFAULT_FIELD_ROOT_GUID).toString(), resourceTrees.get(i).getChildren(), fixDate);
+            List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId,
+                    uiProperties.getReferenceCodeOfBelong());
+            
+            recursiveGetChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, stateEnumCode,
+                    ciDataMap.get(CmdbConstants.DEFAULT_FIELD_ROOT_GUID).toString(), resourceTreeDto.getChildren(),
+                    fixDate);
         }
     }
 
-    private QueryRequest setQueryRequest(QueryRequest inputFilters, Filter fixDate, Integer ciTypeId) {
-        if (fixDate == null) {
+    private QueryRequest setQueryRequest(QueryRequest inputFilters, Filter fixDateFilter, Integer ciTypeId) {
+        if (fixDateFilter == null) {
             return inputFilters;
         }
         QueryRequest queryData = defaultQueryObject();
@@ -1138,14 +1220,14 @@ public class UIWrapperService {
         }
         inputFilters.getDialect().setShowCiHistory(true);
         inputFilters.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
-        inputFilters.getFilters().add(fixDate);
+        inputFilters.getFilters().add(fixDateFilter);
         inputFilters.addNotEmptyFilter(CONSTANT_FIXED_DATE);
         inputFilters.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
         
         QueryRequest firstQueryReq = new QueryRequest();
         firstQueryReq.getDialect().setShowCiHistory(true);
         firstQueryReq.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
-        firstQueryReq.getFilters().add(fixDate);
+        firstQueryReq.getFilters().add(fixDateFilter);
         firstQueryReq.addNotEmptyFilter(CONSTANT_FIXED_DATE);
         firstQueryReq.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
         firstQueryReq.setPageable(null);
@@ -1221,13 +1303,125 @@ public class UIWrapperService {
 
     public Object getArchitectureCiData(Integer codeId, String systemDesignGuid, QueryRequest queryObject,String rGuid) {
         Integer systemDesignCiTypeId = uiProperties.getCiTypeIdOfSystemDesign();
-        Filter fixDateFilter = getFixDateFilter(systemDesignCiTypeId, systemDesignGuid);
+        
+        Map<String, Object> ciData = ciService.getCi(systemDesignCiTypeId, systemDesignGuid);
+
+        String fixDate = (String) ciData.get(CONSTANT_FIXED_DATE);
+
+        Filter fixDateFilter = null;
+        if (StringUtils.isNotBlank(fixDate)) {
+            fixDateFilter = new Filter(CONSTANT_FIXED_DATE, FilterOperator.LessEqual.getCode(), fixDate);
+        }
+        
+//        Filter fixDateFilter = getFixDateFilter(systemDesignCiTypeId, systemDesignGuid);
         CatCodeDto code = getEnumCodeById(codeId);
         Integer ciTypeId = Integer.parseInt(code.getCode());
-        queryObject = setQueryRequest(queryObject, fixDateFilter, ciTypeId);
+        queryObject = setQueryRequestArchitectureCiData(queryObject, fixDateFilter, ciTypeId, fixDate);
         
         return getCiDataHistory(codeId, null, rGuid, queryObject, systemDesignCiTypeId,true);
     }
+    
+    private QueryRequest handleNullFixDateFilter(QueryRequest inputQueryRequest, Filter fixDateFilter, Integer ciTypeId, String rootFixDate) {
+        QueryRequest firstQueryReq = new QueryRequest();
+        firstQueryReq.getDialect().setShowCiHistory(true);
+        firstQueryReq.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
+        firstQueryReq.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
+        firstQueryReq.setPageable(null);
+        firstQueryReq.setPaging(false);
+        for(Filter f : inputQueryRequest.getFilters() ){
+            firstQueryReq.getFilters().add(f);
+        }
+        List<CiData> ciDatas = queryCiData(ciTypeId, firstQueryReq).getContents();
+        if (ciDatas == null || ciDatas.size() <= 0) {
+            return inputQueryRequest;
+        }
+        
+        List<String> guids = new ArrayList<>();
+        for(CiData ciData : ciDatas) {
+            String ciDataFixDate = (String)ciData.getData().get(CONSTANT_FIXED_DATE);
+            String ciDataState = (String)ciData.getData().get(CmdbConstants.DEFAULT_FIELD_STATE_CODE);
+            
+            if(StringUtils.isNoneBlank(rootFixDate) && StringUtils.isNoneBlank(ciDataFixDate) && (!ciDataFixDate.equals(rootFixDate)) && CmdbConstants.CIDATA_STATE_DELETED.equals(ciDataState)) {
+                continue;
+            }
+            
+            if(StringUtils.isBlank(rootFixDate) && StringUtils.isNoneBlank(ciDataFixDate) && CmdbConstants.CIDATA_STATE_DELETED.equals(ciDataState)) {
+                continue;
+            }
+            
+            String guid = ciData.getData().get(CmdbConstants.GUID).toString();
+            guids.add(guid);
+        }
+        
+        inputQueryRequest.addInFilter(CmdbConstants.GUID, guids);
+        return inputQueryRequest;
+    }
+    
+    private QueryRequest setQueryRequestArchitectureCiData(QueryRequest inputQueryRequest, Filter fixDateFilter, Integer ciTypeId, String rootFixDate) {
+        if (fixDateFilter == null) {
+            //TODO
+            return handleNullFixDateFilter( inputQueryRequest,  fixDateFilter,  ciTypeId,  rootFixDate);
+        }
+        QueryRequest queryData = defaultQueryObject();
+        if(inputQueryRequest.getPageable() != null){
+            queryData.setPageable(inputQueryRequest.getPageable());
+        }
+        
+        queryData.setPaging(inputQueryRequest.isPaging());
+        
+        if (inputQueryRequest.getFilters().size() == 1) {
+            queryData.getFilters().add(inputQueryRequest.getFilters().get(0));
+        }
+        inputQueryRequest.getDialect().setShowCiHistory(true);
+        inputQueryRequest.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
+        inputQueryRequest.getFilters().add(fixDateFilter);
+        inputQueryRequest.addNotEmptyFilter(CONSTANT_FIXED_DATE);
+        inputQueryRequest.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
+        
+        QueryRequest firstQueryReq = new QueryRequest();
+        firstQueryReq.getDialect().setShowCiHistory(true);
+        firstQueryReq.setGroupBys(Arrays.asList(CONSTANT_R_GUID_PATH));
+        firstQueryReq.getFilters().add(fixDateFilter);
+        firstQueryReq.addNotEmptyFilter(CONSTANT_FIXED_DATE);
+        firstQueryReq.withSorting(false, CmdbConstants.DEFAULT_FIELD_ROOT_GUID);
+        firstQueryReq.setPageable(null);
+        firstQueryReq.setPaging(false);
+        for(Filter f : inputQueryRequest.getFilters() ){
+            firstQueryReq.getFilters().add(f);
+        }
+      
+        List<CiData> ciDatas = queryCiData(ciTypeId, firstQueryReq).getContents();
+        if (ciDatas == null || ciDatas.size() <= 0) {
+            return inputQueryRequest;
+        }
+//        List<String> guids = ciDatas.stream().map(ciData ->{
+//            return ciData.getData().get(CmdbConstants.GUID).toString();
+//        }).collect(Collectors.toList());
+        
+        List<String> guids = new ArrayList<>();
+        for(CiData ciData : ciDatas) {
+            String ciDataFixDate = (String)ciData.getData().get(CONSTANT_FIXED_DATE);
+            String ciDataState = (String)ciData.getData().get(CmdbConstants.DEFAULT_FIELD_STATE_CODE);
+            
+            if(StringUtils.isNoneBlank(rootFixDate) && StringUtils.isNoneBlank(ciDataFixDate) && (!ciDataFixDate.equals(rootFixDate)) && CmdbConstants.CIDATA_STATE_DELETED.equals(ciDataState)) {
+                continue;
+            }
+            
+            if(StringUtils.isBlank(rootFixDate) && StringUtils.isNoneBlank(ciDataFixDate) && CmdbConstants.CIDATA_STATE_DELETED.equals(ciDataState)) {
+                continue;
+            }
+            
+            String guid = ciData.getData().get(CmdbConstants.GUID).toString();
+            guids.add(guid);
+        }
+        
+        queryData.addInFilter(CmdbConstants.GUID, guids);
+        queryData.getDialect().setShowCiHistory(true);
+        
+        
+        return queryData;
+    }
+    
     private Object getCiData(Integer codeId, String envCode, String systemDesignGuid, QueryRequest queryObject, int systemDesignCiTypeId) {
         return getCiDataHistory(codeId, envCode, systemDesignGuid, queryObject, systemDesignCiTypeId,false);
     }

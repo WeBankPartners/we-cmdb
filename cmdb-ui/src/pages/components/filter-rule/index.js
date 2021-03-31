@@ -10,6 +10,7 @@ export default {
   props: {
     value: { required: true },
     allCiTypes: { default: () => [], type: Array, required: true },
+	rootCiTypeId: { required: false },
     leftRootCi: { type: String, required: true },
     rightRootCi: { type: String, required: true },
     isReadOnly: { default: false, type: Boolean, required: false }
@@ -131,6 +132,7 @@ export default {
           }}
           isReadOnly={isReadOnly}
           allCiTypes={this.allCiTypes}
+		  rootCiTypeId={this.rootCiTypeId}
           isFilterAttr={true}
           hiddenAttrType={this.hiddenAttrType}
           hideFilterModal={true}
@@ -218,6 +220,7 @@ export default {
               }}
               isReadOnly={isReadOnly}
               allCiTypes={this.allCiTypes}
+			  rootCiTypeId={this.rootCiTypeId}
               isFilterAttr={true}
               hiddenAttrType={this.hiddenAttrType}
               hideFirstFilter={true}

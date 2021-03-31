@@ -11,7 +11,7 @@
             clearable
             filterable
             label-in-name
-            style="width: 35%;"
+            style="width: 35%;z-index:auto"
           >
             <OptionGroup v-for="(data, idx) in systemDesigns" :key="idx" :label="data[0].name">
               <Option
@@ -472,7 +472,7 @@ export default {
         loading: true,
         'z-index': 1000000,
         onOk: async () => {
-          this.getGraphData()
+          this.getGraphData(isTableViewOnly)
         },
         onCancel: () => {}
       })
@@ -522,12 +522,13 @@ export default {
     },
     async getAllDesignTreeFromSystemDesign () {
       this.showApplicationArchitectureComponent = true
-      this.$refs.applicationArchitectureComponent.getAllDesignTreeFromSystemDesign(
-        this.systemDesignVersion,
-        this.isTableViewOnly
-      )
       this.allUnitDesign = []
       const treeData = await getAllDesignTreeFromSystemDesign(this.systemDesignVersion)
+      this.$refs.applicationArchitectureComponent.getAllDesignTreeFromSystemDesign(
+        this.systemDesignVersion,
+        this.isTableViewOnly,
+        treeData
+      )
       if (treeData.statusCode === 'OK') {
         this.getAllInvokeSequenceData()
         this.appInvokeLines = {}
@@ -1314,15 +1315,11 @@ export default {
       this.currentSystem = this.systemDesignsOrigin.find(x => x.guid === key)
       this.allowFixVersion = false
       this.isTableViewOnly = true
-      if (
-        this.currentTab !== 'architecture-design' &&
-        this.currentTab !== 'physicalGraph' &&
-        this.currentTab === 'serviceInvoke'
-      ) {
-        this.tabList.forEach(ci => {
-          ci.tableData = []
-        })
-      }
+      this.currentTab = 'architectureDesign'
+      this.tabList.forEach(ci => {
+        ci.tableData = []
+      })
+      this.$refs.applicationArchitectureComponent.clearSvg()
     },
     async getSystemDesigns (callback) {
       this.systemDesigns = []
@@ -1342,6 +1339,7 @@ export default {
             x.guid === x.r_guid ? obj[x.r_guid].unshift(x) : obj[x.r_guid].push(x)
             return obj
           }, {})
+
         this.systemDesigns = Object.values(resultObj)
         if (callback && callback instanceof Function) {
           callback()
@@ -1366,6 +1364,11 @@ export default {
 }
 </script>
 
+<style>
+.ivu-select-dropdown-transfer {
+  z-index: auto !important;
+}
+</style>
 <style lang="scss" scoped>
 .ivu-card-head p {
   height: 30px;

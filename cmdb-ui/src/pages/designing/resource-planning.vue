@@ -182,7 +182,6 @@ export default {
       if (!val.length) {
         this.showResourcePlanning = false
       }
-      console.log(val)
     },
     currentTab () {
       this.copyRows = []
