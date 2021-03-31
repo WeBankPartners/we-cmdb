@@ -1,6 +1,10 @@
 package com.webank.cmdb.dto;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -15,10 +19,10 @@ import com.webank.cmdb.support.exception.InvalidArgumentException;
 import com.webank.cmdb.support.exception.ServiceException;
 
 @JsonInclude(Include.NON_EMPTY)
-public class IntegrationQueryDto {
+public class IntegrationQueryExDto {
     private String name;
     private String keyName;
-    private Integer ciTypeId;
+    private String ciTypeId;  //table name instead
     private List<Integer> attrs = new LinkedList<>();
     // to display attribute names in cmdb gui (can be duplicated)
     private List<String> attrAliases = new ArrayList<>();
@@ -30,68 +34,63 @@ public class IntegrationQueryDto {
     private List<String> attrKeyNames = new ArrayList<>();
 
     // relation with parent node, it is not needed in root node.
-    private Relationship parentRs;
-    private List<IntegrationQueryDto> children = new LinkedList<>();
+    private RelationshipEx parentRs;
+    private List<IntegrationQueryExDto> children = new LinkedList<>();
     private List<Filter> filters = new ArrayList<Filter>();
-
     public List<Filter> getFilters() {
-        return filters;
+		return filters;
+	}
+
+	public void setFilters(List<Filter> filters) {
+		this.filters = filters;
+	}
+
+	public IntegrationQueryExDto() {
     }
 
-    public void setFilters(List<Filter> filters) {
-        this.filters = filters;
-    }
-
-    public IntegrationQueryDto() {
-    }
-
-    public IntegrationQueryDto(String name) {
+    public IntegrationQueryExDto(String name) {
         this.name = name;
     }
 
-    public static IntegrationQueryDto fromDomain(AdmIntegrateTemplate intTemplate) {
+    public static IntegrationQueryExDto fromDomain(AdmIntegrateTemplate intTemplate) {
         AdmIntegrateTemplateAlias rootAlias = null;
         // find out root alias which dose not has parent relationship
         List<AdmIntegrateTemplateAlias> aliases = intTemplate.getAdmIntegrateTemplateAlias();
         for (AdmIntegrateTemplateAlias alias : aliases) {
             if (alias.getParentIntegrateTemplateRelation() == null) {
                 if (rootAlias != null) {
-                    throw new ServiceException(
-                            String.format("There are more then 1 root aliase for integrate template [%d].",
-                                    intTemplate.getIdAdmIntegrateTemplate())).withErrorCode("3110",
-                                            intTemplate.getIdAdmIntegrateTemplate());
+                    throw new ServiceException(String.format("There are more then 1 root aliase for integrate template [%d].", intTemplate.getIdAdmIntegrateTemplate()))
+                    .withErrorCode("3110", intTemplate.getIdAdmIntegrateTemplate());
                 } else {
                     rootAlias = alias;
                 }
             }
         }
-
-        if (rootAlias == null) {
-            throw new ServiceException(String.format("Can not find out root alias for integrate template [%d].",
-                    intTemplate.getIdAdmIntegrateTemplate())).withErrorCode("3111",
-                            intTemplate.getIdAdmIntegrateTemplate());
+        
+        if(rootAlias == null) {
+            throw new ServiceException(String.format("Can not find out root alias for integrate template [%d].", intTemplate.getIdAdmIntegrateTemplate()))
+            .withErrorCode("3111", intTemplate.getIdAdmIntegrateTemplate());
         }
 
         return buildDtoTree(rootAlias, null, null);
     }
 
-    public void validate() {
-        if (children.size() > 0) {
-            for (IntegrationQueryDto child : children) {
+    public void validate(){
+        if(children.size()>0){
+            for(IntegrationQueryExDto child:children){
                 child.validate();
             }
-        } else {
-            if (attrKeyNames.size() > 0 && attrs.size() != attrKeyNames.size()) {
+        }else{
+            if(attrKeyNames.size()>0 && attrs.size() != attrKeyNames.size()){
                 throw new InvalidArgumentException("Attribute list should have same size of attrKeyName.");
             }
 
-            if (attrKeyNames != null && attrKeyNames.size() > 0) {
+            if(attrKeyNames!=null && attrKeyNames.size()>0){
                 Set<String> nameSet = new HashSet<>();
-                for (String keyName : attrKeyNames) {
-                    if (nameSet.contains(keyName)) {
-                        throw new InvalidArgumentException(
-                                String.format("Attribute key name (%s) can not be duplicated.", keyName));
-                    } else {
+                for(String keyName:attrKeyNames){
+                    if(nameSet.contains(keyName)){
+                        throw new InvalidArgumentException(String.format("Attribute key name (%s) can not be duplicated.",keyName));
+                    }else{
                         nameSet.add(keyName);
                     }
                 }
@@ -99,11 +98,10 @@ public class IntegrationQueryDto {
         }
     }
 
-    private static IntegrationQueryDto buildDtoTree(AdmIntegrateTemplateAlias alias,
-            AdmIntegrateTemplateAlias parentAlias, AdmIntegrateTemplateRelation parentRelation) {
-        IntegrationQueryDto curDto = new IntegrationQueryDto();
+    private static IntegrationQueryExDto buildDtoTree(AdmIntegrateTemplateAlias alias, AdmIntegrateTemplateAlias parentAlias, AdmIntegrateTemplateRelation parentRelation) {
+        IntegrationQueryExDto curDto = new IntegrationQueryExDto();
         AdmCiType ciType = alias.getAdmCiType();
-        curDto.setCiTypeId(ciType.getIdAdmCiType());
+        curDto.setCiTypeId(ciType.getTableName());
         curDto.setName(alias.getAlias());
         alias.getAdmIntegrateTemplateAliasAttrs().forEach(x -> {
             curDto.attrs.add(x.getCiTypeAttrId());
@@ -119,8 +117,7 @@ public class IntegrationQueryDto {
             // child and parent CiType are same
             if (ciType.getIdAdmCiType() == parentAlias.getCiTypeId()) {
                 relationshipCiTypeId = ciTypeId;
-                // isReferedFromParent = parentRelation.getIsReferedFromParent()
-                // == 1;
+                // isReferedFromParent = parentRelation.getIsReferedFromParent() == 1;
             } else {
                 if (ciTypeId == ciType.getIdAdmCiType()) {
                     relationshipCiTypeId = ciTypeId;
@@ -130,12 +127,11 @@ public class IntegrationQueryDto {
                     // isReferedFromParent = true;
                 }
             }
-            Relationship parentRs = new Relationship(attr.getIdAdmCiTypeAttr(),
-                    parentRelation.getIsReferedFromParent() == 1);
+            String attrId = String.format("%s#%s", attr.getAdmCiType().getTableName(), attr.getPropertyName())
+;            RelationshipEx parentRs = new RelationshipEx(attrId, parentRelation.getIsReferedFromParent() == 1);
             curDto.setParentRs(parentRs);
         }
-        if (alias.getChildIntegrateTemplateRelations() != null
-                && alias.getChildIntegrateTemplateRelations().size() > 0) {
+        if (alias.getChildIntegrateTemplateRelations() != null && alias.getChildIntegrateTemplateRelations().size() > 0) {
             for (AdmIntegrateTemplateRelation tempRelation : alias.getChildIntegrateTemplateRelations()) {
                 curDto.addChild(buildDtoTree(tempRelation.getChildIntegrateTemplateAlias(), alias, tempRelation));
             }
@@ -143,12 +139,11 @@ public class IntegrationQueryDto {
         return curDto;
     }
 
-    public IntegrationQueryDto(String name, Integer ciTypeId, List<Integer> attrs, Relationship rs) {
+    public IntegrationQueryExDto(String name, String ciTypeId, List<Integer> attrs, RelationshipEx rs) {
         this(name, ciTypeId, attrs, null, rs);
     }
 
-    public IntegrationQueryDto(String name, Integer ciTypeId, List<Integer> attrs, List<String> attrAliases,
-            Relationship rs) {
+    public IntegrationQueryExDto(String name, String ciTypeId, List<Integer> attrs, List<String> attrAliases, RelationshipEx rs) {
         this.name = name;
         this.ciTypeId = ciTypeId;
         this.attrs = attrs;
@@ -156,15 +151,15 @@ public class IntegrationQueryDto {
         this.parentRs = rs;
     }
 
-    public Integer getCiTypeId() {
+    public String getCiTypeId() {
         return ciTypeId;
     }
 
-    public void setCiTypeId(int ciTypeId) {
+    public void setCiTypeId(String ciTypeId) {
         this.ciTypeId = ciTypeId;
     }
 
-    public IntegrationQueryDto withCiTypeId(int ciTypeId) {
+    public IntegrationQueryExDto withCiTypeId(String ciTypeId){
         setCiTypeId(ciTypeId);
         return this;
     }
@@ -177,38 +172,38 @@ public class IntegrationQueryDto {
         this.attrs = attrs;
     }
 
-    public IntegrationQueryDto withAttrs(List<Integer> attrs) {
+    public IntegrationQueryExDto withAttrs(List<Integer> attrs){
         setAttrs(attrs);
         return this;
     }
 
-    public Relationship getParentRs() {
+    public RelationshipEx getParentRs() {
         return parentRs;
     }
 
-    public void setParentRs(Relationship parentRs) {
+    public void setParentRs(RelationshipEx parentRs) {
         this.parentRs = parentRs;
     }
 
-    public IntegrationQueryDto withParentRs(Relationship parentRs) {
+    public IntegrationQueryExDto withParentRs(RelationshipEx parentRs){
         setParentRs(parentRs);
         return this;
     }
 
-    public List<IntegrationQueryDto> getChildren() {
+    public List<IntegrationQueryExDto> getChildren() {
         return children;
     }
 
-    public void setChildren(List<IntegrationQueryDto> children) {
+    public void setChildren(List<IntegrationQueryExDto> children) {
         this.children = children;
     }
 
-    public IntegrationQueryDto withChildren(List<IntegrationQueryDto> children) {
+    public IntegrationQueryExDto withChildren(List<IntegrationQueryExDto> children){
         setChildren(children);
         return this;
     }
 
-    public void addChild(IntegrationQueryDto child) {
+    public void addChild(IntegrationQueryExDto child) {
         this.children.add(child);
     }
 
@@ -236,7 +231,7 @@ public class IntegrationQueryDto {
         this.attrKeyNames = attrKeyNames;
     }
 
-    public IntegrationQueryDto withAttrKeyNames(List<String> attrKeyNames) {
+    public IntegrationQueryExDto withAttrKeyNames(List<String> attrKeyNames){
         setAttrKeyNames(attrKeyNames);
         return this;
     }
@@ -259,7 +254,11 @@ public class IntegrationQueryDto {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("ciTypeId", ciTypeId).add("attrs", attrs)
-                .add("attrAliases", attrAliases).add("parentRs", parentRs).toString();
+        return MoreObjects.toStringHelper(this)
+                .add("ciTypeId", ciTypeId)
+                .add("attrs", attrs)
+                .add("attrAliases", attrAliases)
+                .add("parentRs", parentRs)
+                .toString();
     }
 }
