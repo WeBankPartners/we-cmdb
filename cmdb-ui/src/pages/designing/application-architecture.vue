@@ -4,30 +4,35 @@
       <Col span="16">
         <Row>
           <span style="margin-right: 10px">{{ $t('system_design') }}</span>
-          <Select
-            v-model="systemDesignVersion"
-            @on-change="onSystemDesignSelect"
-            @on-clear="onClearDesignSelect"
-            clearable
-            filterable
-            label-in-name
-            style="width: 35%;z-index:auto"
-          >
-            <OptionGroup v-for="(data, idx) in systemDesigns" :key="idx" :label="data[0].name">
-              <Option
-                v-for="item in data"
-                :value="item.guid"
-                :key="item.guid"
-                :label="`${item.name}${item.fixed_date ? ' ' + item.fixed_date : ''}`"
-                style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
-              >
-                <div>{{ item.name }}</div>
-                <div v-if="item.fixed_date" style="color:#ccc; flex-shrink:1; margin-left:10px">
-                  {{ item.fixed_date }}
-                </div>
-              </Option>
-            </OptionGroup>
-          </Select>
+          <template v-if="visibilitySelect">
+            <Select
+              v-model="systemDesignVersion"
+              @on-change="onSystemDesignSelect"
+              @on-clear="onClearDesignSelect"
+              clearable
+              filterable
+              label-in-name
+              style="width: 35%;z-index:auto"
+            >
+              <OptionGroup v-for="data in systemDesigns" :key="data[0].guid + data[0].fixed_date" :label="data[0].name">
+                <Option
+                  v-for="item in data"
+                  :value="item.guid"
+                  :key="item.guid"
+                  :label="`${item.name}${item.fixed_date ? ' ' + item.fixed_date : ''}`"
+                  style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
+                >
+                  <div>{{ item.name }}</div>
+                  <div v-if="item.fixed_date" style="color:#ccc; flex-shrink:1; margin-left:10px">
+                    {{ item.fixed_date }}
+                  </div>
+                </Option>
+              </OptionGroup>
+            </Select>
+          </template>
+          <template v-if="!visibilitySelect">
+            <div style="width: 35%;display:inline-block;height:2px;"></div>
+          </template>
           <Button
             style="margin: 0 10px;"
             @click="onArchChange(false)"
@@ -273,6 +278,7 @@ export default {
   },
   data () {
     return {
+      visibilitySelect: true,
       currentSystem: null,
       tabList: [],
       systemDesigns: [],
@@ -481,9 +487,15 @@ export default {
       const { statusCode, data } = await updateSystemDesign(this.systemDesignVersion)
       if (statusCode === 'OK') {
         if (data.length) {
-          this.getSystemDesigns(() => {
-            this.queryGraphData(isTableViewOnly)
-          })
+          const tmp = this.systemDesignVersion
+          await this.getSystemDesigns()
+          this.systemDesignVersion = tmp
+          this.currentSystem = this.systemDesignsOrigin.find(x => x.guid === tmp)
+          this.allowArch = this.systemDesignsOrigin.some(x => x.r_guid === tmp)
+          // this.getSystemDesigns(() => {
+          this.queryGraphData(isTableViewOnly)
+          this.allowFixVersion = false
+          // })
         } else {
           this.queryGraphData(isTableViewOnly)
         }
@@ -1323,6 +1335,7 @@ export default {
     },
     async getSystemDesigns (callback) {
       this.systemDesigns = []
+      this.visibilitySelect = false
       const { statusCode, data } = await getSystemDesigns()
       if (statusCode === 'OK') {
         this.systemDesignsOrigin = data.contents.map(_ => _.data)
@@ -1339,8 +1352,8 @@ export default {
             x.guid === x.r_guid ? obj[x.r_guid].unshift(x) : obj[x.r_guid].push(x)
             return obj
           }, {})
-
         this.systemDesigns = Object.values(resultObj)
+        this.visibilitySelect = true
         if (callback && callback instanceof Function) {
           callback()
         }
