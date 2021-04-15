@@ -129,6 +129,7 @@ export default {
         delete node.indeterminate
       })
       this.setSelectNodes()
+      this.$emit('dataClear')
     },
     setSelectNodes () {
       let nodes = []

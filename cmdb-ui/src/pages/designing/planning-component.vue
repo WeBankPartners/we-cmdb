@@ -363,7 +363,7 @@ export default {
           )
         }
       })
-      this.$refs.transferData.linkManagementData(this.effectiveLink)
+      this.$refs.transferData && this.$refs.transferData.linkManagementData(this.effectiveLink)
       return dots.join('')
     },
     handleNodeClick (e) {
