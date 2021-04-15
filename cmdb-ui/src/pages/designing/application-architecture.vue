@@ -64,7 +64,7 @@
         </Row>
       </Col>
     </Row>
-    <Card style="margin-top: 20px">
+    <Card v-show="showDefaultTabs" style="margin-top: 20px">
       <div>
         <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
           <TabPane :label="$t('application_logic_diagram')" name="architectureDesign" class="app-tab" :index="1">
@@ -280,6 +280,7 @@ export default {
     return {
       visibilitySelect: true,
       currentSystem: null,
+      showDefaultTabs: false,
       tabList: [],
       systemDesigns: [],
       systemDesignsOrigin: [],
@@ -468,6 +469,7 @@ export default {
         }
         this.getGraphData(isTableViewOnly)
       }
+      this.showDefaultTabs = true
     },
     confirmOnArch (isTableViewOnly) {
       this.$Modal.confirm({
@@ -524,6 +526,8 @@ export default {
       }
     },
     onClearDesignSelect () {
+      // 清理默认tab显示
+      this.showDefaultTabs = false
       // 清理应用逻辑图
       this.showApplicationArchitectureComponent = false
       // 清理服务调用图
