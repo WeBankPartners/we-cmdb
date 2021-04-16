@@ -22,6 +22,13 @@
     <div v-show="showDefaultTabs" style="margin: 10px 0">
       <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
         <TabPane :label="$t('application_logic_diagram')" name="logic-graph" :index="1">
+          <Spin size="large" fix v-if="spinShow">
+            <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+            <div>{{ $t('loading') }}</div>
+          </Spin>
+          <!-- <div v-else-if="!appLogicData.length" class="no-data">
+            {{ $t('no_data') }}
+          </div> -->
           <Alert show-icon closable v-if="isDataChanged">
             Data has beed changed, click Reload button to reload graph.
             <Button slot="desc" @click="reloadHandler">Reload</Button>
@@ -373,10 +380,11 @@ export default {
         this.queryCiData()
       }
       this.physicalSpin = true
-      this.getAllDeployTreesFromSystemCi()
+      await this.getAllDeployTreesFromSystemCi()
       // TODO
       // this.getPhysicalGraphData()
       this.showDefaultTabs = true
+      this.spinShow = false
     },
     async getAllDeployTreesFromSystemCi () {
       this.showApplicationDeploymentComponent = true
