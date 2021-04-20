@@ -1380,11 +1380,6 @@ export default {
 }
 </script>
 
-<style>
-.ivu-select-dropdown-transfer {
-  z-index: auto !important;
-}
-</style>
 <style lang="scss" scoped>
 .ivu-card-head p {
   height: 30px;
