@@ -19,63 +19,71 @@
         <Button type="info" @click="querySysTree">{{ $t('query') }}</Button>
       </Col>
     </Row>
-    <hr style="margin: 10px 0" />
-    <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
-      <TabPane :label="$t('application_logic_diagram')" name="logic-graph" :index="1">
-        <Alert show-icon closable v-if="isDataChanged">
-          Data has beed changed, click Reload button to reload graph.
-          <Button slot="desc" @click="reloadHandler">Reload</Button>
-        </Alert>
-        <div v-show="showApplicationDeploymentComponent">
-          <ApplicationDeploymentComponent ref="applicationDeploymentComponent"></ApplicationDeploymentComponent>
-        </div>
-        <div v-if="!showApplicationDeploymentComponent" class="no-data">
-          {{ $t('no_data') }}
-        </div>
-      </TabPane>
-      <TabPane :label="$t('application_logic_tree_diagram')" name="logic-tree-graph" :index="2">
-        <Alert show-icon closable v-if="isDataChanged">
-          Data has beed changed, click Reload button to reload graph.
-          <Button slot="desc" @click="reloadHandler">Reload</Button>
-        </Alert>
-
-        <div v-show="showApplicationLogicTree" class="graph-container" id="graphTree">
-          <Spin size="large" fix v-if="treeSpinShow">
+    <div v-show="showDefaultTabs" style="margin: 10px 0">
+      <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
+        <TabPane :label="$t('application_logic_diagram')" name="logic-graph" :index="1">
+          <Spin size="large" fix v-if="spinShow">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
             <div>{{ $t('loading') }}</div>
           </Spin>
-        </div>
-      </TabPane>
-      <TabPane
-        v-for="ci in tabList"
-        :key="ci.id"
-        :name="ci.id"
-        :label="ci.name"
-        v-if="isShowTabs"
-        :index="ci.seqNo + 3"
-      >
-        <CMDBTable
-          :tableData="ci.tableData"
-          :tableOuterActions="ci.outerActions"
-          :tableInnerActions="ci.innerActions"
-          :tableColumns="ci.tableColumns"
-          :pagination="ci.pagination"
-          :ascOptions="ci.ascOptions"
-          :showCheckbox="needCheckout"
-          :isRefreshable="true"
-          @actionFun="actionFun"
-          @sortHandler="sortHandler"
-          @handleSubmit="handleSubmit"
-          @getSelectedRows="onSelectedRowsChange"
-          @pageChange="pageChange"
-          @pageSizeChange="pageSizeChange"
-          @confirmAddHandler="confirmAddHandler"
-          @confirmEditHandler="confirmEditHandler"
-          tableHeight="650"
-          :ref="'table' + ci.id"
-        ></CMDBTable>
-      </TabPane>
-    </Tabs>
+          <!-- <div v-else-if="!appLogicData.length" class="no-data">
+            {{ $t('no_data') }}
+          </div> -->
+          <Alert show-icon closable v-if="isDataChanged">
+            Data has beed changed, click Reload button to reload graph.
+            <Button slot="desc" @click="reloadHandler">Reload</Button>
+          </Alert>
+          <div v-show="showApplicationDeploymentComponent">
+            <ApplicationDeploymentComponent ref="applicationDeploymentComponent"></ApplicationDeploymentComponent>
+          </div>
+          <div v-if="!showApplicationDeploymentComponent" class="no-data">
+            {{ $t('no_data') }}
+          </div>
+        </TabPane>
+        <TabPane :label="$t('application_logic_tree_diagram')" name="logic-tree-graph" :index="2">
+          <Alert show-icon closable v-if="isDataChanged">
+            Data has beed changed, click Reload button to reload graph.
+            <Button slot="desc" @click="reloadHandler">Reload</Button>
+          </Alert>
+
+          <div v-show="showApplicationLogicTree" class="graph-container" id="graphTree">
+            <Spin size="large" fix v-if="treeSpinShow">
+              <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+              <div>{{ $t('loading') }}</div>
+            </Spin>
+          </div>
+        </TabPane>
+        <TabPane
+          v-for="ci in tabList"
+          :key="ci.id"
+          :name="ci.id"
+          :label="ci.name"
+          v-if="isShowTabs"
+          :index="ci.seqNo + 3"
+        >
+          <CMDBTable
+            :tableData="ci.tableData"
+            :tableOuterActions="ci.outerActions"
+            :tableInnerActions="ci.innerActions"
+            :tableColumns="ci.tableColumns"
+            :pagination="ci.pagination"
+            :ascOptions="ci.ascOptions"
+            :showCheckbox="needCheckout"
+            :isRefreshable="true"
+            @actionFun="actionFun"
+            @sortHandler="sortHandler"
+            @handleSubmit="handleSubmit"
+            @getSelectedRows="onSelectedRowsChange"
+            @pageChange="pageChange"
+            @pageSizeChange="pageSizeChange"
+            @confirmAddHandler="confirmAddHandler"
+            @confirmEditHandler="confirmEditHandler"
+            tableHeight="650"
+            :ref="'table' + ci.id"
+          ></CMDBTable>
+        </TabPane>
+      </Tabs>
+    </div>
   </div>
 </template>
 
@@ -133,6 +141,7 @@ export default {
       selectedDeployItems: [],
       graphSource: [],
       graphs: {},
+      showDefaultTabs: false,
       tabList: [],
       payload: {
         filters: [],
@@ -331,6 +340,8 @@ export default {
       this.isDataChanged = false
     },
     onClearDesignSelect () {
+      // 清理默认tab显示
+      this.showDefaultTabs = false
       this.showApplicationDeploymentComponent = false
 
       this.showApplicationLogicTree = false
@@ -369,9 +380,11 @@ export default {
         this.queryCiData()
       }
       this.physicalSpin = true
-      this.getAllDeployTreesFromSystemCi()
+      await this.getAllDeployTreesFromSystemCi()
       // TODO
       // this.getPhysicalGraphData()
+      this.showDefaultTabs = true
+      this.spinShow = false
     },
     async getAllDeployTreesFromSystemCi () {
       this.showApplicationDeploymentComponent = true
