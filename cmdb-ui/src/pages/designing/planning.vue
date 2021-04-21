@@ -9,6 +9,7 @@
         @on-change="onIdcDataChange"
         filterable
         clearable
+        @on-clear="clearIdc"
       >
         <Option v-for="item in allIdcs" :value="item.guid" :key="item.guid">{{ item.name }}</Option>
       </Select>
@@ -1289,6 +1290,9 @@ export default {
       }
       this.getTabLists()
       this.getAllIdcDesignData()
+    },
+    clearIdc () {
+      this.idcDesignData = null
     }
   },
   mounted () {
