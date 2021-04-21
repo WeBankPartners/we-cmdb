@@ -305,9 +305,10 @@ export default {
           this.idcData = sortingTree(_idcData)
           this.graphData = this.idcData
           this.firstChildrenGroup = []
-          this.graphData[0].children.forEach(_ => {
-            this.firstChildrenGroup.push(`n_${_.guid}`)
-          })
+          this.graphData[0].children &&
+            this.graphData[0].children.forEach(_ => {
+              this.firstChildrenGroup.push(`n_${_.guid}`)
+            })
           this.operateNodeData = this.graphData[0]
           this.$refs.transferData.graphCiTypeId = this.graphCiTypeId
           this.$refs.transferData.managementData(this.operateNodeData)
@@ -498,7 +499,7 @@ export default {
           )
         }
       })
-      this.$refs.transferData.linkManagementData(this.effectiveLink)
+      this.$refs.transferData && this.$refs.transferData.linkManagementData(this.effectiveLink)
       return dots.join('')
     },
     setChildren (node, p1, pw, ph, tfsize, tlength = 1, deep) {
