@@ -1379,7 +1379,6 @@ export default {
   }
 }
 </script>
-
 <style lang="scss" scoped>
 .ivu-card-head p {
   height: 30px;
