@@ -8,6 +8,7 @@
           :placeholder="$t('select_idc')"
           :data="treeIdcs"
           :clearable="true"
+          @dataClear="clearIdc"
           style="width:100%"
         ></TreeSelect>
       </Col>
@@ -1317,6 +1318,9 @@ export default {
       }
       this.getAllIdcData()
       this.getTabList()
+    },
+    clearIdc () {
+      this.idcData = []
     }
   },
   created () {

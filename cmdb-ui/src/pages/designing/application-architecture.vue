@@ -4,30 +4,35 @@
       <Col span="16">
         <Row>
           <span style="margin-right: 10px">{{ $t('system_design') }}</span>
-          <Select
-            v-model="systemDesignVersion"
-            @on-change="onSystemDesignSelect"
-            @on-clear="onClearDesignSelect"
-            clearable
-            filterable
-            label-in-name
-            style="width: 35%;z-index:auto"
-          >
-            <OptionGroup v-for="(data, idx) in systemDesigns" :key="idx" :label="data[0].name">
-              <Option
-                v-for="item in data"
-                :value="item.guid"
-                :key="item.guid"
-                :label="`${item.name}${item.fixed_date ? ' ' + item.fixed_date : ''}`"
-                style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
-              >
-                <div>{{ item.name }}</div>
-                <div v-if="item.fixed_date" style="color:#ccc; flex-shrink:1; margin-left:10px">
-                  {{ item.fixed_date }}
-                </div>
-              </Option>
-            </OptionGroup>
-          </Select>
+          <template v-if="visibilitySelect">
+            <Select
+              v-model="systemDesignVersion"
+              @on-change="onSystemDesignSelect"
+              @on-clear="onClearDesignSelect"
+              clearable
+              filterable
+              label-in-name
+              style="width: 35%;z-index:auto"
+            >
+              <OptionGroup v-for="data in systemDesigns" :key="data[0].guid + data[0].fixed_date" :label="data[0].name">
+                <Option
+                  v-for="item in data"
+                  :value="item.guid"
+                  :key="item.guid"
+                  :label="`${item.name}${item.fixed_date ? ' ' + item.fixed_date : ''}`"
+                  style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
+                >
+                  <div>{{ item.name }}</div>
+                  <div v-if="item.fixed_date" style="color:#ccc; flex-shrink:1; margin-left:10px">
+                    {{ item.fixed_date }}
+                  </div>
+                </Option>
+              </OptionGroup>
+            </Select>
+          </template>
+          <template v-if="!visibilitySelect">
+            <div style="width: 35%;display:inline-block;height:2px;"></div>
+          </template>
           <Button
             style="margin: 0 10px;"
             @click="onArchChange(false)"
@@ -59,11 +64,10 @@
         </Row>
       </Col>
     </Row>
-    <Card style="margin-top: 20px">
+    <Card v-show="showDefaultTabs" style="margin-top: 20px">
       <div>
         <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
           <TabPane :label="$t('application_logic_diagram')" name="architectureDesign" class="app-tab" :index="1">
-            <!--
             <Spin size="large" fix v-if="spinShow">
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
               <div>{{ $t('loading') }}</div>
@@ -71,7 +75,7 @@
             <div v-else-if="!appLogicData.length" class="no-data">
               {{ $t('no_data') }}
             </div>
-            <div style="padding-right: 20px">
+            <!-- <div style="padding-right: 20px">
               <div class="graph-container" id="appLogicGraph"></div>
             </div> -->
             <Alert show-icon closable v-if="isDataChanged">
@@ -273,7 +277,9 @@ export default {
   },
   data () {
     return {
+      visibilitySelect: true,
       currentSystem: null,
+      showDefaultTabs: false,
       tabList: [],
       systemDesigns: [],
       systemDesignsOrigin: [],
@@ -462,6 +468,7 @@ export default {
         }
         this.getGraphData(isTableViewOnly)
       }
+      this.showDefaultTabs = true
     },
     confirmOnArch (isTableViewOnly) {
       this.$Modal.confirm({
@@ -481,9 +488,15 @@ export default {
       const { statusCode, data } = await updateSystemDesign(this.systemDesignVersion)
       if (statusCode === 'OK') {
         if (data.length) {
-          this.getSystemDesigns(() => {
-            this.queryGraphData(isTableViewOnly)
-          })
+          const tmp = this.systemDesignVersion
+          await this.getSystemDesigns()
+          this.systemDesignVersion = tmp
+          this.currentSystem = this.systemDesignsOrigin.find(x => x.guid === tmp)
+          this.allowArch = this.systemDesignsOrigin.some(x => x.r_guid === tmp)
+          // this.getSystemDesigns(() => {
+          this.queryGraphData(isTableViewOnly)
+          this.allowFixVersion = false
+          // })
         } else {
           this.queryGraphData(isTableViewOnly)
         }
@@ -512,6 +525,8 @@ export default {
       }
     },
     onClearDesignSelect () {
+      // 清理默认tab显示
+      this.showDefaultTabs = false
       // 清理应用逻辑图
       this.showApplicationArchitectureComponent = false
       // 清理服务调用图
@@ -1323,6 +1338,7 @@ export default {
     },
     async getSystemDesigns (callback) {
       this.systemDesigns = []
+      this.visibilitySelect = false
       const { statusCode, data } = await getSystemDesigns()
       if (statusCode === 'OK') {
         this.systemDesignsOrigin = data.contents.map(_ => _.data)
@@ -1339,8 +1355,8 @@ export default {
             x.guid === x.r_guid ? obj[x.r_guid].unshift(x) : obj[x.r_guid].push(x)
             return obj
           }, {})
-
         this.systemDesigns = Object.values(resultObj)
+        this.visibilitySelect = true
         if (callback && callback instanceof Function) {
           callback()
         }
