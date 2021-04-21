@@ -45,7 +45,7 @@
         </Row>
       </Col>
     </Row>
-    <Card style="margin-top: 20px">
+    <Card v-show="showDefaultTabs" style="margin-top: 20px">
       <div>
         <Tabs type="card" :value="currentTab" :closable="false" @on-click="handleTabClick">
           <TabPane :label="$t('application_logic_diagram')" name="architectureDesign" class="app-tab" :index="1">
@@ -247,6 +247,7 @@ export default {
   },
   data () {
     return {
+      showDefaultTabs: false,
       tabList: [],
       systemDesigns: [],
       systemDesignsOrigin: [],
@@ -437,6 +438,7 @@ export default {
           }
         }
       }
+      this.showDefaultTabs = true
     },
     async queryGraphData (isTableViewOnly) {
       this.invokeSequenceForm.selectedInvokeSequence = ''
@@ -459,6 +461,8 @@ export default {
       }
     },
     onClearDesignSelect () {
+      // 清理默认tab显示
+      this.showDefaultTabs = false
       // 清理应用逻辑图
       this.appLogicData = []
       // 清理服务调用图
