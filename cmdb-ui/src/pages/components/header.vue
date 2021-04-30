@@ -148,9 +148,6 @@ export default {
   a {
     color: white;
   }
-  .menus /deep/ .ivu-menu {
-    z-index: 2000;
-  }
   .menus {
     display: inline-block;
     .ivu-menu-horizontal {
