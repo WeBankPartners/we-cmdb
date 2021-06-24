@@ -37,7 +37,7 @@ export default {
           item.value = item.operator === 'in' ? [] : ''
         } else if (['select', 'multiSelect'].indexOf(found.inputType) >= 0) {
           if (!this.filterCiAttrOptions[val]) {
-            const { data, statusCode } = await getEnumCodesByCategoryId(1, found.referenceId)
+            const { data, statusCode } = await getEnumCodesByCategoryId(found.referenceId)
             if (statusCode === 'OK') {
               item.options = data
               let _filterCiAttrOptions = JSON.parse(JSON.stringify(this.filterCiAttrOptions))

@@ -1,131 +1,124 @@
 export const MENUS = [
   {
-    code: 'DATA_QUERY',
+    code: 'data_query',
     cnName: '数据查询',
-    enName: 'Enquiry'
+    enName: 'Data Query',
+    seqNo: 1,
+    parent: '',
+    isActive: 'yes'
   },
   {
-    code: 'DATA_MANAGEMENT',
+    code: 'data_mgmt',
     cnName: '数据管理',
-    enName: 'Edit'
+    enName: 'Data MGMT',
+    seqNo: 2,
+    parent: '',
+    isActive: 'yes'
   },
   {
-    code: 'ADMIN',
+    code: 'configuration',
+    cnName: '配置管理',
+    enName: 'Configuration',
+    seqNo: 3,
+    parent: '',
+    isActive: 'yes'
+  },
+  {
+    code: 'system',
     cnName: '系统',
-    enName: 'Admin'
+    enName: 'system',
+    seqNo: 4,
+    parent: '',
+    isActive: 'yes',
+    link: ''
   },
   {
-    code: 'DESIGNING_CI_DATA_MANAGEMENT',
-    cnName: 'CI数据管理',
-    enName: 'CI Data Management',
+    code: 'data_mgmt_ci',
+    cnName: '数据管理(CI)',
+    enName: 'CI Data MGMT',
+    seqNo: 1,
+    parent: 'data_mgmt',
+    isActive: 'yes',
     link: '/wecmdb/designing/ci-data-management'
   },
   {
-    code: 'DESIGNING_CI_DATA_ENQUIRY',
-    cnName: 'CI数据查询',
-    enName: 'CI Data Enquiry',
+    code: 'data_mgmt_view',
+    cnName: '数据管理(视图)',
+    enName: 'View Data MGMT',
+    seqNo: 2,
+    parent: 'data_mgmt',
+    isActive: 'yes',
+    link: '/wecmdb/designing/data-mgmt-view'
+  },
+  {
+    code: 'data_query_ci',
+    cnName: '数据查询(CI)',
+    enName: 'CI Data Query',
+    seqNo: 1,
+    parent: 'data_query',
+    isActive: 'yes',
     link: '/wecmdb/designing/ci-data-enquiry'
   },
   {
-    code: 'DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT',
-    cnName: 'CI综合查询管理',
-    enName: 'CI Integrated Enquiry Management',
-    link: '/wecmdb/designing/ci-integrated-query-management'
-  },
-  {
-    code: 'DESIGNING_CI_INTEGRATED_QUERY_EXECUTION',
-    cnName: 'CI综合查询',
-    enName: 'CI Integrated Enquiry',
+    code: 'data_query_report',
+    cnName: '数据查询(报表)',
+    enName: 'Report Data Query',
+    seqNo: 2,
+    parent: 'data_query',
+    isActive: 'yes',
     link: '/wecmdb/designing/ci-integrated-query-execution'
   },
   {
-    code: 'ADMIN_CMDB_MODEL_MANAGEMENT',
-    cnName: 'CMDB模型管理',
-    enName: 'Modeling',
+    code: 'data_query_view',
+    cnName: '数据查询(视图)',
+    seqNo: 3,
+    parent: 'data_query',
+    isActive: 'yes',
+    link: '/wecmdb/designing/data-query-view'
+  },
+  {
+    code: 'model_configuration',
+    cnName: '模型配置',
+    enName: 'Model Configuration',
+    seqNo: 1,
+    parent: 'configuration',
+    isActive: 'yes',
     link: '/wecmdb/admin/cmdb-model-management'
   },
   {
-    code: 'ADMIN_PERMISSION_MANAGEMENT',
-    cnName: '系统权限管理',
-    enName: 'Permission',
+    code: 'report_configuration',
+    cnName: '报表配置',
+    enName: 'Report Configuration',
+    seqNo: 2,
+    parent: 'configuration',
+    isActive: 'yes',
+    link: '/wecmdb/designing/ci-integrated-query-management'
+  },
+  {
+    code: 'system_authority',
+    cnName: '授权',
+    enName: 'Authority',
+    seqNo: 2,
+    parent: 'system',
+    isActive: 'yes',
     link: '/wecmdb/admin/permission-management'
   },
   {
-    code: 'CMDB_ADMIN_BASE_DATA_MANAGEMENT',
-    cnName: '基础数据管理',
-    enName: 'System Variables',
+    code: 'system_basekey',
+    cnName: '基础数据',
+    enName: 'Basekey',
+    seqNo: 1,
+    parent: 'system',
+    isActive: 'yes',
     link: '/wecmdb/admin/base-data-management'
   },
   {
-    code: 'ADMIN_QUERY_LOG',
-    cnName: '日志查询',
-    enName: 'Logs',
+    code: 'system_operation_log',
+    cnName: '操作日志',
+    enName: 'Operation Log',
+    seqNo: 3,
+    parent: 'system',
+    isActive: 'yes',
     link: '/wecmdb/admin/log-enquiry'
-  },
-  {
-    code: 'ADMIN_USER_PASSWORD_MANAGEMENT',
-    cnName: '用户密码管理',
-    enName: 'Password',
-    link: '/wecmdb/admin/user-password-management'
-  },
-  // 视图查询
-  {
-    code: 'VIEW_QUERY',
-    cnName: '视图查询',
-    enName: 'Views Enquiry'
-  },
-  {
-    code: 'IDC_PLANNING_QUERY',
-    cnName: 'IDC规划查询',
-    enName: 'IDC Planning Enquiry',
-    link: '/wecmdb/view-query/idc-planning-query'
-  },
-  {
-    code: 'IDC_RESOURCE_PLANNING_QUERY',
-    cnName: 'IDC资源规划查询',
-    enName: 'IDC Resource Planning Enquiry',
-    link: '/wecmdb/view-query/idc-resource-planning-query'
-  },
-  {
-    code: 'APPLICATION_ARCHITECTURE_QUERY',
-    cnName: '应用架构设计查询',
-    enName: 'App Architecture Enquiry',
-    link: '/wecmdb/view-query/application-architecture-query'
-  },
-  {
-    code: 'APPLICATION_DEPLOYMENT_QUERY',
-    cnName: '应用部署设计查询',
-    enName: 'App Deployment Enquiry',
-    link: '/wecmdb/view-query/application-deployment-query'
-  },
-  // 视图管理
-  {
-    code: 'VIEW_MANAGEMENT',
-    cnName: '视图管理',
-    enName: 'View'
-  },
-  {
-    code: 'IDC_PLANNING_DESIGN',
-    cnName: '机房规划设计',
-    enName: 'IDC Planning Design',
-    link: '/wecmdb/view-management/idc-planning-design'
-  },
-  {
-    code: 'IDC_RESOURCE_PLANNING',
-    cnName: '机房资源规划',
-    enName: 'IDC Resource Plan',
-    link: '/wecmdb/view-management/idc-resource-planning'
-  },
-  {
-    code: 'APPLICATION_ARCHITECTURE_DESIGN',
-    cnName: '应用架构设计',
-    enName: 'App Architecture Design',
-    link: '/wecmdb/view-management/application-architecture-design'
-  },
-  {
-    code: 'APPLICATION_DEPLOYMENT_DESIGN',
-    cnName: '应用部署设计',
-    enName: 'App Deployment Design',
-    link: '/wecmdb/view-management/application-deployment-design'
   }
 ]
