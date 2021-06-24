@@ -15,6 +15,7 @@
   </div>
 </template>
 <script>
+import { normalizeFormData } from '@/pages/util/format'
 import { queryReferenceCiData, queryCiData } from '@/api/server'
 export default {
   data () {
@@ -31,24 +32,32 @@ export default {
     }
   },
   mounted () {
-    this.openOptions(true)
+    this.defaultOptions()
   },
   methods: {
+    defaultOptions () {
+      if (this.panalData[this.formData.propertyName]) {
+        let opt = this.panalData[this.formData.propertyName]
+        if (opt && opt.guid) {
+          this.options = [
+            {
+              label: opt.key_name,
+              value: opt.guid
+            }
+          ]
+        }
+      }
+    },
     async openOptions (val) {
       if (val) {
-        if (this.formData.filterRule) {
-          let params = JSON.parse(JSON.stringify(this.panalData))
-          for (let key in this.panalData) {
-            if (this.panalData[key] && typeof this.panalData[key] === 'object') {
-              params[key] = this.panalData[key].codeId || this.panalData[key].guid
-            }
-          }
+        if (this.formData.referenceFilter) {
+          let params = normalizeFormData(this.panalData)
           const { statusCode, data } = await queryReferenceCiData({
             attrId: this.formData.ciTypeAttrId,
             queryObject: { filters: [], paging: false, dialect: { associatedData: params } }
           })
           if (statusCode === 'OK') {
-            this.options = data.contents.map(_ => {
+            this.options = data.map(_ => {
               return {
                 label: _.key_name,
                 value: _.guid
@@ -60,13 +69,13 @@ export default {
           // queryCiData
           const { statusCode, data } = await queryCiData({
             id: this.formData.referenceId,
-            queryObject: { filters: [], paging: false }
+            queryObject: { filters: [], paging: false, dialect: {} }
           })
           if (statusCode === 'OK') {
             this.options = data.contents.map(_ => {
               return {
-                label: _.data.key_name,
-                value: _.data.guid
+                label: _.key_name,
+                value: _.guid
               }
             })
           }
@@ -79,4 +88,5 @@ export default {
   }
 }
 </script>
+
 <style scoped lang="scss"></style>

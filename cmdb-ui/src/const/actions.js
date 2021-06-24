@@ -39,52 +39,62 @@ export const components = {
 export const newOuterActions = [
   {
     label: window.vm ? pluginI18n('new') : Vue.t('new'),
+    operation: window.vm ? pluginI18n('new') : Vue.t('new'),
     props: {
       type: 'success',
       icon: 'md-add',
       disabled: false,
       loading: false
     },
-    actionType: 'add'
+    actionType: 'add',
+    operation_en: 'add'
   },
   {
     label: window.vm ? pluginI18n('copyToNew') : Vue.t('copyToNew'),
+    operation: window.vm ? pluginI18n('copyToNew') : Vue.t('copyToNew'),
     props: {
       type: 'success',
       icon: 'md-add',
       disabled: true,
       loading: false
     },
-    actionType: 'copy'
+    actionType: 'copy',
+    operation_en: 'copy'
   },
   {
     label: window.vm ? pluginI18n('edit') : Vue.t('edit'),
+    operation: window.vm ? pluginI18n('edit') : Vue.t('edit'),
     props: {
       type: 'info',
       icon: 'ios-build',
       disabled: true,
       loading: false
     },
-    actionType: 'edit'
+    actionType: 'edit',
+    operation_en: 'edit'
   },
   {
     label: window.vm ? pluginI18n('delete') : Vue.t('delete'),
+    operation: window.vm ? pluginI18n('delete') : Vue.t('delete'),
     props: {
       type: 'error',
       icon: 'ios-trash-outline',
       disabled: true,
       loading: false
     },
-    actionType: 'delete'
+    actionType: 'delete',
+    operation_en: 'delete'
   },
   {
     label: window.vm ? pluginI18n('export') : Vue.t('export'),
+    operation: window.vm ? pluginI18n('export') : Vue.t('export'),
     props: {
       type: 'primary',
       icon: 'ios-download-outline',
       loading: false
     },
-    actionType: 'export'
+    actionType: 'export',
+    operation_en: 'export'
   }
 ]
 export const outerActions = [

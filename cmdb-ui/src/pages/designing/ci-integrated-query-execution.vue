@@ -1,104 +1,99 @@
 <template>
   <div>
     <Row>
-      <Col span="10" class="header-query">
-        <span>{{ $t('integrated_query_name') }}</span>
-        <Select v-model="selectedQueryName" filterable @on-change="onQueryNameSelectChange">
-          <OptionGroup v-for="ci in queryNameListByCiTypes" :key="ci.id" :label="ci.name">
-            <Option v-for="item in ci.children" :value="item.id" :key="item.id">{{ item.name }}</Option>
-          </OptionGroup>
+      <Col span="10">
+        <span style="margin-right: 10px">{{ $t('report') }}</span>
+        <Select
+          v-model="currentReportId"
+          @on-open-change="getReportList"
+          @on-change="getReportFilterData"
+          filterable
+          style="width: 75%;"
+        >
+          <Option v-for="item in reportList" :value="item.id" :key="item.id">{{ item.name }}</Option>
         </Select>
+        <Button type="primary" :disabled="filters.length === 0" @click="getReportData">{{ $t('query') }}</Button>
       </Col>
     </Row>
-    <Row v-if="!!selectedQueryName" style="margin-top: 20px;">
-      <CMDBTable
-        :tableData="tableData"
-        :tableOuterActions="outerActions"
-        :tableInnerActions="innerActions"
-        :tableColumns="tableColumns"
-        :pagination="pagination"
-        :showCheckbox="false"
-        :isColumnsFilterOn="false"
-        @actionFun="actionFun"
-        @pageChange="pageChange"
-        @pageSizeChange="pageSizeChange"
-        @sortHandler="sortHandler"
-        @handleSubmit="handleSubmit"
-        tableHeight="650"
-        ref="table"
-      ></CMDBTable>
-
-      <Modal v-model="originDataModal" :title="$t('basic_data')" footer-hide>
-        <highlight-code lang="json">{{ showRowOriginData }}</highlight-code>
-      </Modal>
-
-      <Modal v-model="filtersAndResultModal" :title="$t('message')" footer-hide width="75">
-        <div style="max-height: 600px; overflow: auto;">
-          <Row
-            >{{ $t('request_url') }}
-            <highlight-code lang="json">{{ requestURL }}</highlight-code>
-          </Row>
-          <Row>
-            <Col span="11"
-              >Payload:
-              <highlight-code lang="json">{{ payload }}</highlight-code>
-            </Col>
-            <Col span="12" offset="1"
-              >Result:
-              <highlight-code lang="json">{{ tableData }}</highlight-code>
-            </Col>
-          </Row>
-        </div>
-      </Modal>
+    <Row v-if="filters.length > 0" style="margin: 16px 0">
+      <span v-for="(filter, index) in filters" :key="index" class="report-filter">
+        <Button size="small" @click="openFilter(index)">{{ filter.key }}</Button>
+        <template v-if="filter.isOpen">
+          <Form :label-width="100" :key="index">
+            <template v-for="attrss in filter.params">
+              <FormItem
+                v-if="attrss.querialbe === 'yes'"
+                :label="attrss.dataTitleName"
+                style="display:inline-block;margin-bottom:0"
+                :key="attrss.id"
+              >
+                <Input v-model="attrss.value" style="width:150px"></Input>
+              </FormItem>
+            </template>
+          </Form>
+        </template>
+      </span>
     </Row>
+    <Row v-if="hasTableData">
+      <Button type="success" @click="ShowMessage" icon="ios-eye">{{ $t('show_message') }}</Button>
+      <Table :columns="tableColumns" :data="tableData" border height="500"></Table>
+      <Page
+        :total="payload.pageable.total"
+        :page-size="payload.pageable.pageSize"
+        @on-page-size-change="changePageSize"
+        :current="payload.pageable.current"
+        @on-change="changePage"
+        show-sizer
+        show-total
+      />
+    </Row>
+    <Modal v-model="showRowData" :title="$t('basic_data')" width="700" footer-hide>
+      <div :style="{ maxHeight: MODALHEIGHT + 'px', maxWidth: '700px', overflow: 'auto' }">
+        <pre>{{ rowData }}</pre>
+      </div>
+    </Modal>
+
+    <Modal v-model="filtersAndResultModal" :title="$t('message')" footer-hide width="75">
+      <div style="max-height: 600px; overflow: auto;">
+        <Row
+          >{{ $t('request_url') }}
+          <span>{{ requestURL }}</span>
+        </Row>
+        <Row>
+          <Col span="11"
+            >Payload:
+            <pre>{{ payload }}</pre>
+          </Col>
+          <Col span="12" offset="1"
+            >Result:
+            <pre>{{ tableData }}</pre>
+          </Col>
+        </Row>
+      </div>
+    </Modal>
   </div>
 </template>
 
 <script>
-import Vue from 'vue'
-import { getAllCITypes, getQueryNames, queryIntHeader, excuteIntQuery, getEnumCodesByCategoryId } from '@/api/server'
-import { components } from '../../const/actions.js'
-import { pluginI18n } from '../../const/plugin-i18n.js'
-const innerActions = [
-  {
-    label: window.vm ? pluginI18n('basic_data') : Vue.t('basic_data'),
-    props: {
-      type: 'info',
-      size: 'small'
-    },
-    actionType: 'showOriginData'
-  }
-]
-const outerActions = [
-  {
-    label: window.vm ? pluginI18n('show_message') : Vue.t('show_message'),
-    props: {
-      type: 'success',
-      icon: 'ios-eye',
-      disabled: false
-    },
-    actionType: 'showFiltersAndResult'
-  }
-]
+import { getReportListByPermission, getReportData, getReportFilterData } from '@/api/server'
 export default {
   components: {},
   data () {
     return {
+      currentReportId: '',
+      reportList: [],
+      filters: [],
+
       allCiTypes: [],
       selectedQueryName: '',
-      queryNameListByCiTypes: [],
       tableData: [],
+      hasTableData: false,
       tableColumns: [],
-      innerActions,
-      outerActions,
-      pagination: {
-        pageSize: 10,
-        currentPage: 1,
-        total: 0
-      },
       payload: {
         filters: [],
         pageable: {
+          total: 0,
+          current: 1,
           pageSize: 10,
           startIndex: 0
         },
@@ -108,146 +103,144 @@ export default {
         //   field: ""
         // }
       },
-      originDataModal: false,
-      showRowOriginData: '',
+      showRowData: false,
+      rowData: '',
       filtersAndResultModal: false,
       showfiltersAndResultModalData: '',
-      requestURL: ''
+      requestURL: '',
+      MODALHEIGHT: 0
     }
   },
-  created () {
-    this.getAllCITypes()
+  created () {},
+  mounted () {
+    this.MODALHEIGHT = window.MODALHEIGHT
   },
   methods: {
-    pageChange (current) {
-      this.pagination.currentPage = current
-      this.getTableData()
+    changeReport () {
+      this.filters = []
+      this.tableData = []
+      this.tableColumns = []
     },
-    pageSizeChange (size) {
-      this.pagination.pageSize = size
-      this.getTableData()
+    ShowMessage () {
+      this.filtersAndResultModal = true
     },
-    async getAllCITypes () {
-      let { statusCode, data } = await getAllCITypes()
+    openFilter (index) {
+      this.filters[index].isOpen = !this.filters[index].isOpen
+    },
+    async getReportList () {
+      const { statusCode, data } = await getReportListByPermission('USE')
       if (statusCode === 'OK') {
-        this.allCiTypes = data
-        this.getAllQueryName()
+        this.reportList = data
       }
     },
-    async getAllQueryName () {
-      let allRequest = []
-      this.allCiTypes.forEach(Ci => {
-        allRequest.push(getQueryNames(Ci.ciTypeId))
-      })
-      const allRes = await Promise.all(allRequest)
-      allRes.forEach((query, index) => {
-        if (query.statusCode === 'OK' && query.data.length > 0) {
-          const obj = {
-            id: this.allCiTypes[index].ciTypeId,
-            name: this.allCiTypes[index].name,
-            children: query.data
-          }
-          this.queryNameListByCiTypes.push(obj)
-        }
-      })
-    },
-    onQueryNameSelectChange (value) {
-      if (value) {
-        this.getTableHeader(value)
-        this.requestURL = window.request
-          ? `/wecmdb/wecmdb/intQuery/${value}/execute`
-          : `/wecmdb/intQuery/${value}/execute`
-      }
-    },
-    async getTableHeader (id) {
-      this.currentSelectQueryNameId = id
-      let { statusCode, data } = await queryIntHeader(id)
-
+    async getReportFilterData () {
+      this.hasTableData = false
+      const { statusCode, data } = await getReportFilterData(this.currentReportId)
       if (statusCode === 'OK') {
-        this.tableColumns = []
-        data.forEach(_ => {
-          if (_.attrUnits) {
-            let children = _.attrUnits
-              .map(child => {
-                return {
-                  title: child.attr.name,
-                  parentTitle: _.ciTypeName,
-                  key: child.attrKey,
-                  inputKey: child.attrKey,
-                  type: 'text',
-                  ...components[child.attr.inputType],
-                  placeholder: child.attr.name,
-                  ...child.attr,
-                  enumId: child.attr.referenceId ? child.attr.referenceId : null,
-                  ciType: { id: child.attr.referenceId, name: '' }
-                }
+        this.filters = []
+        data.object.forEach(filter => {
+          this.filters.push({
+            key: filter.dataTitleName,
+            isOpen: false,
+            params:
+              filter.attr &&
+              filter.attr.map(item => {
+                item.value = ''
+                return item
               })
-              .filter(i => i.isDisplayed)
-            this.tableColumns.push({
-              title: _.ciTypeName,
-              align: 'center',
-              children
+          })
+        })
+        this.tableColumns = []
+        data.object.forEach(filter => {
+          let tmp = {}
+          tmp.title = filter.dataTitleName
+          tmp.width = 200
+          tmp.align = 'center'
+          if (filter.attr && filter.attr.length > 0) {
+            tmp.children = []
+            filter.attr.forEach(attr => {
+              tmp.children.push({
+                title: attr.dataTitleName,
+                key: attr.id,
+                width: 200,
+                align: 'center'
+              })
             })
           }
+          this.tableColumns.push(tmp)
         })
-        this.getTableData()
-        // this.$nextTick(() => {
-        //   this.getColumnOptions()
-        // })
+        this.tableColumns.push({
+          title: 'Action',
+          key: 'action',
+          fixed: 'right',
+          width: 150,
+          align: 'center',
+          render: (h, params) => {
+            return h('div', [
+              h(
+                'Button',
+                {
+                  props: {
+                    type: 'primary',
+                    size: 'small'
+                  },
+                  style: {
+                    marginRight: '5px'
+                  },
+                  on: {
+                    click: event => {
+                      this.showRowDataFun(params.row)
+                    }
+                  }
+                },
+                this.$t('view')
+              )
+            ])
+          }
+        })
       }
     },
-    getColumnOptions () {
-      this.tableColumns.forEach(_ => {
-        if (_.children) {
-          _.children.forEach(async child => {
-            if (child.inputType === 'select') {
-              const { data, statusCode } = await getEnumCodesByCategoryId(0, child.referenceId)
-              let opts = []
-              if (statusCode === 'OK') {
-                opts = data
-                  .filter(i => i.status === 'active')
-                  .map(_ => {
-                    return {
-                      value: _.codeId,
-                      label: _.value
-                    }
-                  })
-              }
-              this.$set(child, 'options', opts)
+    showRowDataFun (row) {
+      const newRow = JSON.parse(JSON.stringify(row))
+      delete newRow._index
+      delete newRow._rowKey
+      this.rowData = newRow
+      this.showRowData = true
+    },
+    changePageSize (pageSize) {
+      this.payload.pageable.pageSize = pageSize
+      this.payload.pageable.startIndex = (this.payload.pageable.current - 1) * this.payload.pageable.pageSize
+      this.getReportData(false)
+    },
+    changePage (page) {
+      this.payload.pageable.current = page
+      this.payload.pageable.startIndex = (this.payload.pageable.current - 1) * this.payload.pageable.pageSize
+      this.getReportData(false)
+    },
+    async getReportData (tag = true) {
+      this.payload.filters = []
+      this.filters.forEach(filter => {
+        filter.params &&
+          filter.params.forEach(p => {
+            if (p.value !== '') {
+              this.payload.filters.push({
+                name: p.id,
+                operator: 'eq',
+                value: p.value
+              })
             }
           })
-        }
       })
-    },
-    async getTableData () {
-      this.payload.pageable.pageSize = this.pagination.pageSize
-      this.payload.pageable.startIndex = (this.pagination.currentPage - 1) * this.pagination.pageSize
-      let { statusCode, data } = await excuteIntQuery(this.currentSelectQueryNameId, this.payload)
+      if (tag) {
+        this.payload.pageable.current = 1
+        this.payload.pageable.startIndex = 0
+      }
+      this.requestURL = `/report-data/${this.currentReportId}`
+      const { statusCode, data } = await getReportData(this.currentReportId, this.payload)
       if (statusCode === 'OK') {
+        this.hasTableData = true
         this.tableData = data.contents
-        this.pagination.total = data.pageInfo.totalRows
-      }
-    },
-    sortHandler (data) {
-      this.payload.sorting = {
-        asc: data.order === 'asc',
-        field: data.key
-      }
-      this.getTableData()
-    },
-
-    handleSubmit (data) {
-      this.payload.filters = data
-      this.pagination.currentPage = 1
-      this.getTableData()
-    },
-    actionFun (type, data) {
-      if (type === 'showOriginData') {
-        this.showRowOriginData = data.weTableForm
-        this.originDataModal = true
-      }
-      if (type === 'showFiltersAndResult') {
-        this.filtersAndResultModal = true
+        this.payload.pageable.total = data.pageInfo.totalRows
       }
     }
   }
@@ -267,4 +260,5 @@ export default {
     flex: 1;
   }
 }
+// .report-filter /deep/
 </style>

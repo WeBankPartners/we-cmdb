@@ -4,21 +4,28 @@ import ciData from '@/pages/designing/ci-data'
 import integrateQuery from '@/pages/designing/ci-integrated-query-execution'
 import integrateQueryMgmt from '@/pages/designing/ci-integrated-query-management'
 import logEnQuiry from '@/pages/admin/log-enquiry'
-import idcPlanningDesign from '@/pages/designing/planning'
-import idcResourcePlanning from '@/pages/designing/resource-planning'
-import applicationArchitectureDesign from '@/pages/designing/application-architecture'
-import applicationArchitectureQuery from '@/pages/designing/application-architecture-query'
-import applicationDeploymentDesign from '@/pages/designing/application-deployment'
 import wecmdbPermissions from '@/pages/admin/plugin-permission-management'
+import graphManagement from '@/pages/designing/graph-management'
+import graphView from '@/pages/designing/graph-view'
 
 const router = [
   {
-    path: '/wecmdb/admin/cmdb-model-management',
+    path: '/wecmdb/data-mgmt-view',
+    name: 'graph-management',
+    component: graphManagement
+  },
+  {
+    path: '/wecmdb/data-query-view',
+    name: 'graph-view',
+    component: graphView
+  },
+  {
+    path: '/wecmdb/model-configuration',
     name: 'ciDesign',
     component: ciDesign
   },
   {
-    path: '/wecmdb/admin/base-data-management',
+    path: '/wecmdb/basekey-configuration',
     name: 'baseData',
     component: enums
   },
@@ -33,55 +40,29 @@ const router = [
     component: enums
   },
   {
-    path: '/wecmdb/designing/ci-data-management',
+    path: '/wecmdb/data-mgmt-ci',
     name: 'ciDataManage',
     component: ciData
   },
   {
-    path: '/wecmdb/designing/ci-data-enquiry',
+    path: '/wecmdb/data-query-ci',
     name: 'ciDataEnquiry',
     component: ciData
   },
   {
-    path: '/wecmdb/designing/ci-integrated-query-execution',
+    path: '/wecmdb/data-query-report',
     name: 'integrateQuery',
     component: integrateQuery
   },
   {
-    path: '/wecmdb/designing/ci-integrated-query-management',
+    path: '/wecmdb/report-configuration',
     name: 'integrateQueryMgmt',
     component: integrateQueryMgmt
   },
   {
-    path: '/wecmdb/admin/query-log',
+    path: '/wecmdb/system-operation-log',
     name: 'logEnQuiry',
     component: logEnQuiry
-  },
-  // 视图管理
-  {
-    path: '/wecmdb/view-management/idc-planning-design',
-    name: 'idcPlanningDesign',
-    component: idcPlanningDesign
-  },
-  {
-    path: '/wecmdb/view-management/idc-resource-planning',
-    name: 'idcResourcePlanning',
-    component: idcResourcePlanning
-  },
-  {
-    path: '/wecmdb/view-management/application-architecture-design',
-    name: 'applicationArchitectureDesign',
-    component: applicationArchitectureDesign
-  },
-  {
-    path: '/wecmdb/view-management/application-architecture-query',
-    name: 'applicationArchitectureQuery',
-    component: applicationArchitectureQuery
-  },
-  {
-    path: '/wecmdb/view-management/application-deployment-design',
-    name: 'applicationDeploymentDesign',
-    component: applicationDeploymentDesign
   },
   // cmdb权限控制
   {

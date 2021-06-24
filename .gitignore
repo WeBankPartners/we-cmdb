@@ -1,20 +1,8 @@
-target/
-cmdb-core/data/
-# Ignore the generated front-end resource
-**/resources/static/
-# Ignore the generated index.html
-**/resources/templates/index.html
-**/resources/application-dev.yml
-
-### IntelliJ IDEA ###
+# IDEA
 .idea
-*.iws
-*.iml
-*.ipr
-*.project
-*.settings
-*.classpath
-*.orig
+.editorconfig
+.vscode
+
 
 # dependencies
 */node_modules/
@@ -22,24 +10,3 @@ cmdb-core/data/
 */build
 */package-lock.json
 */build
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# production
-/build
-
-# misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-/target/
-*.yml

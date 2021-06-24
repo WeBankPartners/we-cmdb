@@ -11,6 +11,7 @@ const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 export default {
   name: 'CMDBTable',
   props: {
+    ciTypeId: { default: () => '', require: true },
     tableColumns: { default: () => [], require: true },
     tableData: { default: () => [] },
     showCheckbox: { default: () => true },
@@ -42,7 +43,8 @@ export default {
       tableLoading: false,
       tipContent: '',
       randomId: '',
-      timer: null
+      timer: null,
+      currentOperateType: ''
     }
   },
   component: {
@@ -82,7 +84,8 @@ export default {
         })
         this.calColumn()
       },
-      immediate: true
+      immediate: true,
+      deep: true
     },
     ascOptions: {
       handler (val, oldval) {
@@ -115,7 +118,13 @@ export default {
       })
       this.data.forEach(_ => {
         for (let i in _['weTableForm']) {
-          if (
+          const found = this.tableColumns.find(q => q.inputKey === i)
+          if (found && found.inputType === 'object') {
+            // normailize object display
+            if (_['weTableForm'][i]) {
+              _['weTableForm'][i] = JSON.stringify(_['weTableForm'][i], null, 4)
+            }
+          } else if (
             typeof _['weTableForm'][i] === 'object' &&
             _['weTableForm'][i] !== null &&
             !Array.isArray(_['weTableForm'][i]) &&
@@ -126,7 +135,6 @@ export default {
           } else {
             if (Array.isArray(_['weTableForm'][i]) && i !== 'nextOperations') {
               _['weTableForm'][i] = _['weTableForm'][i]
-              const found = this.tableColumns.find(q => q.inputKey === i)
               if (found && found.inputType === 'multiSelect') {
                 _[i] = _['weTableForm'][i].map(j => j.codeId)
               }
@@ -136,7 +144,6 @@ export default {
             }
           }
           if (this.isRefreshable) {
-            const found = this.tableColumns.find(q => q.inputKey === i)
             if (found && found.isRefreshable) {
               _[i] = null
             }
@@ -211,7 +218,7 @@ export default {
         for (let i in this.form) {
           if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
             this.tableColumns
-              .filter(_ => _.searchSeqNo || _.children)
+              .filter(_ => _.uiSearchOrder || _.children)
               .forEach(_ => {
                 if (_.children) {
                   _.children.forEach(j => {
@@ -258,10 +265,11 @@ export default {
               style="margin-right: 10px"
               {..._}
               onClick={() => {
-                this.$emit('actionFun', _.actionType, this.selectedRows, this.columns)
+                this.currentOperateType = _.operation_en
+                this.$emit('actionFun', _, this.selectedRows, this.columns)
               }}
             >
-              {_.label}
+              {_.operation}
             </Button>
           )
         })
@@ -329,10 +337,10 @@ export default {
     },
     getFormFilters () {
       let compare = (a, b) => {
-        if (a.searchSeqNo < b.searchSeqNo) {
+        if (a.uiSearchOrder < b.uiSearchOrder) {
           return -1
         }
-        if (a.searchSeqNo > b.searchSeqNo) {
+        if (a.uiSearchOrder > b.uiSearchOrder) {
           return 1
         }
         return 0
@@ -341,7 +349,7 @@ export default {
         <Form ref="form" label-position="top" inline>
           <Row>
             {this.tableColumns
-              .filter(_ => !!_.children || !!_.searchSeqNo)
+              .filter(_ => !!_.children || !!_.uiSearchOrder)
               .sort(compare)
               .map((_, index) => {
                 if (_.children) {
@@ -352,7 +360,7 @@ export default {
                       </Col>
                       <Col span={21}>
                         {_.children
-                          .filter(_ => !!_.searchSeqNo)
+                          .filter(_ => !!_.uiSearchOrder)
                           .sort(compare)
                           .map(j => {
                             let o = { ...j }
@@ -381,7 +389,7 @@ export default {
               })}
             <Col span={6}>
               <div style="display: flex;">
-                {this.tableColumns.filter(_ => !!_.searchSeqNo).sort(compare).length > DEFAULT_FILTER_NUMBER &&
+                {this.tableColumns.filter(_ => !!_.uiSearchOrder).sort(compare).length > DEFAULT_FILTER_NUMBER &&
                   (!this.isShowHiddenFilters ? (
                     <FormItem>
                       <div slot="label" style="visibility: hidden;">
@@ -493,22 +501,24 @@ export default {
     },
     calColumn () {
       let compare = (a, b) => {
-        if (a.displaySeqNo < b.displaySeqNo) {
+        if (a.uiFormOrder < b.uiFormOrder) {
           return -1
         }
-        if (a.displaySeqNo > b.displaySeqNo) {
+        if (a.uiFormOrder > b.uiFormOrder) {
           return 1
         }
         return 0
       }
-      const columns = this.tableColumns.filter(_ => (_.isDisplayed && _.displaySeqNo > 0) || _.children).sort(compare)
+      const columns = this.tableColumns
+        .filter(_ => (_.displayByDefault === 'yes' && _.uiFormOrder > 0) || _.children)
+        .sort(compare)
       const tableWidth = this.$refs.table ? this.$refs.table.$el.clientWidth : 1000 // 获取table宽度，默认值1000
       const colLength = columns.length // 获取传入展示的column长度
       this.colWidth = Math.floor(tableWidth / colLength)
       this.columns = columns.map((_, idx) => {
         // const isLast = colLength - 1 === idx
         if (_.children) {
-          const children = _.children.filter(_ => _.isDisplayed || _.displaySeqNo).sort(compare)
+          const children = _.children.filter(_ => _.displayByDefault === 'yes' || _.uiFormOrder).sort(compare)
           return {
             ..._,
             children: children.map((j, index) => {
@@ -520,7 +530,6 @@ export default {
           return this.renderCol(_, false)
         }
       })
-
       if (this.showCheckbox && !this.highlightRow) {
         this.columns.unshift({
           type: 'selection',
@@ -540,83 +549,24 @@ export default {
             return (
               <div>
                 {this.tableInnerActions.map(_ => {
-                  if (
-                    _.visible
-                      ? _.visible.key === 'nextOperations'
-                        ? !!params.row[_.visible.key].find(op => op === _.actionType)
-                        : _.visible.value === !!params.row[_.visible.key]
-                      : true
-                  ) {
-                    if (_.actionType === 'confirm') {
-                      return (
-                        <Button
-                          {...{ props: { ..._.props } }}
-                          disabled={_.isDisabled && _.isDisabled(params.row)}
-                          loading={_.isLoading && _.isLoading(params.row)}
-                          style="marginRight: 5px"
-                          onClick={() => {
-                            this.$Modal.confirm({
-                              title: this.$t('operation_confirm').replace('{state}', params.row.state_code),
-                              'z-index': 1000000,
-                              onOk: async () => {
-                                this.$emit('actionFun', _.actionType, params.row)
-                              },
-                              onCancel: () => {}
-                            })
-                          }}
-                        >
-                          <Tooltip content={this.$t('operation_confirm_tips')} placement="left-start" max-width="250">
-                            <span>{_.label}</span>
-                          </Tooltip>
-                        </Button>
-                      )
-                    } else {
-                      return (
-                        <Button
-                          {...{ props: { ..._.props } }}
-                          disabled={_.isDisabled && _.isDisabled(params.row)}
-                          loading={_.isLoading && _.isLoading(params.row)}
-                          style="marginRight: 5px"
-                          onClick={() => {
-                            this.$emit('actionFun', _.actionType, params.row)
-                          }}
-                        >
-                          {_.label}
-                        </Button>
-                      )
-                    }
-                  }
+                  return (
+                    <Button
+                      style="margin-right: 10px"
+                      {..._}
+                      size="small"
+                      onClick={() => {
+                        this.currentOperateType = _.operation_en
+                        this.$emit('actionFun', _, params.row, this.columns)
+                      }}
+                    >
+                      {_.operation}
+                    </Button>
+                  )
                 })}
               </div>
             )
           }
         })
-    },
-    // 优化差异化变量tooltip显示
-    managementContent (str) {
-      let arr = str.split(',')
-      const sIndex = arr.findIndex(item => item.indexOf('=') > 0)
-      let keyArr = []
-      let valueArr = []
-      arr.forEach((item, index) => {
-        if (index < sIndex) {
-          keyArr.push(item)
-        } else if (index === sIndex) {
-          let splitTag = item.split('=')
-          keyArr.push(splitTag[0])
-          valueArr.unshift(splitTag[1])
-        } else {
-          valueArr.push(item)
-        }
-      })
-      // 差异化表达式中字段加了奇葩字符，加此空格优化显示
-      keyArr[0] = ' ' + keyArr[0]
-      let res = []
-      const len = Math.max(keyArr.length, valueArr.length)
-      for (let j = 0; j < len; j++) {
-        res.push((keyArr[j] || '***') + '=' + (valueArr[j] || ''))
-      }
-      return res.join('\n')
     },
     renderCol (col, isLastCol = false) {
       return {
@@ -653,11 +603,7 @@ export default {
                   ) {
                     this.timer = setTimeout(
                       params => {
-                        if (col.key === 'variable_values') {
-                          this.tipContent = this.managementContent(content)
-                        } else {
-                          this.tipContent = content
-                        }
+                        this.tipContent = content
                         const popcorn = document.querySelector('#' + containerId)
                         const tooltip = document.querySelector('#' + params.randomId)
                         createPopper(popcorn, tooltip, {
@@ -712,10 +658,12 @@ export default {
     },
     editModalOkHandler (data) {
       this.modalLoading = true
+      // data.operateType = this.currentOperateType
+      // this.$emit('confirmEditHandler', data, this.currentOperateType)
       if (this.modalTitle === this.titles.edit) {
-        this.$emit('confirmEditHandler', data)
+        this.$emit('confirmEditHandler', data, this.currentOperateType)
       } else {
-        this.$emit('confirmAddHandler', data)
+        this.$emit('confirmAddHandler', data, this.currentOperateType)
       }
     }
   },
@@ -732,6 +680,26 @@ export default {
       tableLoading,
       ascOptions
     } = this
+    // TODO 逻辑待优化
+    const isDisplay = col => {
+      if (col.editable === 'yes') {
+        if (col.autofillable === 'yes') {
+          if (col.autoFillType !== 'forced') {
+            return true
+          } else {
+            return false
+          }
+        } else {
+          return true
+        }
+      } else {
+        return false
+      }
+    }
+    const test = columns => {
+      const res = columns.filter(col => isDisplay(col))
+      return res
+    }
     return (
       <div>
         {!filtersHidden && <div>{this.getFormFilters()}</div>}
@@ -765,7 +733,7 @@ export default {
         <EditModal
           isEdit={this.modalTitle === this.titles.edit}
           title={this.modalTitle}
-          columns={columns.filter(col => !col.isAuto && col.isEditable)}
+          columns={test(columns)}
           data={selectedRows}
           ascOptions={ascOptions}
           on-closeEditModal={this.closeEditModal}

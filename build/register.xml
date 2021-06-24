@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<package name="wecmdb" version="{{PLUGIN_VERSION}}">
+
+    <!-- 1.依赖分析 - 描述运行本插件包需要的其他插件包 -->
+    <packageDependencies>
+        <packageDependency name="platform" version="v2.9.0"/>
+    </packageDependencies>
+
+    <!-- 2.菜单注入 - 描述运行本插件包需要注入的菜单 -->
+    <menus>
+        <menu code='data_query_ci' cat='DESIGNING' displayName="Data Query(CI)" localDisplayName="数据查询(CI)">/wecmdb/data-query-ci</menu>
+        <menu code='data_query_report' cat='DESIGNING' displayName="Data Query(Report)" localDisplayName="数据查询(报表)">/wecmdb/data-query-report</menu>
+        <menu code='data_query_view' cat='DESIGNING' displayName="Data Query(View)" localDisplayName="数据查询(视图)">/wecmdb/data-query-view</menu>
+        <menu code='data_mgmt_ci' cat='DESIGNING' displayName="Data MGMT(CI)" localDisplayName="数据管理(CI)">/wecmdb/data-mgmt-ci</menu>
+        <menu code='data_mgmt_view' cat='DESIGNING' displayName="Data MGMT(View)" localDisplayName="数据管理(视图)">/wecmdb/data-mgmt-view</menu>
+        <menu code='model_configuration' cat='DESIGNING' displayName="Model Configuration" localDisplayName="模型配置">/wecmdb/model-configuration</menu>
+        <menu code='report_configuration' cat='DESIGNING' displayName="Report Configuration" localDisplayName="报表配置">/wecmdb/report-configuration</menu>
+        <menu code='basekey_configuration' cat='DESIGNING' displayName="Basekey Configuration" localDisplayName="基础数据配置">/wecmdb/basekey-configuration</menu>
+        <menu code='system_operation_log' cat='ADMIN' displayName="WeCMDB Operation Log" localDisplayName="WeCMDB操作日志">/wecmdb/system-operation-log</menu>
+    </menus>
+
+    <!-- 3.数据模型 - 描述本插件包的数据模型,并且描述和Framework数据模型的关系 -->
+    <dataModel isDynamic="true">
+    </dataModel>
+
+    <!-- 4.系统参数 - 描述运行本插件包需要的系统参数 -->
+    <systemParameters>
+        <systemParameter name="WECMDB_APP_SYSTEM" scopeType="global" defaultValue="app_system"/>
+        <systemParameter name="WECMDB_SUBSYS" scopeType="global" defaultValue="subsys"/>
+        <systemParameter name="WECMDB_UNIT" scopeType="global" defaultValue="unit"/>
+        <systemParameter name="WECMDB_DATA_CENTER" scopeType="global" defaultValue="data_center"/>
+        <systemParameter name="WECMDB_NETWORK_ZONE" scopeType="global" defaultValue="network_zone"/>
+        <systemParameter name="WECMDB_RESOURCE_SET" scopeType="global" defaultValue="resource_set"/>
+        <systemParameter name="WECMDB_KEEP_DATA_MODEL_SYNC" scopeType="global" defaultValue="false"/>
+        <systemParameter name="WECMDB_LOG_LEVEL" scopeType="global" defaultValue="info"/>
+    </systemParameters>
+
+
+    <!-- 5.权限设定 -->
+    <authorities>
+        <authority systemRoleName="SUPER_ADMIN" >
+            <menu code="data_query_ci" />
+            <menu code="data_query_report" />
+            <menu code="data_query_view" />
+            <menu code="data_mgmt_ci" />
+            <menu code="data_mgmt_view" />
+            <menu code="model_configuration" />
+            <menu code="report_configuration" />
+            <menu code="basekey_configuration" />
+            <menu code="system_operation_log" />
+        </authority >
+    </authorities>
+
+    <!-- 6.运行资源 - 描述部署运行本插件包需要的基础资源(如主机、虚拟机、容器、数据库等) -->
+    <resourceDependencies>
+        <docker imageName="{{REPOSITORY}}:{{PLUGIN_VERSION}}"
+                containerName="{{REPOSITORY}}-{{PLUGIN_VERSION}}"
+                portBindings="{{ALLOCATE_PORT}}:8096"
+                volumeBindings="{{BASE_MOUNT_PATH}}/wecmdb/log:/app/cmdb/logs,/etc/localtime:/etc/localtime,{{BASE_MOUNT_PATH}}/certs:/data/certs"
+                envVariables="CMDB_MYSQL_HOST={{DB_HOST}},CMDB_MYSQL_PORT={{DB_PORT}},CMDB_MYSQL_SCHEMA={{DB_SCHEMA}},CMDB_MYSQL_USER={{DB_USER}},CMDB_MYSQL_PWD={{DB_PWD}},JWT_SIGNING_KEY={{JWT_SIGNING_KEY}},GATEWAY_URL={{GATEWAY_URL}},SUB_SYSTEM_CODE={{SUB_SYSTEM_CODE}},SUB_SYSTEM_KEY={{SUB_SYSTEM_KEY}},CMDB_LOG_LEVEL={{WECMDB_LOG_LEVEL}},PLUGIN_MODE=yes"
+        />
+        <mysql schema="wecmdb_pro" initFileName="init.sql" upgradeFileName="upgrade.sql"/>
+    </resourceDependencies>
+
+    <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
+    <plugins>
+        <plugin name="ci-data" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+            <interface action="operation" path="/wecmdb/plugin/ci-data/operation" filterRule="">
+                <inputParameters>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="entity" mappingEntityExpression="">ciType</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="entity" mappingEntityExpression="">operation</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="entity" mappingEntityExpression="">jsonData</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorCode</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorMessage</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">guid</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+        <plugin name="attr-value" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+            <interface action="update" path="/wecmdb/plugin/ci-data/attr-value" filterRule="">
+                <inputParameters>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="entity" mappingEntityExpression="">ciType</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="entity" mappingEntityExpression="">guid</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="entity" mappingEntityExpression="">ciTypeAttr</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="entity" mappingEntityExpression="">value</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorCode</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorMessage</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">guid</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
+    </plugins>
+</package>

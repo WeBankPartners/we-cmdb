@@ -161,7 +161,7 @@ export default {
       const val = option.value
       if (val === undefined || val === null) return
       this.currentValue = val
-      this.$refs.input.blur()
+      // this.$refs.input.blur()
       this.$emit('on-select', val)
     },
     handleFocus (event) {
@@ -178,7 +178,7 @@ export default {
     },
     handleClickOutside () {
       this.$nextTick(() => {
-        this.$refs.input.blur()
+        // this.$refs.input.blur()
       })
     }
   }
