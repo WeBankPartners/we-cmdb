@@ -1,20 +1,20 @@
-# WeCMDB
+# Wecmdb-Pro
 
 <p align="left">
     <a href="https://opensource.org/licenses/Apache-2.0" alt="License">
         <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a>
-    <a href="https://github.com/WeBankPartners/we-cmdb/tree/v1.3.1" alt="release">
-        <img src="https://img.shields.io/github/v/release/WeBankPartners/we-cmdb.svg" /></a>
+    <a href="https://github.com/WeBankPartners/open-monitor/tree/v1.0.1" alt="release">
+        <img src="https://img.shields.io/github/v/release/WeBankPartners/open-monitor.svg" /></a>
     <a href="#" alt="Code Size">
-        <img src="https://img.shields.io/github/languages/code-size/WeBankPartners/we-cmdb.svg" /></a>
+        <img src="https://img.shields.io/github/languages/code-size/WeBankPartners/open-monitor.svg" /></a>
     <a href="#" alt="Java">
-        <img src="https://img.shields.io/badge/language-java-orange.svg" /></a>
+        <img src="https://img.shields.io/badge/language-go-orange.svg" /></a>
     <a href="#" alt="Vue">
         <img src="https://img.shields.io/badge/language-vue-green.svg" /></a>
-    <a href="https://github.com/WeBankPartners/we-cmdb/graphs/contributors" alt="Contributors">
-        <img src="https://img.shields.io/github/contributors/WeBankPartners/we-cmdb" /></a>
-    <a href="https://github.com/WeBankPartners/we-cmdb/pulse" alt="Activity">
-        <img src="https://img.shields.io/github/commit-activity/m/WeBankPartners/we-cmdb" /></a>
+    <a href="https://github.com/WeBankPartners/open-monitor/graphs/contributors" alt="Contributors">
+        <img src="https://img.shields.io/github/contributors/WeBankPartners/open-monitor" /></a>
+    <a href="https://github.com/WeBankPartners/open-monitor/pulse" alt="Activity">
+        <img src="https://img.shields.io/github/commit-activity/m/WeBankPartners/open-monitor" /></a>
 </p>
 
 中文 / [English](README_EN.md)
@@ -22,7 +22,7 @@
 ## 在线体验环境
 [点此体验WeCMDB](http://124.156.108.126:8090/wecmdb)
 
-<img src="./cmdb-wiki/docs/manual/images/ci-data-management.gif" />
+<img src="./wiki/images/ci-data-management.gif" />
 
 > 注意：
 >
@@ -44,7 +44,7 @@ CMDB，作为运维工具的核心，提供了全体系IT信息唯一数据源�
 ## 系统架构
 整体架构如下图：
 
-![WeCMDB系统架构](cmdb-wiki/images/wecmdb_arch_cn.png) 
+![WeCMDB系统架构](wiki/images/wecmdb_arch_cn.png) 
 
 
 ## 简介
@@ -92,42 +92,21 @@ WeCMDB是集中配置数据中心，管理IT各层面组件及组件关系信息
 WeCMDB常规容器化部署。
 
 如何编译WeCMDB，请查看文档
-[WeCMDB编译文档](cmdb-wiki/docs/install/wecmdb_compile_guide.md)
+[WeCMDB编译文档](wiki/docs/compile_guide.md)
 
 如何安装WeCMDB， 请查看文档
-[WeCMDB部署文档](cmdb-wiki/docs/install/wecmdb_install_guide.md)
+[WeCMDB部署文档](wiki/docs/install_guide.md)
 
 ## 用户手册
 关于WeCMDB模型说明， 请查看文档
-[WeCMDB 模型说明手册](cmdb-wiki/docs/manual/wecmdb_model_guide.md)
+[WeCMDB 模型说明手册](wiki/docs/wecmdb_model_guide.md)
 
 关于WeCMDB的使用和操作说明， 请查看文档
-[WeCMDB用户手册](cmdb-wiki/docs/manual/wecmdb_user_guide.md)
-
-## 开发者文档
-**WeCMDB快速本地启动**  
-如何本地快速体验，请查看文档[WeCMDB快速本地启动环境配置](cmdb-wiki/docs/developer/wecmdb_local_standalone_guide.md)
-
-**WeCMDB常规环境搭建**  
-WeCMDB使用Java和Vue进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
-
-请参考文档进行开发环境配置[WeCMDB开发环境配置](cmdb-wiki/docs/developer/wecmdb_developer_guide.md)
-
-**WeCMDB代码贡献指引**  
-关于WeCMDB代码贡献， 请查看文档
-[WeCMDB代码贡献指引](cmdb-wiki/docs/developer/code_contributors_submit_guide.md)
-
-## API说明
-关于WeCMDB的API说明， 请查看文档
-[WeCMDB API手册](cmdb-wiki/docs/api/wecmdb_api_guide.md)
-
-## 性能
-关于WeCMDB的性能，请查看文档
-[WeCMDB 性能](cmdb-wiki/docs/developer/performance.md)
+[WeCMDB用户手册](wiki/docs/wecmdb_user_guide.md)
 
 ## 术语表
 关于WeCMDB的使用到的术语，请查看文档
-[WeCMDB 术语表](cmdb-wiki/docs/manual/wecmdb_glossary.md)
+[WeCMDB 术语表](wiki/docs/manual/wecmdb_glossary.md)
 
 ## 版权声明
 WeCMDB是基于 Apache License 2.0 协议， 详情请参考
@@ -137,7 +116,7 @@ WeCMDB是基于 Apache License 2.0 协议， 详情请参考
 - 如果您想得到最快的响应，请给我们提[Issue](https://github.com/WeBankPartners/we-cmdb/issues/new/choose)或扫描下面的二维码，我们会第一时间反馈。
 
 	<div align="left">
-	<img src="cmdb-wiki/images/wecube_qr_code.png"  height="200" width="200">
+	<img src="wiki/images/wecube_qr_code.png"  height="200" width="200">
 	</div>
 
 

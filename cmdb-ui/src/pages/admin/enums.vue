@@ -16,7 +16,6 @@
     @pageSizeChange="pageSizeChange"
     @confirmAddHandler="confirmAddHandler"
     @confirmEditHandler="confirmEditHandler"
-    @getGroupList="getGroupList"
     tableHeight="650"
     ref="table"
   ></CMDBTable>
@@ -24,12 +23,10 @@
 
 <script>
 import {
-  getAllSystemEnumCodes,
-  getSystemCategories,
-  getEffectiveStatus,
+  getAllSystemEnumCodesWithPayload,
+  getAllEnumCategories,
   createEnumCode,
   updateEnumCode,
-  getGroupListByCodeId,
   deleteEnumCodes,
   getAllNonSystemEnumCodes
 } from '@/api/server.js'
@@ -49,107 +46,75 @@ export default {
           key: 'catName',
           inputKey: 'catId',
           propertyName: 'catId',
-          searchSeqNo: 1,
-          displaySeqNo: 1,
+          uiSearchOrder: 1,
+          uiFormOrder: 1,
           component: 'WeCMDBSelect',
-          onChange: 'getGroupList',
           disEditor: true, // 枚举名称不可改
           inputType: 'select',
           placeholder: 'catName',
           options: [],
           optionKey: 'catOpts',
-          isEditable: true,
+          editable: 'yes',
           isAuto: false,
-          isDisplayed: true
+          displayByDefault: 'yes'
         },
         {
           title: this.$t('table_enum_key'),
           key: 'code',
           inputKey: 'code',
           propertyName: 'code',
-          searchSeqNo: 2,
-          displaySeqNo: 2,
+          uiSearchOrder: 2,
+          uiFormOrder: 2,
           component: 'Input',
           inputType: 'text',
           placeholder: 'code',
-          isEditable: true,
+          editable: 'yes',
           isAuto: false,
-          isDisplayed: true
+          displayByDefault: 'yes'
         },
         {
           title: this.$t('table_enum_value'),
           key: 'value',
           inputKey: 'value',
           propertyName: 'value',
-          searchSeqNo: 3,
-          displaySeqNo: 3,
+          uiSearchOrder: 3,
+          uiFormOrder: 3,
           component: 'Input',
           inputType: 'text',
           placeholder: 'value',
-          isEditable: true,
+          editable: 'yes',
           isAuto: false,
-          isDisplayed: true
-        },
-        {
-          title: this.$t('form_enum_type'),
-          key: 'catTypeName',
-          inputKey: 'cat.catType.catTypeName',
-          propertyName: 'catTypeName',
-          searchSeqNo: 0, // 不可作为搜索条件
-          displaySeqNo: 4,
-          component: 'Input',
-          disEditor: true, // 枚举类型不可改
-          disAdded: true,
-          inputType: 'text',
-          placeholder: 'catTypeName',
-          isEditable: false,
-          isAuto: false,
-          isDisplayed: true
-        },
-        {
-          title: this.$t('table_enum_group'),
-          key: 'groupCodeId',
-          inputKey: 'groupCodeId',
-          propertyName: 'groupCodeId',
-          searchSeqNo: 5,
-          displaySeqNo: 5,
-          component: 'WeCMDBSelect',
-          inputType: 'select',
-          placeholder: 'groupCodeId',
-          optionColumnKey: 'catId',
-          isEditable: true,
-          isAuto: false,
-          isDisplayed: true
+          displayByDefault: 'yes'
         },
         {
           title: this.$t('state'),
           key: 'status',
           inputKey: 'status',
           propertyName: 'status',
-          searchSeqNo: 6,
-          displaySeqNo: 6,
+          uiSearchOrder: 6,
+          uiFormOrder: 6,
           component: 'WeCMDBSelect',
           inputType: 'select',
           placeholder: 'status',
           optionKey: 'statusOpts',
           options: [],
-          isEditable: true,
+          editable: 'yes',
           isAuto: false,
-          isDisplayed: true
+          displayByDefault: 'yes'
         },
         {
           title: this.$t('description'),
           key: 'codeDescription',
           inputKey: 'codeDescription',
           propertyName: 'codeDescription',
-          searchSeqNo: 0,
-          displaySeqNo: 7,
+          uiSearchOrder: 0,
+          uiFormOrder: 7,
           component: 'Input',
           inputType: 'text',
           placeholder: 'codeDescription',
-          isEditable: true,
+          editable: 'yes',
           isAuto: false,
-          isDisplayed: true
+          displayByDefault: 'yes'
         }
       ],
       pagination: {
@@ -166,7 +131,7 @@ export default {
         paging: true,
         sorting: {
           asc: true,
-          field: ''
+          field: 'catId'
         }
       },
       ascOptions: {},
@@ -180,9 +145,6 @@ export default {
     catId: {
       handler (val) {
         this.queryData()
-        if (val) {
-          this.getGroupList(val)
-        }
       },
       immediate: true
     }
@@ -215,22 +177,6 @@ export default {
     setNewAddedRow (index, key, v) {
       this.$refs.table.data[index][key] = v
     },
-    async getGroupList (catId) {
-      if (catId) {
-        const { data, statusCode } = await getGroupListByCodeId(catId)
-        let opts = []
-        if (statusCode === 'OK') {
-          opts = data.map(_ => {
-            return {
-              value: _.codeId,
-              label: _.value
-            }
-          })
-        }
-        this.$set(this.ascOptions, catId, opts)
-      }
-      this.$refs.table.form.groupCodeId = ''
-    },
     async queryData () {
       this.payload.pageable.pageSize = this.pagination.pageSize
       this.payload.pageable.startIndex = (this.pagination.currentPage - 1) * this.pagination.pageSize
@@ -249,52 +195,43 @@ export default {
       // this.$refs.table.isTableLoading(true)
       const { statusCode, data } =
         this.$route.name === 'baseData'
-          ? await getAllSystemEnumCodes(this.payload)
+          ? await getAllSystemEnumCodesWithPayload(this.payload)
           : await getAllNonSystemEnumCodes(this.payload)
       if (statusCode === 'OK') {
         this.pagination.total = data.pageInfo.totalRows
         this.tableData = data.contents.map(_ => {
           return {
             ..._,
-            ..._.cat,
-            catTypeName:
-              _.cat.catType.catTypeName === 'sys'
-                ? this.$t('system_enum')
-                : _.cat.catType.catTypeName === 'common'
-                  ? this.$t('common_enum')
-                  : `${this.$t('private_enum')}-${_.cat.catType.catTypeName}`
+            ..._.cat
           }
         })
       }
       // this.$refs.table.isTableLoading(true)
     },
     async getEnumNames () {
-      const { statusCode, data } = await getSystemCategories()
+      const { statusCode, data } = await getAllEnumCategories()
       if (statusCode === 'OK') {
-        const catOpt = data.map(_ => {
+        const catOpt = data.contents.map(_ => {
           return {
             value: _.catId,
             label: _.catName
           }
         })
+        this.tableColumns[0].options = catOpt
         this.$set(this.ascOptions, 'catOpts', catOpt)
       }
     },
     async getEnumsStatus () {
-      const { statusCode, data } = await getEffectiveStatus()
-      if (statusCode === 'OK') {
-        const status = data.map(_ => {
-          return {
-            value: _,
-            label: _
-          }
-        })
-        this.$set(this.ascOptions, 'statusOpts', status)
-      }
+      const status = [
+        { value: 'active', label: 'active' },
+        { value: 'inactive', label: 'inactive' }
+      ]
+      this.tableColumns[3].options = status
+      // this.$set(this.ascOptions, 'statusOpts', status)
     },
 
     actionFun (type, data, cols) {
-      switch (type) {
+      switch (type.actionType) {
         case 'export':
           this.exportHandler()
           break
@@ -341,7 +278,9 @@ export default {
         title: this.$t('delete_confirm'),
         'z-index': 1000000,
         onOk: async () => {
-          const payload = deleteData.map(_ => _.codeId)
+          const payload = deleteData.map(_ => {
+            return { codeId: _.codeId }
+          })
           const { statusCode, message } = await deleteEnumCodes(payload)
           if (statusCode === 'OK') {
             this.$Notice.success({
@@ -385,12 +324,7 @@ export default {
       })
       const payload = addAry.map(_ => {
         return {
-          callbackId: _.weTableRowId,
-          catId: _.catId,
-          code: _.code,
-          groupCodeId: _.groupCodeId,
-          status: _.status,
-          value: _.value
+          ..._
         }
       })
       const { statusCode, message } = await createEnumCode(payload)
@@ -416,13 +350,7 @@ export default {
       })
       const payload = editAry.map(_ => {
         return {
-          callbackId: _.weTableRowId,
-          catId: _.catId,
-          code: _.code,
-          codeId: _.codeId,
-          groupCodeId: _.groupCodeId,
-          status: _.status,
-          value: _.value
+          ..._
         }
       })
       const { statusCode, message } = await updateEnumCode(payload)
@@ -461,7 +389,7 @@ export default {
       })
       const { statusCode, data } =
         this.$route.name === 'baseData'
-          ? await getAllSystemEnumCodes({ ...this.payload, paging: false })
+          ? await getAllSystemEnumCodesWithPayload({ ...this.payload, paging: false })
           : await getAllNonSystemEnumCodes({ ...this.payload, paging: false })
       this.outerActions.forEach(_ => {
         if (_.actionType === 'export') {
@@ -478,7 +406,6 @@ export default {
               ..._,
               code: formatCode,
               value: formatValue,
-              groupCodeId: _.groupCodeId ? _.groupCodeId.value : '',
               catName: _.cat.catName
             }
           })

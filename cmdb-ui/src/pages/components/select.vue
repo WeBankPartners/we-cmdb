@@ -103,7 +103,7 @@ export default {
         }
       }
       if (val && !this.filterParams && this.enumId) {
-        const { data } = await getEnumCodesByCategoryId(0, this.enumId)
+        const { data } = await getEnumCodesByCategoryId(this.enumId)
         this.enumOpts = data
           .filter(j => j.status === 'active')
           .map(i => {
