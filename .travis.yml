@@ -1,3 +1,0 @@
-language: java
-sudo: false
-script: mvn -f cmdb-core/pom.xml package

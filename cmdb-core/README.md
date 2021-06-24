@@ -1,2 +1,0 @@
-# cmdb-core
-

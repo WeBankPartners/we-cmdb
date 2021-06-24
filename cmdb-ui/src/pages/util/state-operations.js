@@ -5,19 +5,10 @@ const types = {
   startup: 'success',
   stop: 'error'
 }
-export const getExtraInnerActions = async () => {
-  const { data, statusCode } = await getAllSystemEnumCodes({
-    filters: [
-      {
-        name: 'cat.catName',
-        operator: 'eq',
-        value: 'state_transition_operation'
-      }
-    ],
-    paging: false
-  })
+export const getExtraInnerActions = async ciTypeId => {
+  const { data, statusCode } = await getAllSystemEnumCodes(ciTypeId)
   if (statusCode === 'OK') {
-    return data.contents
+    return data
       .filter(_ => _.code !== 'insert' && _.code !== 'update' && _.code !== 'delete') // update delete 表示可编辑和可删除，
       .map(item => {
         return {
