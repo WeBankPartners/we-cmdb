@@ -123,39 +123,38 @@ export default {
       allCiTypes: [],
       ciTypesWithAccessControlledAttr: {},
       defaultKey: [
-        'creationPermission',
-        'enquiryPermission',
-        'executionPermission',
+        'insert',
+        'query',
+        'execute',
         'grantPermission',
-        'modificationPermission',
-        'removalPermission',
+        'update',
+        'delete',
         'roleCiTypeId',
-        'roleCiTypeCtrlAttrId',
-        'callbackId'
+        'roleCiTypeCtrlAttrId'
       ],
       actionsType: [
         {
-          actionCode: 'creationPermission',
+          actionCode: 'insert',
           type: 'CREATION',
           actionName: this.$t('permission_management_data_creation')
         },
         {
-          actionCode: 'removalPermission',
+          actionCode: 'delete',
           type: 'REMOVAL',
           actionName: this.$t('permission_management_data_removal')
         },
         {
-          actionCode: 'modificationPermission',
+          actionCode: 'update',
           type: 'MODIFICATION',
           actionName: this.$t('permission_management_data_modification')
         },
         {
-          actionCode: 'enquiryPermission',
+          actionCode: 'query',
           type: 'ENQUIRY',
           actionName: this.$t('permission_management_data_enquiry')
         },
         {
-          actionCode: 'executionPermission',
+          actionCode: 'execute',
           type: 'EXECUTION',
           actionName: this.$t('permission_management_data_execution')
         }
@@ -192,31 +191,31 @@ export default {
           name: this.$t('permission_management_data_creation'),
           allSelect: false,
           emptySelect: false,
-          key: 'creationPermission'
+          key: 'insert'
         },
         {
           name: this.$t('permission_management_data_removal'),
           allSelect: false,
           emptySelect: false,
-          key: 'removalPermission'
+          key: 'delete'
         },
         {
           name: this.$t('permission_management_data_modification'),
           allSelect: false,
           emptySelect: false,
-          key: 'modificationPermission'
+          key: 'update'
         },
         {
           name: this.$t('permission_management_data_enquiry'),
           allSelect: false,
           emptySelect: false,
-          key: 'enquiryPermission'
+          key: 'query'
         },
         {
           name: this.$t('permission_management_data_execution'),
           allSelect: false,
           emptySelect: false,
-          key: 'executionPermission'
+          key: 'execute'
         }
       ],
       cacheOriginCiTypePermission: [] // 便于撤销还原
@@ -227,40 +226,40 @@ export default {
       return [
         {
           title: this.$t('query'),
-          key: 'enquiryPermission',
-          inputKey: 'enquiryPermission',
+          key: 'query',
+          inputKey: 'query',
           defaultDisplaySeqNo: 1,
           ...this.defaultOptionAttrs,
           isDisplayed: true
         },
         {
           title: this.$t('new'),
-          key: 'creationPermission',
-          inputKey: 'creationPermission',
+          key: 'insert',
+          inputKey: 'insert',
           defaultDisplaySeqNo: 2,
           ...this.defaultOptionAttrs,
           isDisplayed: true
         },
         {
           title: this.$t('modify'),
-          key: 'modificationPermission',
-          inputKey: 'modificationPermission',
+          key: 'update',
+          inputKey: 'update',
           defaultDisplaySeqNo: 3,
           ...this.defaultOptionAttrs,
           isDisplayed: true
         },
         {
           title: this.$t('execute'),
-          key: 'executionPermission',
-          inputKey: 'executionPermission',
+          key: 'execute',
+          inputKey: 'execute',
           defaultDisplaySeqNo: 4,
           ...this.defaultOptionAttrs,
           isDisplayed: true
         },
         {
           title: this.$t('delete'),
-          key: 'removalPermission',
-          inputKey: 'removalPermission',
+          key: 'delete',
+          inputKey: 'delete',
           defaultDisplaySeqNo: 5,
           ...this.defaultOptionAttrs,
           isDisplayed: true
@@ -417,7 +416,6 @@ export default {
     async confirmAddHandler (data) {
       let addAry = JSON.parse(JSON.stringify(data))
       addAry.forEach(_ => {
-        _.callbackId = _['weTableRowId']
         delete _.isNewAddedRow
         delete _.isRowEditable
         delete _.weTableForm
@@ -460,7 +458,6 @@ export default {
     async confirmEditHandler (data) {
       let editAry = JSON.parse(JSON.stringify(data))
       editAry.forEach(_ => {
-        _.callbackId = _['weTableRowId']
         delete _.isNewAddedRow
         delete _.isRowEditable
         delete _.weTableForm
@@ -638,23 +635,14 @@ export default {
     },
     async savePermissionsInBatch () {
       const ciTypePermissions = this.ciTypePermissions.map(permission => {
-        const {
-          ciTypeId,
-          ciTypeName,
-          creationPermission,
-          enquiryPermission,
-          executionPermission,
-          modificationPermission,
-          removalPermission
-        } = permission
         return {
-          ciTypeId: ciTypeId,
-          ciTypeName,
-          creationPermission,
-          enquiryPermission,
-          executionPermission,
-          modificationPermission,
-          removalPermission
+          ciTypeId: permission.ciTypeId,
+          ciTypeName: permission.ciTypeName,
+          insert: permission.insert,
+          query: permission.query,
+          execute: permission.execute,
+          update: permission.update,
+          delete: permission.delete
         }
       })
       let { statusCode, message } = await assignCiTypePermissionForRoleInBatch(ciTypePermissions, this.currentRoleName)

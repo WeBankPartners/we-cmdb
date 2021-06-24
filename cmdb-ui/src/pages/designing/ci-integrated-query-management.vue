@@ -1,57 +1,27 @@
 <template>
   <div>
     <Row>
-      <Col span="6">
-        <span style="margin-right: 10px">{{ $t('root_ci_type') }}</span>
-        <Select v-model="selectedCI.id" filterable style="width: 75%;" @on-change="onCITypeChange">
-          <Option v-for="item in allCiTypes" :value="item.ciTypeId" :key="item.ciTypeId">{{ item.name }}</Option>
-        </Select>
-      </Col>
-      <Col span="10" offset="1">
-        <span style="margin-right: 10px">{{ $t('integrated_query_name') }}</span>
+      <Col span="10">
+        <span style="margin-right: 10px">{{ $t('report') }}</span>
         <Select
-          v-model="selectedQuery.id"
+          v-model="currentReportId"
+          ref="reportSelect"
           filterable
+          clearable
+          @on-clear="clearSelectedReport"
           style="width: 75%;"
-          :disabled="!selectedCI.id"
-          @on-change="onQueryNameSelectChange"
         >
-          <Option
-            v-for="(item, index) in queryNameList"
-            style="overflow:hidden;line-height:24px;"
-            :value="item.id"
-            :key="item.id"
-            >{{ item.name }}
-            <span v-if="index === 0">
-              <Button
-                @click.stop.prevent="createIntQuery(item)"
-                v-if="index === 0"
-                icon="md-add"
-                type="success"
-                long
-              ></Button>
-            </span>
-            <span v-else style="float:right">
-              <Button @click.stop.prevent="deleteIntQuery(item)" icon="ios-trash" type="error" size="small"></Button>
+          <Button type="success" style="width:100%" @click="openAddReport" size="small">
+            <Icon type="ios-add" size="24"></Icon>
+          </Button>
+          <Option v-for="item in reportList" :value="item.id" :key="item.id"
+            >{{ item.name
+            }}<span style="float:right">
+              <Button @click="deleteReport(item)" icon="ios-trash" type="error" size="small"></Button>
             </span>
           </Option>
         </Select>
-      </Col>
-      <Col span="6" offset="1">
-        <Button :disabled="!isNewIntQuery" @click="newGraphNameModalVisible = true">{{ $t('create') }}</Button>
-        <Button
-          :disabled="saveBtnDisable || isNewIntQuery"
-          @click="beforeSaveGraph('update')"
-          :loading="updateLoading"
-          >{{ $t('update') }}</Button
-        >
-        <Modal v-model="newGraphNameModalVisible" :title="$t('add_integrated_query_name')">
-          <Input v-model="newGraphName" :placeholder="$t('input_placeholder')" />
-          <div slot="footer">
-            <Button @click="newGraphNameModalVisible = false">{{ $t('cancel') }}</Button>
-            <Button type="primary" @click="beforeSaveGraph('create')" :loading="btnLoading">{{ $t('save') }}</Button>
-          </div>
-        </Modal>
+        <Button type="primary" @click="getReportStruct" :disabled="!currentReportId">{{ $t('query') }}</Button>
       </Col>
     </Row>
     <Row v-if="ciGraphData" style="margin-top: 20px;">
@@ -60,160 +30,148 @@
           <CiGraph
             :ciGraphData="ciGraphData"
             :attributeObject="attributeObject"
-            @onChange="handleCiGraphChange"
-            @onMounted="updateGraphData"
+            :currentReportId="currentReportId"
+            @onRefresh="getReportStruct"
           />
         </Card>
       </Row>
-      <Row style="margin-top: 20px">
-        <Card>
-          <Row v-if="attrs.length" style="margin-bottom: 10px;">
-            <Button style="margin-right: 10px;" @click="showKeyNameModal">{{ $t('change_key_name') }}</Button>
-            <span>{{ $t('show_key_name') }}</span>
-            <i-switch size="small" v-model="isShowAttrKeyNames" />
-          </Row>
-          <Row class="attrs" v-for="attr in attrs" :key="attr.label">
-            <h4>{{ attr.label }}</h4>
-            <Tag type="dot" color="primary" v-for="item in attr.attrList" :key="item.name">{{
-              isShowAttrKeyNames && !!item.attrKeyName ? `${item.name}(${item.attrKeyName})` : item.name
-            }}</Tag>
-          </Row>
-        </Card>
-      </Row>
     </Row>
-    <Modal :title="$t('change_key_name')" :mask-closable="false" v-model="iskeyNameModalShow" width="600">
-      <Form class="key-name-form" :rules="ruleValidate" ref="form">
-        <div v-for="item in formAttrs" :key="item.label">
-          <h4>{{ item.label }}</h4>
-          <FormItem
-            class="validation-form"
-            v-for="attr in item.attrList"
-            :key="attr.name"
-            :label="attr.name"
-            :prop="attr.ciTypeAttrId + ''"
-            label-position="right"
-            :label-width="80"
-          >
-            <Input v-model="attr.attrKeyName"></Input>
+    <Modal v-model="newReport.showAddNewReportModal" width="710" :title="$t('creat_report')" :mask-closable="false">
+      <div :style="{ maxHeight: MODALHEIGHT + 'px', overflow: 'auto' }">
+        <Form :model="newReport.params" :label-width="80">
+          <FormItem :label="$t('report_id')">
+            <Input v-model="newReport.params.id"></Input>
           </FormItem>
+          <FormItem :label="$t('report_name')">
+            <Input v-model="newReport.params.name"></Input>
+          </FormItem>
+          <FormItem label="CI">
+            <Select v-model="newReport.params.ciType" filterable>
+              <template v-for="item in newReport.allCiTypes">
+                <Option :value="item.ciTypeId" :key="item.ciTypeId">{{ item.name }}</Option>
+              </template>
+            </Select>
+          </FormItem>
+          <FormItem :label="$t('data_name')">
+            <Input v-model="newReport.params.dataName"></Input>
+          </FormItem>
+          <FormItem :label="$t('data_title_name')">
+            <Input v-model="newReport.params.dataTitleName"></Input>
+          </FormItem>
+        </Form>
+        <div>
+          <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
+          <Transfer
+            :titles="transferTitles"
+            :list-style="transferStyle"
+            :data="allRoles"
+            :target-keys="MGMT"
+            @on-change="handleMgmtRoleTransferChange"
+            filterable
+          ></Transfer>
         </div>
-      </Form>
+        <div style="margin-top: 30px">
+          <div class="role-transfer-title">{{ $t('use_role') }}</div>
+          <Transfer
+            :titles="transferTitles"
+            :list-style="transferStyle"
+            :data="allRolesBackUp"
+            :target-keys="USE"
+            @on-change="handleUseRoleTransferChange"
+            filterable
+          ></Transfer>
+        </div>
+      </div>
       <div slot="footer">
-        <Button type="primary" @click="changeKeyName">{{ $t('confirm') }}</Button>
-        <Button @click="closeKeyNameModal">{{ $t('cancel') }}</Button>
+        <Button @click="collectionRoleManageModal = false">{{ $t('cancel') }}</Button>
+        <Button type="primary" @click="addNewReport">{{ $t('save') }}</Button>
       </div>
     </Modal>
   </div>
 </template>
 
 <script>
+import CiGraph from '../components/ci-graph.js'
 import {
   getAllCITypes,
-  getQueryNames,
-  fetchIntQueryById,
-  saveIntQuery,
-  updateIntQuery,
-  deleteIntQuery
+  addReport,
+  getReportListByPermission,
+  getReportStruct,
+  deleteReport,
+  getRolesByCurrentUser,
+  getAllRoles
 } from '@/api/server'
-import CiGraph from '../components/ci-graph.js'
 export default {
-  components: { CiGraph },
   data () {
     return {
-      btnLoading: false,
-      isNewIntQuery: false,
-      selectedCI: {
-        id: 0,
-        value: ''
+      currentReportId: '',
+      reportList: [],
+      newReport: {
+        showAddNewReportModal: false,
+        params: {
+          id: '',
+          name: '',
+          ciType: '',
+          dataName: '',
+          dataTitleName: ''
+        },
+        allCiTypes: []
       },
-      allCiTypes: [],
-      selectedQuery: {
-        id: 0,
-        value: ''
-      },
-      queryNameList: [{ id: 100000, name: '' }],
+      allRoles: [],
+      MGMT: [],
+      allRolesBackUp: [],
+      USE: [],
+      transferTitles: [this.$t('unselected_role'), this.$t('selected_role')],
+      transferStyle: { width: '300px' },
+
       ciGraphData: null,
-      attrs: [],
-      formAttrs: [],
-      saveBtnDisable: true,
-      newGraphNameModalVisible: false,
-      newGraphName: '',
-      ciGraphResult: null,
-      updateLoading: false,
-      isShowAttrKeyNames: true,
-      iskeyNameModalShow: false,
-      ruleValidate: {},
       attributeObject: {},
-      needToUpdate: false
+      MODALHEIGHT: 0
     }
   },
-  computed: {
-    attrsList () {
-      let arr = []
-      this.formAttrs.forEach(ciType => {
-        if (ciType.attrList instanceof Array) {
-          ciType.attrList.forEach(attr => {
-            arr.push(attr)
-          })
-        }
-      })
-      return arr
-    },
-    attrsObject () {
-      let obj = {}
-      this.attrs.forEach(ciType => {
-        obj[ciType.label] = ciType.attrList || []
-      })
-      return obj
-    }
-  },
-  watch: {
-    newGraphNameModalVisible: function (val) {
-      if (!val) {
-        this.btnLoading = false
-        this.newGraphName = ''
-      }
-    }
+  mounted () {
+    this.MODALHEIGHT = window.MODALHEIGHT
   },
   created () {
-    this.getAllCITypes()
+    this.getReportList()
   },
   methods: {
-    async getAllCITypes () {
-      let { statusCode, data } = await getAllCITypes()
-      if (statusCode === 'OK') {
-        this.allCiTypes = data
-      }
-    },
-    onCITypeChange (value) {
-      this.getQueryNameList(value)
-    },
-    async onQueryNameSelectChange (value) {
+    clearSelectedReport () {
+      this.currentReportId = ''
       this.ciGraphData = null
-      this.isNewIntQuery = false
-      if (!value) {
-        return
-      }
-      const { statusCode, data } = await fetchIntQueryById(this.selectedCI.id, value)
+      this.attrs = []
+    },
+    showData () {
+      this.$refs.test.showData()
+    },
+    async getReportList () {
+      this.reportList = []
+      const { statusCode, data } = await getReportListByPermission('MGMT')
       if (statusCode === 'OK') {
-        this.attributeObject = {}
-        this.ciGraphData = this.formatAttr([data])[0]
-        this.attrs = this.calCiTypeAttrs(data)
+        this.reportList = data
       }
-      this.isShowAttrKeyNames = true
+    },
+    async getReportStruct () {
+      this.$refs.reportSelect.visible = false
+      this.ciGraphData = null
+      const { statusCode, data } = await getReportStruct(this.currentReportId)
+      if (statusCode === 'OK') {
+        this.ciGraphData = this.formatAttr(data.object)[0]
+        this.attrs = this.calCiTypeAttrs(data.object)
+      }
     },
     calCiTypeAttrs (cis) {
       const ret = []
       let helper = root => {
         if (!root) return
-        if (root.attrs && root.attrs.length) {
+        if (root.attr && root.attr.length) {
           ret.push({
-            label: root.name,
-            attrList: root.attrs.map((_, i) => {
+            label: root.dataTitleName,
+            attrList: root.attr.map((_, i) => {
               return {
-                ciTypeAttrId: _,
-                name: this.attributeObject[_] ? this.attributeObject[_].name : '',
-                attrKeyName: this.attributeObject[_] ? this.attributeObject[_].attrKeyName : ''
+                ciTypeAttrId: _.id,
+                name: _.dataTitleName,
+                attrKeyName: _.dataName
               }
             })
           })
@@ -230,319 +188,119 @@ export default {
       return data.map(_ => {
         let result = {
           ..._,
-          attributeList: _.attrs
-            ? _.attrs.map((attrId, index) => {
+          attributeList: _.attr
+            ? _.attr.map((attrId, index) => {
               let _result = {
-                ciTypeAttrId: attrId
+                ciTypeAttrId: attrId.id
               }
-              if (_.attrAliases instanceof Array && _.attrAliases[index]) {
-                _result.name = _.attrAliases[index]
-              }
-              if (_.attrKeyNames instanceof Array && _.attrKeyNames[index]) {
-                _result.attrKeyName = _.attrKeyNames[index]
-              }
-              this.attributeObject[attrId] = _result
+              _result.name = _.dataTitleName
+              _result.attrKeyName = _.dataName
+              this.attributeObject[attrId.id] = _result
               return _result
             })
             : []
         }
-        if (_.children instanceof Array) {
-          result.children = this.formatAttr(_.children)
+        if (_.object instanceof Array) {
+          result.object = this.formatAttr(_.object)
         }
         return result
       })
     },
-
-    handleCiGraphChange (data) {
-      this.saveBtnDisable = false
-      this.updateGraphData(data)
-    },
-    updateGraphData (data) {
-      this.ciGraphResult = data
-      this.attrs =
-        Object.keys(data).reduce((pre, cur) => {
-          if (data[cur].node.attributeList && data[cur].node.attributeList.length) {
-            return pre.concat({
-              label: data[cur].node.label,
-              attrList: data[cur].node.attributeList.map(_ => {
-                return {
-                  ciTypeAttrId: _.ciTypeAttrId,
-                  attrKeyName: _.attrKeyName,
-                  name: _.name
-                }
-              })
-            })
-          } else {
-            return pre
-          }
-        }, []) || []
-    },
-    treeifyCiTypes () {
-      const { ciGraphResult, attrsObject } = this
-      if (!ciGraphResult) {
-        return null
-      }
-      const key = Object.keys(ciGraphResult).filter(key => ciGraphResult[key].node.index === 1)
-      const rootNode = ciGraphResult[key]
-      function treefiy (root) {
-        const attrs = attrsObject[root.node.label]
-        if (!root.from.length && !root.to.length) {
-          return {
-            ciTypeId: root.node.ciTypeId,
-            name: root.node.label,
-            attrs: attrs ? attrs.map(_ => _.ciTypeAttrId) : [],
-            attrAliases: attrs ? attrs.map(_ => _.name) : [],
-            attrKeyNames: attrs && attrs[0].attrKeyName ? attrs.map(_ => _.attrKeyName) : []
-          }
-        }
-        const t = {
-          children: [],
-          ciTypeId: root.node.ciTypeId,
-          name: root.node.label,
-          attrs: attrs ? attrs.map(_ => _.ciTypeAttrId) : [],
-          attrAliases: attrs ? attrs.map(_ => _.name) : [],
-          attrKeyNames: attrs && attrs[0].attrKeyName ? attrs.map(_ => _.attrKeyName) : []
-        }
-
-        if (root.to) {
-          t.children = [].concat(
-            root.to.map(_ => {
-              const label = attrsObject[_.label]
-              if (ciGraphResult[_.label]) {
-                const ret = treefiy(ciGraphResult[_.label])
-                return {
-                  attrs: label ? label.map(_ => _.ciTypeAttrId) : [],
-                  attrAliases: label ? label.map(_ => _.name) : [],
-                  attrKeyNames: label && label[0].attrKeyName ? label.map(_ => _.attrKeyName) : [],
-                  ...ret,
-                  parentRs: {
-                    attrId: _.refPropertyId,
-                    isReferedFromParent: true
-                  }
-                }
-              } else {
-                return {
-                  ciTypeId: _.ciTypeId,
-                  name: _.label,
-                  attrs: label ? label.map(_ => _.ciTypeAttrId) : [],
-                  attrAliases: label ? label.map(_ => _.name) : [],
-                  attrKeyNames: label && label[0].attrKeyName ? label.map(_ => _.attrKeyName) : [],
-                  parentRs: {
-                    attrId: _.refPropertyId,
-                    isReferedFromParent: true
-                  }
-                }
-              }
-            })
-          )
-        }
-
-        if (root.from) {
-          t.children = t.children.concat(
-            root.from.map(_ => {
-              const label = attrsObject[_.label]
-              if (ciGraphResult[_.label]) {
-                const ret = treefiy(ciGraphResult[_.label])
-                return {
-                  attrs: label ? label.map(_ => _.ciTypeAttrId) : [],
-                  attrAliases: label ? label.map(_ => _.name) : [],
-                  attrKeyNames: label && label[0].attrKeyName ? label.map(_ => _.attrKeyName) : [],
-                  ...ret,
-                  parentRs: {
-                    attrId: _.refPropertyId,
-                    isReferedFromParent: false
-                  }
-                }
-              } else {
-                return {
-                  ciTypeId: _.ciTypeId,
-                  name: _.label,
-                  attrs: label ? label.map(_ => _.ciTypeAttrId) : [],
-                  attrAliases: label ? label.map(_ => _.name) : [],
-                  attrKeyNames: label && label[0].attrKeyName ? label.map(_ => _.attrKeyName) : [],
-                  parentRs: {
-                    attrId: _.refPropertyId,
-                    isReferedFromParent: false
-                  }
-                }
-              }
-            })
-          )
-        }
-
-        return t
-      }
-
-      return treefiy(rootNode)
-    },
-    async deleteIntQuery (item) {
+    async deleteReport (report) {
       this.$Modal.confirm({
-        title: this.$t('delete_integrated_query'),
+        title: this.$t('delete_confirm'),
         'z-index': 1000000,
-        content: `<p>${this.$t('delete_confirm')}</p>`,
         onOk: async () => {
-          const { statusCode } = await deleteIntQuery(this.selectedCI.id, item.id)
+          const { statusCode, data } = await deleteReport(report.id)
           if (statusCode === 'OK') {
             this.$Notice.success({
-              title: 'DeleteIntQuery Success',
-              desc: 'DeleteIntQuery Success'
+              title: 'Success',
+              desc: data
             })
-            this.getQueryNameList(this.selectedCI.id)
+            this.currentReportId = ''
+            this.getReportList()
           }
         },
         onCancel: () => {}
       })
       document.querySelector('.ivu-modal-mask').click()
     },
-    createIntQuery () {
-      if (this.selectedCI.id) {
-        const found = this.allCiTypes.find(_ => _.ciTypeId === this.selectedCI.id)
-        this.ciGraphData = {
-          name: found.name,
-          ciTypeId: found.ciTypeId,
-          children: []
-        }
-        this.isNewIntQuery = true
-        this.isShowAttrKeyNames = false
-        this.attrs = []
-        this.attributeObject = {}
-      }
-      document.querySelector('.content-container').click()
-    },
-    beforeSaveGraph (type) {
-      this.formAttrs = JSON.parse(JSON.stringify(this.attrs))
-      let validator = true
-      let isEmpty = true
-      this.attrsList.reduce((pre, cur) => {
-        if (pre.indexOf(cur) >= 0 || (!isEmpty && !cur.attrKeyName)) {
-          validator = false
-        }
-        if (cur.attrKeyName) {
-          isEmpty = false
-        }
-        return pre.concat(cur.attrKeyName)
-      }, [])
-      if (validator) {
-        this.saveGraph(type)
-      } else {
-        this.needToUpdate = true
-        this.showKeyNameModal()
-      }
-    },
-    async saveGraph (type) {
-      const reqData = this.treeifyCiTypes()
-      if (!reqData) {
-        this.$Notice.warning({
-          title: 'Warning',
-          desc: this.$t('unreasonable_delete_integrated_tips')
-        })
-      } else {
-        if (type === 'update') {
-          this.updateLoading = true
-        }
-        this.btnLoading = true
-        setTimeout(() => {
-          this.btnLoading = false
-        }, 5000)
-        const { statusCode, message } = this.isNewIntQuery
-          ? await saveIntQuery(this.selectedCI.id, this.newGraphName, reqData)
-          : await updateIntQuery(this.selectedQuery.id, reqData)
-        this.updateLoading = false
-        if (statusCode === 'OK') {
-          this.btnLoading = false
-          this.$Notice.success({
-            title: 'Success',
-            desc: message
-          })
-          this.newGraphNameModalVisible = false
-          if (this.isNewIntQuery) {
-            this.getQueryNameList(this.selectedCI.id)
-          }
-        }
-      }
-    },
-    reset () {
-      this.queryNameList = [{ id: 100000, name: '' }]
-      this.selectedQuery = { id: 0, value: '' }
-    },
-    async getQueryNameList (ciTypeId) {
-      this.reset()
-      const { statusCode, data } = await getQueryNames(ciTypeId)
+    async openAddReport () {
+      this.newReport.params.id = ''
+      this.newReport.params.name = ''
+      this.newReport.params.ciType = ''
+      this.newReport.params.dataName = ''
+      this.newReport.params.dataTitleName = ''
+      this.USE = []
+      this.MGMT = []
+      this.$refs.reportSelect.visible = false
+      const { statusCode, data } = await getAllCITypes()
       if (statusCode === 'OK') {
-        this.queryNameList = this.queryNameList.concat(data)
+        this.newReport.allCiTypes = data
       }
+      await this.getRolesByCurrentUser()
+      await this.getRoleList()
+      this.newReport.showAddNewReportModal = true
     },
-    showKeyNameModal () {
-      this.ruleValidate = {}
-      this.formData = {}
-      this.formAttrs = JSON.parse(JSON.stringify(this.attrs))
-      this.formAttrs.forEach(_ => {
-        this.formData[_.label] = _.attrList
-        if (_.attrList instanceof Array) {
-          _.attrList.forEach(attr => {
-            this.ruleValidate[attr.ciTypeAttrId] = [
-              { validator: (rule, value, callback) => this.formValidator(attr, callback), trigger: 'blur' }
-            ]
-            this.formData[attr.ciTypeAttrId] = attr
-          })
-        }
-      })
-      this.iskeyNameModalShow = true
-    },
-    formValidator (attr, callback) {
-      const found = this.attrsList.find(
-        _ => (_.ciTypeAttrId !== attr.ciTypeAttrId && _.attrKeyName === attr.attrKeyName) || !attr.attrKeyName
-      )
-      if (found) {
-        return callback(new Error(this.$t('keyname_should_be_unique')))
-      } else {
-        return callback()
-      }
-    },
-    closeKeyNameModal () {
-      this.iskeyNameModalShow = false
-      this.formData = {}
-      this.formAttrs = []
-      this.needToUpdate = false
-    },
-    changeKeyName () {
-      this.$refs.form.validate(vaild => {
-        if (vaild) {
-          this.attrs = JSON.parse(JSON.stringify(this.formAttrs))
-          this.isShowAttrKeyNames = true
-          this.iskeyNameModalShow = false
-          this.saveBtnDisable = false
-          this.attributeObject = {}
-          this.attrsList.forEach(_ => {
-            this.attributeObject[_.ciTypeAttrId] = {
-              ciTypeAttrId: _.ciTypeAttrId,
-              name: _.name,
-              attrKeyName: _.attrKeyName
-            }
-          })
-          if (this.needToUpdate === true) {
-            this.saveGraph('update')
-            this.needToUpdate = false
+    async getRolesByCurrentUser () {
+      const { statusCode, data } = await getRolesByCurrentUser()
+      if (statusCode === 'OK') {
+        this.allRoles = data.map(_ => {
+          return {
+            ..._,
+            key: _.roleName,
+            label: _.description
           }
-        } else {
-          this.$Message.error(this.$t('keyname_should_be_unique'))
-        }
-      })
-    }
+        })
+      }
+    },
+    async getRoleList () {
+      const { statusCode, data } = await getAllRoles()
+      if (statusCode === 'OK') {
+        this.allRolesBackUp = data.map(_ => {
+          return {
+            ..._,
+            key: _.roleName,
+            label: _.description
+          }
+        })
+      }
+    },
+    async handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
+      this.MGMT = newTargetKeys
+    },
+    async handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
+      this.USE = newTargetKeys
+    },
+    async addNewReport () {
+      this.newReport.params.useRole = this.USE.join(',')
+      this.newReport.params.mgmtRole = this.MGMT.join(',')
+      const { statusCode, data } = await addReport(this.newReport.params)
+      if (statusCode === 'OK') {
+        this.newReport.showAddNewReportModal = false
+        this.currentReportId = data.id
+        this.getReportList()
+      }
+    },
+    cancelNewReport () {
+      this.newReport.showAddNewReportModal = false
+    },
+    onReportChange () {}
+  },
+  components: {
+    CiGraph
   }
 }
 </script>
-
-<style lang="scss" scoped>
-.key-name-form {
-  height: 60vh;
-  overflow-y: auto;
-  width: 100%;
+<style lang="scss">
+.ivu-form-item {
+  margin-bottom: 8px;
 }
-.validation-form {
-  margin-bottom: 12px;
-}
-.validation-form /deep/ .ivu-form-item-error-tip {
-  padding-top: 0;
+.role-transfer-title {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  background-color: rgb(226, 222, 222);
+  margin-bottom: 5px;
 }
 </style>
