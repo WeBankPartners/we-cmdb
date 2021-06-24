@@ -1,6 +1,6 @@
 <template>
   <Row>
-    <Col span="4">
+    <Col span="7" offset="1">
       <Card>
         <p slot="title" class="permission-management-p">
           <span>{{ $t('user') }}</span>
@@ -10,21 +10,27 @@
           <Tag
             v-for="item in users"
             :key="item.id"
-            :name="item.username"
+            :name="item.displayName"
             :color="item.color"
             :checked="item.checked"
             checkable
             :fade="false"
             @on-change="handleUserClick"
           >
-            <span :title="` ${item.username} ( ${item.description} ) `">{{
-              ` ${item.username} ( ${item.description} ) `
+            <span :title="` ${item.displayName} ( ${item.description} ) `">{{
+              ` ${item.displayName} ( ${item.description} ) `
             }}</span>
+            <span v-if="users.length > 1" style="float:right;" @click="resetPassword($event, item)">
+              <Icon size="20" type="ios-unlock-outline" />
+            </span>
+            <span v-if="users.length > 1" style="float:right;color:red" @click="deleteUser(item)">
+              <Icon size="20" type="ios-trash-outline" />
+            </span>
           </Tag>
         </div>
       </Card>
     </Col>
-    <Col span="5" offset="0" style="margin-left: 20px">
+    <Col span="7" offset="1" style="margin-left: 20px">
       <Card>
         <p slot="title" class="permission-management-p">
           <span>{{ $t('role') }}</span>
@@ -41,6 +47,9 @@
               @on-change="handleRoleClick"
             >
               <span :title="item.description">{{ item.description }}</span>
+              <span v-if="item.rolename !== 'SUPER_ADMIN'" style="float:right;color:red" @click="deleteRole(item)">
+                <Icon size="20" type="ios-trash-outline" />
+              </span>
             </Tag>
             <Button icon="md-person" type="dashed" size="small" @click="openUserManageModal(item.rolename)">{{
               $t('user')
@@ -49,7 +58,7 @@
         </div>
       </Card>
     </Col>
-    <Col span="4" offset="0" style="margin-left: 20px">
+    <Col span="7" offset="1" style="margin-left: 20px">
       <Card>
         <p slot="title">{{ $t('menus_management') }}</p>
         <div class="tagContainers">
@@ -58,72 +67,16 @@
         </div>
       </Card>
     </Col>
-    <Col span="9" offset="0" style="margin-left: 20px">
-      <Card>
-        <p slot="title">{{ $t('data_management') }}</p>
-        <div v-if="ciTypePermissions.length" class="batch-operation">
-          <div style="float:left">{{ $t('selectAll') }}</div>
-          <div class="" style="text-align:right;">
-            <template v-for="(operation, opretionIndex) in batchOperations">
-              <Checkbox
-                :key="opretionIndex"
-                :value="operation.allSelect"
-                :indeterminate="operation.emptySelect"
-                @on-change="
-                  val => {
-                    batchPermission(val, operation.key)
-                  }
-                "
-                >{{ operation.name }}</Checkbox
-              >
-            </template>
-            <Button icon="md-person" type="dashed" size="small" style="margin-right:21px;visibility: hidden;">{{
-              $t('details')
-            }}</Button>
-          </div>
-        </div>
-        <div class="tagContainers-auth">
-          <Spin size="large" fix v-if="spinShow"></Spin>
-          <div class="data-permissions" v-for="(ci, ciIndex) in ciTypePermissions" :key="ci.ciTypeId">
-            <span class="ciTypes" :title="ci.ciTypeName">{{ ci.ciTypeName }}</span>
-            <div class="ciTypes-options">
-              <Checkbox
-                v-for="act in actionsType"
-                :disabled="dataPermissionDisabled"
-                :indeterminate="ci[act.actionCode] === 'P'"
-                :value="ci[act.actionCode] === 'Y'"
-                :key="act.actionCode"
-                @click.prevent.native="ciTypesPermissionsHandler(ciIndex, act.actionCode)"
-                >{{ act.actionName }}</Checkbox
-              >
-              <Button
-                icon="md-person"
-                type="dashed"
-                size="small"
-                :disabled="dataPermissionDisabled || !ciTypesWithAccessControlledAttr[ci.ciTypeId]"
-                @click="openPermissionManageModal(ci.roleCiTypeId)"
-              >
-                {{ $t('details') }}
-              </Button>
-            </div>
-          </div>
-        </div>
-        <div v-if="ciTypePermissions.length" class="batch-operation-btn">
-          <Button type="primary" @click="savePermissionsInBatch">{{ $t('save') }}</Button>
-          <Button @click="cancelPermissionsOperation">{{ $t('cancel') }}</Button>
-        </div>
-      </Card>
-    </Col>
     <Modal v-model="addRoleModalVisible" :title="$t('add_role')" @on-ok="addRole" @on-cancel="cancel">
       <Input v-model="addedRoleValue" :placeholder="$t('username_input_placeholder')" />
     </Modal>
     <Modal v-model="addUserModalVisible" :title="$t('add_user')" @on-ok="addUser" @on-cancel="cancel">
       <Form class="validation-form" ref="addedUserForm" :model="addedUser" label-position="left" :label-width="100">
-        <FormItem :label="$t('username')" prop="username">
-          <Input v-model="addedUser.username" />
+        <FormItem :label="$t('username')" prop="userId">
+          <Input v-model="addedUser.userId" />
         </FormItem>
-        <FormItem :label="$t('fullname')" prop="fullName">
-          <Input v-model="addedUser.fullName" />
+        <FormItem :label="$t('fullname')" prop="displayName">
+          <Input v-model="addedUser.displayName" />
         </FormItem>
         <FormItem :label="$t('description')" prop="description">
           <Input v-model="addedUser.description" />
@@ -141,51 +94,33 @@
         filterable
       ></Transfer>
     </Modal>
-    <Modal v-model="permissionManageModal" :title="$t('edit_data_authority')" @on-cancel="cancelEdit" width="80">
-      <CMDBTable
-        :tableData="ciTypeAttrsPermissions"
-        :filtersHidden="true"
-        :tableOuterActions="newOuterActions"
-        :tableInnerActions="null"
-        :tableColumns="attrsPermissionsColumns"
-        :ascOptions="permissionsTableOptions"
-        :showCheckbox="true"
-        @actionFun="actionFun"
-        @getSelectedRows="onSelectedRowsChange"
-        @confirmAddHandler="confirmAddHandler"
-        @confirmEditHandler="confirmEditHandler"
-        tableHeight="650"
-        ref="table"
-      ></CMDBTable>
-      <div slot="footer">
-        <Button @click="cancelEdit">{{ $t('close') }}</Button>
-      </div>
+    <Modal
+      v-model="showPassword"
+      :title="$t('copy_password')"
+      @on-ok="showPassword = false"
+      @on-cancel="showPassword = false"
+    >
+      <span>{{ newResetPassword }}</span>
     </Modal>
   </Row>
 </template>
 <script>
-import { resetButtonDisabled } from '@/const/tableActionFun.js'
-import { newOuterActions } from '@/const/actions.js'
 import {
   getAllUsers,
   getAllRoles,
+  resetPassword,
   getAllMenus,
+  deleteUser,
+  deleteRole,
   getRolesByUser,
   getUsersByRole,
   addRole,
   addUser,
   getPermissionsByRole,
   addUsersToRole,
-  romoveUsersFromRole,
-  getPermissionsByUser,
   addMenusToRole,
-  removeMenusFromRole,
   addDataPermissionAction,
   removeDataPermissionAction,
-  getRoleCiTypeCtrlAttributesByRoleCiTypeId,
-  createRoleCiTypeCtrlAttributes,
-  updateRoleCiTypeCtrlAttributes,
-  deleteRoleCiTypeCtrlAttributes,
   getAllCITypesByLayerWithAttr,
   assignCiTypePermissionForRoleInBatch
 } from '@/api/server.js'
@@ -197,44 +132,6 @@ export default {
     return {
       allCiTypes: [],
       ciTypesWithAccessControlledAttr: {},
-      defaultKey: [
-        'creationPermission',
-        'enquiryPermission',
-        'executionPermission',
-        'grantPermission',
-        'modificationPermission',
-        'removalPermission',
-        'roleCiTypeId',
-        'roleCiTypeCtrlAttrId',
-        'callbackId'
-      ],
-      actionsType: [
-        {
-          actionCode: 'creationPermission',
-          type: 'CREATION',
-          actionName: this.$t('permission_management_data_creation')
-        },
-        {
-          actionCode: 'removalPermission',
-          type: 'REMOVAL',
-          actionName: this.$t('permission_management_data_removal')
-        },
-        {
-          actionCode: 'modificationPermission',
-          type: 'MODIFICATION',
-          actionName: this.$t('permission_management_data_modification')
-        },
-        {
-          actionCode: 'enquiryPermission',
-          type: 'ENQUIRY',
-          actionName: this.$t('permission_management_data_enquiry')
-        },
-        {
-          actionCode: 'executionPermission',
-          type: 'EXECUTION',
-          actionName: this.$t('permission_management_data_execution')
-        }
-      ],
       users: [],
       roles: [],
       menus: [],
@@ -262,31 +159,31 @@ export default {
           name: this.$t('permission_management_data_creation'),
           allSelect: false,
           emptySelect: false,
-          key: 'creationPermission'
+          key: 'insert'
         },
         {
           name: this.$t('permission_management_data_removal'),
           allSelect: false,
           emptySelect: false,
-          key: 'removalPermission'
+          key: 'delete'
         },
         {
           name: this.$t('permission_management_data_modification'),
           allSelect: false,
           emptySelect: false,
-          key: 'modificationPermission'
+          key: 'update'
         },
         {
           name: this.$t('permission_management_data_enquiry'),
           allSelect: false,
           emptySelect: false,
-          key: 'enquiryPermission'
+          key: 'query'
         },
         {
           name: this.$t('permission_management_data_execution'),
           allSelect: false,
           emptySelect: false,
-          key: 'executionPermission'
+          key: 'execute'
         }
       ],
       cacheOriginCiTypePermission: [], // 便于撤销还原
@@ -295,7 +192,6 @@ export default {
       transferStyle: { width: '300px' },
       currentRoleCiTypeId: '',
       // for WeCMDBTable
-      newOuterActions,
       ciTypeAttrsPermissions: [],
       ciTypeAttrsPermissionsBackUp: [],
       attrsPermissionsColumns: [],
@@ -313,77 +209,88 @@ export default {
             label: 'N'
           }
         ],
-        isEditable: true,
+        editable: 'yes',
         isAuto: false
       },
       addedUser: {},
-      spinShow: false
+      spinShow: false,
+      showPassword: false,
+      newResetPassword: ''
     }
   },
-  computed: {
-    defaultColumns () {
-      return [
-        {
-          title: this.$t('query'),
-          key: 'enquiryPermission',
-          inputKey: 'enquiryPermission',
-          defaultDisplaySeqNo: 1,
-          ...this.defaultOptionAttrs,
-          isDisplayed: true
-        },
-        {
-          title: this.$t('new'),
-          key: 'creationPermission',
-          inputKey: 'creationPermission',
-          defaultDisplaySeqNo: 2,
-          ...this.defaultOptionAttrs,
-          isDisplayed: true
-        },
-        {
-          title: this.$t('modify'),
-          key: 'modificationPermission',
-          inputKey: 'modificationPermission',
-          defaultDisplaySeqNo: 3,
-          ...this.defaultOptionAttrs,
-          isDisplayed: true
-        },
-        {
-          title: this.$t('execute'),
-          key: 'executionPermission',
-          inputKey: 'executionPermission',
-          defaultDisplaySeqNo: 4,
-          ...this.defaultOptionAttrs,
-          isDisplayed: true
-        },
-        {
-          title: this.$t('delete'),
-          key: 'removalPermission',
-          inputKey: 'removalPermission',
-          defaultDisplaySeqNo: 5,
-          ...this.defaultOptionAttrs,
-          isDisplayed: true
-        }
-      ]
-    }
-  },
+  computed: {},
   watch: {
     ciTypePermissions: {
       handler (newValue) {
-        this.batchOperations.forEach(_ => {
-          _.allSelect = newValue.every(ciPermisstion => {
-            return ciPermisstion[_.key] === 'Y'
-          })
-          const emptySelect = newValue.every(ciPermisstion => {
-            return ciPermisstion[_.key] === 'N'
-          })
-          _.emptySelect = !_.allSelect && !emptySelect
-        })
+        // this.batchOperations.forEach(_ => {
+        //   _.allSelect = newValue.every(ciPermisstion => {
+        //     return ciPermisstion[_.key] === 'Y'
+        //   })
+        //   const emptySelect = newValue.every(ciPermisstion => {
+        //     return ciPermisstion[_.key] === 'N'
+        //   })
+        //   _.emptySelect = !_.allSelect && !emptySelect
+        // })
       },
       immediate: true,
       deep: true
     }
   },
   methods: {
+    async resetPassword (event, user) {
+      event.stopPropagation()
+      this.$Modal.confirm({
+        title: this.$t('reset_password'),
+        'z-index': 1000000,
+        onOk: async () => {
+          const params = {
+            username: user.userId
+          }
+          const { statusCode, data } = await resetPassword(params)
+          if (statusCode === 'OK') {
+            this.newResetPassword = data
+            this.showPassword = true
+          }
+        },
+        onCancel: () => {}
+      })
+    },
+    async deleteUser (item) {
+      this.$Modal.confirm({
+        title: this.$t('delete_confirm'),
+        'z-index': 1000000,
+        onOk: async () => {
+          let { statusCode, message } = await deleteUser(item.id)
+          if (statusCode === 'OK') {
+            this.$Notice.success({
+              title: 'success',
+              desc: message
+            })
+            this.getAllUsers()
+          }
+        },
+        onCancel: () => {}
+      })
+      document.querySelector('.ivu-modal-mask').click()
+    },
+    async deleteRole (item) {
+      this.$Modal.confirm({
+        title: this.$t('delete_confirm'),
+        'z-index': 1000000,
+        onOk: async () => {
+          let { statusCode, message } = await deleteRole(item.id)
+          if (statusCode === 'OK') {
+            this.$Notice.success({
+              title: 'success',
+              desc: message
+            })
+            this.getAllRoles()
+          }
+        },
+        onCancel: () => {}
+      })
+      document.querySelector('.ivu-modal-mask').click()
+    },
     renderUserNameForTransfer (item) {
       return item.label
     },
@@ -392,277 +299,11 @@ export default {
       this.permissionManageModal = true
       this.getAttrPermissions()
     },
-    async getAttrPermissions () {
-      this.attrsPermissionsColumns = []
-      this.ciTypeAttrsPermissions = []
-      this.$refs.table.isTableLoading(true)
-      let { statusCode, data } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(this.currentRoleCiTypeId)
-      this.$refs.table.isTableLoading(false)
-      if (statusCode === 'OK') {
-        const headerLength = data.header.length
-        let _attrsPermissionsColumns = data.header
-          .map((h, index) => {
-            let tableName = ''
-            const isRef = h.inputType === 'ref' || h.inputType === 'multiRef'
-            if (isRef) {
-              tableName = this.allCiTypes.find(_ => _.ciTypeId === h.referenceId).tableName
-            }
-            return {
-              ...h,
-              title: h.name,
-              key: h.propertyName,
-              inputKey: h.propertyName,
-              displaySeqNo: index + 1,
-              inputType: h.inputType === 'select' ? 'multiSelect' : h.inputType,
-              referenceId: h.referenceId,
-              placeholder: h.name,
-              ciType: { id: h.referenceId, name: h.name },
-              component: h.inputType === 'select' ? 'WeCMDBSelect' : 'CMDBPermissionFilters',
-              isMultiple: true,
-              options: [],
-              filterRule: null,
-              isEditable: true,
-              // PermissionFilters需要的参数
-              allCiTypes: this.allCiTypes,
-              isFilterAttr: true,
-              displayAttrType: ['ref', 'multiRef'],
-              rootCis: [isRef ? tableName : h.propertyName],
-              rootCiTypeId: h.referenceId
-            }
-          })
-          .concat(
-            this.defaultColumns.map(_ => {
-              _.displaySeqNo = _.defaultDisplaySeqNo + headerLength
-              return _
-            })
-          )
-        this.ciTypeAttrsPermissionsBackUp = data.body
-        let _ciTypeAttrsPermissions = data.body.map(_ => {
-          let obj = {}
-          for (let i in _) {
-            const found = data.header.find(p => p.propertyName === i)
-            const isRef = found && ['ref', 'multiRef'].indexOf(found.inputType) >= 0
-            const isSelect = found && ['select', 'multiSelect'].indexOf(found.inputType) >= 0
-            if (isRef) {
-              obj[i] = _[i] ? _[i].conditionValueExprs.map(item => item.replace(':[guid]', '')) : []
-            } else if (isSelect) {
-              obj[i] = _[i] ? _[i].conditionValueSelects : []
-            } else {
-              obj[i] = {
-                codeId: _[i],
-                value: _[i] === 'Y' ? this.$t('yes') : this.$t('no')
-              }
-            }
-          }
-          return obj
-        })
-        this.attrsPermissionsColumns = _attrsPermissionsColumns
-        this.ciTypeAttrsPermissions = _ciTypeAttrsPermissions
-      }
-    },
-
-    async exportHandler () {
-      const data = this.ciTypeAttrsPermissions.map(_ => {
-        let result = {}
-        for (let i in _) {
-          if (Array.isArray(_[i])) {
-            result[i] = _[i]
-              .map(item => {
-                if (typeof item === 'object') {
-                  return item.value
-                } else if (typeof item === 'string') {
-                  return item.replace(/,/g, ';')
-                }
-              })
-              .join(' | ')
-          } else {
-            result[i] = _[i].value
-          }
-        }
-        return result
-      })
-      this.$refs.table.export({
-        filename: 'Permission Data',
-        data: data
-      })
-    },
-    actionFun (type, data) {
-      switch (type) {
-        case 'export':
-          this.exportHandler()
-          break
-        case 'add':
-          this.addHandler()
-          break
-        case 'edit':
-          this.editHandler()
-          break
-        case 'copy':
-          this.copyHandler()
-          break
-        case 'delete':
-          this.deleteHandler(data)
-          break
-        default:
-          break
-      }
-    },
-    copyHandler (rows = [], cols) {
-      this.$refs.table.showCopyModal()
-    },
     formatConditionValue (value) {
       return value.map(_ => {
         let arr = _.split(/[.~]/)
         return _.replace(arr[0], arr[0] + ':[guid]')
       })
-    },
-    async confirmAddHandler (data) {
-      let addAry = JSON.parse(JSON.stringify(data))
-      addAry.forEach(_ => {
-        _.callbackId = _['weTableRowId']
-        delete _.isNewAddedRow
-        delete _.isRowEditable
-        delete _.weTableForm
-        delete _.weTableRowId
-        for (let i in _) {
-          const foundCi = this.attrsPermissionsColumns.find(k => k.inputKey === i)
-          const found = this.defaultKey.find(k => k === i)
-          if (!found && foundCi) {
-            if (['ref', 'multiRef'].indexOf(foundCi.inputType) >= 0) {
-              _[i] = _[i].length
-                ? {
-                  conditionType: 'Expression',
-                  conditionValueExprs: this.formatConditionValue(_[i])
-                }
-                : null
-            } else if (['select', 'multiSelect'].indexOf(foundCi.inputType) >= 0) {
-              _[i] = _[i].length
-                ? {
-                  conditionType: 'Select',
-                  conditionValueSelects: _[i]
-                }
-                : null
-            }
-          }
-        }
-      })
-      const { statusCode, message } = await createRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, addAry)
-      this.$refs.table.closeEditModal(false)
-      this.$refs.table.resetModalLoading()
-      if (statusCode === 'OK') {
-        this.$Notice.success({
-          title: this.$t('add_permission_success'),
-          desc: message
-        })
-        this.getAttrPermissions()
-        this.getPermissions(false, true, this.currentRoleName)
-        this.setBtnsStatus()
-      }
-    },
-    async confirmEditHandler (data) {
-      let editAry = JSON.parse(JSON.stringify(data))
-      editAry.forEach(_ => {
-        _.callbackId = _['weTableRowId']
-        delete _.isNewAddedRow
-        delete _.isRowEditable
-        delete _.weTableForm
-        delete _.weTableRowId
-        for (let i in _) {
-          const found = this.defaultKey.find(k => k === i)
-          const foundCi = this.attrsPermissionsColumns.find(k => k.inputKey === i)
-          if (!found && foundCi) {
-            if (['ref', 'multiRef'].indexOf(foundCi.inputType) >= 0) {
-              _[i] =
-                Array.isArray(_[i]) && _[i].length
-                  ? {
-                    conditionType: 'Expression',
-                    conditionValueExprs: this.formatConditionValue(_[i])
-                  }
-                  : null
-            } else if (['select', 'multiSelect'].indexOf(foundCi.inputType) >= 0) {
-              _[i] =
-                Array.isArray(_[i]) && _[i].length
-                  ? {
-                    conditionType: 'Select',
-                    conditionValueSelects: _[i]
-                  }
-                  : null
-            }
-          }
-        }
-      })
-      const { statusCode, message } = await updateRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, editAry)
-      this.$refs.table.closeEditModal(false)
-      this.$refs.table.resetModalLoading()
-      if (statusCode === 'OK') {
-        this.$Notice.success({
-          title: this.$t('update_permission_success'),
-          desc: message
-        })
-        this.getAttrPermissions()
-        this.getPermissions(false, true, this.currentRoleName)
-        this.setBtnsStatus()
-      }
-    },
-    setBtnsStatus () {
-      this.newOuterActions.forEach(_ => {
-        _.props.disabled = resetButtonDisabled(_)
-      })
-    },
-    deleteHandler (deleteData) {
-      this.$Modal.confirm({
-        title: this.$t('delete_confirm'),
-        'z-index': 1000000,
-        onOk: async () => {
-          const payload = deleteData.map(_ => _.roleCiTypeCtrlAttrId)
-          const { statusCode, message } = await deleteRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, payload)
-          if (statusCode === 'OK') {
-            this.$Notice.success({
-              title: this.$t('delete_permission_success'),
-              desc: message
-            })
-            this.newOuterActions.forEach(_ => {
-              _.props.disabled = _.actionType === 'save' || _.actionType === 'edit' || _.actionType === 'delete'
-            })
-            this.getAttrPermissions()
-          }
-        },
-        onCancel: () => {}
-      })
-      document.querySelector('.ivu-modal-mask').click()
-    },
-    addHandler () {
-      let emptyRowData = {}
-      this.attrsPermissionsColumns.forEach(_ => {
-        if (['ref', 'multiRef', 'select', 'multiSelect'].indexOf(_.inputType) >= 0) {
-          emptyRowData[_.inputKey] = []
-        } else {
-          emptyRowData[_.inputKey] = ''
-        }
-      })
-      emptyRowData['isRowEditable'] = true
-      emptyRowData['isNewAddedRow'] = true
-      emptyRowData['weTableRowId'] = new Date().getTime()
-      this.$refs.table.pushNewAddedRowToSelections(emptyRowData)
-      this.$refs.table.showAddModal()
-    },
-    editHandler () {
-      this.$refs.table.showEditModal()
-    },
-    onSelectedRowsChange (rows, checkoutBoxdisable) {
-      if (rows.length > 0) {
-        this.newOuterActions.forEach(_ => {
-          _.props.disabled = _.actionType === 'add'
-        })
-      } else {
-        this.newOuterActions.forEach(_ => {
-          _.props.disabled = resetButtonDisabled(_)
-        })
-      }
-    },
-    cancelEdit () {
-      this.permissionManageModal = false
-      this.permissionEntryPointsForEdit = []
     },
     ciTypesPermissionsHandler (ciIndex, code) {
       this.ciTypePermissions[ciIndex][code] = this.ciTypePermissions[ciIndex][code] === 'Y' ? 'N' : 'Y'
@@ -685,23 +326,14 @@ export default {
     },
     async savePermissionsInBatch () {
       const ciTypePermissions = this.ciTypePermissions.map(permission => {
-        const {
-          ciTypeId,
-          ciTypeName,
-          creationPermission,
-          enquiryPermission,
-          executionPermission,
-          modificationPermission,
-          removalPermission
-        } = permission
         return {
-          ciTypeId: ciTypeId,
-          ciTypeName,
-          creationPermission,
-          enquiryPermission,
-          executionPermission,
-          modificationPermission,
-          removalPermission
+          ciTypeId: permission.ciTypeId,
+          ciTypeName: permission.ciTypeName,
+          insert: permission.insert,
+          query: permission.query,
+          execute: permission.execute,
+          update: permission.update,
+          delete: permission.delete
         }
       })
       let { statusCode, message } = await assignCiTypePermissionForRoleInBatch(ciTypePermissions, this.currentRoleName)
@@ -717,24 +349,20 @@ export default {
       this.ciTypePermissions = JSON.parse(JSON.stringify(this.cacheOriginCiTypePermission))
     },
     async handleUserTransferChange (newTargetKeys, direction, moveKeys) {
-      if (direction === 'right') {
-        let { statusCode, message } = await addUsersToRole(moveKeys, this.selectedRole)
-        if (statusCode === 'OK') {
-          this.$Notice.success({
-            title: 'success',
-            desc: message
-          })
-          this.usersKeyBySelectedRole = newTargetKeys
+      console.log(newTargetKeys, direction, moveKeys)
+      const params = [
+        {
+          roleName: this.selectedRole,
+          userList: newTargetKeys
         }
-      } else {
-        let { statusCode, message } = await romoveUsersFromRole(moveKeys, this.selectedRole)
-        if (statusCode === 'OK') {
-          this.$Notice.success({
-            title: 'success',
-            desc: message
-          })
-          this.usersKeyBySelectedRole = newTargetKeys
-        }
+      ]
+      let { statusCode, message } = await addUsersToRole(params)
+      if (statusCode === 'OK') {
+        this.$Notice.success({
+          title: 'success',
+          desc: message
+        })
+        this.usersKeyBySelectedRole = newTargetKeys
       }
     },
     async addRole () {
@@ -758,14 +386,14 @@ export default {
       }
     },
     async addUser () {
-      if (this.addedUser.username === '') {
+      if (this.addedUser.userId === '') {
         this.$Notice.warning({
           title: 'Warning',
           desc: this.$t('role_name_is_required')
         })
         return
       }
-      let { statusCode, data, message } = await addUser([this.addedUser])
+      let { statusCode, data, message } = await addUser(this.addedUser)
       if (statusCode === 'OK') {
         this.$Notice.success({
           title: 'success',
@@ -773,7 +401,7 @@ export default {
         })
         this.$Modal.info({
           title: this.$t('copy_password'),
-          content: data[0].password
+          content: data
         })
         this.addedUser = {}
         this.getAllUsers()
@@ -781,26 +409,25 @@ export default {
     },
     async getPermissions (queryAfterEditing, checked, roleOrUser, byUser = false) {
       if (checked) {
-        let permissions = byUser ? await getPermissionsByUser(roleOrUser) : await getPermissionsByRole(roleOrUser)
+        let permissions = await getPermissionsByRole(roleOrUser)
         this.spinShow = false
-        this.ciTypePermissions = permissions.data.ciTypePermissions
         if (queryAfterEditing) {
           this.permissionEntryPointsForEdit = []
-          this.menusPermissionSelected(this.menusForEdit, permissions.data.menuPermissions)
+          this.menusPermissionSelected(this.menusForEdit, permissions.data)
         } else {
           this.permissionEntryPoints = []
-          this.menusPermissionSelected(this.menus, permissions.data.menuPermissions)
-          this.ciTypePermissions = permissions.data.ciTypePermissions
+          this.menusPermissionSelected(this.menus, permissions.data)
+          // this.ciTypePermissions = permissions.data.ciTypePermissionObj
         }
       } else {
         if (queryAfterEditing) {
           this.menusPermissionSelected(this.menusForEdit)
         } else {
           this.menusPermissionSelected(this.menus)
-          this.ciTypePermissions = []
+          // this.ciTypePermissions = []
         }
       }
-      this.cacheOriginCiTypePermission = JSON.parse(JSON.stringify(this.ciTypePermissions))
+      // this.cacheOriginCiTypePermission = JSON.parse(JSON.stringify(this.ciTypePermissions))
     },
     async handleUserClick (checked, name) {
       this.spinShow = true
@@ -808,7 +435,7 @@ export default {
       this.dataPermissionDisabled = true
       this.users.forEach(_ => {
         _.checked = false
-        if (name === _.username) {
+        if (name === _.userId) {
           _.checked = checked
         }
       })
@@ -817,7 +444,7 @@ export default {
       if (statusCode === 'OK') {
         this.roles.forEach(_ => {
           _.checked = false
-          const found = data.find(item => item.roleId === _.id)
+          const found = data.find(item => item.roleName === _.id)
           if (found) {
             _.checked = checked
           }
@@ -831,8 +458,8 @@ export default {
         this.users = data.map(_ => {
           return {
             id: _.userId,
-            username: _.username,
-            fullName: _.fullName,
+            userId: _.userId,
+            displayName: _.displayName,
             description: _.description,
             checked: false,
             color: '#5cadff'
@@ -850,7 +477,7 @@ export default {
     menusPermissionSelected (allMenus, menusPermissions = []) {
       allMenus.forEach(_ => {
         _.children.forEach(m => {
-          const subMenu = menusPermissions.find(n => m.code === n)
+          const subMenu = menusPermissions.find(n => m.id === n.id)
           m.checked = !!subMenu
         })
         _.indeterminate = false
@@ -875,23 +502,30 @@ export default {
       if (statusCode === 'OK') {
         this.users.forEach(_ => {
           _.checked = false
-          const found = data.find(item => item.username === _.username)
+          const found = data.find(item => item.userId === _.userId)
           if (found) {
             _.checked = checked
           }
         })
       }
     },
-    async handleMenuTreeCheck (allChecked, currentChecked) {
-      let menuCodes = []
-      if (!currentChecked.parentId) {
-        menuCodes = currentChecked.children.map(_ => _.code)
-      } else {
-        menuCodes.push(currentChecked.code)
+    async handleMenuTreeCheck (allChecked) {
+      let menuCodes = new Set()
+      allChecked.forEach(item => {
+        const children = item.children
+        if (children) {
+          children.forEach(child => {
+            menuCodes.add(child.id)
+          })
+        } else {
+          menuCodes.add(item.id)
+        }
+      })
+      const params = {
+        roleName: this.currentRoleName,
+        menuList: Array.from(menuCodes)
       }
-      const { statusCode, message } = currentChecked.checked
-        ? await addMenusToRole(menuCodes, this.currentRoleName)
-        : await removeMenusFromRole(menuCodes, this.currentRoleName)
+      const { statusCode, message } = await addMenusToRole(params)
       if (statusCode === 'OK') {
         this.$Notice.success({
           title: 'success',
@@ -905,10 +539,9 @@ export default {
       if (statusCode === 'OK') {
         this.roles = data.map(_ => {
           return {
-            id: _.roleId,
+            id: _.roleName,
             rolename: _.roleName,
             description: _.description,
-            roleType: _.roleType,
             checked: false,
             color: 'success'
           }
@@ -918,27 +551,29 @@ export default {
     menusResponseHandeler (data, disabled = true) {
       let menus = []
       data.forEach(_ => {
-        if (!_.parentId) {
-          let menuObj = MENUS.find(m => m.code === _.code)
-          menus.push({
-            ..._,
-            title: menuObj ? (this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName) : _.otherName,
-            id: _.id,
-            expand: true,
-            checked: false,
-            children: [],
-            disabled
-          })
+        if (!_.parent) {
+          let menuObj = MENUS.find(m => m.code === _.id)
+          if (menuObj) {
+            menus.push({
+              ..._,
+              title: this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
+              id: _.id,
+              expand: true,
+              checked: false,
+              children: [],
+              disabled
+            })
+          }
         }
       })
       data.forEach(_ => {
-        if (_.parentId) {
-          let menuObj = MENUS.find(m => m.code === _.code)
+        if (_.parent) {
+          let menuObj = MENUS.find(m => m.code === _.id)
           menus.forEach(h => {
-            if (_.parentId === h.id) {
+            if (_.parent === h.id) {
               h.children.push({
                 ..._,
-                title: menuObj ? (this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName) : _.otherName,
+                title: menuObj ? (this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName) : _.displayName,
                 id: _.id,
                 expand: true,
                 checked: false,
@@ -969,7 +604,7 @@ export default {
               _allCiTypes.push(_)
               if (Array.isArray(_.attributes)) {
                 _.attributes.forEach(attr => {
-                  if (attr.isAccessControlled) {
+                  if (attr.permissionUsage !== 'no') {
                     _ciTypesWithAccessControlledAttr[_.ciTypeId] = _
                   }
                 })
@@ -999,8 +634,8 @@ export default {
       this.allUsersForTransfer = this.users.map(_ => {
         return {
           key: _.id,
-          username: _.username,
-          label: ` ${_.username} ( ${_.description} ) `
+          userId: _.userId,
+          label: ` ${_.displayName} ( ${_.description} ) `
         }
       })
       this.userManageModal = true

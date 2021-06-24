@@ -6,6 +6,7 @@
   </div>
 </template>
 <script>
+import { normalizeFormData } from '@/pages/util/format'
 import { queryReferenceCiData, queryCiData } from '@/api/server'
 export default {
   data () {
@@ -29,14 +30,16 @@ export default {
     },
     selected: function (val) {
       if (val.length) {
-        const tmp = this.options.filter(_ => {
-          if (val.includes(_.guid || _.data.guid)) {
+        const selectedOpts = this.options.filter(_ => {
+          if (val.includes(_.value)) {
             return _
           }
         })
-        this.panalData[this.formData.propertyName + '_tmp'] = tmp
+        this.panalData[this.formData.propertyName] = selectedOpts.map(el => {
+          return { guid: el.value, key_name: el.label }
+        })
       } else {
-        this.panalData[this.formData.propertyName + '_tmp'] = []
+        this.panalData[this.formData.propertyName] = []
       }
     }
   },
@@ -48,24 +51,32 @@ export default {
         return _.guid
       })
     }
-    this.openOptions(true)
+    this.defaultOptions()
   },
   methods: {
+    defaultOptions () {
+      if (this.panalData[this.formData.propertyName]) {
+        let opts = this.panalData[this.formData.propertyName]
+        opts.forEach(opt => {
+          this.options = [
+            {
+              label: opt.key_name,
+              value: opt.guid
+            }
+          ]
+        })
+      }
+    },
     async openOptions (val) {
       if (val) {
-        if (this.formData.filterRule) {
-          let params = JSON.parse(JSON.stringify(this.panalData))
-          for (let key in this.panalData) {
-            if (this.panalData[key] && typeof this.panalData[key] === 'object') {
-              params[key] = this.panalData[key].codeId || this.panalData[key].guid
-            }
-          }
+        if (this.formData.referenceFilter) {
+          let params = normalizeFormData(this.panalData)
           const { statusCode, data } = await queryReferenceCiData({
             attrId: this.formData.ciTypeAttrId,
             queryObject: { filters: [], paging: false, dialect: { associatedData: params } }
           })
           if (statusCode === 'OK') {
-            this.options = data.contents.map(_ => {
+            this.options = data.map(_ => {
               return {
                 ..._,
                 label: _.key_name,
@@ -78,14 +89,14 @@ export default {
           // queryCiData
           const { statusCode, data } = await queryCiData({
             id: this.formData.referenceId,
-            queryObject: { filters: [], paging: false }
+            queryObject: { filters: [], paging: false, dialect: {} }
           })
           if (statusCode === 'OK') {
             this.options = data.contents.map(_ => {
               return {
                 ..._,
-                label: _.data.key_name,
-                value: _.data.guid
+                label: _.key_name,
+                value: _.guid
               }
             })
           }

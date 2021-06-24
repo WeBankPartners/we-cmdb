@@ -10,7 +10,7 @@ export default {
   props: {
     value: { required: true },
     allCiTypes: { default: () => [], type: Array, required: true },
-	rootCiTypeId: { required: false },
+    rootCiTypeId: { required: false },
     leftRootCi: { type: String, required: true },
     rightRootCi: { type: String, required: true },
     isReadOnly: { default: false, type: Boolean, required: false }
@@ -19,7 +19,7 @@ export default {
     return {
       modalDisplay: false,
       modalData: [],
-      hiddenAttrType: ['select', 'multiSelect']
+      hiddenAttrType: []
     }
   },
   computed: {
@@ -124,19 +124,21 @@ export default {
     },
     renderLeft (obj, isReadOnly = false) {
       return (
-        <AttrExpress
-          class={`filter-rule-edit-modal input left${isReadOnly ? ' isReadOnly' : ' editable'}`}
-          value={obj.left}
-          onInput={v => {
-            this.$set(obj, 'left', v)
-          }}
-          isReadOnly={isReadOnly}
-          allCiTypes={this.allCiTypes}
-		  rootCiTypeId={this.rootCiTypeId}
-          isFilterAttr={true}
-          hiddenAttrType={this.hiddenAttrType}
-          hideFilterModal={true}
-        />
+        <div style="max-width:200px;display:inline-block">
+          <AttrExpress
+            class={`filter-rule-edit-modal input left${isReadOnly ? ' isReadOnly' : ' editable'}`}
+            value={obj.left}
+            onInput={v => {
+              this.$set(obj, 'left', v)
+            }}
+            isReadOnly={isReadOnly}
+            allCiTypes={this.allCiTypes}
+            rootCiTypeId={this.leftRootCi}
+            isFilterAttr={true}
+            hiddenAttrType={this.hiddenAttrType}
+            hideFilterModal={true}
+          />
+        </div>
       )
     },
     renderOperator (obj, isReadOnly = false) {
@@ -212,20 +214,22 @@ export default {
       switch (obj.right.type) {
         case 'expression':
           return (
-            <AttrExpress
-              class={className}
-              value={obj.right.value}
-              onInput={v => {
-                this.$set(obj.right, 'value', v)
-              }}
-              isReadOnly={isReadOnly}
-              allCiTypes={this.allCiTypes}
-			  rootCiTypeId={this.rootCiTypeId}
-              isFilterAttr={true}
-              hiddenAttrType={this.hiddenAttrType}
-              hideFirstFilter={true}
-              hideFirstRefBy={true}
-            />
+            <div style="max-width:400px;display:inline-block">
+              <AttrExpress
+                class={className}
+                value={obj.right.value}
+                onInput={v => {
+                  this.$set(obj.right, 'value', v)
+                }}
+                isReadOnly={isReadOnly}
+                allCiTypes={this.allCiTypes}
+                rootCiTypeId={this.rightRootCi}
+                isFilterAttr={true}
+                hiddenAttrType={this.hiddenAttrType}
+                hideFirstFilter={true}
+                hideFirstRefBy={true}
+              />
+            </div>
           )
         case 'value':
           return isReadOnly ? (
@@ -274,7 +278,7 @@ export default {
             this.modalDisplay = v
           }}
           title={this.$t('filter_rule_modal_title')}
-          width="800"
+          width="900"
           on-on-ok={this.confirmFilter}
           on-on-cancel={this.cancelFilter}
         >
@@ -282,7 +286,7 @@ export default {
             {this.modalData.length ? (
               this.modalData.map((_, i) => {
                 return (
-                  <div class="filter-rule-modal-content-li">
+                  <div class="filter-rule-modal-content-li" style="justify-content: end;">
                     {this.renderDeleteIcon(i)}
                     {this.renderLeft(this.modalData[i])}
                     {this.renderOperator(this.modalData[i])}
