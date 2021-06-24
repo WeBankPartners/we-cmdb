@@ -1,6 +1,8 @@
 import vis from 'vis'
-import { getRefCiTypeFrom, getRefCiTypeTo, getCiTypeAttr } from '@/api/server'
+import { getRefCiTypeFrom, getCiTypeAttr, configReport } from '@/api/server'
 import './ci-graph.scss'
+import Attrs from './attr-s.vue'
+// import { _ } from 'core-js'
 
 const visOptions = {
   interaction: {
@@ -25,7 +27,9 @@ export default {
   name: 'CiGraph',
   props: {
     ciGraphData: { type: Object },
-    attributeObject: { type: Object }
+    attributeObject: { type: Object },
+    // eslint-disable-next-line standard/object-curly-even-spacing
+    currentReportId: { type: String }
   },
   data () {
     return {
@@ -36,12 +40,18 @@ export default {
       tos: [],
       bys: [],
       isSwitcherOpen: false,
+      isShowError: false,
+      checkDataResult: [],
       currentSelectedTos: [],
       referTos: [],
       referBys: [],
       ciTypeAttrs: [],
       selectedAttrs: [],
-      currentTab: 'name1'
+      currentTab: 'name1',
+
+      editAttr: [],
+      editToParams: [],
+      editFromParams: []
     }
   },
   mounted () {
@@ -167,55 +177,48 @@ export default {
       const _this = this
       function helper (root) {
         if (!root) return
-        const label = root.name
+        const label = root.dataTitleName
         ret[label] = {
           from: [],
           to: [],
           node: {
             label,
-            ciTypeId: root.ciTypeId,
-            attrs: root.attrs
-              ? root.attrs.map(_ => {
-                return {
-                  ciTypeAttrId: _
-                }
-              })
-              : [],
-            attrAliases: root.attrAliases,
-            attrKeyNames: root.attrKeyNames,
+            id: root.id,
+            ciTypeId: root.ciType,
+            attrs: root.attr,
+            dataTitleName: root.dataTitleName,
+            dataName: root.dataName,
             attributeList: root.attributeList,
-            index: _this.calIndex(root.name)
+            index: _this.calIndex(root.dataTitleName),
+            ...root
           }
         }
 
-        if (!root.children) return
+        if (!root.object) return
 
-        root.children.map(child => {
+        root.object.map(child => {
           const node = {
-            attrId: child.parentRs.attrId,
-            refPropertyId: child.parentRs.attrId,
-            attrs: child.attrs
-              ? child.attrs.map(_ => {
-                return {
-                  ciTypeAttrId: _
-                }
-              })
-              : [],
-            attrAliases: child.attrAliases,
-            attrKeyNames: child.attrKeyNames,
+            id: root.id,
+            attrId: child.myAttr,
+            attrs: child.attr,
+            dataTitleName: child.dataTitleName,
+            dataName: child.dataName,
             attributeList: child.attributeList,
-            label: child.name,
-            ciTypeId: child.ciTypeId,
-            referenceId: child.ciTypeId,
-            index: _this.calIndex(child.name)
+            label: child.dataTitleName,
+            ciTypeId: child.ciType,
+            referenceId: child.ciType,
+            index: _this.calIndex(child.dataTitleName),
+            ...child
           }
-
-          if (child.parentRs.isReferedFromParent) {
+          if (child.myAttr.includes('__guid')) {
+            // node.refPropertyId = child.myAttr
             ret[label].to.push(node)
-          } else {
+          } else if (child.parentAttr.includes('__guid')) {
+            // node.refPropertyId = child.parentAttr
             ret[label].from.push(node)
+          } else {
+            console.error(1232)
           }
-
           helper(child)
 
           return null
@@ -223,7 +226,6 @@ export default {
       }
 
       helper(cis)
-
       return ret
     },
     renderGraph () {
@@ -234,7 +236,6 @@ export default {
         nodes: this.deduplicate(this.createNodes(this.generateCiRelation(this.ciGraphData))),
         edges: this.createEdges(this.generateCiRelation(this.ciGraphData))
       }
-
       const network = new vis.Network(container, data, visOptions)
       this.savedNetWork = network
       this.savedNetWork.on('click', this.handler)
@@ -285,322 +286,270 @@ export default {
 
       this.setIsSwitcherOpen(true)
     },
-    setIsSwitcherOpen (status) {
-      this.isSwitcherOpen = status
+    async setIsSwitcherOpen (status) {
       if (status) {
-        this.getTosBysAttrs()
+        await this.getTosBysAttrs()
       }
+      this.isSwitcherOpen = status
     },
     async getTosBysAttrs () {
       const id = this.savedClickedNode.node.ciTypeId
-      let tos = await getRefCiTypeTo(id)
-      if (tos.statusCode === 'OK') {
-        this.referTos = tos.data.map(_ => {
-          return {
-            ..._,
-            refPropertyId: _.ciTypeAttrId,
-            ciTypeId: _.referenceId
-          }
-        })
-      }
       let bys = await getRefCiTypeFrom(id)
       if (bys.statusCode === 'OK') {
         this.referBys = bys.data.map(_ => {
           return {
-            ..._.ciType,
-            referenceName: _.name,
-            ciTypeAttrId: _.ciTypeAttrId,
-            refPropertyId: _.ciTypeAttrId
+            ..._,
+            dataName: _.ciTypeId,
+            dataTitleName: _.ciTypeName
           }
         })
       }
       let attrs = await getCiTypeAttr(id)
       if (attrs.statusCode === 'OK') {
-        this.ciTypeAttrs = attrs.data
+        this.ciTypeAttrs = attrs.data.map(_ => {
+          return {
+            ..._,
+            dataName: _.propertyName,
+            dataTitleName: _.displayName
+          }
+        })
+        this.referTos = this.ciTypeAttrs.filter(item => item.referenceId !== '')
       }
     },
     renderTos () {
-      let data = [
-        {
-          title: this.$t('all'),
-          id: 'all',
-          expand: true,
-          children: this.referTos.map(_ => {
-            let found =
-              this.savedSelectedRefs.tos &&
-              this.savedSelectedRefs.tos.find(i => i.ciTypeId === _.referenceId && i.name === _.name)
-            return {
-              id: _.referenceId,
-              title: _.name,
-              propertyName: _.propertyName,
-              checked: !!found
-            }
-          })
+      const referTos = this.referTos.map(_ => {
+        let found = this.savedSelectedRefs.tos && this.savedSelectedRefs.tos.find(i => i.parentAttr === _.ciTypeAttrId)
+        let res = {
+          id: '',
+          ..._
         }
-      ]
+        if (found) {
+          res.id = found.id
+          _.dataName = found.dataName
+          _.dataTitleName = found.dataTitleName
+        }
+        return res
+      })
       return (
-        <Tree
-          data={data}
-          show-checkbox={true}
-          on-on-check-change={(all, current) => this.handleReferToChange(all, current)}
-          class="ci-graph-tree"
-        />
+        <Attrs
+          parentData={referTos}
+          ref="toAttrs"
+          displayKey="displayName"
+          parentkey="ciTypeAttrId"
+          childData={this.savedSelectedRefs.tos}
+          childKey="parentAttr"
+        >
+          {' '}
+        </Attrs>
       )
     },
     renderBys () {
-      let data = [
-        {
-          title: this.$t('all'),
-          id: 'all',
-          expand: true,
-          children: this.referBys.map(_ => {
-            let found =
-              this.savedSelectedRefs.bys &&
-              this.savedSelectedRefs.bys.find(i => i.ciTypeId === _.ciTypeId && i.ciTypeAttrId === _.ciTypeAttrId)
-            return {
-              id: _.ciTypeId,
-              title: _.name,
-              propertyName: _.propertyName,
-              checked: !!found,
-              ciTypeAttrId: _.ciTypeAttrId
-            }
-          })
+      const referBys = this.referBys.map(_ => {
+        let found = this.savedSelectedRefs.bys && this.savedSelectedRefs.bys.find(i => i.myAttr === _.ciTypeAttrId)
+        let res = {
+          id: '',
+          ..._
         }
-      ]
+        if (found) {
+          res.id = found.id
+          _.dataName = found.dataName
+          _.dataTitleName = found.dataTitleName
+        }
+        return res
+      })
       return (
-        <Tree
-          data={data}
-          show-checkbox={true}
-          on-on-check-change={(all, current) => this.handleReferByChange(all, current)}
-          class="ci-graph-tree"
-        />
+        <Attrs
+          parentData={referBys}
+          ref="byAttrs"
+          displayKey="ciTypeName"
+          parentkey="ciTypeAttrId"
+          childData={this.savedSelectedRefs.bys}
+          childKey="myAttr"
+        >
+          {' '}
+        </Attrs>
       )
     },
     renderAttrs () {
       const currentAttrs = this.savedRenderedNodes[this.savedClickedNode.node.label].node.attrs
-      let data = [
-        {
-          title: this.$t('all'),
-          id: 'all',
-          expand: true,
-          children: this.ciTypeAttrs.map(_ => {
-            let found = currentAttrs && currentAttrs.find(i => i.ciTypeAttrId === _.ciTypeAttrId)
-            return {
-              id: _.ciTypeAttrId,
-              title: _.name,
-              propertyName: _.propertyName,
-              checked: !!found
-            }
-          })
+      const ciTypeAttrs = this.ciTypeAttrs.map(_ => {
+        let found = currentAttrs && currentAttrs.find(i => i.ciTypeAttr === _.ciTypeAttrId)
+        let res = {
+          id: '',
+          ..._
         }
-      ]
+        if (found) {
+          res.id = found.id
+          _.dataName = found.dataName
+          _.dataTitleName = found.dataTitleName
+        }
+        return res
+      })
       return (
-        <Tree
-          data={data}
-          show-checkbox={true}
-          on-on-check-change={(all, current) => this.handleCiTypeAttrChange(all, current)}
-          class="ci-graph-tree"
-        />
+        <Attrs
+          parentData={ciTypeAttrs}
+          ref="ownAttrs"
+          displayKey="displayName"
+          parentkey="ciTypeAttrId"
+          childData={currentAttrs}
+          childKey="ciTypeAttr"
+        >
+          {' '}
+        </Attrs>
       )
     },
-
-    handleReferByChange (all, current) {
-      let data = all.map(_ => {
-        return {
-          ciTypeId: _.id,
-          name: _.title,
-          ciTypeAttrId: _.ciTypeAttrId
-        }
-      })
-      data && data.length > 0 && data[0].ciTypeId === 'all' && data.splice(0, 1)
-      this.savedSelectedRefs.bys = data
-      this.tos = this.savedClickedNode.to
-      this.bys = this.savedClickedNode.from
-    },
-
-    handleReferToChange (all, current) {
-      let data = all.map(_ => {
-        return {
-          ciTypeId: _.id,
-          name: _.title
-        }
-      })
-      data && data.length > 0 && data[0].ciTypeId === 'all' && data.splice(0, 1)
-      this.savedSelectedRefs.tos = data
-      this.tos = this.savedClickedNode.to
-      this.bys = this.savedClickedNode.from
-    },
-    handleCiTypeAttrChange (all, current) {
-      let data = all.map(_ => {
-        return {
-          ciTypeAttrId: _.id,
-          name: _.title,
-          propertyName: _.propertyName
-        }
-      })
-      data && data.length > 0 && data[0].ciTypeAttrId === 'all' && data.splice(0, 1)
-      this.selectedAttrs = data
-      this.savedClickedNode.node.attrs = data
-      this.savedClickedNode.node.attributeList = data.map((_, i) => {
-        return {
-          ciTypeAttrId: _.ciTypeAttrId,
-          name: _.name,
-          attrKeyName: this.attributeObject[_.ciTypeAttrId] ? this.attributeObject[_.ciTypeAttrId].attrKeyName : ''
-        }
-      })
-    },
-    handleConfirm () {
-      const nodes = []
-      const selectedNode = this.savedClickedNode
-      const parentIndex = selectedNode.node.index
-      const selectedNodeLabel = selectedNode.node.label
-      const childIndexBase = Number(String(parentIndex || 1).split('-')[0]) + 1
-      if (this.savedSelectedRefs.bys.length) {
-        this.savedSelectedRefs.bys.forEach(by => {
-          const found = this.referBys
-            .map(_ => {
-              let currentIndex
-              if (indexMap[childIndexBase]) {
-                currentIndex = `${childIndexBase}-${Number(indexMap[childIndexBase]) + 1}`
-              } else {
-                currentIndex = `${childIndexBase}-1`
-              }
-
-              // 如果已经存在froms中 则不重复计算
-              const existNode = this.savedClickedNode.from.find(
-                _ => _.ciTypeId === by.ciTypeId && _.ciTypeAttrId === by.ciTypeAttrId
-              )
-              if (existNode) {
-                return existNode
-              }
-              if (_.ciTypeId === by.ciTypeId && _.ciTypeAttrId === by.ciTypeAttrId) {
-                indexMap[childIndexBase] = Number(indexMap[childIndexBase] || 0) + 1
-
-                const label = `${currentIndex}-${_.name}-${_.referenceName}`
-                const node = {
-                  ..._,
-                  label,
-                  index: currentIndex
-                }
-                this.savedRenderedNodes[label] = {
-                  node,
-                  from: [],
-                  to: []
-                }
-
-                return node
-              }
-
-              return null
-            })
-            .filter(_ => _)[0]
-
-          found && nodes.push(found)
-        })
-
-        const removed = this.findRemovedNode(selectedNode.from, nodes)
-        if (removed.length) {
-          this.deleteRemovedNode(this.savedRenderedNodes, removed)
-        }
-
-        this.savedRenderedNodes[selectedNodeLabel] = {
-          to: selectedNode.to,
-          node: selectedNode.node,
-          from: [...nodes]
-        }
-      } else if (this.savedSelectedRefs.bys.length === 0) {
-        this.deleteRemovedNode(this.savedRenderedNodes, this.savedRenderedNodes[selectedNodeLabel].from)
-
-        this.savedRenderedNodes[selectedNodeLabel].from = []
+    checkData (attr, toAttrs, byAttrs) {
+      const attrDataNameSet = new Set(attr.map(att => att.dataName))
+      const attrDataTitleNameSet = new Set(attr.map(att => att.dataTitleName))
+      const toAttrDataNameSet = new Set(toAttrs.map(att => att.dataName))
+      const toAttrDataTitleNameSet = new Set(toAttrs.map(att => att.dataTitleName))
+      const byAttrDataNameSet = new Set(byAttrs.map(att => att.dataName))
+      const byAttrDataTitleNameSet = new Set(byAttrs.map(att => att.dataTitleName))
+      let checkDataResult = []
+      if (attrDataNameSet.size !== attr.length) {
+        checkDataResult.push(`${this.$t('attribute')}:${this.$t('data_name')}->${this.$t('has_duplicates')}`)
       }
-
-      nodes.length = 0
-      if (this.savedSelectedRefs.tos.length) {
-        this.savedSelectedRefs.tos.forEach(to => {
-          const found = this.referTos
-            .map(_ => {
-              let currentIndex
-              if (indexMap[childIndexBase]) {
-                currentIndex = `${childIndexBase}-${Number(indexMap[childIndexBase]) + 1}`
-              } else {
-                currentIndex = `${childIndexBase}-1`
-              }
-              // 如果已经存在froms中 则不重复计算
-              const existNode = this.savedClickedNode.to.find(_ => _.referenceId === to.ciTypeId && _.name === to.name)
-              if (existNode) {
-                return existNode
-              }
-              // eslint-disable-next-line
-              if (_.referenceId == to.ciTypeId && _.name === to.name) {
-                indexMap[childIndexBase] = Number(indexMap[childIndexBase] || 0) + 1
-                const label = `${currentIndex}-${_.name}-${_.referenceName}`
-                const node = {
-                  ..._,
-                  label,
-                  index: currentIndex
-                }
-                this.savedRenderedNodes[label] = {
-                  node,
-                  from: [],
-                  to: []
-                }
-                return node
-              }
-
-              return null
-            })
-            .filter(_ => _)[0]
-          found && nodes.push(found)
-        })
-
-        const removed = this.findRemovedNode(selectedNode.to, nodes)
-        if (removed.length) {
-          this.deleteRemovedNode(this.savedRenderedNodes, removed)
-        }
-
-        this.savedRenderedNodes[selectedNodeLabel] = {
-          to: [...nodes],
-          node: selectedNode.node,
-          from: this.savedRenderedNodes[selectedNodeLabel].from
-        }
-      } else if (this.savedSelectedRefs.tos.length === 0) {
-        this.deleteRemovedNode(this.savedRenderedNodes, this.savedRenderedNodes[selectedNodeLabel].to)
-
-        this.savedRenderedNodes[selectedNodeLabel].to = []
+      if (attrDataTitleNameSet.size !== attr.length) {
+        checkDataResult.push(`${this.$t('attribute')}:${this.$t('data_title_name')}->${this.$t('has_duplicates')}`)
       }
-
-      // destroy();
-
-      // create a network
-      let container = document.getElementById('mynetwork')
-
-      let data = {
-        nodes: this.deduplicate(this.createNodes(this.savedRenderedNodes)),
-        edges: this.createEdges(this.savedRenderedNodes)
+      if (toAttrDataNameSet.size !== toAttrs.length) {
+        checkDataResult.push(`${this.$t('attribute')}:${this.$t('data_name')}->${this.$t('has_duplicates')}`)
       }
-      const network = new vis.Network(container, data, visOptions)
-      this.savedNetWork = network
-      this.savedNetWork.on('click', this.handler)
-
-      // props.onChange && props.onChange(savedRenderedNodes.current);
-      this.$emit('onChange', this.savedRenderedNodes)
-
-      this.savedSelectedRefs.bys = []
-      this.savedSelectedRefs.tos = []
-      this.isSwitcherOpen = false
-      this.currentTab = 'name1'
+      if (toAttrDataTitleNameSet.size !== toAttrs.length) {
+        checkDataResult.push(`${this.$t('attribute')}:${this.$t('data_title_name')}->${this.$t('has_duplicates')}`)
+      }
+      if (byAttrDataNameSet.size !== byAttrs.length) {
+        checkDataResult.push(`${this.$t('attribute')}:${this.$t('data_name')}->${this.$t('has_duplicates')}`)
+      }
+      if (byAttrDataTitleNameSet.size !== byAttrs.length) {
+        checkDataResult.push(`${this.$t('attribute')}:${this.$t('data_title_name')}->${this.$t('has_duplicates')}`)
+      }
+      toAttrs.forEach(ta => {
+        if (attrDataNameSet.has(ta.dataName)) {
+          checkDataResult.push(
+            `${this.$t('refrence_to')}->${this.$t('data_name')}:${ta.dataName} === ${this.$t('attribute')}->${this.$t(
+              'data_name'
+            )}`
+          )
+        }
+        if (attrDataTitleNameSet.has(ta.dataTitleName)) {
+          checkDataResult.push(
+            `${this.$t('refrence_to')}->${this.$t('data_title_name')}:${ta.dataTitleName} === ${this.$t(
+              'attribute'
+            )}->${this.$t('data_title_name')}`
+          )
+        }
+      })
+      byAttrs.forEach(ta => {
+        if (attrDataNameSet.has(ta.dataName)) {
+          checkDataResult.push(
+            `${this.$t('refrence_by')}->${this.$t('data_name')}:${ta.dataName} === ${this.$t('attribute')}->${this.$t(
+              'data_name'
+            )}`
+          )
+        }
+        if (attrDataTitleNameSet.has(ta.dataTitleName)) {
+          checkDataResult.push(
+            `${this.$t('refrence_by')}->${this.$t('data_title_name')}:${ta.dataTitleName} === ${this.$t(
+              'attribute'
+            )}->${this.$t('data_title_name')}}`
+          )
+        }
+        if (toAttrDataNameSet.has(ta.dataName)) {
+          checkDataResult.push(
+            `${this.$t('refrence_by')}->${this.$t('data_name')}:${ta.dataName} === ${this.$t('refrence_to')}->${this.$t(
+              'data_name'
+            )}`
+          )
+        }
+        if (toAttrDataTitleNameSet.has(ta.dataTitleName)) {
+          checkDataResult.push(
+            `${this.$t('refrence_by')}->${this.$t('data_title_name')}:${ta.dataTitleName} === ${this.$t(
+              'refrence_to'
+            )}->${this.$t('data_title_name')}}`
+          )
+        }
+      })
+      this.checkDataResult = checkDataResult
+      if (checkDataResult.length > 0) {
+        this.isShowError = true
+        return false
+      } else {
+        return true
+      }
+    },
+    renderError () {
+      return (
+        <div>
+          <ul>
+            {this.checkDataResult.map(item => {
+              return <li style="list-style:none;margin:0 20px">{item}</li>
+            })}
+          </ul>
+        </div>
+      )
+    },
+    async handleConfirm () {
+      const node = this.savedClickedNode.node
+      const toAttrs = this.$refs.toAttrs.selectedAttrs().map(attr => {
+        return {
+          id: attr.id || '',
+          dataName: attr.dataName,
+          dataTitleName: attr.dataTitleName,
+          parentAttr: attr.ciTypeAttrId,
+          ciType: attr.referenceId,
+          myAttr: attr.referenceId + '__guid'
+        }
+      })
+      const byAttrs = this.$refs.byAttrs.selectedAttrs().map(attr => {
+        return {
+          id: attr.id || '',
+          dataName: attr.dataName,
+          dataTitleName: attr.dataTitleName,
+          parentAttr: attr.referenceId + '__guid',
+          ciType: attr.ciTypeId,
+          myAttr: attr.ciTypeAttrId
+        }
+      })
+      const attr = this.$refs.ownAttrs.selectedAttrs().map(attr => {
+        return {
+          id: attr.id || '',
+          dataName: attr.dataName,
+          dataTitleName: attr.dataTitleName,
+          querialbe: 'yes',
+          ciTypeAttr: attr.ciTypeAttrId
+        }
+      })
+      const res = this.checkData(attr, toAttrs, byAttrs)
+      if (!res) {
+        return
+      }
+      const params = {
+        id: node.id,
+        report: this.currentReportId,
+        dataName: node.dataName,
+        dataTitleName: node.dataTitleName,
+        ciType: node.ciTypeId,
+        object: [...toAttrs, ...byAttrs],
+        attr: attr
+      }
+      const { statusCode } = await configReport(params)
+      if (statusCode === 'OK') {
+        this.$emit('onRefresh')
+      }
     }
   },
   render (h) {
-    const { isSwitcherOpen, savedClickedNode, handleConfirm } = this
+    const { isSwitcherOpen, savedClickedNode, handleConfirm, isShowError } = this
 
     return (
       <div>
-        <div id="mynetwork" class="CiGraph-root" style="height: 600px" />
+        <div id="mynetwork" class="CiGraph-root" style="height: 800px" />
         <Modal
           value={isSwitcherOpen}
+          width="800"
           title={(savedClickedNode.node && savedClickedNode.node.label) || ''}
-          on-on-ok={handleConfirm}
+          // on-on-ok={handleConfirm}
           on-on-cancel={() => {
             this.isSwitcherOpen = false
             this.currentTab = 'name1'
@@ -617,14 +566,38 @@ export default {
               <TabPane label={this.$t('attribute')} name="name1">
                 {isSwitcherOpen && this.renderAttrs()}
               </TabPane>
-              <TabPane label={this.$t('refrence_to')} name="name2">
+              <TabPane label={this.$t('refrence_object')} name="name2">
+                <Divider size="small" orientation="left">
+                  <span style="size:12px">{this.$t('refrence_to')}</span>
+                </Divider>
                 {isSwitcherOpen && this.renderTos()}
-              </TabPane>
-              <TabPane label={this.$t('refrence_by')} name="name3">
+                <Divider size="small" orientation="left">
+                  <span style="size:12px">{this.$t('refrence_by')}</span>
+                </Divider>
                 {isSwitcherOpen && this.renderBys()}
               </TabPane>
             </Tabs>
           </div>
+          <div slot="footer">
+            <Button onClick={() => handleConfirm()} type="primary">
+              {this.$t('save')}
+            </Button>
+          </div>
+        </Modal>
+        <Modal
+          value={isShowError}
+          width="800"
+          on-footer-hide="true"
+          on-on-ok={() => {
+            this.isShowError = false
+          }}
+          on-on-cancel={() => {
+            this.isShowError = false
+          }}
+          title="ERROR"
+          mask-closable={false}
+        >
+          <div>{this.renderError()}</div>
         </Modal>
       </div>
     )

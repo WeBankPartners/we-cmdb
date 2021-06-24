@@ -2,7 +2,8 @@ import './edit-modal.scss'
 import lodash from 'lodash'
 import moment from 'moment'
 import { queryCiData } from '@/api/server.js'
-import AutoComplete from './auto-complete.vue'
+// import AutoComplete from './auto-complete.vue'
+import JSONConfig from './json-config.vue'
 const WIDTH = 300
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 export default {
@@ -44,6 +45,7 @@ export default {
       return WIDTH * cols.length + 100
     }
   },
+  mounted () {},
   watch: {
     data: {
       handler (val) {
@@ -89,6 +91,7 @@ export default {
           queryObject: {
             filters: [{ name: column.inputKey, operator: 'contains', value: value }],
             paging: true,
+            dialect: { queryMode: 'new' },
             pageable: { pageSize: 20, startIndex: 0 },
             resultColumns: [column.inputKey]
           }
@@ -96,7 +99,7 @@ export default {
         let keySet = new Set()
         this.inputSearch[column.inputKey].options = []
         res.data.contents.forEach(item => {
-          let val = item.data[column.inputKey] + ''
+          let val = item[column.inputKey] + ''
           if (!keySet.has(val)) {
             keySet.add(val)
             const label = this.labelMatchValue(value, val)
@@ -137,7 +140,21 @@ export default {
       return data
     },
     okHandler () {
-      this.$emit('editModalOkHandler', this.editData)
+      const copyData = JSON.parse(JSON.stringify(this.editData))
+      copyData.forEach(item => {
+        const keys = Object.keys(item)
+        keys.forEach(key => {
+          const find = this.columns.find(col => col.propertyName === key)
+          if (find && find.inputType !== 'object') {
+            if (Array.isArray(item[key])) {
+              item[key] = item[key].join(',')
+            }
+          }
+        })
+        delete item.confirm_time
+        delete item.key_name
+      })
+      this.$emit('editModalOkHandler', copyData)
     },
     cancelHandler () {
       this.$emit('closeEditModal', false)
@@ -151,7 +168,7 @@ export default {
     },
     copyData () {
       const columns = this.columns.reduce((arr, x) => {
-        if (x.key && !x.isAuto && x.isEditable) {
+        if (x.key && x.autofillable === 'no' && x.editable === 'yes') {
           arr.push(x.key)
         }
         return arr
@@ -159,10 +176,7 @@ export default {
       const copyRows = this.editData.map(row => {
         let obj = {
           guid: '',
-          r_guid: '',
-          p_guid: '',
           state: '',
-          fixed_date: '',
           isNewAddedRow: true
         }
         columns.forEach(x => {
@@ -185,7 +199,7 @@ export default {
         let attrsWillReset = []
         if (['select', 'ref', 'multiSelect', 'multiRef'].indexOf(col.inputType) > -1) {
           this.columns.forEach(_ => {
-            if (_.displaySeqNo > col.displaySeqNo && _.filterRule) {
+            if (_.uiFormOrder > col.uiFormOrder && _.referenceFilter) {
               if (['multiSelect', 'multiRef'].indexOf(_.inputType) >= 0) {
                 attrsWillReset.push({
                   propertyName: _.propertyName,
@@ -208,6 +222,19 @@ export default {
         })
       }
       const cols = this.isEdit ? this.filteredColumns : this.columns
+      const originColumns = this.columns
+      const formatValue = (column, value) => {
+        // for edit 多选数据会在保存时转为','拼接
+        if (column.component === 'WeCMDBSelect' && column.isMultiple) {
+          if (value) {
+            return Array.isArray(value) ? value : value.split(',')
+          } else {
+            return null
+          }
+        } else {
+          return value
+        }
+      }
       return (
         <div style={`width: ${this.tableWidth}px`}>
           {this.editData.map((d, index) => {
@@ -217,17 +244,7 @@ export default {
                   if (column.component === 'WeCMDBCIPassword') {
                     return (
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
-                        <column.component
-                          ciTypeId={column.ciTypeId}
-                          guid={d.guid}
-                          isEdit={this.isEdit}
-                          isNewAddedRow={d.isNewAddedRow || false}
-                          propertyName={column.propertyName}
-                          value={d[column.propertyName]}
-                          onInput={v => {
-                            setValueHandler(v, column, d)
-                          }}
-                        />
+                        <column.component formData={column} panalData={d} disabled={false} />
                       </div>
                     )
                   } else if (column.component === 'CMDBPermissionFilters') {
@@ -238,8 +255,8 @@ export default {
                           isFilterAttr={true}
                           displayAttrType={column.displayAttrType}
                           rootCis={column.rootCis}
-                          rootCiTypeId={column.rootCiTypeId}
-                          value={d[column.propertyName]}
+                          rootCiTypeId={column.ciTypeId}
+                          value={d[column.propertyName] || []}
                           onInput={v => {
                             setValueHandler(v, column, d)
                           }}
@@ -258,7 +275,7 @@ export default {
                         />
                       </div>
                     )
-                  } else if (column.component === 'Input') {
+                  } else if (column.component === 'Input' && column.inputType !== 'object') {
                     const props = {
                       ...column,
                       data: this.inputSearch[column.inputKey].options,
@@ -279,9 +296,35 @@ export default {
                       props,
                       on: fun
                     }
+                    const resetAutofillValue = (v, column) => {
+                      setValueHandler('suggest#', column, d)
+                    }
+                    // <AutoComplete {...data}></AutoComplete>
                     return (
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
-                        <AutoComplete {...data}></AutoComplete>
+                        <Input style="width:80%" {...data}></Input>
+                        {column.autofillable === 'yes' && column.autoFillType === 'suggest' && (
+                          <Button onClick={v => resetAutofillValue(v, column)} icon="md-checkmark"></Button>
+                        )}
+                      </div>
+                    )
+                  } else if (column.component === 'Input' && column.inputType === 'object') {
+                    const props = {
+                      ...column,
+                      jsonData: JSON.parse(JSON.stringify(d[column['inputKey']]) || '{}')
+                    }
+                    const fun = {
+                      input: function (v) {
+                        setValueHandler(v, column, d)
+                      }
+                    }
+                    const data = {
+                      props,
+                      on: fun
+                    }
+                    return (
+                      <div style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
+                        <JSONConfig {...data}></JSONConfig>
                       </div>
                     )
                   } else {
@@ -297,19 +340,15 @@ export default {
                               ? Array.isArray(d[column.inputKey])
                                 ? d[column.inputKey]
                                 : ''
-                              : d[column.inputKey],
-                          filterParams: column.filterRule
+                              : formatValue(column, d[column.inputKey]),
+                          filterParams: column.referenceFilter
                             ? {
                               attrId: column.ciTypeAttrId,
                               params: d
                             }
                             : null,
                           isMultiple: column.isMultiple,
-                          options: column.optionColumnKey
-                            ? this.ascOptions[d[column.optionColumnKey]]
-                            : column.optionKey
-                              ? this.ascOptions[column.optionKey]
-                              : column.options,
+                          options: column.options,
                           enumId: column.referenceId ? column.referenceId : null
                         }
                         : {
@@ -321,7 +360,7 @@ export default {
                                 ? d[column.inputKey]
                                 : ''
                               : d[column.inputKey] || '',
-                          filterParams: column.filterRule
+                          filterParams: column.referenceFilter
                             ? {
                               attrId: column.ciTypeAttrId,
                               params: d
@@ -329,6 +368,7 @@ export default {
                             : null,
                           ciType: column.component === 'WeCMDBRefSelect' ? column.ciType : null,
                           ...column,
+                          originColumns: originColumns,
                           type: column.component === 'DatePicker' ? 'date' : column.type,
                           guid: d.guid ? d.guid : '123'
                         }
@@ -348,7 +388,7 @@ export default {
                     }
                     return (
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
-                        <div class={!column.isNullable ? 'is-nullable' : ''}>
+                        <div class={!column.uiNullable !== 'no' ? 'is-nullable' : ''}>
                           <column.component {...data} />
                         </div>
                       </div>
@@ -436,7 +476,7 @@ export default {
                     key={column.ciTypeAttrId || index}
                   >
                     <Tooltip {...d} disabled={!column.description} content={column.description} placement="top">
-                      <span style="color:red">{column.isNullable ? '' : '*'}</span>
+                      <span style="color:red">{column.uiNullable !== 'no' ? '' : '*'}</span>
                       {column.name || column.title}
                     </Tooltip>
                   </div>

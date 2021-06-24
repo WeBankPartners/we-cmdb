@@ -1,5 +1,6 @@
 import { queryCiData, getCiTypeAttributes, getEnumCodesByCategoryId, queryReferenceCiData } from '@/api/server'
 import { components } from '@/const/actions.js'
+import { finalDataForRequest } from '@/pages/util/component-util'
 export default {
   name: 'WeCMDBRefSelect',
   props: {
@@ -43,31 +44,42 @@ export default {
       firstChange: true
     }
   },
+  inject: ['ciDataManagementQueryType'],
   mounted () {
     this.getAllDataWithoutPaging()
   },
   methods: {
+    isJSON (jsons) {
+      try {
+        if (typeof jsons === 'object' && jsons) {
+          return true
+        } else {
+          return false
+        }
+      } catch (e) {
+        return false
+      }
+    },
     async getAllDataWithoutPaging () {
       const rows = this.filterParams ? JSON.parse(JSON.stringify(this.filterParams.params)) : {}
-      delete rows.isRowEditable
-      delete rows.weTableForm
-      delete rows.weTableRowId
-      delete rows.isNewAddedRow
-      delete rows.nextOperations
+      const finalData = finalDataForRequest(rows)
       let noPagingRes = this.filterParams
         ? await queryReferenceCiData({
           attrId: this.filterParams.attrId,
-          queryObject: { filters: [], paging: false, dialect: { associatedData: rows } }
+          queryObject: { filters: [], paging: false, dialect: { associatedData: finalData } }
         })
         : await queryCiData({
           id: this.ciType.id,
-          queryObject: { filters: [], paging: false, resultColumns: ['guid', 'key_name', 'id', 'description'] }
+          queryObject: {
+            dialect: { queryMode: this.ciDataManagementQueryType },
+            filters: [],
+            paging: false,
+            resultColumns: ['guid', 'key_name', 'description']
+          }
         })
       if (noPagingRes.statusCode === 'OK') {
         this.selectDisabled = false
-        this.allTableDataWithoutPaging = this.filterParams
-          ? noPagingRes.data.contents
-          : noPagingRes.data.contents.map(_ => _.data)
+        this.allTableDataWithoutPaging = this.filterParams ? noPagingRes.data : noPagingRes.data.contents
       }
     },
     handleSubmit (data) {
@@ -134,7 +146,7 @@ export default {
     getSelectOptions (columns) {
       columns.forEach(async _ => {
         if (_.inputType === 'select' || _.inputType === 'multiSelect') {
-          const { data } = await getEnumCodesByCategoryId(0, _.referenceId)
+          const { data } = await getEnumCodesByCategoryId(_.referenceId)
           _['options'] = data
             .filter(j => j.status === 'active')
             .map(i => {

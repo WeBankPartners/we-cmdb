@@ -37,7 +37,7 @@ export default {
       this.allMenusAry = data
     },
     setBreadcrumb () {
-      if (this.$route.path === '/homepage' || this.$route.path === '/404') {
+      if (this.$route.path === '/wecmdb/home') {
         this.isShowBreadcrum = false
         return
       }

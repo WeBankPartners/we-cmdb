@@ -2,6 +2,7 @@
   <CMDBTable
     :tableData="tableData"
     :tableColumns="columns"
+    :ascOptions="ascOptions"
     :tableOuterActions="null"
     :tableInnerActions="null"
     :showCheckbox="false"
@@ -15,49 +16,161 @@
 </template>
 
 <script>
-import { queryLogHeader, queryLog } from '@/api/server'
-import { components } from '@/const/actions'
+import { queryLog, queryLogOperation } from '@/api/server'
 export default {
   data () {
     return {
-      columns: [],
+      columns: [
+        {
+          component: 'Input',
+          type: 'text',
+          inputType: 'text',
+          title: 'Guid',
+          key: 'dataGuid',
+          inputKey: 'dataGuid',
+          editable: 'no',
+          uiFormOrder: 1,
+          uiSearchOrder: 1,
+          displayByDefault: 'yes'
+        },
+        {
+          component: 'Input',
+          type: 'text',
+          inputType: 'text',
+          title: 'Key Name',
+          key: 'dataCiType',
+          inputKey: 'dataCiType',
+          editable: 'no',
+          uiFormOrder: 1,
+          uiSearchOrder: 1,
+          displayByDefault: 'yes'
+        },
+        {
+          component: 'DatePicker',
+          type: 'datetimerange',
+          inputType: 'date',
+          title: 'Created Date',
+          key: 'createdDate',
+          inputKey: 'createdDate',
+          editable: true,
+          uiFormOrder: 1,
+          uiSearchOrder: 1,
+          displayByDefault: 'yes'
+        },
+        {
+          component: 'Input',
+          type: 'text',
+          inputType: 'text',
+          title: 'User',
+          key: 'operator',
+          inputKey: 'operator',
+          editable: 'no',
+          uiFormOrder: 1,
+          uiSearchOrder: 1,
+          displayByDefault: 'yes'
+        },
+        {
+          component: 'Input',
+          type: 'text',
+          inputType: 'text',
+          title: 'Client Host',
+          key: 'clientHost',
+          inputKey: 'clientHost',
+          editable: 'no',
+          uiFormOrder: 1,
+          uiSearchOrder: 1,
+          displayByDefault: 'yes'
+        },
+        {
+          component: 'WeCMDBSelect',
+          options: [
+            {
+              value: 'Permission Management',
+              label: 'Permission Management'
+            },
+            {
+              value: 'Base Data Management',
+              label: 'Base Data Management'
+            },
+            {
+              value: 'CI Type Management',
+              label: 'CI Type Management'
+            },
+            {
+              value: 'CI Data Management',
+              label: 'CI Data Management'
+            }
+          ],
+          inputType: 'select',
+          title: 'Category',
+          key: 'logCat',
+          inputKey: 'logCat',
+          editable: 'no',
+          uiFormOrder: 1,
+          uiSearchOrder: 1,
+          displayByDefault: 'yes'
+        },
+        {
+          component: 'Input',
+          type: 'text',
+          inputType: 'text',
+          title: 'Content',
+          key: 'content',
+          inputKey: 'content',
+          editable: 'no',
+          uiFormOrder: 1,
+          uiSearchOrder: 1,
+          displayByDefault: 'yes'
+        },
+        {
+          component: 'WeCMDBSelect',
+          optionKey: 'operationOpts',
+          options: [],
+          inputType: 'select',
+          title: 'Operation',
+          key: 'operation',
+          inputKey: 'operation',
+          editable: 'no',
+          uiFormOrder: 1,
+          uiSearchOrder: 1,
+          displayByDefault: 'yes'
+        },
+        {
+          component: 'Input',
+          type: 'text',
+          inputType: 'text',
+          title: 'Request Url',
+          key: 'requestUrl',
+          inputKey: 'requestUrl',
+          editable: 'no',
+          uiFormOrder: 1,
+          uiSearchOrder: 1,
+          displayByDefault: 'yes'
+        }
+      ],
       tableData: [],
+      ascOptions: {},
       pageInfo: {
         pageSize: 10,
         currentPage: 1,
         total: 0
       },
       filters: [],
-      sorting: null
+      sorting: { asc: false, field: 'createdDate' }
     }
   },
   methods: {
-    async fetchColumns () {
-      const { data, statusCode } = await queryLogHeader()
+    async queryLogOperation () {
+      const { statusCode, data } = await queryLogOperation()
       if (statusCode === 'OK') {
-        this.columns = data.map(_ => {
-          let result = {
-            inputType: _.inputType,
-            title: _.name,
-            key: _.key,
-            inputKey: _.key,
-            disEditor: true,
-            displaySeqNo: 1,
-            searchSeqNo: 1,
-            isDisplayed: true
+        const operationOpts = data.map(_ => {
+          return {
+            value: _,
+            label: _
           }
-          if (_.vals) {
-            result.options = _.vals.map(opt => {
-              return {
-                value: opt,
-                label: opt
-              }
-            })
-          }
-          return { ...components[_.inputType], ...result }
         })
+        this.$set(this.ascOptions, 'operationOpts', operationOpts)
       }
-      this.fetchTableData()
     },
     async fetchTableData () {
       const { data, statusCode } = await queryLog({
@@ -99,7 +212,8 @@ export default {
     }
   },
   mounted () {
-    this.fetchColumns()
+    this.queryLogOperation()
+    this.fetchTableData()
   }
 }
 </script>

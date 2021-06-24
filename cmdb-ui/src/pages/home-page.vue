@@ -68,7 +68,7 @@ export default {
         })
         let [ciResponse, _zoomLevelIdList] = await Promise.all([
           getAllCITypesByLayerWithAttr(this.selectedStatus),
-          getEnumCodesByCategoryId(1, ZOOM_LEVEL_CAT)
+          getEnumCodesByCategoryId(ZOOM_LEVEL_CAT)
         ])
         if (ciResponse.statusCode === 'OK' && _zoomLevelIdList.statusCode === 'OK') {
           if (_zoomLevelIdList.data.length) {
@@ -279,7 +279,7 @@ export default {
     }
   },
   mounted () {
-    this.initGraph()
+    // this.initGraph()
   }
 }
 </script>
