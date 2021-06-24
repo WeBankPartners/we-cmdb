@@ -4,10 +4,14 @@
       <TabPane :closable="false" name="CMDB" :label="$t('cmdb_model')">
         <card>
           <div class="graph-container" id="graph"></div>
+          <Spin fix v-if="spinShow">
+            <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+          </Spin>
         </card>
       </TabPane>
       <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name">
         <CMDBTable
+          :ciTypeId="ci.id"
           :tableData="ci.tableData"
           :tableOuterActions="ci.outerActions"
           :tableInnerActions="ci.innerActions"
@@ -16,6 +20,7 @@
           :ascOptions="ci.ascOptions"
           :showCheckbox="needCheckout"
           :isRefreshable="true"
+          :queryType="queryType"
           @actionFun="actionFun"
           @handleSubmit="handleSubmit"
           @sortHandler="sortHandler"
@@ -29,13 +34,25 @@
         ></CMDBTable>
       </TabPane>
       <div slot="extra" class="history-query">
-        <span class="filter-title">{{ $t('change_layer') }}</span>
-        <Select multiple :max-tag-count="3" v-model="currentZoomLevelId" @on-change="changeLayer" style="width: 300px;">
-          <Option v-for="item in zoomLevelIdList" :value="item.codeId" :key="item.codeId">
+        <span class="filter-title">{{ $t('change_group') }}</span>
+        <Select
+          multiple
+          filterable
+          :max-tag-count="1"
+          v-model="currentciGroup"
+          style="flex: 1;width:200px;margin-right:20px"
+        >
+          <Option v-for="item in originciGroupList" :value="item.codeId" :key="item.codeId">
             {{ item.value }}
           </Option>
         </Select>
-        <div class="label">{{ $t('updated_time') }}</div>
+        <span class="filter-title">{{ $t('change_layer') }}</span>
+        <Select multiple filterable :max-tag-count="3" v-model="currentciLayer" style="width: 300px;">
+          <Option v-for="item in originciLayerList" :value="item.codeId" :key="item.codeId">
+            {{ item.value }}
+          </Option>
+        </Select>
+        <div class="label">{{ $t('update_time') }}</div>
         <DatePicker
           type="datetime"
           format="yyyy-MM-dd HH:mm"
@@ -44,16 +61,37 @@
           @on-change="handleDateChange"
         />
         <div class="label">{{ $t('query_type') }}</div>
-        <Select v-model="queryType" @on-change="handleQueryEmit">
-          <Option value="1">{{ $t('type_latest') }}</Option>
-          <Option value="2">{{ $t('type_reality') }}</Option>
-          <Option value="3">{{ $t('type_all') }}</Option>
+        <Select filterable v-model="queryType" @on-change="handleQueryEmit">
+          <Option value="new">{{ $t('type_latest') }}</Option>
+          <Option value="real">{{ $t('type_reality') }}</Option>
+          <Option value="all">{{ $t('type_all') }}</Option>
         </Select>
+        <Button type="primary" @click="newInitGraph" style="vertical-align: top;margin-left:20px">{{
+          $t('confirm')
+        }}</Button>
       </div>
     </Tabs>
     <!-- 对比 -->
     <Modal footer-hide v-model="compareVisible" width="90" class-name="compare-modal">
-      <Table :columns="compareColumns.filter(x => x.isDisplayed || x.displaySeqNo)" :data="compareData" border />
+      <Table :columns="compareColumns" :height="MODALHEIGHT" :data="compareData" border />
+    </Modal>
+
+    <!-- @on-cancel="cancel" -->
+    <Modal v-model="rollbackConfig.isShow" width="900" @on-ok="okRollback" title="数据回退">
+      <div>
+        <CMDBTable
+          :ciTypeId="rollbackConfig.id"
+          :tableData="rollbackConfig.table.tableData"
+          :tableColumns="rollbackConfig.table.tableColumns"
+          :showCheckbox="needCheckout"
+          :tableInnerActions="null"
+          :isRefreshable="true"
+          :filtersHidden="true"
+          @getSelectedRows="onSelectedRowsChangeRollBack"
+          tableHeight="650"
+          :ref="'table' + 111"
+        ></CMDBTable>
+      </div>
     </Modal>
   </div>
 </template>
@@ -63,42 +101,53 @@ import * as d3 from 'd3-selection'
 import * as d3Graphviz from 'd3-graphviz'
 import moment from 'moment'
 import { addEvent } from '../util/event.js'
+import { finalDataForRequest } from '../util/component-util'
 import {
   getAllCITypesByLayerWithAttr,
   getEnumCodesByCategoryId,
-  getAllLayers,
-  queryCiData,
-  queryCiDataByType,
   getCiTypeAttributes,
-  deleteCiDatas,
-  createCiDatas,
-  updateCiDatas,
-  operateCiState
+  queryCiData,
+  getRollbackData,
+  tableOptionExcute,
+  operateCiState,
+  getEnumCategoriesById,
+  getStateTransition
 } from '@/api/server'
-import { setHeaders, baseURL } from '@/api/base.js'
-import { pagination, components, newExportOuterActions, newOuterActions } from '@/const/actions.js'
-import { resetButtonDisabled } from '@/const/tableActionFun.js'
+import { baseURL } from '@/api/base.js'
+import { pagination, components } from '@/const/actions.js'
+// import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
-import { getExtraInnerActions } from '../util/state-operations.js'
-import { deepClone } from '../util/common-func.js'
-import { ZOOM_LEVEL_CAT } from '@/const/init-params.js'
-const defaultCiTypePNG = require('@/assets/ci-type-default.png')
+import { CI_LAYER, CI_GROUP } from '@/const/init-params.js'
 export default {
+  provide () {
+    return {
+      ciDataManagementQueryType: this.queryType
+    }
+  },
   data () {
     return {
+      spinShow: false,
+      rollbackConfig: {
+        isShow: false,
+        table: {
+          tableData: [],
+          tableColumns: []
+        }
+      },
       baseURL,
       currentZoomLevelId: [],
       tabList: [],
       currentTab: 'CMDB',
       payload: {
         dialect: {
-          showCiHistory: false
+          queryMode: 'new'
         },
         filters: [],
         pageable: {
           pageSize: 10,
           startIndex: 0
         },
+        sorting: { asc: false, field: 'update_time' },
         paging: true
       },
       source: {},
@@ -113,12 +162,22 @@ export default {
           return date && date.valueOf() > Date.now()
         }
       },
-      queryType: '1', // 1 - 最新； 2 - 现实； 3 - 所有；
+      queryType: 'new', // new - 最新； real - 现实； all - 所有；
       queryDate: null,
       zoomLevelIdList: [],
       copyRows: [],
       copyEditData: null,
-      isHandleNodeClick: false
+      isHandleNodeClick: false,
+
+      currentStatus: ['created', 'dirty'],
+      originciLayerList: [],
+      originciGroupList: [],
+      currentciGroup: [],
+      currentciLayer: [],
+      ciLayerList: [],
+      ciGroupList: [],
+      originCITypesByLayerWithAttr: [],
+      MODALHEIGHT: 0
     }
   },
   computed: {
@@ -132,7 +191,7 @@ export default {
       if (this.queryDate) {
         return [
           {
-            name: 'updated_date',
+            name: 'update_time',
             operator: 'lt',
             value: moment(this.queryDate).format('YYYY-MM-DD HH:mm:ss')
           }
@@ -172,7 +231,8 @@ export default {
       this.handleQueryEmit()
     },
     handleQueryEmit () {
-      let dateObjIdx = this.payload.filters.findIndex(x => x.name === 'updated_date')
+      this.payload.dialect.queryMode = this.queryType
+      let dateObjIdx = this.payload.filters.findIndex(x => x.name === 'update_time')
       if (!this.queryDate) {
         if (~dateObjIdx) this.payload.filters.splice(dateObjIdx, 1)
       } else {
@@ -182,177 +242,27 @@ export default {
           this.payload.filters = filters
         } else {
           this.payload.filters.push({
-            name: 'updated_date',
+            name: 'update_time',
             operator: 'lt',
             value: moment(this.queryDate).format('YYYY-MM-DD HH:mm:ss')
           })
         }
       }
-      this.payload.dialect.showCiHistory = this.queryType === '3'
       if (this.currentTab !== 'CMDB') this.queryCiData()
     },
     handleTabRemove (name) {
       this.tabList.forEach((_, index) => {
         if (_.id === name) {
           this.tabList.splice(index, 1)
-          this.payload.filters = this.payload.filters.filter(x => x.name === 'update_date')
+          this.payload.filters = this.payload.filters.filter(x => x.name === 'update_time')
         }
       })
       this.currentTab = 'CMDB'
     },
     handleTabClick (name) {
-      this.payload.filters = this.payload.filters.filter(x => x.name === 'update_date')
+      this.payload.filters = this.payload.filters.filter(x => x.name === 'update_time')
       delete this.payload.sorting
       this.currentTab = name
-    },
-    async initGraph (filters = ['created', 'dirty']) {
-      let graph
-
-      const initEvent = () => {
-        graph = d3.select('#graph')
-        graph
-          .on('dblclick.zoom', null)
-          .on('wheel.zoom', null)
-          .on('mousewheel.zoom', null)
-
-        this.graph.graphviz = graph
-          .graphviz()
-          .zoom(true)
-          .fit(true)
-          .width(window.innerWidth - 92)
-          .height(window.innerHeight - 190)
-          .attributer(function (d) {
-            if (d.attributes.class === 'edge') {
-              var keys = d.key.split('->')
-              var from = keys[0].trim()
-              var to = keys[1].trim()
-              d.attributes.from = from
-              d.attributes.to = to
-            }
-
-            if (d.tag === 'text') {
-              var key = d.children[0].text
-              d3.select(this).attr('text-key', key)
-            }
-          })
-      }
-
-      this.zoomLevelIdList = []
-      let layerResponse = await getAllLayers()
-      if (layerResponse.statusCode === 'OK') {
-        let tempLayer = layerResponse.data
-          .filter(i => i.status === 'active')
-          .map(_ => {
-            return { name: _.value, layerId: _.codeId, ..._ }
-          })
-        this.layers = tempLayer.sort((a, b) => {
-          return a.seqNo - b.seqNo
-        })
-        let [ciResponse, _zoomLevelIdList] = await Promise.all([
-          getAllCITypesByLayerWithAttr(filters),
-          getEnumCodesByCategoryId(1, ZOOM_LEVEL_CAT)
-        ])
-        if (ciResponse.statusCode === 'OK' && _zoomLevelIdList.statusCode === 'OK') {
-          if (_zoomLevelIdList.data.length) {
-            this.zoomLevelIdList = _zoomLevelIdList.data
-            this.currentZoomLevelId = [_zoomLevelIdList.data[0].codeId]
-          }
-          this.source = ciResponse.data
-          this.source.forEach(_ => {
-            _.ciTypes &&
-              _.ciTypes.forEach(async i => {
-                this.ciTypesName[i.ciTypeId] = i.name
-                let imgFileSource =
-                  i.imageFileId === 0 || i.imageFileId === undefined
-                    ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
-                    : `${baseURL}/files/${i.imageFileId}`
-                this.$set(i, 'form', {
-                  ...i,
-                  imgSource: imgFileSource,
-                  imgUploadURL: `${baseURL}/ci-types/${i.ciTypeId}/icon`
-                })
-                i.attributes &&
-                  i.attributes.forEach(j => {
-                    this.$set(j, 'form', {
-                      ...j,
-                      isAccessControlled: j.isAccessControlled ? 'yes' : 'no',
-                      isNullable: j.isNullable ? 'yes' : 'no',
-                      isSystem: j.isSystem ? 'yes' : 'no'
-                    })
-                  })
-              })
-          })
-          let uploadToken = document.cookie.split(';').find(i => i.indexOf('XSRF-TOKEN') !== -1)
-          setHeaders({
-            'X-XSRF-TOKEN': uploadToken && uploadToken.split('=')[1]
-          })
-          initEvent()
-        }
-      }
-    },
-    genDOT (data) {
-      let nodes = []
-      data.forEach(_ => {
-        if (_.ciTypes) nodes = nodes.concat(_.ciTypes)
-      })
-      var dots = [
-        'digraph  {',
-        'bgcolor="transparent";',
-        'Node [fontname=Arial,shape="ellipse", fixedsize="true", width="1.1", height="1.1", color="transparent" ,fontsize=11];',
-        'Edge [fontname=Arial,minlen="1", color="#7f8fa6", fontsize=10];',
-        'ranksep = 1.1; nodesep=.7; size = "11,8";rankdir=TB'
-      ]
-      let layerTag = `node [];`
-
-      // generate group
-      let tempClusterObjForGraph = {}
-      let tempClusterAryForGraph = []
-      this.layers.map((_, index) => {
-        if (index !== this.layers.length - 1) {
-          layerTag += `"layer_${_.layerId}"->`
-        } else {
-          layerTag += `"layer_${_.layerId}"`
-        }
-        tempClusterObjForGraph[index] = [
-          `{ rank=same; "layer_${_.layerId}"[id="layerId_${_.layerId}",class="layer",label="${_.name}",tooltip="${_.name}"];`
-        ]
-        nodes.forEach((node, nodeIndex) => {
-          if (node.layerId === _.layerId && this.currentZoomLevelId.indexOf(node.zoomLevelId) >= 0) {
-            tempClusterObjForGraph[index].push(
-              `"ci_${node.ciTypeId}"[id="${node.ciTypeId}",label="${node.name}",tooltip="${node.name}",class="ci",image="${node.form.imgSource}.png", labelloc="b"]`
-            )
-          }
-          if (nodeIndex === nodes.length - 1) {
-            tempClusterObjForGraph[index].push('} ')
-          }
-        })
-        if (nodes.length === 0) {
-          tempClusterObjForGraph[index].push('} ')
-        }
-        tempClusterAryForGraph.push(tempClusterObjForGraph[index].join(''))
-      })
-
-      dots.push(tempClusterAryForGraph.join(''))
-      dots.push('{' + layerTag + '[style=invis]}')
-
-      // generate edges
-      nodes.forEach(node => {
-        node.attributes &&
-          node.attributes.forEach(attr => {
-            if (attr.inputType === 'ref' || attr.inputType === 'multiRef') {
-              const target = nodes.find(_ => _.ciTypeId === attr.referenceId)
-              if (
-                target &&
-                this.currentZoomLevelId.indexOf(target.zoomLevelId) >= 0 &&
-                this.currentZoomLevelId.indexOf(node.zoomLevelId) >= 0
-              ) {
-                dots.push(this.genEdge(nodes, node, attr))
-              }
-            }
-          })
-      })
-      dots.push('}')
-      return dots.join('')
     },
     genEdge (nodes, from, to) {
       const target = nodes.find(_ => _.ciTypeId === to.referenceId)
@@ -401,19 +311,6 @@ export default {
         .attr('fill-opacity', '1')
         .attr('stroke-opacity', '1')
     },
-    renderGraph (data) {
-      let nodesString = this.genDOT(data)
-      this.loadImage(nodesString)
-      this.graph.graphviz
-        .transition()
-        .renderDot(nodesString)
-        .on('end', () => {
-          this.shadeAll()
-        })
-      addEvent('.node', 'mouseover', this.handleNodeMouseover)
-      addEvent('svg', 'mouseover', this.handleSvgMouseover)
-      addEvent('.node', 'click', this.handleNodeClick)
-    },
     async handleNodeMouseover (e) {
       e.preventDefault()
       e.stopPropagation()
@@ -428,26 +325,47 @@ export default {
       e.preventDefault()
       e.stopPropagation()
     },
+    async getStateTransition (ciTypeId) {
+      const { statusCode, data } = await getStateTransition(ciTypeId)
+      if (statusCode === 'OK') {
+        let stateBtn = data.map(item => {
+          item.props = {}
+          item.props.type = 'primary'
+          item.props.disabled = !['Add'].includes(item.operation_en)
+          return item
+        })
+        stateBtn.push({
+          operation: '导出',
+          operationFormType: 'export_form',
+          operationMultiple: 'yes',
+          class: 'xxx',
+          operation_en: 'Export',
+          props: {
+            type: 'primary',
+            disabled: false
+          }
+        })
+        return stateBtn
+      }
+    },
     async handleNodeClick (e) {
       if (this.isHandleNodeClick) return
       this.isHandleNodeClick = true
       e.preventDefault()
       e.stopPropagation()
       var g = e.currentTarget
-      let isLayerSelected = g.getAttribute('class').indexOf('layer') >= 0
+      let isLayerSelected = g.getAttribute('class').indexOf('group') >= 0
       if (isLayerSelected) {
         return
       }
       const found = this.tabList.find(_ => _.id === g.id)
       if (!found) {
+        const stateTransition = await this.getStateTransition(g.id)
         const ci = {
-          name: g.firstElementChild.nextElementSibling.firstElementChild.getAttribute('title'),
+          name: g.lastElementChild.textContent.trim() || 'Default',
           id: g.id,
           tableData: [],
-          outerActions:
-            this.$route.name === 'ciDataEnquiry'
-              ? JSON.parse(JSON.stringify(newExportOuterActions))
-              : JSON.parse(JSON.stringify(newOuterActions)),
+          outerActions: stateTransition,
           innerActions:
             this.$route.name === 'ciDataEnquiry'
               ? [
@@ -458,25 +376,22 @@ export default {
                     size: 'small'
                   },
                   actionType: 'compare',
-                  isDisabled: row => !row.weTableForm.p_guid,
                   isLoading: row => !!row.weTableForm.compareLoading
                 }
               ]
-              : deepClone(
-                [].concat(await getExtraInnerActions()).concat([
-                  {
-                    label: this.$t('compare'),
-                    props: {
-                      type: 'info',
-                      size: 'small'
-                    },
-                    actionType: 'compare',
-                    isDisabled: row => !row.weTableForm.p_guid,
-                    isLoading: row => !!row.weTableForm.compareLoading
+              : [
+                {
+                  operation: '对比',
+                  operationFormType: 'compare_form',
+                  operationMultiple: 'yes',
+                  operation_en: 'Compare',
+                  props: {
+                    type: 'primary',
+                    disabled: false
                   }
-                ])
-              ),
-          tableColumns: [],
+                }
+              ],
+          tableColumns: await this.queryCiAttrs(g.id),
           pagination: JSON.parse(JSON.stringify(pagination)),
           ascOptions: {}
         }
@@ -487,7 +402,6 @@ export default {
         this.tabList.push(ci)
         this.currentTab = g.id
         this.$nextTick(() => {
-          this.queryCiAttrs(g.id)
           this.queryCiData(query)
         })
       } else {
@@ -499,70 +413,41 @@ export default {
     },
     onSelectedRowsChange (rows, checkoutBoxdisable) {
       if (rows.length > 0) {
-        let isUpdateableAry = []
-        let isDeleteableAry = []
-
-        rows.forEach((r, index) => {
-          isUpdateableAry.push(!!r.nextOperations.find(op => op === 'update'))
-          isDeleteableAry.push(!!r.nextOperations.find(op => op === 'delete'))
+        let opArray = []
+        rows.forEach(r => {
+          opArray = opArray.concat(r.nextOperations)
         })
-        let isValueTrue = val => {
-          return val === true
-        }
+        const activeBtn = new Set(opArray)
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.outerActions.forEach(_ => {
-              switch (_.actionType) {
-                case 'add':
-                  _.props.disabled = _.actionType === 'add'
-                  break
-                case 'edit':
-                  _.props.disabled = !isUpdateableAry.every(isValueTrue)
-                  break
-                case 'delete':
-                  _.props.disabled = !isDeleteableAry.every(isValueTrue)
-                  break
-                case 'copy':
-                  _.props.disabled = !rows.every(x => x.guid)
-                  break
-                default:
-                  break
+              _.props.disabled = !(activeBtn.has(_.operation_en) || ['Add', 'Export'].includes(_.operation_en))
+              if (rows.length > 1 && _.operationMultiple !== 'yes') {
+                _.props.disabled = true
               }
             })
           }
         })
       } else {
-        this.tabList.forEach(ci => {
-          if (ci.id === this.currentTab) {
-            ci.outerActions.forEach(_ => {
-              _.props.disabled = resetButtonDisabled(_)
-            })
-          }
-        })
+        this.setBtnsStatus()
       }
     },
-    actionFun (type, data, cols) {
-      switch (type) {
-        case 'export':
+    actionFun (operate, data, cols) {
+      switch (operate.operationFormType) {
+        case 'export_form':
           this.exportHandler()
           break
-        case 'add':
-          this.addHandler()
+        case 'editable_form':
+          this.editHandler(operate.operation_en)
           break
-        case 'edit':
-          this.editHandler()
-          break
-        case 'delete':
-          this.deleteHandler(data)
-          break
-        case 'compare':
+        case 'compare_form':
           this.compareHandler(data)
           break
-        case 'copy':
-          this.copyHandler(data, cols)
+        case 'confirm_form':
+          this.confirmHandler(operate.operation_en, data)
           break
-        default:
-          this.defaultHandler(type, data)
+        case 'select_form':
+          this.selectHandler(operate.operation_en, data)
           break
       }
     },
@@ -570,20 +455,23 @@ export default {
       this.$refs[this.tableRef][0].showCopyModal()
     },
     async compareHandler (row) {
-      this.$set(row.weTableForm, 'compareLoading', true)
+      // this.$set(row.weTableForm, 'compareLoading', true)
       const found = this.tabList.find(_ => _.id === this.currentTab)
       if (found) {
-        this.compareColumns = found.tableColumns
+        this.compareColumns = found.tableColumns.map(item => {
+          item.width = 120
+          return item
+        })
       }
       const query = {
         id: this.currentTab,
         queryObject: {
-          dialect: { showCiHistory: true },
+          dialect: { queryMode: 'all' },
           filters: [
             {
               name: 'guid',
               operator: 'in',
-              value: [row.weTableForm.guid, row.weTableForm.p_guid]
+              value: [row.weTableForm.guid]
             }
           ]
         }
@@ -591,7 +479,7 @@ export default {
       const { statusCode, data } = await queryCiData(query)
       this.$set(row.weTableForm, 'compareLoading', false)
       if (statusCode === 'OK') {
-        this.compareData = data && data.contents && data.contents.map(x => x.data)
+        this.compareData = data && data.contents
         this.compareData = this.compareData
           .map(x => {
             for (let k in x) {
@@ -600,14 +488,15 @@ export default {
             return x
           })
           .map((x, idx) => {
-            if (x.guid === row.weTableForm.guid) {
-              x.cellClassName = {}
-              for (let k in x) {
-                if (this.compareData[1 - idx] && x[k] !== this.compareData[1 - idx][k]) {
-                  x.cellClassName[k] = 'highlight'
-                }
+            const len = this.compareData.length
+            // if (x.guid === row.weTableForm.guid) {
+            x.cellClassName = {}
+            for (let k in x) {
+              if (this.compareData[len - idx] && x[k] !== this.compareData[len - idx][k]) {
+                x.cellClassName[k] = 'highlight'
               }
             }
+            // }
             return x
           })
       }
@@ -669,27 +558,46 @@ export default {
         }
       })
     },
-    deleteHandler (deleteData) {
+    async selectHandler (operationType, rollbackData) {
+      const { statusCode, data } = await getRollbackData(rollbackData[0].guid)
+      if (statusCode === 'OK') {
+        this.rollbackConfig.table.tableColumns = this.tabList.find(_ => _.id === this.currentTab).tableColumns
+        this.rollbackConfig.table.tableData = data
+        this.rollbackConfig.isShow = true
+      }
+    },
+    onSelectedRowsChangeRollBack (rows) {
+      this.rollbackConfig.selectData = rows
+    },
+    async okRollback () {
+      let finalData = finalDataForRequest(this.rollbackConfig.selectData)
+      finalData.forEach(item => {
+        delete item.update_time
+      })
+      const { statusCode, message } = await tableOptionExcute('Rollback', this.currentTab, finalData)
+      if (statusCode === 'OK') {
+        this.$Notice.success({
+          title: 'Rollback successfully',
+          desc: message
+        })
+        this.queryCiData()
+      }
+    },
+    confirmHandler (operateType, confirmData) {
       this.$Modal.confirm({
-        title: this.$t('delete_confirm'),
+        title: this.$t('confirm_action'),
         'z-index': 1000000,
         onOk: async () => {
-          const payload = {
-            id: this.currentTab,
-            deleteData: deleteData.map(_ => _.guid)
-          }
-          const { statusCode, message } = await deleteCiDatas(payload)
+          const payload = confirmData.map(_ => {
+            return {
+              guid: _.guid
+            }
+          })
+          const { statusCode, message } = await tableOptionExcute(operateType, this.currentTab, payload)
           if (statusCode === 'OK') {
             this.$Notice.success({
-              title: 'Deleted successfully',
+              title: operateType + ' successfully',
               desc: message
-            })
-            this.tabList.forEach(ci => {
-              if (ci.id === this.currentTab) {
-                ci.outerActions.forEach(_ => {
-                  _.props.disabled = _.actionType === 'copy' || _.actionType === 'edit' || _.actionType === 'delete'
-                })
-              }
             })
             this.queryCiData()
           }
@@ -698,8 +606,52 @@ export default {
       })
       document.querySelector('.ivu-modal-mask').click()
     },
-    editHandler () {
-      this.$refs[this.tableRef][0].showEditModal()
+    deleteHandler (deleteData) {
+      this.$Modal.confirm({
+        title: this.$t('delete_confirm'),
+        'z-index': 1000000,
+        onOk: async () => {
+          const payload = deleteData.map(_ => {
+            return {
+              guid: _.guid
+            }
+          })
+          const { statusCode, message } = await tableOptionExcute('Delete', this.currentTab, payload)
+          if (statusCode === 'OK') {
+            this.$Notice.success({
+              title: 'Deleted successfully',
+              desc: message
+            })
+            this.queryCiData()
+          }
+        },
+        onCancel: () => {}
+      })
+      document.querySelector('.ivu-modal-mask').click()
+    },
+    editHandler (operateType) {
+      if (operateType === 'Add') {
+        this.tabList.forEach(ci => {
+          if (ci.id === this.currentTab) {
+            let emptyRowData = {}
+            ci.tableColumns.forEach(_ => {
+              if (_.inputType === 'multiSelect' || _.inputType === 'multiRef') {
+                emptyRowData[_.inputKey] = []
+              } else {
+                emptyRowData[_.inputKey] = ''
+              }
+            })
+            emptyRowData['isRowEditable'] = true
+            emptyRowData['isNewAddedRow'] = true
+            emptyRowData['weTableRowId'] = 1
+            emptyRowData['nextOperations'] = []
+            this.$refs[this.tableRef][0].pushNewAddedRowToSelections(emptyRowData)
+            this.$refs[this.tableRef][0].showAddModal()
+          }
+        })
+      } else {
+        this.$refs[this.tableRef][0].showEditModal()
+      }
     },
     deleteAttr () {
       let attrs = []
@@ -711,36 +663,33 @@ export default {
       })
       return attrs
     },
-    async confirmAddHandler (data) {
-      const deleteAttrs = this.deleteAttr()
+    confirmAddHandler (data, operateType) {
+      this.confirmEditHandler(data, operateType)
+    },
+    async confirmEditHandler (data, operateType) {
       let addAry = JSON.parse(JSON.stringify(data))
       addAry.forEach(_ => {
-        deleteAttrs.forEach(attr => {
-          delete _[attr]
-        })
+        // deleteAttrs.forEach(attr => {
+        //   delete _[attr]
+        // })
         delete _.isRowEditable
         delete _.weTableForm
         delete _.weTableRowId
         delete _.isNewAddedRow
         delete _.nextOperations
       })
-      let payload = {
-        id: this.currentTab,
-        createData: addAry
-      }
-      const { statusCode, message } = await createCiDatas(payload)
+      const { statusCode, message } = await tableOptionExcute(operateType, this.currentTab, addAry)
       this.$refs[this.tableRef][0].resetModalLoading()
       if (statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('add_data_success'),
           desc: message
         })
-        this.setBtnsStatus()
         this.queryCiData()
         this.$refs[this.tableRef][0].closeEditModal(false)
       }
     },
-    async confirmEditHandler (data) {
+    async confirmEditHandlerOld (data) {
       let editAry = JSON.parse(JSON.stringify(data))
       editAry.forEach(_ => {
         delete _.isRowEditable
@@ -748,19 +697,15 @@ export default {
         delete _.weTableRowId
         delete _.isNewAddedRow
         delete _.nextOperations
+        delete _.confirm_time
       })
-      let payload = {
-        id: this.currentTab,
-        updateData: editAry
-      }
-      const { statusCode, message } = await updateCiDatas(payload)
+      const { statusCode, message } = await tableOptionExcute('Update', this.currentTab, editAry)
       this.$refs[this.tableRef][0].resetModalLoading()
       if (statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('update_data_success'),
           desc: message
         })
-        this.setBtnsStatus()
         this.queryCiData()
         this.$refs[this.tableRef][0].closeEditModal(false)
       }
@@ -769,7 +714,7 @@ export default {
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
           ci.outerActions.forEach(_ => {
-            _.props.disabled = resetButtonDisabled(_)
+            _.props.disabled = !['Add', 'Export'].includes(_.operation_en)
           })
         }
       })
@@ -785,7 +730,9 @@ export default {
       }
       const { statusCode, data } = await queryCiData({
         id: this.currentTab,
-        queryObject: {}
+        queryObject: {
+          dialect: { queryMode: this.queryType }
+        }
       })
       if (found) {
         found.outerActions.forEach(_ => {
@@ -797,7 +744,7 @@ export default {
       if (statusCode === 'OK') {
         this.$refs[this.tableRef][0].export({
           filename: this.ciTypesName[this.currentTab],
-          data: formatData(data.contents.map(_ => _.data))
+          data: formatData(data.contents)
         })
       }
     },
@@ -830,7 +777,7 @@ export default {
         id: this.currentTab,
         queryObject: this.payload
       }
-      const method = this.queryType === '2' ? queryCiDataByType : queryCiData
+      const method = queryCiData
       this.$refs[this.tableRef][0].isTableLoading(true)
       const { statusCode, data } = await method(query)
       this.$refs[this.tableRef][0].isTableLoading(false)
@@ -839,26 +786,38 @@ export default {
           if (ci.id === this.currentTab) {
             ci.tableData = data.contents.map(_ => {
               return {
-                ..._.data,
-                nextOperations: _.meta.nextOperations || []
+                ..._
+                // nextOperations: _.meta.nextOperations || []
               }
             })
             ci.pagination.total = data.pageInfo.totalRows
           }
         })
       }
+      this.setBtnsStatus()
     },
     async queryCiAttrs (id) {
       const { statusCode, data } = await getCiTypeAttributes(id)
       if (statusCode === 'OK') {
         let columns = []
-        data.forEach(_ => {
-          let renderKey = _.propertyName
-          if (_.status !== 'decommissioned' && _.status !== 'notCreated') {
+        for (let index = 0; index < data.length; index++) {
+          let renderKey = data[index].propertyName
+          if (data[index].status !== 'decommissioned' && data[index].status !== 'notCreated') {
+            if (['select', 'multiSelect'].includes(data[index].inputType) && data[index].selectList !== '') {
+              const res = await getEnumCategoriesById(data[index].selectList)
+              if (res.statusCode === 'OK') {
+                data[index].options = res.data.map(item => {
+                  return {
+                    label: item.value,
+                    value: item.code
+                  }
+                })
+              }
+            }
             columns.push({
-              ..._,
+              ...data[index],
               tooltip: true,
-              title: _.name,
+              title: data[index].name,
               renderHeader: (h, params) => {
                 const d = {
                   props: {
@@ -867,40 +826,214 @@ export default {
                   }
                 }
                 return (
-                  <Tooltip {...d} content={_.description} placement="top">
-                    <span style="white-space:normal">{_.name}</span>
+                  <Tooltip {...d} content={data[index].description} placement="top">
+                    <span style="white-space:normal">{data[index].name}</span>
                   </Tooltip>
                 )
               },
               key: renderKey,
-              inputKey: _.propertyName,
-              inputType: _.inputType,
-              referenceId: _.referenceId,
-              disEditor: !_.isEditable,
-              disAdded: !_.isEditable,
-              placeholder: _.name,
+              inputKey: data[index].propertyName,
+              inputType: data[index].inputType,
+              referenceId: data[index].referenceId,
+              disEditor: !data[index].isEditable,
+              disAdded: !data[index].isEditable,
+              placeholder: data[index].name,
               component: 'Input',
-              filterRule: !!_.filterRule,
-              ciType: { id: _.referenceId, name: _.name },
+              referenceFilter: !!data[index].referenceFilter,
+              ciType: { id: data[index].referenceId, name: data[index].name },
               type: 'text',
-              isMultiple: _.inputType === 'multiSelect',
-              ...components[_.inputType]
+              isMultiple: data[index].inputType === 'multiSelect',
+              ...components[data[index].inputType],
+              options: data[index].options
             })
           }
-        })
-        this.tabList.forEach(ci => {
-          if (ci.id === this.currentTab) {
-            ci.tableColumns = columns
-          }
-        })
+        }
+        return columns
       }
     },
-    changeLayer () {
-      this.renderGraph(this.source)
+    async getInitGraphData () {
+      this.spinShow = true
+      let [ciResponse, _ciLayerList, _ciGroupList] = await Promise.all([
+        getAllCITypesByLayerWithAttr(['created', 'dirty']),
+        getEnumCodesByCategoryId(CI_LAYER),
+        getEnumCodesByCategoryId(CI_GROUP)
+      ])
+      if (ciResponse.statusCode === 'OK' && _ciLayerList.statusCode === 'OK' && _ciGroupList.statusCode === 'OK') {
+        this.originciLayerList = _ciLayerList.data
+        this.originciGroupList = _ciGroupList.data
+        this.originCITypesByLayerWithAttr = ciResponse.data
+        // this.currentciGroup = this.originciGroupList.map(item => item.codeId)
+        this.currentciGroup =
+          this.currentciGroup.length > 0 ? this.currentciGroup : this.originciGroupList.map(item => item.codeId)
+        this.currentciLayer = this.currentciLayer.length > 0 ? this.currentciLayer : [_ciLayerList.data[0].codeId]
+
+        // 初始化自动填充数据
+        let allCiTypesWithAttr = []
+        let allCiTypesFormatByCiTypeId = {}
+        ciResponse.data.forEach(layer => {
+          layer.ciTypes &&
+            layer.ciTypes.forEach(_ => {
+              this.ciTypesName[_.ciTypeId] = _.name
+              allCiTypesWithAttr.push(_)
+              allCiTypesFormatByCiTypeId[_.ciTypeId] = _
+            })
+        })
+        this.allCiTypesWithAttr = allCiTypesWithAttr
+        this.allCiTypesFormatByCiTypeId = allCiTypesFormatByCiTypeId
+
+        this.newInitGraph()
+      }
+    },
+    async newInitGraph () {
+      let graph
+      const graphEl = document.getElementById('graph')
+      const initEvent = () => {
+        graph = d3.select('#graph')
+        graph
+          .on('dblclick.zoom', null)
+          .on('wheel.zoom', null)
+          .on('mousewheel.zoom', null)
+
+        this.graph.graphviz = graph
+          .graphviz()
+          .zoom(true)
+          .fit(true)
+          .height(window.innerHeight - 178)
+          .width(graphEl.offsetWidth)
+          .attributer(function (d) {
+            if (d.attributes.class === 'edge') {
+              const keys = d.key.split('->')
+              const from = keys[0].trim()
+              const to = keys[1].trim()
+              d.attributes.from = from
+              d.attributes.to = to
+            }
+
+            if (d.tag === 'text') {
+              const key = d.children[0].text
+              d3.select(this).attr('text-key', key)
+            }
+          })
+      }
+      initEvent()
+      this.$nextTick(() => {
+        this.renderGraph()
+      })
+    },
+    renderGraph () {
+      let nodesString = this.genDOT()
+      this.loadImage(nodesString)
+      this.graph.graphviz
+        .transition()
+        .renderDot(nodesString)
+        .on('end', () => {
+          this.shadeAll()
+          addEvent('svg', 'mouseover', e => {
+            this.shadeAll()
+            e.preventDefault()
+            e.stopPropagation()
+          })
+          addEvent('.node', 'mouseover', this.handleNodeMouseover)
+          addEvent('svg', 'mouseover', this.handleSvgMouseover)
+          addEvent('.node', 'click', this.handleNodeClick)
+        })
+      this.spinShow = false
+    },
+    genDOT () {
+      const status = this.currentStatus
+      const groups = this.currentciGroup
+      const layers = this.currentciLayer
+      const data = this.originCITypesByLayerWithAttr
+      var groupSet = new Set(groups)
+      var layerSet = new Set()
+      var ciTypeSet = new Set()
+      var statusSet = new Set(status)
+      var refSet = new Set()
+      var groupDot = '{ node[];'
+      groups.forEach((group, index) => {
+        if (index === groups.length - 1) {
+          groupDot += '"' + group + '"[penwidth=0]}; '
+        } else {
+          groupDot += '"' + group + '"->'
+        }
+      })
+      layers.forEach(layer => {
+        layerSet.add(layer.codeId)
+      })
+      var dot = ''
+      var statusColors = new Map([
+        ['created', 'black'],
+        ['notCreated', 'green4'],
+        ['dirty', 'dodgerblue'],
+        ['deleted', 'firebrick3']
+      ])
+      dot =
+        'digraph{bgcolor="transparent";ranksep=1.1;nodesep=.7;size="11,8";rankdir=TB\nNode [fontname=Arial, shape="ellipse", fixedsize="true", width="1.1", height="1.1", color="transparent" ,fontsize=12];\nEdge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];\n'
+      data.forEach(dataGroup => {
+        if (groupSet.has(dataGroup.codeId)) {
+          dot +=
+            '{rank=same;\n"' +
+            dataGroup.codeId +
+            '"[id="' +
+            dataGroup.codeId +
+            '";class="group";label="' +
+            dataGroup.value +
+            '";tooltip="' +
+            dataGroup.value +
+            '"];\n'
+          dataGroup.ciTypes.forEach(ciType => {
+            if (
+              layerSet.has(ciType.codeId) &&
+              statusSet.has(ciType.status) &&
+              this.currentciLayer.includes(ciType.ciLayer)
+            ) {
+              dot +=
+                '"' +
+                ciType.ciTypeId +
+                '"[id="' +
+                ciType.ciTypeId +
+                '",label="' +
+                ciType.name +
+                '";tootip="' +
+                ciType.description +
+                '";class="ci";' +
+                'fontcolor="' +
+                statusColors.get(ciType.status) +
+                '";image="/wecmdb/fonts/' +
+                ciType.imageFile +
+                '";labelloc="b"]\n'
+              ciTypeSet.add(ciType.ciTypeId)
+              ciType.attributes.forEach(attr => {
+                if (attr.inputType === 'ref' || attr.inputType === 'multiRef') {
+                  refSet.add(attr)
+                }
+              })
+            }
+          })
+          dot += '}\n'
+        }
+      })
+      refSet.forEach(ref => {
+        if (ciTypeSet.has(ref.referenceId) && statusSet.has(ref.status)) {
+          dot +=
+            '"' +
+            ref.ciTypeId +
+            '"->"' +
+            ref.referenceId +
+            '"[taillabel="' +
+            ref.referenceName +
+            '";labeldistance=3;fontcolor="' +
+            statusColors.get(ref.status) +
+            '"]\n'
+        }
+      })
+      dot += groupDot + '}'
+      return dot
     }
   },
   mounted () {
-    this.initGraph()
+    this.MODALHEIGHT = window.MODALHEIGHT
+    this.getInitGraphData()
   }
 }
 </script>
@@ -939,7 +1072,10 @@ export default {
     }
   }
 }
-
+#graph {
+  position: relative;
+  height: calc(100vh - 200px);
+}
 .history-query {
   display: flex;
   flex-flow: row nowrap;

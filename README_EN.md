@@ -1,19 +1,20 @@
-# WeCMDB
+# Wecmdb-Pro
+
 <p align="left">
     <a href="https://opensource.org/licenses/Apache-2.0" alt="License">
         <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a>
-    <a href="https://github.com/WeBankPartners/we-cmdb/tree/v1.3.1" alt="release">
-        <img src="https://img.shields.io/github/v/release/WeBankPartners/we-cmdb.svg" /></a>
+    <a href="https://github.com/WeBankPartners/open-monitor/tree/v1.0.1" alt="release">
+        <img src="https://img.shields.io/github/v/release/WeBankPartners/open-monitor.svg" /></a>
     <a href="#" alt="Code Size">
-        <img src="https://img.shields.io/github/languages/code-size/WeBankPartners/we-cmdb.svg" /></a>
+        <img src="https://img.shields.io/github/languages/code-size/WeBankPartners/open-monitor.svg" /></a>
     <a href="#" alt="Java">
-        <img src="https://img.shields.io/badge/language-java-orange.svg" /></a>
+        <img src="https://img.shields.io/badge/language-go-orange.svg" /></a>
     <a href="#" alt="Vue">
         <img src="https://img.shields.io/badge/language-vue-green.svg" /></a>
-    <a href="https://github.com/WeBankPartners/we-cmdb/graphs/contributors" alt="Contributors">
-        <img src="https://img.shields.io/github/contributors/WeBankPartners/we-cmdb" /></a>
-    <a href="https://github.com/WeBankPartners/we-cmdb/pulse" alt="Activity">
-        <img src="https://img.shields.io/github/commit-activity/m/WeBankPartners/we-cmdb" /></a>
+    <a href="https://github.com/WeBankPartners/open-monitor/graphs/contributors" alt="Contributors">
+        <img src="https://img.shields.io/github/contributors/WeBankPartners/open-monitor" /></a>
+    <a href="https://github.com/WeBankPartners/open-monitor/pulse" alt="Activity">
+        <img src="https://img.shields.io/github/commit-activity/m/WeBankPartners/open-monitor" /></a>
 </p>
 
 English / [中文](README.md)
@@ -21,7 +22,7 @@ English / [中文](README.md)
 ## Live Demo
 [Live Demo](http://124.156.108.126:8090/wecmdb)
 
-<img src="./cmdb-wiki/docs/manual/images/ci-data-management-en.gif" />
+<img src="./wiki/images/ci-data-management-en.gif" />
 
 > Note:
 >  1. Live Demo will reset on 2:00 - 4:00am every day. The environment is not available during the period, and all changes will be discarded.
@@ -44,7 +45,7 @@ CMDB, as the core of IT operation tools, working as the single source of truth f
 ## System Architecture
 Architecture is as follows: 
 
-![WeCMDB System Architecture](cmdb-wiki/images/wecmdb_arch_en.png) 
+![WeCMDB System Architecture](wiki/images/wecmdb_arch_en.png) 
 
 ## Summary
 WeCMDB is a centralized store for configuration data, which is used to manage the information of components and the relations between those components in all layers of IT systems. It is closely related to the automation tools in IT operation as well as the processes they are caryying, so that these tools can function smoothly and the value of configuration data is well utilized. In the contrary, those tools and processcess are also playing an important role in keeping the configuration data accurate.
@@ -91,32 +92,17 @@ Here are the characteristics of WeCMDB:
 ## Quick Start
 Normal deployment with containers of WeCMDB:
 
-Please refer to the [WeCMDB Compiling Guide](cmdb-wiki/docs/install/wecmdb_compile_guide_en.md) on how to compile WeCMDB.
+Please refer to the [WeCMDB Compiling Guide](wiki/docs/compile_guide.md) on how to compile WeCMDB.
 
-Please refer to the [WeCMDB Deployment Guide](cmdb-wiki/docs/install/wecmdb_install_guide_en.md) on how to install WeCMDB.
+Please refer to the [WeCMDB Deployment Guide](wiki/docs/install_guide.md) on how to install WeCMDB.
 
 ## User Manuals
-Please refer to the [WeCMDB Model Guide](cmdb-wiki/docs/manual/wecmdb_model_guide_en.md) for guide on WeCMDB model.
+Please refer to the [WeCMDB Model Guide](wiki/docs/wecmdb_model_guide_en.md) for guide on WeCMDB model.
 
-Please refer to the [WeCMDB User Guide](cmdb-wiki/docs/manual/wecmdb_user_guide_en.md) for usage and operations.
-
-## Developer Guide
-#### Deploy WeCMDB in Standalone Mode
-Please refer to the [WeCMDB Quick Start in Standalone Mode](cmdb-wiki/docs/developer/wecmdb_local_standalone_guide_en.md) for setting up local environment quickly.
-
-#### Deploy WeCMDB in Normal Mode
-WeCMDB is developed with Java and Vue, uses MySQL for data persistence and relies on Tomcat as the web application container.
-
-Please refer to the [WeCMDB Developer Guide](cmdb-wiki/docs/developer/wecmdb_developer_guide_en.md) for setting up development environment.
-
-#### WeCMDB Contributors Guide
-Please refer to the [WeCMDB Contributors Guide](cmdb-wiki/docs/developer/code_contributors_submit_guide_en.md) for contributors how to submit code.
-
-## API Reference
-Please refer to the [WeCMDB API Guide](cmdb-wiki/docs/api/wecmdb_api_guide_en.md).
+Please refer to the [WeCMDB User Guide](wiki/docs/wecmdb_user_guide_en.md) for usage and operations.
 
 ## Glossary
-Please refer to the [WeCMDB Glossary](cmdb-wiki/docs/manual/wecmdb_glossary_en.md) to understand the terms that used for WeCMDB.
+Please refer to the [WeCMDB Glossary](wiki/docs/wecmdb_glossary_en.md) to understand the terms that used for WeCMDB.
 
 ## License
 WeCMDB is licensed under the Apache License Version 2.0 , please refer to the [license](LICENSE) for details.
@@ -125,7 +111,7 @@ WeCMDB is licensed under the Apache License Version 2.0 , please refer to the [l
 - For quick response, please [raise an issue](https://github.com/WeBankPartners/we-cmdb/issues/new/choose) to us, or you can also scan the following QR code to join our community, we will provide feedback as quickly as we can.
 
   <div align="left">
-  <img src="cmdb-wiki/images/wecube_qr_code.png"  height="200" width="200">
+  <img src="wiki/images/wecube_qr_code.png"  height="200" width="200">
   </div>
 
 - Contact us: fintech@webank.com

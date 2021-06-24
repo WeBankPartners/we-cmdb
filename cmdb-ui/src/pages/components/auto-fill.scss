@@ -1,10 +1,21 @@
 .auto-fill {
   overflow: hidden;
   word-break: break-all;
+  
+  &-span-delimiter {
+    border-bottom: 1px solid transparent;
+    padding: 0 3px;
+    &:hover {
+      cursor: pointer;
+    }
+    
+    &.contains {
+      color: #f00;
+    }
+  }
 
   &-span {
     border-bottom: 1px solid transparent;
-
     &:hover {
       cursor: pointer;
     }
