@@ -1,4 +1,4 @@
-# Wecmdb-Pro独立运行指引
+# We-cmdb独立运行指引
 
 ## 运行环境准备
 #### 1. mysql数据库，version >= 5.5
