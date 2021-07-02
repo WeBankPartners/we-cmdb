@@ -36,7 +36,7 @@ export default {
   },
   methods: {
     async getAllOrchestration () {
-      const { data, statusCode } = await getEnumCodesByCategoryId(0, this.col.referenceId)
+      const { data, statusCode } = await getEnumCodesByCategoryId(this.col.referenceId)
       if (statusCode === 'OK') {
         this.allOrchestration = data.map(_ => {
           return {

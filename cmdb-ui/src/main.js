@@ -1,8 +1,6 @@
 import 'core-js/stable'
 import 'regenerator-runtime/runtime'
 import Vue from 'vue'
-import VueHighlightJS from 'vue-highlight.js'
-import 'vue-highlight.js/lib/allLanguages'
 import App from './App.vue'
 import router from './router'
 import ViewUI from 'view-design'
@@ -21,6 +19,7 @@ import WeCMDBSequenceDiagram from '../src/pages/components/sequence-diagram.vue'
 import WeCMDBOrchestration from '../src/pages/components/orchestration.vue'
 import WeCMDBCIPassword from '../src/pages/components/ci-password.vue'
 import CMDBPermissionFilters from '../src/pages/components/permission-filters'
+import CMDBJSONConfig from '../src/pages/components/cmdb-table/json-config.vue'
 
 Vue.component('WeCMDBSelect', WeCMDBSelect)
 Vue.component('WeCMDBRefSelect', WeCMDBRefSelect)
@@ -32,6 +31,7 @@ Vue.component('WeCMDBSequenceDiagram', WeCMDBSequenceDiagram)
 Vue.component('WeCMDBOrchestration', WeCMDBOrchestration)
 Vue.component('WeCMDBCIPassword', WeCMDBCIPassword)
 Vue.component('CMDBPermissionFilters', CMDBPermissionFilters)
+Vue.component('CMDBJSONConfig', CMDBJSONConfig)
 Vue.config.productionTip = false
 
 Vue.use(ViewUI, {
@@ -41,17 +41,15 @@ Vue.use(ViewUI, {
   locale
 })
 
-Vue.use(VueHighlightJS)
-
 router.beforeEach((to, from, next) => {
   if (window.myMenus) {
     let hasPermission = [].concat(...window.myMenus.map(_ => _.submenus)).find(_ => _.link === to.path)
-    if (hasPermission || to.path === '/homepage' || to.path.startsWith('/setting') || to.path === '/404') {
+    if (hasPermission || to.path === '/wecmdb/home' || to.path.startsWith('/setting') || to.path === '/login') {
       /* has permission */
       next()
     } else {
       /* has no permission */
-      next('/404')
+      next('/wecmdb/home')
     }
   } else {
     next()

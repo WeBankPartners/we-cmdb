@@ -1,4 +1,6 @@
-export const ZOOM_LEVEL_CAT = 3
+export const ZOOM_LEVEL_CAT = 'ci_zoom_level'
+export const CI_LAYER = 'ci_layer'
+export const CI_GROUP = 'ci_group'
 export const VIEW_CONFIG_PARAMS = 20
 export const UNIT_DESIGN_ID = 'appArchitectureDesignUnitDesignId' // 单元设计的ciTypeId，也是两张图最小节点的ciTypeId
 export const INVOKE_DESIGN_ID = 'appArchitectureDesignInvokeDesignId' // 调用设计的ciTypeId
@@ -29,3 +31,59 @@ export const RESOURCE_PLANNING_ROUTER_CODE = 'resourcePlaningRouterCode'
 export const DEFAULT_SECURITY_POLICY_CODE = 'defaultSecurityPolicyCode'
 export const IDC_PLANNING_ROUTER_DESIGN_CODE = 'idcPlaningRouterDesignCode'
 export const DEFAULT_SECURITY_POLICY_DESIGN_CODE = 'defaultSecurityPolicyDesignCode'
+
+export const INPUT_TYPE_CONFIG = [
+  {
+    code: 'text',
+    value: 'varchar',
+    length: 64
+  },
+  {
+    code: 'longText',
+    value: 'text'
+  },
+  {
+    code: 'int',
+    value: 'int'
+  },
+  {
+    code: 'datetime',
+    value: 'datetime'
+  },
+  {
+    codeId: 'ref',
+    code: 'ref',
+    value: 'varchar',
+    length: 64
+  },
+  {
+    code: 'multiRef',
+    value: 'table'
+  },
+  {
+    codeId: 'select',
+    code: 'select',
+    value: 'varchar',
+    length: 64
+  },
+  {
+    code: 'multiSelect',
+    value: 'text'
+  },
+  {
+    code: 'autofillRule',
+    value: 'text'
+  },
+  {
+    code: 'password',
+    value: 'varchar(1024)'
+  },
+  {
+    code: 'object',
+    value: 'text'
+  },
+  {
+    code: 'richText',
+    value: 'text'
+  }
+]

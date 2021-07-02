@@ -29,7 +29,6 @@ export default {
       expression: [],
       options: [],
       spinShow: false,
-      enumCodes: ['id', 'code', 'value', 'groupCodeId'],
       currentNodeIndex: 0,
       filters: [],
       filterCiAttrs: [],
@@ -42,7 +41,7 @@ export default {
     ciTypesObjByTableName () {
       let obj = {}
       this.allCiTypes.forEach(_ => {
-        obj[_.tableName] = _
+        obj[_.ciTypeId] = _
       })
       return obj
     },
@@ -100,7 +99,7 @@ export default {
           // 属性节点
           innerText = ':' + _
           nodeType = 'attr'
-          citype = this.expression[i - 1].props.attrs.citype
+          citype = this.expression[i - 1].props.attrs.ciTypeId
           ciTypeId = this.ciTypesObjByTableName[citype].ciTypeId
           attr = _.replace(/[[\]]/g, '')
         } else {
@@ -131,14 +130,14 @@ export default {
       if (this.isReadOnly) return
       const target = e.target || e.srcElement
       if (target.nodeName !== 'SPAN') return
-      const nodeType = target.getAttribute('nodeType')
+      const nodeType = target.getAttribute('nodetype')
       const attrIndex = target.getAttribute('attr-index')
       switch (nodeType) {
         case 'add':
           break
         case 'node':
         case 'attr':
-          const ciTypeId = target.getAttribute('ciTypeId') * 1
+          const ciTypeId = target.getAttribute('citype')
           const _attrIndex = nodeType === 'node' ? +attrIndex : +attrIndex - 1
           this.showRefOptions(_attrIndex, ciTypeId)
           break
@@ -178,21 +177,6 @@ export default {
         fn: () => this.showFilterModal(attrIndex)
       })
     },
-    showEnumOptions (attrIndex) {
-      this.options.push({
-        type: 'line'
-      })
-      this.options = this.options.concat(
-        this.enumCodes.map(_ => {
-          return {
-            type: 'option',
-            class: 'attr-express-li attr-express-li-enum',
-            nodeName: _,
-            fn: () => this.addEnum(attrIndex, _)
-          }
-        })
-      )
-    },
     async getRefData (attrIndex, ciTypeId) {
       this.spinShow = true
       const promiseArray = [getRefCiTypeFrom(ciTypeId), getCiTypeAttr(ciTypeId)]
@@ -208,7 +192,7 @@ export default {
             })
           this.options = this.options.concat(
             refFroms.data.map(_ => {
-              const ciType = _.ciType.tableName
+              const ciType = _.ciTypeId
               const attr = _.propertyName
               const nodeName = `~(${attr})${ciType}`
               const nodeObj = {
@@ -254,9 +238,7 @@ export default {
           _ciAttrs.map(_ => {
             const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
             const _nodeType = isRef ? 'node' : 'attr'
-            const ciType = isRef
-              ? this.ciTypesObjById[_.referenceId].tableName
-              : this.ciTypesObjById[ciTypeId].tableName
+            const ciType = isRef ? this.ciTypesObjById[_.referenceId].ciTypeId : this.ciTypesObjById[ciTypeId].ciTypeId
             const attr = _.propertyName
             const nodeName = isRef ? `.${attr}>${ciType}` : `:[${attr}]`
             const nodeObj = {
@@ -295,10 +277,6 @@ export default {
         this.optionPushDeleteNode(_index)
         this.optionPushFilterNode(_index)
         this.getRefData(_index, nodeObj.data.ciTypeId)
-      } else if (['select', 'multiSelect'].indexOf(nodeObj.data.inputType) >= 0) {
-        this.options = []
-        this.optionPushDeleteNode(_index)
-        this.showEnumOptions(_index)
       } else {
         this.options = []
         this.optionsDisplay = false
@@ -352,8 +330,6 @@ export default {
           if (result.operator === 'in') {
             if (['ref', 'multiRef'].indexOf(result.inputType) >= 0) {
               result.value = _value.split(',').map(_ => _.replace(/'|\[|\]/g, ''))
-            } else if (['select', 'multiSelect'].indexOf(result.inputType) >= 0) {
-              result.value = _value.split(',').map(_ => +_.replace(/\[|\]/g, ''))
             } else {
               result.value = _value.replace(/'|\[|\]/g, '')
             }
@@ -369,15 +345,6 @@ export default {
                 type: 'isRef'
               })
             }
-          } else if (['select', 'multiSelect'].indexOf(inputType) >= 0) {
-            result.referenceId = found.referenceId
-            if (refCiTypeIdArray.indexOf(found.referenceId) === -1) {
-              refCiTypeIdArray.push({
-                referenceId: found.referenceId,
-                code: result.name,
-                type: 'isSelect'
-              })
-            }
           }
           return result
         })
@@ -389,7 +356,7 @@ export default {
               id: _.referenceId,
               queryObject: {}
             })
-            : getEnumCodesByCategoryId(1, _.referenceId)
+            : getEnumCodesByCategoryId(_.referenceId)
         })
       )
       this.modalSpin = false
@@ -399,13 +366,6 @@ export default {
             refCiTypeIdArray.find((attr, i) => {
               if (attr.referenceId === _.referenceId) {
                 _.options = refCiDataArray[i].data.contents.map(ciData => ciData.data)
-                this.filterCiAttrOptions[attr.code] = _.options
-              }
-            })
-          } else if (['select', 'multiSelect'].indexOf(_.inputType) >= 0) {
-            refCiTypeIdArray.find((attr, i) => {
-              if (attr.referenceId === _.referenceId) {
-                _.options = refCiDataArray[i].data
                 this.filterCiAttrOptions[attr.code] = _.options
               }
             })
@@ -428,11 +388,8 @@ export default {
                   .join(',')}]`
                 : `'${_.value}'`
             return `${_.name} ${_.operator} ${result}`
-          } else if (
-            ['select', 'multiSelect'].indexOf(_.inputType) >= 0 &&
-            ['null', 'notNull'].indexOf(_.operator) === -1
-          ) {
-            let result = _.operator === 'in' ? `[${_.value.join(',')}]` : `'${_.value}'`
+          } else if (['null', 'notNull'].indexOf(_.operator) === -1) {
+            let result = _.operator === 'in' ? `[${JSON.parse(_.value).join(',')}]` : `'${_.value}'`
             return `${_.name} ${_.operator} ${result}`
           } else if (['null', 'notNull'].indexOf(_.operator) >= 0) {
             return `${_.name} ${_.operator}`

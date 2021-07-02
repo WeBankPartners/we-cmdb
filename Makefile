@@ -1,42 +1,50 @@
-current_dir:=$(shell pwd)
-version:=$(shell bash ./build/version.sh)
-date:=$(shell date +%Y%m%d%H%M%S)
-project_name:=$(shell basename "${current_dir}")
-remote_docker_image_registry=ccr.ccs.tencentyun.com/webankpartners/wecmdb-app
-
+current_dir=$(shell pwd)
+version=$(PLUGIN_VERSION)
+project_name="wecmdb-pro"
 
 clean:
-	rm -rf $(current_dir)/cmdb-core/target
-	rm -rf $(current_dir)/cmdb-ui/node
-	rm -rf $(current_dir)/cmdb-ui/node_modules
+	rm -rf cmdb-server/cmdb-server
+	rm -rf cmdb-ui/dist
+	rm -rf cmdb-ui/plugin
 
-clean_core_plugin:
-	rm -rf $(current_dir)/cmdb-core/target
-	rm -rf $(current_dir)/cmdb-ui/node
-	rm -rf $(current_dir)/cmdb-ui/node_modules
+build: clean
+	chmod +x ./build/*.sh
+	docker run --rm -v $(current_dir):/go/src/github.com/WeBankPartners/$(project_name) --name build_$(project_name) ccr.ccs.tencentyun.com/webankpartners/golang-ext:v1.15.6 /bin/bash /go/src/github.com/WeBankPartners/$(project_name)/build/build-server.sh
+	./build/build-ui.sh $(current_dir)
 
-.PHONY:build
-
-build_name=wecmdb-build
-build:
-	mkdir -p repository
-	docker run --rm --name $(build_name) -v /data/repository:/usr/src/mymaven/repository   -v $(current_dir)/build/maven_settings.xml:/usr/share/maven/ref/settings-docker.xml  -v $(current_dir):/usr/src/mymaven -w /usr/src/mymaven maven:3.3-jdk-8 mvn -U clean install -Dmaven.test.skip=true -s /usr/share/maven/ref/settings-docker.xml dependency:resolve
-
-build_core_plugin:
-	mkdir -p repository
-	docker run --rm --name $(build_name) -v /data/repository:/usr/src/mymaven/repository   -v $(current_dir)/build/maven_settings.xml:/usr/share/maven/ref/settings-docker.xml  -v $(current_dir):/usr/src/mymaven -w /usr/src/mymaven maven:3.3-jdk-8 mvn -U clean install -Pcore_plugin -Dmaven.test.skip=true -s /usr/share/maven/ref/settings-docker.xml dependency:resolve
-
-image: 
+image: build
 	docker build -t $(project_name):$(version) .
 
-push:
-	docker tag  $(project_name):$(version) $(remote_docker_image_registry):$(date)-$(version)
-	docker push $(remote_docker_image_registry):$(date)-$(version)
+package: image
+	mkdir -p plugin
+	cp -r cmdb-ui/plugin/* plugin/
+	cp docker-compose.tpl docker-compose.yml
+	cp build/default.json default.json
+	zip -r ui.zip plugin
+	rm -rf plugin
+	cp build/register.xml ./
+	cp wiki/db/init.sql ./init.sql
+	cp wiki/db/practices_structure.sql ./practices_structure.sql
+	cp wiki/db/practices_demo_data.sql ./practices_demo_data.sql
+	sed -i "s~{{PLUGIN_VERSION}}~$(version)~g" ./register.xml
+	sed -i "s~{{REPOSITORY}}~$(project_name)~g" ./register.xml
+	sed -i "s~{{version}}~$(version)~g" ./docker-compose.yml
+	sed -i "s~{{PLUGIN_MODE}}~no~g" ./default.json
+	sed -i "s~{{GATEWAY_URL}}~~g" ./default.json
+	sed -i "s~{{JWT_SIGNING_KEY}}~~g" ./default.json
+	sed -i "s~{{SUB_SYSTEM_CODE}}~~g" ./default.json
+	sed -i "s~{{SUB_SYSTEM_KEY}}~~g" ./default.json
+	docker save -o image.tar $(project_name):$(version)
+	zip  wecube-plugins-wecmdb-$(version).zip image.tar init.sql practices_structure.sql practices_demo_data.sql register.xml docker-compose.yml default.json ui.zip
+	rm -f register.xml init.sql practices_structure.sql practices_demo_data.sql ui.zip
+	rm -rf ./*.tar
+	rm -f docker-compose.yml
+	rm -f default.json
+	docker rmi $(project_name):$(version)
 
-env_config=smoke_branch.cfg
-target_host="tcp://10.0.0.1:2375"
-deploy:
-	docker tag  $(project_name):$(version) $(remote_docker_image_registry):$(date)-$(version)
-	docker push $(remote_docker_image_registry):$(date)-$(version)
-	sh build/deploy_generate_compose.sh $(env_config) $(date)-$(version)
-	docker-compose -f docker-compose.yml -H $(target_host) up -d
+upload: package
+	$(eval container_id:=$(shell docker run -v $(current_dir):/package -itd --entrypoint=/bin/sh minio/mc))
+	docker exec $(container_id) mc config host add wecubeS3 $(s3_server_url) $(s3_access_key) $(s3_secret_key) wecubeS3
+	docker exec $(container_id) mc cp /package/wecube-plugins-wecmdb-$(version).zip wecubeS3/wecube-plugin-package-bucket
+	docker rm -f $(container_id)
+	rm -rf wecube-plugins-wecmdb-$(version).zip

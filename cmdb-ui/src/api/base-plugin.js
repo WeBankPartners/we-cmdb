@@ -1,7 +1,7 @@
 export const pluginErrorMessage = async r => {
   const res = await r
-  if (res.statusCode.startsWith('ERR')) {
-    const errorMes = Array.isArray(res.data) ? res.data.map(_ => _.errorMessage).join('<br/>') : res.statusMessage
+  if (res.statusCode !== 'OK') {
+    const errorMes = res.statusMessage
     window.vm &&
       window.vm.$Notice.error({
         title: 'Error',

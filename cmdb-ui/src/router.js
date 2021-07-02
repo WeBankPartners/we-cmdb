@@ -7,20 +7,27 @@ export default new Router({
     {
       path: '/',
       name: 'IndexPage',
-      redirect: '/homepage',
+      redirect: '/wecmdb/designing/ci-data-management',
       component: () => import('@/pages/index'),
       children: [
         {
-          path: '/homepage',
-          name: 'homepage',
-          component: () => import('@/pages/home-page'),
+          path: '/wecmdb/home',
+          name: 'home',
+          component: () => import('@/pages/components/home.vue'),
           params: {},
           props: true
         },
         {
-          path: '/404',
-          name: '404',
-          component: () => import('@/pages/404'),
+          path: '/wecmdb/designing/data-mgmt-view',
+          name: 'graph-management',
+          component: () => import('@/pages/designing/graph-management'),
+          params: {},
+          props: true
+        },
+        {
+          path: '/wecmdb/designing/data-query-view',
+          name: 'graph-view',
+          component: () => import('@/pages/designing/graph-view'),
           params: {},
           props: true
         },
@@ -101,44 +108,15 @@ export default new Router({
           path: '/wecmdb/view-query/idc-resource-planning-query',
           name: 'idcResourcePlanningQuery',
           component: () => import('@/pages/coming-soon')
-        },
-        {
-          path: '/wecmdb/view-query/application-architecture-query',
-          name: 'applicationArchitectureQuery',
-          component: () => import('@/pages/coming-soon')
-        },
-        {
-          path: '/wecmdb/view-query/application-deployment-query',
-          name: 'applicationDeploymentQuery',
-          component: () => import('@/pages/coming-soon')
-        },
-        // 视图管理
-        {
-          path: '/wecmdb/view-management/idc-planning-design',
-          name: 'idcPlanningDesign',
-          component: () => import('@/pages/designing/planning')
-        },
-        {
-          path: '/wecmdb/view-management/idc-resource-planning',
-          name: 'idcResourcePlanning',
-          component: () => import('@/pages/designing/resource-planning')
-        },
-        {
-          path: '/wecmdb/view-management/application-architecture-design',
-          name: 'applicationArchitectureDesign',
-          component: () => import('@/pages/designing/application-architecture')
-        },
-        {
-          path: '/wecmdb/view-management/application-architecture-query',
-          name: 'applicationArchitectureQuery',
-          component: () => import('@/pages/designing/application-architecture-query')
-        },
-        {
-          path: '/wecmdb/view-management/application-deployment-design',
-          name: 'applicationDeploymentDesign',
-          component: () => import('@/pages/designing/application-deployment')
         }
       ]
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/pages/login'),
+      params: {},
+      props: true
     }
   ]
 })
