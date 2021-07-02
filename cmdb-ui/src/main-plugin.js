@@ -14,6 +14,7 @@ import WeCMDBSequenceDiagram from '../src/pages/components/sequence-diagram.vue'
 import WeCMDBOrchestration from '../src/pages/components/orchestration.vue'
 import WeCMDBCIPassword from '../src/pages/components/ci-password.vue'
 import CMDBPermissionFilters from '../src/pages/components/permission-filters'
+import CMDBJSONConfig from '../src/pages/components/cmdb-table/json-config.vue'
 
 window.component('WeCMDBSelect', WeCMDBSelect)
 window.component('WeCMDBRefSelect', WeCMDBRefSelect)
@@ -25,6 +26,7 @@ window.component('WeCMDBSequenceDiagram', WeCMDBSequenceDiagram)
 window.component('WeCMDBOrchestration', WeCMDBOrchestration)
 window.component('WeCMDBCIPassword', WeCMDBCIPassword)
 window.component('CMDBPermissionFilters', CMDBPermissionFilters)
+window.component('CMDBJSONConfig', CMDBJSONConfig)
 
 window.locale('zh-CN', zhCN)
 window.locale('en-US', enUS)
