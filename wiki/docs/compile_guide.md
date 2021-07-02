@@ -1,4 +1,4 @@
-# Wecmdb-Pro Compile Guide
+# We-cmdb Compile Guide
 
 ## 编译前准备
 1. 准备一台linux主机；
@@ -33,13 +33,13 @@
 	
 	```
 	cd /app/wecmdb/	
-	git clone https://github.com/WeBankPartners/wecmdb-pro.git
+	git clone https://github.com/WeBankPartners/we-cmdb.git
 	```
 
 	根据提示输入github账号密码， 即可拉取代码到本地。
-	拉取完成后， 可以在本地目录上看到wecmdb-pro目录， 进入目录，结构如下：
+	拉取完成后， 可以在本地目录上看到we-cmdb目录， 进入目录，结构如下：
 
-	![wecmdb-pro-dir](../images/wecmdb-pro-dir.png)
+	![we-cmdb-dir](../images/wecmdb-pro-dir.png)
 	
 2. 拉取alpine基础镜像和ccr.ccs.tencentyun.com/webankpartners/golang-ext:v1.15.6镜像
     ```bash
@@ -80,10 +80,10 @@
 	
 	进入项目的根目录
 	```bash
-    cd /app/wecmdb/wecmdb-pro
+    cd /app/wecmdb/we-cmdb
     make image PLUGIN_VERSION=v0.0.1
     ```
-    如果第一次npm build前端时报错 "Error: EACCES: permission denied, mkdir '/app/wecmdb/wecmdb-pro/cmdb-ui/node_modules/node-sass/.node-gyp'"  
+    如果第一次npm build前端时报错 "Error: EACCES: permission denied, mkdir '/app/wecmdb/we-cmdb/cmdb-ui/node_modules/node-sass/.node-gyp'"  
     该报错的意思是用root执行安装node-sass包权限太大，需要执行如下命令安装node-sass包  
     ```
     cd cmdb-ui
@@ -93,4 +93,4 @@
     ```
     安装完后再执行 make image PLUGIN_VERSION=v0.0.1 重新安装  
     查看镜像  
-    ![wecmdb-pro-image](../images/wecmdb-pro-image.png)
+    ![we-cmdb-image](../images/wecmdb-pro-image.png)
