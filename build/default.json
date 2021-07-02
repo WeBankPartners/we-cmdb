@@ -1,0 +1,76 @@
+{
+  "is_plugin_mode": "{{PLUGIN_MODE}}",
+  "default_language": "en",
+  "http_server": {
+    "port": "8096",
+    "cross": true
+  },
+  "log": {
+    "level": "{{CMDB_LOG_LEVEL}}",
+    "log_dir": "logs",
+    "access_log_enable": true,
+    "db_log_enable": true,
+    "archive_max_size": 64,
+    "archive_max_backup": 10,
+    "archive_max_day": 15,
+    "compress": true
+  },
+  "database": {
+    "server": "{{CMDB_MYSQL_HOST}}",
+    "port": "{{CMDB_MYSQL_PORT}}",
+    "user": "{{CMDB_MYSQL_USER}}",
+    "password": "{{CMDB_MYSQL_PWD}}",
+    "database": "{{CMDB_MYSQL_SCHEMA}}",
+    "maxOpen": 50,
+    "maxIdle": 10,
+    "timeout": 60
+  },
+  "rsa_key_path": "/data/certs/rsa_key",
+  "wecube": {
+    "base_url": "{{GATEWAY_URL}}",
+    "jwt_signing_key": "{{JWT_SIGNING_KEY}}",
+    "sub_system_code": "{{SUB_SYSTEM_CODE}}",
+    "sub_system_key": "{{SUB_SYSTEM_KEY}}"
+  },
+  "auth": {
+    "enable": true,
+    "password_seed": "",
+    "expire_sec": 600,
+    "fresh_token_expire": 1800
+  },
+  "default_report_obj_attr": [
+    {
+      "id": "guid",
+      "title": "全局唯一ID",
+      "querialbe": "no"
+    },
+    {
+      "id": "state",
+      "title": "状态",
+      "querialbe": "no"
+    },
+    {
+      "id": "code",
+      "title": "编码",
+      "querialbe": "no"
+    },
+    {
+      "id": "key_name",
+      "title": "唯一名称",
+      "querialbe": "yes"
+    },
+    {
+      "id": "update_time",
+      "title": "修改时间",
+      "querialbe": "no"
+    },
+    {
+      "id": "confirm_time",
+      "title": "确认时间",
+      "querialbe": "no"
+    }],
+  "menu_api_map": {
+    "enable": false,
+    "file": "menu-api-map.json"
+  }
+}

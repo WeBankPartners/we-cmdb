@@ -7,7 +7,7 @@ export default {
     allCiTypes: { default: () => [], required: true },
     isReadOnly: { default: () => false, required: false },
     value: { default: () => '', required: true },
-    rootCiTypeId: { type: Number, required: true },
+    rootCiTypeId: { type: String, required: true },
     specialDelimiters: { default: () => [], required: true }
   },
   data () {
@@ -35,7 +35,6 @@ export default {
         { code: 'notNull', value: 'NotNull' },
         { code: 'null', value: 'Null' }
       ],
-      enumCodes: ['id', 'code', 'value', 'groupCodeId'],
       spinShow: false
     }
   },
@@ -51,7 +50,7 @@ export default {
       let obj = {}
       this.allCiTypes.forEach(ciType => {
         ciType.attributes.forEach(attr => {
-          attr.ciTypeTableName = ciType.tableName
+          attr.ciTypeTableName = ciType.ciTypeId
           obj[attr.ciTypeAttrId] = attr
         })
       })
@@ -205,7 +204,7 @@ export default {
         case 'rule':
           this.autoFillArray.push({
             type,
-            value: JSON.stringify([{ ciTypeId: this.ciTypesObj[this.rootCiTypeId].tableName }])
+            value: JSON.stringify([{ ciTypeId: this.ciTypesObj[this.rootCiTypeId].ciTypeId }])
           })
           this.showRuleOptions(this.autoFillArray.length - 1 + '', '0')
           break
@@ -287,11 +286,6 @@ export default {
       ) {
         const ciTypeId = JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].ciTypeId
         this.getRefData(ruleIndex, attrIndex, ciTypeId)
-      } else if (
-        (node.parentRs && this.getPropertyNameByCiTypeIdAndAttrId(node.parentRs.attrId).inputType === 'select') ||
-        this.getPropertyNameByCiTypeIdAndAttrId(node.parentRs.attrId).inputType === 'multiSelect'
-      ) {
-        this.showEnumOptions(ruleIndex, attrIndex)
       }
     },
     showSpecialOptions (ruleIndex) {
@@ -313,9 +307,8 @@ export default {
     },
     ciTypeTableNameToId (tableName) {
       const keys = Object.values(this.ciTypesObj)
-
       const ciTypeId = keys.find(item => {
-        if (tableName === item.tableName) {
+        if (tableName === item.ciTypeId) {
           return item
         }
       }).ciTypeId
@@ -337,7 +330,7 @@ export default {
           })
         this.options = this.options.concat(
           refFroms.data.map(_ => {
-            const ciTypeName = this.ciTypesObj[_.ciTypeId] ? this.ciTypesObj[_.ciTypeId].tableName : 'undefined'
+            const ciTypeName = this.ciTypesObj[_.ciTypeId] ? this.ciTypesObj[_.ciTypeId].ciTypeId : 'undefined'
             const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId]
               ? this.ciTypeAttrsObj[_.ciTypeAttrId].propertyName
               : 'undefined'
@@ -364,7 +357,7 @@ export default {
         this.options = this.options.concat(
           ciAttrs.data.map(_ => {
             const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
-            const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].tableName : this.ciTypesObj[_.ciTypeId].tableName
+            const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].ciTypeId : this.ciTypesObj[_.ciTypeId].ciTypeId
             const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId].propertyName
             const nodeName = isRef ? `->(${attrName})${ciTypeName}` : `.${attrName}`
             const nodeObj = {
@@ -383,24 +376,6 @@ export default {
           })
         )
       }
-    },
-    // 显示枚举属性下拉框
-    showEnumOptions (ruleIndex, attrIndex) {
-      this.currentRule = ruleIndex
-      this.currentAttr = attrIndex
-      this.options.push({
-        type: 'line'
-      })
-      this.options = this.options.concat(
-        this.enumCodes.map(_ => {
-          return {
-            type: 'option',
-            class: 'auto-fill-li auto-fill-li-enum',
-            nodeName: _,
-            fn: () => this.addEnum(ruleIndex, attrIndex, _)
-          }
-        })
-      )
     },
     // 点击选择枚举属性
     addEnum (ruleIndex, attrIndex, code) {
@@ -512,22 +487,6 @@ export default {
           }
         ]
         this.getRefData(ruleIndex, i + 1 + '', ciTypeId)
-      } else if (inputType === 'select' || inputType === 'multiSelect') {
-        this.options = [
-          {
-            type: 'option',
-            class: 'auto-fill-li auto-fill-li-delete',
-            nodeName: this.$t('auto_fill_delete_node'),
-            fn: () => this.deleteNode(ruleIndex, i + 1)
-          },
-          {
-            type: 'option',
-            class: 'auto-fill-li auto-fill-li-filter',
-            nodeName: this.$t('auto_fill_add_filter'),
-            fn: () => this.showFilterModal(ruleIndex, i + 1)
-          }
-        ]
-        this.showEnumOptions(ruleIndex, i + 1 + '')
       } else {
         this.optionsDisplay = false
       }
@@ -537,6 +496,7 @@ export default {
       const p = {
         ...props,
         domProps: {
+          // innerHTML: '1231231'
           innerHTML: value.replace(/\s/g, '&nbsp;').replace(/</g, '&lt;')
         }
       }
@@ -663,7 +623,7 @@ export default {
         )
       } else {
         const classList = {
-          'auto-fill-span': true,
+          'auto-fill-span-delimiter': true,
           hover: this.hoverSpan === i + ''
         }
         const _props = {
@@ -894,10 +854,6 @@ export default {
           if (lastNode.parentRs) {
             if (inputType === 'ref' || inputType === 'multiRef') {
               isLegal = false
-            } else if (inputType === 'select' || inputType === 'multiSelect') {
-              if (!lastNode.enumCodeAttr) {
-                isLegal = false
-              }
             }
           }
         }
