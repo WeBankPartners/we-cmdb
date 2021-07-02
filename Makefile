@@ -1,6 +1,7 @@
 current_dir=$(shell pwd)
 version=$(PLUGIN_VERSION)
-project_name="wecmdb-pro"
+project_dir=$(shell basename "${current_dir}")
+project_name=wecmdb-pro
 
 clean:
 	rm -rf cmdb-server/cmdb-server
@@ -9,7 +10,7 @@ clean:
 
 build: clean
 	chmod +x ./build/*.sh
-	docker run --rm -v $(current_dir):/go/src/github.com/WeBankPartners/$(project_name) --name build_$(project_name) ccr.ccs.tencentyun.com/webankpartners/golang-ext:v1.15.6 /bin/bash /go/src/github.com/WeBankPartners/$(project_name)/build/build-server.sh
+	docker run --rm -v $(current_dir):/go/src/github.com/WeBankPartners/$(project_dir) --name build_$(project_dir) ccr.ccs.tencentyun.com/webankpartners/golang-ext:v1.15.6 /bin/bash /go/src/github.com/WeBankPartners/$(project_dir)/build/build-server.sh
 	./build/build-ui.sh $(current_dir)
 
 image: build
