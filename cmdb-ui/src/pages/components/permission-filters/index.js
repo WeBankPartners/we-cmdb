@@ -21,6 +21,7 @@ export default {
       optionsDisplay: false
     }
   },
+  mounted () {},
   methods: {
     addExpression (v) {
       let _value = JSON.parse(JSON.stringify(this.value))
@@ -65,6 +66,8 @@ export default {
     }
   },
   render (h) {
+    // displayAttrType={this.displayAttrType}
+    // hiddenAttrType={this.hiddenAttrType}
     if (this.isReadOnly && !this.value.length) {
       return null
     } else {
@@ -78,8 +81,6 @@ export default {
               onInput={v => this.handleInput(v, i)}
               allCiTypes={this.allCiTypes}
               isFilterAttr={this.isFilterAttr}
-              displayAttrType={this.displayAttrType}
-              hiddenAttrType={this.hiddenAttrType}
               rootCiTypeId={this.rootCiTypeId}
             />
           ])}

@@ -86,7 +86,7 @@ export default {
       this.submitButtonLoading = false
       if (statusCode === 'OK') {
         this.$Message.success(this.$t('reset_password_success'))
-        this.$router.push('/homepage')
+        this.$router.push('/wecmdb/home')
       }
     },
     handleReset (name) {
