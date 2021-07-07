@@ -54,10 +54,10 @@
                 v-for="item in rootOptions"
                 :value="item._id"
                 :key="item._id"
-                :label="item.key_name"
+                :label="item.name || item.key_name"
                 style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
               >
-                {{ item.key_name }}
+                {{ item.name || item.key_name }}
               </Option>
             </Select>
             <!-- group select -->
@@ -85,15 +85,15 @@
                   <Button @click.stop.prevent="onAddRoot()" icon="md-add" type="success" long></Button>
                 </span>
               </Option>
-              <OptionGroup v-for="data in rootGroupOptions" :key="data.key_name" :label="data.name">
+              <OptionGroup v-for="data in rootGroupOptions" :key="data.key_name" :label="data.name || data.key_name">
                 <Option
                   v-for="item in data.options"
                   :value="item._id"
                   :key="item._id"
-                  :label="`${item.name}${item.confirm_time ? ' ' + item.confirm_time : ''}`"
+                  :label="`${item.name || item.key_name}${item.confirm_time ? ' ' + item.confirm_time : ''}`"
                   style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
                 >
-                  <div>{{ item.name }}</div>
+                  <div>{{ item.name || item.key_name }}</div>
                   <div v-if="item.confirm_time" style="color:#ccc; flex-shrink:1; margin-left:10px">
                     {{ item.confirm_time }}
                   </div>
@@ -432,7 +432,7 @@ export default {
             let groupOptions = []
             let extendRootOptions = []
             rootOptions.forEach((item, itemIndex) => {
-              groupOptions.push({ guid: item.guid, key_name: item.key_name, name: item.name, options: [item] })
+              groupOptions.push({ guid: item.guid, key_name: item.key_name, name: item.key_name, options: [item] })
               let hisOptions = hisData.contents.filter(hisItem => {
                 if (hisItem.guid === item.guid && hisItem.confirm_time !== item.confirm_time) {
                   return true
