@@ -39,51 +39,63 @@ export default {
       this.$emit('input', _value)
     },
     renderAddIcon () {
-      if (this.isReadOnly || this.value.length) {
-        return null
-      } else {
-        if (this.rootCis.length > 1) {
-          return (
-            <Poptip v-model={this.optionsDisplay}>
-              <div slot="content" class="filters-rule-options">
-                {this.rootCis.map(_ => (
-                  <div onClick={() => this.addExpression(_)}>{_}</div>
-                ))}
-              </div>
-              <Button class="filters-rule-add" size="small">
-                {this.$t('add_expression')}
-              </Button>
-            </Poptip>
-          )
-        } else {
-          return (
-            <Button class="filters-rule-add" size="small" onClick={() => this.addExpression(this.rootCis[0])}>
-              {this.$t('add_expression')}
-            </Button>
-          )
-        }
-      }
+      return (
+        <Poptip content={this.$t('add_expression')} trigger="hover">
+          <Button
+            class="filters-rule-add"
+            size="small"
+            onClick={() => this.addExpression(this.rootCis[0])}
+            icon="md-add"
+          ></Button>
+        </Poptip>
+      )
+      // if (this.isReadOnly || (this.value.length && this.value[0])) {
+      //   return null
+      // } else {
+      // if (this.rootCis.length > 1) {
+      //   return (
+      //     <Poptip v-model={this.optionsDisplay}>
+      //       <div slot="content" class="filters-rule-options">
+      //         {this.rootCis.map(_ => (
+      //           <div onClick={() => this.addExpression(_)}>{_}</div>
+      //         ))}
+      //       </div>
+      //       <Button class="filters-rule-add" size="small">
+      //         {this.$t('add_expression')}
+      //       </Button>
+      //     </Poptip>
+      //   )
+      // } else {
+      //   return (
+      //     <Button class="filters-rule-add" size="small" onClick={() => this.addExpression(this.rootCis[0])}>
+      //       {this.$t('add_expression')}
+      //     </Button>
+      //   )
+      // }
+      // }
     }
   },
   render (h) {
-    // displayAttrType={this.displayAttrType}
-    // hiddenAttrType={this.hiddenAttrType}
     if (this.isReadOnly && !this.value.length) {
       return null
     } else {
       return (
         <div class="filters-rule" filterIndex ref="zsf">
-          {this.value.map((_, i) => [
-            i > 0 ? <span> | </span> : null,
-            <AttrExpress
-              ref={`attrExpress-${0}`}
-              value={_}
-              onInput={v => this.handleInput(v, i)}
-              allCiTypes={this.allCiTypes}
-              isFilterAttr={this.isFilterAttr}
-              rootCiTypeId={this.rootCiTypeId}
-            />
-          ])}
+          {this.value
+            .filter(item => item !== null)
+            .map((_, i) => [
+              i > 0 ? <span> | </span> : null,
+              <AttrExpress
+                ref={`attrExpress-${0}`}
+                value={_}
+                displayAttrType={this.displayAttrType}
+                hiddenAttrType={this.hiddenAttrType}
+                onInput={v => this.handleInput(v, i)}
+                allCiTypes={this.allCiTypes}
+                isFilterAttr={this.isFilterAttr}
+                rootCiTypeId={this.rootCiTypeId}
+              />
+            ])}
           {this.renderAddIcon()}
         </div>
       )

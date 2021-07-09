@@ -496,7 +496,6 @@ export default {
       const p = {
         ...props,
         domProps: {
-          // innerHTML: '1231231'
           innerHTML: value.replace(/\s/g, '&nbsp;').replace(/</g, '&lt;')
         }
       }
