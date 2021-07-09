@@ -2,9 +2,9 @@ package ci
 
 import (
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
+	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/api/middleware"
+	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/models"
+	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
 	"strings"
 )
@@ -76,7 +76,7 @@ func AttrUpdate(c *gin.Context) {
 	param.Id = ciAttrId
 	param.CiType = ciTypeGuid
 	//Update database
-	err := db.CiAttrUpdate(&param)
+	_, err := db.CiAttrUpdate(&param)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
@@ -120,13 +120,13 @@ func AttrApply(c *gin.Context) {
 	param.Id = ciAttrId
 	param.CiType = ciTypeGuid
 	//Update database
-	err := db.CiAttrUpdate(&param)
+	updateAutofill, err := db.CiAttrUpdate(&param)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
 
-	err = db.CiAttrApply(ciTypeGuid, ciAttrId)
+	err = db.CiAttrApply(ciTypeGuid, ciAttrId, updateAutofill)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {

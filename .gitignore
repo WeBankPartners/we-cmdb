@@ -3,10 +3,12 @@
 .editorconfig
 .vscode
 
-
-# dependencies
-*/node_modules/
-*/node/
-*/build
-*/package-lock.json
-*/build
+# ignore file
+cmdb-server/cmdb-server
+cmdb-server/logs
+cmdb-ui/plugin
+cmdb-ui/dist
+cmdb-ui/node_modules
+cmdb-ui/node
+cmdb-ui/build
+cmdb-ui/package-lock.json

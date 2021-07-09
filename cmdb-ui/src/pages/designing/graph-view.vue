@@ -432,7 +432,7 @@ export default {
             let groupOptions = []
             let extendRootOptions = []
             rootOptions.forEach((item, itemIndex) => {
-              groupOptions.push({ guid: item.guid, key_name: item.key_name, name: item.key_name, options: [item] })
+              groupOptions.push({ guid: item.guid, key_name: item.key_name, name: item.name, options: [item] })
               let hisOptions = hisData.contents.filter(hisItem => {
                 if (hisItem.guid === item.guid && hisItem.confirm_time !== item.confirm_time) {
                   return true

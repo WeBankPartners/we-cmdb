@@ -151,8 +151,8 @@ export default {
             }
           }
         })
-        delete item.confirm_time
-        delete item.key_name
+        // delete item.confirm_time
+        // delete item.key_name
       })
       this.$emit('editModalOkHandler', copyData)
     },
@@ -366,6 +366,7 @@ export default {
                               params: d
                             }
                             : null,
+                          ciTypeAttrId: column.ciTypeAttrId,
                           ciType: column.component === 'WeCMDBRefSelect' ? column.ciType : null,
                           ...column,
                           originColumns: originColumns,
