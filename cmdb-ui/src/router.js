@@ -18,6 +18,13 @@ export default new Router({
           props: true
         },
         {
+          path: '/wecmdb/designing/graph-config',
+          name: 'graph-config',
+          component: () => import('@/pro/graph-config.vue'),
+          params: {},
+          props: true
+        },
+        {
           path: '/wecmdb/designing/data-mgmt-view',
           name: 'graph-management',
           component: () => import('@/pages/designing/graph-management'),

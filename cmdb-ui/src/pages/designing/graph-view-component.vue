@@ -42,7 +42,7 @@ import { zoomTransform } from 'd3-zoom'
 import * as d3Graphviz from 'd3-graphviz'
 import { queryReferenceCiData } from '@/api/server'
 import { addEvent } from '../util/event.js'
-import { render_graph } from '../util/render_graph.js'
+import { renderGraph } from '../util/render-graph.js'
 import Operation from './graph-operation-component'
 export default {
   components: {
@@ -98,7 +98,6 @@ export default {
           dom.select(this.cachedIdInfo.graph).attr('fill', '#ff9900')
         }
       }
-      
     }
   },
   methods: {
@@ -139,7 +138,7 @@ export default {
     async graphQueryReferenceCiData (ciTypeAttrId, editRefAttr, refAttrValue) {
       let params = {}
       params[editRefAttr] = refAttrValue
-      const { statusCode, data } = await queryReferenceCiData({
+      const { data } = await queryReferenceCiData({
         attrId: ciTypeAttrId,
         queryObject: {
           filters: [{ name: 'guid', operator: 'eq', value: refAttrValue }],
@@ -149,7 +148,7 @@ export default {
       })
       // TODO: remove filter when api support filters
       return data.filter(element => {
-        if (element.guid == refAttrValue) {
+        if (element.guid === refAttrValue) {
           return true
         } else {
           return false
@@ -172,7 +171,7 @@ export default {
       let graphIndex = this.graphIndex
       let graphSetting = this.graphSetting
       let graphData = this.graphData
-      let dotString = render_graph(
+      let dotString = renderGraph(
         graphSetting,
         graphData,
         ci => {
@@ -275,7 +274,8 @@ export default {
           metadata: {
             setting: setting,
             editRefAttr: setting.editRefAttr,
-            editable: 'editable' in setting == false || setting.editable === null ? metadata.editable : setting.editable
+            editable:
+              'editable' in setting === false || setting.editable === null ? metadata.editable : setting.editable
           }
         }
         this.plainDatas.push(node)
@@ -290,7 +290,7 @@ export default {
       e.preventDefault()
       e.stopPropagation()
       if (e.currentTarget.tagName === 'svg') {
-        this.selectedId = ""
+        this.selectedId = ''
         // 展开面板
         this.collapseValue = []
         this.$refs.operationPanel.ciType = ''
@@ -342,7 +342,7 @@ export default {
         for (let index = 0; index < ciTypeChildren.length; index++) {
           const setting = ciTypeChildren[index]
           let ciTypeAttr = this.ciTypeMapping[setting.ciType].attributes.find(element => {
-            if (element.propertyName == setting.editRefAttr) {
+            if (element.propertyName === setting.editRefAttr) {
               return true
             }
           })
