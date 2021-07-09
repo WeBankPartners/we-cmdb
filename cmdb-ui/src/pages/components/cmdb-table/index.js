@@ -642,6 +642,7 @@ export default {
     },
     renderCol (col, isLastCol = false) {
       const getRefdata = async val => {
+        this.tableDetailInfo.isShow = false
         const refData = this.tableData.find(item => {
           if (item[col.key].key_name === val) {
             return item
@@ -658,6 +659,7 @@ export default {
         this.tableDetailInfo.isShow = true
       }
       const getMutiRefdata = async val => {
+        this.tableDetailInfo.isShow = false
         this.tableDetailInfo.title = this.$t('details')
         this.tableDetailInfo.type = 'array'
         this.tableDetailInfo.info = []
@@ -670,6 +672,7 @@ export default {
         this.tableDetailInfo.isShow = true
       }
       const getPassword = async (row, key) => {
+        this.tableDetailInfo.isShow = false
         const rowData = this.tableData.find(item => row.guid === item.guid)
         const { statusCode, data } = await queryPassword(this.ciTypeId, rowData.guid, key, {})
         if (statusCode === 'OK') {
