@@ -3,8 +3,8 @@ package db
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/common/log"
-	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/models"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"strings"
 	"time"
 )
