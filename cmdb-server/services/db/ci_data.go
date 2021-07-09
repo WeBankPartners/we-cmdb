@@ -64,6 +64,9 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 		filterSql += " and tt.guid in ('" + strings.Join(permission.GuidList, "','") + "') "
 	}
 	historyFlag := false
+	if param.Dialect == nil {
+		param.Dialect = &models.QueryRequestDialect{QueryMode: "new"}
+	}
 	if param.Dialect.QueryMode == "new" {
 		baseSql = fmt.Sprintf("SELECT %s FROM %s tt WHERE 1=1 %s ", queryColumn, ciType, filterSql)
 	} else if param.Dialect.QueryMode == "all" {
@@ -622,6 +625,10 @@ func insertActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 			param.InputData["state"] = param.Transition.TargetStateName
 			buildValueParam.IsSystem = true
 		}
+		if ciAttr.Name == "confirm_time" {
+			delete(param.InputData, ciAttr.Name)
+			continue
+		}
 		if ciAttr.DataType == "datetime" && param.InputData[ciAttr.Name] == "" {
 			delete(param.InputData, ciAttr.Name)
 			continue
@@ -982,6 +989,9 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 		needValidateText = true
 	}
 	if param.AttributeConfig.Nullable == "yes" && inputValue == "" {
+		if param.AttributeConfig.DataType == "int" {
+			inputValue = "0"
+		}
 		needValidateText = false
 	}
 	if needValidateText {
@@ -1110,7 +1120,7 @@ func validateMultiRefFilterData(multiCiData []*models.MultiCiDataObj) error {
 					continue
 				}
 				if attr.RefCiType != "" {
-					fetchRows, tmpErr := GetCiDataByFilters(attr.Id, tmpInputRow)
+					_, fetchRows, tmpErr := GetCiDataByFilters(attr.Id, tmpInputRow, models.QueryRequestParam{Paging: false})
 					if tmpErr != nil {
 						err = tmpErr
 						break
@@ -1121,7 +1131,7 @@ func validateMultiRefFilterData(multiCiData []*models.MultiCiDataObj) error {
 					}
 					fetchGuidMap := make(map[string]bool)
 					for _, fetRowObj := range fetchRows {
-						fetchGuidMap[fetRowObj.Guid] = true
+						fetchGuidMap[fetRowObj["guid"].(string)] = true
 					}
 					for _, tmpValueObj := range strings.Split(inputRow[attr.Name], ",") {
 						if _, b := fetchGuidMap[tmpValueObj]; !b {

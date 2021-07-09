@@ -4,6 +4,7 @@ import lodash from 'lodash'
 import EditModal from './edit-modal.js'
 import { dataToCsv, download } from './export-csv.js'
 import { createPopper } from '@popperjs/core'
+import { queryCiData, getCiTypeAttributes, queryPassword } from '@/api/server'
 const DEFAULT_FILTER_NUMBER = 5
 const MIN_WIDTH = 200
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
@@ -44,7 +45,13 @@ export default {
       tipContent: '',
       randomId: '',
       timer: null,
-      currentOperateType: ''
+      currentOperateType: '',
+      tableDetailInfo: {
+        isShow: false,
+        type: '',
+        title: '',
+        info: []
+      }
     }
   },
   component: {
@@ -259,6 +266,7 @@ export default {
     },
     getTableOuterActions () {
       if (this.tableOuterActions) {
+        const lang = localStorage.getItem('lang')
         return this.tableOuterActions.map(_ => {
           return (
             <Button
@@ -266,10 +274,21 @@ export default {
               {..._}
               onClick={() => {
                 this.currentOperateType = _.operation_en
-                this.$emit('actionFun', _, this.selectedRows, this.columns)
+                const keys = Object.keys(this.form)
+                let filters = []
+                keys.forEach(key => {
+                  if (this.form[key] !== '') {
+                    filters.push({
+                      name: key,
+                      operator: 'contains',
+                      value: this.form[key]
+                    })
+                  }
+                })
+                this.$emit('actionFun', _, this.selectedRows, this.columns, filters)
               }}
             >
-              {_.operation}
+              {lang === 'en-US' ? _.operation_en : _.operation}
             </Button>
           )
         })
@@ -568,69 +587,213 @@ export default {
           }
         })
     },
+    isJSON (jsons) {
+      try {
+        if (typeof jsons === 'object' && jsons) {
+          return true
+        } else {
+          return false
+        }
+      } catch (e) {
+        return false
+      }
+    },
+    async managementRefData (guid) {
+      const lastPosition = guid.lastIndexOf('_')
+      const ci = guid.substring(0, lastPosition)
+
+      const { data } = await queryCiData({
+        id: ci,
+        queryObject: {
+          dialect: { queryMode: 'new' },
+          filters: [{ name: 'guid', operator: 'eq', value: guid }],
+          paging: false
+        }
+      })
+      const attrRes = await getCiTypeAttributes(ci)
+      const showAttr = attrRes.data
+        .filter(item => item.displayByDefault === 'yes')
+        .map(attr => {
+          return {
+            attr: attr.ciTypeAttrId.split('__')[1],
+            displayName: attr.displayName
+          }
+        })
+      const res = showAttr.map(sa => {
+        let tmp = {
+          key: sa.displayName,
+          value: ''
+        }
+        const attrValue = data.contents[0][sa.attr]
+        if (Array.isArray(attrValue)) {
+          tmp.value = attrValue
+            .map(item => {
+              return item.key_name
+            })
+            .join(',')
+        } else if (this.isJSON(attrValue)) {
+          tmp.value = attrValue.key_name
+        } else {
+          tmp.value = attrValue
+        }
+        return tmp
+      })
+      return res
+    },
     renderCol (col, isLastCol = false) {
-      return {
+      const getRefdata = async val => {
+        const refData = this.tableData.find(item => {
+          if (item[col.key].key_name === val) {
+            return item
+          }
+        })[col.key]
+        this.tableDetailInfo.title = this.$t('details')
+        this.tableDetailInfo.type = 'array'
+        this.tableDetailInfo.info = [
+          {
+            title: val,
+            value: await this.managementRefData(refData.guid)
+          }
+        ]
+        this.tableDetailInfo.isShow = true
+      }
+      const getMutiRefdata = async val => {
+        this.tableDetailInfo.title = this.$t('details')
+        this.tableDetailInfo.type = 'array'
+        this.tableDetailInfo.info = []
+        await val.forEach(async v => {
+          this.tableDetailInfo.info.push({
+            title: v.key_name,
+            value: await this.managementRefData(v.guid)
+          })
+        })
+        this.tableDetailInfo.isShow = true
+      }
+      const getPassword = async (row, key) => {
+        const rowData = this.tableData.find(item => row.guid === item.guid)
+        const { statusCode, data } = await queryPassword(this.ciTypeId, rowData.guid, key, {})
+        if (statusCode === 'OK') {
+          this.tableDetailInfo.title = this.$t('password')
+          this.tableDetailInfo.type = 'string'
+          this.tableDetailInfo.info = data || this.$t('no_password_set')
+          this.tableDetailInfo.isShow = true
+        }
+      }
+      const generalParams = {
         ...col,
         tooltip: true,
         minWidth: MIN_WIDTH,
         width: isLastCol ? null : this.colWidth < MIN_WIDTH ? MIN_WIDTH : this.colWidth, // 除最后一列，都加上默认宽度，等宽
         resizable: !isLastCol, // 除最后一列，该属性都为true
-        sortable: this.isSortable ? 'custom' : false,
-        render: (h, params) => {
-          let content = ''
-          if (Array.isArray(params.row.weTableForm[col.key])) {
-            if (['select', 'multiSelect'].indexOf(params.column.inputType) >= 0) {
-              content = params.row.weTableForm[col.key].map(_ => _.value).toString()
-            } else if (params.column.inputType === 'multiRef') {
-              content = params.row.weTableForm[col.key].map(_ => _.key_name).toString()
-            }
-            if (params.column.component === 'CMDBPermissionFilters') {
-              content = params.row.weTableForm[col.key].join(' | ')
-            }
-          } else {
-            content = params.row.weTableForm[col.key]
-          }
-          const containerId = 'ref' + Math.ceil(Math.random() * 1000000)
-
-          return h(
-            'span',
-            {
-              class: 'ivu-table-cell-tooltip-content',
-              on: {
-                mouseenter: event => {
-                  if (
-                    document.getElementById(containerId).scrollWidth > document.getElementById(containerId).clientWidth
-                  ) {
-                    this.timer = setTimeout(
-                      params => {
-                        this.tipContent = content
-                        const popcorn = document.querySelector('#' + containerId)
-                        const tooltip = document.querySelector('#' + params.randomId)
-                        createPopper(popcorn, tooltip, {
-                          placement: 'bottom'
-                        })
-                      },
-                      800,
-                      {
-                        randomId: this.randomId,
-                        content
-                      }
-                    )
-                  }
-                },
-                mouseleave: event => {
-                  clearInterval(this.timer)
-                  this.tipContent = ''
-                }
-              },
-              attrs: {
-                id: containerId
-              }
-            },
-            content
+        sortable: this.isSortable ? 'custom' : false
+      }
+      if (col.inputType === 'ref') {
+        generalParams.render = (h, params) => {
+          return (
+            <span>
+              {params.row.weTableForm[col.key] && (
+                <Icon
+                  size="16"
+                  type="ios-apps-outline"
+                  color="#2d8cf0"
+                  onClick={() => getRefdata(params.row.weTableForm[col.key])}
+                />
+              )}
+              {params.row.weTableForm[col.key]}
+            </span>
           )
         }
+        return generalParams
       }
+      if (col.inputType === 'multiRef') {
+        generalParams.render = (h, params) => {
+          return (
+            <span>
+              {params.row.weTableForm[col.key] && (
+                <Icon
+                  size="16"
+                  type="ios-apps-outline"
+                  color="#2d8cf0"
+                  onClick={() => getMutiRefdata(params.row.weTableForm[col.key])}
+                />
+              )}
+              {params.row.weTableForm[col.key].map(item => item.key_name).join(', ')}
+            </span>
+          )
+        }
+        return generalParams
+      }
+      if (col.inputType === 'password') {
+        generalParams.render = (h, params) => {
+          return (
+            <span>
+              <Icon
+                size="16"
+                type="ios-apps-outline"
+                color="#2d8cf0"
+                onClick={() => getPassword(params.row, col.key)}
+              />
+              {params.row.weTableForm[col.key]}
+            </span>
+          )
+        }
+        return generalParams
+      }
+      generalParams.render = (h, params) => {
+        let content = ''
+        if (Array.isArray(params.row.weTableForm[col.key])) {
+          if (['select', 'multiSelect'].indexOf(params.column.inputType) >= 0) {
+            content = params.row.weTableForm[col.key].map(_ => _.value).toString()
+          } else if (params.column.inputType === 'multiRef') {
+            content = params.row.weTableForm[col.key].map(_ => _.key_name).toString()
+          }
+          if (params.column.component === 'CMDBPermissionFilters') {
+            content = params.row.weTableForm[col.key].join(' | ')
+          }
+        } else {
+          content = params.row.weTableForm[col.key]
+        }
+        const containerId = 'ref' + Math.ceil(Math.random() * 1000000)
+
+        return h(
+          'span',
+          {
+            class: 'ivu-table-cell-tooltip-content',
+            on: {
+              mouseenter: event => {
+                if (
+                  document.getElementById(containerId).scrollWidth > document.getElementById(containerId).clientWidth
+                ) {
+                  this.timer = setTimeout(
+                    params => {
+                      this.tipContent = content
+                      const popcorn = document.querySelector('#' + containerId)
+                      const tooltip = document.querySelector('#' + params.randomId)
+                      createPopper(popcorn, tooltip, {
+                        placement: 'bottom'
+                      })
+                    },
+                    800,
+                    {
+                      randomId: this.randomId,
+                      content
+                    }
+                  )
+                }
+              },
+              mouseleave: event => {
+                clearInterval(this.timer)
+                this.tipContent = ''
+              }
+            },
+            attrs: {
+              id: containerId
+            }
+          },
+          content
+        )
+      }
+      return generalParams
     },
     showEditModal () {
       this.modalTitle = this.titles.edit
@@ -696,9 +859,12 @@ export default {
         return false
       }
     }
-    const test = columns => {
+    const filterColums = columns => {
       const res = columns.filter(col => isDisplay(col))
       return res
+    }
+    const closeModal = () => {
+      this.tableDetailInfo.isShow = false
     }
     return (
       <div>
@@ -733,7 +899,7 @@ export default {
         <EditModal
           isEdit={this.modalTitle === this.titles.edit}
           title={this.modalTitle}
-          columns={test(columns)}
+          columns={filterColums(columns)}
           data={selectedRows}
           ascOptions={ascOptions}
           on-closeEditModal={this.closeEditModal}
@@ -749,6 +915,40 @@ export default {
             </div>
           )}
         </div>
+        <Modal value={this.tableDetailInfo.isShow} footer-hide={true} title={this.tableDetailInfo.title}>
+          {this.tableDetailInfo.type === 'string' && (
+            <div style="text-align: justify;word-break: break-word;">{this.tableDetailInfo.info}</div>
+          )}
+          {this.tableDetailInfo.type === 'array' && (
+            <div style="overflow: auto;max-height:500px;overflow:auto">
+              <Collapse>
+                {this.tableDetailInfo.info.map(column => {
+                  return (
+                    <Panel name={column.title}>
+                      {column.title}
+                      <p slot="content">
+                        <Form label-width={100}>
+                          {column.value.map(val => {
+                            return (
+                              <FormItem label={val.key}>
+                                <Input value={val.value} disabled style="width: 300px" />
+                              </FormItem>
+                            )
+                          })}
+                        </Form>
+                      </p>
+                    </Panel>
+                  )
+                })}
+              </Collapse>
+            </div>
+          )}
+          <div style="margin-top:20px;height: 30px">
+            <Button style="float: right;margin-right: 20px" onClick={() => closeModal()}>
+              {this.$t('close')}
+            </Button>
+          </div>
+        </Modal>
       </div>
     )
   }

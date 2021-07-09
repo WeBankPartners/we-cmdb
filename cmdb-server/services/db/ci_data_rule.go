@@ -11,6 +11,7 @@ import (
 
 var (
 	affectGuidListChan   = make(chan map[string][]*models.AutofillChainObj, 100)
+	affectCiTypeChan     = make(chan string, 10)
 	uniquePathHandleChan = make(chan []*models.AutoActiveHandleParam, 100)
 	specialEqualChar     = models.SEPERATOR + "=" + models.SEPERATOR
 	specialSeparateChar  = "," + models.SEPERATOR
@@ -334,7 +335,7 @@ func getAutofillValueString(valueList []string) string {
 	return fmt.Sprintf("[%s]", strings.Join(valueList, ","))
 }
 
-func GetCiDataByFilters(attrId string, filterMap map[string]string) (rowData []*models.CiDataRefDataObj, err error) {
+func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam models.QueryRequestParam) (pageInfo models.PageInfo, rowData []map[string]interface{}, err error) {
 	var attrTable []*models.SysCiTypeAttrTable
 	err = x.SQL("select name,input_type,ref_ci_type,ref_filter from sys_ci_type_attr where id=?", attrId).Find(&attrTable)
 	if err != nil {
@@ -350,7 +351,17 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string) (rowData []*
 		return
 	}
 	if attrTable[0].RefFilter == "" {
-		err = x.SQL(fmt.Sprintf("select guid,key_name from %s", attrTable[0].RefCiType)).Find(&rowData)
+		var queryResults []*models.CiDataRefDataObj
+		err = x.SQL(fmt.Sprintf("select guid,key_name from %s", attrTable[0].RefCiType)).Find(&queryResults)
+		if err != nil {
+			return
+		}
+		for _, row := range queryResults {
+			tmpMap := make(map[string]interface{})
+			tmpMap["guid"] = row.Guid
+			tmpMap["key_name"] = row.KeyName
+			rowData = append(rowData, tmpMap)
+		}
 		return
 	}
 	//Example: [{"filter_1":{"left":"host_resource:[guid]","operator":"in","right":{"type":"expression","value":"app_instance.unit>unit.resource_set>resource_set~(resource_set)host_resource:[guid]"}}}]
@@ -380,10 +391,34 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string) (rowData []*
 		err = fmt.Errorf("Get ci reference data fail when build filter sql,%s ", err.Error())
 		return
 	}
+	querySql := fmt.Sprintf("select guid,key_name from %s ", attrTable[0].RefCiType)
 	if len(filterSqlList) > 0 {
-		err = x.SQL(fmt.Sprintf("select guid,key_name from %s where 1=1 AND (%s)", attrTable[0].RefCiType, strings.Join(filterSqlList, ") AND ("))).Find(&rowData)
+		querySql = fmt.Sprintf("select guid,key_name from %s where 1=1 AND (%s)", attrTable[0].RefCiType, strings.Join(filterSqlList, ") AND ("))
+	}
+	rowStringData, queryErr := x.QueryString(querySql)
+	if queryErr != nil {
+		err = queryErr
+		return
+	}
+	if reqParam.Paging == false {
+		log.Logger.Debug("req Param paging is false")
+		for _, row := range rowStringData {
+			tmpRowData := make(map[string]interface{})
+			for k, v := range row {
+				tmpRowData[k] = v
+			}
+			rowData = append(rowData, tmpRowData)
+		}
 	} else {
-		err = x.SQL(fmt.Sprintf("select guid,key_name from %s ", attrTable[0].RefCiType)).Find(&rowData)
+		filterGuidParam := models.CiDataLegalGuidList{Enable: false}
+		if len(filterSqlList) > 0 {
+			filterGuidParam.Enable = true
+			filterGuidParam.GuidList = []string{}
+			for _, row := range rowStringData {
+				filterGuidParam.GuidList = append(filterGuidParam.GuidList, row["guid"])
+			}
+		}
+		pageInfo, rowData, err = CiDataQuery(attrTable[0].RefCiType, &reqParam, &filterGuidParam, false)
 	}
 	return
 }
@@ -427,6 +462,66 @@ type expressionSqlObj struct {
 	ResultColumn    string
 	RefColumn       string
 	MultiRefTable   string
+}
+
+func getConditionExpressResult(express, startCiType string, filterMap map[string]string, permission bool) (result []string, err error) {
+	var filterParams, tmpSplitList []string
+	tmpExpress := express
+	if strings.Contains(tmpExpress, "'") {
+		tmpSplitList = strings.Split(tmpExpress, "'")
+		tmpExpress = ""
+		for i, v := range tmpSplitList {
+			if i%2 == 0 {
+				if i == len(tmpSplitList)-1 {
+					tmpExpress += v
+				} else {
+					tmpExpress += fmt.Sprintf("%s'$%d'", v, i/2)
+				}
+			} else {
+				filterParams = append(filterParams, strings.ReplaceAll(v, "'", ""))
+			}
+		}
+	}
+	if strings.Contains(tmpExpress, ",") {
+		tmpList := [][]string{}
+		for _, v := range strings.Split(tmpExpress, ",") {
+			for ii, vv := range filterParams {
+				v = strings.ReplaceAll(v, fmt.Sprintf("$%d", ii), vv)
+			}
+			tmpResult, tmpErr := getExpressResultList(v, startCiType, filterMap, permission)
+			if tmpErr != nil {
+				err = tmpErr
+				break
+			}
+			tmpList = append(tmpList, tmpResult)
+		}
+		if err != nil {
+			return
+		}
+		result = getSameElementList(tmpList)
+		return
+	}
+	return getExpressResultList(express, startCiType, filterMap, permission)
+}
+
+func getSameElementList(input [][]string) []string {
+	result := []string{}
+	var tmpMap = make(map[string]int)
+	for _, v := range input {
+		for _, vv := range v {
+			if _, b := tmpMap[vv]; b {
+				tmpMap[vv] += 1
+			} else {
+				tmpMap[vv] = 1
+			}
+		}
+	}
+	for k, v := range tmpMap {
+		if v == len(input) {
+			result = append(result, k)
+		}
+	}
+	return result
 }
 
 func getExpressResultList(express, startCiType string, filterMap map[string]string, permission bool) (result []string, err error) {
@@ -507,7 +602,7 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 		if ci[0] == 58 {
 			eso.ResultColumn = ci[2 : len(ci)-1]
 		}
-		if i == 0 && !permission {
+		if i == 0 && !permission && len(ciList) > 1 {
 			continue
 		}
 		expressionSqlList = append(expressionSqlList, &eso)
@@ -666,6 +761,14 @@ func StartConsumeAffectGuidMap() {
 	}
 }
 
+func StartConsumeAffectCiType() {
+	log.Logger.Debug("Start consume affect ci type cron job")
+	for {
+		ciType := <-affectCiTypeChan
+		go handleAffectCiType(ciType)
+	}
+}
+
 func handleAffectGuidMap(autofillChainMap map[string][]*models.AutofillChainObj) {
 	log.Logger.Debug("Start handle affect guid list")
 	//if len(autofillChainMap) > 0 {
@@ -705,6 +808,19 @@ func handleAffectGuidMap(autofillChainMap map[string][]*models.AutofillChainObj)
 		for _, row := range affectGuidList {
 			autofillAffectActionFunc(attr.CiTypeId, row, nowTime)
 		}
+	}
+}
+
+func handleAffectCiType(ciType string) {
+	log.Logger.Info("start handle affect ci type autofill mode", log.String("ciType", ciType))
+	queryRows, err := x.QueryString(fmt.Sprintf("select guid from %s", ciType))
+	if err != nil {
+		log.Logger.Error("Try to handle affect ci type fail,query ci data error", log.Error(err))
+		return
+	}
+	nowTime := time.Now().Format(models.DateTimeFormat)
+	for _, row := range queryRows {
+		autofillAffectActionFunc(ciType, row["guid"], nowTime)
 	}
 }
 
