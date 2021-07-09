@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/common/log"
-	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/models"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 )
 
 var (

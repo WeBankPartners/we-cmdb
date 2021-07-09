@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/api"
-	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/api/v1/ci"
-	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/common/log"
-	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/models"
-	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/services/db"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/api"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/v1/ci"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 )
 
 // @title Wecmdb Server New

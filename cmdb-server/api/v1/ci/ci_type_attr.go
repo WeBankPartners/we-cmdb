@@ -2,9 +2,9 @@ package ci
 
 import (
 	"fmt"
-	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/api/middleware"
-	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/models"
-	"github.com/WeBankPartners/wecmdb-pro/cmdb-server/services/db"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
 	"strings"
 )
