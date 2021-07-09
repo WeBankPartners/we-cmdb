@@ -191,10 +191,10 @@ export default {
         this.setBtnsStatus()
       }
     },
-    actionFun (operate, data, cols) {
+    actionFun (operate, data, cols, filters) {
       switch (operate.operationFormType) {
         case 'export_form':
-          this.exportHandler()
+          this.exportHandler(filters)
           break
         case 'editable_form':
           this.editHandler(operate.operation_en)
@@ -435,7 +435,7 @@ export default {
         delete _.weTableRowId
         delete _.isNewAddedRow
         delete _.nextOperations
-        delete _.confirm_time
+        // delete _.confirm_time
       })
       const { statusCode, message } = await tableOptionExcute('Update', this.ci, editAry)
       this.$refs.table.resetModalLoading()
@@ -453,7 +453,7 @@ export default {
         _.props.disabled = !['Add', 'Export'].includes(_.operation_en)
       })
     },
-    async exportHandler () {
+    async exportHandler (filters) {
       this.outerActions.forEach(_ => {
         if (_.actionType === 'export') {
           _.props.loading = true
@@ -462,6 +462,7 @@ export default {
       const { statusCode, data } = await queryCiData({
         id: this.ci,
         queryObject: {
+          filters: filters,
           dialect: { queryMode: this.queryType }
         }
       })
