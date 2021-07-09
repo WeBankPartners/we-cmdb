@@ -351,7 +351,7 @@
         </FormItem>
         <FormItem>
           <Button type="primary" small @click="addNewAttr" :loading="buttonLoading.addNewAttr" style="float: right">{{
-            $t('submit')
+            $t('save')
           }}</Button>
         </FormItem>
       </Form>

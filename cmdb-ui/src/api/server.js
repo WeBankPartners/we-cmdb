@@ -51,8 +51,8 @@ export const updateRoleCiTypeCtrlAttributes = (roleCitypeId, data) =>
   req.put(`/permissions/condition/${roleCitypeId}`, data)
 // export const updateRoleCiTypeCtrlAttributes = (roleCitypeId, data) =>
 //   req.post(`/permissions/list/${roleCitypeId}`, data)
-export const deleteRoleCiTypeCtrlAttributes = (roleCitypeId, data) =>
-  req.post(`/role-citypes/${roleCitypeId}/ctrl-attributes/delete`, data)
+export const deleteRoleCiTypeCtrlAttributes = (roleCitypeId, ids) =>
+  req.delete(`/permissions/condition/${roleCitypeId}?ids=${ids}`)
 export const editPassword = data => req.post('/user/password/change', data)
 export const resetPassword = data => req.post('/user/password/reset', data)
 // enum
@@ -235,3 +235,15 @@ export const getReportData = (reportId, data) => req.post(`/report-data/${report
 export const getReportFilterData = reportId => req.get(`/report-flat-struct/${reportId}`)
 export const configReport = data => req.post(`/report-objects`, data)
 export const moveLayer = data => req.post(`/base-key/codes/swap-position`, data)
+
+export const addView = data => req.post(`/views`, data)
+export const deleteView = data => req.delete(`/views`, { data: data })
+export const getGraphByView = data => req.post(`/view-graphs-query`, data)
+export const addGraph = data => req.post(`/view-graphs`, data)
+export const deleteGraph = data => req.delete(`/view-graphs`, { data: data })
+export const getElementByGraph = data => req.post(`/view-elements-query`, data)
+export const addElementForGraph = data => req.post(`/view-elements`, data)
+export const editElementForGraph = data => req.put(`/view-elements`, data)
+export const deleteElementForGraph = data => req.delete(`/view-elements`, { data: data })
+export const getReportObject = data => req.post(`/report-objects/query`, data)
+export const getAttrByReportObject = data => req.post(`/report-objects-attr/query`, data)
