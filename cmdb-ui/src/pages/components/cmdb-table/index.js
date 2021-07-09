@@ -288,7 +288,7 @@ export default {
                 this.$emit('actionFun', _, this.selectedRows, this.columns, filters)
               }}
             >
-              {lang === 'zh-CN' ? _.operation : _.operation_en}
+              {lang === 'en-US' ? _.operation_en : _.operation}
             </Button>
           )
         })
