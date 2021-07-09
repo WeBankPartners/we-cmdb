@@ -484,21 +484,21 @@ export default {
     }
   },
   watch: {
-    // ciTypePermissions: {
-    //   handler (newValue) {
-    //     this.batchOperations.forEach(_ => {
-    //       _.allSelect = newValue.every(ciPermisstion => {
-    //         return ciPermisstion[_.key] === 'Y'
-    //       })
-    //       const emptySelect = newValue.every(ciPermisstion => {
-    //         return ciPermisstion[_.key] === 'N'
-    //       })
-    //       _.emptySelect = !_.allSelect && !emptySelect
-    //     })
-    //   },
-    //   immediate: true,
-    //   deep: true
-    // }
+    ciTypePermissions: {
+      handler (newValue) {
+        this.batchOperations.forEach(_ => {
+          _.allSelect = newValue.every(ciPermisstion => {
+            return ciPermisstion[_.key] === 'Y'
+          })
+          const emptySelect = newValue.every(ciPermisstion => {
+            return ciPermisstion[_.key] === 'N'
+          })
+          _.emptySelect = !_.allSelect && !emptySelect
+        })
+      },
+      immediate: true,
+      deep: true
+    }
   },
   methods: {
     async openListManageModal (ci) {
@@ -651,6 +651,16 @@ export default {
       this.$refs.table.showCopyModal()
     },
     formatConditionValue (value) {
+      for (let i = 0; i < 5; i++) {
+        value = value.replace(',,', ',')
+      }
+      if (value.indexOf(',') === 0) {
+        value = value.substring(1)
+      }
+      const lastIndexOf = value.lastIndexOf(',')
+      if (lastIndexOf === value.length - 1) {
+        value = value.substring(0, lastIndexOf)
+      }
       let arr = value.split(/[.~]/)
       return value.replace(arr[0], arr[0] + ':[guid]')
       // return value.map(_ => {
@@ -705,6 +715,7 @@ export default {
     },
     async confirmEditHandler (data) {
       let editAry = JSON.parse(JSON.stringify(data))
+      console.log(editAry)
       editAry.forEach(_ => {
         delete _.isNewAddedRow
         delete _.isRowEditable
@@ -724,13 +735,6 @@ export default {
                   expression: ''
                 }
               }
-              // _[i] =
-              //   Array.isArray(_[i]) && _[i].length
-              //     ? {
-              //       conditionType: 'Expression',
-              //       conditionValueExprs: this.formatConditionValue(_[i])
-              //     }
-              //     : null
             } else if (['select', 'multiSelect'].indexOf(foundCi.inputType) >= 0) {
               _[i] =
                 Array.isArray(_[i]) && _[i].length
@@ -766,8 +770,11 @@ export default {
         title: this.$t('delete_confirm'),
         'z-index': 1000000,
         onOk: async () => {
-          const payload = deleteData.map(_ => _.roleCiTypeCtrlAttrId)
-          const { statusCode, message } = await deleteRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, payload)
+          const payload = deleteData.map(_ => _.roleConditionGuid)
+          const { statusCode, message } = await deleteRoleCiTypeCtrlAttributes(
+            this.currentRoleCiTypeId,
+            payload.join(',')
+          )
           if (statusCode === 'OK') {
             this.$Notice.success({
               title: this.$t('delete_permission_success'),

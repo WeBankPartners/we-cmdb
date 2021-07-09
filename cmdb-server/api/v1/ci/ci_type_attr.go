@@ -76,7 +76,7 @@ func AttrUpdate(c *gin.Context) {
 	param.Id = ciAttrId
 	param.CiType = ciTypeGuid
 	//Update database
-	err := db.CiAttrUpdate(&param)
+	_, err := db.CiAttrUpdate(&param)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
@@ -120,13 +120,13 @@ func AttrApply(c *gin.Context) {
 	param.Id = ciAttrId
 	param.CiType = ciTypeGuid
 	//Update database
-	err := db.CiAttrUpdate(&param)
+	updateAutofill, err := db.CiAttrUpdate(&param)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
 
-	err = db.CiAttrApply(ciTypeGuid, ciAttrId)
+	err = db.CiAttrApply(ciTypeGuid, ciAttrId, updateAutofill)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {

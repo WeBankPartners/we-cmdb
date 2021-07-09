@@ -100,14 +100,18 @@ func DataReferenceQuery(c *gin.Context) {
 		return
 	}
 	ciAttrId := c.Param("ciAttr")
-	resultData, err := db.GetCiDataByFilters(ciAttrId, param.Dialect.AssociatedData)
+	pageInfo, resultData, err := db.GetCiDataByFilters(ciAttrId, param.Dialect.AssociatedData, param)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
 		if len(resultData) == 0 {
-			resultData = []*models.CiDataRefDataObj{}
+			resultData = []map[string]interface{}{}
 		}
-		middleware.ReturnData(c, resultData)
+		if param.Paging {
+			middleware.ReturnPageData(c, pageInfo, resultData)
+		} else {
+			middleware.ReturnData(c, resultData)
+		}
 	}
 }
 
@@ -117,6 +121,9 @@ func DataRollbackList(c *gin.Context) {
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
+		if len(resultData) == 0 {
+			resultData = []map[string]interface{}{}
+		}
 		middleware.ReturnData(c, resultData)
 	}
 }

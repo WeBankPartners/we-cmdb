@@ -164,3 +164,31 @@ func ModifyReportObject(c *gin.Context) {
 		middleware.ReturnData(c, []string{})
 	}
 }
+
+func QueryReportObject(c *gin.Context) {
+	var param models.QueryRequestParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	pageInfo, rowData, err := db.QueryReportObject(&param)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnPageData(c, pageInfo, rowData)
+	}
+}
+
+func QueryReportAttr(c *gin.Context) {
+	var param models.QueryRequestParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	pageInfo, rowData, err := db.QueryReportAttr(&param)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnPageData(c, pageInfo, rowData)
+	}
+}

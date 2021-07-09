@@ -40,14 +40,14 @@
           filterable
           :max-tag-count="1"
           v-model="currentciGroup"
-          style="flex: 1;width:200px;margin-right:20px"
+          style="flex: 1;width:180px;margin-right:20px"
         >
           <Option v-for="item in originciGroupList" :value="item.codeId" :key="item.codeId">
             {{ item.value }}
           </Option>
         </Select>
         <span class="filter-title">{{ $t('change_layer') }}</span>
-        <Select multiple filterable :max-tag-count="3" v-model="currentciLayer" style="width: 300px;">
+        <Select multiple filterable :max-tag-count="1" v-model="currentciLayer" style="width: 180px;">
           <Option v-for="item in originciLayerList" :value="item.codeId" :key="item.codeId">
             {{ item.value }}
           </Option>
@@ -381,7 +381,7 @@ export default {
               ]
               : [
                 {
-                  operation: '对比',
+                  operation: this.$t('compare'),
                   operationFormType: 'compare_form',
                   operationMultiple: 'yes',
                   operation_en: 'Compare',
@@ -432,10 +432,10 @@ export default {
         this.setBtnsStatus()
       }
     },
-    actionFun (operate, data, cols) {
+    actionFun (operate, data, cols, filters) {
       switch (operate.operationFormType) {
         case 'export_form':
-          this.exportHandler()
+          this.exportHandler(filters)
           break
         case 'editable_form':
           this.editHandler(operate.operation_en)
@@ -571,9 +571,9 @@ export default {
     },
     async okRollback () {
       let finalData = finalDataForRequest(this.rollbackConfig.selectData)
-      finalData.forEach(item => {
-        delete item.update_time
-      })
+      // finalData.forEach(item => {
+      //   delete item.update_time
+      // })
       const { statusCode, message } = await tableOptionExcute('Rollback', this.currentTab, finalData)
       if (statusCode === 'OK') {
         this.$Notice.success({
@@ -697,7 +697,7 @@ export default {
         delete _.weTableRowId
         delete _.isNewAddedRow
         delete _.nextOperations
-        delete _.confirm_time
+        // delete _.confirm_time
       })
       const { statusCode, message } = await tableOptionExcute('Update', this.currentTab, editAry)
       this.$refs[this.tableRef][0].resetModalLoading()
@@ -719,7 +719,7 @@ export default {
         }
       })
     },
-    async exportHandler () {
+    async exportHandler (filters) {
       const found = this.tabList.find(_ => _.id === this.currentTab)
       if (found) {
         found.outerActions.forEach(_ => {
@@ -731,6 +731,7 @@ export default {
       const { statusCode, data } = await queryCiData({
         id: this.currentTab,
         queryObject: {
+          filters: filters,
           dialect: { queryMode: this.queryType }
         }
       })

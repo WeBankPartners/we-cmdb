@@ -36,7 +36,7 @@
         </Card>
       </Row>
     </Row>
-    <Modal v-model="newReport.showAddNewReportModal" width="710" :title="$t('creat_report')" :mask-closable="false">
+    <Modal v-model="newReport.showAddNewReportModal" width="720" :title="$t('creat_report')" :mask-closable="false">
       <div :style="{ maxHeight: MODALHEIGHT + 'px', overflow: 'auto' }">
         <Form :model="newReport.params" :label-width="80">
           <FormItem :label="$t('report_id')">
@@ -83,7 +83,7 @@
         </div>
       </div>
       <div slot="footer">
-        <Button @click="collectionRoleManageModal = false">{{ $t('cancel') }}</Button>
+        <Button @click="newReport.showAddNewReportModal = false">{{ $t('cancel') }}</Button>
         <Button type="primary" @click="addNewReport">{{ $t('save') }}</Button>
       </div>
     </Modal>
@@ -126,7 +126,7 @@ export default {
 
       ciGraphData: null,
       attributeObject: {},
-      MODALHEIGHT: 0
+      MODALHEIGHT: 600
     }
   },
   mounted () {
@@ -293,9 +293,6 @@ export default {
 }
 </script>
 <style lang="scss">
-.ivu-form-item {
-  margin-bottom: 8px;
-}
 .role-transfer-title {
   text-align: center;
   font-size: 13px;

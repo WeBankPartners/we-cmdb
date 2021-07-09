@@ -28,6 +28,7 @@ func main() {
 	go ci.StartConsumeOperationLog()
 	go db.StartSyncImageFile()
 	go db.StartConsumeAffectGuidMap()
+	go db.StartConsumeAffectCiType()
 	go db.StartConsumeUniquePathHandle()
 	if models.PluginRunningMode {
 		go db.StartSyncCoreRole()

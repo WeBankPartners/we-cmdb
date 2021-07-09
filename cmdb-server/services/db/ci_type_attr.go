@@ -57,9 +57,12 @@ func CiAttrCreate(param *models.SysCiTypeAttrTable) error {
 		param.DataLength, _ = strconv.Atoi(param.DataType[strings.Index(param.DataType, "(")+1 : len(param.DataType)-1])
 		param.DataType = tmpDataType
 	}
-	uiFormQuery, _ := x.QueryString("select max(ui_form_order) ui_form_order from sys_ci_type_attr where ci_type=?", param.CiType)
-	if len(uiFormQuery) > 0 {
-		param.UiFormOrder, _ = strconv.Atoi(uiFormQuery[0]["ui_form_order"])
+	if param.UiFormOrder <= 0 {
+		uiFormQuery, _ := x.QueryString("select max(ui_form_order) ui_form_order from sys_ci_type_attr where ci_type=?", param.CiType)
+		if len(uiFormQuery) > 0 {
+			param.UiFormOrder, _ = strconv.Atoi(uiFormQuery[0]["ui_form_order"])
+		}
+		param.UiFormOrder = param.UiFormOrder + 1
 	}
 	if param.Customizable == "" {
 		param.Customizable = "yes"
@@ -123,13 +126,14 @@ func CiAttrCreateByTemplate(ciTypeId, ciTemplateId string) error {
 	return transaction(actions)
 }
 
-func CiAttrUpdate(param *models.SysCiTypeAttrTable) error {
+func CiAttrUpdate(param *models.SysCiTypeAttrTable) (updateAutoFill bool, err error) {
+	updateAutoFill = false
 	ciAttrData, err := getCiAttrById(param.Id)
 	if err != nil {
-		return err
+		return updateAutoFill, err
 	}
 	if ciAttrData.Customizable == "no" {
-		return fmt.Errorf("Attribute:%s is not editable ", param.Id)
+		return updateAutoFill, fmt.Errorf("Attribute:%s is not editable ", param.Id)
 	}
 	if param.EditGroupControl == "" {
 		param.EditGroupControl = "no"
@@ -168,6 +172,11 @@ func CiAttrUpdate(param *models.SysCiTypeAttrTable) error {
 				execParams = append(execParams, param.DataLength)
 			}
 		}
+		if param.AutofillAble == "yes" && param.AutofillType == "forced" {
+			if param.AutofillRule != ciAttrData.AutofillRule {
+				updateAutoFill = true
+			}
+		}
 	}
 	if param.SelectList != "" {
 		extendUpdateColumn += ",select_list=?"
@@ -183,7 +192,7 @@ func CiAttrUpdate(param *models.SysCiTypeAttrTable) error {
 			err = transaction(actions)
 		}
 	}
-	return err
+	return updateAutoFill, err
 }
 
 func CiAttrDelete(ciAttrId string) error {
@@ -250,7 +259,7 @@ func CiAttrSwapPosition(param *models.CiAttrSwapPositionParam, ciTypeId string) 
 	return transaction(updateAction)
 }
 
-func CiAttrApply(ciTypeId, ciAttrId string) error {
+func CiAttrApply(ciTypeId, ciAttrId string, updateAutofill bool) error {
 	ciTypeData, err := GetCiTypeById(ciTypeId)
 	if err != nil {
 		return err
@@ -263,6 +272,9 @@ func CiAttrApply(ciTypeId, ciAttrId string) error {
 		return err
 	}
 	if ciAttrData.Status == "created" {
+		if updateAutofill {
+			affectCiTypeChan <- ciTypeId
+		}
 		return nil
 	}
 	if ciAttrData.RefCiType != "" {
@@ -295,6 +307,7 @@ func CiAttrApply(ciTypeId, ciAttrId string) error {
 	_, updateStatusErr := x.Exec("UPDATE sys_ci_type_attr SET status=? WHERE id=?", ciAttrStatus, ciAttrId)
 	if updateStatusErr != nil {
 		log.Logger.Error("Update ci attr status error", log.String("ciAttrId", ciAttrId), log.Error(err))
+		err = fmt.Errorf("Update ci attr database fail,%s ", updateStatusErr.Error())
 	}
 	return err
 }

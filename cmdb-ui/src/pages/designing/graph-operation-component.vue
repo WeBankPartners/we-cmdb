@@ -432,7 +432,7 @@ export default {
       if (this.tmpHistorySelected.length === 1) {
         this.historyBtnLoading = true
         let rollBackData = normalizeFormData(this.tmpHistorySelected[0])
-        delete rollBackData.update_time
+        // delete rollBackData.update_time
         const resp = await graphCiDataOperation(this.ciType, this.tmpNodeOperation, [rollBackData])
         if (resp.statusCode === 'OK') {
           await this.initNodeData(this.nodeGuid)

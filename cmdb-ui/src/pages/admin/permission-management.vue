@@ -10,7 +10,7 @@
           <Tag
             v-for="item in users"
             :key="item.id"
-            :name="item.displayName"
+            :name="item.userId"
             :color="item.color"
             :checked="item.checked"
             checkable
@@ -349,7 +349,6 @@ export default {
       this.ciTypePermissions = JSON.parse(JSON.stringify(this.cacheOriginCiTypePermission))
     },
     async handleUserTransferChange (newTargetKeys, direction, moveKeys) {
-      console.log(newTargetKeys, direction, moveKeys)
       const params = [
         {
           roleName: this.selectedRole,
