@@ -19,6 +19,9 @@ func ReturnEmptyPageData(c *gin.Context) {
 }
 
 func ReturnData(c *gin.Context, data interface{}) {
+	if data == nil {
+		data = []string{}
+	}
 	c.JSON(http.StatusOK, models.ResponseJson{StatusCode: "OK", Data: data})
 }
 

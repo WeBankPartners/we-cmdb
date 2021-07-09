@@ -421,7 +421,7 @@ func GetCiDataPermissionGuidList(config *models.CiDataPermission, action string)
 				if filter.Expression == "" {
 					continue
 				}
-				filterColumnGuidList, tmpErr := getExpressResultList(filter.Expression, "", make(map[string]string), true)
+				filterColumnGuidList, tmpErr := getConditionExpressResult(filter.Expression, "", make(map[string]string), true)
 				if tmpErr != nil {
 					err = fmt.Errorf("Try to analyze filter expression fail,%s ", tmpErr.Error())
 					break

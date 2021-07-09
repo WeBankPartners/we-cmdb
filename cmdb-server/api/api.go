@@ -124,6 +124,8 @@ func init() {
 		&handlerFuncObj{Url: "/report-flat-struct/:reportId", Method: "GET", HandlerFunc: report.QueryReportFlatStruct},
 		&handlerFuncObj{Url: "/report-data/:reportId", Method: "POST", HandlerFunc: report.QueryReportData},
 		&handlerFuncObj{Url: "/report-objects", Method: "POST", HandlerFunc: report.ModifyReportObject},
+		&handlerFuncObj{Url: "/report-objects/query", Method: "POST", HandlerFunc: report.QueryReportObject},
+		&handlerFuncObj{Url: "/report-objects-attr/query", Method: "POST", HandlerFunc: report.QueryReportAttr},
 	)
 
 }

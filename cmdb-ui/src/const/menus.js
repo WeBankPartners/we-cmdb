@@ -120,5 +120,6 @@ export const MENUS = [
     parent: 'system',
     isActive: 'yes',
     link: '/wecmdb/admin/log-enquiry'
+    // link: '/wecmdb/designing/graph-config'
   }
 ]

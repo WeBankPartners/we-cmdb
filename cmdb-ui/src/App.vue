@@ -48,4 +48,7 @@ html {
 .ivu-table-fixed-body {
   height: auto !important;
 }
+.ivu-form-item {
+  margin-bottom: 8px;
+}
 </style>

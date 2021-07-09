@@ -1127,3 +1127,35 @@ func QueryReportFlatStruct(reportId string) (rowData *models.QueryReport, err er
 	rowData.Object = roData
 	return
 }
+
+func QueryReportObject(param *models.QueryRequestParam) (pageInfo models.PageInfo, rowData []*models.SysReportObjectTable, err error) {
+	rowData = []*models.SysReportObjectTable{}
+	filterSql, queryColumn, queryParam := transFiltersToSQL(param, &models.TransFiltersParam{IsStruct: true, StructObj: models.SysReportObjectTable{}, PrimaryKey: "id"})
+	baseSql := fmt.Sprintf("SELECT %s FROM sys_report_object WHERE 1=1 %s ", queryColumn, filterSql)
+	if param.Paging {
+		pageInfo.StartIndex = param.Pageable.StartIndex
+		pageInfo.PageSize = param.Pageable.PageSize
+		pageInfo.TotalRows = queryCount(baseSql, queryParam...)
+		pageSql, pageParam := transPageInfoToSQL(*param.Pageable)
+		baseSql += pageSql
+		queryParam = append(queryParam, pageParam...)
+	}
+	err = x.SQL(baseSql, queryParam...).Find(&rowData)
+	return
+}
+
+func QueryReportAttr(param *models.QueryRequestParam) (pageInfo models.PageInfo, rowData []*models.SysReportObjectAttrTable, err error) {
+	rowData = []*models.SysReportObjectAttrTable{}
+	filterSql, queryColumn, queryParam := transFiltersToSQL(param, &models.TransFiltersParam{IsStruct: true, StructObj: models.SysReportObjectAttrTable{}, PrimaryKey: "id"})
+	baseSql := fmt.Sprintf("SELECT %s FROM sys_report_object_attr WHERE 1=1 %s ", queryColumn, filterSql)
+	if param.Paging {
+		pageInfo.StartIndex = param.Pageable.StartIndex
+		pageInfo.PageSize = param.Pageable.PageSize
+		pageInfo.TotalRows = queryCount(baseSql, queryParam...)
+		pageSql, pageParam := transPageInfoToSQL(*param.Pageable)
+		baseSql += pageSql
+		queryParam = append(queryParam, pageParam...)
+	}
+	err = x.SQL(baseSql, queryParam...).Find(&rowData)
+	return
+}
