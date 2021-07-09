@@ -7,6 +7,7 @@ export default {
     value: {},
     highlightRow: {},
     ciType: {},
+    ciTypeAttrId: '',
     filterParams: {}
   },
   watch: {
@@ -63,23 +64,13 @@ export default {
     async getAllDataWithoutPaging () {
       const rows = this.filterParams ? JSON.parse(JSON.stringify(this.filterParams.params)) : {}
       const finalData = finalDataForRequest(rows)
-      let noPagingRes = this.filterParams
-        ? await queryReferenceCiData({
-          attrId: this.filterParams.attrId,
-          queryObject: { filters: [], paging: false, dialect: { associatedData: finalData } }
-        })
-        : await queryCiData({
-          id: this.ciType.id,
-          queryObject: {
-            dialect: { queryMode: this.ciDataManagementQueryType },
-            filters: [],
-            paging: false,
-            resultColumns: ['guid', 'key_name', 'description']
-          }
-        })
+      let noPagingRes = await queryReferenceCiData({
+        attrId: this.ciTypeAttrId,
+        queryObject: { filters: [], paging: false, dialect: { associatedData: finalData } }
+      })
       if (noPagingRes.statusCode === 'OK') {
         this.selectDisabled = false
-        this.allTableDataWithoutPaging = this.filterParams ? noPagingRes.data : noPagingRes.data.contents
+        this.allTableDataWithoutPaging = noPagingRes.data
       }
     },
     handleSubmit (data) {

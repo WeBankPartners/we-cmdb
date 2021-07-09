@@ -108,7 +108,7 @@ export default {
       filtersAndResultModal: false,
       showfiltersAndResultModalData: '',
       requestURL: '',
-      MODALHEIGHT: 0
+      MODALHEIGHT: 600
     }
   },
   created () {},
