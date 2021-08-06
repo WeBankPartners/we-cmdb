@@ -9,7 +9,9 @@ import (
 )
 
 func GetRoleCiPermission(c *gin.Context) {
-	query := models.RolePermissionQuery{Role: c.Param("roleId")}
+	roleId := c.Param("roleId")
+	db.AutoCreateRoleCiTypeDataByRole(roleId)
+	query := models.RolePermissionQuery{Role: roleId}
 	err := db.GetRoleCiPermission(&query)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)

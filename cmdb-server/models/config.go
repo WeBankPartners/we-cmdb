@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common-lib/cipher"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common-lib/token"
+	"github.com/WeBankPartners/go-common-lib/cipher"
+	"github.com/WeBankPartners/go-common-lib/token"
 )
 
 type HttpServerConfig struct {
@@ -104,7 +104,11 @@ func InitConfig(configFile string) (errMessage string) {
 		errMessage = "parse file to json fail," + err.Error()
 		return
 	}
-	c.Database.Password = cipher.DecryptRsa(c.Database.Password, c.RsaKeyPath)
+	c.Database.Password, err = cipher.DecryptRsa(c.Database.Password, c.RsaKeyPath)
+	if err != nil {
+		errMessage = "init database password fail,%s " + err.Error()
+		return
+	}
 	Config = &c
 	c.IsPluginMode = strings.ToLower(c.IsPluginMode)
 	if c.IsPluginMode == "yes" || c.IsPluginMode == "y" || c.IsPluginMode == "true" {

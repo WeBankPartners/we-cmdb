@@ -3,7 +3,7 @@ package log
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common-lib/logger"
+	"github.com/WeBankPartners/go-common-lib/logger"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"go.uber.org/zap"
 	"strings"
