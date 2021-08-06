@@ -3,7 +3,7 @@ package ci
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common-lib/guid"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"

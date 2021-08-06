@@ -2,7 +2,7 @@ package db
 
 import (
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common-lib/guid"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"io/ioutil"
@@ -447,7 +447,7 @@ func GetCiTypesReference(ciTypeId string) (result []*models.CiTypeReferenceObj, 
 
 func GetCiTemplate() (rowData []*models.SysCiTemplateTable, err error) {
 	rowData = []*models.SysCiTemplateTable{}
-	err = x.SQL("select * from sys_ci_template").Find(&rowData)
+	err = x.SQL("select t1.id,t1.description ,t1.state_machine,concat(t2.guid,'.',t2.`type`) as image_file from sys_ci_template t1 left join sys_files t2 on t1.image_file=t2.guid").Find(&rowData)
 	return
 }
 
