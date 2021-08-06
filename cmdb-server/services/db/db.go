@@ -82,6 +82,9 @@ func (d *dbLogger) Infof(format string, v ...interface{}) {
 		costMs = costMs / 1000
 	} else if strings.Contains(costTime, "ms") {
 		costMs, _ = strconv.ParseFloat(costTime[:len(costTime)-2], 64)
+	} else if strings.Contains(costTime, "s") && !strings.Contains(costTime, "m") {
+		costMs, _ = strconv.ParseFloat(costTime[:len(costTime)-1], 64)
+		costMs = costMs * 1000
 	} else {
 		costTime = costTime[:len(costTime)-1]
 		mIndex := strings.Index(costTime, "m")

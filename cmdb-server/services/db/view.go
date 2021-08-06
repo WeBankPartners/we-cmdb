@@ -127,3 +127,23 @@ func GetPermissiveViewId(permissions []string, roles []string, hasViewIds []stri
 	}
 	return
 }
+
+func GetRootCiDataWithReportId(reportId string) (ciDataGuidList []string, err error) {
+	ciDataGuidList = []string{}
+	rootReportObjects, queryReportErr := x.QueryString("select ci_type from sys_report_object where report=? and (parent_object is NULL or parent_object='')", reportId)
+	if queryReportErr != nil {
+		err = fmt.Errorf("Try to query report object fail,%s ", queryReportErr.Error())
+		return
+	}
+	for _, rootCi := range rootReportObjects {
+		tmpGuidQuery, tmpErr := x.QueryString("select guid from " + rootCi["ci_type"])
+		if tmpErr != nil {
+			err = fmt.Errorf("Try to query ci:%s data fail,%s ", rootCi["ci_type"], tmpErr.Error())
+			break
+		}
+		for _, tmpGuidObj := range tmpGuidQuery {
+			ciDataGuidList = append(ciDataGuidList, tmpGuidObj["guid"])
+		}
+	}
+	return
+}

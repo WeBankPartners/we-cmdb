@@ -2,7 +2,7 @@ package db
 
 import (
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common-lib/guid"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"strings"
@@ -264,7 +264,7 @@ func getRoleCiTypeByGuid(roleCiType string) (result *models.SysRoleCiTypeTable, 
 	return roleCiTypeTable[0], nil
 }
 
-func AutoCreateRoleCiTypeData(ciTypeId string) {
+func AutoCreateRoleCiTypeDataByCiType(ciTypeId string) {
 	var roleCiTypeTable []*models.SysRoleCiTypeTable
 	err := x.SQL("select guid from sys_role_ci_type where ci_type=?", ciTypeId).Find(&roleCiTypeTable)
 	if err != nil {
@@ -294,6 +294,30 @@ func AutoCreateRoleCiTypeData(ciTypeId string) {
 	}
 	if err = transaction(actions); err != nil {
 		log.Logger.Error("Try to update roleCiType data fail", log.String("ciType", ciTypeId), log.Error(err))
+	}
+}
+
+func AutoCreateRoleCiTypeDataByRole(roleId string) {
+	var ciTypeTable []*models.SysCiTypeTable
+	err := x.SQL("select id from sys_ci_type where status<>'notCreated' and id not in (select ci_type from sys_role_ci_type where role_id=?)", roleId).Find(&ciTypeTable)
+	if err != nil {
+		log.Logger.Error("Try to auto update roleCiType data by roleId fail,query ci_type data error", log.String("roleId", roleId), log.Error(err))
+		return
+	}
+	if len(ciTypeTable) == 0 {
+		return
+	}
+	guidList := guid.CreateGuidList(len(ciTypeTable))
+	var actions []*execAction
+	for i, ciType := range ciTypeTable {
+		if strings.ToLower(roleId) == strings.ToLower(models.AdminUser) {
+			actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type value (?,?,?,'Y','Y','Y','Y','Y')", Param: []interface{}{"role_ci_" + guidList[i], roleId, ciType.Id}})
+		} else {
+			actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type(guid,role_id,ci_type) value (?,?,?)", Param: []interface{}{"role_ci_" + guidList[i], roleId, ciType.Id}})
+		}
+	}
+	if err = transaction(actions); err != nil {
+		log.Logger.Error("Try to update roleCiType data fail", log.String("roleId", roleId), log.Error(err))
 	}
 }
 

@@ -108,6 +108,9 @@ func CiTypesUpdate(c *gin.Context) {
 	}
 	nowImageFileName, err := db.CiTypesUpdate(&param, newImageGuid)
 	if err != nil {
+		if newImageGuid != "" {
+			db.CiTypesImageDelete(newImageGuid, imageFileName)
+		}
 		middleware.ReturnServerHandleError(c, err)
 	} else {
 		if imageFileName != "" {
@@ -171,7 +174,7 @@ func CiTypesApply(c *gin.Context) {
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
-		db.AutoCreateRoleCiTypeData(ciTypeId)
+		db.AutoCreateRoleCiTypeDataByCiType(ciTypeId)
 		middleware.ReturnData(c, models.SysCiTypeTable{Id: param.Id, FileName: nowImageFileName})
 	}
 }

@@ -108,10 +108,18 @@ export default {
   computed: {},
   methods: {
     pushNewAddedRowToSelections (data) {
-      this.selectedRows.push(data)
+      if (this.selectedRows.length === 0) {
+        this.selectedRows.push(data)
+      }
     },
     formatTableData () {
       this.data = this.tableData.map((_, index) => {
+        const keys = Object.keys(_)
+        keys.forEach(key => {
+          if (!['nextOperations'].includes(key) && Array.isArray(_[key])) {
+            _[key] = JSON.stringify(_[key])
+          }
+        })
         let result = {
           ..._,
           isRowEditable: _.forceEdit ? _.isRowEditable : _.isRowEditable && index === 0 ? _.isRowEditable : false,
@@ -659,6 +667,7 @@ export default {
         this.tableDetailInfo.isShow = true
       }
       const getMutiRefdata = async val => {
+        val = JSON.parse(val)
         this.tableDetailInfo.isShow = false
         this.tableDetailInfo.title = this.$t('details')
         this.tableDetailInfo.type = 'array'
@@ -720,7 +729,9 @@ export default {
                   onClick={() => getMutiRefdata(params.row.weTableForm[col.key])}
                 />
               )}
-              {params.row.weTableForm[col.key].map(item => item.key_name).join(', ')}
+              {JSON.parse(params.row.weTableForm[col.key])
+                .map(item => item.key_name)
+                .join(', ')}
             </span>
           )
         }
@@ -814,6 +825,8 @@ export default {
       if (this.modalTitle === this.titles.add) {
         this.selectedRows = []
       }
+      this.$emit('getSelectedRows', [], false)
+      this.$refs.table.selectAll(false)
       this.modalVisible = flag
     },
     resetModalLoading () {

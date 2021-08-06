@@ -69,6 +69,7 @@ type SysCiTemplateTable struct {
 	Id           string `json:"id" xorm:"id"`
 	Description  string `json:"description" xorm:"description"`
 	ImageFile    string `json:"imageFile" xorm:"image_file"`
+	FileName     string `json:"fileName" xorm:"-"`
 	StateMachine string `json:"stateMachine" xorm:"state_machine"`
 }
 

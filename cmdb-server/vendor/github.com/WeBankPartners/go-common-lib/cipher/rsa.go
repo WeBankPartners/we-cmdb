@@ -8,41 +8,40 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math/big"
 	"strings"
 )
 
-func DecryptRsa(inputString, rsaPemPath string) string {
+func DecryptRsa(inputString, rsaPemPath string) (string, error) {
 	if !strings.HasPrefix(strings.ToLower(inputString), "rsa@") {
-		return inputString
+		return inputString, nil
 	}
 	inputString = inputString[4:]
 	result := inputString
 	inputBytes, err := base64.StdEncoding.DecodeString(inputString)
 	if err != nil {
-		log.Printf("Input string format to base64 fail,%s \n", err.Error())
-		return inputString
+		err = fmt.Errorf("Input string format to base64 fail,%s ", err.Error())
+		return inputString, err
 	}
 	fileContent, err := ioutil.ReadFile(rsaPemPath)
 	if err != nil {
-		log.Printf("Read file %s fail,%s \n", rsaPemPath, err.Error())
-		return result
+		err = fmt.Errorf("Read file %s fail,%s ", rsaPemPath, err.Error())
+		return result, err
 	}
 	block, _ := pem.Decode(fileContent)
 	privateKeyInterface, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
-		log.Printf("Parse private key fail,%s \n", err.Error())
-		return result
+		err = fmt.Errorf("Parse private key fail,%s ", err.Error())
+		return result, err
 	}
 	privateKey := privateKeyInterface.(*rsa.PrivateKey)
 	decodeBytes, err := rsa.DecryptPKCS1v15(rand.Reader, privateKey, inputBytes)
 	if err != nil {
-		log.Printf("Decode fail,%s \n", err.Error())
-		return result
+		err = fmt.Errorf("Decode fail,%s ", err.Error())
+		return result, err
 	}
 	result = string(decodeBytes)
-	return result
+	return result, nil
 }
 
 func RSAEncryptByPrivate(orgidata []byte, privatekey string) ([]byte, error) {

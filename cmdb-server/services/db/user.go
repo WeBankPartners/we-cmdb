@@ -3,7 +3,7 @@ package db
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common-lib/cipher"
+	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"strings"

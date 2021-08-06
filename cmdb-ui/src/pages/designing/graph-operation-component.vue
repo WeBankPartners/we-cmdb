@@ -33,20 +33,20 @@
           <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
             <Input
               v-model="nodeData[formData.propertyName]"
-              :disabled="!isEdit || formData.editable === 'no' || !nodeEditable"
+              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
             ></Input>
           </FormItem>
           <FormItem v-if="formData.inputType === 'longText'" class="form-item-content">
             <textarea
               v-model="nodeData[formData.propertyName]"
-              :disabled="isNodeDataDisabled(formData)"
+              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
               class="textArea-style"
             ></textarea>
           </FormItem>
           <FormItem v-if="formData.inputType === 'datetime'" class="form-item-content">
             <DatePicker
               v-model="nodeData[formData.propertyName]"
-              :disabled="isNodeDataDisabled(formData)"
+              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
               type="date"
               placeholder="Select date"
             ></DatePicker>
@@ -55,17 +55,17 @@
             <Ref
               :formData="formData"
               :panalData="nodeData"
-              :disabled="!isEdit || formData.editable === 'no' || !nodeEditable"
+              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
             ></Ref>
           </FormItem>
           <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-            <MutiRef :formData="formData" :panalData="nodeData" :disabled="isNodeDataDisabled(formData)"></MutiRef>
+            <MutiRef :formData="formData" :panalData="nodeData" :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"></MutiRef>
           </FormItem>
           <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
             <WeCMDBCIPassword
               :formData="formData"
               :panalData="nodeData"
-              :disabled="isNodeDataDisabled(formData)"
+              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
             ></WeCMDBCIPassword>
           </FormItem>
           <FormItem v-if="formData.inputType === 'select' && formData.editable == 'yes'" class="form-item-content">
@@ -73,7 +73,7 @@
               v-model="nodeData[formData.propertyName]"
               filterable
               clearable
-              :disabled="isNodeDataDisabled(formData)"
+              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
             >
               <Option
                 v-for="choice in getEnumCode(nodeData[formData.propertyName], formData.selectList)"
@@ -89,7 +89,7 @@
               filterable
               clearable
               multiple
-              :disabled="isNodeDataDisabled(formData)"
+              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
             >
               <Option
                 v-for="choice in getEnumCode(nodeData[formData.propertyName], formData.selectList)"
@@ -103,7 +103,7 @@
             <CMDBJSONConfig
               :inputKey="formData['propertyName']"
               :jsonData="JSON.parse(JSON.stringify(nodeData[formData['propertyName']]) || '{}')"
-              :disabled="isNodeDataDisabled(formData)"
+              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
               @input="onFormJSONInput"
             ></CMDBJSONConfig>
           </FormItem>
@@ -138,34 +138,34 @@
             </div>
           </Tooltip>
           <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-            <Input v-model="childNodeData[formData.propertyName]" :disabled="formData.editable == 'no'"></Input>
+            <Input v-model="childNodeData[formData.propertyName]" :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"></Input>
           </FormItem>
           <FormItem v-if="formData.inputType === 'longText'" class="form-item-content">
             <textarea
               v-model="childNodeData[formData.propertyName]"
-              :disabled="formData.editable == 'no'"
+              :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"
               class="textArea-style"
             ></textarea>
           </FormItem>
           <FormItem v-if="formData.inputType === 'datetime'" class="form-item-content">
             <DatePicker
               v-model="childNodeData[formData.propertyName]"
-              :disabled="formData.editable == 'no'"
+              :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"
               type="date"
               placeholder="Select date"
             ></DatePicker>
           </FormItem>
           <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-            <Ref :formData="formData" :panalData="childNodeData" :disabled="formData.editable == 'no'"></Ref>
+            <Ref :formData="formData" :panalData="childNodeData" :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"></Ref>
           </FormItem>
           <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-            <MutiRef :formData="formData" :panalData="childNodeData" :disabled="formData.editable == 'no'"></MutiRef>
+            <MutiRef :formData="formData" :panalData="childNodeData" :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"></MutiRef>
           </FormItem>
           <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
             <WeCMDBCIPassword
               :formData="formData"
               :panalData="childNodeData"
-              :disabled="formData.editable == 'no'"
+              :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"
             ></WeCMDBCIPassword>
           </FormItem>
           <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
@@ -173,7 +173,7 @@
               v-model="childNodeData[formData.propertyName]"
               filterable
               clearable
-              :disabled="formData.editable == 'no'"
+              :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"
             >
               <Option
                 v-for="choice in getEnumCode(childNodeData[formData.propertyName], formData.selectList)"
@@ -189,7 +189,7 @@
               filterable
               clearable
               multiple
-              :disabled="formData.editable == 'no'"
+              :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"
             >
               <Option
                 v-for="choice in getEnumCode(childNodeData[formData.propertyName], formData.selectList)"
@@ -203,7 +203,7 @@
             <CMDBJSONConfig
               :inputKey="formData['propertyName']"
               :jsonData="JSON.parse(JSON.stringify(childNodeData[formData['propertyName']]) || '{}')"
-              :disabled="formData.editable == 'no'"
+              :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"
               @input="onChildFormJSONInput"
             ></CMDBJSONConfig>
           </FormItem>
@@ -292,13 +292,64 @@ export default {
   mounted () {},
   watch: {},
   methods: {
-    isNodeDataDisabled (formData) {
-      return (
+    isGroupEditDisabled (allAttrs, attr, item) {
+      // console.log('decide if to disable for: ', attr.propertyName)
+      let attrGroupEditDisabled = false
+      if (attr.editGroupControl === 'yes') {
+        if (attr.editGroupValues.length > 0 ) {
+          let groups = JSON.parse(attr.editGroupValues)
+          for (let idx=0; idx < groups.length; idx++) {
+            let group = groups[idx]
+            if (attrGroupEditDisabled) {
+              break
+            }
+            const findAttr = allAttrs.find((el) => {
+              if (el.propertyName === group.key) {
+                return true
+              }
+              return false
+            })
+            if (findAttr && group.value.length > 0 ) {
+              // console.log('    using group attr: ', findAttr.propertyName, ' for edit control, must be in: ', JSON.stringify(group.value))
+              // console.log('    current attr value is: ', JSON.stringify(item[findAttr.propertyName]))
+              if (!item[findAttr.propertyName]) {
+                // 控制字段未赋值，禁用当前字段
+                attrGroupEditDisabled = true
+              } else if (Array.isArray(item[findAttr.propertyName])) {
+                let attrValues = item[findAttr.propertyName]
+                let intersect = attrValues.filter((v) => { return grou.value.indexOf(v) > -1 })
+                // 控制字段是数组且与设置的数据没有交集，禁用当前字段
+                if (intersect.length === 0){
+                  attrGroupEditDisabled = true
+                }
+              } else {
+                // 控制字段是单值且不在分组范围，应当禁用当前字段
+                if (group.value.indexOf(item[findAttr.propertyName]) < 0) {
+                  attrGroupEditDisabled = true
+                }
+              }
+              item[findAttr.propertyName] && group.value
+            }
+          }
+        }
+      }
+      return attrGroupEditDisabled
+    },
+    isNodeDataDisabled (allAttrs, attr, item) {
+      let attrEditDisabled = (
         !this.isEdit ||
-        formData.editable === 'no' ||
-        (formData.autofillable === 'yes' && formData.autoFillType === 'forced') ||
+        attr.editable === 'no' ||
+        (attr.autofillable === 'yes' && attr.autoFillType === 'forced') ||
         !this.nodeEditable
       )
+      return attrEditDisabled || this.isGroupEditDisabled(allAttrs, attr, item)
+    },
+    isNewNodeDisabled (allAttrs, attr, item) {
+      let attrEditDisabled =  (
+        attr.editable === 'no' ||
+        (attr.autofillable === 'yes' && attr.autoFillType === 'forced')
+      )
+      return attrEditDisabled || this.isGroupEditDisabled(allAttrs, attr, item)
     },
     onFormJSONInput (jsonData, key) {
       let copyData = JSON.parse(JSON.stringify(jsonData))
