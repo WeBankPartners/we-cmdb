@@ -176,7 +176,11 @@
           <InputNumber :min="0" v-model="addNewAttrForm.uiSearchOrder"></InputNumber>
         </FormItem>
         <FormItem prop="inputType" :label="$t('data_type')">
-          <Select v-model="addNewAttrForm.inputType" @on-change="onInputTypeChange($event, false)" filterable>
+          <Select
+            v-model="addNewAttrForm.inputType"
+            @on-change="onInputTypeChange($event, 'addNewAttrForm')"
+            filterable
+          >
             <Option v-for="(item, index) in allInputTypes" :value="item.code" :key="item.code + '' + index">{{
               item.code
             }}</Option>
@@ -195,7 +199,7 @@
         <FormItem
           prop="length"
           :label="$t('length')"
-          v-if="['text', 'ref', 'textArea', 'number', 'password'].includes(addNewAttrForm.inputType)"
+          v-if="['text', 'ref', 'textArea', 'number', 'password', 'multiText'].includes(addNewAttrForm.inputType)"
         >
           <InputNumber :min="1" v-model="addNewAttrForm.length"></InputNumber>
         </FormItem>
@@ -485,7 +489,7 @@
                 <Select
                   filterable
                   v-model="editCiAttr.inputType"
-                  @on-change="onInputTypeChange($event, editCiAttr.status !== 'notCreated')"
+                  @on-change="onInputTypeChange($event, 'editCiAttr')"
                   :disabled="
                     editCiAttr.propertyName === 'state' ||
                       editCiAttr.status !== 'notCreated' ||
@@ -510,7 +514,7 @@
               <FormItem
                 prop="length"
                 :label="$t('length')"
-                v-if="['text', 'ref', 'textArea', 'number', 'password'].includes(editCiAttr.inputType)"
+                v-if="['text', 'ref', 'textArea', 'number', 'password', 'multiText'].includes(editCiAttr.inputType)"
               >
                 <InputNumber
                   :min="1"
@@ -725,7 +729,7 @@
               </FormItem>
               <FormItem
                 class="no-need-validation"
-                v-if="['ref', 'multiRef'].includes(editCiAttr.inputType)"
+                v-if="['ref', 'multiRef'].includes(editCiAttr.inputType) && editCiAttr.referenceId !== ''"
                 :label="$t('filter_rule')"
               >
                 <FilterRule
@@ -994,6 +998,9 @@ export default {
         // imageFileId: [{ required: true, message: `${this.$t('icon_is_require')}` }]
       },
       addNewAttrForm: {
+        inputType: 'text',
+        propertyType: 'varchar',
+        length: 64,
         referenceId: '',
         uiSearchOrder: 0,
         editGroupControl: 'no',
@@ -1645,10 +1652,17 @@ export default {
         this.currentciGroup = this.orderGroup()
         this.currentciLayer = this.currentciLayer.length > 0 ? this.currentciLayer : [_ciLayerList.data[0].codeId]
 
+        await this.getAllCITypes()
+        this.newInitGraph()
+      }
+    },
+    async getAllCITypes () {
+      const { statusCode, data } = await getAllCITypesByLayerWithAttr(['notCreated', 'created', 'dirty'])
+      if (statusCode === 'OK') {
         // 初始化自动填充数据
         let allCiTypesWithAttr = []
         let allCiTypesFormatByCiTypeId = {}
-        ciResponse.data.forEach(layer => {
+        data.forEach(layer => {
           layer.ciTypes &&
             layer.ciTypes.forEach(_ => {
               allCiTypesWithAttr.push(_)
@@ -1657,7 +1671,6 @@ export default {
         })
         this.allCiTypesWithAttr = allCiTypesWithAttr
         this.allCiTypesFormatByCiTypeId = allCiTypesFormatByCiTypeId
-        this.newInitGraph()
       }
     },
     async newInitGraph () {
@@ -1881,12 +1894,12 @@ export default {
         return true
       }
     },
-    async onInputTypeChange (value, isDiabled) {
+    async onInputTypeChange (value, type) {
       if (!value) return
       const inputType = this.allInputTypes.find(item => item.code === value)
-      this.addNewAttrForm.propertyType = inputType.value || ''
+      this[type].propertyType = inputType.value || ''
       if (inputType.length) {
-        this.addNewAttrForm.length = inputType.length
+        this[type].length = inputType.length
       }
     },
     loadImage (nodesString) {

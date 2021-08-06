@@ -95,6 +95,33 @@ export const MENUS = [
     link: '/wecmdb/designing/ci-integrated-query-management'
   },
   {
+    code: 'state_machine_configuration',
+    cnName: '状态机配置',
+    enName: 'State Machine Configuration',
+    seqNo: 3,
+    parent: 'configuration',
+    isActive: 'yes',
+    link: '/wecmdb/designing/state-machine'
+  },
+  {
+    code: 'ci_template_configuration',
+    cnName: 'CI模板配置',
+    enName: 'CI Template Configuration',
+    seqNo: 3,
+    parent: 'configuration',
+    isActive: 'yes',
+    link: '/wecmdb/designing/ci-template-configuration'
+  },
+  {
+    code: 'graph_config',
+    cnName: '视图配置',
+    enName: 'Graph Configuration',
+    seqNo: 4,
+    parent: 'configuration',
+    isActive: 'yes',
+    link: '/wecmdb/designing/graph-config'
+  },
+  {
     code: 'system_authority',
     cnName: '授权',
     enName: 'Authority',
@@ -120,6 +147,5 @@ export const MENUS = [
     parent: 'system',
     isActive: 'yes',
     link: '/wecmdb/admin/log-enquiry'
-    // link: '/wecmdb/designing/graph-config'
   }
 ]

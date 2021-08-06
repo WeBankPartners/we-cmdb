@@ -1,56 +1,10 @@
-// Copyright (c) 2011 Florian Weimer. All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-// 
-// * Redistributions of source code must retain the above copyright
-//   notice, this list of conditions and the following disclaimer.
-// 
-// * Redistributions in binary form must reproduce the above copyright
-//   notice, this list of conditions and the following disclaimer in the
-//   documentation and/or other materials provided with the distribution.
-// 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-// This package provides access to the Perl Compatible Regular
-// Expresion library, PCRE.
-//
-// It implements two main types, Regexp and Matcher.  Regexp objects
-// store a compiled regular expression.  They are immutable.
-// Compilation of regular expressions using Compile or MustCompile is
-// slightly expensive, so these objects should be kept and reused,
-// instead of compiling them from scratch for each matching attempt.
-//
-// Matcher objects keeps the results of a match against a []byte or
-// string subject.  The Group and GroupString functions provide access
-// to capture groups; both versions work no matter if the subject was a
-// []byte or string, but the version with the matching type is slightly
-// more efficient.
-//
-// Matcher objects contain some temporary space and refer the original
-// subject.  They are mutable and can be reused (using Match,
-// MatchString, Reset or ResetString).
-//
-// For details on the regular expression language implemented by this
-// package and the flags defined below, see the PCRE documentation.
 package pcre
 
 /*
-#cgo LDFLAGS: -lpcre
-#cgo CFLAGS: -I/opt/local/include
-#include <pcre.h>
-#include <string.h>
+   #cgo LDFLAGS: -lpcre
+   #cgo CFLAGS: -I/opt/local/include
+   #include <pcre.h>
+   #include <string.h>
 */
 import "C"
 
@@ -61,42 +15,42 @@ import (
 
 // Flags for Compile and Match functions.
 const (
-	ANCHORED = C.PCRE_ANCHORED
-	BSR_ANYCRLF = C.PCRE_BSR_ANYCRLF
-	BSR_UNICODE = C.PCRE_BSR_UNICODE
-	NEWLINE_ANY = C.PCRE_NEWLINE_ANY
+	ANCHORED        = C.PCRE_ANCHORED
+	BSR_ANYCRLF     = C.PCRE_BSR_ANYCRLF
+	BSR_UNICODE     = C.PCRE_BSR_UNICODE
+	NEWLINE_ANY     = C.PCRE_NEWLINE_ANY
 	NEWLINE_ANYCRLF = C.PCRE_NEWLINE_ANYCRLF
-	NEWLINE_CR = C.PCRE_NEWLINE_CR
-	NEWLINE_CRLF = C.PCRE_NEWLINE_CRLF
-	NEWLINE_LF = C.PCRE_NEWLINE_LF
-	NO_UTF8_CHECK = C.PCRE_NO_UTF8_CHECK
+	NEWLINE_CR      = C.PCRE_NEWLINE_CR
+	NEWLINE_CRLF    = C.PCRE_NEWLINE_CRLF
+	NEWLINE_LF      = C.PCRE_NEWLINE_LF
+	NO_UTF8_CHECK   = C.PCRE_NO_UTF8_CHECK
 )
 
 // Flags for Compile functions
 const (
-	CASELESS = C.PCRE_CASELESS
-	DOLLAR_ENDONLY = C.PCRE_DOLLAR_ENDONLY
-	DOTALL = C.PCRE_DOTALL
-	DUPNAMES = C.PCRE_DUPNAMES
-	EXTENDED = C.PCRE_EXTENDED
-	EXTRA = C.PCRE_EXTRA
-	FIRSTLINE = C.PCRE_FIRSTLINE
+	CASELESS          = C.PCRE_CASELESS
+	DOLLAR_ENDONLY    = C.PCRE_DOLLAR_ENDONLY
+	DOTALL            = C.PCRE_DOTALL
+	DUPNAMES          = C.PCRE_DUPNAMES
+	EXTENDED          = C.PCRE_EXTENDED
+	EXTRA             = C.PCRE_EXTRA
+	FIRSTLINE         = C.PCRE_FIRSTLINE
 	JAVASCRIPT_COMPAT = C.PCRE_JAVASCRIPT_COMPAT
-	MULTILINE = C.PCRE_MULTILINE
-	NO_AUTO_CAPTURE = C.PCRE_NO_AUTO_CAPTURE
-	UNGREEDY = C.PCRE_UNGREEDY
-	UTF8 = C.PCRE_UTF8
+	MULTILINE         = C.PCRE_MULTILINE
+	NO_AUTO_CAPTURE   = C.PCRE_NO_AUTO_CAPTURE
+	UNGREEDY          = C.PCRE_UNGREEDY
+	UTF8              = C.PCRE_UTF8
 )
 
 // Flags for Match functions
 const (
-	NOTBOL = C.PCRE_NOTBOL 
-	NOTEOL = C.PCRE_NOTEOL
-	NOTEMPTY = C.PCRE_NOTEMPTY
-	NOTEMPTY_ATSTART = C.PCRE_NOTEMPTY_ATSTART
+	NOTBOL            = C.PCRE_NOTBOL
+	NOTEOL            = C.PCRE_NOTEOL
+	NOTEMPTY          = C.PCRE_NOTEMPTY
+	NOTEMPTY_ATSTART  = C.PCRE_NOTEMPTY_ATSTART
 	NO_START_OPTIMIZE = C.PCRE_NO_START_OPTIMIZE
-	PARTIAL_HARD = C.PCRE_PARTIAL_HARD
-	PARTIAL_SOFT = C.PCRE_PARTIAL_SOFT
+	PARTIAL_HARD      = C.PCRE_PARTIAL_HARD
+	PARTIAL_SOFT      = C.PCRE_PARTIAL_SOFT
 )
 
 // A reference to a compiled regular expression.
@@ -138,7 +92,7 @@ func Compile(pattern string, flags int) (Regexp, *CompileError) {
 		return Regexp{}, &CompileError{
 			Pattern: pattern,
 			Message: "NUL byte in pattern",
-			Offset: clen,
+			Offset:  clen,
 		}
 	}
 	var errptr *C.char
@@ -146,9 +100,9 @@ func Compile(pattern string, flags int) (Regexp, *CompileError) {
 	ptr := C.pcre_compile(pattern1, C.int(flags), &errptr, &erroffset, nil)
 	if ptr == nil {
 		return Regexp{}, &CompileError{
-		        Pattern: pattern,
-		        Message: C.GoString(errptr),
-		        Offset: int(erroffset),
+			Pattern: pattern,
+			Message: C.GoString(errptr),
+			Offset:  int(erroffset),
 		}
 	}
 	return toheap(ptr), nil
@@ -175,12 +129,12 @@ func (re Regexp) Groups() int {
 // They can be created by the Matcher and MatcherString functions,
 // or they can be initialized with Reset or ResetString.
 type Matcher struct {
-	re Regexp
-	groups int
-	ovector []C.int		// scratch space for capture offsets
-	matches bool		// last match was successful
-	subjects string // one of these fields is set to record the subject,
-	subjectb []byte // so that Group/GroupString can return slices
+	re       Regexp
+	groups   int
+	ovector  []C.int // scratch space for capture offsets
+	matches  bool    // last match was successful
+	subjects string  // one of these fields is set to record the subject,
+	subjectb []byte  // so that Group/GroupString can return slices
 }
 
 // Returns a new matcher object, with the byte array slice as a
@@ -301,7 +255,7 @@ func (m *Matcher) Groups() int {
 // Match, or MatchString).  Group numbers start at 1.  A capture group
 // can be present and match the empty string.
 func (m *Matcher) Present(group int) bool {
-	return m.ovector[2 * group] >= 0
+	return m.ovector[2*group] >= 0
 }
 
 // Returns the numbered capture group of the last match (performed by
@@ -310,8 +264,8 @@ func (m *Matcher) Present(group int) bool {
 // the first actual capture group is numbered 1.  Capture groups which
 // are not present return a nil slice.
 func (m *Matcher) Group(group int) []byte {
-	start := m.ovector[2 * group]
-	end := m.ovector[2 * group + 1]
+	start := m.ovector[2*group]
+	end := m.ovector[2*group+1]
 	if start >= 0 {
 		if m.subjectb != nil {
 			return m.subjectb[start:end]
@@ -326,8 +280,8 @@ func (m *Matcher) Group(group int) []byte {
 // actual capture group is numbered 1.  Capture groups which are not
 // present return an empty string.
 func (m *Matcher) GroupString(group int) string {
-	start := m.ovector[2 * group]
-	end := m.ovector[2 * group + 1]
+	start := m.ovector[2*group]
+	end := m.ovector[2*group+1]
 	if start >= 0 {
 		if m.subjectb != nil {
 			return string(m.subjectb[start:end])
@@ -386,10 +340,10 @@ func (re Regexp) ReplaceAll(bytes, repl []byte, flags int) []byte {
 	m := re.Matcher(bytes, 0)
 	r := []byte{}
 	for m.Match(bytes, flags) {
-		r = append (append (r, bytes[:m.ovector[0]]...), repl...)
+		r = append(append(r, bytes[:m.ovector[0]]...), repl...)
 		bytes = bytes[m.ovector[1]:]
 	}
-	return append (r, bytes...)
+	return append(r, bytes...)
 }
 
 // A compilation error, as returned by the Compile function.  The
@@ -398,7 +352,7 @@ func (re Regexp) ReplaceAll(bytes, repl []byte, flags int) []byte {
 type CompileError struct {
 	Pattern string
 	Message string
-	Offset int
+	Offset  int
 }
 
 func (e *CompileError) String() string {

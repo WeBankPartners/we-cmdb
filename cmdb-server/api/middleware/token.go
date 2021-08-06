@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common-lib/token"
+	"github.com/WeBankPartners/go-common-lib/token"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
