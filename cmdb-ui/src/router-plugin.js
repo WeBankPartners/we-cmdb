@@ -8,6 +8,7 @@ import wecmdbPermissions from '@/pages/admin/plugin-permission-management'
 import graphManagement from '@/pages/designing/graph-management'
 import graphView from '@/pages/designing/graph-view'
 
+
 const router = [
   {
     path: '/wecmdb/data-mgmt-view',
@@ -30,12 +31,12 @@ const router = [
     component: enums
   },
   {
-    path: '/wecmdb/designing/enum-management',
+    path: '/wecmdb/enum-management',
     name: 'enumManage',
     component: enums
   },
   {
-    path: '/wecmdb/designing/enum-enquiry',
+    path: '/wecmdb/enum-enquiry',
     name: 'enumEnquiry',
     component: enums
   },
@@ -66,7 +67,7 @@ const router = [
   },
   // cmdb权限控制
   {
-    path: '/wecmdb/admin/permission-management',
+    path: '/wecmdb/permission-management',
     name: 'wecmdbPermissions',
     component: wecmdbPermissions
   }

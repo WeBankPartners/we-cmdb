@@ -46,11 +46,21 @@ type SysStateMachineTable struct {
 }
 
 type GetStateMachineList struct {
-	Id          string           `json:"id" xorm:"id"`
-	Description string           `json:"description" xorm:"description"`
-	StartState  string           `json:"startState" xorm:"start_state"`
-	FinalState  string           `json:"finalState" xorm:"final_state"`
-	States      []*SysStateTable `json:"states" json:"states"`
+	Id          string                     `json:"id" xorm:"id"`
+	Description string                     `json:"description" xorm:"description"`
+	StartState  string                     `json:"startState" xorm:"start_state"`
+	FinalState  string                     `json:"finalState" xorm:"final_state"`
+	States      []*SysStateTable           `json:"states"`
+	Transitions []*SysStateTransitionTable `json:"transitions"`
+}
+
+type ImportStateMachineResult struct {
+	DiffFlag       bool                       `json:"diff_flag"`
+	StateMachine   *SysStateMachineTable      `json:"state_machine"`
+	OldStates      []*SysStateTable           `json:"old_states"`
+	NewStates      []*SysStateTable           `json:"new_states"`
+	OldTransitions []*SysStateTransitionTable `json:"old_transitions"`
+	NewTransitions []*SysStateTransitionTable `json:"new_transitions"`
 }
 
 type SysStateTable struct {
@@ -69,6 +79,7 @@ type SysStateTransitionTable struct {
 	TargetState       string `json:"targetState" xorm:"target_state"`
 	Operation         string `json:"operation" xorm:"operation"`
 	OperationEn       string `json:"operation_en" xorm:"operation_en"`
+	Permission        string `json:"permission" xorm:"permission"`
 	Action            string `json:"action" xorm:"action"`
 	OperationFormType string `json:"operationFormType" xorm:"operation_form_type"`
 	OperationMultiple string `json:"operationMultiple" xorm:"operation_multiple"`

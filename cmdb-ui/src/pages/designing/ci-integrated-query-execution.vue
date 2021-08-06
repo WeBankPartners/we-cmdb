@@ -1,7 +1,7 @@
 <template>
   <div>
     <Row>
-      <Col span="10">
+      <Col span="6">
         <span style="margin-right: 10px">{{ $t('report') }}</span>
         <Select
           v-model="currentReportId"
@@ -12,41 +12,70 @@
         >
           <Option v-for="item in reportList" :value="item.id" :key="item.id">{{ item.name }}</Option>
         </Select>
-        <Button type="primary" :disabled="filters.length === 0" @click="getReportData">{{ $t('query') }}</Button>
       </Col>
+      <Col span="6">
+        <span style="margin-right: 10px">{{ $t('display_type') }}</span>
+        <Select v-model="displayType" style="width: 75%;">
+          <Option v-for="item in ['table', 'tree']" :value="item" :key="item">{{ item }}</Option>
+        </Select>
+      </Col>
+      <Button type="primary" :disabled="filters.length === 0" v-if="displayType !== 'table'" @click="getReportData">{{
+        $t('query')
+      }}</Button>
     </Row>
-    <Row v-if="filters.length > 0" style="margin: 16px 0">
-      <span v-for="(filter, index) in filters" :key="index" class="report-filter">
-        <Button size="small" @click="openFilter(index)">{{ filter.key }}</Button>
-        <template v-if="filter.isOpen">
-          <Form :label-width="100" :key="index">
-            <template v-for="attrss in filter.params">
-              <FormItem
-                v-if="attrss.querialbe === 'yes'"
-                :label="attrss.dataTitleName"
-                style="display:inline-block;margin-bottom:0"
-                :key="attrss.id"
-              >
-                <Input v-model="attrss.value" style="width:150px"></Input>
-              </FormItem>
+    <template v-if="displayType === 'table'">
+      <Row v-if="filters.length > 0 && displayType === 'table'" style="margin: 16px 0">
+        <span v-for="(filter, index) in filters" :key="index" class="report-filter">
+          <Button
+            size="small"
+            :style="{ color: filter.isOpen ? '#2d8cf0' : '', 'border-color': filter.isOpen ? '#2d8cf0' : '' }"
+            @click="openFilter(index)"
+            >{{ filter.key }}</Button
+          >
+        </span>
+      </Row>
+      <Row v-if="filters.length > 0 && displayType === 'table'" style="margin: 16px 0">
+        <Form :label-width="200">
+          <span v-for="(filter, index) in filters" :key="index" class="report-filter">
+            <template v-if="filter.isOpen">
+              <template v-for="attrss in filter.params">
+                <FormItem
+                  v-if="attrss.querialbe === 'yes'"
+                  :label="filter.key + '.' + attrss.dataTitleName"
+                  style="display:inline-block;margin-bottom:0"
+                  :key="attrss.id"
+                >
+                  <Input v-model="attrss.value" style="width:150px"></Input>
+                </FormItem>
+              </template>
             </template>
-          </Form>
-        </template>
-      </span>
-    </Row>
-    <Row v-if="hasTableData">
-      <Button type="success" @click="ShowMessage" icon="ios-eye">{{ $t('show_message') }}</Button>
-      <Table :columns="tableColumns" :data="tableData" border height="500"></Table>
-      <Page
-        :total="payload.pageable.total"
-        :page-size="payload.pageable.pageSize"
-        @on-page-size-change="changePageSize"
-        :current="payload.pageable.current"
-        @on-change="changePage"
-        show-sizer
-        show-total
-      />
-    </Row>
+          </span>
+          <Button type="primary" :disabled="filters.length === 0" @click="getReportData">{{ $t('query') }}</Button>
+        </Form>
+      </Row>
+      <Row v-if="hasTableData">
+        <Button type="success" @click="ShowMessage" icon="ios-eye">{{ $t('show_message') }}</Button>
+        <Table :columns="tableColumns" :data="tableData" border height="500"></Table>
+        <Page
+          :total="payload.pageable.total"
+          :page-size="payload.pageable.pageSize"
+          @on-page-size-change="changePageSize"
+          :current="payload.pageable.current"
+          @on-change="changePage"
+          show-sizer
+          show-total
+        />
+      </Row>
+    </template>
+    <template v-else>
+      <Tabs :value="treeSet[0].code" v-if="showTab">
+        <TabPane v-for="tree in treeSet" :label="tree.code" :name="tree.code" :key="tree.code">
+          <div :style="{ height: MODALHEIGHT + 'px', overflow: 'auto' }">
+            <Tree :data="[tree]" @on-select-change="selectChange" :render="renderContent" expand-node></Tree>
+          </div>
+        </TabPane>
+      </Tabs>
+    </template>
     <Modal v-model="showRowData" :title="$t('basic_data')" width="700" footer-hide>
       <div :style="{ maxHeight: MODALHEIGHT + 'px', maxWidth: '700px', overflow: 'auto' }">
         <pre>{{ rowData }}</pre>
@@ -71,15 +100,52 @@
         </Row>
       </div>
     </Modal>
+    <Modal v-model="dataDetail.isShow" :fullscreen="fullscreen" width="800" footer-hide>
+      <p slot="header">
+        <span>Detail</span>
+        <Icon
+          v-if="!fullscreen"
+          @click="fullscreen = true"
+          style="float: right;margin: 3px 40px 0 0 !important;"
+          type="ios-expand"
+        />
+        <Icon
+          v-else
+          @click="fullscreen = false"
+          style="float: right;margin: 3px 40px 0 0 !important;"
+          type="ios-contract"
+        />
+      </p>
+      <div :style="{ overflow: 'auto', 'max-height': fullscreen ? '' : '500px' }">
+        <pre>{{ dataDetail.data }}</pre>
+      </div>
+    </Modal>
   </div>
 </template>
 
 <script>
-import { getReportListByPermission, getReportData, getReportFilterData } from '@/api/server'
+import {
+  getReportListByPermission,
+  getReportData,
+  queryCiData,
+  getReportFilterData,
+  graphQueryRootCI,
+  getReportStruct
+} from '@/api/server'
 export default {
   components: {},
   data () {
     return {
+      MODALHEIGHT: 500,
+      fullscreen: false,
+      dataDetail: {
+        isShow: false,
+        data: {}
+      },
+      showTab: false,
+      displayType: 'tree',
+      strcData: [],
+      treeSet: [],
       currentReportId: '',
       reportList: [],
       filters: [],
@@ -107,15 +173,159 @@ export default {
       rowData: '',
       filtersAndResultModal: false,
       showfiltersAndResultModalData: '',
-      requestURL: '',
-      MODALHEIGHT: 600
+      requestURL: ''
+      // MODALHEIGHT: 600
     }
   },
   created () {},
   mounted () {
-    this.MODALHEIGHT = window.MODALHEIGHT
+    this.MODALHEIGHT = document.body.scrollHeight - 200
   },
   methods: {
+    renderContent (h, { root, node, data }) {
+      return h(
+        'span',
+        {
+          style: {
+            display: 'inline-block',
+            width: '100%'
+          }
+        },
+        [
+          h('span', [h('span', data.title)]),
+          h(
+            'span',
+            {
+              style: {
+                display: 'inline-block',
+                float: 'right',
+                marginRight: '32px'
+              }
+            },
+            [
+              h('Button', {
+                props: Object.assign({}, this.buttonProps, {
+                  icon: 'ios-search-outline',
+                  size: 'small',
+                  color: '#57a3f3'
+                }),
+                style: {
+                  marginLeft: '8px'
+                },
+                on: {
+                  click: () => {
+                    this.showDetail(data)
+                  }
+                }
+              })
+            ]
+          )
+        ]
+      )
+    },
+    async showDetail (item) {
+      const payload = {
+        id: item.guid.substring(0, item.guid.length - 17),
+        queryObject: {
+          dialect: { queryMode: 'new' },
+          filters: [{ name: 'guid', operator: 'eq', value: item.guid }],
+          paging: false,
+          sorting: {}
+        }
+      }
+      const { data, statusCode } = await queryCiData(payload)
+      if (statusCode === 'OK') {
+        this.dataDetail.data = ''
+        this.dataDetail.isShow = true
+        this.dataDetail.data = data.contents
+      }
+    },
+    async displayTree () {
+      await this.getStrc()
+      this.getData()
+    },
+    selectChange (a, b) {
+      console.log(a, b)
+      b.expand = !b.expand
+    },
+    async getData () {
+      let params = {
+        reportId: this.currentReportId
+      }
+      const { statusCode, data } = await graphQueryRootCI(params)
+      if (statusCode === 'OK') {
+        data.forEach(d => {
+          this.treeSet.push(d)
+          this.treeSet.forEach(tree => {
+            this.singleTree(tree)
+          })
+        })
+        this.showTab = true
+      }
+    },
+    singleTree (tree) {
+      tree.title = tree.key_name
+      tree.expand = tree.true
+      const keys = Object.keys(tree)
+      let tmp = []
+      keys.forEach(key => {
+        if (Array.isArray(tree[key])) {
+          const find = this.strcData.find(item => item === key + '*-*' + 'parent')
+          if (find) {
+            let tmpChildren = tree[key]
+            tmpChildren.forEach(t => {
+              t.parent = key
+            })
+            tmp = tmp.concat(tmpChildren)
+          }
+        }
+      })
+      tree.children = tmp
+      this.managementData(tree.children)
+    },
+    managementData (children) {
+      children.forEach(child => {
+        child.title = child.key_name
+        child.expand = true
+        const keys = Object.keys(child)
+        let tmp = []
+        keys.forEach(key => {
+          if (Array.isArray(child[key])) {
+            const find = this.strcData.find(item => item === child.parent + '*-*' + key)
+            if (find) {
+              let tmpChildren = child[key]
+              tmpChildren.forEach(t => {
+                t.parent = key
+              })
+              tmp = tmp.concat(tmpChildren)
+            }
+          }
+        })
+        child.children = tmp
+        this.managementData(child.children)
+      })
+    },
+    async getStrc () {
+      const { statusCode, data } = await getReportStruct(this.currentReportId)
+      if (statusCode === 'OK') {
+        const oriData = data.object[0].object
+        oriData.forEach(ori => {
+          this.strcData.push(ori.dataName + '*-*' + 'parent')
+        })
+        this.returnPath(oriData)
+      }
+    },
+    returnPath (data) {
+      data.map(d => {
+        if (d.object.length > 0) {
+          d.object.forEach(obj => {
+            this.strcData.push(d.dataName + '*-*' + obj.dataName)
+            obj.parent = d.dataName
+          })
+          this.returnPath(d.object)
+        }
+      })
+    },
     changeReport () {
       this.filters = []
       this.tableData = []
@@ -218,6 +428,10 @@ export default {
       this.getReportData(false)
     },
     async getReportData (tag = true) {
+      if (this.displayType !== 'table') {
+        this.displayTree()
+        return
+      }
       this.payload.filters = []
       this.filters.forEach(filter => {
         filter.params &&
@@ -225,7 +439,7 @@ export default {
             if (p.value !== '') {
               this.payload.filters.push({
                 name: p.id,
-                operator: 'eq',
+                operator: 'contains',
                 value: p.value
               })
             }

@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -15,6 +16,8 @@ var (
 	passwordLength = 12
 	digitalBytes   = []byte("0123456789")
 	lettersBytes   = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	DEFALT_CIPHER  = "CIPHER_A"
+	CIPHER_MAP     = map[string]string{"CIPHER_A": "{cipher_a}"}
 )
 
 func Md5Encode(rawData string) string {
@@ -102,6 +105,46 @@ func AesEnPassword(seed, password string) (string, error) {
 
 func AesDePassword(seed, password string) (string, error) {
 	md5sum := Md5Encode(seed)
+	dePassword, err := AesDecode(md5sum[0:16], password)
+	if err != nil {
+		return "", err
+	}
+	return dePassword, nil
+}
+
+func AesEnPasswordByGuid(guid, seed, password, cipher string) (string, error) {
+	if seed == "" {
+		return password, nil
+	}
+	for _, _cipher := range CIPHER_MAP {
+		if strings.HasPrefix(password, _cipher) {
+			return password, nil
+		}
+	}
+	if cipher == "" {
+		cipher = DEFALT_CIPHER
+	}
+	md5sum := Md5Encode(guid + seed)
+	enPassword, err := AesEncode(md5sum[0:16], password)
+	if err != nil {
+		return "", err
+	}
+	return CIPHER_MAP[cipher] + enPassword, nil
+}
+
+func AesDePasswordByGuid(guid, seed, password string) (string, error) {
+	var cipher string
+	for _, _cipher := range CIPHER_MAP {
+		if strings.HasPrefix(password, _cipher) {
+			cipher = _cipher
+			break
+		}
+	}
+	if cipher == "" {
+		return password, nil
+	}
+	password = password[len(cipher):]
+	md5sum := Md5Encode(guid + seed)
 	dePassword, err := AesDecode(md5sum[0:16], password)
 	if err != nil {
 		return "", err

@@ -101,7 +101,7 @@ func BaseKeyCodeUpdate(params []*models.BaseKeyCodeCreateObj) (rowData []*models
 	for i, param := range params {
 		var execErr error
 		if param.Status != "" {
-			_, execErr = x.Exec("UPDATE sys_basekey_code SET value=?,status=?,description=? WHERE id=? ", param.Value, param.Status, param.Description, param.CodeId)
+			_, execErr = x.Exec("UPDATE sys_basekey_code SET code=?,value=?,status=?,description=? WHERE id=? ", param.Code, param.Value, param.Status, param.Description, param.CodeId)
 		} else {
 			_, execErr = x.Exec("UPDATE sys_basekey_code SET code=?,value=? WHERE id=? ", param.Code, param.Value, param.CodeId)
 		}

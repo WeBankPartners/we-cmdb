@@ -544,7 +544,7 @@ export default {
           let emptyRowData = {}
           ci.tableColumns.forEach(_ => {
             if (_.inputType === 'multiSelect' || _.inputType === 'multiRef') {
-              emptyRowData[_.inputKey] = []
+              emptyRowData[_.inputKey] = '[]'
             } else {
               emptyRowData[_.inputKey] = ''
             }
@@ -636,7 +636,7 @@ export default {
             let emptyRowData = {}
             ci.tableColumns.forEach(_ => {
               if (_.inputType === 'multiSelect' || _.inputType === 'multiRef') {
-                emptyRowData[_.inputKey] = []
+                emptyRowData[_.inputKey] = '[]'
               } else {
                 emptyRowData[_.inputKey] = ''
               }
@@ -645,6 +645,7 @@ export default {
             emptyRowData['isNewAddedRow'] = true
             emptyRowData['weTableRowId'] = 1
             emptyRowData['nextOperations'] = []
+            console.log(emptyRowData)
             this.$refs[this.tableRef][0].pushNewAddedRowToSelections(emptyRowData)
             this.$refs[this.tableRef][0].showAddModal()
           }

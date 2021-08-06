@@ -36,54 +36,78 @@ export const INPUT_TYPE_CONFIG = [
   {
     code: 'text',
     value: 'varchar',
-    length: 64
+    length: 255
+  },
+  {
+    code: 'multiText',
+    value: 'varchar',
+    length: 1024
+  },
+  {
+    code: 'multiInt',
+    value: 'varchar',
+    length: 255
+  },
+  {
+    code: 'multiObject',
+    value: 'text',
+    length: 0
   },
   {
     code: 'longText',
-    value: 'text'
+    value: 'text',
+    length: 0
   },
   {
     code: 'int',
-    value: 'int'
+    value: 'int',
+    length: 64
   },
   {
     code: 'datetime',
-    value: 'datetime'
+    value: 'datetime',
+    length: 0
   },
   {
     codeId: 'ref',
     code: 'ref',
     value: 'varchar',
-    length: 64
+    length: 255
   },
   {
     code: 'multiRef',
-    value: 'table'
+    value: 'table',
+    length: 0
   },
   {
     codeId: 'select',
     code: 'select',
     value: 'varchar',
-    length: 64
+    length: 1024
   },
   {
     code: 'multiSelect',
-    value: 'text'
+    value: 'text',
+    length: 64
   },
   {
     code: 'autofillRule',
-    value: 'text'
+    value: 'text',
+    length: 0
   },
   {
     code: 'password',
-    value: 'varchar(1024)'
+    value: 'varchar(1024)',
+    length: 64
   },
   {
     code: 'object',
-    value: 'text'
+    value: 'text',
+    length: 0
   },
   {
     code: 'richText',
-    value: 'text'
+    value: 'text',
+    length: 0
   }
 ]

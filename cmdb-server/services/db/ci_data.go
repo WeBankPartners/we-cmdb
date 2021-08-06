@@ -3,321 +3,15 @@ package db
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common-lib/guid"
+	"github.com/WeBankPartners/go-common-lib/guid"
+	"github.com/WeBankPartners/go-common-lib/pcre"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
-	"github.com/glenn-brown/golang-pkg-pcre/src/pkg/pcre"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 )
-
-func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *models.CiDataLegalGuidList, fromCore bool) (pageInfo models.PageInfo, rowData []map[string]interface{}, err error) {
-	ciAttrs, err := GetCiAttrByCiType(ciType, true)
-	if err != nil {
-		err = fmt.Errorf("Try to get ci attribute with ciType:%s error,%s ", ciType, err.Error())
-		return
-	}
-	var keyMap = make(map[string]string)
-	var refAttrs, multiRefAttrs, objectAttrs, passwordAttrs []*models.CiDataQueryRefAttrObj
-	resultColumns := models.CiQueryColumnList{}
-	for _, attr := range ciAttrs {
-		if attr.InputType != models.MultiRefType {
-			keyMap[attr.Name] = attr.Name
-		}
-		if attr.Name == "guid" {
-			continue
-		}
-		columnEnable := false
-		if len(param.ResultColumns) == 0 {
-			resultColumns = append(resultColumns, &models.CiQueryColumnObj{Name: attr.Name, Index: attr.UiFormOrder})
-			columnEnable = true
-		} else {
-			for _, tmpColumn := range param.ResultColumns {
-				if tmpColumn == attr.Name {
-					resultColumns = append(resultColumns, &models.CiQueryColumnObj{Name: attr.Name, Index: attr.UiFormOrder})
-					columnEnable = true
-					break
-				}
-			}
-		}
-		if columnEnable {
-			if attr.InputType == models.MultiRefType {
-				multiRefAttrs = append(multiRefAttrs, &models.CiDataQueryRefAttrObj{Attribute: attr})
-				continue
-			}
-			if attr.RefCiType != "" {
-				refAttrs = append(refAttrs, &models.CiDataQueryRefAttrObj{Attribute: attr})
-			} else if attr.InputType == "object" {
-				objectAttrs = append(objectAttrs, &models.CiDataQueryRefAttrObj{Attribute: attr})
-			} else if attr.InputType == "password" {
-				passwordAttrs = append(passwordAttrs, &models.CiDataQueryRefAttrObj{Attribute: attr})
-			}
-		}
-	}
-	keyMap["history_state_confirmed"] = "history_state_confirmed"
-	param.ResultColumns = append([]string{"guid"}, resultColumns.GetNameList()...)
-	filterSql, queryColumn, queryParam := transFiltersToSQL(param, &models.TransFiltersParam{IsStruct: false, KeyMap: keyMap, PrimaryKey: "guid", Prefix: "tt"})
-	var baseSql string
-	if !permission.Enable {
-		filterSql += " and tt.guid in ('" + strings.Join(permission.GuidList, "','") + "') "
-	}
-	historyFlag := false
-	if param.Dialect == nil {
-		param.Dialect = &models.QueryRequestDialect{QueryMode: "new"}
-	}
-	if param.Dialect.QueryMode == "new" {
-		baseSql = fmt.Sprintf("SELECT %s FROM %s tt WHERE 1=1 %s ", queryColumn, ciType, filterSql)
-	} else if param.Dialect.QueryMode == "all" {
-		historyFlag = true
-		if queryColumn != " * " {
-			queryColumn += ",tt.history_action,tt.history_state_confirmed,tt.history_time,tt.id"
-		}
-		baseSql = fmt.Sprintf("SELECT %s FROM %s%s tt WHERE 1=1 %s ", queryColumn, HistoryTablePrefix, ciType, filterSql)
-	} else if param.Dialect.QueryMode == "real" {
-		historyFlag = true
-		if queryColumn != " * " {
-			queryColumn += ",tt.history_action,tt.history_state_confirmed,tt.history_time,tt.id"
-		}
-		//filterSql += " and tt.history_state_confirmed=1 "
-		subBaseSql := fmt.Sprintf("select * from %s%s where id in (select max(id) from %s%s where history_state_confirmed=1 and guid in (select guid from %s) group by guid)",
-			HistoryTablePrefix, ciType, HistoryTablePrefix, ciType, ciType)
-		baseSql = fmt.Sprintf("SELECT %s FROM (%s) tt WHERE 1=1 %s ", queryColumn, subBaseSql, filterSql)
-	} else {
-		baseSql = fmt.Sprintf("SELECT %s FROM %s tt WHERE 1=1 %s ", queryColumn, ciType, filterSql)
-	}
-	if param.Paging {
-		pageInfo.StartIndex = param.Pageable.StartIndex
-		pageInfo.PageSize = param.Pageable.PageSize
-		pageInfo.TotalRows = queryCount(baseSql, queryParam...)
-		pageSql, pageParam := transPageInfoToSQL(*param.Pageable)
-		baseSql += pageSql
-		queryParam = append(queryParam, pageParam...)
-	}
-	queryParam = append([]interface{}{baseSql}, queryParam...)
-	queryRowData, queryErr := x.QueryString(queryParam...)
-	if queryErr != nil {
-		err = fmt.Errorf("Query database fail,%s ", queryErr.Error())
-		return
-	}
-	if len(queryRowData) == 0 {
-		return
-	}
-	transData, transErr := GetStateTransitionByCiType(ciType, false)
-	if transErr != nil {
-		err = transErr
-		return
-	}
-	var transStateMap = make(map[string][]string)
-	for _, transRow := range transData {
-		tmpState := transRow.CurrentState[len(transRow.StateMachine)+2:]
-		if _, b := transStateMap[tmpState]; b {
-			existFlag := false
-			for _, v := range transStateMap[tmpState] {
-				if v == transRow.OperationEn {
-					existFlag = true
-					break
-				}
-			}
-			if !existFlag {
-				transStateMap[tmpState] = append(transStateMap[tmpState], transRow.OperationEn)
-			}
-		} else {
-			transStateMap[tmpState] = []string{transRow.OperationEn}
-		}
-	}
-	for _, row := range queryRowData {
-		tmpMapObj := make(map[string]interface{})
-		for k, v := range row {
-			tmpMapObj[k] = v
-		}
-		if mapV, b := transStateMap[row["state"]]; b {
-			tmpMapObj["nextOperations"] = mapV
-		} else {
-			tmpMapObj["nextOperations"] = []string{}
-		}
-		rowData = append(rowData, tmpMapObj)
-	}
-	if len(refAttrs) > 0 && !fromCore {
-		if historyFlag {
-			err = fetchRefAttrHistoryData(rowData, refAttrs)
-		} else {
-			err = fetchRefAttrData(rowData, refAttrs)
-		}
-		if err != nil {
-			return
-		}
-		for i, row := range rowData {
-			for _, refAttr := range refAttrs {
-				if historyFlag {
-					rowData[i][refAttr.Attribute.Name] = refAttr.RefObj[fmt.Sprintf("%s^%s", rowData[i][refAttr.Attribute.Name], rowData[i]["history_time"])]
-				} else {
-					rowData[i][refAttr.Attribute.Name] = refAttr.RefObj[row[refAttr.Attribute.Name].(string)]
-				}
-			}
-		}
-	}
-	if len(multiRefAttrs) > 0 {
-		err = fetchMultiRefAttrData(rowData, multiRefAttrs, historyFlag)
-		if err != nil {
-			return
-		}
-		for i, row := range rowData {
-			for _, refAttr := range multiRefAttrs {
-				rowGuidString := row["guid"].(string)
-				if _, b := refAttr.MultiRefObj[rowGuidString]; b {
-					if fromCore {
-						tmpRefGuidList := []string{}
-						for _, tmpRefObj := range refAttr.MultiRefObj[rowGuidString] {
-							tmpRefGuidList = append(tmpRefGuidList, tmpRefObj.Guid)
-						}
-						rowData[i][refAttr.Attribute.Name] = tmpRefGuidList
-					} else {
-						rowData[i][refAttr.Attribute.Name] = refAttr.MultiRefObj[rowGuidString]
-					}
-				} else {
-					rowData[i][refAttr.Attribute.Name] = []*models.CiDataRefDataObj{}
-				}
-			}
-		}
-	}
-	if len(objectAttrs) > 0 {
-		for _, row := range rowData {
-			for _, objAttr := range objectAttrs {
-				if row[objAttr.Attribute.Name] == nil {
-					continue
-				}
-				tmpRowStringValue := row[objAttr.Attribute.Name].(string)
-				if tmpRowStringValue != "" {
-					tmpObj, tmpErr := jsonUnmarshalColumnValue(tmpRowStringValue)
-					if tmpErr != nil {
-						row[objAttr.Attribute.Name] = models.CiDataObjectErrOutput{Error: tmpErr.Error(), Content: tmpRowStringValue}
-						//err = fmt.Errorf("Try to json unmarshal column:%s value:%s fail,%s ", objAttr.Attribute.Name, row[objAttr.Attribute.Name], tmpErr.Error())
-						//break
-					} else {
-						row[objAttr.Attribute.Name] = tmpObj
-					}
-				}
-			}
-			//if err != nil {
-			//	break
-			//}
-		}
-	}
-	if len(passwordAttrs) > 0 && !fromCore {
-		for _, row := range rowData {
-			for _, pwdAttr := range passwordAttrs {
-				row[pwdAttr.Attribute.Name] = models.PasswordDisplay
-			}
-		}
-	}
-	return
-}
-
-func jsonUnmarshalColumnValue(input string) (result interface{}, err error) {
-	if strings.Contains(input, models.SEPERATOR) {
-		input = strings.ReplaceAll(input, models.SEPERATOR, "\\u0001")
-	}
-	var mapObj = make(map[string]interface{})
-	var listMapObj []map[string]interface{}
-	err = json.Unmarshal([]byte(input), &mapObj)
-	if err != nil {
-		err = json.Unmarshal([]byte(input), &listMapObj)
-		if err != nil {
-			return nil, err
-		} else {
-			return listMapObj, nil
-		}
-	} else {
-		return mapObj, nil
-	}
-}
-
-func fetchRefAttrData(rowData []map[string]interface{}, refAttrs []*models.CiDataQueryRefAttrObj) error {
-	var err error
-	for _, row := range rowData {
-		for _, refAttr := range refAttrs {
-			refAttr.GuidList = append(refAttr.GuidList, row[refAttr.Attribute.Name].(string))
-		}
-	}
-	for _, refAttr := range refAttrs {
-		refRowDatas := []*models.CiDataRefDataObj{}
-		tmpErr := x.SQL(fmt.Sprintf("select guid,key_name from %s where guid in ('%s')", refAttr.Attribute.RefCiType, strings.Join(refAttr.GuidList, "','"))).Find(&refRowDatas)
-		if tmpErr != nil {
-			err = fmt.Errorf("Try to query ref attr:%s refCiType:%s fail,%s ", refAttr.Attribute.Name, refAttr.Attribute.RefCiType, tmpErr.Error())
-			break
-		}
-		refRowMap := make(map[string]*models.CiDataRefDataObj)
-		for _, refRow := range refRowDatas {
-			refRowMap[refRow.Guid] = refRow
-		}
-		refAttr.RefObj = refRowMap
-	}
-	return err
-}
-
-func fetchRefAttrHistoryData(rowData []map[string]interface{}, refAttrs []*models.CiDataQueryRefAttrObj) error {
-	var err error
-	for _, row := range rowData {
-		for _, refAttr := range refAttrs {
-			refAttr.GuidList = append(refAttr.GuidList, row[refAttr.Attribute.Name].(string))
-			refAttr.HistoryGuidList = append(refAttr.HistoryGuidList, &models.HistoryGuidObj{Guid: row[refAttr.Attribute.Name].(string), HistoryTime: row["history_time"].(string)})
-		}
-	}
-	for _, refAttr := range refAttrs {
-		refRowDatas := []*models.CiDataRefDataObj{}
-		tmpErr := x.SQL(fmt.Sprintf("select guid,key_name,history_time from %s%s where guid in ('%s') order by guid,history_time", HistoryTablePrefix, refAttr.Attribute.RefCiType, strings.Join(refAttr.GuidList, "','"))).Find(&refRowDatas)
-		if tmpErr != nil {
-			err = fmt.Errorf("Try to query ref attr:%s refCiType:%s fail,%s ", refAttr.Attribute.Name, refAttr.Attribute.RefCiType, tmpErr.Error())
-			break
-		}
-		refRowMap := make(map[string]*models.CiDataRefDataObj)
-		for _, historyGuid := range refAttr.HistoryGuidList {
-			tmpFetchData := models.CiDataRefDataObj{HistoryTime: ""}
-			for _, refRow := range refRowDatas {
-				if historyGuid.Guid != refRow.Guid {
-					continue
-				}
-				if refRow.HistoryTime > historyGuid.HistoryTime {
-					break
-				}
-				if refRow.HistoryTime > tmpFetchData.HistoryTime {
-					tmpFetchData = *refRow
-				}
-			}
-			refRowMap[fmt.Sprintf("%s^%s", historyGuid.Guid, historyGuid.HistoryTime)] = &tmpFetchData
-		}
-		refAttr.RefObj = refRowMap
-	}
-	return err
-}
-
-func fetchMultiRefAttrData(rowData []map[string]interface{}, multiRefAttrs []*models.CiDataQueryRefAttrObj, history bool) error {
-	var err error
-	rowGuidList := []string{}
-	for _, row := range rowData {
-		rowGuidList = append(rowGuidList, row["guid"].(string))
-	}
-	for _, attr := range multiRefAttrs {
-		tmpQueryData, tmpErr := x.QueryString(fmt.Sprintf("select t1.from_guid,t1.to_guid,t2.key_name from %s$%s t1 join %s t2 on t1.to_guid=t2.guid where t1.from_guid in ('%s') order by t1.from_guid",
-			attr.Attribute.CiType, attr.Attribute.Name, attr.Attribute.RefCiType, strings.Join(rowGuidList, "','")))
-		if tmpErr != nil {
-			err = fmt.Errorf("Try to query multi ref attr:%s refCiType:%s fail,%s ", attr.Attribute.Name, attr.Attribute.RefCiType, tmpErr.Error())
-			break
-		}
-		guidGroupMap := make(map[string][]*models.CiDataRefDataObj)
-		for _, row := range tmpQueryData {
-			if _, b := guidGroupMap[row["from_guid"]]; b {
-				guidGroupMap[row["from_guid"]] = append(guidGroupMap[row["from_guid"]], &models.CiDataRefDataObj{Guid: row["to_guid"], KeyName: row["key_name"]})
-			} else {
-				guidGroupMap[row["from_guid"]] = []*models.CiDataRefDataObj{&models.CiDataRefDataObj{Guid: row["to_guid"], KeyName: row["key_name"]}}
-			}
-		}
-		attr.MultiRefObj = guidGroupMap
-	}
-	return err
-}
 
 func HandleCiDataOperation(inputData []models.CiDataMapObj, ciTypeId, operation, operator, bareAction string, roles []string, permission, fromCore bool) (outputData []models.CiDataMapObj, err error) {
 	var multiCiData []*models.MultiCiDataObj
@@ -809,12 +503,12 @@ func confirmActionFunc(param *models.ActionFuncParam) (result []*execAction, err
 		}
 		if ciAttr.RefCiType != "" {
 			if ciAttr.InputType == models.MultiRefType {
-				mutiRefActions, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData})
+				multiRefActions, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData})
 				if tmpErr != nil {
 					err = tmpErr
 					break
 				}
-				result = append(result, mutiRefActions...)
+				result = append(result, multiRefActions...)
 				multiRefColumnList = append(multiRefColumnList, ciAttr.Name)
 				//delete(param.NowData, ciAttr.Name)
 			}
@@ -1000,8 +694,17 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 			err = fmt.Errorf("Try to validate column:%s fail,init regexp rule error:%s ", param.AttributeConfig.Name, tmpErr.Message)
 			return
 		}
-		if !textReg.MatcherString(inputValue, 0).Matches() {
-			err = fmt.Errorf("Attribute:%s validate text fail ", param.AttributeConfig.Name)
+		tmpMultiValueList := []string{inputValue}
+		if strings.HasPrefix(param.AttributeConfig.InputType, "multi") {
+			tmpMultiValueList = getMultiStringInputTypeValue(param.AttributeConfig.InputType, inputValue)
+		}
+		for _, v := range tmpMultiValueList {
+			if !textReg.MatcherString(v, 0).Matches() {
+				err = fmt.Errorf("Attribute:%s validate text:%s fail ", param.AttributeConfig.Name, v)
+				break
+			}
+		}
+		if err != nil {
 			return
 		}
 	}
@@ -1133,7 +836,17 @@ func validateMultiRefFilterData(multiCiData []*models.MultiCiDataObj) error {
 					for _, fetRowObj := range fetchRows {
 						fetchGuidMap[fetRowObj["guid"].(string)] = true
 					}
-					for _, tmpValueObj := range strings.Split(inputRow[attr.Name], ",") {
+					inputRowValueList := []string{}
+					if strings.Contains(inputRow[attr.Name], "[") {
+						tmpErr = json.Unmarshal([]byte(inputRow[attr.Name]), &inputRowValueList)
+						if tmpErr != nil {
+							err = fmt.Errorf("Validate multiRef data fail,json unmarshal input data to []string fail,%s ", tmpErr.Error())
+							break
+						}
+					} else {
+						inputRowValueList = strings.Split(inputRow[attr.Name], ",")
+					}
+					for _, tmpValueObj := range inputRowValueList {
 						if _, b := fetchGuidMap[tmpValueObj]; !b {
 							err = fmt.Errorf("Row:%s column:%s value illegal with refFilter rule ", inputRow["key_name"], attr.Name)
 							break
@@ -1733,7 +1446,20 @@ func buildMultiRefActions(param *models.BuildAttrValueParam) (actions []*execAct
 	if param.Action == "insert" && inputValue == "" {
 		return
 	}
-	valueList := strings.Split(inputValue, ",")
+	valueList := []string{}
+	if strings.Contains(inputValue, "[") {
+		valueList := []string{}
+		err = json.Unmarshal([]byte(inputValue), &valueList)
+		if err != nil {
+			err = fmt.Errorf("Format multiRef value to []string fail,%s ", err.Error())
+			return
+		}
+	} else {
+		valueList = strings.Split(inputValue, ",")
+	}
+	if len(valueList) == 0 {
+		return
+	}
 	var specList []string
 	var toGuidList []interface{}
 	rowGuid := param.InputData["guid"]
@@ -1952,4 +1678,25 @@ func getHistoryDataById(ciTypeId, id string) map[string]string {
 		historyObj = queryRows[0]
 	}
 	return historyObj
+}
+
+func getMultiStringInputTypeValue(inputType, value string) []string {
+	result := []string{}
+	if inputType == "multiText" {
+		err := json.Unmarshal([]byte(value), &result)
+		if err != nil {
+			log.Logger.Error("GetMultiStringInputTypeValue format []string error", log.Error(err))
+		}
+	} else if inputType == "multiInt" {
+		var intList []int
+		err := json.Unmarshal([]byte(value), &intList)
+		if err != nil {
+			log.Logger.Error("GetMultiStringInputTypeValue format []int error", log.Error(err))
+		} else {
+			for _, v := range intList {
+				result = append(result, strconv.Itoa(v))
+			}
+		}
+	}
+	return result
 }

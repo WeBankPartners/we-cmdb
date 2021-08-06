@@ -125,16 +125,24 @@ func GetViewData(c *gin.Context) {
 			return
 		}
 	*/
-
-	rootGuidList := strings.Split(param.RootCi, ",")
-	// rootCiTypes := param.RootCi
-	// fmt.Printf("%v", rootCiTypes)
-	viewData, err := db.QueryViewById(param.ViewId)
-	if err != nil {
-		middleware.ReturnServerHandleError(c, err)
-		return
+	var rootGuidList []string
+	var reportId string
+	if param.ReportId != "" {
+		reportId = param.ReportId
+		rootGuidList, err = db.GetRootCiDataWithReportId(reportId)
+		if err != nil {
+			middleware.ReturnServerHandleError(c, err)
+			return
+		}
+	} else {
+		rootGuidList = strings.Split(param.RootCi, ",")
+		viewData, err := db.QueryViewById(param.ViewId)
+		if err != nil {
+			middleware.ReturnServerHandleError(c, err)
+			return
+		}
+		reportId = viewData.Report
 	}
-	reportId := viewData.Report
 	var rootReportObjectsData []*models.ReportObjectNode
 	rootReportObjectsData, err = db.QueryRootReportObj(reportId)
 	if err != nil {

@@ -258,7 +258,7 @@ export default {
       let emptyRowData = {}
       this.tableColumns.forEach(_ => {
         if (_.inputType === 'multiSelect' || _.inputType === 'multiRef') {
-          emptyRowData[_.inputKey] = []
+          emptyRowData[_.inputKey] = '[]'
         } else {
           emptyRowData[_.inputKey] = ''
         }

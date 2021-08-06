@@ -1,11 +1,14 @@
 package db
 
-import "github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+import (
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"strings"
+)
 
 func GetAllDataModel() (result models.SyncDataModelResponse, err error) {
 	result = models.SyncDataModelResponse{Status: "OK", Message: "success"}
 	var attrTable []*models.SyncDataModelCiAttr
-	err = x.SQL("select id,ci_type,name,display_name,description,input_type,ref_ci_type from sys_ci_type_attr where status='created' order by ci_type,ui_form_order").Find(&attrTable)
+	err = x.SQL("select id,ci_type,name,display_name,description,input_type,ref_ci_type,nullable from sys_ci_type_attr where status='created' order by ci_type,ui_form_order").Find(&attrTable)
 	if err != nil {
 		return
 	}
@@ -16,9 +19,14 @@ func GetAllDataModel() (result models.SyncDataModelResponse, err error) {
 	}
 	attrMap := make(map[string][]*models.SyncDataModelCiAttr)
 	for _, attr := range attrTable {
+		if strings.HasPrefix(attr.DataType, "multi") {
+			attr.Multiple = "Y"
+		} else {
+			attr.Multiple = "N"
+		}
 		if attr.DataType == "ref" || attr.DataType == "multiRef" {
 			attr.DataType = "ref"
-		} else if attr.DataType == "int" {
+		} else if attr.DataType == "int" || attr.DataType == "multiInt" {
 			attr.DataType = "int"
 		} else {
 			attr.DataType = "str"
@@ -27,15 +35,20 @@ func GetAllDataModel() (result models.SyncDataModelResponse, err error) {
 			attr.RefAttributeName = "id"
 			attr.RefPackageName = "wecmdb"
 		}
+		if attr.Required == "no" {
+			attr.Required = "Y"
+		} else {
+			attr.Required = "N"
+		}
 		if attr.Name == "guid" {
-			tmpAttr := &models.SyncDataModelCiAttr{Name: "id", EntityName: attr.EntityName, Description: attr.Description, DataType: attr.DataType, RefPackageName: attr.RefPackageName, RefAttributeName: attr.RefAttributeName, RefEntityName: attr.RefEntityName}
+			tmpAttr := &models.SyncDataModelCiAttr{Name: "id", EntityName: attr.EntityName, Description: attr.Description, DataType: attr.DataType, RefPackageName: attr.RefPackageName, RefAttributeName: attr.RefAttributeName, RefEntityName: attr.RefEntityName, Multiple: attr.Multiple, Required: attr.Required}
 			if _, b := attrMap[attr.EntityName]; b {
 				attrMap[attr.EntityName] = append(attrMap[attr.EntityName], attr, tmpAttr)
 			} else {
 				attrMap[attr.EntityName] = []*models.SyncDataModelCiAttr{attr, tmpAttr}
 			}
 		} else if attr.Name == "key_name" {
-			tmpAttr := &models.SyncDataModelCiAttr{Name: "displayName", EntityName: attr.EntityName, Description: attr.Description, DataType: attr.DataType, RefPackageName: attr.RefPackageName, RefAttributeName: attr.RefAttributeName, RefEntityName: attr.RefEntityName}
+			tmpAttr := &models.SyncDataModelCiAttr{Name: "displayName", EntityName: attr.EntityName, Description: attr.Description, DataType: attr.DataType, RefPackageName: attr.RefPackageName, RefAttributeName: attr.RefAttributeName, RefEntityName: attr.RefEntityName, Multiple: attr.Multiple, Required: attr.Required}
 			if _, b := attrMap[attr.EntityName]; b {
 				attrMap[attr.EntityName] = append(attrMap[attr.EntityName], attr, tmpAttr)
 			} else {

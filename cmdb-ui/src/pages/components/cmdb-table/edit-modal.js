@@ -4,6 +4,7 @@ import moment from 'moment'
 import { queryCiData } from '@/api/server.js'
 // import AutoComplete from './auto-complete.vue'
 import JSONConfig from './json-config.vue'
+import MultiConfig from './multi-config.vue'
 const WIDTH = 300
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 export default {
@@ -146,13 +147,21 @@ export default {
         keys.forEach(key => {
           const find = this.columns.find(col => col.propertyName === key)
           if (find && find.inputType !== 'object') {
-            if (Array.isArray(item[key])) {
+            if (
+              Array.isArray(item[key]) &&
+              !['multiSelect', 'multiRef', 'multiText', 'multiInt', 'multiObject'].includes(find.inputType)
+            ) {
               item[key] = item[key].join(',')
+            }
+            if (find.inputType === 'multiRef') {
+              const tmp = item[key]
+              if (tmp.includes('{')) {
+                const res = JSON.parse(tmp)
+                item[key] = res.map(r => r.guid)
+              }
             }
           }
         })
-        // delete item.confirm_time
-        // delete item.key_name
       })
       this.$emit('editModalOkHandler', copyData)
     },
@@ -275,6 +284,66 @@ export default {
                         />
                       </div>
                     )
+                  } else if (column.component === 'Input' && column.inputType === 'multiText') {
+                    const props = {
+                      ...column,
+                      data: JSON.parse(JSON.stringify(d[column['inputKey']])),
+                      type: 'text'
+                    }
+                    const fun = {
+                      input: function (v) {
+                        d[column.inputKey] = v
+                      }
+                    }
+                    const data = {
+                      props,
+                      on: fun
+                    }
+                    return (
+                      <div style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
+                        <MultiConfig {...data}></MultiConfig>
+                      </div>
+                    )
+                  } else if (column.component === 'Input' && column.inputType === 'multiInt') {
+                    const props = {
+                      ...column,
+                      data: JSON.parse(JSON.stringify(d[column['inputKey']])),
+                      type: 'number'
+                    }
+                    const fun = {
+                      input: function (v) {
+                        d[column.inputKey] = v
+                      }
+                    }
+                    const data = {
+                      props,
+                      on: fun
+                    }
+                    return (
+                      <div style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
+                        <MultiConfig {...data}></MultiConfig>
+                      </div>
+                    )
+                  } else if (column.component === 'Input' && column.inputType === 'multiObject') {
+                    const props = {
+                      ...column,
+                      data: JSON.parse(JSON.stringify(d[column['inputKey']])),
+                      type: 'json'
+                    }
+                    const fun = {
+                      input: function (v) {
+                        d[column.inputKey] = v
+                      }
+                    }
+                    const data = {
+                      props,
+                      on: fun
+                    }
+                    return (
+                      <div style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
+                        <MultiConfig {...data}></MultiConfig>
+                      </div>
+                    )
                   } else if (column.component === 'Input' && column.inputType !== 'object') {
                     const props = {
                       ...column,
@@ -328,6 +397,7 @@ export default {
                       </div>
                     )
                   } else {
+                    console.log(column.inputKey, d[column.inputKey], d)
                     const props =
                       column.component === 'WeCMDBSelect'
                         ? {
@@ -337,8 +407,8 @@ export default {
                               ? []
                               : ''
                             : column.inputType === 'multiSelect'
-                              ? Array.isArray(d[column.inputKey])
-                                ? d[column.inputKey]
+                              ? Array.isArray(JSON.parse(d[column.inputKey]))
+                                ? JSON.parse(d[column.inputKey])
                                 : ''
                               : formatValue(column, d[column.inputKey]),
                           filterParams: column.referenceFilter
@@ -356,9 +426,9 @@ export default {
                           value: column.isRefreshable
                             ? ''
                             : column.inputType === 'multiRef'
-                              ? Array.isArray(d[column.inputKey])
-                                ? d[column.inputKey]
-                                : ''
+                              ? Array.isArray(JSON.parse(d[column.inputKey]))
+                                ? JSON.parse(d[column.inputKey]).map(item => item.guid)
+                                : []
                               : d[column.inputKey] || '',
                           filterParams: column.referenceFilter
                             ? {

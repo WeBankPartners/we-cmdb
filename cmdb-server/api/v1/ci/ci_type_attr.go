@@ -42,8 +42,8 @@ func AttrCreate(c *gin.Context) {
 		middleware.ReturnParamValidateError(c, err)
 		return
 	}
-	if strings.ToLower(param.Id) == "id" {
-		middleware.ReturnParamValidateError(c, fmt.Errorf("Attribute name:%s is illegal ", param.Id))
+	if err := validateAttrParam(param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
 		return
 	}
 	param.CiType = ciTypeGuid
@@ -54,6 +54,25 @@ func AttrCreate(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, []*models.SysCiTypeAttrTable{&param})
 	}
+}
+
+func validateAttrParam(param models.SysCiTypeAttrTable) error {
+	if strings.ToLower(param.Id) == "id" {
+		return fmt.Errorf("Attribute name:%s is illegal ", param.Id)
+	}
+	if param.Name == "" {
+		return fmt.Errorf("Param attrbuteId can not empty ")
+	}
+	if param.DisplayName == "" {
+		return fmt.Errorf("Param displayName can not empty ")
+	}
+	if param.InputType == "" {
+		return fmt.Errorf("Param inputType can not empty ")
+	}
+	if param.DataType == "" {
+		return fmt.Errorf("Param dataType can not empty ")
+	}
+	return nil
 }
 
 func AttrUpdate(c *gin.Context) {
