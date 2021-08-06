@@ -3,7 +3,7 @@ package db
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common-lib/guid"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"io/ioutil"
@@ -151,7 +151,7 @@ func syncCoreRole() {
 		log.Logger.Warn("Get core role key fail with no data")
 		return
 	}
-	var roleTable, addRoleList []*models.SysRoleTable
+	var roleTable, addRoleList, delRoleList []*models.SysRoleTable
 	err = x.SQL("select * from sys_role").Find(&roleTable)
 	if err != nil {
 		log.Logger.Error("Try to sync core role fail", log.Error(err))
@@ -169,11 +169,31 @@ func syncCoreRole() {
 			addRoleList = append(addRoleList, &models.SysRoleTable{Id: v.Name, Description: v.DisplayName})
 		}
 	}
+	for _, v := range roleTable {
+		existFlag := false
+		for _, vv := range result.Data {
+			if strings.ToLower(v.Id) == strings.ToLower(vv.Name) {
+				existFlag = true
+				break
+			}
+		}
+		if !existFlag {
+			delRoleList = append(delRoleList, &models.SysRoleTable{Id: v.Id})
+		}
+	}
 	if len(addRoleList) > 0 {
 		for _, role := range addRoleList {
 			err = RoleCreate(*role)
 			if err != nil {
 				log.Logger.Error("Try to add core role to local fail", log.Error(err))
+			}
+		}
+	}
+	if len(delRoleList) > 0 {
+		for _, role := range delRoleList {
+			err = RoleDelete(role.Id)
+			if err != nil {
+				log.Logger.Error("Try to delete local role from core data fail", log.Error(err))
 			}
 		}
 	}

@@ -247,3 +247,32 @@ export const editElementForGraph = data => req.put(`/view-elements`, data)
 export const deleteElementForGraph = data => req.delete(`/view-elements`, { data: data })
 export const getReportObject = data => req.post(`/report-objects/query`, data)
 export const getAttrByReportObject = data => req.post(`/report-objects-attr/query`, data)
+
+export const getStateMachineList = data => req.post(`/state-config/state-machine/list`, data)
+export const getStateMachineFullInfo = id => req.get(`/state-config/state-machine/query?id=${id}`)
+export const exportStateMachineFullInfo = id => req.get(`/state-config/state-machine/query?export=yes&id=${id}`)
+export const confirmImportStateMachine = data => req.post(`/state-config/state-machine/confirm`, data)
+
+export const addStateMachine = data => req.post(`/state-config/state-machine`, data)
+export const editStateMachine = data => req.put(`/state-config/state-machine`, data)
+export const deleteStateMachine = id => req.delete(`/state-config/state-machine?ids=${id}`)
+
+export const getState = data => req.post(`/state-config/state/list`, data)
+export const editState = data => req.put(`/state-config/state`, data)
+export const addState = data => req.post(`/state-config/state`, data)
+export const deleteState = id => req.delete(`/state-config/state?ids=${id}`)
+
+export const getStateTran = data => req.post(`/state-config/transition/list`, data)
+export const editStateTran = data => req.put(`/state-config/transition`, data)
+export const addStateTran = data => req.post(`/state-config/transition`, data)
+export const deleteStateTran = id => req.delete(`/state-config/transition?ids=${id}`)
+
+// export const getCiTemplate = data => req.get(`/ci-template`)
+export const editCiTemplate = data => req.put(`/ci-template`, data)
+export const addCiTemplate = data => req.post(`/ci-template`, data)
+export const deleteCiTemplate = id => req.delete(`/ci-template?ids=${id}`)
+
+export const getCiTemplateAttr = params => req.post(`/ci-template-attr/list`, params)
+export const editCiTemplateAttr = data => req.put(`/ci-template-attr`, data)
+export const addCiTemplateAttr = data => req.post(`/ci-template-attr`, data)
+export const deleteCiTemplateAttr = id => req.delete(`/ci-template-attr?ids=${id}`)
