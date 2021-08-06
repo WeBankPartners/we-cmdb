@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common-lib/cipher"
+	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/dgrijalva/jwt-go"
 	"io/ioutil"
 	"log"
