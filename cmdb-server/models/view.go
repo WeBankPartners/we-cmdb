@@ -32,8 +32,9 @@ type ViewQuery struct {
 }
 
 type ViewData struct {
-	ViewId      string `json:"viewId" xorm:"view_id" binding:"required"`
-	RootCi      string `json:"rootCi" xorm:"root_ci" binding:"required"`
+	ViewId      string `json:"viewId" xorm:"view_id"`
+	RootCi      string `json:"rootCi" xorm:"root_ci"`
+	ReportId    string `json:"reportId"`
 	ConfirmTime string `json:"confirmTime" xorm:"confirm_time"`
 	// Permission  string `json:"permission" xorm:"permission" binding:"required"`
 }

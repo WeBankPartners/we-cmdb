@@ -715,7 +715,6 @@ export default {
     },
     async confirmEditHandler (data) {
       let editAry = JSON.parse(JSON.stringify(data))
-      console.log(editAry)
       editAry.forEach(_ => {
         delete _.isNewAddedRow
         delete _.isRowEditable

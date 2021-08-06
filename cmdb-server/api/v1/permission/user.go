@@ -2,8 +2,8 @@ package permission
 
 import (
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/token"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common-lib/token"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
