@@ -455,7 +455,7 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 	for _, multiRefColumn := range multiRefColumnList {
 		delete(param.InputData, multiRefColumn)
 	}
-	if !rollbackFlag {
+	if !rollbackFlag && param.BareAction == "" {
 		columnList = append(columnList, &models.CiDataColumnObj{ColumnName: "confirm_time", ColumnValue: "reset_null^"})
 		param.InputData["confirm_time"] = "reset_null^"
 	} else if param.InputData["confirm_time"] != "" {
@@ -465,7 +465,7 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 		result = append(result, getUpdateActionByColumnList(columnList, param.CiType, param.InputData["guid"]))
 		result = append(result, getHistoryActionByData(param.InputData, param.CiType, param.NowTime, param.Transition))
 	}
-	if !rollbackFlag {
+	if !rollbackFlag && param.BareAction == "" {
 		param.InputData["confirm_time"] = ""
 	}
 	return
