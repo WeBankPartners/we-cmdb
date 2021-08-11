@@ -376,6 +376,7 @@ export default {
       }
     },
     onClearRootSelect () {
+      this.$refs.rootSelect.query = ''
       this.viewData = []
       this.ciTypeTables = []
       this.isEditMode = false
