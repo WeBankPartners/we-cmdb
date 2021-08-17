@@ -1,6 +1,6 @@
 <template>
   <div class=" ">
-    <Button type="primary" @click="showConfig">{{ $t('configuration') }}</Button>
+    <Button type="primary" @click="showConfig" :disabled="disabled">{{ $t('configuration') }}</Button>
     <Modal v-model="showModal" :title="$t('configuration')" @on-ok="confirmData" @on-cancel="cancel">
       <template v-for="(item, itemIndex) in multiData">
         <div :key="itemIndex" style="margin:4px">
@@ -38,7 +38,7 @@ export default {
       originData: []
     }
   },
-  props: ['inputKey', 'data', 'type'],
+  props: ['inputKey', 'data', 'type', 'disabled'],
   mounted () {
     let tmp = this.data ? JSON.parse(this.data) : []
     if (this.type === 'json') {

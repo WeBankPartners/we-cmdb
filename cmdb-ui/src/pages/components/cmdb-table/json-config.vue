@@ -3,7 +3,7 @@
     <Tooltip v-if="disabled" max-width="350" style="width: 100%" placement="bottom-start" :content="jsonDataString">
       <Input v-model="jsonDataString" :disabled="true" />
     </Tooltip>
-    <Button v-else type="primary" @click="showTreeConfig">{{ $t('configuration') }}</Button>
+    <Button v-else type="primary" :disabled="disabled" @click="showTreeConfig">{{ $t('configuration') }}</Button>
     <Modal :z-index="2000" v-model="showEdit" :title="$t('json_edit')" @on-ok="confirmJsonData" width="700">
       <Button type="primary" v-if="isArray" @click="addNewJson">新增一组</Button>
       <div style="max-height:500px; overflow:auto">
