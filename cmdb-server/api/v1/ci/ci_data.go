@@ -117,7 +117,7 @@ func DataReferenceQuery(c *gin.Context) {
 
 func DataRollbackList(c *gin.Context) {
 	guid := c.Param("guid")
-	resultData, err := db.DataRollbackList(guid)
+	resultData, _, err := db.DataRollbackList(guid)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
