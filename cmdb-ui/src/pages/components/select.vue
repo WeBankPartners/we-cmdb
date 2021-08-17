@@ -4,6 +4,7 @@
       v-if="!isGroup"
       :value="value"
       :multiple="isMultiple"
+      :disabled="disabled"
       filterable
       clearable
       @on-change="changeValue"
@@ -15,6 +16,7 @@
       v-else
       :value="value"
       :multiple="isMultiple"
+      :disabled="disabled"
       filterable
       clearable
       @on-change="changeValue"
@@ -40,6 +42,7 @@ export default {
     options: { default: () => [] },
     maxTags: { default: () => DEFAULT_TAG_NUMBER },
     filterParams: {},
+    disabled: { default: () => false },
     enumId: { default: () => null }
   },
   data () {

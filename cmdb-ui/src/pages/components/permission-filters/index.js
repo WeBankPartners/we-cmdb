@@ -13,7 +13,8 @@ export default {
     displayAttrType: { type: Array, required: false },
     hiddenAttrType: { type: Array, required: false },
     rootCis: { default: () => [], type: Array, required: true },
-    rootCiTypeId: { required: false }
+    rootCiTypeId: { required: false },
+    disabled: { default: () => false }
   },
   data () {
     return {
@@ -94,6 +95,7 @@ export default {
                 allCiTypes={this.allCiTypes}
                 isFilterAttr={this.isFilterAttr}
                 rootCiTypeId={this.rootCiTypeId}
+                disabled={this.disabled}
               />
             ])}
           {this.renderAddIcon()}
