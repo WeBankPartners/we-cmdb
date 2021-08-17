@@ -319,6 +319,7 @@
   "operation_data_rollback": "数据回退",
   "no_update_action_available": "CI当前状态无法执行变更操作",
   "edit_group_control": "编辑分组",
+  "edit_group_value": "编辑分组值",
   "reset_zoom": "重置",
   "condition": "条件",
   "list": "列表",

@@ -278,15 +278,18 @@
             <Radio label="no">No</Radio>
           </RadioGroup>
         </FormItem>
-        <FormItem
-          prop="editGroupControl"
-          :label="$t('edit_group_control')"
-          v-if="addNewAttrForm.inputType === 'select'"
-        >
+        <FormItem prop="editGroupControl" :label="$t('edit_group_control')">
           <RadioGroup v-model="addNewAttrForm.editGroupControl">
             <Radio :disabled="addNewAttrForm.status === 'deleted'" label="yes">Yes</Radio>
             <Radio :disabled="addNewAttrForm.status === 'deleted'" label="no">No</Radio>
           </RadioGroup>
+        </FormItem>
+        <FormItem
+          class="no-need-validation"
+          v-if="addNewAttrForm.editGroupControl !== 'no'"
+          :label="$t('edit_group_value')"
+        >
+          <Button @click="configEditGroup('add', addNewAttrForm)">{{ $t('configuration') }}</Button>
         </FormItem>
         <FormItem prop="nullable" :label="$t('is_nullable')">
           <RadioGroup v-model="addNewAttrForm.nullable">
@@ -601,11 +604,7 @@
                   <Option v-for="item in catOptions" :value="item.catId" :key="item.catId">{{ item.catName }}</Option>
                 </Select>
               </FormItem>
-              <FormItem
-                prop="editGroupControl"
-                :label="$t('edit_group_control')"
-                v-if="editCiAttr.inputType === 'select'"
-              >
+              <FormItem prop="editGroupControl" :label="$t('edit_group_control')">
                 <RadioGroup v-model="editCiAttr.editGroupControl">
                   <Radio :disabled="editCiAttr.status === 'deleted' || editCiAttr.customizable !== 'yes'" label="yes"
                     >Yes</Radio
@@ -614,6 +613,13 @@
                     >No</Radio
                   >
                 </RadioGroup>
+              </FormItem>
+              <FormItem
+                class="no-need-validation"
+                v-if="editCiAttr.editGroupControl !== 'no'"
+                :label="$t('edit_group_value')"
+              >
+                <Button @click="configEditGroup('edit', editCiAttr)">{{ $t('configuration') }}</Button>
               </FormItem>
               <FormItem prop="resetOnEdit" :label="$t('is_refreshable')">
                 <RadioGroup v-model="editCiAttr.resetOnEdit">
@@ -848,6 +854,16 @@
       <AttrKeyConfig ref="selectListConfig" :selectListConfig="selectListConfig"></AttrKeyConfig>
     </Modal>
 
+    <!-- editGroupControl 配置 -->
+    <Modal
+      v-model="editGroupControlModel.isShow"
+      :title="$t('configuration')"
+      @on-ok="confirmEditGroupValues"
+      width="700"
+    >
+      <EditGroupControlConfig ref="editGroupControlConfig"></EditGroupControlConfig>
+    </Modal>
+
     <!-- 数据权限 配置 -->
     <Modal
       v-model="showDataPermissionModal"
@@ -920,6 +936,7 @@ import FilterRule from '../components/filter-rule/index.js'
 import { CI_LAYER, CI_GROUP, INPUT_TYPE_CONFIG } from '@/const/init-params.js'
 import AttrKeyValueConfig from '@/pages/components/attr-key-value-config'
 import AttrKeyConfig from '@/pages/components/attr-key-config'
+import EditGroupControlConfig from '@/pages/components/edit-group-control-config'
 
 export default {
   components: {
@@ -927,6 +944,7 @@ export default {
     FilterRule,
     draggable,
     AttrKeyValueConfig,
+    EditGroupControlConfig,
     AttrKeyConfig,
     DataAuthorization
   },
@@ -1000,10 +1018,11 @@ export default {
       addNewAttrForm: {
         inputType: 'text',
         propertyType: 'varchar',
-        length: 64,
+        length: 255,
         referenceId: '',
         uiSearchOrder: 0,
-        editGroupControl: 'no',
+        editGroupControl: 'yes',
+        editGroupValues: '[]',
         permissionUsage: 'no',
         resetOnEdit: 'no',
         displayByDefault: 'no',
@@ -1074,7 +1093,12 @@ export default {
       },
       selectListConfigModel: false,
       catOptions: [],
-      showDataPermissionModal: false
+      showDataPermissionModal: false,
+      editGroupControlModel: {
+        isShow: false,
+        attrAndSelect: [],
+        type: ''
+      }
     }
   },
   methods: {
@@ -1141,6 +1165,43 @@ export default {
       } else {
         this.editCiAttr['selectList'] = JSON.stringify(finalRes)
       }
+    },
+    configEditGroup (optionType, attr) {
+      const filterAttr = this.currentCiTypeAttr.filter(item => {
+        if (['select', 'multiSelect'].includes(item.inputType) && item.selectList !== '') {
+          if (item.propertyName !== attr.propertyName) {
+            return item
+          }
+        }
+      })
+      const attrAndSelect = filterAttr.map(item => {
+        return {
+          label: item.propertyName,
+          selectList: item.selectList
+        }
+      })
+      const editGroupValues =
+        optionType === 'add'
+          ? JSON.parse(this.addNewAttrForm.editGroupValues || '[]')
+          : JSON.parse(this.editCiAttr.editGroupValues || '[]')
+      this.editGroupControlModel.type = optionType
+      this.editGroupControlModel.attrAndSelect = attrAndSelect
+      this.editGroupControlModel.isShow = true
+      this.$refs.editGroupControlConfig.initData(attrAndSelect, editGroupValues)
+    },
+    confirmEditGroupValues () {
+      const res = this.$refs.editGroupControlConfig.stateSelect
+      const finalRes = res
+        .filter(it => it.key && it.value.length > 0)
+        .map(item => {
+          return { key: item.key, value: item.value }
+        })
+      if (this.editGroupControlModel.type === 'add') {
+        this.addNewAttrForm.editGroupValues = JSON.stringify(finalRes)
+      } else {
+        this.editCiAttr.editGroupValues = JSON.stringify(finalRes)
+      }
+      this.$refs.editGroupControlConfig.clearAll()
     },
     async configState (tag, optionType) {
       this.stateConfig.stateTag = tag
