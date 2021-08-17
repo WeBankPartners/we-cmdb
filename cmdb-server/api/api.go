@@ -71,6 +71,8 @@ func init() {
 		&handlerFuncObj{Url: "/ci-data/reference-data/query/:ciAttr", Method: "POST", HandlerFunc: ci.DataReferenceQuery},
 		&handlerFuncObj{Url: "/ci-data/rollback/query/:guid", Method: "GET", HandlerFunc: ci.DataRollbackList},
 		&handlerFuncObj{Url: "/ci-data/query-password/:ciType/:guid/:field", Method: "GET", HandlerFunc: ci.DataPasswordQuery},
+		&handlerFuncObj{Url: "/ci-data/callback/process/:ciType/:guid", Method: "GET", HandlerFunc: ci.GetCiDataVariableCallback},
+		&handlerFuncObj{Url: "/ci-data/action-query/:operation/:ciType/:guid", Method: "GET", HandlerFunc: ci.GetActionQueryData},
 	)
 	// log
 	httpHandlerFuncList = append(httpHandlerFuncList,
