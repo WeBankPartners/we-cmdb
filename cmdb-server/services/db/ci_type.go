@@ -80,13 +80,17 @@ func CiTypesQuery(query *models.CiTypeQuery) error {
 				} else {
 					ciType.Attributes = ciAttrMap[ciType.Id]
 				}
-				imageList = append(imageList, ciType.ImageFile[:strings.LastIndex(ciType.ImageFile, ".")])
+				if strings.Contains(ciType.ImageFile, ".") {
+					imageList = append(imageList, ciType.ImageFile[:strings.LastIndex(ciType.ImageFile, ".")])
+				}
 			}
 		}
 	} else {
 		for _, ciType := range ciTypesTable {
 			ciType.Attributes = []*models.SysCiTypeAttrTable{}
-			imageList = append(imageList, ciType.ImageFile[:strings.LastIndex(ciType.ImageFile, ".")])
+			if strings.Contains(ciType.ImageFile, ".") {
+				imageList = append(imageList, ciType.ImageFile[:strings.LastIndex(ciType.ImageFile, ".")])
+			}
 		}
 	}
 	staticImageListChan <- imageList
