@@ -68,6 +68,7 @@ type CoreProcessResultData struct {
 }
 
 type CiDataCallbackParam struct {
+	CiType        string `json:"ciType"`
 	RowGuid       string `json:"rowGuid"`
 	ProcessKey    string `json:"processKey"`
 	ProcessName   string `json:"processName"`
@@ -75,8 +76,9 @@ type CiDataCallbackParam struct {
 }
 
 type CiDataActionQuery struct {
-	Title []*CiDataActionQueryTitle `json:"title"`
-	Data  []map[string]interface{}  `json:"data"`
+	Title      []*CiDataActionQueryTitle `json:"title"`
+	Data       []map[string]interface{}  `json:"data"`
+	Selectable bool                      `json:"selectable"`
 }
 
 type CiDataActionQueryTitle struct {
