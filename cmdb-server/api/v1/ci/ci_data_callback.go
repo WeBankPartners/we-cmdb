@@ -33,7 +33,7 @@ func GetActionQueryData(c *gin.Context) {
 		return
 	}
 	var err error
-	result := models.CiDataActionQuery{Selectable: true}
+	result := models.CiDataActionQuery{}
 	tmpOperation := strings.ToLower(operation)
 	if tmpOperation == "rollback" {
 		queryData, title, rollbackErr := db.DataRollbackList(rowGuid)
