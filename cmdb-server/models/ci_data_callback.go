@@ -74,9 +74,8 @@ type CiDataCallbackParam struct {
 }
 
 type CiDataActionQuery struct {
-	Title      []*CiDataActionQueryTitle `json:"title"`
-	Data       []map[string]interface{}  `json:"data"`
-	Selectable bool                      `json:"selectable"`
+	Title []*CiDataActionQueryTitle `json:"title"`
+	Data  []map[string]interface{}  `json:"data"`
 }
 
 type CiDataActionQueryTitle struct {

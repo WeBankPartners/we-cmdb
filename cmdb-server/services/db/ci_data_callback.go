@@ -11,18 +11,6 @@ import (
 	"strings"
 )
 
-func GetCiDataCallbackHistory(ciType, rowGuid string) {
-	processTable := []*models.SysWecubeProcessTable{}
-	err := x.SQL("select * from sys_wecube_process where ci_data_guid=? and status='InProgress'", rowGuid).Find(&processTable)
-	if err != nil {
-		err = fmt.Errorf("Try to query table fail,%s ", err.Error())
-		return
-	}
-	if len(processTable) == 0 {
-		return
-	}
-}
-
 func GetCallbackQueryData(ciType, rowGuid string) (result models.CiDataActionQuery, err error) {
 	inProgressList, checkErr := CheckCiDataCallbackStatus(rowGuid)
 	if checkErr != nil {
@@ -42,11 +30,11 @@ func GetCallbackQueryData(ciType, rowGuid string) (result models.CiDataActionQue
 			tmpRow["procDefKey"] = v.WecubeProcInstanceTmp
 			tmpRow["status"] = v.Status
 			tmpRow["time"] = v.UpdateTime
+			tmpRow["_disabled"] = true
 			rowData = append(rowData, tmpRow)
 		}
 		result.Title = title
 		result.Data = rowData
-		result.Selectable = false
 		return
 	}
 	processList, queryErr := ListCiDataVariableCallback(ciType, rowGuid)
@@ -69,7 +57,6 @@ func GetCallbackQueryData(ciType, rowGuid string) (result models.CiDataActionQue
 	}
 	result.Title = title
 	result.Data = rowData
-	result.Selectable = true
 	return
 }
 
