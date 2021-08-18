@@ -212,7 +212,7 @@ func StartCiDataCallback(param models.CiDataCallbackParam) error {
 	}
 	resultBody, _ := ioutil.ReadAll(res.Body)
 	res.Body.Close()
-	var resultObj models.CoreProcessResult
+	var resultObj models.CoreStartProcess
 	err = json.Unmarshal(resultBody, &resultObj)
 	log.Logger.Debug("Callback core process result", log.String("body", string(resultBody)))
 	if err != nil {

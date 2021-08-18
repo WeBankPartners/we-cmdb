@@ -42,6 +42,18 @@ type CoreProcessRequest struct {
 	OperationMode   string `json:"operationMode"`
 }
 
+type CoreStartProcess struct {
+	Status  string                `json:"status"`
+	Message string                `json:"message"`
+	Data    CoreProcessResultData `json:"data"`
+}
+
+type CoreStartProcessData struct {
+	ProcInstId        string                   `json:"procInstId"`
+	Status            string                   `json:"status"`
+	TaskNodeInstances []*CoreProcessResultData `json:"taskNodeInstances"`
+}
+
 type CoreProcessResult struct {
 	Status  string                `json:"status"`
 	Message string                `json:"message"`
@@ -49,7 +61,7 @@ type CoreProcessResult struct {
 }
 
 type CoreProcessResultData struct {
-	ProcInstId        string                   `json:"procInstId"`
+	ProcInstId        int                      `json:"procInstId"`
 	Status            string                   `json:"status"`
 	TaskNodeInstances []*CoreProcessResultData `json:"taskNodeInstances"`
 }
