@@ -64,6 +64,7 @@ func GetCallbackQueryData(ciType, rowGuid string) (result models.CiDataActionQue
 		tmpRow["procDefKey"] = v.ProcDefKey
 		tmpRow["version"] = v.ProcDefVersion
 		tmpRow["time"] = v.CreatedTime
+		tmpRow["guid"] = rowGuid
 		rowData = append(rowData, tmpRow)
 	}
 	result.Title = title
