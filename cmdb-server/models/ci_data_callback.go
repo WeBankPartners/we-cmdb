@@ -19,15 +19,16 @@ type CoreProcessQueryResponse struct {
 }
 
 type CodeProcessQueryObj struct {
-	ExcludeMode    string `json:"excludeMode"`
-	ProcDefId      string `json:"procDefId"`
-	ProcDefKey     string `json:"procDefKey"`
-	ProcDefName    string `json:"procDefName"`
-	ProcDefVersion string `json:"procDefVersion"`
-	RootEntity     string `json:"rootEntity"`
-	Status         string `json:"status"`
-	CreatedTime    string `json:"createdTime"`
-	Tags           string `json:"tags"`
+	ExcludeMode     string `json:"excludeMode"`
+	ProcDefId       string `json:"procDefId"`
+	ProcDefKey      string `json:"procDefKey"`
+	ProcDefName     string `json:"procDefName"`
+	ProcDefVersion  string `json:"procDefVersion"`
+	RootEntity      string `json:"rootEntity"`
+	Status          string `json:"status"`
+	CreatedTime     string `json:"createdTime"`
+	CreatedUnixTime int64  `json:"-"`
+	Tags            string `json:"tags"`
 }
 
 type CoreProcessRequest struct {
