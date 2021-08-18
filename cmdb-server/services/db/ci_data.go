@@ -45,7 +45,7 @@ func HandleCiDataOperation(inputData []models.CiDataMapObj, ciTypeId, operation,
 		guidPermissionEnable := false
 		if permission {
 			permissionAction := firstAction
-			if permissionAction == "confirm" {
+			if permissionAction == "confirm" || permissionAction == "call" {
 				permissionAction = "execute"
 			}
 			permissions, tmpErr := GetRoleCiDataPermission(roles, ciTypeId)
