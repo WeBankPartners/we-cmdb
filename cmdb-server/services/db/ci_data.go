@@ -568,7 +568,7 @@ func callActionFunc(param *models.ActionFuncParam) (result []*execAction, err er
 	param.NowData = cleanInputData(param.NowData, param.Attributes)
 	result = append(result, getUpdateActionByColumnList(columnList, param.CiType, param.InputData["guid"]))
 	result = append(result, getHistoryActionByData(param.NowData, param.CiType, param.NowTime, param.Transition))
-	err = StartCiDataCallback(models.CiDataCallbackParam{RowGuid: param.InputData["guid"], ProcessName: param.InputData["procDefName"], ProcessKey: param.InputData["procDefKey"]})
+	err = StartCiDataCallback(models.CiDataCallbackParam{RowGuid: param.InputData["guid"], ProcessName: param.InputData["procDefName"], ProcessKey: param.InputData["procDefKey"], CiType: param.CiType})
 	return
 }
 
