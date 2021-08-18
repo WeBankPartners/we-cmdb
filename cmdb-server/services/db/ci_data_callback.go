@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func GetCallbackQueryData(ciType, rowGuid string) (result models.CiDataActionQuery, err error) {
@@ -113,7 +114,29 @@ func getCoreProcessList() (processList []*models.CodeProcessQueryObj, err error)
 		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
 		return
 	}
-	processList = respObj.Data
+	if len(respObj.Data) == 0 {
+		processList = []*models.CodeProcessQueryObj{}
+		return
+	}
+	procMap := make(map[string]*models.CodeProcessQueryObj)
+	for _, v := range respObj.Data {
+		tmpT, tmpErr := time.Parse(models.DateTimeFormat, v.CreatedTime)
+		if tmpErr == nil {
+			v.CreatedUnixTime = tmpT.Unix()
+		}
+		if oldProc, b := procMap[v.ProcDefKey]; b {
+			if oldProc.CreatedUnixTime < v.CreatedUnixTime {
+				procMap[v.ProcDefKey] = v
+			}
+		} else {
+			procMap[v.ProcDefKey] = v
+		}
+	}
+	for _, v := range respObj.Data {
+		if procMap[v.ProcDefKey].ProcDefId == v.ProcDefId {
+			processList = append(processList, v)
+		}
+	}
 	return
 }
 
