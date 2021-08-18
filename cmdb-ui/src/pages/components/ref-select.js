@@ -8,6 +8,7 @@ export default {
     highlightRow: {},
     ciType: {},
     ciTypeAttrId: '',
+    disabled: { default: () => false },
     filterParams: {}
   },
   watch: {
@@ -240,7 +241,7 @@ export default {
           onInput={this.handleInput}
           value={this.selected}
           multiple={!this.highlightRow}
-          disabled={this.selectDisabled}
+          disabled={this.selectDisabled || this.disabled}
           style="width:100%"
           filterable
           clearable

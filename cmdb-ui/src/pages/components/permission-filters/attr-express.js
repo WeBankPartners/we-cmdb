@@ -10,6 +10,7 @@ export default {
   },
   props: {
     value: { required: true },
+    disabled: { default: () => false },
     allCiTypes: { default: () => [], type: Array, required: true },
     isFilterAttr: { default: false, type: Boolean, required: false }, // 为true时，根据 displayAttrType 或 hiddenAttrType 显示对应类型的属性
     isReadOnly: { default: false, type: Boolean, required: false },
