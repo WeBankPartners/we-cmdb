@@ -25,8 +25,9 @@ func GetCallbackQueryData(ciType, rowGuid string) (result models.CiDataActionQue
 		title = append(title, &models.CiDataActionQueryTitle{Id: "procDefKey", Name: "编排Key"})
 		title = append(title, &models.CiDataActionQueryTitle{Id: "status", Name: "状态"})
 		title = append(title, &models.CiDataActionQueryTitle{Id: "time", Name: "开始时间"})
-		for _, v := range inProgressList {
+		for i, v := range inProgressList {
 			tmpRow := make(map[string]interface{})
+			tmpRow["id"] = i + 1
 			tmpRow["procDefName"] = v.WecubeProcDefine
 			tmpRow["procDefKey"] = v.WecubeProcInstanceTmp
 			tmpRow["status"] = v.Status
@@ -36,6 +37,7 @@ func GetCallbackQueryData(ciType, rowGuid string) (result models.CiDataActionQue
 		}
 		result.Title = title
 		result.Data = rowData
+		result.Selectable = false
 		return
 	}
 	processList, queryErr := ListCiDataVariableCallback(ciType, rowGuid)
@@ -47,8 +49,9 @@ func GetCallbackQueryData(ciType, rowGuid string) (result models.CiDataActionQue
 	title = append(title, &models.CiDataActionQueryTitle{Id: "procDefKey", Name: "编排Key"})
 	title = append(title, &models.CiDataActionQueryTitle{Id: "version", Name: "版本"})
 	title = append(title, &models.CiDataActionQueryTitle{Id: "time", Name: "创建时间"})
-	for _, v := range processList {
+	for i, v := range processList {
 		tmpRow := make(map[string]interface{})
+		tmpRow["id"] = i + 1
 		tmpRow["procDefName"] = v.ProcDefName
 		tmpRow["procDefKey"] = v.ProcDefKey
 		tmpRow["version"] = v.ProcDefVersion
@@ -58,6 +61,7 @@ func GetCallbackQueryData(ciType, rowGuid string) (result models.CiDataActionQue
 	}
 	result.Title = title
 	result.Data = rowData
+	result.Selectable = true
 	return
 }
 
@@ -201,6 +205,26 @@ func joinSqlFilter(column, condition, value string) string {
 }
 
 func StartCiDataCallback(param models.CiDataCallbackParam) error {
+	legalProc, err := GetCallbackQueryData(param.CiType, param.RowGuid)
+	if err != nil {
+		return fmt.Errorf("Try to validate process fail,%s ", err.Error())
+	}
+	if legalProc.Selectable == false {
+		return fmt.Errorf("Already have one process running,please reload table ")
+	}
+	if len(legalProc.Data) == 0 {
+		return fmt.Errorf("Fetch no process from remote to run,please check process list ")
+	}
+	legalFlag := false
+	for _, v := range legalProc.Data {
+		if v["procDefName"] == param.ProcessName {
+			legalFlag = true
+			break
+		}
+	}
+	if !legalFlag {
+		return fmt.Errorf("Process:%s illegal to run with chose data ", param.ProcessName)
+	}
 	var requestParam models.CoreProcessRequest
 	requestParam.EventSeqNo = "wecmdb_" + guid.CreateGuid()
 	requestParam.EventType = "wecmdb"
