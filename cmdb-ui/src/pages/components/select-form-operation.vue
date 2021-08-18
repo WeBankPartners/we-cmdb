@@ -7,15 +7,14 @@
           type="selection"
           ref="selection"
           max-height="500"
-          @on-selection-change="selectionChange"
           :columns="selectFormConfig.table.tableColumns"
           :data="selectFormConfig.table.tableData"
         >
         </Table>
       </div>
       <div slot="footer">
-        <Button @click="selectFormConfig.isShow = false">{{ $t('cancel') }}</Button>
-        <Button type="primary" @click="confirmData" :disabled="selectedData.length === 0">{{ $t('confirm') }}</Button>
+        <Button @click="cancelData">{{ $t('cancel') }}</Button>
+        <Button type="primary" @click="confirmData" :disabled="currentChoose === ''">{{ $t('confirm') }}</Button>
       </div>
     </Modal>
   </div>
@@ -28,26 +27,50 @@ export default {
   data () {
     return {
       params: {},
-      selectedData: [],
       selectFormConfig: {
         isShow: false,
         table: {
           tableData: [],
           tableColumns: []
         }
-      }
+      },
+      currentChoose: ''
     }
   },
   methods: {
+    cancelData () {
+      this.selectFormConfig.isShow = false
+      this.currentChoose = ''
+    },
     async initFormData (params) {
       this.params = params
       const { statusCode, data } = await getSelectFormData(params)
       if (statusCode === 'OK') {
-        console.log(data)
         data.title.unshift({
-          type: 'selection',
-          width: 60,
-          align: 'center'
+          title: '选择',
+          key: 'id',
+          width: 70,
+          align: 'center',
+          render: (h, params) => {
+            let id = params.row.id
+            let flag = false
+            if (this.currentChoose !== '' && this.currentChoose === id) {
+              flag = true
+            }
+            let self = this
+            return h('div', [
+              h('Radio', {
+                props: {
+                  value: flag
+                },
+                on: {
+                  'on-change': () => {
+                    self.currentChoose = id
+                  }
+                }
+              })
+            ])
+          }
         })
         this.selectFormConfig = {
           isShow: true,
@@ -58,15 +81,9 @@ export default {
         }
       }
     },
-    selectionChange (items) {
-      this.selectedData = items
-    },
     async confirmData () {
-      const { statusCode, message } = await tableOptionExcute(
-        this.params.operation,
-        this.params.ciType,
-        this.selectedData
-      )
+      const selectedData = this.selectFormConfig.table.tableData.filter(item => item.id === this.currentChoose)
+      const { statusCode, message } = await tableOptionExcute(this.params.operation, this.params.ciType, selectedData)
       if (statusCode === 'OK') {
         this.$Notice.success({
           title: 'successfully',
@@ -75,6 +92,7 @@ export default {
         this.selectFormConfig.isShow = false
         this.$parent.queryCiData()
       }
+      this.currentChoose = ''
     }
   },
   components: {}
