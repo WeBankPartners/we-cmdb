@@ -75,24 +75,7 @@
     <Modal footer-hide v-model="compareVisible" width="90" class-name="compare-modal">
       <Table :columns="compareColumns" :height="MODALHEIGHT" :data="compareData" border />
     </Modal>
-
-    <!-- @on-cancel="cancel" -->
-    <Modal v-model="rollbackConfig.isShow" width="900" @on-ok="okRollback" title="数据回退">
-      <div>
-        <CMDBTable
-          :ciTypeId="rollbackConfig.id"
-          :tableData="rollbackConfig.table.tableData"
-          :tableColumns="rollbackConfig.table.tableColumns"
-          :showCheckbox="needCheckout"
-          :tableInnerActions="null"
-          :isRefreshable="true"
-          :filtersHidden="true"
-          @getSelectedRows="onSelectedRowsChangeRollBack"
-          tableHeight="650"
-          :ref="'table' + 111"
-        ></CMDBTable>
-      </div>
-    </Modal>
+    <SelectFormOperation ref="selectForm"></SelectFormOperation>
   </div>
 </template>
 <script>
@@ -101,13 +84,11 @@ import * as d3 from 'd3-selection'
 import * as d3Graphviz from 'd3-graphviz'
 import moment from 'moment'
 import { addEvent } from '../util/event.js'
-import { finalDataForRequest } from '../util/component-util'
 import {
   getAllCITypesByLayerWithAttr,
   getEnumCodesByCategoryId,
   getCiTypeAttributes,
   queryCiData,
-  getRollbackData,
   tableOptionExcute,
   operateCiState,
   getEnumCategoriesById,
@@ -118,6 +99,7 @@ import { pagination, components } from '@/const/actions.js'
 // import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { formatData } from '../util/format.js'
 import { CI_LAYER, CI_GROUP } from '@/const/init-params.js'
+import SelectFormOperation from '@/pages/components/select-form-operation'
 export default {
   provide () {
     return {
@@ -127,13 +109,6 @@ export default {
   data () {
     return {
       spinShow: false,
-      rollbackConfig: {
-        isShow: false,
-        table: {
-          tableData: [],
-          tableColumns: []
-        }
-      },
       baseURL,
       currentZoomLevelId: [],
       tabList: [],
@@ -559,29 +534,12 @@ export default {
       })
     },
     async selectHandler (operationType, rollbackData) {
-      const { statusCode, data } = await getRollbackData(rollbackData[0].guid)
-      if (statusCode === 'OK') {
-        this.rollbackConfig.table.tableColumns = this.tabList.find(_ => _.id === this.currentTab).tableColumns
-        this.rollbackConfig.table.tableData = data
-        this.rollbackConfig.isShow = true
+      const params = {
+        operation: operationType,
+        ciType: this.currentTab,
+        guid: rollbackData[0].guid
       }
-    },
-    onSelectedRowsChangeRollBack (rows) {
-      this.rollbackConfig.selectData = rows
-    },
-    async okRollback () {
-      let finalData = finalDataForRequest(this.rollbackConfig.selectData)
-      // finalData.forEach(item => {
-      //   delete item.update_time
-      // })
-      const { statusCode, message } = await tableOptionExcute('Rollback', this.currentTab, finalData)
-      if (statusCode === 'OK') {
-        this.$Notice.success({
-          title: 'Rollback successfully',
-          desc: message
-        })
-        this.queryCiData()
-      }
+      this.$refs.selectForm.initFormData(params)
     },
     confirmHandler (operateType, confirmData) {
       this.$Modal.confirm({
@@ -1036,6 +994,9 @@ export default {
   mounted () {
     this.MODALHEIGHT = window.MODALHEIGHT
     this.getInitGraphData()
+  },
+  components: {
+    SelectFormOperation
   }
 }
 </script>
