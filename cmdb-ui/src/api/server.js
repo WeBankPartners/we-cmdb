@@ -191,6 +191,8 @@ export const getStateMachine = state => req.get(`/state-machine?machine=${state.
 export const getCiTemplate = () => req.get(`/ci-template`)
 export const getStateTransition = ciTypeId => req.get(`/state-transition/${ciTypeId}`)
 export const getRollbackData = guid => req.get(`/ci-data/rollback/query/${guid}`)
+export const getSelectFormData = params =>
+  req.get(`/ci-data/action-query/${params.operation}/${params.ciType}/${params.guid}`)
 
 export const tableOptionExcute = (type, ciTypeId, data) => req.post(`/ci-data/do/${type}/${ciTypeId}`, data)
 // ci integrate query
