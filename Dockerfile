@@ -1,4 +1,4 @@
-FROM alpine
+FROM ccr.ccs.tencentyun.com/webankpartners/alpine-base:v1.0
 
 ENV BASE_HOME=/app/cmdb
 
