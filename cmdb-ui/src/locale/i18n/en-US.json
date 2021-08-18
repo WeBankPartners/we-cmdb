@@ -319,6 +319,7 @@
   "operation_data_rollback": "Data Rollback",
   "no_update_action_available": "Can not perform change operation due to current state transition",
   "edit_group_control": "Edit Group Control",
+  "edit_group_value": "Edit Group Values",
   "reset_zoom": "Reset Zoom",
   "condition": "Condition",
   "list": "List",
