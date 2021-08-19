@@ -575,6 +575,9 @@ export default {
     async init () {
       this.ciOuterActions = await this.getStateTransition(this.ci)
       this.tableColumns = await this.queryCiAttrs(this.ci)
+      if (this.isEdit) {
+        this.outerActions = this.ciOuterActions
+      }
       await this.queryCiData()
     }
   },
