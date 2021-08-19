@@ -124,7 +124,7 @@
       <Row>
         <Card class="view-card" style="margin-top: 20px;">
           <div>
-            <Tabs type="card" :closable="false">
+            <Tabs type="card" :closable="false" @on-click="handleTabClick" ref="tab">
               <Spin size="large" fix v-if="tabLoading">
                 <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
                 <div>{{ $t('loading') }}</div>
@@ -152,6 +152,7 @@
               </TabPane>
               <TabPane v-for="citype in ciTypeTables" :label="citype.name" :key="citype.id" :name="'tabci' + citype.id">
                 <CITable
+                  v-if="citype.isInit"
                   :ci="citype.id"
                   :ciTypeName="citype.name"
                   :tableFilters="ciTypeTableFilters"
@@ -314,6 +315,15 @@ export default {
   computed: {},
   watch: {},
   methods: {
+    handleTabClick (name) {
+      if (name.startsWith('tabci')) {
+        let ciTypeId = name.substring('tabci'.length)
+        let ciType = this.ciTypeTables.find(el => el.id === ciTypeId)
+        if (ciType) {
+          ciType.isInit = true
+        }
+      }
+    },
     onChildFormJSONInput (jsonData, key) {
       let copyData = JSON.parse(JSON.stringify(jsonData))
       copyData.__meta = 'json'
@@ -544,6 +554,9 @@ export default {
       this.$nextTick(function () {
         this.viewData = data
         this.generateCiTypeTab()
+        if (this.viewSetting.graphs.length > 0) {
+          this.$refs.tab.activeKey = 'tabgraph0'
+        }
       })
     },
     getCiFormAttributes (ciType, editOnly = false) {
@@ -677,7 +690,7 @@ export default {
         })
       })
       Array.from(tabs).forEach(ciType => {
-        this.ciTypeTables.push({ name: this.ciTypeMapping[ciType].name, id: ciType })
+        this.ciTypeTables.push({ name: this.ciTypeMapping[ciType].name, id: ciType, isInit: false })
       })
       this.$nextTick(function () {
         this.ciTypeTableFilters = {}
