@@ -61,11 +61,16 @@ export default {
             return h('div', [
               h('Radio', {
                 props: {
-                  value: flag
+                  value: flag,
+                  disabled: params.row._disabled
                 },
                 on: {
                   'on-change': () => {
-                    self.currentChoose = id
+                    if (self.currentChoose === id) {
+                      self.currentChoose = ''
+                    } else {
+                      self.currentChoose = id
+                    }
                   }
                 }
               })
