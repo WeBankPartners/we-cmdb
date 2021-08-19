@@ -1620,7 +1620,8 @@ func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title
 		return
 	}
 	if len(rowData) == 0 {
-		err = fmt.Errorf("Can not find any data with guid:%s ", inputGuid)
+		//err = fmt.Errorf("Can not find any data with guid:%s ", inputGuid)
+		rowData = []map[string]interface{}{}
 		return
 	}
 	if rowData[len(rowData)-1]["history_state_confirmed"].(string) == "1" {
