@@ -1467,7 +1467,6 @@ func buildMultiRefActions(param *models.BuildAttrValueParam) (actions []*execAct
 	}
 	valueList := []string{}
 	if strings.Contains(inputValue, "[") {
-		valueList := []string{}
 		err = json.Unmarshal([]byte(inputValue), &valueList)
 		if err != nil {
 			err = fmt.Errorf("Format multiRef value to []string fail,%s ", err.Error())
