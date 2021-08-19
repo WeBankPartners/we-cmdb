@@ -713,3 +713,12 @@ CREATE TABLE `sys_wecube_process` (
 
 
 SET FOREIGN_KEY_CHECKS=1;
+
+#@v2.0.2.1-begin@;
+insert into sys_state_transition(`guid`, `state_machine`, `current_state`, `target_state`, `operation`, `operation_en`, `permission`, `action`, `operation_form_type`, `operation_multiple`) value ('609a4bdf-420e8bde','create_destroy','create_destroy__created_0','create_destroy__created_0','执行','Execute','execute','execute','select_form','no');
+insert into sys_state_transition(`guid`, `state_machine`, `current_state`, `target_state`, `operation`, `operation_en`, `permission`, `action`, `operation_form_type`, `operation_multiple`) value ('609a4bdf-5e297272','create_destroy','create_destroy__changed_0','create_destroy__changed_0','执行','Execute','execute','execute','select_form','no');
+insert into sys_state_transition(`guid`, `state_machine`, `current_state`, `target_state`, `operation`, `operation_en`, `permission`, `action`, `operation_form_type`, `operation_multiple`) value ('609a4bdf-86c4db4e','start_stop','start_stop__created_0','start_stop__created_0','执行','Execute','execute','execute','select_form','no');
+insert into sys_state_transition(`guid`, `state_machine`, `current_state`, `target_state`, `operation`, `operation_en`, `permission`, `action`, `operation_form_type`, `operation_multiple`) value ('609a4bdf-92a5e791','start_stop','start_stop__changed_0','start_stop__changed_0','执行','Execute','execute','execute','select_form','no');
+insert into sys_state_transition(`guid`, `state_machine`, `current_state`, `target_state`, `operation`, `operation_en`, `permission`, `action`, `operation_form_type`, `operation_multiple`) value ('609a4bdf-9ec54e3b','start_stop','start_stop__started_0','start_stop__started_0','执行','Execute','execute','execute','select_form','no');
+insert into sys_state_transition(`guid`, `state_machine`, `current_state`, `target_state`, `operation`, `operation_en`, `permission`, `action`, `operation_form_type`, `operation_multiple`) value ('609a4bdf-a374c8d8','start_stop','start_stop__stoped_0','start_stop__stoped_0','执行','Execute','execute','execute','select_form','no');
+#@v2.0.2.1-end@;

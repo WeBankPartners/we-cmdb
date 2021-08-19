@@ -45,7 +45,7 @@ func HandleCiDataOperation(inputData []models.CiDataMapObj, ciTypeId, operation,
 		guidPermissionEnable := false
 		if permission {
 			permissionAction := firstAction
-			if permissionAction == "confirm" || permissionAction == "call" {
+			if permissionAction == "confirm" {
 				permissionAction = "execute"
 			}
 			permissions, tmpErr := GetRoleCiDataPermission(roles, ciTypeId)
@@ -285,8 +285,8 @@ func doActionFunc(param *models.ActionFuncParam) (result []*execAction, err erro
 	case "delete":
 		result, err = deleteActionFunc(param)
 		break
-	case "call":
-		result, err = callActionFunc(param)
+	case "execute":
+		result, err = executeActionFunc(param)
 		break
 	default:
 		err = fmt.Errorf("Action:%s can not support ", param.Transition.Action)
@@ -556,7 +556,7 @@ func deleteActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 	return
 }
 
-func callActionFunc(param *models.ActionFuncParam) (result []*execAction, err error) {
+func executeActionFunc(param *models.ActionFuncParam) (result []*execAction, err error) {
 	var columnList []*models.CiDataColumnObj
 	for _, ciAttr := range param.Attributes {
 		if ciAttr.Name == "state" {
