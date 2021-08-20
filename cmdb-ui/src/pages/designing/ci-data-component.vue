@@ -487,6 +487,7 @@ export default {
       this.queryCiData()
     },
     async queryCiData () {
+      this.payload.sorting = { asc: false, field: 'update_time' }
       this.payload.pageable.pageSize = 10
       this.payload.pageable.startIndex = 0
       this.payload.pageable.pageSize = this.pagination.pageSize
@@ -574,6 +575,9 @@ export default {
     async init () {
       this.ciOuterActions = await this.getStateTransition(this.ci)
       this.tableColumns = await this.queryCiAttrs(this.ci)
+      if (this.isEdit) {
+        this.outerActions = this.ciOuterActions
+      }
       await this.queryCiData()
     }
   },
