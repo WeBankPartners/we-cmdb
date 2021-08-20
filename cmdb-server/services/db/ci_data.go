@@ -285,6 +285,9 @@ func doActionFunc(param *models.ActionFuncParam) (result []*execAction, err erro
 	case "delete":
 		result, err = deleteActionFunc(param)
 		break
+	case "execute":
+		result, err = executeActionFunc(param)
+		break
 	default:
 		err = fmt.Errorf("Action:%s can not support ", param.Transition.Action)
 	}
@@ -455,7 +458,7 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 	for _, multiRefColumn := range multiRefColumnList {
 		delete(param.InputData, multiRefColumn)
 	}
-	if !rollbackFlag {
+	if !rollbackFlag && param.BareAction == "" {
 		columnList = append(columnList, &models.CiDataColumnObj{ColumnName: "confirm_time", ColumnValue: "reset_null^"})
 		param.InputData["confirm_time"] = "reset_null^"
 	} else if param.InputData["confirm_time"] != "" {
@@ -465,7 +468,7 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 		result = append(result, getUpdateActionByColumnList(columnList, param.CiType, param.InputData["guid"]))
 		result = append(result, getHistoryActionByData(param.InputData, param.CiType, param.NowTime, param.Transition))
 	}
-	if !rollbackFlag {
+	if !rollbackFlag && param.BareAction == "" {
 		param.InputData["confirm_time"] = ""
 	}
 	return
@@ -550,6 +553,22 @@ func deleteActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 	result = append(result, &execAction{Sql: fmt.Sprintf("DELETE FROM %s WHERE guid=?", param.CiType), Param: []interface{}{param.InputData["guid"]}})
 	param.NowData["state"] = param.Transition.TargetStateName
 	result = append(result, getHistoryActionByData(param.NowData, param.CiType, param.NowTime, param.Transition))
+	return
+}
+
+func executeActionFunc(param *models.ActionFuncParam) (result []*execAction, err error) {
+	var columnList []*models.CiDataColumnObj
+	for _, ciAttr := range param.Attributes {
+		if ciAttr.Name == "state" {
+			param.NowData["state"] = param.Transition.TargetStateName
+			columnList = append(columnList, &models.CiDataColumnObj{ColumnName: "state", ColumnValue: param.Transition.TargetStateName})
+			break
+		}
+	}
+	param.NowData = cleanInputData(param.NowData, param.Attributes)
+	result = append(result, getUpdateActionByColumnList(columnList, param.CiType, param.InputData["guid"]))
+	result = append(result, getHistoryActionByData(param.NowData, param.CiType, param.NowTime, param.Transition))
+	err = StartCiDataCallback(models.CiDataCallbackParam{RowGuid: param.InputData["guid"], ProcessName: param.InputData["procDefName"], ProcessKey: param.InputData["procDefKey"], CiType: param.CiType})
 	return
 }
 
@@ -1448,7 +1467,6 @@ func buildMultiRefActions(param *models.BuildAttrValueParam) (actions []*execAct
 	}
 	valueList := []string{}
 	if strings.Contains(inputValue, "[") {
-		valueList := []string{}
 		err = json.Unmarshal([]byte(inputValue), &valueList)
 		if err != nil {
 			err = fmt.Errorf("Format multiRef value to []string fail,%s ", err.Error())
@@ -1590,7 +1608,7 @@ func recursiveAttrAutofill(afList []*models.AttrAutofillSortObj, af *models.Attr
 	return
 }
 
-func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, err error) {
+func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title []*models.CiDataActionQueryTitle, err error) {
 	ciTypeId := inputGuid[:len(inputGuid)-len(guid.CreateGuid())-1]
 	queryParam := models.QueryRequestParam{}
 	queryParam.Dialect = &models.QueryRequestDialect{QueryMode: "all"}
@@ -1601,7 +1619,8 @@ func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, err e
 		return
 	}
 	if len(rowData) == 0 {
-		err = fmt.Errorf("Can not find any data with guid:%s ", inputGuid)
+		//err = fmt.Errorf("Can not find any data with guid:%s ", inputGuid)
+		rowData = []map[string]interface{}{}
 		return
 	}
 	if rowData[len(rowData)-1]["history_state_confirmed"].(string) == "1" {
@@ -1610,7 +1629,7 @@ func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, err e
 	}
 	if len(rowData) < 2 {
 		//err = fmt.Errorf("Can not find any history data with guid:%s ", inputGuid)
-		return rowData, nil
+		return rowData, title, nil
 	}
 	var newRowData []map[string]interface{}
 	for i := len(rowData) - 2; i > 0; i-- {
@@ -1621,7 +1640,13 @@ func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, err e
 			newRowData = append(newRowData, rowData[i])
 		}
 	}
-	return newRowData, nil
+	title = []*models.CiDataActionQueryTitle{}
+	var attrs []*models.SysCiTypeAttrTable
+	x.SQL("select name,display_name from sys_ci_type_attr where display_by_default='yes' and ci_type=? order by ui_form_order", ciTypeId).Find(&attrs)
+	for _, attr := range attrs {
+		title = append(title, &models.CiDataActionQueryTitle{Id: attr.Name, Name: attr.DisplayName})
+	}
+	return newRowData, title, nil
 }
 
 func cleanInputData(inputData models.CiDataMapObj, attrs []*models.SysCiTypeAttrTable) models.CiDataMapObj {

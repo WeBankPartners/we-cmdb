@@ -33,6 +33,7 @@
         <systemParameter name="WECMDB_RESOURCE_SET" scopeType="global" defaultValue="resource_set"/>
         <systemParameter name="WECMDB_KEEP_DATA_MODEL_SYNC" scopeType="global" defaultValue="false"/>
         <systemParameter name="WECMDB_LOG_LEVEL" scopeType="global" defaultValue="info"/>
+        <systemParameter name="WECMDB_PROCESS_TAGS" scopeType="global" defaultValue="cmdb"/>
     </systemParameters>
 
 
@@ -57,7 +58,7 @@
                 containerName="{{REPOSITORY}}-{{PLUGIN_VERSION}}"
                 portBindings="{{ALLOCATE_PORT}}:8096"
                 volumeBindings="{{BASE_MOUNT_PATH}}/wecmdb/log:/app/cmdb/logs,/etc/localtime:/etc/localtime,{{BASE_MOUNT_PATH}}/certs:/data/certs"
-                envVariables="CMDB_MYSQL_HOST={{DB_HOST}},CMDB_MYSQL_PORT={{DB_PORT}},CMDB_MYSQL_SCHEMA={{DB_SCHEMA}},CMDB_MYSQL_USER={{DB_USER}},CMDB_MYSQL_PWD={{DB_PWD}},JWT_SIGNING_KEY={{JWT_SIGNING_KEY}},GATEWAY_URL={{GATEWAY_URL}},SUB_SYSTEM_CODE={{SUB_SYSTEM_CODE}},SUB_SYSTEM_KEY={{SUB_SYSTEM_KEY}},CMDB_LOG_LEVEL={{WECMDB_LOG_LEVEL}},PLUGIN_MODE=yes"
+                envVariables="CMDB_MYSQL_HOST={{DB_HOST}},CMDB_MYSQL_PORT={{DB_PORT}},CMDB_MYSQL_SCHEMA={{DB_SCHEMA}},CMDB_MYSQL_USER={{DB_USER}},CMDB_MYSQL_PWD={{DB_PWD}},JWT_SIGNING_KEY={{JWT_SIGNING_KEY}},GATEWAY_URL={{GATEWAY_URL}},SUB_SYSTEM_CODE={{SUB_SYSTEM_CODE}},SUB_SYSTEM_KEY={{SUB_SYSTEM_KEY}},CMDB_LOG_LEVEL={{WECMDB_LOG_LEVEL}},PLUGIN_MODE=yes,WECMDB_PROCESS_TAGS={{WECMDB_PROCESS_TAGS}}"
         />
         <mysql schema="wecmdb_pro" initFileName="init.sql" upgradeFileName="upgrade.sql"/>
     </resourceDependencies>

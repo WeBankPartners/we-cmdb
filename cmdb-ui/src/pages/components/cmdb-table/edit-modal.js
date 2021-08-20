@@ -202,6 +202,47 @@ export default {
     removeAddData (index) {
       this.editData.splice(index, 1)
     },
+    isGroupEditDisabled (allAttrs, attr, item) {
+      let attrGroupEditDisabled = false
+      if (attr.editGroupControl === 'yes') {
+        if (attr.editGroupValues.length > 0) {
+          let groups = JSON.parse(attr.editGroupValues)
+          for (let idx = 0; idx < groups.length; idx++) {
+            let group = groups[idx]
+            if (attrGroupEditDisabled) {
+              break
+            }
+            const findAttr = allAttrs.find(el => {
+              if (el.propertyName === group.key) {
+                return true
+              }
+              return false
+            })
+            if (findAttr && group.value.length > 0) {
+              if (!item[findAttr.propertyName]) {
+                // 控制字段未赋值，禁用当前字段
+                attrGroupEditDisabled = true
+              } else if (Array.isArray(item[findAttr.propertyName])) {
+                let attrValues = item[findAttr.propertyName]
+                let intersect = attrValues.filter(v => {
+                  return group.value.indexOf(v) > -1
+                })
+                // 控制字段是数组且与设置的数据没有交集，禁用当前字段
+                if (intersect.length === 0) {
+                  attrGroupEditDisabled = true
+                }
+              } else {
+                // 控制字段是单值且不在分组范围，应当禁用当前字段
+                if (group.value.indexOf(item[findAttr.propertyName]) < 0) {
+                  attrGroupEditDisabled = true
+                }
+              }
+            }
+          }
+        }
+      }
+      return attrGroupEditDisabled
+    },
     renderDataRows () {
       let handleInputSearch = this.handleInputSearch
       let setValueHandler = (v, col, row) => {
@@ -263,6 +304,7 @@ export default {
                           allCiTypes={column.allCiTypes}
                           isFilterAttr={true}
                           displayAttrType={column.displayAttrType}
+                          disabled={this.isGroupEditDisabled(cols, column, d)}
                           rootCis={column.rootCis}
                           rootCiTypeId={column.ciTypeId}
                           value={d[column.propertyName] || []}
@@ -277,6 +319,7 @@ export default {
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
                         <column.component
                           value={d[column.inputKey] || column.defaultValue}
+                          disabled={this.isGroupEditDisabled(cols, column, d)}
                           options={column.optionKey ? this.ascOptions[column.optionKey] : column.options}
                           onInput={v => {
                             setValueHandler(v, column, d)
@@ -287,6 +330,7 @@ export default {
                   } else if (column.component === 'Input' && column.inputType === 'multiText') {
                     const props = {
                       ...column,
+                      disabled: this.isGroupEditDisabled(cols, column, d),
                       data: JSON.parse(JSON.stringify(d[column['inputKey']])),
                       type: 'text'
                     }
@@ -307,6 +351,7 @@ export default {
                   } else if (column.component === 'Input' && column.inputType === 'multiInt') {
                     const props = {
                       ...column,
+                      disabled: this.isGroupEditDisabled(cols, column, d),
                       data: JSON.parse(JSON.stringify(d[column['inputKey']])),
                       type: 'number'
                     }
@@ -327,6 +372,7 @@ export default {
                   } else if (column.component === 'Input' && column.inputType === 'multiObject') {
                     const props = {
                       ...column,
+                      disabled: this.isGroupEditDisabled(cols, column, d),
                       data: JSON.parse(JSON.stringify(d[column['inputKey']])),
                       type: 'json'
                     }
@@ -347,6 +393,7 @@ export default {
                   } else if (column.component === 'Input' && column.inputType !== 'object') {
                     const props = {
                       ...column,
+                      disabled: this.isGroupEditDisabled(cols, column, d),
                       data: this.inputSearch[column.inputKey].options,
                       value: d[column.inputKey]
                     }
@@ -380,6 +427,7 @@ export default {
                   } else if (column.component === 'Input' && column.inputType === 'object') {
                     const props = {
                       ...column,
+                      disabled: this.isGroupEditDisabled(cols, column, d),
                       jsonData: JSON.parse(JSON.stringify(d[column['inputKey']]) || '{}')
                     }
                     const fun = {
@@ -411,6 +459,7 @@ export default {
                                 ? JSON.parse(d[column.inputKey])
                                 : ''
                               : formatValue(column, d[column.inputKey]),
+                          disabled: this.isGroupEditDisabled(cols, column, d),
                           filterParams: column.referenceFilter
                             ? {
                               attrId: column.ciTypeAttrId,
@@ -430,6 +479,7 @@ export default {
                                 ? JSON.parse(d[column.inputKey]).map(item => item.guid)
                                 : []
                               : d[column.inputKey] || '',
+                          disabled: this.isGroupEditDisabled(cols, column, d),
                           filterParams: column.referenceFilter
                             ? {
                               attrId: column.ciTypeAttrId,

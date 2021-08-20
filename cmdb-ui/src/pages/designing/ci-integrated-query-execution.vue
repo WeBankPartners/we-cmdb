@@ -8,6 +8,8 @@
           @on-open-change="getReportList"
           @on-change="getReportFilterData"
           filterable
+          clearable
+          @on-clear="clearReport"
           style="width: 75%;"
         >
           <Option v-for="item in reportList" :value="item.id" :key="item.id">{{ item.name }}</Option>
@@ -15,13 +17,23 @@
       </Col>
       <Col span="6">
         <span style="margin-right: 10px">{{ $t('display_type') }}</span>
-        <Select v-model="displayType" style="width: 75%;">
+        <Select v-model="displayType" @on-change="changeReportType" style="width: 75%;">
           <Option v-for="item in ['table', 'tree']" :value="item" :key="item">{{ item }}</Option>
         </Select>
       </Col>
-      <Button type="primary" :disabled="filters.length === 0" v-if="displayType !== 'table'" @click="getReportData">{{
-        $t('query')
-      }}</Button>
+      <Col span="6" v-if="displayType === 'tree'">
+        <span style="margin-right: 10px">{{ $t('display_type') }}</span>
+        <Select v-model="treeRoot" filterable multiple style="width: 75%;">
+          <Option v-for="item in treeRootOptions" :value="item.code" :key="item.code">{{ item.code }}</Option>
+        </Select>
+      </Col>
+      <Button
+        type="primary"
+        :disabled="!currentReportId || treeRoot.length === 0"
+        v-if="displayType !== 'table'"
+        @click="getReportData"
+        >{{ $t('query') }}</Button
+      >
     </Row>
     <template v-if="displayType === 'table'">
       <Row v-if="filters.length > 0 && displayType === 'table'" style="margin: 16px 0">
@@ -68,11 +80,20 @@
       </Row>
     </template>
     <template v-else>
-      <Tabs :value="treeSet[0].code" v-if="showTab">
+      <Tabs @on-click="changeTab" :value="treeSet[0].code" v-if="showTab">
         <TabPane v-for="tree in treeSet" :label="tree.code" :name="tree.code" :key="tree.code">
-          <div :style="{ height: MODALHEIGHT + 'px', overflow: 'auto' }">
-            <Tree :data="[tree]" @on-select-change="selectChange" :render="renderContent" expand-node></Tree>
-          </div>
+          <Row>
+            <Col span="8">
+              <div :style="{ height: MODALHEIGHT + 'px', overflow: 'auto' }">
+                <Tree :data="[tree]" @on-select-change="showDetail" :render="renderContent"></Tree>
+              </div>
+            </Col>
+            <Col span="15" offset="1">
+              <div :style="{ height: MODALHEIGHT + 'px', overflow: 'auto' }">
+                <pre>{{ dataDetail.data }}</pre>
+              </div>
+            </Col>
+          </Row>
         </TabPane>
       </Tabs>
     </template>
@@ -100,7 +121,7 @@
         </Row>
       </div>
     </Modal>
-    <Modal v-model="dataDetail.isShow" :fullscreen="fullscreen" width="800" footer-hide>
+    <!-- <Modal v-model="dataDetail.isShow" :fullscreen="fullscreen" width="800" footer-hide>
       <p slot="header">
         <span>Detail</span>
         <Icon
@@ -119,7 +140,7 @@
       <div :style="{ overflow: 'auto', 'max-height': fullscreen ? '' : '500px' }">
         <pre>{{ dataDetail.data }}</pre>
       </div>
-    </Modal>
+    </Modal> -->
   </div>
 </template>
 
@@ -140,11 +161,13 @@ export default {
       fullscreen: false,
       dataDetail: {
         isShow: false,
-        data: {}
+        data: ''
       },
       showTab: false,
       displayType: 'tree',
       strcData: [],
+      treeRoot: [],
+      treeRootOptions: [],
       treeSet: [],
       currentReportId: '',
       reportList: [],
@@ -164,10 +187,6 @@ export default {
           startIndex: 0
         },
         paging: true
-        // sorting: {
-        //   asc: true,
-        //   field: ""
-        // }
       },
       showRowData: false,
       rowData: '',
@@ -182,6 +201,18 @@ export default {
     this.MODALHEIGHT = document.body.scrollHeight - 200
   },
   methods: {
+    changeReportType () {
+      this.currentReportId = ''
+      this.clearReport()
+    },
+    clearReport () {
+      this.showTab = false
+      this.treeRootOptions = []
+      this.treeRoot = []
+    },
+    changeTab () {
+      this.dataDetail.data = ''
+    },
     renderContent (h, { root, node, data }) {
       return h(
         'span',
@@ -191,39 +222,11 @@ export default {
             width: '100%'
           }
         },
-        [
-          h('span', [h('span', data.title)]),
-          h(
-            'span',
-            {
-              style: {
-                display: 'inline-block',
-                float: 'right',
-                marginRight: '32px'
-              }
-            },
-            [
-              h('Button', {
-                props: Object.assign({}, this.buttonProps, {
-                  icon: 'ios-search-outline',
-                  size: 'small',
-                  color: '#57a3f3'
-                }),
-                style: {
-                  marginLeft: '8px'
-                },
-                on: {
-                  click: () => {
-                    this.showDetail(data)
-                  }
-                }
-              })
-            ]
-          )
-        ]
+        [h('a', [h('span', data.title)])]
       )
     },
-    async showDetail (item) {
+    async showDetail (itemArray, itemSingle) {
+      const item = itemArray[0] || itemSingle
       const payload = {
         id: item.guid.substring(0, item.guid.length - 17),
         queryObject: {
@@ -243,29 +246,22 @@ export default {
     async displayTree () {
       await this.getStrc()
       this.getData()
-    },
-    selectChange (a, b) {
-      console.log(a, b)
-      b.expand = !b.expand
+      this.showTab = true
     },
     async getData () {
-      let params = {
-        reportId: this.currentReportId
-      }
-      const { statusCode, data } = await graphQueryRootCI(params)
-      if (statusCode === 'OK') {
-        data.forEach(d => {
+      this.treeSet = []
+      this.treeRootOptions.forEach(d => {
+        if (this.treeRoot.includes(d.code)) {
           this.treeSet.push(d)
           this.treeSet.forEach(tree => {
             this.singleTree(tree)
           })
-        })
-        this.showTab = true
-      }
+        }
+      })
     },
     singleTree (tree) {
       tree.title = tree.key_name
-      tree.expand = tree.true
+      // tree.expand = true
       const keys = Object.keys(tree)
       let tmp = []
       keys.forEach(key => {
@@ -286,7 +282,7 @@ export default {
     managementData (children) {
       children.forEach(child => {
         child.title = child.key_name
-        child.expand = true
+        // child.expand = true
         const keys = Object.keys(child)
         let tmp = []
         keys.forEach(key => {
@@ -344,6 +340,11 @@ export default {
       }
     },
     async getReportFilterData () {
+      if (!this.currentReportId) return
+      if (this.displayType === 'tree') {
+        this.getReportRoot()
+        return
+      }
       this.hasTableData = false
       const { statusCode, data } = await getReportFilterData(this.currentReportId)
       if (statusCode === 'OK') {
@@ -408,6 +409,16 @@ export default {
             ])
           }
         })
+      }
+    },
+    async getReportRoot () {
+      this.treeRoot = []
+      let params = {
+        reportId: this.currentReportId
+      }
+      const { statusCode, data } = await graphQueryRootCI(params)
+      if (statusCode === 'OK') {
+        this.treeRootOptions = data
       }
     },
     showRowDataFun (row) {

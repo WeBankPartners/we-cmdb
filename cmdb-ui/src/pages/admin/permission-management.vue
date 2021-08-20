@@ -416,17 +416,14 @@ export default {
         } else {
           this.permissionEntryPoints = []
           this.menusPermissionSelected(this.menus, permissions.data)
-          // this.ciTypePermissions = permissions.data.ciTypePermissionObj
         }
       } else {
         if (queryAfterEditing) {
           this.menusPermissionSelected(this.menusForEdit)
         } else {
           this.menusPermissionSelected(this.menus)
-          // this.ciTypePermissions = []
         }
       }
-      // this.cacheOriginCiTypePermission = JSON.parse(JSON.stringify(this.ciTypePermissions))
     },
     async handleUserClick (checked, name) {
       this.spinShow = true
@@ -439,16 +436,18 @@ export default {
         }
       })
       let { statusCode, data } = await getRolesByUser(name)
-      this.getPermissions(false, checked, name, true)
+      let roles = []
       if (statusCode === 'OK') {
         this.roles.forEach(_ => {
           _.checked = false
           const found = data.find(item => item.roleName === _.id)
           if (found) {
+            roles.push(found.roleName)
             _.checked = checked
           }
           this.menus = this.menusResponseHandeler(this.allMenusOriginResponse)
         })
+        this.getPermissions(false, checked, roles.join(','), true)
       }
     },
     async getAllUsers () {
@@ -497,7 +496,6 @@ export default {
         }
       })
       let { statusCode, data } = await getUsersByRole(rolename)
-      this.getPermissions(false, checked, rolename)
       if (statusCode === 'OK') {
         this.users.forEach(_ => {
           _.checked = false
@@ -507,6 +505,7 @@ export default {
           }
         })
       }
+      this.getPermissions(false, checked, rolename)
     },
     async handleMenuTreeCheck (allChecked) {
       let menuCodes = new Set()
