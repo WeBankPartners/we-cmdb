@@ -81,6 +81,7 @@ var (
 	PluginRunningMode bool
 	CoreToken         *token.CoreToken
 	MenuApiGlobalList []*MenuApiMapObj
+	ProcessFetchTabs  string
 )
 
 func InitConfig(configFile string) (errMessage string) {
@@ -120,6 +121,7 @@ func InitConfig(configFile string) (errMessage string) {
 		tmpCoreToken.SubSystemKey = Config.Wecube.SubSystemKey
 		tmpCoreToken.InitCoreToken()
 		CoreToken = &tmpCoreToken
+		ProcessFetchTabs = os.Getenv("WECMDB_PROCESS_TAGS")
 	} else {
 		PluginRunningMode = false
 	}
