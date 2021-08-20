@@ -1,7 +1,7 @@
 current_dir=$(shell pwd)
 version=$(PLUGIN_VERSION)
 project_dir=$(shell basename "${current_dir}")
-project_name=wecmdb-pro
+project_name=wecmdb
 
 clean:
 	rm -rf cmdb-server/cmdb-server
