@@ -7,8 +7,9 @@ import (
 )
 
 func GetRoleMenu(role string) (rowData []*models.SysMenuTable, err error) {
+	role = strings.ReplaceAll(role, ",", "','")
 	rowData = []*models.SysMenuTable{}
-	err = x.SQL("select t2.* from sys_role_menu t1 left join sys_menu t2 on t1.menu_guid=t2.id where t1.role_guid=?", role).Find(&rowData)
+	err = x.SQL("select distinct t2.* from sys_role_menu t1 left join sys_menu t2 on t1.menu_guid=t2.id where t1.role_guid in ('" + role + "')").Find(&rowData)
 	return
 }
 
