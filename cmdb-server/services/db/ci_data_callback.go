@@ -97,7 +97,7 @@ func ListCiDataVariableCallback(ciType, rowGuid string) (processList []*models.C
 
 func getCoreProcessList() (processList []*models.CodeProcessQueryObj, err error) {
 	models.CoreToken.GetCoreToken()
-	req, reqErr := http.NewRequest(http.MethodGet, models.Config.Wecube.BaseUrl+"/platform/v1/process/definitions?includeDraft=0&permission=USE", nil)
+	req, reqErr := http.NewRequest(http.MethodGet, models.Config.Wecube.BaseUrl+"/platform/v1/process/definitions?includeDraft=0&permission=USE&tags="+models.ProcessFetchTabs, nil)
 	if reqErr != nil {
 		err = fmt.Errorf("Try to new http request to core fail,%s ", reqErr.Error())
 		return
