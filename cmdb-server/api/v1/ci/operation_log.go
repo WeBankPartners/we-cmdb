@@ -1,7 +1,6 @@
 package ci
 
 import (
-	"io/ioutil"
 	"strings"
 
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
@@ -48,13 +47,7 @@ func HandleOperationLog(c *gin.Context) {
 	}
 	operationLogObj.ClientHost = middleware.GetRemoteIp(c)
 	operationLogObj.DataCiType = c.Param("ciType")
-	bodyBytes, err := ioutil.ReadAll(c.Request.Response.Body)
-	c.Request.Response.Body.Close()
-	if err == nil {
-		operationLogObj.Response = string(bodyBytes)
-	} else {
-		log.Logger.Error("Try to log response fail,read response error", log.Error(err))
-	}
+	operationLogObj.Response = c.GetString("responseBody")
 	operationLogChannel <- &operationLogObj
 }
 
