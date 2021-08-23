@@ -129,7 +129,6 @@ func init() {
 		&handlerFuncObj{Url: "/report-objects/query", Method: "POST", HandlerFunc: report.QueryReportObject},
 		&handlerFuncObj{Url: "/report-objects-attr/query", Method: "POST", HandlerFunc: report.QueryReportAttr},
 	)
-
 }
 
 func InitHttpServer() {
