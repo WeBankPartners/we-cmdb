@@ -143,7 +143,8 @@ func ciModelCreate(ciType string, bodyBytes []byte) (result []map[string]interfa
 	if err != nil {
 		return
 	}
-	output, tmpErr := db.HandleCiDataOperation(stringParam, ciType, "insert", "wecube", "insert", []string{}, false, true)
+	handleParam := models.HandleCiDataParam{InputData: stringParam, CiTypeId: ciType, Operation: "insert", Operator: "wecube", BareAction: "insert", Roles: []string{}, Permission: false, FromCore: true}
+	output, tmpErr := db.HandleCiDataOperation(handleParam)
 	if tmpErr != nil {
 		err = tmpErr
 		return
@@ -207,7 +208,8 @@ func ciModeUpdate(ciType string, bodyBytes []byte) error {
 	if err != nil {
 		return err
 	}
-	_, err = db.HandleCiDataOperation(stringParam, ciType, "update", "wecube", "update", []string{}, false, true)
+	handleParam := models.HandleCiDataParam{InputData: stringParam, CiTypeId: ciType, Operation: "update", Operator: "wecube", BareAction: "update", Roles: []string{}, Permission: false, FromCore: true}
+	_, err = db.HandleCiDataOperation(handleParam)
 	return err
 }
 
@@ -254,7 +256,8 @@ func ciModeDelete(ciType string, bodyBytes []byte) error {
 	if err != nil {
 		return err
 	}
-	_, err = db.HandleCiDataOperation(stringParam, ciType, "delete", "wecube", "delete", []string{}, false, true)
+	handleParam := models.HandleCiDataParam{InputData: stringParam, CiTypeId: ciType, Operation: "delete", Operator: "wecube", BareAction: "delete", Roles: []string{}, Permission: false, FromCore: true}
+	_, err = db.HandleCiDataOperation(handleParam)
 	return err
 }
 
@@ -377,7 +380,8 @@ func pluginCiDataOperation(input *models.PluginCiDataOperationRequestObj) (resul
 		tmpExampleGuid := guid.CreateGuid()
 		input.CiType = inputDataGuid[:len(inputDataGuid)-len(tmpExampleGuid)-1]
 	}
-	outputData, handleErr := db.HandleCiDataOperation(handleDataList, input.CiType, input.Operation, "wecube", "", []string{}, false, true)
+	handleParam := models.HandleCiDataParam{InputData: handleDataList, CiTypeId: input.CiType, Operation: input.Operation, Operator: "wecube", Roles: []string{}, Permission: false, FromCore: true}
+	outputData, handleErr := db.HandleCiDataOperation(handleParam)
 	if handleErr != nil {
 		err = handleErr
 		return
@@ -427,6 +431,7 @@ func pluginAttrValue(input *models.PluginCiDataAttrValueRequestObj) (result *mod
 	dataStringMap["guid"] = input.Guid
 	result.Guid = input.Guid
 	dataStringMap[input.CiTypeAttr] = input.Value
-	_, err = db.HandleCiDataOperation([]models.CiDataMapObj{dataStringMap}, input.CiType, "update", "wecube", "update", []string{}, false, true)
+	handleParam := models.HandleCiDataParam{InputData: []models.CiDataMapObj{dataStringMap}, CiTypeId: input.CiType, Operation: "update", Operator: "wecube", BareAction: "update", Roles: []string{}, Permission: false, FromCore: true}
+	_, err = db.HandleCiDataOperation(handleParam)
 	return
 }

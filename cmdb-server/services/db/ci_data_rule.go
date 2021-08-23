@@ -1006,7 +1006,8 @@ func consumeUniquePathHandle(uniquePathList []*models.AutoActiveHandleParam) {
 			guidList = append(guidList, v["guid"])
 		}
 		log.Logger.Info("Start to active unique path handle", log.StringList("guid", guidList), log.String("operation", uniquePathObj.Operation))
-		_, err := HandleCiDataOperation(tmpInputData, uniquePathObj.CiType, uniquePathObj.Operation, uniquePathObj.User, "", []string{}, false, false)
+		handleParam := models.HandleCiDataParam{InputData: tmpInputData, CiTypeId: uniquePathObj.CiType, Operation: uniquePathObj.Operation, Operator: uniquePathObj.User, Roles: []string{}, Permission: false, FromCore: false}
+		_, err := HandleCiDataOperation(handleParam)
 		if err != nil {
 			log.Logger.Error("Unique path handle fail", log.Error(err))
 		}
