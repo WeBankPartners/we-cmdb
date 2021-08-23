@@ -296,3 +296,15 @@ type CiDataObjectErrOutput struct {
 	Error   string `json:"error"`
 	Content string `json:"content"`
 }
+
+type HandleCiDataParam struct {
+	InputData  []CiDataMapObj
+	CiTypeId   string
+	Operation  string
+	Operator   string
+	BareAction string
+	Roles      []string
+	Permission bool
+	FromCore   bool
+	UserToken  string
+}

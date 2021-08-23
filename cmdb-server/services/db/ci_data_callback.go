@@ -12,8 +12,8 @@ import (
 	"time"
 )
 
-func GetCallbackQueryData(ciType, rowGuid string) (result models.CiDataActionQuery, err error) {
-	inProgressList, checkErr := CheckCiDataCallbackStatus(rowGuid)
+func GetCallbackQueryData(ciType, rowGuid, userToken string) (result models.CiDataActionQuery, err error) {
+	inProgressList, checkErr := CheckCiDataCallbackStatus(rowGuid, userToken)
 	if checkErr != nil {
 		err = fmt.Errorf("Check if exist inProgress instance fail,%s ", checkErr.Error())
 		return
@@ -40,7 +40,7 @@ func GetCallbackQueryData(ciType, rowGuid string) (result models.CiDataActionQue
 		result.Selectable = false
 		return
 	}
-	processList, queryErr := ListCiDataVariableCallback(ciType, rowGuid)
+	processList, queryErr := ListCiDataVariableCallback(ciType, rowGuid, userToken)
 	if queryErr != nil {
 		err = fmt.Errorf("Query core process list fail,%s ", queryErr.Error())
 		return
@@ -65,12 +65,12 @@ func GetCallbackQueryData(ciType, rowGuid string) (result models.CiDataActionQue
 	return
 }
 
-func ListCiDataVariableCallback(ciType, rowGuid string) (processList []*models.CodeProcessQueryObj, err error) {
+func ListCiDataVariableCallback(ciType, rowGuid, userToken string) (processList []*models.CodeProcessQueryObj, err error) {
 	processList = []*models.CodeProcessQueryObj{}
 	if !models.PluginRunningMode {
 		return
 	}
-	coreProcessList, coreErr := getCoreProcessList()
+	coreProcessList, coreErr := getCoreProcessList(userToken)
 	if coreErr != nil {
 		err = coreErr
 		return
@@ -95,14 +95,13 @@ func ListCiDataVariableCallback(ciType, rowGuid string) (processList []*models.C
 	return
 }
 
-func getCoreProcessList() (processList []*models.CodeProcessQueryObj, err error) {
-	models.CoreToken.GetCoreToken()
+func getCoreProcessList(userToken string) (processList []*models.CodeProcessQueryObj, err error) {
 	req, reqErr := http.NewRequest(http.MethodGet, models.Config.Wecube.BaseUrl+"/platform/v1/process/definitions?includeDraft=0&permission=USE&tags="+models.ProcessFetchTabs, nil)
 	if reqErr != nil {
 		err = fmt.Errorf("Try to new http request to core fail,%s ", reqErr.Error())
 		return
 	}
-	req.Header.Set("Authorization", models.CoreToken.GetCoreToken())
+	req.Header.Set("Authorization", userToken)
 	http.DefaultClient.CloseIdleConnections()
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
@@ -205,7 +204,7 @@ func joinSqlFilter(column, condition, value string) string {
 }
 
 func StartCiDataCallback(param models.CiDataCallbackParam) error {
-	legalProc, err := GetCallbackQueryData(param.CiType, param.RowGuid)
+	legalProc, err := GetCallbackQueryData(param.CiType, param.RowGuid, param.UserToken)
 	if err != nil {
 		return fmt.Errorf("Try to validate process fail,%s ", err.Error())
 	}
@@ -239,7 +238,7 @@ func StartCiDataCallback(param models.CiDataCallbackParam) error {
 	if err != nil {
 		return fmt.Errorf("Start callback new request fail:%s ", err.Error())
 	}
-	request.Header.Set("Authorization", models.CoreToken.GetCoreToken())
+	request.Header.Set("Authorization", param.UserToken)
 	request.Header.Set("Content-Type", "application/json")
 	res, err := http.DefaultClient.Do(request)
 	if err != nil {
@@ -261,7 +260,7 @@ func StartCiDataCallback(param models.CiDataCallbackParam) error {
 	return err
 }
 
-func CheckCiDataCallbackStatus(rowGuid string) (inProgressList []*models.SysWecubeProcessTable, err error) {
+func CheckCiDataCallbackStatus(rowGuid, userToken string) (inProgressList []*models.SysWecubeProcessTable, err error) {
 	inProgressList = []*models.SysWecubeProcessTable{}
 	var processTable []*models.SysWecubeProcessTable
 	err = x.SQL("select * from sys_wecube_process where ci_data_guid=?", rowGuid).Find(&processTable)
@@ -275,7 +274,7 @@ func CheckCiDataCallbackStatus(rowGuid string) (inProgressList []*models.SysWecu
 	var updateProcessActions []*execAction
 	for _, process := range processTable {
 		if process.Status == "InProgress" {
-			nowStatus, tmpErr := getCoreProcessRunningStatus(process.WecubeProcInstance)
+			nowStatus, tmpErr := getCoreProcessRunningStatus(process.WecubeProcInstance, userToken)
 			if tmpErr != nil {
 				err = tmpErr
 				break
@@ -295,13 +294,13 @@ func CheckCiDataCallbackStatus(rowGuid string) (inProgressList []*models.SysWecu
 	return
 }
 
-func getCoreProcessRunningStatus(instanceId string) (status string, err error) {
+func getCoreProcessRunningStatus(instanceId, userToken string) (status string, err error) {
 	request, reqErr := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/platform/v1/process/instances/%s", models.Config.Wecube.BaseUrl, instanceId), nil)
 	if reqErr != nil {
 		err = fmt.Errorf("Query process new request fail:%s ", reqErr.Error())
 		return
 	}
-	request.Header.Set("Authorization", models.CoreToken.GetCoreToken())
+	request.Header.Set("Authorization", userToken)
 	request.Header.Set("Content-Type", "application/json")
 	res, respErr := http.DefaultClient.Do(request)
 	if respErr != nil {

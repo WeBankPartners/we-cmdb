@@ -9,21 +9,6 @@ import (
 	"strings"
 )
 
-func GetCiDataVariableCallback(c *gin.Context) {
-	ciType := c.Param("ciType")
-	rowGuid := c.Param("guid")
-	if ciType == "" || rowGuid == "" {
-		middleware.ReturnParamValidateError(c, fmt.Errorf("Param ciType and guid can not empty "))
-		return
-	}
-	result, err := db.ListCiDataVariableCallback(ciType, rowGuid)
-	if err != nil {
-		middleware.ReturnServerHandleError(c, err)
-	} else {
-		middleware.ReturnData(c, result)
-	}
-}
-
 func GetActionQueryData(c *gin.Context) {
 	operation := c.Param("operation")
 	ciType := c.Param("ciType")
@@ -44,7 +29,7 @@ func GetActionQueryData(c *gin.Context) {
 		result.Data = queryData
 		result.Title = title
 	} else {
-		result, err = db.GetCallbackQueryData(ciType, rowGuid)
+		result, err = db.GetCallbackQueryData(ciType, rowGuid, c.GetHeader("Authorization"))
 		if err != nil {
 			middleware.ReturnServerHandleError(c, err)
 			return

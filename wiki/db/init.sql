@@ -727,4 +727,5 @@ insert into sys_state_transition(`guid`, `state_machine`, `current_state`, `targ
 insert into sys_state_transition(`guid`, `state_machine`, `current_state`, `target_state`, `operation`, `operation_en`, `permission`, `action`, `operation_form_type`, `operation_multiple`) value ('611f4699133f2da3','start_stop','start_stop__started_1','start_stop__changed_0','变更','Change','update','update','editable_form','yes');
 insert into sys_state_transition(`guid`, `state_machine`, `current_state`, `target_state`, `operation`, `operation_en`, `permission`, `action`, `operation_form_type`, `operation_multiple`) value ('611f46f1ffcc11f5','start_stop','start_stop__changed_0','start_stop__started_1','回退','Rollback','update','update','select_form','no');
 
+alter table sys_log add column response longtext;
 #@v2.0.2.1-end@;
