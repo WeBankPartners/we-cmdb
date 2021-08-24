@@ -20,7 +20,7 @@ func GetActionQueryData(c *gin.Context) {
 	var err error
 	result := models.CiDataActionQuery{}
 	tmpOperation := strings.ToLower(operation)
-	if tmpOperation == "rollback" {
+	if tmpOperation == models.RollbackAction {
 		queryData, title, rollbackErr := db.DataRollbackList(rowGuid)
 		if rollbackErr != nil {
 			middleware.ReturnServerHandleError(c, rollbackErr)

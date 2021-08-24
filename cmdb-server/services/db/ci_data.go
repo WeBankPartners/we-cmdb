@@ -123,7 +123,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 	if err = getMultiCiAttributes(multiCiData); err != nil {
 		return
 	}
-	if firstAction == "update" || firstAction == "insert" {
+	if (firstAction == "update" || firstAction == "insert") && strings.ToLower(param.Operation) != models.RollbackAction {
 		if err = validateUniqueColumn(multiCiData); err != nil {
 			return
 		}

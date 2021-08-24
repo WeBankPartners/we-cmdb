@@ -14,6 +14,7 @@ const (
 	SystemRole          = "SUB_SYSTEM"
 	PlatformUser        = "SYS_PLATFORM"
 	PasswordDisplay     = "****"
+	RollbackAction      = "rollback"
 )
 
 var (
