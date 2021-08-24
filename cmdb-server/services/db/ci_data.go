@@ -1194,7 +1194,7 @@ func getInsertActionByColumnList(columnList []*models.CiDataColumnObj, tableName
 	var nameList, specCharList []string
 	var params []interface{}
 	for _, column := range columnList {
-		if column.ColumnValue == "reset_null^" {
+		if column.ColumnValue == "reset_null^" || fmt.Sprintf("%s", column.ColumnValue) == "0000-00-00 00:00:00" {
 			continue
 		}
 		nameList = append(nameList, column.ColumnName)
@@ -1208,7 +1208,7 @@ func getUpdateActionByColumnList(columnList []*models.CiDataColumnObj, tableName
 	var updateColumnList []string
 	var params []interface{}
 	for _, column := range columnList {
-		if column.ColumnValue == "reset_null^" {
+		if column.ColumnValue == "reset_null^" || fmt.Sprintf("%s", column.ColumnValue) == "0000-00-00 00:00:00" {
 			updateColumnList = append(updateColumnList, fmt.Sprintf("`%s`=NULL", column.ColumnName))
 		} else {
 			updateColumnList = append(updateColumnList, fmt.Sprintf("`%s`=?", column.ColumnName))
