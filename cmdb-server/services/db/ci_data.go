@@ -1645,7 +1645,7 @@ func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title
 	}
 	title = []*models.CiDataActionQueryTitle{}
 	var attrs []*models.SysCiTypeAttrTable
-	x.SQL("select name,display_name,input_type from sys_ci_type_attr where display_by_default='yes' and ci_type=? order by ui_form_order", ciTypeId).Find(&attrs)
+	x.SQL("select name,display_name,input_type from sys_ci_type_attr where display_by_default='yes' and status='created' and ci_type=? order by ui_form_order", ciTypeId).Find(&attrs)
 	for _, attr := range attrs {
 		title = append(title, &models.CiDataActionQueryTitle{Id: attr.Name, Name: attr.DisplayName, Type: attr.InputType})
 	}
