@@ -1632,6 +1632,12 @@ func recursiveAttrAutofill(afList []*models.AttrAutofillSortObj, af *models.Attr
 
 func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title []*models.CiDataActionQueryTitle, err error) {
 	ciTypeId := inputGuid[:len(inputGuid)-len(guid.CreateGuid())-1]
+	title = []*models.CiDataActionQueryTitle{}
+	var attrs []*models.SysCiTypeAttrTable
+	x.SQL("select name,display_name,input_type from sys_ci_type_attr where display_by_default='yes' and status='created' and ci_type=? order by ui_form_order", ciTypeId).Find(&attrs)
+	for _, attr := range attrs {
+		title = append(title, &models.CiDataActionQueryTitle{Id: attr.Name, Name: attr.DisplayName, Type: attr.InputType})
+	}
 	queryParam := models.QueryRequestParam{}
 	queryParam.Dialect = &models.QueryRequestDialect{QueryMode: "all"}
 	queryParam.Filters = []*models.QueryRequestFilterObj{{Name: "guid", Operator: "eq", Value: inputGuid}}
@@ -1661,12 +1667,6 @@ func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title
 		} else {
 			newRowData = append(newRowData, rowData[i])
 		}
-	}
-	title = []*models.CiDataActionQueryTitle{}
-	var attrs []*models.SysCiTypeAttrTable
-	x.SQL("select name,display_name,input_type from sys_ci_type_attr where display_by_default='yes' and status='created' and ci_type=? order by ui_form_order", ciTypeId).Find(&attrs)
-	for _, attr := range attrs {
-		title = append(title, &models.CiDataActionQueryTitle{Id: attr.Name, Name: attr.DisplayName, Type: attr.InputType})
 	}
 	return newRowData, title, nil
 }
