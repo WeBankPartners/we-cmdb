@@ -564,12 +564,28 @@ func deleteActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 
 func executeActionFunc(param *models.ActionFuncParam) (result []*execAction, err error) {
 	var columnList []*models.CiDataColumnObj
+	var multiRefColumnList []string
 	for _, ciAttr := range param.Attributes {
 		if ciAttr.Name == "state" {
 			param.NowData["state"] = param.Transition.TargetStateName
 			columnList = append(columnList, &models.CiDataColumnObj{ColumnName: "state", ColumnValue: param.Transition.TargetStateName})
-			break
+			continue
 		}
+		if ciAttr.RefCiType != "" {
+			if ciAttr.InputType == models.MultiRefType {
+				multiRefActions, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData})
+				if tmpErr != nil {
+					err = tmpErr
+					break
+				}
+				result = append(result, multiRefActions...)
+				multiRefColumnList = append(multiRefColumnList, ciAttr.Name)
+				//delete(param.NowData, ciAttr.Name)
+			}
+		}
+	}
+	for _, multiRefColumn := range multiRefColumnList {
+		delete(param.NowData, multiRefColumn)
 	}
 	param.NowData = cleanInputData(param.NowData, param.Attributes)
 	result = append(result, getUpdateActionByColumnList(columnList, param.CiType, param.InputData["guid"]))
