@@ -139,6 +139,7 @@
                   <Graph
                     :ref="'graphView' + graphIndex"
                     :key="'graphView' + graphIndex"
+                    :suportVersion="isSuportVersion"
                     :isEdit="isEditMode"
                     :graphSetting="viewSetting"
                     :graphData="viewData"
@@ -311,7 +312,18 @@ export default {
       baseKeyCatMapping: {}
     }
   },
-  computed: {},
+  computed: {
+    isSuportVersion: function () {
+      console.log(this.currentView)
+      if (this.currentView === '') {
+        return 'no'
+      } else {
+        console.log(123)
+        const view = this.viewOptions.find(v => v.viewId === this.currentView)
+        return view.suportVersion
+      }
+    }
+  },
   watch: {},
   methods: {
     onChildFormJSONInput (jsonData, key) {
