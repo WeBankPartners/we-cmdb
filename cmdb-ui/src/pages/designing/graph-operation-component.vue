@@ -299,7 +299,7 @@ export default {
       showDoubleCheckModal: false
     }
   },
-  props: ['editable', 'ciTypeMapping', 'isEdit'],
+  props: ['editable', 'ciTypeMapping', 'isEdit', 'suportVersion'],
   mounted () {},
   watch: {},
   methods: {
@@ -434,7 +434,7 @@ export default {
         if (statusCode === 'OK' && data.contents.length > 0) {
           this.nodeData = data.contents[0]
           let stateItems = await this.getCiTypeStateTransition(this.ciType)
-          this.ignoreNodeOperations = this.getCiTypeOperation(stateItems, 'confirm')
+          this.ignoreNodeOperations = this.suportVersion === 'yes' ? this.getCiTypeOperation(stateItems, 'confirm') : []
           this.nodeNextOperations = this.buildNextOperations(
             stateItems,
             this.filterNextOperations(data.contents[0].nextOperations)
