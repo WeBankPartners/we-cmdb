@@ -118,6 +118,7 @@ type ActionFuncParam struct {
 	InputData           CiDataMapObj
 	NowData             CiDataMapObj
 	Operator            string
+	Operation           string
 	NowTime             string
 	RefCiTypeMap        map[string]*SysCiTypeTable
 	UpdateColumn        []string
