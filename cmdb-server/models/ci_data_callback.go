@@ -85,4 +85,5 @@ type CiDataActionQuery struct {
 type CiDataActionQueryTitle struct {
 	Id   string `json:"key"`
 	Name string `json:"title"`
+	Type string `json:"type"`
 }

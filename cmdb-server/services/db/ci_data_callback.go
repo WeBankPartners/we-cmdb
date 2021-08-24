@@ -21,10 +21,10 @@ func GetCallbackQueryData(ciType, rowGuid, userToken string) (result models.CiDa
 	rowData := []map[string]interface{}{}
 	title := []*models.CiDataActionQueryTitle{}
 	if len(inProgressList) > 0 {
-		title = append(title, &models.CiDataActionQueryTitle{Id: "procDefName", Name: "编排名称"})
-		title = append(title, &models.CiDataActionQueryTitle{Id: "procDefKey", Name: "编排Key"})
-		title = append(title, &models.CiDataActionQueryTitle{Id: "status", Name: "状态"})
-		title = append(title, &models.CiDataActionQueryTitle{Id: "time", Name: "开始时间"})
+		title = append(title, &models.CiDataActionQueryTitle{Id: "procDefName", Name: "编排名称", Type: "text"})
+		title = append(title, &models.CiDataActionQueryTitle{Id: "procDefKey", Name: "编排Key", Type: "text"})
+		title = append(title, &models.CiDataActionQueryTitle{Id: "status", Name: "状态", Type: "text"})
+		title = append(title, &models.CiDataActionQueryTitle{Id: "time", Name: "开始时间", Type: "text"})
 		for i, v := range inProgressList {
 			tmpRow := make(map[string]interface{})
 			tmpRow["id"] = i + 1
@@ -45,10 +45,10 @@ func GetCallbackQueryData(ciType, rowGuid, userToken string) (result models.CiDa
 		err = fmt.Errorf("Query core process list fail,%s ", queryErr.Error())
 		return
 	}
-	title = append(title, &models.CiDataActionQueryTitle{Id: "procDefName", Name: "编排名称"})
-	title = append(title, &models.CiDataActionQueryTitle{Id: "procDefKey", Name: "编排Key"})
-	title = append(title, &models.CiDataActionQueryTitle{Id: "version", Name: "版本"})
-	title = append(title, &models.CiDataActionQueryTitle{Id: "time", Name: "创建时间"})
+	title = append(title, &models.CiDataActionQueryTitle{Id: "procDefName", Name: "编排名称", Type: "text"})
+	title = append(title, &models.CiDataActionQueryTitle{Id: "procDefKey", Name: "编排Key", Type: "text"})
+	title = append(title, &models.CiDataActionQueryTitle{Id: "version", Name: "版本", Type: "text"})
+	title = append(title, &models.CiDataActionQueryTitle{Id: "time", Name: "创建时间", Type: "text"})
 	for i, v := range processList {
 		tmpRow := make(map[string]interface{})
 		tmpRow["id"] = i + 1
