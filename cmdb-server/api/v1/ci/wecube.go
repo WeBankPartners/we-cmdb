@@ -18,9 +18,12 @@ func HandleCiModelRequest(c *gin.Context) {
 	ciType := c.Param("ciType")
 	operation := c.Request.RequestURI[strings.LastIndex(c.Request.RequestURI, "/")+1:]
 	var resp models.EntityResponse
+	var bodyBytes []byte
 	if ciType == "" {
 		resp.Status = "ERROR"
 		resp.Message = "Url param ciType is empty"
+		bodyBytes, _ = json.Marshal(resp)
+		c.Set("responseBody", string(bodyBytes))
 		c.JSON(http.StatusOK, resp)
 		return
 	}
@@ -28,6 +31,8 @@ func HandleCiModelRequest(c *gin.Context) {
 	if err != nil {
 		resp.Status = "ERROR"
 		resp.Message = fmt.Sprintf("Read request body fail,%s ", err.Error())
+		bodyBytes, _ = json.Marshal(resp)
+		c.Set("responseBody", string(bodyBytes))
 		c.JSON(http.StatusOK, resp)
 		return
 	}
@@ -47,11 +52,15 @@ func HandleCiModelRequest(c *gin.Context) {
 		log.Logger.Error("Request entity data fail", log.Error(err))
 		resp.Status = "ERROR"
 		resp.Message = err.Error()
+		bodyBytes, _ = json.Marshal(resp)
+		c.Set("responseBody", string(bodyBytes))
 		c.JSON(http.StatusOK, resp)
 		return
 	}
 	resp.Status = "OK"
 	resp.Message = "success"
+	bodyBytes, _ = json.Marshal(resp)
+	c.Set("responseBody", string(bodyBytes))
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -267,6 +276,8 @@ func GetAllDataModel(c *gin.Context) {
 		log.Logger.Error("Get all data model fail", log.Error(err))
 		result = models.SyncDataModelResponse{Status: "ERROR", Message: err.Error()}
 	}
+	bodyBytes, _ := json.Marshal(result)
+	c.Set("responseBody", string(bodyBytes))
 	c.JSON(http.StatusOK, result)
 }
 
@@ -279,6 +290,8 @@ func PluginCiDataOperationHandle(c *gin.Context) {
 			response.ResultCode = "1"
 			response.ResultMessage = err.Error()
 		}
+		bodyBytes, _ := json.Marshal(response)
+		c.Set("responseBody", string(bodyBytes))
 		c.JSON(http.StatusOK, response)
 	}()
 	var param models.PluginCiDataOperationRequest
@@ -401,6 +414,8 @@ func PluginCiDataAttrValueHandle(c *gin.Context) {
 			response.ResultCode = "1"
 			response.ResultMessage = err.Error()
 		}
+		bodyBytes, _ := json.Marshal(response)
+		c.Set("responseBody", string(bodyBytes))
 		c.JSON(http.StatusOK, response)
 	}()
 	var param models.PluginCiDataAttrValueRequest
