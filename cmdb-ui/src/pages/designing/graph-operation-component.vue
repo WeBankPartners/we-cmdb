@@ -59,7 +59,11 @@
             ></Ref>
           </FormItem>
           <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-            <MutiRef :formData="formData" :panalData="nodeData" :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"></MutiRef>
+            <MutiRef
+              :formData="formData"
+              :panalData="nodeData"
+              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
+            ></MutiRef>
           </FormItem>
           <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
             <WeCMDBCIPassword
@@ -138,7 +142,10 @@
             </div>
           </Tooltip>
           <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-            <Input v-model="childNodeData[formData.propertyName]" :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"></Input>
+            <Input
+              v-model="childNodeData[formData.propertyName]"
+              :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"
+            ></Input>
           </FormItem>
           <FormItem v-if="formData.inputType === 'longText'" class="form-item-content">
             <textarea
@@ -156,10 +163,18 @@
             ></DatePicker>
           </FormItem>
           <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-            <Ref :formData="formData" :panalData="childNodeData" :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"></Ref>
+            <Ref
+              :formData="formData"
+              :panalData="childNodeData"
+              :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"
+            ></Ref>
           </FormItem>
           <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-            <MutiRef :formData="formData" :panalData="childNodeData" :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"></MutiRef>
+            <MutiRef
+              :formData="formData"
+              :panalData="childNodeData"
+              :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"
+            ></MutiRef>
           </FormItem>
           <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
             <WeCMDBCIPassword
@@ -214,6 +229,7 @@
         <Button type="primary" @click="saveChildNode()" :loading="childBtnLoading">{{ $t('save') }} </Button>
       </div>
     </Modal>
+    <SelectFormOperation ref="selectForm" @callback="callback"></SelectFormOperation>
     <Modal v-model="showHistoryModal" :title="$t('operation_data_rollback')" width="900">
       <div v-if="showHistoryModal">
         <CMDBTable
@@ -246,16 +262,11 @@
   </div>
 </template>
 <script>
-import {
-  queryCiData,
-  graphCiDataOperation,
-  graphQueryStateTransition,
-  getEnumCodesByCategoryId,
-  graphQueryCIHistory
-} from '@/api/server'
+import { queryCiData, graphCiDataOperation, graphQueryStateTransition, getEnumCodesByCategoryId } from '@/api/server'
 import { normalizeFormData } from '@/pages/util/format'
 import Ref from './ref'
 import MutiRef from './muti-ref'
+import SelectFormOperation from '@/pages/components/select-form-operation'
 export default {
   data () {
     return {
@@ -296,20 +307,20 @@ export default {
       // console.log('decide if to disable for: ', attr.propertyName)
       let attrGroupEditDisabled = false
       if (attr.editGroupControl === 'yes') {
-        if (attr.editGroupValues.length > 0 ) {
+        if (attr.editGroupValues.length > 0) {
           let groups = JSON.parse(attr.editGroupValues)
-          for (let idx=0; idx < groups.length; idx++) {
+          for (let idx = 0; idx < groups.length; idx++) {
             let group = groups[idx]
             if (attrGroupEditDisabled) {
               break
             }
-            const findAttr = allAttrs.find((el) => {
+            const findAttr = allAttrs.find(el => {
               if (el.propertyName === group.key) {
                 return true
               }
               return false
             })
-            if (findAttr && group.value.length > 0 ) {
+            if (findAttr && group.value.length > 0) {
               // console.log('    using group attr: ', findAttr.propertyName, ' for edit control, must be in: ', JSON.stringify(group.value))
               // console.log('    current attr value is: ', JSON.stringify(item[findAttr.propertyName]))
               if (!item[findAttr.propertyName]) {
@@ -317,9 +328,11 @@ export default {
                 attrGroupEditDisabled = true
               } else if (Array.isArray(item[findAttr.propertyName])) {
                 let attrValues = item[findAttr.propertyName]
-                let intersect = attrValues.filter((v) => { return grou.value.indexOf(v) > -1 })
+                let intersect = attrValues.filter(v => {
+                  return group.value.indexOf(v) > -1
+                })
                 // 控制字段是数组且与设置的数据没有交集，禁用当前字段
-                if (intersect.length === 0){
+                if (intersect.length === 0) {
                   attrGroupEditDisabled = true
                 }
               } else {
@@ -328,7 +341,6 @@ export default {
                   attrGroupEditDisabled = true
                 }
               }
-              item[findAttr.propertyName] && group.value
             }
           }
         }
@@ -336,19 +348,15 @@ export default {
       return attrGroupEditDisabled
     },
     isNodeDataDisabled (allAttrs, attr, item) {
-      let attrEditDisabled = (
+      let attrEditDisabled =
         !this.isEdit ||
         attr.editable === 'no' ||
         (attr.autofillable === 'yes' && attr.autoFillType === 'forced') ||
         !this.nodeEditable
-      )
       return attrEditDisabled || this.isGroupEditDisabled(allAttrs, attr, item)
     },
     isNewNodeDisabled (allAttrs, attr, item) {
-      let attrEditDisabled =  (
-        attr.editable === 'no' ||
-        (attr.autofillable === 'yes' && attr.autoFillType === 'forced')
-      )
+      let attrEditDisabled = attr.editable === 'no' || (attr.autofillable === 'yes' && attr.autoFillType === 'forced')
       return attrEditDisabled || this.isGroupEditDisabled(allAttrs, attr, item)
     },
     onFormJSONInput (jsonData, key) {
@@ -447,37 +455,19 @@ export default {
         // TODO: trigger reload only if ref/multiRef fields changed
         this.$emit('operationReload')
       } else if (formType === 'select_form') {
-        const historyResp = await graphQueryCIHistory(this.nodeData.guid)
-        this.historyOptions = historyResp.data
-        this.historyColumns = this.nodeCiAttrs.map(data => {
-          return {
-            ...data,
-            tooltip: true,
-            title: data.name,
-            renderHeader: (h, params) => {
-              const d = {
-                props: {
-                  'min-width': '130px',
-                  'max-width': '500px'
-                }
-              }
-              return (
-                <Tooltip {...d} content={data.description} placement="top">
-                  <span style="white-space:normal">{data.name}</span>
-                </Tooltip>
-              )
-            },
-            key: data.propertyName,
-            inputKey: data.propertyName,
-            inputType: data.inputType,
-            referenceId: data.referenceId,
-            disEditor: !data.isEditable,
-            disAdded: !data.isEditable,
-            placeholder: data.name
-          }
-        })
-        this.showHistoryModal = true
+        this.selectHandler(action, this.nodeData)
       }
+    },
+    callback () {
+      this.$emit('operationReload')
+    },
+    async selectHandler (operationType, data) {
+      const params = {
+        operation: operationType,
+        ciType: this.ciType,
+        guid: data.guid
+      }
+      this.$refs.selectForm.initFormData(params)
     },
     async onHistoryConfirm () {
       if (this.tmpHistorySelected.length === 1) {
@@ -620,7 +610,8 @@ export default {
   filters: {},
   components: {
     Ref,
-    MutiRef
+    MutiRef,
+    SelectFormOperation
   }
 }
 </script>
