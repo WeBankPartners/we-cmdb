@@ -45,16 +45,18 @@
         ></CMDBTable>
       </div>
     </Modal>
+    <SelectFormOperation ref="selectForm"></SelectFormOperation>
   </div>
 </template>
 <script>
 import moment from 'moment'
 import { finalDataForRequest } from '../util/component-util'
 import { components } from '@/const/actions.js'
+import SelectFormOperation from '@/pages/components/select-form-operation'
 import {
   getCiTypeAttributes,
   queryCiData,
-  getRollbackData,
+  // getRollbackData,
   tableOptionExcute,
   operateCiState,
   getEnumCategoriesById,
@@ -304,12 +306,12 @@ export default {
       this.$refs.table.showAddModal()
     },
     async selectHandler (operationType, rollbackData) {
-      const { statusCode, data } = await getRollbackData(rollbackData[0].guid)
-      if (statusCode === 'OK') {
-        this.rollbackConfig.table.tableColumns = this.tableColumns
-        this.rollbackConfig.table.tableData = data
-        this.rollbackConfig.isShow = true
+      const params = {
+        operation: operationType,
+        ciType: this.ci,
+        guid: rollbackData[0].guid
       }
+      this.$refs.selectForm.initFormData(params)
     },
     onSelectedRowsChangeRollBack (rows) {
       this.rollbackConfig.selectData = rows
@@ -580,6 +582,9 @@ export default {
   },
   mounted () {
     this.init()
+  },
+  components: {
+    SelectFormOperation
   }
 }
 </script>
