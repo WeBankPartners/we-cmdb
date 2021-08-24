@@ -149,7 +149,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 	deleteUniquePath := models.AutoActiveHandleParam{User: models.SystemUser}
 	for _, ciObj := range multiCiData {
 		for i, inputRowData := range ciObj.InputData {
-			actionParam := models.ActionFuncParam{CiType: ciObj.CiTypeId, InputData: inputRowData, Attributes: ciObj.Attributes, ReferenceAttributes: ciObj.ReferenceAttributes, Operator: param.Operator, NowTime: tNow, RefCiTypeMap: ciObj.RefCiTypeMap, DeleteList: deleteList, FromCore: param.FromCore}
+			actionParam := models.ActionFuncParam{CiType: ciObj.CiTypeId, InputData: inputRowData, Attributes: ciObj.Attributes, ReferenceAttributes: ciObj.ReferenceAttributes, Operator: param.Operator, Operation: param.Operation, NowTime: tNow, RefCiTypeMap: ciObj.RefCiTypeMap, DeleteList: deleteList, FromCore: param.FromCore}
 			// 检查数据目标状态
 			if param.BareAction != "" {
 				if param.BareAction == "insert" {
@@ -367,7 +367,10 @@ func insertActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 
 func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err error) {
 	rollbackFlag := false
-	if _, b := param.InputData["id"]; b {
+	if strings.ToLower(param.Operation) == models.RollbackAction {
+		rollbackFlag = true
+	}
+	if rollbackFlag {
 		// Rollback action
 		rollbackData, tmpErr := x.QueryString(fmt.Sprintf("select * from %s%s where id=?", HistoryTablePrefix, param.CiType), param.InputData["id"])
 		if tmpErr != nil {
