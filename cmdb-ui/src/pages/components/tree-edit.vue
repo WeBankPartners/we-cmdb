@@ -1,13 +1,6 @@
 <template>
   <div>
-    <Tree
-      :data="data5"
-      :render="renderContent"
-      @on-check-change="test"
-      show-checkbox
-      multiple
-      class="demo-tree-render"
-    ></Tree>
+    <Tree :data="data5" :render="renderContent" show-checkbox multiple class="demo-tree-render"></Tree>
   </div>
 </template>
 <script>
@@ -47,12 +40,6 @@ export default {
     }
   },
   methods: {
-    showData () {
-      console.log(this.data5[0].children)
-    },
-    test (allSelect, currentSelect) {
-      console.log(allSelect, currentSelect)
-    },
     renderContent (h, { root, node, data }) {
       let formateNodeData = (v, tag) => {
         let node = this.data5[0].children.find(child => child.title === data.title)
