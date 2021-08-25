@@ -856,7 +856,7 @@ export default {
       let { statusCode, message } = await assignCiTypePermissionForRoleInBatch(ciTypePermissions, this.currentRoleName)
       if (statusCode === 'OK') {
         this.$Notice.success({
-          title: 'success',
+          title: this.$t('success'),
           desc: message
         })
         this.getPermissions(true, true, this.currentRoleName)
@@ -876,7 +876,7 @@ export default {
         let { statusCode, message } = await addUsersToRole(params)
         if (statusCode === 'OK') {
           this.$Notice.success({
-            title: 'success',
+            title: this.$t('success'),
             desc: message
           })
           this.usersKeyBySelectedRole = newTargetKeys
@@ -885,7 +885,7 @@ export default {
         let { statusCode, message } = await addUsersToRole(params)
         if (statusCode === 'OK') {
           this.$Notice.success({
-            title: 'success',
+            title: this.$t('success'),
             desc: message
           })
           this.usersKeyBySelectedRole = newTargetKeys
@@ -906,7 +906,7 @@ export default {
       })
       if (statusCode === 'OK') {
         this.$Notice.success({
-          title: 'success',
+          title: this.$t('success'),
           desc: message
         })
         this.getAllRoles()
@@ -923,7 +923,7 @@ export default {
       let { statusCode, data, message } = await addUser(this.addedUser)
       if (statusCode === 'OK') {
         this.$Notice.success({
-          title: 'success',
+          title: this.$t('success'),
           desc: message
         })
         this.$Modal.info({

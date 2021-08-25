@@ -445,7 +445,6 @@ export default {
                       </div>
                     )
                   } else {
-                    console.log(column.inputKey, d[column.inputKey], d)
                     const props =
                       column.component === 'WeCMDBSelect'
                         ? {
