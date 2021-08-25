@@ -118,6 +118,7 @@ type ActionFuncParam struct {
 	InputData           CiDataMapObj
 	NowData             CiDataMapObj
 	Operator            string
+	Operation           string
 	NowTime             string
 	RefCiTypeMap        map[string]*SysCiTypeTable
 	UpdateColumn        []string
@@ -295,4 +296,16 @@ type AutoActiveHandleParam struct {
 type CiDataObjectErrOutput struct {
 	Error   string `json:"error"`
 	Content string `json:"content"`
+}
+
+type HandleCiDataParam struct {
+	InputData  []CiDataMapObj
+	CiTypeId   string
+	Operation  string
+	Operator   string
+	BareAction string
+	Roles      []string
+	Permission bool
+	FromCore   bool
+	UserToken  string
 }

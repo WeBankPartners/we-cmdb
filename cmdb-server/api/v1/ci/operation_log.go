@@ -47,6 +47,7 @@ func HandleOperationLog(c *gin.Context) {
 	}
 	operationLogObj.ClientHost = middleware.GetRemoteIp(c)
 	operationLogObj.DataCiType = c.Param("ciType")
+	operationLogObj.Response = c.GetString("responseBody")
 	operationLogChannel <- &operationLogObj
 }
 

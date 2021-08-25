@@ -37,4 +37,5 @@ type SysLogTable struct {
 	DataCiType  string `json:"dataCiType" xorm:"data_ci_type"`
 	DataGuid    string `json:"dataGuid" xorm:"data_guid"`
 	DataKeyName string `json:"dataKeyName" xorm:"data_key_name"`
+	Response    string `json:"response" xorm:"response"`
 }
