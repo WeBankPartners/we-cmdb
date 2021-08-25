@@ -83,14 +83,14 @@
       <Tabs @on-click="changeTab" :value="treeSet[0].code" v-if="showTab">
         <TabPane v-for="tree in treeSet" :label="tree.code" :name="tree.code" :key="tree.code">
           <Row>
-            <Col span="8">
+            <Col span="7">
               <div :style="{ height: MODALHEIGHT + 'px', overflow: 'auto' }">
                 <Tree :data="[tree]" @on-select-change="showDetail" :render="renderContent"></Tree>
               </div>
             </Col>
-            <Col span="15" offset="1">
+            <Col span="16" offset="1">
               <div :style="{ height: MODALHEIGHT + 'px', overflow: 'auto' }">
-                <pre>{{ dataDetail.data }}</pre>
+                <CiDisplay ref="ciDisplay"></CiDisplay>
               </div>
             </Col>
           </Row>
@@ -121,26 +121,6 @@
         </Row>
       </div>
     </Modal>
-    <!-- <Modal v-model="dataDetail.isShow" :fullscreen="fullscreen" width="800" footer-hide>
-      <p slot="header">
-        <span>Detail</span>
-        <Icon
-          v-if="!fullscreen"
-          @click="fullscreen = true"
-          style="float: right;margin: 3px 40px 0 0 !important;"
-          type="ios-expand"
-        />
-        <Icon
-          v-else
-          @click="fullscreen = false"
-          style="float: right;margin: 3px 40px 0 0 !important;"
-          type="ios-contract"
-        />
-      </p>
-      <div :style="{ overflow: 'auto', 'max-height': fullscreen ? '' : '500px' }">
-        <pre>{{ dataDetail.data }}</pre>
-      </div>
-    </Modal> -->
   </div>
 </template>
 
@@ -150,11 +130,15 @@ import {
   getReportData,
   queryCiData,
   getReportFilterData,
+  getCiTypeAttr,
   graphQueryRootCI,
   getReportStruct
 } from '@/api/server'
+import CiDisplay from '@/pages/designing/report-query-tree-attr'
 export default {
-  components: {},
+  components: {
+    CiDisplay
+  },
   data () {
     return {
       MODALHEIGHT: 500,
@@ -164,7 +148,7 @@ export default {
         data: ''
       },
       showTab: false,
-      displayType: 'table',
+      displayType: 'tree',
       strcData: [],
       treeRoot: [],
       treeRootOptions: [],
@@ -192,7 +176,8 @@ export default {
       rowData: '',
       filtersAndResultModal: false,
       showfiltersAndResultModalData: '',
-      requestURL: ''
+      requestURL: '',
+      currentTabIndex: 0
       // MODALHEIGHT: 600
     }
   },
@@ -212,8 +197,9 @@ export default {
       this.treeRootOptions = []
       this.treeRoot = []
     },
-    changeTab () {
-      this.dataDetail.data = ''
+    changeTab (val) {
+      console.log(val)
+      this.currentTabIndex = this.treeSet.findIndex(item => item.code === val)
     },
     renderContent (h, { root, node, data }) {
       return h(
@@ -229,8 +215,9 @@ export default {
     },
     async showDetail (itemArray, itemSingle) {
       const item = itemArray[0] || itemSingle
+      const ci = item.guid.substring(0, item.guid.length - 17)
       const payload = {
-        id: item.guid.substring(0, item.guid.length - 17),
+        id: ci,
         queryObject: {
           dialect: { queryMode: 'new' },
           filters: [{ name: 'guid', operator: 'eq', value: item.guid }],
@@ -238,11 +225,10 @@ export default {
           sorting: {}
         }
       }
-      const { data, statusCode } = await queryCiData(payload)
-      if (statusCode === 'OK') {
-        this.dataDetail.data = ''
-        this.dataDetail.isShow = true
-        this.dataDetail.data = data.contents
+      let [ciData, ciAttr] = await Promise.all([queryCiData(payload), getCiTypeAttr(ci)])
+      console.log(this.currentTabIndex)
+      if (ciData.statusCode === 'OK' && ciAttr.statusCode === 'OK') {
+        this.$refs.ciDisplay[this.currentTabIndex].initData(ciAttr.data, ciData.data.contents)
       }
     },
     async displayTree () {
@@ -263,7 +249,6 @@ export default {
     },
     singleTree (tree) {
       tree.title = tree.key_name
-      // tree.expand = true
       const keys = Object.keys(tree)
       let tmp = []
       keys.forEach(key => {
