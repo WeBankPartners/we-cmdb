@@ -507,7 +507,7 @@ export default {
       this.$set(row.weTableForm, `${type}Loading`, false)
       if (statusCode === 'OK') {
         this.$Notice.success({
-          title: 'Success',
+          title: this.$t('success'),
           desc: message
         })
         this.queryCiData()
@@ -603,7 +603,6 @@ export default {
             emptyRowData['isNewAddedRow'] = true
             emptyRowData['weTableRowId'] = 1
             emptyRowData['nextOperations'] = []
-            console.log(emptyRowData)
             this.$refs[this.tableRef][0].pushNewAddedRowToSelections(emptyRowData)
             this.$refs[this.tableRef][0].showAddModal()
           }
