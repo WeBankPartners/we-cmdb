@@ -9,7 +9,7 @@
     <!-- 2.菜单注入 - 描述运行本插件包需要注入的菜单 -->
     <menus>
         <menu code='data_query_ci' cat='DESIGNING' displayName="Data Query(CI)" localDisplayName="数据查询(CI)">/wecmdb/data-query-ci</menu>
-        <menu code='data_query_report' cat='DESIGNING' displayName="Data Query(Report)" localDisplayName="数据查询(报表)">/wecmdb/data-query-report</menu>
+        <menu code='data_query_report' cat='DESIGNING' displayName="Data Query(Report)" localDisplayName="数据查询(报表)">/wecmdb/report-query</menu>
         <menu code='data_query_view' cat='DESIGNING' displayName="Data Query(View)" localDisplayName="数据查询(视图)">/wecmdb/data-query-view</menu>
         <menu code='data_mgmt_ci' cat='DESIGNING' displayName="Data MGMT(CI)" localDisplayName="数据管理(CI)">/wecmdb/data-mgmt-ci</menu>
         <menu code='data_mgmt_view' cat='DESIGNING' displayName="Data MGMT(View)" localDisplayName="数据管理(视图)">/wecmdb/data-mgmt-view</menu>
