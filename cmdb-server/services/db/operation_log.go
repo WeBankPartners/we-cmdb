@@ -9,8 +9,8 @@ import (
 )
 
 func SaveOperationLog(param *models.SysLogTable) {
-	_, err := x.Exec("INSERT INTO sys_log(log_cat,operator,operation,content,request_url,client_host,created_date,data_ci_type,data_guid,data_key_name) value (?,?,?,?,?,?,?,?,?,?)",
-		param.LogCat, param.Operator, param.Operation, param.Content, param.RequestUrl, param.ClientHost, time.Now().Format(models.DateTimeFormat), param.DataCiType, param.DataGuid, param.DataKeyName)
+	_, err := x.Exec("INSERT INTO sys_log(log_cat,operator,operation,content,request_url,client_host,created_date,data_ci_type,data_guid,data_key_name,response) value (?,?,?,?,?,?,?,?,?,?,?)",
+		param.LogCat, param.Operator, param.Operation, param.Content, param.RequestUrl, param.ClientHost, time.Now().Format(models.DateTimeFormat), param.DataCiType, param.DataGuid, param.DataKeyName, param.Response)
 	if err != nil {
 		log.Logger.Error("Save operation log fail", log.Error(err))
 	}

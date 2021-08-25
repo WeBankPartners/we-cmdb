@@ -85,7 +85,10 @@ func DataOperation(c *gin.Context) {
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
-	resultData, err := db.HandleCiDataOperation(param, c.Param("ciType"), c.Param("operation"), middleware.GetRequestUser(c), "", middleware.GetRequestRoles(c), true, false)
+	handleParam := models.HandleCiDataParam{InputData: param, CiTypeId: c.Param("ciType"), Operation: c.Param("operation"), Operator: middleware.GetRequestUser(c), Roles: middleware.GetRequestRoles(c), Permission: true}
+	handleParam.UserToken = c.GetHeader("Authorization")
+	//resultData, err := db.HandleCiDataOperation(param, c.Param("ciType"), c.Param("operation"), middleware.GetRequestUser(c), "", middleware.GetRequestRoles(c), true, false)
+	resultData, err := db.HandleCiDataOperation(handleParam)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {

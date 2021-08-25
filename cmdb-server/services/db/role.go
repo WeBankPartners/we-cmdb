@@ -192,9 +192,9 @@ func syncCoreRole() {
 	if len(delRoleList) > 0 {
 		for _, role := range delRoleList {
 			err = RoleDelete(role.Id)
-			if err != nil {
-				log.Logger.Error("Try to delete local role from core data fail", log.Error(err))
-			}
+			//if err != nil {
+			//	log.Logger.Error("Try to delete local role from core data fail", log.Error(err))
+			//}
 		}
 	}
 }
