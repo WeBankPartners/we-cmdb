@@ -67,7 +67,7 @@
       </Row>
       <Row v-if="hasTableData">
         <Button type="success" @click="ShowMessage" icon="ios-eye">{{ $t('show_message') }}</Button>
-        <Table :columns="tableColumns" :data="tableData" border height="500"></Table>
+        <Table :columns="tableColumns" :data="tableData" border max-height="500"></Table>
         <Page
           :total="payload.pageable.total"
           :page-size="payload.pageable.pageSize"
@@ -164,7 +164,7 @@ export default {
         data: ''
       },
       showTab: false,
-      displayType: 'tree',
+      displayType: 'table',
       strcData: [],
       treeRoot: [],
       treeRootOptions: [],
@@ -207,6 +207,8 @@ export default {
     },
     clearReport () {
       this.showTab = false
+      this.filters = []
+      this.hasTableData = false
       this.treeRootOptions = []
       this.treeRoot = []
     },
