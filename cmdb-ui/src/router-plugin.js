@@ -50,7 +50,7 @@ const router = [
     component: ciData
   },
   {
-    path: '/wecmdb/data-query-report',
+    path: '/wecmdb/report-query',
     name: 'reportQuery',
     component: reportQuery
   },
