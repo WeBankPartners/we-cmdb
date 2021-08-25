@@ -23,6 +23,7 @@
                   ref="operationPanel"
                   :isEdit="isEdit"
                   :editable="editable"
+                  :suportVersion="suportVersion"
                   :ciTypeMapping="ciTypeMapping"
                   @operationReload="operationReload"
                 ></Operation>
@@ -60,7 +61,16 @@ export default {
       operationLoading: false
     }
   },
-  props: ['graphSetting', 'graphData', 'graphIndex', 'ciTypeMapping', 'editable', 'isEdit', 'initTransform'],
+  props: [
+    'graphSetting',
+    'graphData',
+    'graphIndex',
+    'ciTypeMapping',
+    'editable',
+    'isEdit',
+    'initTransform',
+    'suportVersion'
+  ],
   watch: {
     selectedId: function (val) {
       // 切换节点时，还原上一个节点的信息

@@ -146,6 +146,18 @@ export default {
           uiFormOrder: 1,
           uiSearchOrder: 1,
           displayByDefault: 'yes'
+        },
+        {
+          component: 'Input',
+          type: 'text',
+          inputType: 'text',
+          title: 'Response',
+          key: 'response',
+          inputKey: 'response',
+          editable: 'no',
+          uiFormOrder: 1,
+          uiSearchOrder: 1,
+          displayByDefault: 'yes'
         }
       ],
       tableData: [],

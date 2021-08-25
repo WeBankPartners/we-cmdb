@@ -18,9 +18,12 @@ func HandleCiModelRequest(c *gin.Context) {
 	ciType := c.Param("ciType")
 	operation := c.Request.RequestURI[strings.LastIndex(c.Request.RequestURI, "/")+1:]
 	var resp models.EntityResponse
+	var bodyBytes []byte
 	if ciType == "" {
 		resp.Status = "ERROR"
 		resp.Message = "Url param ciType is empty"
+		bodyBytes, _ = json.Marshal(resp)
+		c.Set("responseBody", string(bodyBytes))
 		c.JSON(http.StatusOK, resp)
 		return
 	}
@@ -28,6 +31,8 @@ func HandleCiModelRequest(c *gin.Context) {
 	if err != nil {
 		resp.Status = "ERROR"
 		resp.Message = fmt.Sprintf("Read request body fail,%s ", err.Error())
+		bodyBytes, _ = json.Marshal(resp)
+		c.Set("responseBody", string(bodyBytes))
 		c.JSON(http.StatusOK, resp)
 		return
 	}
@@ -47,11 +52,15 @@ func HandleCiModelRequest(c *gin.Context) {
 		log.Logger.Error("Request entity data fail", log.Error(err))
 		resp.Status = "ERROR"
 		resp.Message = err.Error()
+		bodyBytes, _ = json.Marshal(resp)
+		c.Set("responseBody", string(bodyBytes))
 		c.JSON(http.StatusOK, resp)
 		return
 	}
 	resp.Status = "OK"
 	resp.Message = "success"
+	bodyBytes, _ = json.Marshal(resp)
+	c.Set("responseBody", string(bodyBytes))
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -143,7 +152,8 @@ func ciModelCreate(ciType string, bodyBytes []byte) (result []map[string]interfa
 	if err != nil {
 		return
 	}
-	output, tmpErr := db.HandleCiDataOperation(stringParam, ciType, "insert", "wecube", "insert", []string{}, false, true)
+	handleParam := models.HandleCiDataParam{InputData: stringParam, CiTypeId: ciType, Operation: "insert", Operator: "wecube", BareAction: "insert", Roles: []string{}, Permission: false, FromCore: true}
+	output, tmpErr := db.HandleCiDataOperation(handleParam)
 	if tmpErr != nil {
 		err = tmpErr
 		return
@@ -207,7 +217,8 @@ func ciModeUpdate(ciType string, bodyBytes []byte) error {
 	if err != nil {
 		return err
 	}
-	_, err = db.HandleCiDataOperation(stringParam, ciType, "update", "wecube", "update", []string{}, false, true)
+	handleParam := models.HandleCiDataParam{InputData: stringParam, CiTypeId: ciType, Operation: "update", Operator: "wecube", BareAction: "update", Roles: []string{}, Permission: false, FromCore: true}
+	_, err = db.HandleCiDataOperation(handleParam)
 	return err
 }
 
@@ -254,7 +265,8 @@ func ciModeDelete(ciType string, bodyBytes []byte) error {
 	if err != nil {
 		return err
 	}
-	_, err = db.HandleCiDataOperation(stringParam, ciType, "delete", "wecube", "delete", []string{}, false, true)
+	handleParam := models.HandleCiDataParam{InputData: stringParam, CiTypeId: ciType, Operation: "delete", Operator: "wecube", BareAction: "delete", Roles: []string{}, Permission: false, FromCore: true}
+	_, err = db.HandleCiDataOperation(handleParam)
 	return err
 }
 
@@ -264,6 +276,8 @@ func GetAllDataModel(c *gin.Context) {
 		log.Logger.Error("Get all data model fail", log.Error(err))
 		result = models.SyncDataModelResponse{Status: "ERROR", Message: err.Error()}
 	}
+	bodyBytes, _ := json.Marshal(result)
+	c.Set("responseBody", string(bodyBytes))
 	c.JSON(http.StatusOK, result)
 }
 
@@ -276,6 +290,8 @@ func PluginCiDataOperationHandle(c *gin.Context) {
 			response.ResultCode = "1"
 			response.ResultMessage = err.Error()
 		}
+		bodyBytes, _ := json.Marshal(response)
+		c.Set("responseBody", string(bodyBytes))
 		c.JSON(http.StatusOK, response)
 	}()
 	var param models.PluginCiDataOperationRequest
@@ -377,7 +393,8 @@ func pluginCiDataOperation(input *models.PluginCiDataOperationRequestObj) (resul
 		tmpExampleGuid := guid.CreateGuid()
 		input.CiType = inputDataGuid[:len(inputDataGuid)-len(tmpExampleGuid)-1]
 	}
-	outputData, handleErr := db.HandleCiDataOperation(handleDataList, input.CiType, input.Operation, "wecube", "", []string{}, false, true)
+	handleParam := models.HandleCiDataParam{InputData: handleDataList, CiTypeId: input.CiType, Operation: input.Operation, Operator: "wecube", Roles: []string{}, Permission: false, FromCore: true}
+	outputData, handleErr := db.HandleCiDataOperation(handleParam)
 	if handleErr != nil {
 		err = handleErr
 		return
@@ -397,6 +414,8 @@ func PluginCiDataAttrValueHandle(c *gin.Context) {
 			response.ResultCode = "1"
 			response.ResultMessage = err.Error()
 		}
+		bodyBytes, _ := json.Marshal(response)
+		c.Set("responseBody", string(bodyBytes))
 		c.JSON(http.StatusOK, response)
 	}()
 	var param models.PluginCiDataAttrValueRequest
@@ -427,6 +446,7 @@ func pluginAttrValue(input *models.PluginCiDataAttrValueRequestObj) (result *mod
 	dataStringMap["guid"] = input.Guid
 	result.Guid = input.Guid
 	dataStringMap[input.CiTypeAttr] = input.Value
-	_, err = db.HandleCiDataOperation([]models.CiDataMapObj{dataStringMap}, input.CiType, "update", "wecube", "update", []string{}, false, true)
+	handleParam := models.HandleCiDataParam{InputData: []models.CiDataMapObj{dataStringMap}, CiTypeId: input.CiType, Operation: "update", Operator: "wecube", BareAction: "update", Roles: []string{}, Permission: false, FromCore: true}
+	_, err = db.HandleCiDataOperation(handleParam)
 	return
 }
