@@ -304,7 +304,6 @@ export default {
   watch: {},
   methods: {
     isGroupEditDisabled (allAttrs, attr, item) {
-      // console.log('decide if to disable for: ', attr.propertyName)
       let attrGroupEditDisabled = false
       if (attr.editGroupControl === 'yes') {
         if (attr.editGroupValues.length > 0) {
@@ -321,8 +320,6 @@ export default {
               return false
             })
             if (findAttr && group.value.length > 0) {
-              // console.log('    using group attr: ', findAttr.propertyName, ' for edit control, must be in: ', JSON.stringify(group.value))
-              // console.log('    current attr value is: ', JSON.stringify(item[findAttr.propertyName]))
               if (!item[findAttr.propertyName]) {
                 // 控制字段未赋值，禁用当前字段
                 attrGroupEditDisabled = true

@@ -283,7 +283,7 @@ export default {
       this.$set(row.weTableForm, `${type}Loading`, false)
       if (statusCode === 'OK') {
         this.$Notice.success({
-          title: 'Success',
+          title: this.$t('success'),
           desc: message
         })
         this.queryCiData()
@@ -321,7 +321,7 @@ export default {
       const { statusCode, message } = await tableOptionExcute('Rollback', this.ci, finalData)
       if (statusCode === 'OK') {
         this.$Notice.success({
-          title: 'Rollback successfully',
+          title: this.$t('success'),
           desc: message
         })
         this.queryCiData()
