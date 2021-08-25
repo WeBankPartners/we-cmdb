@@ -66,7 +66,7 @@ export const MENUS = [
     seqNo: 2,
     parent: 'data_query',
     isActive: 'yes',
-    link: '/wecmdb/designing/ci-integrated-query-execution'
+    link: '/wecmdb/designing/report-query'
   },
   {
     code: 'data_query_view',
@@ -92,7 +92,7 @@ export const MENUS = [
     seqNo: 2,
     parent: 'configuration',
     isActive: 'yes',
-    link: '/wecmdb/designing/ci-integrated-query-management'
+    link: '/wecmdb/designing/report-configuration'
   },
   {
     code: 'state_machine_configuration',

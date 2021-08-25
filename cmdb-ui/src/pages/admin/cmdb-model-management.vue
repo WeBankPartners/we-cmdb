@@ -1354,8 +1354,8 @@ export default {
           this.$Modal.remove()
           if (res.statusCode === 'OK') {
             this.$Notice.success({
-              title: 'Successful',
-              desc: 'Successful'
+              title: this.$t('success'),
+              desc: this.$t('success')
             })
             this.getCiByOptions()
           }
@@ -1375,8 +1375,8 @@ export default {
           this.$Modal.remove()
           if (res.statusCode === 'OK') {
             this.$Notice.success({
-              title: 'Successful',
-              desc: 'Successful'
+              title: this.$t('success'),
+              desc: this.$t('success')
             })
             this.getGroupByOptions()
           }
@@ -1433,7 +1433,7 @@ export default {
       this.buttonLoading.newLayer = false
       if (res.statusCode === 'OK') {
         this.$Notice.success({
-          title: 'Success !',
+          title: this.$t('success'),
           desc: res.message
         })
       }

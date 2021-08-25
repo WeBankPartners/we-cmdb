@@ -383,5 +383,6 @@
   "ui_form_order": "表单顺序",
   "text_validate": "文本校验",
   "customizable": "自定义",
-  "display_type": "展示类型"
+  "display_type": "展示类型",
+  "success": "成功"
 }
