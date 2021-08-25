@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"encoding/json"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/gin-gonic/gin"
@@ -11,7 +12,10 @@ func ReturnPageData(c *gin.Context, pageInfo models.PageInfo, contents interface
 	if contents == nil {
 		contents = []string{}
 	}
-	c.JSON(http.StatusOK, models.ResponseJson{StatusCode: "OK", Data: models.ResponsePageData{PageInfo: pageInfo, Contents: contents}})
+	obj := models.ResponseJson{StatusCode: "OK", Data: models.ResponsePageData{PageInfo: pageInfo, Contents: contents}}
+	bodyBytes, _ := json.Marshal(obj)
+	c.Set("responseBody", string(bodyBytes))
+	c.JSON(http.StatusOK, obj)
 }
 
 func ReturnEmptyPageData(c *gin.Context) {
@@ -22,10 +26,14 @@ func ReturnData(c *gin.Context, data interface{}) {
 	if data == nil {
 		data = []string{}
 	}
-	c.JSON(http.StatusOK, models.ResponseJson{StatusCode: "OK", Data: data})
+	obj := models.ResponseJson{StatusCode: "OK", Data: data}
+	bodyBytes, _ := json.Marshal(obj)
+	c.Set("responseBody", string(bodyBytes))
+	c.JSON(http.StatusOK, obj)
 }
 
 func ReturnSuccess(c *gin.Context) {
+	c.Set("responseBody", "{\"statusCode\":\"OK\",\"data\":[]}")
 	c.JSON(http.StatusOK, models.ResponseJson{StatusCode: "OK", Data: []string{}})
 }
 
@@ -34,7 +42,10 @@ func ReturnError(c *gin.Context, statusCode, statusMessage string, data interfac
 		data = []string{}
 	}
 	log.Logger.Error("Handle error", log.String("statusCode", statusCode), log.String("message", statusMessage))
-	c.JSON(http.StatusOK, models.ResponseErrorJson{StatusCode: statusCode, StatusMessage: statusMessage, Data: data})
+	obj := models.ResponseErrorJson{StatusCode: statusCode, StatusMessage: statusMessage, Data: data}
+	bodyBytes, _ := json.Marshal(obj)
+	c.Set("responseBody", string(bodyBytes))
+	c.JSON(http.StatusOK, obj)
 }
 
 func ReturnBatchUpdateError(c *gin.Context, data []*models.ResponseErrorObj) {

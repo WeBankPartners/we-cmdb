@@ -13,12 +13,12 @@ import (
 	"time"
 )
 
-func HandleCiDataOperation(inputData []models.CiDataMapObj, ciTypeId, operation, operator, bareAction string, roles []string, permission, fromCore bool) (outputData []models.CiDataMapObj, err error) {
+func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.CiDataMapObj, err error) {
 	var multiCiData []*models.MultiCiDataObj
 	var firstAction string
 	var deleteList []string
-	if bareAction == "" {
-		opActions, tmpErr := getActionByOperation(ciTypeId, operation)
+	if param.BareAction == "" {
+		opActions, tmpErr := getActionByOperation(param.CiTypeId, param.Operation)
 		if tmpErr != nil {
 			err = tmpErr
 			return
@@ -26,29 +26,29 @@ func HandleCiDataOperation(inputData []models.CiDataMapObj, ciTypeId, operation,
 		// TODO 把这个action的判断放到每行数据中
 		firstAction = opActions[0]
 	} else {
-		firstAction = bareAction
+		firstAction = param.BareAction
 	}
 	if firstAction == "insert" {
-		if ciTypeId == "" {
+		if param.CiTypeId == "" {
 			err = fmt.Errorf("Url param ciType can not empty ")
 			return
 		} else {
-			newGuidList := guid.CreateGuidList(len(inputData))
-			for i, inputDataObj := range inputData {
-				inputDataObj["guid"] = fmt.Sprintf("%s_%s", ciTypeId, newGuidList[i])
+			newGuidList := guid.CreateGuidList(len(param.InputData))
+			for i, inputDataObj := range param.InputData {
+				inputDataObj["guid"] = fmt.Sprintf("%s_%s", param.CiTypeId, newGuidList[i])
 			}
-			multiCiData = []*models.MultiCiDataObj{&models.MultiCiDataObj{CiTypeId: ciTypeId, InputData: inputData}}
+			multiCiData = []*models.MultiCiDataObj{&models.MultiCiDataObj{CiTypeId: param.CiTypeId, InputData: param.InputData}}
 		}
 	} else {
 		// 按ciType归类输入的数据行
 		legalGuidMap := make(map[string]bool)
 		guidPermissionEnable := false
-		if permission {
+		if param.Permission {
 			permissionAction := firstAction
 			if permissionAction == "confirm" {
 				permissionAction = "execute"
 			}
-			permissions, tmpErr := GetRoleCiDataPermission(roles, ciTypeId)
+			permissions, tmpErr := GetRoleCiDataPermission(param.Roles, param.CiTypeId)
 			if tmpErr != nil {
 				err = tmpErr
 				return
@@ -66,11 +66,11 @@ func HandleCiDataOperation(inputData []models.CiDataMapObj, ciTypeId, operation,
 			}
 		}
 		exampleGuid := guid.CreateGuid()
-		for i, inputRowData := range inputData {
+		for i, inputRowData := range param.InputData {
 			tmpRowGuid := inputRowData["guid"]
 			if tmpRowGuid == "" {
 				if _, b := inputRowData["id"]; b {
-					tmpHistoryObj := getHistoryDataById(ciTypeId, inputRowData["id"])
+					tmpHistoryObj := getHistoryDataById(param.CiTypeId, inputRowData["id"])
 					tmpRowGuid = tmpHistoryObj["guid"]
 					inputRowData["guid"] = tmpHistoryObj["guid"]
 					inputRowData["state"] = tmpHistoryObj["state"]
@@ -88,6 +88,9 @@ func HandleCiDataOperation(inputData []models.CiDataMapObj, ciTypeId, operation,
 			}
 			if firstAction == "delete" {
 				deleteList = append(deleteList, tmpRowGuid)
+			}
+			if firstAction == "execute" {
+				inputRowData["Authorization"] = param.UserToken
 			}
 			inputRowCiType := tmpRowGuid[:len(tmpRowGuid)-len(exampleGuid)-1]
 			existFlag := false
@@ -107,11 +110,11 @@ func HandleCiDataOperation(inputData []models.CiDataMapObj, ciTypeId, operation,
 		}
 	}
 	// 获取状态机
-	if bareAction == "" {
+	if param.BareAction == "" {
 		if err = getMultiCiTransition(multiCiData); err != nil {
 			return
 		}
-	} else if bareAction == "insert" {
+	} else if param.BareAction == "insert" {
 		if err = getMultiCiStartTransition(multiCiData); err != nil {
 			return
 		}
@@ -120,7 +123,7 @@ func HandleCiDataOperation(inputData []models.CiDataMapObj, ciTypeId, operation,
 	if err = getMultiCiAttributes(multiCiData); err != nil {
 		return
 	}
-	if firstAction == "update" || firstAction == "insert" {
+	if (firstAction == "update" || firstAction == "insert") && strings.ToLower(param.Operation) != models.RollbackAction && param.BareAction == "" {
 		if err = validateUniqueColumn(multiCiData); err != nil {
 			return
 		}
@@ -146,22 +149,22 @@ func HandleCiDataOperation(inputData []models.CiDataMapObj, ciTypeId, operation,
 	deleteUniquePath := models.AutoActiveHandleParam{User: models.SystemUser}
 	for _, ciObj := range multiCiData {
 		for i, inputRowData := range ciObj.InputData {
-			actionParam := models.ActionFuncParam{CiType: ciObj.CiTypeId, InputData: inputRowData, Attributes: ciObj.Attributes, ReferenceAttributes: ciObj.ReferenceAttributes, Operator: operator, NowTime: tNow, RefCiTypeMap: ciObj.RefCiTypeMap, DeleteList: deleteList, FromCore: fromCore}
+			actionParam := models.ActionFuncParam{CiType: ciObj.CiTypeId, InputData: inputRowData, Attributes: ciObj.Attributes, ReferenceAttributes: ciObj.ReferenceAttributes, Operator: param.Operator, Operation: param.Operation, NowTime: tNow, RefCiTypeMap: ciObj.RefCiTypeMap, DeleteList: deleteList, FromCore: param.FromCore}
 			// 检查数据目标状态
-			if bareAction != "" {
-				if bareAction == "insert" {
+			if param.BareAction != "" {
+				if param.BareAction == "insert" {
 					actionParam.Transition = ciObj.Transition[0]
 				} else {
 					actionParam.NowData = ciObj.NowData[i]
-					actionParam.Transition = &models.SysStateTransitionQuery{Action: bareAction, TargetStateName: actionParam.NowData["state"], TargetState: actionParam.NowData["state"]}
+					actionParam.Transition = &models.SysStateTransitionQuery{Action: param.BareAction, TargetStateName: actionParam.NowData["state"], TargetState: actionParam.NowData["state"]}
 				}
-				actionParam.BareAction = bareAction
+				actionParam.BareAction = param.BareAction
 			} else {
 				if firstAction != "insert" {
 					actionParam.NowData = ciObj.NowData[i]
 					tmpTransList := []*models.SysStateTransitionQuery{}
 					for _, transObj := range ciObj.Transition {
-						if transObj.CurrentStateName == actionParam.NowData["state"] && transObj.Operation == operation {
+						if transObj.CurrentStateName == actionParam.NowData["state"] && transObj.Operation == param.Operation {
 							tmpTransList = append(tmpTransList, transObj)
 						}
 					}
@@ -198,7 +201,7 @@ func HandleCiDataOperation(inputData []models.CiDataMapObj, ciTypeId, operation,
 			}
 			outputData = append(outputData, actionParam.InputData)
 			actions = append(actions, tmpAction...)
-			if actionParam.Transition.Action == "insert" && permission {
+			if actionParam.Transition.Action == "insert" && param.Permission {
 				if _, b := insertPermissionMap[ciObj.CiTypeId]; b {
 					insertPermissionMap[ciObj.CiTypeId].GuidList = append(insertPermissionMap[ciObj.CiTypeId].GuidList, actionParam.InputData["guid"])
 					insertPermissionMap[ciObj.CiTypeId].KeyNameList = append(insertPermissionMap[ciObj.CiTypeId].KeyNameList, actionParam.InputData["key_name"])
@@ -249,7 +252,7 @@ func HandleCiDataOperation(inputData []models.CiDataMapObj, ciTypeId, operation,
 	}
 	if err == nil {
 		if len(insertPermissionMap) > 0 {
-			err = ValidateInsertPermission(insertPermissionMap, roles)
+			err = ValidateInsertPermission(insertPermissionMap, param.Roles)
 			if err != nil {
 				return
 			}
@@ -364,7 +367,10 @@ func insertActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 
 func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err error) {
 	rollbackFlag := false
-	if _, b := param.InputData["id"]; b {
+	if strings.ToLower(param.Operation) == models.RollbackAction {
+		rollbackFlag = true
+	}
+	if rollbackFlag {
 		// Rollback action
 		rollbackData, tmpErr := x.QueryString(fmt.Sprintf("select * from %s%s where id=?", HistoryTablePrefix, param.CiType), param.InputData["id"])
 		if tmpErr != nil {
@@ -558,17 +564,33 @@ func deleteActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 
 func executeActionFunc(param *models.ActionFuncParam) (result []*execAction, err error) {
 	var columnList []*models.CiDataColumnObj
+	var multiRefColumnList []string
 	for _, ciAttr := range param.Attributes {
 		if ciAttr.Name == "state" {
 			param.NowData["state"] = param.Transition.TargetStateName
 			columnList = append(columnList, &models.CiDataColumnObj{ColumnName: "state", ColumnValue: param.Transition.TargetStateName})
-			break
+			continue
 		}
+		if ciAttr.RefCiType != "" {
+			if ciAttr.InputType == models.MultiRefType {
+				multiRefActions, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData})
+				if tmpErr != nil {
+					err = tmpErr
+					break
+				}
+				result = append(result, multiRefActions...)
+				multiRefColumnList = append(multiRefColumnList, ciAttr.Name)
+				//delete(param.NowData, ciAttr.Name)
+			}
+		}
+	}
+	for _, multiRefColumn := range multiRefColumnList {
+		delete(param.NowData, multiRefColumn)
 	}
 	param.NowData = cleanInputData(param.NowData, param.Attributes)
 	result = append(result, getUpdateActionByColumnList(columnList, param.CiType, param.InputData["guid"]))
 	result = append(result, getHistoryActionByData(param.NowData, param.CiType, param.NowTime, param.Transition))
-	err = StartCiDataCallback(models.CiDataCallbackParam{RowGuid: param.InputData["guid"], ProcessName: param.InputData["procDefName"], ProcessKey: param.InputData["procDefKey"], CiType: param.CiType})
+	err = StartCiDataCallback(models.CiDataCallbackParam{RowGuid: param.InputData["guid"], ProcessName: param.InputData["procDefName"], ProcessKey: param.InputData["procDefKey"], CiType: param.CiType, UserToken: param.InputData["Authorization"]})
 	return
 }
 
@@ -1172,7 +1194,7 @@ func getInsertActionByColumnList(columnList []*models.CiDataColumnObj, tableName
 	var nameList, specCharList []string
 	var params []interface{}
 	for _, column := range columnList {
-		if column.ColumnValue == "reset_null^" {
+		if column.ColumnValue == "reset_null^" || fmt.Sprintf("%s", column.ColumnValue) == "0000-00-00 00:00:00" {
 			continue
 		}
 		nameList = append(nameList, column.ColumnName)
@@ -1186,7 +1208,7 @@ func getUpdateActionByColumnList(columnList []*models.CiDataColumnObj, tableName
 	var updateColumnList []string
 	var params []interface{}
 	for _, column := range columnList {
-		if column.ColumnValue == "reset_null^" {
+		if column.ColumnValue == "reset_null^" || fmt.Sprintf("%s", column.ColumnValue) == "0000-00-00 00:00:00" {
 			updateColumnList = append(updateColumnList, fmt.Sprintf("`%s`=NULL", column.ColumnName))
 		} else {
 			updateColumnList = append(updateColumnList, fmt.Sprintf("`%s`=?", column.ColumnName))
@@ -1610,6 +1632,12 @@ func recursiveAttrAutofill(afList []*models.AttrAutofillSortObj, af *models.Attr
 
 func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title []*models.CiDataActionQueryTitle, err error) {
 	ciTypeId := inputGuid[:len(inputGuid)-len(guid.CreateGuid())-1]
+	title = []*models.CiDataActionQueryTitle{}
+	var attrs []*models.SysCiTypeAttrTable
+	x.SQL("select name,display_name,input_type from sys_ci_type_attr where display_by_default='yes' and status='created' and ci_type=? order by ui_form_order", ciTypeId).Find(&attrs)
+	for _, attr := range attrs {
+		title = append(title, &models.CiDataActionQueryTitle{Id: attr.Name, Name: attr.DisplayName, Type: attr.InputType})
+	}
 	queryParam := models.QueryRequestParam{}
 	queryParam.Dialect = &models.QueryRequestDialect{QueryMode: "all"}
 	queryParam.Filters = []*models.QueryRequestFilterObj{{Name: "guid", Operator: "eq", Value: inputGuid}}
@@ -1639,12 +1667,6 @@ func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title
 		} else {
 			newRowData = append(newRowData, rowData[i])
 		}
-	}
-	title = []*models.CiDataActionQueryTitle{}
-	var attrs []*models.SysCiTypeAttrTable
-	x.SQL("select name,display_name from sys_ci_type_attr where display_by_default='yes' and ci_type=? order by ui_form_order", ciTypeId).Find(&attrs)
-	for _, attr := range attrs {
-		title = append(title, &models.CiDataActionQueryTitle{Id: attr.Name, Name: attr.DisplayName})
 	}
 	return newRowData, title, nil
 }

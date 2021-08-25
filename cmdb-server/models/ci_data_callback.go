@@ -73,6 +73,7 @@ type CiDataCallbackParam struct {
 	ProcessKey    string `json:"processKey"`
 	ProcessName   string `json:"processName"`
 	OperationUser string `json:"operationUser"`
+	UserToken     string `json:"userToken"`
 }
 
 type CiDataActionQuery struct {
@@ -84,4 +85,5 @@ type CiDataActionQuery struct {
 type CiDataActionQueryTitle struct {
 	Id   string `json:"key"`
 	Name string `json:"title"`
+	Type string `json:"type"`
 }
