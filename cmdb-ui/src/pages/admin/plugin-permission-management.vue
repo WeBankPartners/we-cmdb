@@ -648,7 +648,7 @@ export default {
       let { statusCode, message } = await assignCiTypePermissionForRoleInBatch(ciTypePermissions, this.currentRoleName)
       if (statusCode === 'OK') {
         this.$Notice.success({
-          title: 'success',
+          title: this.$t('success'),
           desc: message
         })
         this.getPermissions(true, true, this.currentRoleName)

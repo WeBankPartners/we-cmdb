@@ -59,7 +59,7 @@ export default {
       let { statusCode, message } = await updateCiDatas(payload)
       if (statusCode === 'OK') {
         this.$Notice.success({
-          title: 'Success',
+          title: this.$t('success'),
           desc: message
         })
         this.$emit('handleSubmit')
