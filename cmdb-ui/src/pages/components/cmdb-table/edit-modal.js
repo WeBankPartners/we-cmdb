@@ -177,7 +177,11 @@ export default {
     },
     copyData () {
       const columns = this.columns.reduce((arr, x) => {
-        if (x.key && x.autofillable === 'no' && x.editable === 'yes') {
+        if (
+          x.key &&
+          (x.autofillable === 'no' || (x.autofillable === 'yes' && x.autoFillType === 'suggest')) &&
+          x.editable === 'yes'
+        ) {
           arr.push(x.key)
         }
         return arr
