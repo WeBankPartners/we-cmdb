@@ -7,7 +7,7 @@ export default new Router({
     {
       path: '/',
       name: 'IndexPage',
-      redirect: '/wecmdb/designing/ci-data-management',
+      redirect: '/wecmdb/designing/ci-data-enquiry',
       component: () => import('@/pages/index'),
       children: [
         {
