@@ -30,9 +30,6 @@ func main() {
 	go db.StartConsumeAffectGuidMap()
 	go db.StartConsumeAffectCiType()
 	go db.StartConsumeUniquePathHandle()
-	if models.PluginRunningMode {
-		go db.StartSyncCoreRole()
-	}
 	//start http
 	api.InitHttpServer()
 }
