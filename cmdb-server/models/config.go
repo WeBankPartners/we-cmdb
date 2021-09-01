@@ -123,6 +123,7 @@ func InitConfig(configFile string) (errMessage string) {
 		CoreToken = &tmpCoreToken
 		ProcessFetchTabs = os.Getenv("WECMDB_PROCESS_TAGS")
 	} else {
+		CoreToken = &token.CoreToken{BaseUrl: ""}
 		PluginRunningMode = false
 	}
 	if Config.MenuApiMap.Enable {
