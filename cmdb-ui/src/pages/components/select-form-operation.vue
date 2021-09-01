@@ -92,7 +92,7 @@ export default {
             }
           }
         })
-        const finalData = this.managementData(data.title, data.data)
+        const finalData = this.managementData(data.title, data.data || [])
         data.title.unshift({
           title: this.$t('select_placeholder'),
           key: 'id',
