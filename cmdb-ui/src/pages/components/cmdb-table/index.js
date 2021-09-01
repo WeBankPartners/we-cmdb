@@ -24,7 +24,13 @@ export default {
     pagination: { type: Object },
     ascOptions: { type: Object },
     isRefreshable: { default: () => false },
-    isColumnsFilterOn: { default: () => true }
+    isColumnsFilterOn: { default: () => true },
+    guidFilters: {
+      type: Object,
+      default () {
+        return {}
+      }
+    }
   },
   data () {
     return {
@@ -916,6 +922,7 @@ export default {
           isEdit={this.modalTitle === this.titles.edit}
           title={this.modalTitle}
           columns={filterColums(columns)}
+          guidFilters={this.guidFilters}
           data={selectedRows}
           ascOptions={ascOptions}
           on-closeEditModal={this.closeEditModal}
