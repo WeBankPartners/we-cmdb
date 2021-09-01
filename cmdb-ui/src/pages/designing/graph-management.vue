@@ -159,6 +159,9 @@
                   :tableFilters="ciTypeTableFilters"
                   :isEdit="isEditMode"
                   tableHeight="650"
+                  @addCiRowData="onCiRowDataChange"
+                  @editCiRowData="onCiRowDataChange"
+                  @deleteCiRowData="onCiRowDataChange"
                   :ref="'citable' + citype.id"
                 ></CITable>
               </TabPane>
@@ -325,6 +328,9 @@ export default {
   },
   watch: {},
   methods: {
+    onCiRowDataChange (ci, items) {
+      console.log('receive ci data change...', ci, items)
+    },
     handleTabClick (name) {
       if (name.startsWith('tabci')) {
         let ciTypeId = name.substring('tabci'.length)
@@ -723,6 +729,11 @@ export default {
         })
         Object.keys(ciFilters).forEach(ci => {
           this.ciTypeTableFilters[ci] = Array.from(ciFilters[ci])
+        })
+        this.ciTypeTables.forEach(ci => {
+          if (!(ci.id in this.ciTypeTableFilters)) {
+            this.ciTypeTableFilters[ci.id] = []
+          }
         })
       })
     },

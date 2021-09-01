@@ -11,6 +11,7 @@
       :showCheckbox="needCheckout"
       :isRefreshable="true"
       :queryType="queryType"
+      :guidFilters="tableFilters"
       @actionFun="actionFun"
       @handleSubmit="handleSubmit"
       @sortHandler="sortHandler"
@@ -337,12 +338,19 @@ export default {
               guid: _.guid
             }
           })
-          const { statusCode, message } = await tableOptionExcute(operateType, this.ci, payload)
-          if (statusCode === 'OK') {
+          const resp = await tableOptionExcute(operateType, this.ci, payload)
+          if (resp.statusCode === 'OK') {
             this.$Notice.success({
               title: operateType + ' successfully',
-              desc: message
+              desc: resp.message
             })
+            resp.data.forEach(el => {
+              let idx = this.tableFilters[this.ci].indexOf(el.guid)
+              if (idx >= 0) {
+                this.tableFilters[this.ci].splice(idx, 1)
+              }
+            })
+            this.$emit('deleteCiRowData', this.ci, resp.data)
             this.queryCiData()
           }
         },
@@ -360,12 +368,19 @@ export default {
               guid: _.guid
             }
           })
-          const { statusCode, message } = await tableOptionExcute('Delete', this.ci, payload)
-          if (statusCode === 'OK') {
+          const resp = await tableOptionExcute('Delete', this.ci, payload)
+          if (resp.statusCode === 'OK') {
             this.$Notice.success({
               title: 'Deleted successfully',
-              desc: message
+              desc: resp.message
             })
+            resp.data.forEach(el => {
+              let idx = this.tableFilters[this.ci].indexOf(el.guid)
+              if (idx >= 0) {
+                this.tableFilters[this.ci].splice(idx, 1)
+              }
+            })
+            this.$emit('deleteCiRowData', this.ci, resp.data)
             this.queryCiData()
           }
         },
@@ -403,9 +418,9 @@ export default {
       return attrs
     },
     async confirmAddHandler (data, operateType) {
-      this.confirmEditHandler(data, operateType)
+      this.confirmEditHandler(data, operateType, true)
     },
-    async confirmEditHandler (data, operateType) {
+    async confirmEditHandler (data, operateType, isAdd = false) {
       // const deleteAttrs = this.deleteAttr()
       let addAry = JSON.parse(JSON.stringify(data))
       addAry.forEach(_ => {
@@ -418,13 +433,21 @@ export default {
         delete _.isNewAddedRow
         delete _.nextOperations
       })
-      const { statusCode, message } = await tableOptionExcute(operateType, this.ci, addAry)
+      const resp = await tableOptionExcute(operateType, this.ci, addAry)
       this.$refs.table.resetModalLoading()
-      if (statusCode === 'OK') {
+      if (resp.statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('add_data_success'),
-          desc: message
+          desc: resp.message
         })
+        if (isAdd) {
+          resp.data.forEach(el => {
+            this.tableFilters[this.ci].push(el.guid)
+          })
+          this.$emit('addCiRowData', this.ci, resp.data)
+        } else {
+          this.$emit('editCiRowData', this.ci, resp.data)
+        }
         this.queryCiData()
         this.$refs.table.closeEditModal(false)
       }

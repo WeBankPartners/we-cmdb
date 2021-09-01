@@ -38,6 +38,12 @@ export default {
     data: {
       required: true,
       type: Array
+    },
+    guidFilters: {
+      type: Object,
+      default () {
+        return {}
+      }
     }
   },
   computed: {
@@ -491,6 +497,8 @@ export default {
                             : null,
                           ciTypeAttrId: column.ciTypeAttrId,
                           ciType: column.component === 'WeCMDBRefSelect' ? column.ciType : null,
+                          guidFilters:
+                              column.component === 'WeCMDBRefSelect' ? this.guidFilters[column.ciType.id] : null,
                           ...column,
                           originColumns: originColumns,
                           type: column.component === 'DatePicker' ? 'date' : column.type,
