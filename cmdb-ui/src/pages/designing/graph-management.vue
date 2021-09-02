@@ -157,6 +157,7 @@
                   :ci="citype.id"
                   :ciTypeName="citype.name"
                   :tableFilters="ciTypeTableFilters"
+                  :tableFilterEffects="ciTypeTableEditRef"
                   :isEdit="isEditMode"
                   tableHeight="650"
                   @addCiRowData="onCiRowDataChange"
@@ -303,6 +304,7 @@ export default {
       viewData: [],
       ciTypeTables: [],
       ciTypeTableFilters: {},
+      ciTypeTableEditRef: {},
       isEditMode: false,
       tabLoading: false,
 
@@ -718,6 +720,7 @@ export default {
         this.ciTypeTables.push({ name: this.ciTypeMapping[ciType].name, id: ciType, isInit: false })
       })
       this.$nextTick(function () {
+        this.ciTypeTableEditRef = {}
         this.ciTypeTableFilters = {}
         let ciFilters = {}
         this.viewSetting.graphs.forEach((graph, graphIndex) => {
@@ -732,6 +735,17 @@ export default {
                 ciFilters[node.metadata.setting.ciType].add(node.guid)
               }
             }
+          })
+          plainDatas.forEach(el => {
+            ;(el.metadata.setting.children || []).forEach(gEl => {
+              if (gEl.editRefAttr) {
+                if (!(gEl.ciType in this.ciTypeTableEditRef)) {
+                  this.ciTypeTableEditRef[gEl.ciType] = [gEl.editRefAttr]
+                } else if (this.ciTypeTableEditRef[gEl.ciType].indexOf(gEl.editRefAttr) === -1) {
+                  this.ciTypeTableEditRef[gEl.ciType].push(gEl.editRefAttr)
+                }
+              }
+            })
           })
         })
         Object.keys(ciFilters).forEach(ci => {
