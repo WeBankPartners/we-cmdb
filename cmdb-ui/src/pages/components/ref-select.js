@@ -9,7 +9,9 @@ export default {
     ciType: {},
     ciTypeAttrId: '',
     disabled: { default: () => false },
-    filterParams: {}
+    filterParams: {},
+    guidFilters: { default: () => null },
+    guidFilterEnabled: { default: () => false }
   },
   watch: {
     value: {
@@ -70,8 +72,17 @@ export default {
         queryObject: { filters: [], paging: false, dialect: { associatedData: finalData } }
       })
       if (noPagingRes.statusCode === 'OK') {
+        let data = noPagingRes.data
+        if (this.guidFilterEnabled && this.guidFilters && Array.isArray(this.guidFilters)) {
+          data = data.filter(el => {
+            if (this.guidFilters.indexOf(el.guid) >= 0) {
+              return true
+            }
+            return false
+          })
+        }
         this.selectDisabled = false
-        this.allTableDataWithoutPaging = noPagingRes.data
+        this.allTableDataWithoutPaging = data
       }
     },
     handleSubmit (data) {

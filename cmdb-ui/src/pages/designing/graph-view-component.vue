@@ -375,8 +375,12 @@ export default {
         this.operationLoading = false
       }
     },
-    operationReload () {
-      this.$emit('graphReload')
+    operationReload (ci, items, type = 'edit') {
+      // enum of type
+      // add
+      // edit [default]
+      // confirm
+      this.$emit('graphReload', ci, items, type)
     }
   },
   mounted () {
