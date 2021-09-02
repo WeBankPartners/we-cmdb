@@ -161,7 +161,7 @@
                   tableHeight="650"
                   @addCiRowData="onCiRowDataChange"
                   @editCiRowData="onCiRowDataChange"
-                  @deleteCiRowData="onCiRowDataChange"
+                  @confirmCiRowData="onCiRowDataChange"
                   :ref="'citable' + citype.id"
                 ></CITable>
               </TabPane>
@@ -329,7 +329,8 @@ export default {
   watch: {},
   methods: {
     onCiRowDataChange (ci, items) {
-      console.log('receive ci data change...', ci, items)
+      // ciTypeTableFilters already changed, do graph data reload only
+      this.graphReload(ci, items, 'graph')
     },
     handleTabClick (name) {
       if (name.startsWith('tabci')) {
@@ -537,7 +538,13 @@ export default {
           if (resp.statusCode === 'OK') {
             this.isEditMode = false
             this.$Modal.remove()
-            this.graphReload()
+            this.graphReload(
+              ciType,
+              Array.from(confirmGuids).map(g => {
+                return { guid: g }
+              }),
+              'all'
+            )
           }
         },
         onCancel: () => {}
@@ -747,7 +754,7 @@ export default {
       })
       return tabs
     },
-    async graphReload () {
+    async graphReload (ci, items, type) {
       let currentRoots = [this.currentRoot]
       if (Array.isArray(this.currentRoot)) {
         currentRoots = this.currentRoot
@@ -778,10 +785,39 @@ export default {
       this.viewData = []
       this.$nextTick(function () {
         this.viewData = data
-        this.generateCiTypeTab()
+        if (type === 'add') {
+          items.forEach(el => {
+            this.ciTypeTableFilters[ci].push(el.guid)
+          })
+          let ciType = this.ciTypeTables.find(el => el.id === ci)
+          if (ciType && ciType.isInit) {
+            this.$refs['citable' + ci][0].queryCiData()
+          }
+        } else if (type === 'edit') {
+          let ciType = this.ciTypeTables.find(el => el.id === ci)
+          if (ciType && ciType.isInit) {
+            this.$refs['citable' + ci][0].queryCiData()
+          }
+        } else if (type === 'confirm') {
+          // NOTE: hard to reconize with delete and confirm, so don't remove filter
+          // items.forEach(el => {
+          //   let idx = this.ciTypeTableFilters[ci].indexOf(el.guid)
+          //   if (idx >= 0) {
+          //     this.ciTypeTableFilters[ci].splice(idx, 1)
+          //   }
+          // })
+          let ciType = this.ciTypeTables.find(el => el.id === ci)
+          if (ciType && ciType.isInit) {
+            this.$refs['citable' + ci][0].queryCiData()
+          }
+        } else if (type === 'graph') {
+        } else {
+          this.generateCiTypeTab()
+        }
       })
     }
   },
+
   async mounted () {
     await this.getAllCITypes()
   },

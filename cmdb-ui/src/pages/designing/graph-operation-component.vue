@@ -72,7 +72,7 @@
               :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
             ></WeCMDBCIPassword>
           </FormItem>
-          <FormItem v-if="formData.inputType === 'select' && formData.editable == 'yes'" class="form-item-content">
+          <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
             <Select
               v-model="nodeData[formData.propertyName]"
               filterable
@@ -87,7 +87,7 @@
               >
             </Select>
           </FormItem>
-          <FormItem v-if="formData.inputType === 'multiSelect' && formData.editable == 'yes'" class="form-item-content">
+          <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
             <Select
               v-model="nodeData[formData.propertyName]"
               filterable
@@ -448,15 +448,15 @@ export default {
         const resp = await graphCiDataOperation(this.ciType, action, [normalizeFormData(this.nodeData)])
         if (resp.statusCode === 'OK') {
           await this.initNodeData(this.nodeGuid)
+          // TODO: trigger reload only if ref/multiRef fields changed
+          this.$emit('operationReload', this.ciType, [normalizeFormData(this.nodeData)])
         }
-        // TODO: trigger reload only if ref/multiRef fields changed
-        this.$emit('operationReload')
       } else if (formType === 'select_form') {
         this.selectHandler(action, this.nodeData)
       }
     },
-    callback () {
-      this.$emit('operationReload')
+    callback (ci, items) {
+      this.$emit('operationReload', ci, items)
     },
     async selectHandler (operationType, data) {
       const params = {
@@ -476,7 +476,7 @@ export default {
           await this.initNodeData(this.nodeGuid)
           this.showHistoryModal = false
           // TODO: trigger reload only if ref/multiRef fields changed
-          this.$emit('operationReload')
+          this.$emit('operationReload', this.ciType, [rollBackData])
         }
         this.historyBtnLoading = false
       } else {
@@ -499,7 +499,7 @@ export default {
       if (resp.statusCode === 'OK') {
         await this.initNodeData(this.nodeGuid)
         this.showDoubleCheckModal = false
-        this.$emit('operationReload')
+        this.$emit('operationReload', this.ciType, [{ guid: this.nodeGuid }], 'confirm')
       }
     },
     onDoubleCheckCancel () {
@@ -595,7 +595,7 @@ export default {
       let resp = await graphCiDataOperation(this.childNodeCiType, this.childNodeAddOperation, [data])
       if (resp.statusCode === 'OK') {
         this.showChildNodeModal = false
-        this.$emit('operationReload')
+        this.$emit('operationReload', this.childNodeCiType, resp.data, 'add')
       }
       this.childBtnLoading = false
     },
