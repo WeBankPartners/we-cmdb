@@ -165,11 +165,12 @@ export default {
           desc: message
         })
         this.selectFormConfig.isShow = false
-        if (this.$parent.queryCiData) {
-          this.$parent.queryCiData()
-        } else {
-          this.$emit('callback')
-        }
+        // if (this.$parent.queryCiData) {
+        //   this.$parent.queryCiData()
+        // } else {
+        //   this.$emit('callback', this.params.ciType, selectedData)
+        // }
+        this.$emit('callback', this.params.ciType, selectedData)
       }
       this.currentChoose = ''
     }
