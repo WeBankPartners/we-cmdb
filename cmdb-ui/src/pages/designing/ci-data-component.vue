@@ -1,5 +1,6 @@
 <template>
   <div class="ci-data-page">
+    <!-- :guidFilters="tableFilters" -->
     <CMDBTable
       :ciTypeId="ci"
       :tableData="tableData"
@@ -11,7 +12,6 @@
       :showCheckbox="needCheckout"
       :isRefreshable="true"
       :queryType="queryType"
-      :guidFilters="tableFilters"
       @actionFun="actionFun"
       @handleSubmit="handleSubmit"
       @sortHandler="sortHandler"
@@ -46,7 +46,7 @@
         ></CMDBTable>
       </div>
     </Modal>
-    <SelectFormOperation ref="selectForm"></SelectFormOperation>
+    <SelectFormOperation ref="selectForm" @callback="callback"></SelectFormOperation>
   </div>
 </template>
 <script>
@@ -154,6 +154,10 @@ export default {
     }
   },
   methods: {
+    callback (ci, items) {
+      this.queryCiData()
+      this.$emit('editCiRowData', ci, items)
+    },
     async getStateTransition (ciTypeId) {
       const { statusCode, data } = await getStateTransition(ciTypeId)
       if (statusCode === 'OK') {
@@ -344,14 +348,15 @@ export default {
               title: operateType + ' successfully',
               desc: resp.message
             })
-            resp.data.forEach(el => {
-              let idx = this.tableFilters[this.ci].indexOf(el.guid)
-              if (idx >= 0) {
-                this.tableFilters[this.ci].splice(idx, 1)
-              }
-            })
-            this.$emit('deleteCiRowData', this.ci, resp.data)
+            // NOTE: hard to reconize with delete and confirm, so don't remove filter
+            // resp.data.forEach(el => {
+            //   let idx = this.tableFilters[this.ci].indexOf(el.guid)
+            //   if (idx >= 0) {
+            //     this.tableFilters[this.ci].splice(idx, 1)
+            //   }
+            // })
             this.queryCiData()
+            this.$emit('confirmCiRowData', this.ci, resp.data)
           }
         },
         onCancel: () => {}
@@ -374,14 +379,15 @@ export default {
               title: 'Deleted successfully',
               desc: resp.message
             })
-            resp.data.forEach(el => {
-              let idx = this.tableFilters[this.ci].indexOf(el.guid)
-              if (idx >= 0) {
-                this.tableFilters[this.ci].splice(idx, 1)
-              }
-            })
-            this.$emit('deleteCiRowData', this.ci, resp.data)
+            // NOTE: hard to reconize with delete and confirm, so don't remove filter
+            // resp.data.forEach(el => {
+            //   let idx = this.tableFilters[this.ci].indexOf(el.guid)
+            //   if (idx >= 0) {
+            //     this.tableFilters[this.ci].splice(idx, 1)
+            //   }
+            // })
             this.queryCiData()
+            this.$emit('confirmCiRowData', this.ci, resp.data)
           }
         },
         onCancel: () => {}
@@ -444,12 +450,14 @@ export default {
           resp.data.forEach(el => {
             this.tableFilters[this.ci].push(el.guid)
           })
+        }
+        this.queryCiData()
+        this.$refs.table.closeEditModal(false)
+        if (isAdd) {
           this.$emit('addCiRowData', this.ci, resp.data)
         } else {
           this.$emit('editCiRowData', this.ci, resp.data)
         }
-        this.queryCiData()
-        this.$refs.table.closeEditModal(false)
       }
     },
     async confirmEditHandlerOld (data) {
