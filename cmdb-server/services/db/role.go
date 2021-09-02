@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"time"
 )
 
 func GetRoleList() (rowData []*models.SysRoleTable, err error) {
@@ -115,15 +114,7 @@ func UpdateRoleUser(params []*models.UpdateRoleUserParam) error {
 	return transaction(actions)
 }
 
-func StartSyncCoreRole() {
-	t := time.NewTicker(time.Second * time.Duration(60)).C
-	for {
-		go syncCoreRole()
-		<-t
-	}
-}
-
-func syncCoreRole() {
+func SyncCoreRole() {
 	if models.CoreToken.BaseUrl == "" {
 		return
 	}

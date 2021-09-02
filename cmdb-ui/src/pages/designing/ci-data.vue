@@ -73,7 +73,7 @@
     </Tabs>
     <!-- 对比 -->
     <Modal footer-hide v-model="compareVisible" width="90" class-name="compare-modal">
-      <Table :columns="compareColumns" :height="MODALHEIGHT" :data="compareData" border />
+      <Table :columns="compareColumns" :max-height="MODALHEIGHT" :data="compareData" border />
     </Modal>
     <SelectFormOperation ref="selectForm"></SelectFormOperation>
   </div>
@@ -301,27 +301,30 @@ export default {
       e.stopPropagation()
     },
     async getStateTransition (ciTypeId) {
-      const { statusCode, data } = await getStateTransition(ciTypeId)
-      if (statusCode === 'OK') {
-        let stateBtn = data.map(item => {
-          item.props = {}
-          item.props.type = 'primary'
-          item.props.disabled = !['Add'].includes(item.operation_en)
-          return item
-        })
-        stateBtn.push({
-          operation: '导出',
-          operationFormType: 'export_form',
-          operationMultiple: 'yes',
-          class: 'xxx',
-          operation_en: 'Export',
-          props: {
-            type: 'primary',
-            disabled: false
-          }
-        })
-        return stateBtn
+      let stateBtn = []
+      if (this.$route.name !== 'ciDataEnquiry') {
+        const { statusCode, data } = await getStateTransition(ciTypeId)
+        if (statusCode === 'OK') {
+          stateBtn = data.map(item => {
+            item.props = {}
+            item.props.type = 'primary'
+            item.props.disabled = !['Add'].includes(item.operation_en)
+            return item
+          })
+        }
       }
+      stateBtn.push({
+        operation: this.$t('export'),
+        operationFormType: 'export_form',
+        operationMultiple: 'yes',
+        class: 'xxx',
+        operation_en: 'Export',
+        props: {
+          type: 'primary',
+          disabled: false
+        }
+      })
+      return stateBtn
     },
     async handleNodeClick (e) {
       if (this.isHandleNodeClick) return
@@ -341,31 +344,18 @@ export default {
           id: g.id,
           tableData: [],
           outerActions: stateTransition,
-          innerActions:
-            this.$route.name === 'ciDataEnquiry'
-              ? [
-                {
-                  label: this.$t('compare'),
-                  props: {
-                    type: 'info',
-                    size: 'small'
-                  },
-                  actionType: 'compare',
-                  isLoading: row => !!row.weTableForm.compareLoading
-                }
-              ]
-              : [
-                {
-                  operation: this.$t('compare'),
-                  operationFormType: 'compare_form',
-                  operationMultiple: 'yes',
-                  operation_en: 'Compare',
-                  props: {
-                    type: 'primary',
-                    disabled: false
-                  }
-                }
-              ],
+          innerActions: [
+            {
+              operation: this.$t('compare'),
+              operationFormType: 'compare_form',
+              operationMultiple: 'yes',
+              operation_en: 'Compare',
+              props: {
+                type: 'primary',
+                disabled: false
+              }
+            }
+          ],
           tableColumns: await this.queryCiAttrs(g.id),
           pagination: JSON.parse(JSON.stringify(pagination)),
           ascOptions: {}
@@ -507,7 +497,7 @@ export default {
       this.$set(row.weTableForm, `${type}Loading`, false)
       if (statusCode === 'OK') {
         this.$Notice.success({
-          title: 'Success',
+          title: this.$t('success'),
           desc: message
         })
         this.queryCiData()
@@ -603,7 +593,6 @@ export default {
             emptyRowData['isNewAddedRow'] = true
             emptyRowData['weTableRowId'] = 1
             emptyRowData['nextOperations'] = []
-            console.log(emptyRowData)
             this.$refs[this.tableRef][0].pushNewAddedRowToSelections(emptyRowData)
             this.$refs[this.tableRef][0].showAddModal()
           }

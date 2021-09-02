@@ -1,13 +1,12 @@
 import ciDesign from '@/pages/admin/cmdb-model-management'
 import enums from '@/pages/admin/enums'
 import ciData from '@/pages/designing/ci-data'
-import integrateQuery from '@/pages/designing/ci-integrated-query-execution'
-import integrateQueryMgmt from '@/pages/designing/ci-integrated-query-management'
+import reportQuery from '@/pages/designing/report-query'
+import reportConfiguration from '@/pages/designing/report-configuration'
 import logEnQuiry from '@/pages/admin/log-enquiry'
 import wecmdbPermissions from '@/pages/admin/plugin-permission-management'
 import graphManagement from '@/pages/designing/graph-management'
 import graphView from '@/pages/designing/graph-view'
-
 
 const router = [
   {
@@ -51,14 +50,14 @@ const router = [
     component: ciData
   },
   {
-    path: '/wecmdb/data-query-report',
-    name: 'integrateQuery',
-    component: integrateQuery
+    path: '/wecmdb/report-query',
+    name: 'reportQuery',
+    component: reportQuery
   },
   {
     path: '/wecmdb/report-configuration',
-    name: 'integrateQueryMgmt',
-    component: integrateQueryMgmt
+    name: 'reportConfiguration',
+    component: reportConfiguration
   },
   {
     path: '/wecmdb/system-operation-log',

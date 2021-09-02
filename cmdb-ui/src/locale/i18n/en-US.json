@@ -383,5 +383,6 @@
   "ui_form_order": "Form Order",
   "text_validate": "Text Validate",
   "customizable": "Customizable",
-  "display_type": "Display Type"
+  "display_type": "Display Type",
+  "success": "successfully"
 }

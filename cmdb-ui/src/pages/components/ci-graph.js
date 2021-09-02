@@ -535,6 +535,10 @@ export default {
       }
       const { statusCode } = await configReport(params)
       if (statusCode === 'OK') {
+        this.$Notice.success({
+          title: this.$t('success'),
+          desc: this.$t('success')
+        })
         this.$emit('onRefresh')
       }
     }

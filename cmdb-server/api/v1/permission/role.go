@@ -8,6 +8,7 @@ import (
 )
 
 func GetRoleList(c *gin.Context) {
+	db.SyncCoreRole()
 	rowData, err := db.GetRoleList()
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)

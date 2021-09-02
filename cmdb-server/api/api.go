@@ -23,6 +23,7 @@ type handlerFuncObj struct {
 	Method       string
 	Url          string
 	LogOperation bool
+	PreHandle    func(c *gin.Context)
 }
 
 var (
@@ -159,34 +160,26 @@ func InitHttpServer() {
 	authRouter := r.Group(urlPrefix+"/api/v1", middleware.AuthToken())
 	authRouter.GET("/refresh-token", permission.RefreshToken)
 	for _, funcObj := range httpHandlerFuncList {
+		handleFuncList := []gin.HandlerFunc{funcObj.HandlerFunc}
+		if funcObj.PreHandle != nil {
+			log.Logger.Info("Append pre handle", log.String("url", funcObj.Url))
+			handleFuncList = append([]gin.HandlerFunc{funcObj.PreHandle}, funcObj.HandlerFunc)
+		}
+		if funcObj.LogOperation {
+			handleFuncList = append(handleFuncList, ci.HandleOperationLog)
+		}
 		switch funcObj.Method {
 		case "GET":
-			if funcObj.LogOperation {
-				authRouter.GET(funcObj.Url, funcObj.HandlerFunc, ci.HandleOperationLog)
-			} else {
-				authRouter.GET(funcObj.Url, funcObj.HandlerFunc)
-			}
+			authRouter.GET(funcObj.Url, handleFuncList...)
 			break
 		case "POST":
-			if funcObj.LogOperation {
-				authRouter.POST(funcObj.Url, funcObj.HandlerFunc, ci.HandleOperationLog)
-			} else {
-				authRouter.POST(funcObj.Url, funcObj.HandlerFunc)
-			}
+			authRouter.POST(funcObj.Url, handleFuncList...)
 			break
 		case "PUT":
-			if funcObj.LogOperation {
-				authRouter.PUT(funcObj.Url, funcObj.HandlerFunc, ci.HandleOperationLog)
-			} else {
-				authRouter.PUT(funcObj.Url, funcObj.HandlerFunc)
-			}
+			authRouter.PUT(funcObj.Url, handleFuncList...)
 			break
 		case "DELETE":
-			if funcObj.LogOperation {
-				authRouter.DELETE(funcObj.Url, funcObj.HandlerFunc, ci.HandleOperationLog)
-			} else {
-				authRouter.DELETE(funcObj.Url, funcObj.HandlerFunc)
-			}
+			authRouter.DELETE(funcObj.Url, handleFuncList...)
 			break
 		}
 	}
