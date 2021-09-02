@@ -7,7 +7,7 @@ export default new Router({
     {
       path: '/',
       name: 'IndexPage',
-      redirect: '/wecmdb/designing/ci-data-management',
+      redirect: '/wecmdb/designing/ci-data-enquiry',
       component: () => import('@/pages/index'),
       children: [
         {
@@ -79,14 +79,14 @@ export default new Router({
           component: () => import('@/pages/designing/ci-data')
         },
         {
-          path: '/wecmdb/designing/ci-integrated-query-execution',
-          name: 'integrateQuery',
-          component: () => import('@/pages/designing/ci-integrated-query-execution')
+          path: '/wecmdb/designing/report-query',
+          name: 'reportQuery',
+          component: () => import('@/pages/designing/report-query')
         },
         {
-          path: '/wecmdb/designing/ci-integrated-query-management',
-          name: 'integrateQueryMgmt',
-          component: () => import('@/pages/designing/ci-integrated-query-management')
+          path: '/wecmdb/designing/report-configuration',
+          name: 'reportConfiguration',
+          component: () => import('@/pages/designing/report-configuration')
         },
         {
           path: '/wecmdb/admin/log-enquiry',
