@@ -157,8 +157,12 @@
                   :ci="citype.id"
                   :ciTypeName="citype.name"
                   :tableFilters="ciTypeTableFilters"
+                  :tableFilterEffects="ciTypeTableEditRef"
                   :isEdit="isEditMode"
                   tableHeight="650"
+                  @addCiRowData="onCiRowDataChange"
+                  @editCiRowData="onCiRowDataChange"
+                  @confirmCiRowData="onCiRowDataChange"
                   :ref="'citable' + citype.id"
                 ></CITable>
               </TabPane>
@@ -300,6 +304,7 @@ export default {
       viewData: [],
       ciTypeTables: [],
       ciTypeTableFilters: {},
+      ciTypeTableEditRef: {},
       isEditMode: false,
       tabLoading: false,
 
@@ -325,6 +330,10 @@ export default {
   },
   watch: {},
   methods: {
+    onCiRowDataChange (ci, items) {
+      // ciTypeTableFilters already changed, do graph data reload only
+      this.graphReload(ci, items, 'graph')
+    },
     handleTabClick (name) {
       if (name.startsWith('tabci')) {
         let ciTypeId = name.substring('tabci'.length)
@@ -531,7 +540,13 @@ export default {
           if (resp.statusCode === 'OK') {
             this.isEditMode = false
             this.$Modal.remove()
-            this.graphReload()
+            this.graphReload(
+              ciType,
+              Array.from(confirmGuids).map(g => {
+                return { guid: g }
+              }),
+              'all'
+            )
           }
         },
         onCancel: () => {}
@@ -705,6 +720,7 @@ export default {
         this.ciTypeTables.push({ name: this.ciTypeMapping[ciType].name, id: ciType, isInit: false })
       })
       this.$nextTick(function () {
+        this.ciTypeTableEditRef = {}
         this.ciTypeTableFilters = {}
         let ciFilters = {}
         this.viewSetting.graphs.forEach((graph, graphIndex) => {
@@ -720,9 +736,25 @@ export default {
               }
             }
           })
+          plainDatas.forEach(el => {
+            ;(el.metadata.setting.children || []).forEach(gEl => {
+              if (gEl.editRefAttr) {
+                if (!(gEl.ciType in this.ciTypeTableEditRef)) {
+                  this.ciTypeTableEditRef[gEl.ciType] = [gEl.editRefAttr]
+                } else if (this.ciTypeTableEditRef[gEl.ciType].indexOf(gEl.editRefAttr) === -1) {
+                  this.ciTypeTableEditRef[gEl.ciType].push(gEl.editRefAttr)
+                }
+              }
+            })
+          })
         })
         Object.keys(ciFilters).forEach(ci => {
           this.ciTypeTableFilters[ci] = Array.from(ciFilters[ci])
+        })
+        this.ciTypeTables.forEach(ci => {
+          if (!(ci.id in this.ciTypeTableFilters)) {
+            this.ciTypeTableFilters[ci.id] = []
+          }
         })
       })
     },
@@ -736,7 +768,7 @@ export default {
       })
       return tabs
     },
-    async graphReload () {
+    async graphReload (ci, items, type) {
       let currentRoots = [this.currentRoot]
       if (Array.isArray(this.currentRoot)) {
         currentRoots = this.currentRoot
@@ -767,10 +799,39 @@ export default {
       this.viewData = []
       this.$nextTick(function () {
         this.viewData = data
-        this.generateCiTypeTab()
+        if (type === 'add') {
+          items.forEach(el => {
+            this.ciTypeTableFilters[ci].push(el.guid)
+          })
+          let ciType = this.ciTypeTables.find(el => el.id === ci)
+          if (ciType && ciType.isInit) {
+            this.$refs['citable' + ci][0].queryCiData()
+          }
+        } else if (type === 'edit') {
+          let ciType = this.ciTypeTables.find(el => el.id === ci)
+          if (ciType && ciType.isInit) {
+            this.$refs['citable' + ci][0].queryCiData()
+          }
+        } else if (type === 'confirm') {
+          // NOTE: hard to reconize with delete and confirm, so don't remove filter
+          // items.forEach(el => {
+          //   let idx = this.ciTypeTableFilters[ci].indexOf(el.guid)
+          //   if (idx >= 0) {
+          //     this.ciTypeTableFilters[ci].splice(idx, 1)
+          //   }
+          // })
+          let ciType = this.ciTypeTables.find(el => el.id === ci)
+          if (ciType && ciType.isInit) {
+            this.$refs['citable' + ci][0].queryCiData()
+          }
+        } else if (type === 'graph') {
+        } else {
+          this.generateCiTypeTab()
+        }
       })
     }
   },
+
   async mounted () {
     await this.getAllCITypes()
   },

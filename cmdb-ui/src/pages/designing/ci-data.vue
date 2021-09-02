@@ -75,7 +75,7 @@
     <Modal footer-hide v-model="compareVisible" width="90" class-name="compare-modal">
       <Table :columns="compareColumns" :max-height="MODALHEIGHT" :data="compareData" border />
     </Modal>
-    <SelectFormOperation ref="selectForm"></SelectFormOperation>
+    <SelectFormOperation ref="selectForm" @callback="callback"></SelectFormOperation>
   </div>
 </template>
 <script>
@@ -183,6 +183,9 @@ export default {
     }
   },
   methods: {
+    callback () {
+      this.queryCiData()
+    },
     handleDateChange (date) {
       if (date !== '') {
         if (
