@@ -214,7 +214,7 @@ export default {
           const { statusCode, data } = await deleteReport(report.id)
           if (statusCode === 'OK') {
             this.$Notice.success({
-              title: 'Success',
+              title: this.$t('success'),
               desc: data
             })
             this.currentReportId = ''
