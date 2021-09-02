@@ -44,6 +44,12 @@ export default {
       default () {
         return {}
       }
+    },
+    guidFilterEffects: {
+      type: Array,
+      default () {
+        return []
+      }
     }
   },
   computed: {
@@ -499,6 +505,10 @@ export default {
                           ciType: column.component === 'WeCMDBRefSelect' ? column.ciType : null,
                           guidFilters:
                               column.component === 'WeCMDBRefSelect' ? this.guidFilters[column.ciType.id] : null,
+                          guidFilterEnabled:
+                              column.component === 'WeCMDBRefSelect'
+                                ? this.guidFilterEffects.indexOf(column.propertyName) >= 0
+                                : false,
                           ...column,
                           originColumns: originColumns,
                           type: column.component === 'DatePicker' ? 'date' : column.type,
