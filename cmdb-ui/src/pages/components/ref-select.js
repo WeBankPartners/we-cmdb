@@ -10,7 +10,8 @@ export default {
     ciTypeAttrId: '',
     disabled: { default: () => false },
     filterParams: {},
-    guidFilters: { default: () => null }
+    guidFilters: { default: () => null },
+    guidFilterEnabled: { default: () => false }
   },
   watch: {
     value: {
@@ -72,7 +73,7 @@ export default {
       })
       if (noPagingRes.statusCode === 'OK') {
         let data = noPagingRes.data
-        if (this.guidFilters && Array.isArray(this.guidFilters)) {
+        if (this.guidFilterEnabled && this.guidFilters && Array.isArray(this.guidFilters)) {
           data = data.filter(el => {
             if (this.guidFilters.indexOf(el.guid) >= 0) {
               return true
