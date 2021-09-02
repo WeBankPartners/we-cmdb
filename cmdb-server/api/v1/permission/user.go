@@ -64,12 +64,14 @@ func UserDelete(c *gin.Context) {
 
 func GetUserRole(c *gin.Context) {
 	userId := c.Query("user_id")
+	roles := []string{}
 	if userId == "" {
 		//middleware.ReturnParamEmptyError(c, "user_id")
 		//return
 		userId = middleware.GetRequestUser(c)
+		roles = c.GetStringSlice("roles")
 	}
-	rowData, err := db.GetUserRole(userId)
+	rowData, err := db.GetUserRole(userId, roles)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
