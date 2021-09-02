@@ -12,6 +12,8 @@
       :showCheckbox="needCheckout"
       :isRefreshable="true"
       :queryType="queryType"
+      :guidFilters="tableFilters"
+      :guidFilterEffects="tableFilterEffects"
       @actionFun="actionFun"
       @handleSubmit="handleSubmit"
       @sortHandler="sortHandler"
@@ -137,7 +139,7 @@ export default {
       copyEditData: null
     }
   },
-  props: ['ci', 'ciTypeName', 'tableFilters', 'isEdit'],
+  props: ['ci', 'ciTypeName', 'tableFilters', 'tableFilterEffects', 'isEdit'],
   computed: {
     filterByDate () {
       if (this.queryDate) {

@@ -30,6 +30,12 @@ export default {
       default () {
         return {}
       }
+    },
+    guidFilterEffects: {
+      type: Object,
+      default () {
+        return {}
+      }
     }
   },
   data () {
@@ -923,6 +929,7 @@ export default {
           title={this.modalTitle}
           columns={filterColums(columns)}
           guidFilters={this.guidFilters}
+          guidFilterEffects={this.guidFilterEffects[this.ciTypeId] || []}
           data={selectedRows}
           ascOptions={ascOptions}
           on-closeEditModal={this.closeEditModal}
