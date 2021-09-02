@@ -572,7 +572,7 @@ export default {
       let attributes = this.getCiFormAttributes(ciType, true)
       attributes = attributes.map(element => {
         // autofill editRefAttr
-        if (ciType !== this.ciType && element.propertyName === childCiType.editRefAttr) {
+        if (element.propertyName === childCiType.editRefAttr) {
           return { ...element, editable: 'no' }
         } else {
           return element
