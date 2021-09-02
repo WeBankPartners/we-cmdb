@@ -20,7 +20,7 @@
 中文 / [English](README_EN.md)
 
 ## 在线体验环境
-[点此体验WeCMDB](http://124.156.108.126:8090/wecmdb)
+[点此体验WeCMDB](http://119.91.78.168:8090/wecmdb)
 
 <img src="./wiki/images/ci-data-management.gif" />
 
