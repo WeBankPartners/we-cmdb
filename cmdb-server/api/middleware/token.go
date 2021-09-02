@@ -54,9 +54,9 @@ func AuthToken() gin.HandlerFunc {
 }
 
 func authRequest(c *gin.Context) error {
-	if !models.Config.Auth.Enable {
-		return nil
-	}
+	//if !models.Config.Auth.Enable {
+	//	return nil
+	//}
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		return fmt.Errorf("Can not find Request Header Authorization ")
