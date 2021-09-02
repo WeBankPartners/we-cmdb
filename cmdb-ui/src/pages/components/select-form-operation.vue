@@ -161,7 +161,7 @@ export default {
       const { statusCode, message } = await tableOptionExcute(this.params.operation, this.params.ciType, selectedData)
       if (statusCode === 'OK') {
         this.$Notice.success({
-          title: 'successfully',
+          title: this.$t('success'),
           desc: message
         })
         this.selectFormConfig.isShow = false

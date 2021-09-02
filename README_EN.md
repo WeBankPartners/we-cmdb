@@ -20,7 +20,7 @@
 English / [中文](README.md)
 
 ## Live Demo
-[Live Demo](http://124.156.108.126:8090/wecmdb)
+[Live Demo](http://119.91.78.168:8090/wecmdb)
 
 <img src="./wiki/images/ci-data-management-en.gif" />
 
