@@ -92,7 +92,7 @@ export default {
             }
           }
         })
-        const finalData = this.managementData(data.title, data.data)
+        const finalData = this.managementData(data.title, data.data || [])
         data.title.unshift({
           title: this.$t('select_placeholder'),
           key: 'id',
@@ -165,11 +165,12 @@ export default {
           desc: message
         })
         this.selectFormConfig.isShow = false
-        if (this.$parent.queryCiData) {
-          this.$parent.queryCiData()
-        } else {
-          this.$emit('callback')
-        }
+        // if (this.$parent.queryCiData) {
+        //   this.$parent.queryCiData()
+        // } else {
+        //   this.$emit('callback', this.params.ciType, selectedData)
+        // }
+        this.$emit('callback', this.params.ciType, selectedData)
       }
       this.currentChoose = ''
     }
