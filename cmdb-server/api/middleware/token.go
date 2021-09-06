@@ -11,19 +11,11 @@ import (
 )
 
 func GetRequestUser(c *gin.Context) string {
-	user := models.AdminUser
-	if models.Config.Auth.Enable {
-		user = c.GetString("user")
-	}
-	return user
+	return c.GetString("user")
 }
 
 func GetRequestRoles(c *gin.Context) []string {
-	roles := []string{models.AdminUser}
-	if models.Config.Auth.Enable {
-		roles = c.GetStringSlice("roles")
-	}
-	return roles
+	return c.GetStringSlice("roles")
 }
 
 func AuthToken() gin.HandlerFunc {
