@@ -441,6 +441,10 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 				continue
 			}
 			param.InputData[ciAttr.Name] = param.NowData[ciAttr.Name]
+		} else if ciAttr.DataType == "datetime" {
+			if param.InputData[ciAttr.Name] == "" {
+				param.InputData[ciAttr.Name] = "reset_null^"
+			}
 		}
 		buildValueParam.InputData = param.InputData
 		tmpColumn, multiRefActions, tmpErr := buildAttrValue(&buildValueParam)
@@ -464,10 +468,11 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 	for _, multiRefColumn := range multiRefColumnList {
 		delete(param.InputData, multiRefColumn)
 	}
+	log.Logger.Info("confirmTime", log.String("value", param.InputData["confirm_time"]))
 	if !rollbackFlag && param.BareAction == "" {
 		columnList = append(columnList, &models.CiDataColumnObj{ColumnName: "confirm_time", ColumnValue: "reset_null^"})
 		param.InputData["confirm_time"] = "reset_null^"
-	} else if param.InputData["confirm_time"] != "" {
+	} else if param.InputData["confirm_time"] != "reset_null^" {
 		columnList = append(columnList, &models.CiDataColumnObj{ColumnName: "confirm_time", ColumnValue: param.InputData["confirm_time"]})
 	}
 	if err == nil {
@@ -763,7 +768,10 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 		}
 		result = &models.CiDataColumnObj{ColumnName: param.AttributeConfig.Name, ColumnValue: valueInt, ValueString: inputValue}
 	} else if param.AttributeConfig.DataType == "datetime" {
-		result = &models.CiDataColumnObj{ColumnName: param.AttributeConfig.Name, ColumnValue: param.NowTime, ValueString: param.NowTime}
+		if inputValue == "" {
+			inputValue = "reset_null^"
+		}
+		result = &models.CiDataColumnObj{ColumnName: param.AttributeConfig.Name, ColumnValue: param.NowTime, ValueString: inputValue}
 	} else {
 		result = &models.CiDataColumnObj{ColumnName: param.AttributeConfig.Name, ColumnValue: inputValue, ValueString: inputValue}
 	}
@@ -1194,7 +1202,7 @@ func getInsertActionByColumnList(columnList []*models.CiDataColumnObj, tableName
 	var nameList, specCharList []string
 	var params []interface{}
 	for _, column := range columnList {
-		if column.ColumnValue == "reset_null^" || fmt.Sprintf("%s", column.ColumnValue) == "0000-00-00 00:00:00" {
+		if column.ColumnValue == "reset_null^" {
 			continue
 		}
 		nameList = append(nameList, column.ColumnName)
@@ -1208,7 +1216,7 @@ func getUpdateActionByColumnList(columnList []*models.CiDataColumnObj, tableName
 	var updateColumnList []string
 	var params []interface{}
 	for _, column := range columnList {
-		if column.ColumnValue == "reset_null^" || fmt.Sprintf("%s", column.ColumnValue) == "0000-00-00 00:00:00" {
+		if column.ColumnValue == "reset_null^" {
 			updateColumnList = append(updateColumnList, fmt.Sprintf("`%s`=NULL", column.ColumnName))
 		} else {
 			updateColumnList = append(updateColumnList, fmt.Sprintf("`%s`=?", column.ColumnName))
