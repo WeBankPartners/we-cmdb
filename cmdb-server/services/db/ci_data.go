@@ -468,11 +468,10 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 	for _, multiRefColumn := range multiRefColumnList {
 		delete(param.InputData, multiRefColumn)
 	}
-	log.Logger.Info("confirmTime", log.String("value", param.InputData["confirm_time"]))
-	if !rollbackFlag && param.BareAction == "" {
+	if (!rollbackFlag && param.BareAction == "") || param.InputData["confirm_time"] == "" {
 		columnList = append(columnList, &models.CiDataColumnObj{ColumnName: "confirm_time", ColumnValue: "reset_null^"})
 		param.InputData["confirm_time"] = "reset_null^"
-	} else if param.InputData["confirm_time"] != "reset_null^" {
+	} else if param.InputData["confirm_time"] != "" {
 		columnList = append(columnList, &models.CiDataColumnObj{ColumnName: "confirm_time", ColumnValue: param.InputData["confirm_time"]})
 	}
 	if err == nil {
@@ -514,6 +513,9 @@ func confirmActionFunc(param *models.ActionFuncParam) (result []*execAction, err
 			param.NowData["confirm_time"] = param.NowTime
 			columnList = append(columnList, &models.CiDataColumnObj{ColumnName: "confirm_time", ColumnValue: param.NowTime})
 			continue
+		}
+		if ciAttr.DataType == "datetime" && param.NowData[ciAttr.Name] == "" {
+			param.NowData[ciAttr.Name] = "reset_null^"
 		}
 		if ciAttr.RefCiType != "" {
 			if ciAttr.InputType == models.MultiRefType {
@@ -771,7 +773,7 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 		if inputValue == "" {
 			inputValue = "reset_null^"
 		}
-		result = &models.CiDataColumnObj{ColumnName: param.AttributeConfig.Name, ColumnValue: param.NowTime, ValueString: inputValue}
+		result = &models.CiDataColumnObj{ColumnName: param.AttributeConfig.Name, ColumnValue: inputValue, ValueString: inputValue}
 	} else {
 		result = &models.CiDataColumnObj{ColumnName: param.AttributeConfig.Name, ColumnValue: inputValue, ValueString: inputValue}
 	}
