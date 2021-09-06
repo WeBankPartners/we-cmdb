@@ -442,7 +442,7 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 			}
 			param.InputData[ciAttr.Name] = param.NowData[ciAttr.Name]
 		} else if ciAttr.DataType == "datetime" {
-			if param.InputData[ciAttr.Name] == "" {
+			if param.InputData[ciAttr.Name] == "" || param.InputData[ciAttr.Name] == "0000-00-00 00:00:00" {
 				param.InputData[ciAttr.Name] = "reset_null^"
 			}
 		}
@@ -468,7 +468,7 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 	for _, multiRefColumn := range multiRefColumnList {
 		delete(param.InputData, multiRefColumn)
 	}
-	if (!rollbackFlag && param.BareAction == "") || param.InputData["confirm_time"] == "" {
+	if (!rollbackFlag && param.BareAction == "") || param.InputData["confirm_time"] == "" || param.InputData["confirm_time"] == "0000-00-00 00:00:00" {
 		columnList = append(columnList, &models.CiDataColumnObj{ColumnName: "confirm_time", ColumnValue: "reset_null^"})
 		param.InputData["confirm_time"] = "reset_null^"
 	} else if param.InputData["confirm_time"] != "" {
