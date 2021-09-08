@@ -19,6 +19,7 @@ func HandleCiModelRequest(c *gin.Context) {
 	operation := c.Request.RequestURI[strings.LastIndex(c.Request.RequestURI, "/")+1:]
 	var resp models.EntityResponse
 	var bodyBytes []byte
+	var err error
 	if ciType == "" {
 		resp.Status = "ERROR"
 		resp.Message = "Url param ciType is empty"
@@ -27,7 +28,7 @@ func HandleCiModelRequest(c *gin.Context) {
 		c.JSON(http.StatusOK, resp)
 		return
 	}
-	bodyBytes, err := ioutil.ReadAll(c.Request.Body)
+	bodyBytes, err = ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		resp.Status = "ERROR"
 		resp.Message = fmt.Sprintf("Read request body fail,%s ", err.Error())
@@ -37,17 +38,19 @@ func HandleCiModelRequest(c *gin.Context) {
 		return
 	}
 	c.Request.Body.Close()
+	newInputData := string(bodyBytes)
 	if operation == "query" {
 		resp.Data, err = ciModelQuery(ciType, bodyBytes)
 	} else if operation == "create" {
-		resp.Data, err = ciModelCreate(ciType, bodyBytes)
+		resp.Data, newInputData, err = ciModelCreate(ciType, bodyBytes)
 	} else if operation == "update" {
-		err = ciModeUpdate(ciType, bodyBytes)
+		resp.Data, newInputData, err = ciModeUpdate(ciType, bodyBytes)
 	} else if operation == "delete" {
-		err = ciModeDelete(ciType, bodyBytes)
+		newInputData, err = ciModeDelete(ciType, bodyBytes)
 	} else {
 		err = fmt.Errorf("Url param operation is illegal ")
 	}
+	c.Set("requestBody", newInputData)
 	if err != nil {
 		log.Logger.Error("Request entity data fail", log.Error(err))
 		resp.Status = "ERROR"
@@ -109,7 +112,8 @@ func ciModelQuery(ciType string, bodyBytes []byte) (result []map[string]interfac
 	return
 }
 
-func ciModelCreate(ciType string, bodyBytes []byte) (result []map[string]interface{}, err error) {
+func ciModelCreate(ciType string, bodyBytes []byte) (result []map[string]interface{}, newInputData string, err error) {
+	newInputData = string(bodyBytes)
 	var param []map[string]interface{}
 	var stringParam []models.CiDataMapObj
 	err = json.Unmarshal(bodyBytes, &param)
@@ -153,7 +157,8 @@ func ciModelCreate(ciType string, bodyBytes []byte) (result []map[string]interfa
 		return
 	}
 	handleParam := models.HandleCiDataParam{InputData: stringParam, CiTypeId: ciType, Operation: "insert", Operator: "wecube", BareAction: "insert", Roles: []string{}, Permission: false, FromCore: true}
-	output, tmpErr := db.HandleCiDataOperation(handleParam)
+	output, newInput, tmpErr := db.HandleCiDataOperation(handleParam)
+	newInputData = newInput
 	if tmpErr != nil {
 		err = tmpErr
 		return
@@ -174,12 +179,13 @@ func ciModelCreate(ciType string, bodyBytes []byte) (result []map[string]interfa
 	return
 }
 
-func ciModeUpdate(ciType string, bodyBytes []byte) error {
+func ciModeUpdate(ciType string, bodyBytes []byte) (result []map[string]interface{}, newInputData string, err error) {
+	newInputData = string(bodyBytes)
 	var param []map[string]interface{}
 	var stringParam []models.CiDataMapObj
-	err := json.Unmarshal(bodyBytes, &param)
+	err = json.Unmarshal(bodyBytes, &param)
 	if err != nil {
-		return err
+		return
 	}
 	for i, tmpMap := range param {
 		if _, b := tmpMap["id"]; b {
@@ -215,19 +221,38 @@ func ciModeUpdate(ciType string, bodyBytes []byte) error {
 		stringParam = append(stringParam, tmpStringMap)
 	}
 	if err != nil {
-		return err
+		return
 	}
 	handleParam := models.HandleCiDataParam{InputData: stringParam, CiTypeId: ciType, Operation: "update", Operator: "wecube", BareAction: "update", Roles: []string{}, Permission: false, FromCore: true}
-	_, err = db.HandleCiDataOperation(handleParam)
-	return err
+	output, newInput, tmpErr := db.HandleCiDataOperation(handleParam)
+	newInputData = newInput
+	if tmpErr != nil {
+		err = tmpErr
+		return
+	}
+	for _, outputObj := range output {
+		tmpResultMap := make(map[string]interface{})
+		for k, v := range outputObj {
+			tmpResultMap[k] = v
+		}
+		if v, b := tmpResultMap["guid"]; b {
+			tmpResultMap["id"] = v
+		}
+		if v, b := tmpResultMap["key_name"]; b {
+			tmpResultMap["displayName"] = v
+		}
+		result = append(result, tmpResultMap)
+	}
+	return
 }
 
-func ciModeDelete(ciType string, bodyBytes []byte) error {
+func ciModeDelete(ciType string, bodyBytes []byte) (newInputData string, err error) {
+	newInputData = string(bodyBytes)
 	var param []map[string]interface{}
 	var stringParam []models.CiDataMapObj
-	err := json.Unmarshal(bodyBytes, &param)
+	err = json.Unmarshal(bodyBytes, &param)
 	if err != nil {
-		return err
+		return
 	}
 	for i, tmpMap := range param {
 		if _, b := tmpMap["id"]; b {
@@ -263,11 +288,11 @@ func ciModeDelete(ciType string, bodyBytes []byte) error {
 		stringParam = append(stringParam, tmpStringMap)
 	}
 	if err != nil {
-		return err
+		return
 	}
 	handleParam := models.HandleCiDataParam{InputData: stringParam, CiTypeId: ciType, Operation: "delete", Operator: "wecube", BareAction: "delete", Roles: []string{}, Permission: false, FromCore: true}
-	_, err = db.HandleCiDataOperation(handleParam)
-	return err
+	_, newInputData, err = db.HandleCiDataOperation(handleParam)
+	return
 }
 
 func GetAllDataModel(c *gin.Context) {
@@ -300,17 +325,21 @@ func PluginCiDataOperationHandle(c *gin.Context) {
 		return
 	}
 	for _, input := range param.Inputs {
-		output, tmpErr := pluginCiDataOperation(input)
+		output, tmpInputData, tmpErr := pluginCiDataOperation(input)
 		if tmpErr != nil {
 			output.ErrorCode = "1"
 			output.ErrorMessage = tmpErr.Error()
 			err = tmpErr
 		}
+		input.JsonData = tmpInputData
 		response.Results.Outputs = append(response.Results.Outputs, output)
 	}
+	logParam, _ := json.Marshal(param)
+	c.Set("requestBody", string(logParam))
 }
 
-func pluginCiDataOperation(input *models.PluginCiDataOperationRequestObj) (result *models.PluginCiDataOperationOutputObj, err error) {
+func pluginCiDataOperation(input *models.PluginCiDataOperationRequestObj) (result *models.PluginCiDataOperationOutputObj, newInputData string, err error) {
+	newInputData = input.JsonData
 	result = &models.PluginCiDataOperationOutputObj{CallbackParameter: input.CallbackParameter, ErrorCode: "0", ErrorMessage: ""}
 	if input.JsonData == "" || input.JsonData == "{}" || input.JsonData == "[]" {
 		return
@@ -394,7 +423,8 @@ func pluginCiDataOperation(input *models.PluginCiDataOperationRequestObj) (resul
 		input.CiType = inputDataGuid[:len(inputDataGuid)-len(tmpExampleGuid)-1]
 	}
 	handleParam := models.HandleCiDataParam{InputData: handleDataList, CiTypeId: input.CiType, Operation: input.Operation, Operator: "wecube", Roles: []string{}, Permission: false, FromCore: true}
-	outputData, handleErr := db.HandleCiDataOperation(handleParam)
+	outputData, newInput, handleErr := db.HandleCiDataOperation(handleParam)
+	newInputData = newInput
 	if handleErr != nil {
 		err = handleErr
 		return
@@ -447,6 +477,6 @@ func pluginAttrValue(input *models.PluginCiDataAttrValueRequestObj) (result *mod
 	result.Guid = input.Guid
 	dataStringMap[input.CiTypeAttr] = input.Value
 	handleParam := models.HandleCiDataParam{InputData: []models.CiDataMapObj{dataStringMap}, CiTypeId: input.CiType, Operation: "update", Operator: "wecube", BareAction: "update", Roles: []string{}, Permission: false, FromCore: true}
-	_, err = db.HandleCiDataOperation(handleParam)
+	_, _, err = db.HandleCiDataOperation(handleParam)
 	return
 }
