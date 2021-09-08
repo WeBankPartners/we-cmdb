@@ -17,7 +17,7 @@ import (
 func HandleCiModelRequest(c *gin.Context) {
 	ciType := c.Param("ciType")
 	operation := c.Request.RequestURI[strings.LastIndex(c.Request.RequestURI, "/")+1:]
-	var resp models.EntityResponse
+	var resp, logResp models.EntityResponse
 	var bodyBytes []byte
 	var err error
 	if ciType == "" {
@@ -42,9 +42,9 @@ func HandleCiModelRequest(c *gin.Context) {
 	if operation == "query" {
 		resp.Data, err = ciModelQuery(ciType, bodyBytes)
 	} else if operation == "create" {
-		resp.Data, newInputData, err = ciModelCreate(ciType, bodyBytes)
+		resp.Data, logResp.Data, newInputData, err = ciModelCreate(ciType, bodyBytes)
 	} else if operation == "update" {
-		resp.Data, newInputData, err = ciModeUpdate(ciType, bodyBytes)
+		resp.Data, logResp.Data, newInputData, err = ciModeUpdate(ciType, bodyBytes)
 	} else if operation == "delete" {
 		newInputData, err = ciModeDelete(ciType, bodyBytes)
 	} else {
@@ -55,14 +55,22 @@ func HandleCiModelRequest(c *gin.Context) {
 		log.Logger.Error("Request entity data fail", log.Error(err))
 		resp.Status = "ERROR"
 		resp.Message = err.Error()
-		bodyBytes, _ = json.Marshal(resp)
+		logResp.Status, logResp.Message = resp.Status, resp.Message
+		if operation == "query" {
+			logResp.Data = resp.Data
+		}
+		bodyBytes, _ = json.Marshal(logResp)
 		c.Set("responseBody", string(bodyBytes))
 		c.JSON(http.StatusOK, resp)
 		return
 	}
 	resp.Status = "OK"
 	resp.Message = "success"
-	bodyBytes, _ = json.Marshal(resp)
+	logResp.Status, logResp.Message = resp.Status, resp.Message
+	if operation == "query" {
+		logResp.Data = resp.Data
+	}
+	bodyBytes, _ = json.Marshal(logResp)
 	c.Set("responseBody", string(bodyBytes))
 	c.JSON(http.StatusOK, resp)
 }
@@ -112,7 +120,7 @@ func ciModelQuery(ciType string, bodyBytes []byte) (result []map[string]interfac
 	return
 }
 
-func ciModelCreate(ciType string, bodyBytes []byte) (result []map[string]interface{}, newInputData string, err error) {
+func ciModelCreate(ciType string, bodyBytes []byte) (result, logResult []map[string]interface{}, newInputData string, err error) {
 	newInputData = string(bodyBytes)
 	var param []map[string]interface{}
 	var stringParam []models.CiDataMapObj
@@ -165,21 +173,31 @@ func ciModelCreate(ciType string, bodyBytes []byte) (result []map[string]interfa
 	}
 	for _, outputObj := range output {
 		tmpResultMap := make(map[string]interface{})
+		tmpLogResultMap := make(map[string]interface{})
 		for k, v := range outputObj {
+			if strings.HasPrefix(v, "******^") {
+				tmpLogResultMap[k] = "******"
+				tmpResultMap[k] = v[7:]
+				continue
+			}
 			tmpResultMap[k] = v
+			tmpLogResultMap[k] = v
 		}
 		if v, b := tmpResultMap["guid"]; b {
 			tmpResultMap["id"] = v
+			tmpLogResultMap["id"] = v
 		}
 		if v, b := tmpResultMap["key_name"]; b {
 			tmpResultMap["displayName"] = v
+			tmpLogResultMap["displayName"] = v
 		}
 		result = append(result, tmpResultMap)
+		logResult = append(logResult, tmpLogResultMap)
 	}
 	return
 }
 
-func ciModeUpdate(ciType string, bodyBytes []byte) (result []map[string]interface{}, newInputData string, err error) {
+func ciModeUpdate(ciType string, bodyBytes []byte) (result, logResult []map[string]interface{}, newInputData string, err error) {
 	newInputData = string(bodyBytes)
 	var param []map[string]interface{}
 	var stringParam []models.CiDataMapObj
@@ -232,16 +250,26 @@ func ciModeUpdate(ciType string, bodyBytes []byte) (result []map[string]interfac
 	}
 	for _, outputObj := range output {
 		tmpResultMap := make(map[string]interface{})
+		tmpLogResultMap := make(map[string]interface{})
 		for k, v := range outputObj {
+			if strings.HasPrefix(v, "******^") {
+				tmpLogResultMap[k] = "******"
+				tmpResultMap[k] = v[7:]
+				continue
+			}
 			tmpResultMap[k] = v
+			tmpLogResultMap[k] = v
 		}
 		if v, b := tmpResultMap["guid"]; b {
 			tmpResultMap["id"] = v
+			tmpLogResultMap["id"] = v
 		}
 		if v, b := tmpResultMap["key_name"]; b {
 			tmpResultMap["displayName"] = v
+			tmpLogResultMap["displayName"] = v
 		}
 		result = append(result, tmpResultMap)
+		logResult = append(logResult, tmpLogResultMap)
 	}
 	return
 }
