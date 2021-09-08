@@ -311,3 +311,19 @@ func CiAttrApply(ciTypeId, ciAttrId string, updateAutofill bool) error {
 	}
 	return err
 }
+
+func CheckCiAttrIsPassword(ciType, attr string) (isPwd bool, err error) {
+	queryList, queryErr := x.QueryString("select input_type from sys_ci_type_attr where ci_type=? and name=?", ciType, attr)
+	if queryErr != nil {
+		err = fmt.Errorf("Try to check if ci attr password fail,%s ", queryErr.Error())
+		return
+	}
+	if len(queryList) == 0 {
+		err = fmt.Errorf("Can not find attr:%s from ci:%s ", attr, ciType)
+		return
+	}
+	if queryList[0]["input_type"] == "password" {
+		isPwd = true
+	}
+	return
+}
