@@ -65,7 +65,6 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 				guidPermissionEnable = true
 			}
 		}
-		exampleGuid := guid.CreateGuid()
 		for i, inputRowData := range param.InputData {
 			tmpRowGuid := inputRowData["guid"]
 			if tmpRowGuid == "" {
@@ -92,7 +91,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 			if firstAction == "execute" {
 				inputRowData["Authorization"] = param.UserToken
 			}
-			inputRowCiType := tmpRowGuid[:len(tmpRowGuid)-len(exampleGuid)-1]
+			inputRowCiType := tmpRowGuid[:strings.LastIndex(tmpRowGuid, "_")]
 			existFlag := false
 			for j, tmpCiData := range multiCiData {
 				if tmpCiData.CiTypeId == inputRowCiType {
@@ -1677,7 +1676,7 @@ func recursiveAttrAutofill(afList []*models.AttrAutofillSortObj, af *models.Attr
 }
 
 func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title []*models.CiDataActionQueryTitle, err error) {
-	ciTypeId := inputGuid[:len(inputGuid)-len(guid.CreateGuid())-1]
+	ciTypeId := inputGuid[:strings.LastIndex(inputGuid, "_")]
 	title = []*models.CiDataActionQueryTitle{}
 	var attrs []*models.SysCiTypeAttrTable
 	x.SQL("select name,display_name,input_type from sys_ci_type_attr where display_by_default='yes' and status='created' and ci_type=? order by ui_form_order", ciTypeId).Find(&attrs)
