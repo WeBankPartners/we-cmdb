@@ -482,20 +482,29 @@ func PluginCiDataAttrValueHandle(c *gin.Context) {
 		return
 	}
 	for _, input := range param.Inputs {
-		output, tmpErr := pluginAttrValue(input)
+		output, isPwd, tmpErr := pluginAttrValue(input)
 		if tmpErr != nil {
 			output.ErrorCode = "1"
 			output.ErrorMessage = tmpErr.Error()
 			err = tmpErr
 		}
+		if isPwd {
+			input.Value = "******"
+		}
 		response.Results.Outputs = append(response.Results.Outputs, output)
 	}
+	logParam, _ := json.Marshal(param)
+	c.Set("requestBody", string(logParam))
 }
 
-func pluginAttrValue(input *models.PluginCiDataAttrValueRequestObj) (result *models.PluginCiDataOperationOutputObj, err error) {
+func pluginAttrValue(input *models.PluginCiDataAttrValueRequestObj) (result *models.PluginCiDataOperationOutputObj, isPwd bool, err error) {
 	result = &models.PluginCiDataOperationOutputObj{CallbackParameter: input.CallbackParameter, ErrorCode: "0", ErrorMessage: ""}
 	if input.CiType == "" || input.Guid == "" || input.CiTypeAttr == "" {
 		err = fmt.Errorf("Param validate fail,ciType & guid & ciTypeAttr can not empty ")
+		return
+	}
+	isPwd, err = db.CheckCiAttrIsPassword(input.CiType, input.CiTypeAttr)
+	if err != nil {
 		return
 	}
 	dataStringMap := make(map[string]string)
