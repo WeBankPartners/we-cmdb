@@ -3,7 +3,6 @@ package ci
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
@@ -447,8 +446,7 @@ func pluginCiDataOperation(input *models.PluginCiDataOperationRequestObj) (resul
 		return
 	}
 	if inputDataGuid != "" {
-		tmpExampleGuid := guid.CreateGuid()
-		input.CiType = inputDataGuid[:len(inputDataGuid)-len(tmpExampleGuid)-1]
+		input.CiType = inputDataGuid[:strings.LastIndex(inputDataGuid, "_")]
 	}
 	handleParam := models.HandleCiDataParam{InputData: handleDataList, CiTypeId: input.CiType, Operation: input.Operation, Operator: "wecube", Roles: []string{}, Permission: false, FromCore: true}
 	outputData, newInput, handleErr := db.HandleCiDataOperation(handleParam)
