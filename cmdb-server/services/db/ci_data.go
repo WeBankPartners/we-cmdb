@@ -1073,18 +1073,21 @@ func buildRequestBodyWithoutPwd(multiCiData []*models.MultiCiDataObj, baseAction
 		}
 		for _, rowData := range ciDataObj.InputData {
 			tmpNewRowData := make(map[string]string)
+			outputRowData := make(map[string]string)
 			for k, v := range rowData {
 				if _, b := tmpPwdKeyMap[k]; b {
+					tmpNewRowData[k] = "******"
 					if baseAction != "" {
-						tmpNewRowData[k] = "******^" + v
+						outputRowData[k] = "******^" + v
 					} else {
-						tmpNewRowData[k] = "******"
+						outputRowData[k] = "******"
 					}
 				} else {
 					tmpNewRowData[k] = v
+					outputRowData[k] = v
 				}
 			}
-			output = append(output, tmpNewRowData)
+			output = append(output, outputRowData)
 			tmpInputByte, _ := json.Marshal(tmpNewRowData)
 			inputStringList = append(inputStringList, string(tmpInputByte))
 		}
