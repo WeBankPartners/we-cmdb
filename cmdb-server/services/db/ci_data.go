@@ -114,7 +114,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 	if err = getMultiCiAttributes(multiCiData); err != nil {
 		return
 	}
-	outputData, newInputBody = buildRequestBodyWithoutPwd(multiCiData)
+	outputData, newInputBody = buildRequestBodyWithoutPwd(multiCiData, param.BareAction)
 	// 获取状态机
 	if param.BareAction == "" {
 		if err = getMultiCiTransition(multiCiData); err != nil {
@@ -1062,7 +1062,7 @@ func getMultiCiAttributes(multiCiData []*models.MultiCiDataObj) error {
 	return nil
 }
 
-func buildRequestBodyWithoutPwd(multiCiData []*models.MultiCiDataObj) (output []models.CiDataMapObj, newInputBody string) {
+func buildRequestBodyWithoutPwd(multiCiData []*models.MultiCiDataObj, baseAction string) (output []models.CiDataMapObj, newInputBody string) {
 	inputStringList := []string{}
 	for _, ciDataObj := range multiCiData {
 		tmpPwdKeyMap := make(map[string]int)
@@ -1075,7 +1075,11 @@ func buildRequestBodyWithoutPwd(multiCiData []*models.MultiCiDataObj) (output []
 			tmpNewRowData := make(map[string]string)
 			for k, v := range rowData {
 				if _, b := tmpPwdKeyMap[k]; b {
-					tmpNewRowData[k] = "******"
+					if baseAction != "" {
+						tmpNewRowData[k] = "******^" + v
+					} else {
+						tmpNewRowData[k] = "******"
+					}
 				} else {
 					tmpNewRowData[k] = v
 				}
