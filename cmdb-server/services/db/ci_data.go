@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.CiDataMapObj, err error) {
+func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.CiDataMapObj, newInputBody string, err error) {
 	var multiCiData []*models.MultiCiDataObj
 	var firstAction string
 	var deleteList []string
@@ -106,9 +106,15 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 			}
 		}
 		if err != nil {
+			// build new request body with guid
 			return
 		}
 	}
+	// 获取属性字段
+	if err = getMultiCiAttributes(multiCiData); err != nil {
+		return
+	}
+	outputData, newInputBody = buildRequestBodyWithoutPwd(multiCiData)
 	// 获取状态机
 	if param.BareAction == "" {
 		if err = getMultiCiTransition(multiCiData); err != nil {
@@ -118,10 +124,6 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 		if err = getMultiCiStartTransition(multiCiData); err != nil {
 			return
 		}
-	}
-	// 获取属性字段
-	if err = getMultiCiAttributes(multiCiData); err != nil {
-		return
 	}
 	if (firstAction == "update" || firstAction == "insert") && strings.ToLower(param.Operation) != models.RollbackAction && param.BareAction == "" {
 		if err = validateUniqueColumn(multiCiData); err != nil {
@@ -199,7 +201,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 				err = fmt.Errorf("CiType:%s do action:%s fail,%s ", ciObj.CiTypeId, actionParam.Transition.Action, tmpErr.Error())
 				break
 			}
-			outputData = append(outputData, actionParam.InputData)
+			//outputData = append(outputData, actionParam.InputData)
 			actions = append(actions, tmpAction...)
 			if actionParam.Transition.Action == "insert" && param.Permission {
 				if _, b := insertPermissionMap[ciObj.CiTypeId]; b {
@@ -1058,6 +1060,33 @@ func getMultiCiAttributes(multiCiData []*models.MultiCiDataObj) error {
 		}
 	}
 	return nil
+}
+
+func buildRequestBodyWithoutPwd(multiCiData []*models.MultiCiDataObj) (output []models.CiDataMapObj, newInputBody string) {
+	inputStringList := []string{}
+	for _, ciDataObj := range multiCiData {
+		tmpPwdKeyMap := make(map[string]int)
+		for _, attr := range ciDataObj.Attributes {
+			if attr.InputType == "password" {
+				tmpPwdKeyMap[attr.Name] = 1
+			}
+		}
+		for _, rowData := range ciDataObj.InputData {
+			tmpNewRowData := make(map[string]string)
+			for k, v := range rowData {
+				if _, b := tmpPwdKeyMap[k]; b {
+					tmpNewRowData[k] = "******"
+				} else {
+					tmpNewRowData[k] = v
+				}
+			}
+			output = append(output, tmpNewRowData)
+			tmpInputByte, _ := json.Marshal(tmpNewRowData)
+			inputStringList = append(inputStringList, string(tmpInputByte))
+		}
+	}
+	newInputBody = fmt.Sprintf("[%s]", strings.Join(inputStringList, ","))
+	return
 }
 
 func validateUniqueColumn(multiCiData []*models.MultiCiDataObj) error {

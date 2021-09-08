@@ -209,6 +209,6 @@ func httpLogHandle() gin.HandlerFunc {
 		c.Request.Body = ioutil.NopCloser(bytes.NewReader(bodyBytes))
 		c.Set("requestBody", string(bodyBytes))
 		c.Next()
-		log.AccessLogger.Info("request", log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.Int("code", c.Writer.Status()), log.String("operator", c.GetString("user")), log.String("ip", middleware.GetRemoteIp(c)), log.Float64("cost_ms", time.Now().Sub(start).Seconds()*1000), log.String("body", string(bodyBytes)))
+		log.AccessLogger.Info("request", log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.Int("code", c.Writer.Status()), log.String("operator", c.GetString("user")), log.String("ip", middleware.GetRemoteIp(c)), log.Float64("cost_ms", time.Now().Sub(start).Seconds()*1000), log.String("body", c.GetString("requestBody")))
 	}
 }
