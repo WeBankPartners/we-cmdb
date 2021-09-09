@@ -124,9 +124,7 @@ export default {
       let columns = []
       if (statusCode === 'OK') {
         columns = data
-          .filter(
-            _ => _.status !== 'decommissioned' && _.status !== 'notCreated' && _.isDisplayed && _.isDisplayed !== 0
-          )
+          .filter(_ => _.status !== 'decommissioned' && _.status !== 'notCreated' && _.displayByDefault === 'yes')
           .map(_ => {
             return {
               ..._,
@@ -149,15 +147,17 @@ export default {
     getSelectOptions (columns) {
       columns.forEach(async _ => {
         if (_.inputType === 'select' || _.inputType === 'multiSelect') {
-          const { data } = await getEnumCodesByCategoryId(_.referenceId)
-          _['options'] = data
-            .filter(j => j.status === 'active')
-            .map(i => {
-              return {
-                label: i.code,
-                value: i.codeId
-              }
-            })
+          if (_.referenceId) {
+            const { data } = await getEnumCodesByCategoryId(_.referenceId)
+            _['options'] = data
+              .filter(j => j.status === 'active')
+              .map(i => {
+                return {
+                  label: i.code,
+                  value: i.codeId
+                }
+              })
+          }
         }
       })
       return columns
