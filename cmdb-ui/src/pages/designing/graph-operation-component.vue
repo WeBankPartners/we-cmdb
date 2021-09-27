@@ -103,7 +103,7 @@
               >
             </Select>
           </FormItem>
-          <FormItem v-if="formData.inputType === 'object'" class="form-item-content">
+          <FormItem v-if="['multiObject', 'object'].includes(formData.inputType)" class="form-item-content">
             <CMDBJSONConfig
               :inputKey="formData['propertyName']"
               :jsonData="JSON.parse(JSON.stringify(nodeData[formData['propertyName']]) || '{}')"

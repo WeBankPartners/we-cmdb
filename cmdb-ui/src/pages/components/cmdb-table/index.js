@@ -928,6 +928,7 @@ export default {
           isEdit={this.modalTitle === this.titles.edit}
           title={this.modalTitle}
           columns={filterColums(columns)}
+          tableColumns={this.tableColumns}
           guidFilters={this.guidFilters}
           guidFilterEffects={this.guidFilterEffects[this.ciTypeId] || []}
           data={selectedRows}
