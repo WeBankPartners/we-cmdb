@@ -336,7 +336,9 @@ func insertActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 		}
 		if _, b := param.InputData[ciAttr.Name]; !b {
 			if ciAttr.AutofillAble != "yes" {
-				continue
+				if ciAttr.Nullable == "yes" {
+					continue
+				}
 			}
 		}
 		buildValueParam.InputData = param.InputData
