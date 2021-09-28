@@ -9,7 +9,9 @@ export default {
     ciType: {},
     ciTypeAttrId: '',
     disabled: { default: () => false },
-    filterParams: {}
+    filterParams: {},
+    guidFilters: { default: () => null },
+    guidFilterEnabled: { default: () => false }
   },
   watch: {
     value: {
@@ -70,8 +72,17 @@ export default {
         queryObject: { filters: [], paging: false, dialect: { associatedData: finalData } }
       })
       if (noPagingRes.statusCode === 'OK') {
+        let data = noPagingRes.data
+        if (this.guidFilterEnabled && this.guidFilters && Array.isArray(this.guidFilters)) {
+          data = data.filter(el => {
+            if (this.guidFilters.indexOf(el.guid) >= 0) {
+              return true
+            }
+            return false
+          })
+        }
         this.selectDisabled = false
-        this.allTableDataWithoutPaging = noPagingRes.data
+        this.allTableDataWithoutPaging = data
       }
     },
     handleSubmit (data) {
@@ -113,9 +124,7 @@ export default {
       let columns = []
       if (statusCode === 'OK') {
         columns = data
-          .filter(
-            _ => _.status !== 'decommissioned' && _.status !== 'notCreated' && _.isDisplayed && _.isDisplayed !== 0
-          )
+          .filter(_ => _.status !== 'decommissioned' && _.status !== 'notCreated' && _.displayByDefault === 'yes')
           .map(_ => {
             return {
               ..._,
@@ -138,15 +147,17 @@ export default {
     getSelectOptions (columns) {
       columns.forEach(async _ => {
         if (_.inputType === 'select' || _.inputType === 'multiSelect') {
-          const { data } = await getEnumCodesByCategoryId(_.referenceId)
-          _['options'] = data
-            .filter(j => j.status === 'active')
-            .map(i => {
-              return {
-                label: i.code,
-                value: i.codeId
-              }
-            })
+          if (_.referenceId) {
+            const { data } = await getEnumCodesByCategoryId(_.referenceId)
+            _['options'] = data
+              .filter(j => j.status === 'active')
+              .map(i => {
+                return {
+                  label: i.code,
+                  value: i.codeId
+                }
+              })
+          }
         }
       })
       return columns

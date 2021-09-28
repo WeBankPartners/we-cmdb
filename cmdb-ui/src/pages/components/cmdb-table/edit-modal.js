@@ -35,9 +35,25 @@ export default {
       required: true,
       type: Array
     },
+    tableColumns: {
+      required: true,
+      type: Array
+    },
     data: {
       required: true,
       type: Array
+    },
+    guidFilters: {
+      type: Object,
+      default () {
+        return {}
+      }
+    },
+    guidFilterEffects: {
+      type: Array,
+      default () {
+        return []
+      }
     }
   },
   computed: {
@@ -206,7 +222,7 @@ export default {
     removeAddData (index) {
       this.editData.splice(index, 1)
     },
-    isGroupEditDisabled (allAttrs, attr, item) {
+    isGroupEditDisabled (attr, item) {
       let attrGroupEditDisabled = false
       if (attr.editGroupControl === 'yes') {
         if (attr.editGroupValues.length > 0) {
@@ -216,7 +232,7 @@ export default {
             if (attrGroupEditDisabled) {
               break
             }
-            const findAttr = allAttrs.find(el => {
+            const findAttr = this.tableColumns.find(el => {
               if (el.propertyName === group.key) {
                 return true
               }
@@ -245,7 +261,8 @@ export default {
           }
         }
       }
-      return attrGroupEditDisabled
+      let attrEditDisabled = attr.editable === 'no' || (attr.autofillable === 'yes' && attr.autoFillType === 'forced')
+      return attrEditDisabled || attrGroupEditDisabled
     },
     renderDataRows () {
       let handleInputSearch = this.handleInputSearch
@@ -308,7 +325,7 @@ export default {
                           allCiTypes={column.allCiTypes}
                           isFilterAttr={true}
                           displayAttrType={column.displayAttrType}
-                          disabled={this.isGroupEditDisabled(cols, column, d)}
+                          disabled={this.isGroupEditDisabled(column, d)}
                           rootCis={column.rootCis}
                           rootCiTypeId={column.ciTypeId}
                           value={d[column.propertyName] || []}
@@ -323,7 +340,7 @@ export default {
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
                         <column.component
                           value={d[column.inputKey] || column.defaultValue}
-                          disabled={this.isGroupEditDisabled(cols, column, d)}
+                          disabled={this.isGroupEditDisabled(column, d)}
                           options={column.optionKey ? this.ascOptions[column.optionKey] : column.options}
                           onInput={v => {
                             setValueHandler(v, column, d)
@@ -334,7 +351,7 @@ export default {
                   } else if (column.component === 'Input' && column.inputType === 'multiText') {
                     const props = {
                       ...column,
-                      disabled: this.isGroupEditDisabled(cols, column, d),
+                      disabled: this.isGroupEditDisabled(column, d),
                       data: JSON.parse(JSON.stringify(d[column['inputKey']])),
                       type: 'text'
                     }
@@ -355,7 +372,7 @@ export default {
                   } else if (column.component === 'Input' && column.inputType === 'multiInt') {
                     const props = {
                       ...column,
-                      disabled: this.isGroupEditDisabled(cols, column, d),
+                      disabled: this.isGroupEditDisabled(column, d),
                       data: JSON.parse(JSON.stringify(d[column['inputKey']])),
                       type: 'number'
                     }
@@ -376,7 +393,7 @@ export default {
                   } else if (column.component === 'Input' && column.inputType === 'multiObject') {
                     const props = {
                       ...column,
-                      disabled: this.isGroupEditDisabled(cols, column, d),
+                      disabled: this.isGroupEditDisabled(column, d),
                       data: JSON.parse(JSON.stringify(d[column['inputKey']])),
                       type: 'json'
                     }
@@ -397,7 +414,7 @@ export default {
                   } else if (column.component === 'Input' && column.inputType !== 'object') {
                     const props = {
                       ...column,
-                      disabled: this.isGroupEditDisabled(cols, column, d),
+                      disabled: this.isGroupEditDisabled(column, d),
                       data: this.inputSearch[column.inputKey].options,
                       value: d[column.inputKey]
                     }
@@ -431,7 +448,7 @@ export default {
                   } else if (column.component === 'Input' && column.inputType === 'object') {
                     const props = {
                       ...column,
-                      disabled: this.isGroupEditDisabled(cols, column, d),
+                      disabled: this.isGroupEditDisabled(column, d),
                       jsonData: JSON.parse(JSON.stringify(d[column['inputKey']]) || '{}')
                     }
                     const fun = {
@@ -462,7 +479,7 @@ export default {
                                 ? JSON.parse(d[column.inputKey])
                                 : ''
                               : formatValue(column, d[column.inputKey]),
-                          disabled: this.isGroupEditDisabled(cols, column, d),
+                          disabled: this.isGroupEditDisabled(column, d),
                           filterParams: column.referenceFilter
                             ? {
                               attrId: column.ciTypeAttrId,
@@ -482,7 +499,7 @@ export default {
                                 ? JSON.parse(d[column.inputKey]).map(item => item.guid)
                                 : []
                               : d[column.inputKey] || '',
-                          disabled: this.isGroupEditDisabled(cols, column, d),
+                          disabled: this.isGroupEditDisabled(column, d),
                           filterParams: column.referenceFilter
                             ? {
                               attrId: column.ciTypeAttrId,
@@ -491,6 +508,12 @@ export default {
                             : null,
                           ciTypeAttrId: column.ciTypeAttrId,
                           ciType: column.component === 'WeCMDBRefSelect' ? column.ciType : null,
+                          guidFilters:
+                              column.component === 'WeCMDBRefSelect' ? this.guidFilters[column.ciType.id] : null,
+                          guidFilterEnabled:
+                              column.component === 'WeCMDBRefSelect'
+                                ? this.guidFilterEffects.indexOf(column.propertyName) >= 0
+                                : false,
                           ...column,
                           originColumns: originColumns,
                           type: column.component === 'DatePicker' ? 'date' : column.type,
