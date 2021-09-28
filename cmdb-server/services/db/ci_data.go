@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.CiDataMapObj, err error) {
+func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.CiDataMapObj, newInputBody string, err error) {
 	var multiCiData []*models.MultiCiDataObj
 	var firstAction string
 	var deleteList []string
@@ -65,7 +65,6 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 				guidPermissionEnable = true
 			}
 		}
-		exampleGuid := guid.CreateGuid()
 		for i, inputRowData := range param.InputData {
 			tmpRowGuid := inputRowData["guid"]
 			if tmpRowGuid == "" {
@@ -92,7 +91,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 			if firstAction == "execute" {
 				inputRowData["Authorization"] = param.UserToken
 			}
-			inputRowCiType := tmpRowGuid[:len(tmpRowGuid)-len(exampleGuid)-1]
+			inputRowCiType := tmpRowGuid[:strings.LastIndex(tmpRowGuid, "_")]
 			existFlag := false
 			for j, tmpCiData := range multiCiData {
 				if tmpCiData.CiTypeId == inputRowCiType {
@@ -106,9 +105,15 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 			}
 		}
 		if err != nil {
+			// build new request body with guid
 			return
 		}
 	}
+	// 获取属性字段
+	if err = getMultiCiAttributes(multiCiData); err != nil {
+		return
+	}
+	outputData, newInputBody = buildRequestBodyWithoutPwd(multiCiData, param.BareAction)
 	// 获取状态机
 	if param.BareAction == "" {
 		if err = getMultiCiTransition(multiCiData); err != nil {
@@ -118,10 +123,6 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 		if err = getMultiCiStartTransition(multiCiData); err != nil {
 			return
 		}
-	}
-	// 获取属性字段
-	if err = getMultiCiAttributes(multiCiData); err != nil {
-		return
 	}
 	if (firstAction == "update" || firstAction == "insert") && strings.ToLower(param.Operation) != models.RollbackAction && param.BareAction == "" {
 		if err = validateUniqueColumn(multiCiData); err != nil {
@@ -199,7 +200,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 				err = fmt.Errorf("CiType:%s do action:%s fail,%s ", ciObj.CiTypeId, actionParam.Transition.Action, tmpErr.Error())
 				break
 			}
-			outputData = append(outputData, actionParam.InputData)
+			//outputData = append(outputData, actionParam.InputData)
 			actions = append(actions, tmpAction...)
 			if actionParam.Transition.Action == "insert" && param.Permission {
 				if _, b := insertPermissionMap[ciObj.CiTypeId]; b {
@@ -335,7 +336,9 @@ func insertActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 		}
 		if _, b := param.InputData[ciAttr.Name]; !b {
 			if ciAttr.AutofillAble != "yes" {
-				continue
+				if ciAttr.Nullable == "yes" {
+					continue
+				}
 			}
 		}
 		buildValueParam.InputData = param.InputData
@@ -441,6 +444,10 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 				continue
 			}
 			param.InputData[ciAttr.Name] = param.NowData[ciAttr.Name]
+		} else if ciAttr.DataType == "datetime" {
+			if param.InputData[ciAttr.Name] == "" || param.InputData[ciAttr.Name] == "0000-00-00 00:00:00" {
+				param.InputData[ciAttr.Name] = "reset_null^"
+			}
 		}
 		buildValueParam.InputData = param.InputData
 		tmpColumn, multiRefActions, tmpErr := buildAttrValue(&buildValueParam)
@@ -464,7 +471,7 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 	for _, multiRefColumn := range multiRefColumnList {
 		delete(param.InputData, multiRefColumn)
 	}
-	if !rollbackFlag && param.BareAction == "" {
+	if (!rollbackFlag && param.BareAction == "") || param.InputData["confirm_time"] == "" || param.InputData["confirm_time"] == "0000-00-00 00:00:00" {
 		columnList = append(columnList, &models.CiDataColumnObj{ColumnName: "confirm_time", ColumnValue: "reset_null^"})
 		param.InputData["confirm_time"] = "reset_null^"
 	} else if param.InputData["confirm_time"] != "" {
@@ -509,6 +516,9 @@ func confirmActionFunc(param *models.ActionFuncParam) (result []*execAction, err
 			param.NowData["confirm_time"] = param.NowTime
 			columnList = append(columnList, &models.CiDataColumnObj{ColumnName: "confirm_time", ColumnValue: param.NowTime})
 			continue
+		}
+		if ciAttr.DataType == "datetime" && param.NowData[ciAttr.Name] == "" {
+			param.NowData[ciAttr.Name] = "reset_null^"
 		}
 		if ciAttr.RefCiType != "" {
 			if ciAttr.InputType == models.MultiRefType {
@@ -763,7 +773,10 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 		}
 		result = &models.CiDataColumnObj{ColumnName: param.AttributeConfig.Name, ColumnValue: valueInt, ValueString: inputValue}
 	} else if param.AttributeConfig.DataType == "datetime" {
-		result = &models.CiDataColumnObj{ColumnName: param.AttributeConfig.Name, ColumnValue: param.NowTime, ValueString: param.NowTime}
+		if inputValue == "" {
+			inputValue = "reset_null^"
+		}
+		result = &models.CiDataColumnObj{ColumnName: param.AttributeConfig.Name, ColumnValue: inputValue, ValueString: inputValue}
 	} else {
 		result = &models.CiDataColumnObj{ColumnName: param.AttributeConfig.Name, ColumnValue: inputValue, ValueString: inputValue}
 	}
@@ -1050,6 +1063,40 @@ func getMultiCiAttributes(multiCiData []*models.MultiCiDataObj) error {
 	return nil
 }
 
+func buildRequestBodyWithoutPwd(multiCiData []*models.MultiCiDataObj, baseAction string) (output []models.CiDataMapObj, newInputBody string) {
+	inputStringList := []string{}
+	for _, ciDataObj := range multiCiData {
+		tmpPwdKeyMap := make(map[string]int)
+		for _, attr := range ciDataObj.Attributes {
+			if attr.InputType == "password" {
+				tmpPwdKeyMap[attr.Name] = 1
+			}
+		}
+		for _, rowData := range ciDataObj.InputData {
+			tmpNewRowData := make(map[string]string)
+			outputRowData := make(map[string]string)
+			for k, v := range rowData {
+				if _, b := tmpPwdKeyMap[k]; b {
+					tmpNewRowData[k] = "******"
+					if baseAction != "" {
+						outputRowData[k] = "******^" + v
+					} else {
+						outputRowData[k] = "******"
+					}
+				} else {
+					tmpNewRowData[k] = v
+					outputRowData[k] = v
+				}
+			}
+			output = append(output, outputRowData)
+			tmpInputByte, _ := json.Marshal(tmpNewRowData)
+			inputStringList = append(inputStringList, string(tmpInputByte))
+		}
+	}
+	newInputBody = fmt.Sprintf("[%s]", strings.Join(inputStringList, ","))
+	return
+}
+
 func validateUniqueColumn(multiCiData []*models.MultiCiDataObj) error {
 	var err error
 	for _, ciDataObj := range multiCiData {
@@ -1194,7 +1241,7 @@ func getInsertActionByColumnList(columnList []*models.CiDataColumnObj, tableName
 	var nameList, specCharList []string
 	var params []interface{}
 	for _, column := range columnList {
-		if column.ColumnValue == "reset_null^" || fmt.Sprintf("%s", column.ColumnValue) == "0000-00-00 00:00:00" {
+		if column.ColumnValue == "reset_null^" {
 			continue
 		}
 		nameList = append(nameList, column.ColumnName)
@@ -1208,7 +1255,7 @@ func getUpdateActionByColumnList(columnList []*models.CiDataColumnObj, tableName
 	var updateColumnList []string
 	var params []interface{}
 	for _, column := range columnList {
-		if column.ColumnValue == "reset_null^" || fmt.Sprintf("%s", column.ColumnValue) == "0000-00-00 00:00:00" {
+		if column.ColumnValue == "reset_null^" {
 			updateColumnList = append(updateColumnList, fmt.Sprintf("`%s`=NULL", column.ColumnName))
 		} else {
 			updateColumnList = append(updateColumnList, fmt.Sprintf("`%s`=?", column.ColumnName))
@@ -1631,7 +1678,7 @@ func recursiveAttrAutofill(afList []*models.AttrAutofillSortObj, af *models.Attr
 }
 
 func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title []*models.CiDataActionQueryTitle, err error) {
-	ciTypeId := inputGuid[:len(inputGuid)-len(guid.CreateGuid())-1]
+	ciTypeId := inputGuid[:strings.LastIndex(inputGuid, "_")]
 	title = []*models.CiDataActionQueryTitle{}
 	var attrs []*models.SysCiTypeAttrTable
 	x.SQL("select name,display_name,input_type from sys_ci_type_attr where display_by_default='yes' and status='created' and ci_type=? order by ui_form_order", ciTypeId).Find(&attrs)
