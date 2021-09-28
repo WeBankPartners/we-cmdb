@@ -44,9 +44,13 @@ func UserDelete(userId string) error {
 	return err
 }
 
-func GetUserRole(userId string) (rowData []*models.SysRoleTable, err error) {
+func GetUserRole(userId string, roles []string) (rowData []*models.SysRoleTable, err error) {
 	rowData = []*models.SysRoleTable{}
-	err = x.SQL("select * from sys_role where id in (select role_id from sys_role_user where user_id=?)", userId).Find(&rowData)
+	if len(roles) > 0 {
+		err = x.SQL("select * from sys_role where id in ('" + strings.Join(roles, "','") + "')").Find(&rowData)
+	} else {
+		err = x.SQL("select * from sys_role where id in (select role_id from sys_role_user where user_id=?)", userId).Find(&rowData)
+	}
 	return
 }
 
@@ -118,7 +122,7 @@ func Login(param models.LoginParam) (userMessage models.SysUserTable, err error)
 }
 
 func GetUserTokenPermission(userId string) (permissions []string, err error) {
-	roles, err := GetUserRole(userId)
+	roles, err := GetUserRole(userId, []string{})
 	if err != nil {
 		err = fmt.Errorf("Try to get user roles fail,%s ", err.Error())
 		return
