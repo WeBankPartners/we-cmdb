@@ -384,5 +384,6 @@
   "text_validate": "文本校验",
   "customizable": "自定义",
   "display_type": "展示类型",
+  "display_data": "展示数据",
   "success": "成功"
 }
