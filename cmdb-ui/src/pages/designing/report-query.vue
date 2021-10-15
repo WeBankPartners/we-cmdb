@@ -2,6 +2,12 @@
   <div>
     <Row>
       <Col span="6">
+        <span style="margin-right: 10px">{{ $t('display_type') }}</span>
+        <Select v-model="displayType" @on-change="changeReportType" style="width: 75%;">
+          <Option v-for="item in ['table', 'tree']" :value="item" :key="item">{{ item }}</Option>
+        </Select>
+      </Col>
+      <Col span="6">
         <span style="margin-right: 10px">{{ $t('report') }}</span>
         <Select
           v-model="currentReportId"
@@ -15,16 +21,10 @@
           <Option v-for="item in reportList" :value="item.id" :key="item.id">{{ item.name }}</Option>
         </Select>
       </Col>
-      <Col span="6">
-        <span style="margin-right: 10px">{{ $t('display_type') }}</span>
-        <Select v-model="displayType" @on-change="changeReportType" style="width: 75%;">
-          <Option v-for="item in ['table', 'tree']" :value="item" :key="item">{{ item }}</Option>
-        </Select>
-      </Col>
       <Col span="6" v-if="displayType === 'tree'">
-        <span style="margin-right: 10px">{{ $t('display_type') }}</span>
+        <span style="margin-right: 10px">{{ $t('display_data') }}</span>
         <Select v-model="treeRoot" filterable multiple style="width: 75%;">
-          <Option v-for="item in treeRootOptions" :value="item.code" :key="item.code">{{ item.code }}</Option>
+          <Option v-for="item in treeRootOptions" :value="item.code" :key="item.guid">{{ item.code }}</Option>
         </Select>
       </Col>
       <Button
@@ -81,7 +81,7 @@
     </template>
     <template v-else>
       <Tabs @on-click="changeTab" :value="treeSet[0].code" v-if="showTab">
-        <TabPane v-for="tree in treeSet" :label="tree.code" :name="tree.code" :key="tree.code">
+        <TabPane v-for="tree in treeSet" :label="tree.code" :name="tree.code" :key="tree.guid">
           <Row>
             <Col span="7">
               <div :style="{ height: MODALHEIGHT + 'px', overflow: 'auto' }">
@@ -198,7 +198,6 @@ export default {
       this.treeRoot = []
     },
     changeTab (val) {
-      console.log(val)
       this.currentTabIndex = this.treeSet.findIndex(item => item.code === val)
     },
     renderContent (h, { root, node, data }) {
@@ -226,7 +225,6 @@ export default {
         }
       }
       let [ciData, ciAttr] = await Promise.all([queryCiData(payload), getCiTypeAttr(ci)])
-      console.log(this.currentTabIndex)
       if (ciData.statusCode === 'OK' && ciAttr.statusCode === 'OK') {
         this.$refs.ciDisplay[this.currentTabIndex].initData(ciAttr.data, ciData.data.contents)
       }
