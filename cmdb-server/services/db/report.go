@@ -86,7 +86,7 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 		if isReportObjEditable(root.Id) {
 			extendFilterSql = fmt.Sprintf(" AND confirm_time='%s' AND history_action='confirm' AND history_state_confirmed=1", confirmTime)
 		} else {
-			extendFilterSql = fmt.Sprintf(" AND confirm_time<='%s' AND history_action='confirm' AND history_state_confirmed=1", confirmTime)
+			extendFilterSql = fmt.Sprintf(" AND ((confirm_time<='%s' AND history_action='confirm' AND history_state_confirmed=1) OR (update_time<='%s' AND confirm_time IS NULL))", confirmTime, confirmTime)
 		}
 	}
 	sqlCmd := "SELECT " + filterCols + " FROM " + queryTableName + " WHERE " + tmpFilter + " in ('" + strings.Join(rootGuidList, "','") + "')" + extendFilterSql
