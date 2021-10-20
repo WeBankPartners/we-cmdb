@@ -124,12 +124,14 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 			return
 		}
 	}
-	if (firstAction == "update" || firstAction == "insert") && strings.ToLower(param.Operation) != models.RollbackAction && param.BareAction == "" {
+	if (firstAction == "update" || firstAction == "insert") && strings.ToLower(param.Operation) != models.RollbackAction {
 		if err = validateUniqueColumn(multiCiData); err != nil {
 			return
 		}
-		if err = validateMultiRefFilterData(multiCiData); err != nil {
-			return
+		if param.BareAction == "" {
+			if err = validateMultiRefFilterData(multiCiData); err != nil {
+				return
+			}
 		}
 	}
 	if firstAction != "insert" {
