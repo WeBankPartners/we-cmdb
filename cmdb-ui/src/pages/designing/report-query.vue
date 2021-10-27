@@ -214,7 +214,8 @@ export default {
     },
     async showDetail (itemArray, itemSingle) {
       const item = itemArray[0] || itemSingle
-      const ci = item.guid.substring(0, item.guid.length - 17)
+      const index = item.guid.lastIndexOf('_')
+      const ci = item.guid.substring(0, index)
       const payload = {
         id: ci,
         queryObject: {
