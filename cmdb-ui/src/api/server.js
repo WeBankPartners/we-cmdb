@@ -222,6 +222,9 @@ export const graphViewDetail = id => req.get(`/view/${id}`)
 export const graphCiDataOperation = (ciType, op, payload) => {
   return req.post(`/ci-data/do/${op}/${ciType}`, payload)
 }
+export const graphCiConfirm = payload => {
+  return req.post(`/view-confirm`, payload)
+}
 export const graphQueryReferenceCiData = data =>
   req.post(`/ci-data/reference-data/query/${data.attrId}`, data.queryObject)
 export const graphQueryStateTransition = (ciType, payload) => req.get(`/state-transition/${ciType}`, payload)
