@@ -132,6 +132,21 @@ func CreateReport(c *gin.Context) {
 	}
 }
 
+func UpdateReport(c *gin.Context) {
+	var param models.ModifyReport
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	param.UpdateUser = middleware.GetRequestUser(c)
+	rowData, err := db.UpdateReport(param)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnData(c, rowData)
+	}
+}
+
 func DeleteReport(c *gin.Context) {
 	reportId := c.Param("reportId")
 

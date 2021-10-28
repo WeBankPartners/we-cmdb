@@ -535,6 +535,49 @@ func CreateReport(param models.ModifyReport) (rowData *models.SysReportTable, er
 	return
 }
 
+func UpdateReport(param models.ModifyReport) (rowData *models.SysReportTable, err error) {
+	var reportList []*models.SysReportTable
+	err = x.SQL("select id,name,ci_type,create_time,create_user,update_time,update_user from sys_report where id=?", param.Id).Find(&reportList)
+	if err != nil {
+		return
+	}
+	if len(reportList) == 0 {
+		return nil, fmt.Errorf("Can not find report with id:%s ", param.Id)
+	}
+	rowData = reportList[0]
+	actions := []*execAction{}
+	updateTime := time.Now().Format(models.DateTimeFormat)
+	rowData.UpdateTime = updateTime
+	rowData.UpdateUser = param.UpdateUser
+	actions = append(actions, &execAction{Sql: "update sys_report set name=?,update_user=?,update_time=? where id=?", Param: []interface{}{param.Name, param.UpdateUser, updateTime, param.Id}})
+	actions = append(actions, &execAction{Sql: "delete from sys_role_report where report=?", Param: []interface{}{param.Id}})
+	// 添加 report 对应的权限到 sys_role_report
+	var useRoleSlice, mgmtRoleSlice []string
+	if param.UseRole != "" {
+		useRoleSlice = strings.Split(param.UseRole, ",")
+	}
+	if param.MgmtRole != "" {
+		mgmtRoleSlice = strings.Split(param.MgmtRole, ",")
+	}
+	execSqlCmd := "INSERT INTO sys_role_report(id,role,report,permission) VALUE (?,?,?,?)"
+	reportId := param.Id
+	var role_report_id string
+	for i := range useRoleSlice {
+		role_report_id = useRoleSlice[i] + "__" + reportId + "__" + "USE"
+		execParams := []interface{}{role_report_id, useRoleSlice[i], reportId, "USE"}
+		action := &execAction{Sql: execSqlCmd, Param: execParams}
+		actions = append(actions, action)
+	}
+	for i := range mgmtRoleSlice {
+		role_report_id = mgmtRoleSlice[i] + "__" + reportId + "__" + "MGMT"
+		execParams := []interface{}{role_report_id, mgmtRoleSlice[i], reportId, "MGMT"}
+		action := &execAction{Sql: execSqlCmd, Param: execParams}
+		actions = append(actions, action)
+	}
+	err = transaction(actions)
+	return
+}
+
 func DeleteReport(reportId string) (err error) {
 	// 需要删除 report 关联的 report object 以及对应的 report object attr
 	actions := []*execAction{}
