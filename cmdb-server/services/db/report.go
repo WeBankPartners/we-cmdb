@@ -81,11 +81,13 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 	}
 	extendFilterSql := ""
 	queryTableName := root.CiType
+	isEditable := checkReportObjectEditable(viewId, root.Id)
 	if confirmTime != "" {
 		queryTableName = HistoryTablePrefix + root.CiType
-		if isReportObjEditable(root.Id) {
+		if isEditable {
 			extendFilterSql = fmt.Sprintf(" AND confirm_time='%s' AND history_action='confirm' AND history_state_confirmed=1", confirmTime)
 		} else {
+			filterCols += ",id"
 			extendFilterSql = fmt.Sprintf(" AND ((confirm_time<='%s' AND history_action='confirm' AND history_state_confirmed=1) OR (update_time<='%s' AND confirm_time IS NULL))", confirmTime, confirmTime)
 		}
 	}
@@ -95,15 +97,15 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 		log.Logger.Error("Query report object citype table error", log.String("ciTypeTable", root.CiType), log.Error(err))
 		return
 	}
-	isEditable := checkReportObjectEditable(viewId, root.Id)
+	if !isEditable {
+		ciTypeTableData = distinctViewCiData(ciTypeTableData)
+	}
 	for _, v := range ciTypeTableData {
 		tmpMap := make(map[string]interface{})
 		for k, val := range v {
-			//if _, ok := attrDataNameMap[k]; ok {
-			//	tmpMap[attrDataNameMap[k]] = val
-			//} else {
-			//	tmpMap[k] = val
-			//}
+			if k == "id" {
+				continue
+			}
 			tmpMap[k] = val
 		}
 		rowData = append(rowData, tmpMap)
@@ -168,6 +170,37 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 		}
 	}
 	return
+}
+
+func distinctViewCiData(input []map[string]string) []map[string]string {
+	result := []map[string]string{}
+	if len(input) == 0 {
+		return result
+	}
+	guidMap := make(map[string][]string)
+	for _, v := range input {
+		tmpTime := v["update_time"]
+		if v["confirm_time"] != "" {
+			tmpTime = v["confirm_time"]
+		}
+		if tmpV, b := guidMap[v["guid"]]; b {
+			if tmpTime > tmpV[0] {
+				guidMap[v["guid"]] = []string{tmpTime, v["id"]}
+			}
+		} else {
+			guidMap[v["guid"]] = []string{tmpTime, v["id"]}
+		}
+	}
+	idMap := make(map[string]int)
+	for _, v := range guidMap {
+		idMap[v[1]] = 1
+	}
+	for _, v := range input {
+		if _, b := idMap[v["id"]]; b {
+			result = append(result, v)
+		}
+	}
+	return result
 }
 
 func checkReportObjectEditable(viewId, reportObjId string) bool {
@@ -547,6 +580,7 @@ func UpdateReport(param models.ModifyReport) (rowData *models.SysReportTable, er
 	rowData = reportList[0]
 	actions := []*execAction{}
 	updateTime := time.Now().Format(models.DateTimeFormat)
+	rowData.Name = param.Name
 	rowData.UpdateTime = updateTime
 	rowData.UpdateUser = param.UpdateUser
 	actions = append(actions, &execAction{Sql: "update sys_report set name=?,update_user=?,update_time=? where id=?", Param: []interface{}{param.Name, param.UpdateUser, updateTime, param.Id}})
