@@ -94,5 +94,18 @@
                 </outputParameters>
             </interface>
         </plugin>
+        <plugin name="view" targetPackage="" targetEntity="" registerName="" targetEntityFilterRule="">
+            <interface action="confirm" path="/wecmdb/plugin/view/confirm" filterRule="">
+                <inputParameters>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="entity" mappingEntityExpression="">viewId</parameter>
+                    <parameter datatype="string" required="Y" sensitiveData="N" mappingType="entity" mappingEntityExpression="">rootCi</parameter>
+                </inputParameters>
+                <outputParameters>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorCode</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">errorMessage</parameter>
+                    <parameter datatype="string" sensitiveData="N" mappingType="context">confirmTime</parameter>
+                </outputParameters>
+            </interface>
+        </plugin>
     </plugins>
 </package>
