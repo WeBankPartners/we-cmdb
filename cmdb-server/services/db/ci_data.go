@@ -547,7 +547,11 @@ func confirmActionFunc(param *models.ActionFuncParam) (result []*execAction, err
 }
 
 func deleteActionFunc(param *models.ActionFuncParam) (result []*execAction, err error) {
-	if len(param.ReferenceAttributes) > 0 && param.BareAction == "" {
+	toNull := false
+	if strings.HasSuffix(param.Transition.TargetState, "null_0") || strings.HasSuffix(param.Transition.TargetState, "null_1") {
+		toNull = true
+	}
+	if len(param.ReferenceAttributes) > 0 && param.BareAction == "" && !toNull {
 		if err = validateLeftStateTrans(param); err != nil {
 			return
 		}
@@ -558,12 +562,12 @@ func deleteActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 			continue
 		}
 		if ciAttr.InputType == models.MultiRefType {
-			mutiRefActions, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData})
+			multiRefActions, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData})
 			if tmpErr != nil {
 				err = tmpErr
 				break
 			}
-			result = append(result, mutiRefActions...)
+			result = append(result, multiRefActions...)
 			delete(param.NowData, ciAttr.Name)
 		}
 	}
