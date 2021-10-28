@@ -2,12 +2,12 @@ package view
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 func GetViewList(c *gin.Context) {
@@ -156,7 +156,7 @@ func GetViewData(c *gin.Context) {
 			err = tmpErr
 			break
 		}
-		rowData, err = db.GetChildReportObject(roNode, rootGuidList, rootReportAttr, param.ConfirmTime)
+		rowData, _, err = db.GetChildReportObject(roNode, rootGuidList, rootReportAttr, param.ConfirmTime, param.ViewId)
 		if err != nil {
 			break
 		}
@@ -183,5 +183,70 @@ func GetViewData(c *gin.Context) {
 		middleware.ReturnData(c, []string{})
 	} else {
 		middleware.ReturnData(c, rowDataList)
+	}
+}
+
+func ConfirmView(c *gin.Context) {
+	var param models.ViewData
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	rootGuidList := strings.Split(param.RootCi, ",")
+	viewData, err := db.QueryViewById(param.ViewId)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+	reportId := viewData.Report
+	var rootReportObjectsData []*models.ReportObjectNode
+	rootReportObjectsData, err = db.QueryRootReportObj(reportId)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+	editableGuidList := []string{}
+	existMap := make(map[string]int)
+	for _, roNode := range rootReportObjectsData {
+		rootReportAttr, _, tmpErr := db.GetReportAttr(roNode.Id)
+		if tmpErr != nil {
+			err = tmpErr
+			break
+		}
+		_, tmpEditableList, queryErr := db.GetChildReportObject(roNode, rootGuidList, rootReportAttr, param.ConfirmTime, param.ViewId)
+		if queryErr != nil {
+			err = queryErr
+			break
+		}
+		for _, tmpGuid := range tmpEditableList {
+			if _, b := existMap[tmpGuid]; !b {
+				editableGuidList = append(editableGuidList, tmpGuid)
+				existMap[tmpGuid] = 1
+			}
+		}
+	}
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+	log.Logger.Info("Confirm view", log.Int("guidLength", len(editableGuidList)), log.StringList("guid", editableGuidList))
+	if len(editableGuidList) == 0 {
+		middleware.ReturnSuccess(c)
+		return
+	}
+	// confirm data
+	var confirmParam []models.CiDataMapObj
+	for _, v := range editableGuidList {
+		tmpMap := make(map[string]string)
+		tmpMap["guid"] = v
+		confirmParam = append(confirmParam, tmpMap)
+	}
+	handleParam := models.HandleCiDataParam{InputData: confirmParam, CiTypeId: viewData.CiType, Operation: "Confirm", Operator: middleware.GetRequestUser(c), Roles: middleware.GetRequestRoles(c), Permission: true}
+	handleParam.UserToken = c.GetHeader("Authorization")
+	resultData, _, handleErr := db.HandleCiDataOperation(handleParam)
+	if handleErr != nil {
+		middleware.ReturnServerHandleError(c, handleErr)
+	} else {
+		middleware.ReturnData(c, resultData)
 	}
 }

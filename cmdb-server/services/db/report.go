@@ -26,7 +26,7 @@ func QueryRootReportObj(reportId string) (rowData []*models.ReportObjectNode, er
 	return
 }
 
-func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, roAttrData []*models.SysReportObjectAttrTable, confirmTime string) (rowData []map[string]interface{}, err error) {
+func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, roAttrData []*models.SysReportObjectAttrTable, confirmTime, viewId string) (rowData []map[string]interface{}, editableList []string, err error) {
 	if root == nil {
 		err = nil
 		return
@@ -95,7 +95,7 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 		log.Logger.Error("Query report object citype table error", log.String("ciTypeTable", root.CiType), log.Error(err))
 		return
 	}
-
+	isEditable := checkReportObjectEditable(viewId, root.Id)
 	for _, v := range ciTypeTableData {
 		tmpMap := make(map[string]interface{})
 		for k, val := range v {
@@ -107,6 +107,9 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 			tmpMap[k] = val
 		}
 		rowData = append(rowData, tmpMap)
+		if isEditable {
+			editableList = append(editableList, v["guid"])
+		}
 	}
 
 	var roData []*models.ReportObjectNode
@@ -131,10 +134,13 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 			err = tmpErr
 			break
 		}
-		childDataList, tmpErr := GetChildReportObject(ro, tmpList, subReportAttr, confirmTime)
+		childDataList, childEditList, tmpErr := GetChildReportObject(ro, tmpList, subReportAttr, confirmTime, viewId)
 		if tmpErr != nil {
 			err = tmpErr
 			break
+		}
+		if len(childEditList) > 0 {
+			editableList = append(editableList, childEditList...)
 		}
 		for i, v := range rowData {
 			var sub []map[string]interface{}
@@ -162,6 +168,18 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 		}
 	}
 	return
+}
+
+func checkReportObjectEditable(viewId, reportObjId string) bool {
+	result := false
+	var sysGraphElememts []*models.SysGraphElementTable
+	x.SQL("select id,editable from sys_graph_element where report_object=? and graph in (select id from sys_graph where `view`=?)", reportObjId, viewId).Find(&sysGraphElememts)
+	if len(sysGraphElememts) > 0 {
+		if sysGraphElememts[0].Editable == "yes" {
+			result = true
+		}
+	}
+	return result
 }
 
 func GetReportAttr(reportObj string) (roAttrData []*models.SysReportObjectAttrTable, dataNameMap map[string]string, err error) {
