@@ -192,6 +192,7 @@ func InitHttpServer() {
 	r.GET(urlPrefix+"/data-model", middleware.AuthToken(), ci.GetAllDataModel)
 	r.POST(urlPrefix+"/plugin/ci-data/operation", middleware.AuthCorePluginToken(), ci.PluginCiDataOperationHandle, ci.HandleOperationLog)
 	r.POST(urlPrefix+"/plugin/ci-data/attr-value", middleware.AuthCorePluginToken(), ci.PluginCiDataAttrValueHandle, ci.HandleOperationLog)
+	r.POST(urlPrefix+"/plugin/view/confirm", middleware.AuthCorePluginToken(), ci.PluginViewConfirmHandle, ci.HandleOperationLog)
 	r.Run(":" + models.Config.HttpServer.Port)
 }
 
