@@ -514,6 +514,39 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 	return
 }
 
+func GetReport(reportId string) (result models.ModifyReport, err error) {
+	result = models.ModifyReport{Id: reportId, UseRoleList: []string{}, MgmtRoleList: []string{}}
+	var reportTable []*models.SysReportTable
+	err = x.SQL("select * from sys_report where id=?", reportId).Find(&reportTable)
+	if err != nil {
+		return
+	}
+	if len(reportTable) == 0 {
+		return result, fmt.Errorf("Can not find report with id:%s ", reportId)
+	}
+	result.Name = reportTable[0].Name
+	result.CiType = reportTable[0].CiType
+	var reportObjTable []*models.SysReportObjectTable
+	x.SQL("select * from sys_report_object where report=? and parent_object is null", reportId).Find(&reportObjTable)
+	if len(reportObjTable) > 0 {
+		result.DataName = reportObjTable[0].DataName
+		result.DataTitleName = reportObjTable[0].DataTitleName
+	}
+	var roleReportTable []*models.SysRoleReportTable
+	x.SQL("select * from sys_role_report where report=?", reportId).Find(&roleReportTable)
+	for _, v := range roleReportTable {
+		if v.Permission == "USE" {
+			result.UseRoleList = append(result.UseRoleList, v.Role)
+		}
+		if v.Permission == "MGMT" {
+			result.MgmtRoleList = append(result.MgmtRoleList, v.Role)
+		}
+	}
+	result.UseRole = strings.Join(result.UseRoleList, ",")
+	result.MgmtRole = strings.Join(result.MgmtRoleList, ",")
+	return
+}
+
 func CreateReport(param models.ModifyReport) (rowData *models.SysReportTable, err error) {
 	actions := []*execAction{}
 	createTime := time.Now().Format(models.DateTimeFormat)

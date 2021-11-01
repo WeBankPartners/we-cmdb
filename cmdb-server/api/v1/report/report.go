@@ -113,6 +113,16 @@ func QueryReportData(c *gin.Context) {
 	return
 }
 
+func GetReport(c *gin.Context) {
+	reportId := c.Param("reportId")
+	result, err := db.GetReport(reportId)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
 func CreateReport(c *gin.Context) {
 	//Param validate
 	var param models.ModifyReport
