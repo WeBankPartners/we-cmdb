@@ -146,7 +146,6 @@ export default {
   },
   methods: {
     async editReport (report) {
-      console.log(report)
       const { statusCode, data } = await getReportDetail(report.id)
       if (statusCode === 'OK') {
         const res = await getAllCITypes()
