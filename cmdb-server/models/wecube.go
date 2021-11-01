@@ -97,3 +97,32 @@ type CoreRoleDataObj struct {
 	Email       string `json:"email"`
 	DisplayName string `json:"displayName"`
 }
+
+type PluginViewConfirmRequest struct {
+	RequestId string                         `json:"requestId"`
+	Inputs    []*PluginViewConfirmRequestObj `json:"inputs"`
+}
+
+type PluginViewConfirmRequestObj struct {
+	CallbackParameter string `json:"callbackParameter"`
+	ViewId            string `json:"viewId"`
+	RootCi            string `json:"rootCi"`
+}
+
+type PluginViewConfirmResp struct {
+	ResultCode    string                  `json:"resultCode"`
+	ResultMessage string                  `json:"resultMessage"`
+	Results       PluginViewConfirmOutput `json:"results"`
+}
+
+type PluginViewConfirmOutput struct {
+	Outputs []*PluginViewConfirmOutputObj `json:"outputs"`
+}
+
+type PluginViewConfirmOutputObj struct {
+	CallbackParameter string `json:"callbackParameter"`
+	ConfirmTime       string `json:"confirmTime"`
+	ErrorCode         string `json:"errorCode"`
+	ErrorMessage      string `json:"errorMessage"`
+	ErrorDetail       string `json:"errorDetail,omitempty"`
+}
