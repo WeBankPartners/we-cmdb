@@ -13,14 +13,14 @@
               clearable
               filterable
               label-in-name
-              style="width: 35%;z-index:auto"
+              style="width: 35%; z-index: auto"
             >
               <Option
                 v-for="item in viewOptions"
                 :value="item.viewId"
                 :key="item.viewId"
                 :label="item.name"
-                style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
+                style="display: flex; flex-flow: row nowrap; justify-content: space-between; align-items: center"
               >
                 {{ item.name }}
               </Option>
@@ -37,16 +37,16 @@
               filterable
               :multiple="viewSetting.multiple == 'yes'"
               label-in-name
-              style="width: 35%;z-index:auto"
+              style="width: 35%; z-index: auto"
               ref="rootSelect"
             >
               <Option
                 v-if="currentView && viewSetting.editable === 'yes'"
                 :value="-1"
                 :key="-1"
-                style="padding: 0 0 0 0px;"
+                style="padding: 0 0 0 0px"
               >
-                <span style="width: 95%;">
+                <span style="width: 95%">
                   <Button @click.stop.prevent="onAddRoot()" icon="md-add" type="success" long></Button>
                 </span>
               </Option>
@@ -55,7 +55,7 @@
                 :value="item._id"
                 :key="item._id"
                 :label="item.name || item.key_name"
-                style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
+                style="display: flex; flex-flow: row nowrap; justify-content: space-between; align-items: center"
               >
                 {{ item.name || item.key_name }}
               </Option>
@@ -72,16 +72,16 @@
               filterable
               :multiple="viewSetting.multiple == 'yes'"
               label-in-name
-              style="width: 35%;z-index:auto"
+              style="width: 35%; z-index: auto"
               ref="rootSelect"
             >
               <Option
                 v-if="currentView && viewSetting.editable === 'yes'"
                 :value="-1"
                 :key="-1"
-                style="padding: 0 0 0 0px;"
+                style="padding: 0 0 0 0px"
               >
-                <span style="width: 95%;">
+                <span style="width: 95%">
                   <Button @click.stop.prevent="onAddRoot()" icon="md-add" type="success" long></Button>
                 </span>
               </Option>
@@ -91,10 +91,10 @@
                   :value="item._id"
                   :key="item._id"
                   :label="`${item.name || item.key_name}${item.confirm_time ? ' ' + item.confirm_time : ''}`"
-                  style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
+                  style="display: flex; flex-flow: row nowrap; justify-content: space-between; align-items: center"
                 >
                   <div>{{ item.name || item.key_name }}</div>
-                  <div v-if="item.confirm_time" style="color:#ccc; flex-shrink:1; margin-left:10px">
+                  <div v-if="item.confirm_time" style="color: #ccc; flex-shrink: 1; margin-left: 10px">
                     {{ item.confirm_time }}
                   </div>
                 </Option>
@@ -122,7 +122,7 @@
         </Col>
       </Row>
       <Row>
-        <Card class="view-card" style="margin-top: 20px;">
+        <Card class="view-card" style="margin-top: 20px">
           <div>
             <Tabs type="card" :closable="false" @on-click="handleTabClick" ref="tab">
               <Spin size="large" fix v-if="tabLoading">
@@ -179,7 +179,7 @@
               <span v-if="formData.nullable == 'no'" class="require-tag">*</span>
               {{ formData.name }}
             </span>
-            <div slot="content" style="white-space: normal;">
+            <div slot="content" style="white-space: normal">
               {{ formData.description }}
             </div>
           </Tooltip>
@@ -277,6 +277,7 @@ import {
   graphQueryRootCI,
   queryCiData,
   graphCiDataOperation,
+  graphCiConfirm,
   graphQueryStateTransition,
   getAllCITypesWithAttr
 } from '@/api/server'
@@ -505,7 +506,15 @@ export default {
           const resp = await graphCiDataOperation(ciType, intersect[0].value, [normalizeFormData(rootDetail)])
           if (resp.statusCode === 'OK') {
             this.isEditMode = true
-            rootDetail.update_time = resp.data[0].update_time
+            await this.onRootOptions(true)
+            let newRootDetail = this.rootOptions.find(el => {
+              return el.guid === rootDetail.guid && el.confirm_time.length === 0
+            })
+            this.$refs.rootSelect.query = ''
+            this.$nextTick(function () {
+              this.currentRoot = newRootDetail._id
+              this.onQuery(false)
+            })
           }
         }
       } else {
@@ -530,16 +539,20 @@ export default {
         loading: true,
         'z-index': 1000000,
         onOk: async () => {
-          const resp = await graphCiDataOperation(
-            ciType,
-            'Confirm',
-            Array.from(confirmGuids).map(g => {
-              return { guid: g }
-            })
-          )
+          let rootDetail = this.rootOptions.find(el => {
+            return el._id === this.currentRoot
+          })
+          const resp = await graphCiConfirm({
+            viewId: this.currentView,
+            rootCi: rootDetail.guid
+          })
           if (resp.statusCode === 'OK') {
             this.isEditMode = false
             this.$Modal.remove()
+            rootDetail.confirm_time = resp.data[0]['confirm_time']
+            rootDetail.update_time = resp.data[0]['confirm_time']
+            rootDetail._id = rootDetail.guid + rootDetail.update_time + rootDetail.confirm_time
+            this.currentRoot = rootDetail._id
             this.graphReload(
               ciType,
               Array.from(confirmGuids).map(g => {
@@ -553,8 +566,10 @@ export default {
       })
       document.querySelector('.ivu-modal-mask').click()
     },
-    async onQuery () {
-      this.isEditMode = false
+    async onQuery (resetEdit = true) {
+      if (resetEdit) {
+        this.isEditMode = false
+      }
       let currentRoots = [this.currentRoot]
       if (Array.isArray(this.currentRoot)) {
         currentRoots = this.currentRoot

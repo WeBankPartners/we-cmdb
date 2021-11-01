@@ -147,3 +147,65 @@ func GetRootCiDataWithReportId(reportId string) (ciDataGuidList []string, err er
 	}
 	return
 }
+
+func ViewConfirmAction(param models.ViewData, userToken, operator string, userRoles []string) (result []models.CiDataMapObj, err error) {
+	result = []models.CiDataMapObj{}
+	rootGuidList := strings.Split(param.RootCi, ",")
+	viewData, queryViewErr := QueryViewById(param.ViewId)
+	if queryViewErr != nil {
+		err = fmt.Errorf("Query view error:%s ", queryViewErr.Error())
+		return
+	}
+	reportId := viewData.Report
+	var rootReportObjectsData []*models.ReportObjectNode
+	rootReportObjectsData, err = QueryRootReportObj(reportId)
+	if err != nil {
+		err = fmt.Errorf("Query root report fail,%s ", err.Error())
+		return
+	}
+	editableGuidList := []string{}
+	existMap := make(map[string]int)
+	for _, roNode := range rootReportObjectsData {
+		rootReportAttr, _, tmpErr := GetReportAttr(roNode.Id)
+		if tmpErr != nil {
+			err = tmpErr
+			break
+		}
+		_, tmpEditableList, queryErr := GetChildReportObject(roNode, rootGuidList, rootReportAttr, param.ConfirmTime, param.ViewId)
+		if queryErr != nil {
+			err = queryErr
+			break
+		}
+		for _, tmpGuid := range tmpEditableList {
+			if _, b := existMap[tmpGuid]; !b {
+				editableGuidList = append(editableGuidList, tmpGuid)
+				existMap[tmpGuid] = 1
+			}
+		}
+	}
+	if err != nil {
+		return
+	}
+	log.Logger.Info("Confirm view", log.Int("guidLength", len(editableGuidList)), log.StringList("guid", editableGuidList))
+	if len(editableGuidList) == 0 {
+		return
+	}
+	// confirm data
+	var confirmParam []models.CiDataMapObj
+	for _, v := range editableGuidList {
+		tmpMap := make(map[string]string)
+		tmpMap["guid"] = v
+		confirmParam = append(confirmParam, tmpMap)
+	}
+	permission := true
+	if operator == "SYSTEM" {
+		permission = false
+	}
+	handleParam := models.HandleCiDataParam{InputData: confirmParam, CiTypeId: viewData.CiType, Operation: "Confirm", Operator: operator, Roles: userRoles, Permission: permission}
+	handleParam.UserToken = userToken
+	result, _, err = HandleCiDataOperation(handleParam)
+	if err != nil {
+		err = fmt.Errorf("Handle ci data confirm fail,%s ", err.Error())
+	}
+	return
+}

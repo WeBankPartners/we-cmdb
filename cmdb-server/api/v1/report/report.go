@@ -113,6 +113,16 @@ func QueryReportData(c *gin.Context) {
 	return
 }
 
+func GetReport(c *gin.Context) {
+	reportId := c.Param("reportId")
+	result, err := db.GetReport(reportId)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
 func CreateReport(c *gin.Context) {
 	//Param validate
 	var param models.ModifyReport
@@ -125,6 +135,21 @@ func CreateReport(c *gin.Context) {
 	param.CreateUser = user
 	//Update database
 	rowData, err := db.CreateReport(param)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnData(c, rowData)
+	}
+}
+
+func UpdateReport(c *gin.Context) {
+	var param models.ModifyReport
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	param.UpdateUser = middleware.GetRequestUser(c)
+	rowData, err := db.UpdateReport(param)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {

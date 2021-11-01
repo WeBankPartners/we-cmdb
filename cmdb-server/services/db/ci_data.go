@@ -109,11 +109,12 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 			return
 		}
 	}
+	tNow := time.Now().Format(models.DateTimeFormat)
 	// 获取属性字段
 	if err = getMultiCiAttributes(multiCiData); err != nil {
 		return
 	}
-	outputData, newInputBody = buildRequestBodyWithoutPwd(multiCiData, param.BareAction)
+	outputData, newInputBody = buildRequestBodyWithoutPwd(multiCiData, param.BareAction, tNow, param.Operation)
 	// 获取状态机
 	if param.BareAction == "" {
 		if err = getMultiCiTransition(multiCiData); err != nil {
@@ -144,7 +145,6 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 	if err = getMultiReferenceAttributes(multiCiData); err != nil {
 		return
 	}
-	tNow := time.Now().Format(models.DateTimeFormat)
 	var actions []*execAction
 	var insertPermissionMap = make(map[string]*InsertPermissionObj)
 	var autofillChainMap = make(map[string][]*models.AutofillChainObj)
@@ -547,7 +547,11 @@ func confirmActionFunc(param *models.ActionFuncParam) (result []*execAction, err
 }
 
 func deleteActionFunc(param *models.ActionFuncParam) (result []*execAction, err error) {
-	if len(param.ReferenceAttributes) > 0 && param.BareAction == "" {
+	toNull := false
+	if strings.HasSuffix(param.Transition.TargetState, "null_0") || strings.HasSuffix(param.Transition.TargetState, "null_1") {
+		toNull = true
+	}
+	if len(param.ReferenceAttributes) > 0 && param.BareAction == "" && !toNull {
 		if err = validateLeftStateTrans(param); err != nil {
 			return
 		}
@@ -558,12 +562,12 @@ func deleteActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 			continue
 		}
 		if ciAttr.InputType == models.MultiRefType {
-			mutiRefActions, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData})
+			multiRefActions, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData})
 			if tmpErr != nil {
 				err = tmpErr
 				break
 			}
-			result = append(result, mutiRefActions...)
+			result = append(result, multiRefActions...)
 			delete(param.NowData, ciAttr.Name)
 		}
 	}
@@ -1065,8 +1069,9 @@ func getMultiCiAttributes(multiCiData []*models.MultiCiDataObj) error {
 	return nil
 }
 
-func buildRequestBodyWithoutPwd(multiCiData []*models.MultiCiDataObj, baseAction string) (output []models.CiDataMapObj, newInputBody string) {
+func buildRequestBodyWithoutPwd(multiCiData []*models.MultiCiDataObj, baseAction, nowTime, operation string) (output []models.CiDataMapObj, newInputBody string) {
 	inputStringList := []string{}
+	operation = strings.ToLower(operation)
 	for _, ciDataObj := range multiCiData {
 		tmpPwdKeyMap := make(map[string]int)
 		for _, attr := range ciDataObj.Attributes {
@@ -1089,6 +1094,11 @@ func buildRequestBodyWithoutPwd(multiCiData []*models.MultiCiDataObj, baseAction
 					tmpNewRowData[k] = v
 					outputRowData[k] = v
 				}
+			}
+			if operation == "confirm" {
+				outputRowData["confirm_time"] = nowTime
+			} else {
+				outputRowData["update_time"] = nowTime
 			}
 			output = append(output, outputRowData)
 			tmpInputByte, _ := json.Marshal(tmpNewRowData)

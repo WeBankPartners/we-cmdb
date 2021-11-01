@@ -289,6 +289,9 @@ func fetchRefAttrData(rowData []map[string]interface{}, refAttrs []*models.CiDat
 			err = fmt.Errorf("Try to query ref attr:%s refCiType:%s fail,%s ", refAttr.Attribute.Name, refAttr.Attribute.RefCiType, tmpErr.Error())
 			break
 		}
+		if len(refRowDatas) == 0 {
+			x.SQL(fmt.Sprintf("select guid,key_name from %s%s where guid in ('%s') and state in ('null_0','null_1')", HistoryTablePrefix, refAttr.Attribute.RefCiType, strings.Join(refAttr.GuidList, "','"))).Find(&refRowDatas)
+		}
 		refRowMap := make(map[string]*models.CiDataRefDataObj)
 		for _, refRow := range refRowDatas {
 			refRowMap[refRow.Guid] = refRow
