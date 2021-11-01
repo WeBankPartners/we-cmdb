@@ -17,6 +17,7 @@
           <Option v-for="item in reportList" :value="item.id" :key="item.id"
             >{{ item.name
             }}<span style="float:right">
+              <Button @click="editReport(item)" icon="ios-create-outline" type="primary" size="small"></Button>
               <Button @click="deleteReport(item)" icon="ios-trash" type="error" size="small"></Button>
             </span>
           </Option>
@@ -36,27 +37,32 @@
         </Card>
       </Row>
     </Row>
-    <Modal v-model="newReport.showAddNewReportModal" width="720" :title="$t('creat_report')" :mask-closable="false">
+    <Modal
+      v-model="newReport.showAddNewReportModal"
+      width="720"
+      :title="newReport.isAdd ? $t('creat_report') : $t('edit_report')"
+      :mask-closable="false"
+    >
       <div :style="{ maxHeight: MODALHEIGHT + 'px', overflow: 'auto' }">
         <Form :model="newReport.params" :label-width="80">
           <FormItem :label="$t('report_id')">
-            <Input v-model="newReport.params.id"></Input>
+            <Input v-model="newReport.params.id" :disabled="!newReport.isAdd"></Input>
           </FormItem>
           <FormItem :label="$t('report_name')">
-            <Input v-model="newReport.params.name"></Input>
+            <Input v-model="newReport.params.name" :disabled="!newReport.isAdd"></Input>
           </FormItem>
           <FormItem label="CI">
-            <Select v-model="newReport.params.ciType" filterable>
+            <Select v-model="newReport.params.ciType" filterable :disabled="!newReport.isAdd">
               <template v-for="item in newReport.allCiTypes">
                 <Option :value="item.ciTypeId" :key="item.ciTypeId">{{ item.name }}</Option>
               </template>
             </Select>
           </FormItem>
           <FormItem :label="$t('data_name')">
-            <Input v-model="newReport.params.dataName"></Input>
+            <Input v-model="newReport.params.dataName" :disabled="!newReport.isAdd"></Input>
           </FormItem>
           <FormItem :label="$t('data_title_name')">
-            <Input v-model="newReport.params.dataTitleName"></Input>
+            <Input v-model="newReport.params.dataTitleName" :disabled="!newReport.isAdd"></Input>
           </FormItem>
         </Form>
         <div>
@@ -99,6 +105,8 @@ import {
   getReportStruct,
   deleteReport,
   getRolesByCurrentUser,
+  editReport,
+  getReportDetail,
   getAllRoles
 } from '@/api/server'
 export default {
@@ -108,6 +116,7 @@ export default {
       reportList: [],
       newReport: {
         showAddNewReportModal: false,
+        isAdd: true,
         params: {
           id: '',
           name: '',
@@ -136,6 +145,27 @@ export default {
     this.getReportList()
   },
   methods: {
+    async editReport (report) {
+      console.log(report)
+      const { statusCode, data } = await getReportDetail(report.id)
+      if (statusCode === 'OK') {
+        const res = await getAllCITypes()
+        if (res.statusCode === 'OK') {
+          this.newReport.allCiTypes = res.data
+        }
+        await this.getRolesByCurrentUser()
+        await this.getRoleList()
+        this.newReport.params.id = data.id
+        this.newReport.params.name = data.name
+        this.newReport.params.ciType = data.ciType
+        this.newReport.params.dataName = data.dataName
+        this.newReport.params.dataTitleName = data.dataTitleName
+        this.MGMT = data.mgmtRoleList
+        this.USE = data.useRoleList
+        this.newReport.isAdd = false
+        this.newReport.showAddNewReportModal = true
+      }
+    },
     clearSelectedReport () {
       this.currentReportId = ''
       this.ciGraphData = null
@@ -241,6 +271,7 @@ export default {
       await this.getRolesByCurrentUser()
       await this.getRoleList()
       this.newReport.showAddNewReportModal = true
+      this.newReport.isAdd = true
     },
     async getRolesByCurrentUser () {
       const { statusCode, data } = await getRolesByCurrentUser()
@@ -275,11 +306,13 @@ export default {
     async addNewReport () {
       this.newReport.params.useRole = this.USE.join(',')
       this.newReport.params.mgmtRole = this.MGMT.join(',')
-      const { statusCode, data } = await addReport(this.newReport.params)
+      const method = this.newReport.isAdd ? addReport : editReport
+      const { statusCode, data } = await method(this.newReport.params)
       if (statusCode === 'OK') {
         this.newReport.showAddNewReportModal = false
         this.currentReportId = data.id
         this.getReportList()
+        this.getReportStruct()
       }
     },
     cancelNewReport () {
