@@ -123,6 +123,7 @@ func init() {
 		&handlerFuncObj{Url: "/reports", Method: "GET", HandlerFunc: report.QueryReport},
 		&handlerFuncObj{Url: "/reports", Method: "POST", HandlerFunc: report.CreateReport},
 		&handlerFuncObj{Url: "/reports", Method: "PUT", HandlerFunc: report.UpdateReport},
+		&handlerFuncObj{Url: "/report-message/:reportId", Method: "GET", HandlerFunc: report.GetReport},
 		&handlerFuncObj{Url: "/report/:reportId", Method: "DELETE", HandlerFunc: report.DeleteReport},
 		&handlerFuncObj{Url: "/report-struct/:reportId", Method: "GET", HandlerFunc: report.QueryReportStruct},
 		&handlerFuncObj{Url: "/report-flat-struct/:reportId", Method: "GET", HandlerFunc: report.QueryReportFlatStruct},
