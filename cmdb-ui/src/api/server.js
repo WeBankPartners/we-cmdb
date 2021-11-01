@@ -232,6 +232,7 @@ export const getReportListByPermission = permission => req.get(`/reports?permiss
 export const getReportStruct = reportId => req.get(`/report-struct/${reportId}`)
 export const deleteReport = reportId => req.delete(`/report/${reportId}`)
 export const addReport = data => req.post(`/reports`, data)
+export const editReport = data => req.put(`/reports`, data)
 export const getRolesByCurrentUser = () => req.get(`/user/roles`)
 export const getReportData = (reportId, data) => req.post(`/report-data/${reportId}`, data)
 export const getReportFilterData = reportId => req.get(`/report-flat-struct/${reportId}`)
@@ -278,3 +279,4 @@ export const getCiTemplateAttr = params => req.post(`/ci-template-attr/list`, pa
 export const editCiTemplateAttr = data => req.put(`/ci-template-attr`, data)
 export const addCiTemplateAttr = data => req.post(`/ci-template-attr`, data)
 export const deleteCiTemplateAttr = id => req.delete(`/ci-template-attr?ids=${id}`)
+export const getReportDetail = reportId => req.get(`/report-message/${reportId}`)
