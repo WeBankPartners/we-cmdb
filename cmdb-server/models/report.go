@@ -23,6 +23,13 @@ type SysReportObjectTable struct {
 	SeqNo         int    `json:"seqNo" xorm:"seq_no"`
 }
 
+type SysRoleReportTable struct {
+	Id         string `json:"id" xorm:"id"`
+	Role       string `json:"role" xorm:"role"`
+	Report     string `json:"report" xorm:"report"`
+	Permission string `json:"permission" xorm:"permission"`
+}
+
 type SysReportObjectAttrTable struct {
 	Id            string `json:"reportObjectAttrId" xorm:"id"`
 	ReportObject  string `json:"reportObject" xorm:"report_object"`
@@ -91,15 +98,17 @@ type QueryReportObjectAttr struct {
 }
 
 type ModifyReport struct {
-	Id            string `json:"id" xorm:"id"`
-	Name          string `json:"name" xorm:"name"`
-	CiType        string `json:"ciType" xorm:"ci_type"`
-	CreateUser    string `json:"createUser" xorm:"create_user"`
-	UpdateUser    string `json:"updateUser" xorm:"update_user"`
-	UseRole       string `json:"useRole" xorm:"use_role"`
-	MgmtRole      string `json:"mgmtRole" xorm:"mgmt_role"`
-	DataName      string `json:"dataName" xorm:"data_name"`
-	DataTitleName string `json:"dataTitleName" xorm:"data_title_name"`
+	Id            string   `json:"id" xorm:"id"`
+	Name          string   `json:"name" xorm:"name"`
+	CiType        string   `json:"ciType" xorm:"ci_type"`
+	CreateUser    string   `json:"createUser" xorm:"create_user"`
+	UpdateUser    string   `json:"updateUser" xorm:"update_user"`
+	UseRole       string   `json:"useRole" xorm:"use_role"`
+	UseRoleList   []string `json:"useRoleList"`
+	MgmtRole      string   `json:"mgmtRole" xorm:"mgmt_role"`
+	MgmtRoleList  []string `json:"mgmtRoleList"`
+	DataName      string   `json:"dataName" xorm:"data_name"`
+	DataTitleName string   `json:"dataTitleName" xorm:"data_title_name"`
 }
 
 type ModifyReportObject struct {
