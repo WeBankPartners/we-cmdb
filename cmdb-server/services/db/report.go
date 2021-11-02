@@ -617,6 +617,11 @@ func UpdateReport(param models.ModifyReport) (rowData *models.SysReportTable, er
 	rowData.UpdateTime = updateTime
 	rowData.UpdateUser = param.UpdateUser
 	actions = append(actions, &execAction{Sql: "update sys_report set name=?,update_user=?,update_time=? where id=?", Param: []interface{}{param.Name, param.UpdateUser, updateTime, param.Id}})
+	var reportObjTable []*models.SysReportObjectTable
+	x.SQL("select id from sys_report_object where report=? and parent_object is null", param.Id).Find(&reportObjTable)
+	if len(reportObjTable) > 0 {
+		actions = append(actions, &execAction{Sql: "update sys_report_object set data_name=?,data_title_name=? where id=?", Param: []interface{}{param.DataName, param.DataTitleName, reportObjTable[0].Id}})
+	}
 	actions = append(actions, &execAction{Sql: "delete from sys_role_report where report=?", Param: []interface{}{param.Id}})
 	// 添加 report 对应的权限到 sys_role_report
 	var useRoleSlice, mgmtRoleSlice []string
