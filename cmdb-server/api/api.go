@@ -115,12 +115,15 @@ func init() {
 		&handlerFuncObj{Url: "/views", Method: "GET", HandlerFunc: view.GetViewList},
 		&handlerFuncObj{Url: "/view/:viewId", Method: "GET", HandlerFunc: view.GetView},
 		&handlerFuncObj{Url: "/view-data", Method: "POST", HandlerFunc: view.GetViewData},
+		&handlerFuncObj{Url: "/view-confirm", Method: "POST", HandlerFunc: view.ConfirmView},
 	)
 
 	// report
 	httpHandlerFuncList = append(httpHandlerFuncList,
 		&handlerFuncObj{Url: "/reports", Method: "GET", HandlerFunc: report.QueryReport},
 		&handlerFuncObj{Url: "/reports", Method: "POST", HandlerFunc: report.CreateReport},
+		&handlerFuncObj{Url: "/reports", Method: "PUT", HandlerFunc: report.UpdateReport},
+		&handlerFuncObj{Url: "/report-message/:reportId", Method: "GET", HandlerFunc: report.GetReport},
 		&handlerFuncObj{Url: "/report/:reportId", Method: "DELETE", HandlerFunc: report.DeleteReport},
 		&handlerFuncObj{Url: "/report-struct/:reportId", Method: "GET", HandlerFunc: report.QueryReportStruct},
 		&handlerFuncObj{Url: "/report-flat-struct/:reportId", Method: "GET", HandlerFunc: report.QueryReportFlatStruct},
@@ -190,6 +193,7 @@ func InitHttpServer() {
 	r.GET(urlPrefix+"/data-model", middleware.AuthToken(), ci.GetAllDataModel)
 	r.POST(urlPrefix+"/plugin/ci-data/operation", middleware.AuthCorePluginToken(), ci.PluginCiDataOperationHandle, ci.HandleOperationLog)
 	r.POST(urlPrefix+"/plugin/ci-data/attr-value", middleware.AuthCorePluginToken(), ci.PluginCiDataAttrValueHandle, ci.HandleOperationLog)
+	r.POST(urlPrefix+"/plugin/view/confirm", middleware.AuthCorePluginToken(), ci.PluginViewConfirmHandle, ci.HandleOperationLog)
 	r.Run(":" + models.Config.HttpServer.Port)
 }
 

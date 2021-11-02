@@ -2,12 +2,11 @@ package view
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 func GetViewList(c *gin.Context) {
@@ -156,7 +155,7 @@ func GetViewData(c *gin.Context) {
 			err = tmpErr
 			break
 		}
-		rowData, err = db.GetChildReportObject(roNode, rootGuidList, rootReportAttr, param.ConfirmTime)
+		rowData, _, err = db.GetChildReportObject(roNode, rootGuidList, rootReportAttr, param.ConfirmTime, param.ViewId)
 		if err != nil {
 			break
 		}
@@ -183,5 +182,20 @@ func GetViewData(c *gin.Context) {
 		middleware.ReturnData(c, []string{})
 	} else {
 		middleware.ReturnData(c, rowDataList)
+	}
+}
+
+func ConfirmView(c *gin.Context) {
+	var param models.ViewData
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	result, err := db.ViewConfirmAction(param, c.GetHeader("Authorization"), middleware.GetRequestUser(c), middleware.GetRequestRoles(c))
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	} else {
+		middleware.ReturnData(c, result)
 	}
 }

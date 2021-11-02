@@ -283,7 +283,6 @@ export default {
       this.savedSelectedRefs.tos = this.savedClickedNode.to
       this.tos = this.savedClickedNode.to
       this.bys = this.savedClickedNode.from
-
       this.setIsSwitcherOpen(true)
     },
     async setIsSwitcherOpen (status) {
@@ -319,14 +318,15 @@ export default {
     renderTos () {
       const referTos = this.referTos.map(_ => {
         let found = this.savedSelectedRefs.tos && this.savedSelectedRefs.tos.find(i => i.parentAttr === _.ciTypeAttrId)
+        let attr = JSON.parse(JSON.stringify(_))
         let res = {
           id: '',
-          ..._
+          ...attr
         }
         if (found) {
           res.id = found.id
-          _.dataName = found.dataName
-          _.dataTitleName = found.dataTitleName
+          attr.dataName = found.dataName
+          attr.dataTitleName = found.dataTitleName
         }
         return res
       })
@@ -346,14 +346,15 @@ export default {
     renderBys () {
       const referBys = this.referBys.map(_ => {
         let found = this.savedSelectedRefs.bys && this.savedSelectedRefs.bys.find(i => i.myAttr === _.ciTypeAttrId)
+        let attr = JSON.parse(JSON.stringify(_))
         let res = {
           id: '',
-          ..._
+          ...attr
         }
         if (found) {
           res.id = found.id
-          _.dataName = found.dataName
-          _.dataTitleName = found.dataTitleName
+          attr.dataName = found.dataName
+          attr.dataTitleName = found.dataTitleName
         }
         return res
       })
@@ -545,7 +546,6 @@ export default {
   },
   render (h) {
     const { isSwitcherOpen, savedClickedNode, handleConfirm, isShowError } = this
-
     return (
       <div>
         <div id="mynetwork" class="CiGraph-root" style="height: 800px" />
