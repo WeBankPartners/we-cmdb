@@ -515,3 +515,54 @@ func pluginAttrValue(input *models.PluginCiDataAttrValueRequestObj) (result *mod
 	_, _, err = db.HandleCiDataOperation(handleParam)
 	return
 }
+
+func PluginViewConfirmHandle(c *gin.Context) {
+	response := models.PluginViewConfirmResp{ResultCode: "0", ResultMessage: "success", Results: models.PluginViewConfirmOutput{}}
+	var err error
+	defer func() {
+		if err != nil {
+			log.Logger.Error("Plugin view confirm handle fail", log.Error(err))
+			response.ResultCode = "1"
+			response.ResultMessage = err.Error()
+		}
+		bodyBytes, _ := json.Marshal(response)
+		c.Set("responseBody", string(bodyBytes))
+		c.JSON(http.StatusOK, response)
+	}()
+	var param models.PluginViewConfirmRequest
+	if err = c.ShouldBindJSON(&param); err != nil {
+		return
+	}
+	if len(param.Inputs) == 0 {
+		return
+	}
+	userToken := c.GetHeader("Authorization")
+	for _, input := range param.Inputs {
+		output, tmpErr := pluginViewConfirm(input, userToken)
+		if tmpErr != nil {
+			output.ErrorCode = "1"
+			output.ErrorMessage = tmpErr.Error()
+			err = tmpErr
+		}
+		response.Results.Outputs = append(response.Results.Outputs, output)
+	}
+	logParam, _ := json.Marshal(param)
+	c.Set("requestBody", string(logParam))
+}
+
+func pluginViewConfirm(input *models.PluginViewConfirmRequestObj, userToken string) (result *models.PluginViewConfirmOutputObj, err error) {
+	result = &models.PluginViewConfirmOutputObj{CallbackParameter: input.CallbackParameter, ErrorCode: "0", ErrorMessage: ""}
+	if input.ViewId == "" || input.RootCi == "" {
+		err = fmt.Errorf("Param validate fail,viewId && rootCi can not empty ")
+		return
+	}
+	confirmResult, confirmErr := db.ViewConfirmAction(models.ViewData{ViewId: input.ViewId, RootCi: input.RootCi}, userToken, "SYSTEM", []string{})
+	if confirmErr != nil {
+		err = confirmErr
+		return
+	}
+	if len(confirmResult) > 0 {
+		result.ConfirmTime = confirmResult[0]["confirm_time"]
+	}
+	return
+}
