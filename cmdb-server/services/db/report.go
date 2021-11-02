@@ -26,7 +26,7 @@ func QueryRootReportObj(reportId string) (rowData []*models.ReportObjectNode, er
 	return
 }
 
-func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, roAttrData []*models.SysReportObjectAttrTable, confirmTime string) (rowData []map[string]interface{}, err error) {
+func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, roAttrData []*models.SysReportObjectAttrTable, confirmTime, viewId string) (rowData []map[string]interface{}, editableList []string, err error) {
 	if root == nil {
 		err = nil
 		return
@@ -81,12 +81,14 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 	}
 	extendFilterSql := ""
 	queryTableName := root.CiType
+	isEditable := checkReportObjectEditable(viewId, root.Id)
 	if confirmTime != "" {
 		queryTableName = HistoryTablePrefix + root.CiType
-		if isReportObjEditable(root.Id) {
+		if isEditable {
 			extendFilterSql = fmt.Sprintf(" AND confirm_time='%s' AND history_action='confirm' AND history_state_confirmed=1", confirmTime)
 		} else {
-			extendFilterSql = fmt.Sprintf(" AND confirm_time<='%s' AND history_action='confirm' AND history_state_confirmed=1", confirmTime)
+			filterCols += ",id"
+			extendFilterSql = fmt.Sprintf(" AND ((confirm_time<='%s' AND history_action='confirm' AND history_state_confirmed=1) OR (update_time<='%s' AND confirm_time IS NULL))", confirmTime, confirmTime)
 		}
 	}
 	sqlCmd := "SELECT " + filterCols + " FROM " + queryTableName + " WHERE " + tmpFilter + " in ('" + strings.Join(rootGuidList, "','") + "')" + extendFilterSql
@@ -95,18 +97,21 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 		log.Logger.Error("Query report object citype table error", log.String("ciTypeTable", root.CiType), log.Error(err))
 		return
 	}
-
+	if !isEditable {
+		ciTypeTableData = distinctViewCiData(ciTypeTableData)
+	}
 	for _, v := range ciTypeTableData {
 		tmpMap := make(map[string]interface{})
 		for k, val := range v {
-			//if _, ok := attrDataNameMap[k]; ok {
-			//	tmpMap[attrDataNameMap[k]] = val
-			//} else {
-			//	tmpMap[k] = val
-			//}
+			if k == "id" {
+				continue
+			}
 			tmpMap[k] = val
 		}
 		rowData = append(rowData, tmpMap)
+		if isEditable {
+			editableList = append(editableList, v["guid"])
+		}
 	}
 
 	var roData []*models.ReportObjectNode
@@ -131,10 +136,13 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 			err = tmpErr
 			break
 		}
-		childDataList, tmpErr := GetChildReportObject(ro, tmpList, subReportAttr, confirmTime)
+		childDataList, childEditList, tmpErr := GetChildReportObject(ro, tmpList, subReportAttr, confirmTime, viewId)
 		if tmpErr != nil {
 			err = tmpErr
 			break
+		}
+		if len(childEditList) > 0 {
+			editableList = append(editableList, childEditList...)
 		}
 		for i, v := range rowData {
 			var sub []map[string]interface{}
@@ -162,6 +170,49 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 		}
 	}
 	return
+}
+
+func distinctViewCiData(input []map[string]string) []map[string]string {
+	result := []map[string]string{}
+	if len(input) == 0 {
+		return result
+	}
+	guidMap := make(map[string][]string)
+	for _, v := range input {
+		tmpTime := v["update_time"]
+		if v["confirm_time"] != "" {
+			tmpTime = v["confirm_time"]
+		}
+		if tmpV, b := guidMap[v["guid"]]; b {
+			if tmpTime > tmpV[0] {
+				guidMap[v["guid"]] = []string{tmpTime, v["id"]}
+			}
+		} else {
+			guidMap[v["guid"]] = []string{tmpTime, v["id"]}
+		}
+	}
+	idMap := make(map[string]int)
+	for _, v := range guidMap {
+		idMap[v[1]] = 1
+	}
+	for _, v := range input {
+		if _, b := idMap[v["id"]]; b {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+func checkReportObjectEditable(viewId, reportObjId string) bool {
+	result := false
+	var sysGraphElememts []*models.SysGraphElementTable
+	x.SQL("select id,editable from sys_graph_element where report_object=? and graph in (select id from sys_graph where `view`=?)", reportObjId, viewId).Find(&sysGraphElememts)
+	if len(sysGraphElememts) > 0 {
+		if sysGraphElememts[0].Editable == "yes" {
+			result = true
+		}
+	}
+	return result
 }
 
 func GetReportAttr(reportObj string) (roAttrData []*models.SysReportObjectAttrTable, dataNameMap map[string]string, err error) {
@@ -463,6 +514,39 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 	return
 }
 
+func GetReport(reportId string) (result models.ModifyReport, err error) {
+	result = models.ModifyReport{Id: reportId, UseRoleList: []string{}, MgmtRoleList: []string{}}
+	var reportTable []*models.SysReportTable
+	err = x.SQL("select * from sys_report where id=?", reportId).Find(&reportTable)
+	if err != nil {
+		return
+	}
+	if len(reportTable) == 0 {
+		return result, fmt.Errorf("Can not find report with id:%s ", reportId)
+	}
+	result.Name = reportTable[0].Name
+	result.CiType = reportTable[0].CiType
+	var reportObjTable []*models.SysReportObjectTable
+	x.SQL("select * from sys_report_object where report=? and parent_object is null", reportId).Find(&reportObjTable)
+	if len(reportObjTable) > 0 {
+		result.DataName = reportObjTable[0].DataName
+		result.DataTitleName = reportObjTable[0].DataTitleName
+	}
+	var roleReportTable []*models.SysRoleReportTable
+	x.SQL("select * from sys_role_report where report=?", reportId).Find(&roleReportTable)
+	for _, v := range roleReportTable {
+		if v.Permission == "USE" {
+			result.UseRoleList = append(result.UseRoleList, v.Role)
+		}
+		if v.Permission == "MGMT" {
+			result.MgmtRoleList = append(result.MgmtRoleList, v.Role)
+		}
+	}
+	result.UseRole = strings.Join(result.UseRoleList, ",")
+	result.MgmtRole = strings.Join(result.MgmtRoleList, ",")
+	return
+}
+
 func CreateReport(param models.ModifyReport) (rowData *models.SysReportTable, err error) {
 	actions := []*execAction{}
 	createTime := time.Now().Format(models.DateTimeFormat)
@@ -514,6 +598,55 @@ func CreateReport(param models.ModifyReport) (rowData *models.SysReportTable, er
 	if err != nil {
 		err = fmt.Errorf("Try to create report fail,%s ", err.Error())
 	}
+	return
+}
+
+func UpdateReport(param models.ModifyReport) (rowData *models.SysReportTable, err error) {
+	var reportList []*models.SysReportTable
+	err = x.SQL("select id,name,ci_type,create_time,create_user,update_time,update_user from sys_report where id=?", param.Id).Find(&reportList)
+	if err != nil {
+		return
+	}
+	if len(reportList) == 0 {
+		return nil, fmt.Errorf("Can not find report with id:%s ", param.Id)
+	}
+	rowData = reportList[0]
+	actions := []*execAction{}
+	updateTime := time.Now().Format(models.DateTimeFormat)
+	rowData.Name = param.Name
+	rowData.UpdateTime = updateTime
+	rowData.UpdateUser = param.UpdateUser
+	actions = append(actions, &execAction{Sql: "update sys_report set name=?,update_user=?,update_time=? where id=?", Param: []interface{}{param.Name, param.UpdateUser, updateTime, param.Id}})
+	var reportObjTable []*models.SysReportObjectTable
+	x.SQL("select id from sys_report_object where report=? and parent_object is null", param.Id).Find(&reportObjTable)
+	if len(reportObjTable) > 0 {
+		actions = append(actions, &execAction{Sql: "update sys_report_object set data_name=?,data_title_name=? where id=?", Param: []interface{}{param.DataName, param.DataTitleName, reportObjTable[0].Id}})
+	}
+	actions = append(actions, &execAction{Sql: "delete from sys_role_report where report=?", Param: []interface{}{param.Id}})
+	// 添加 report 对应的权限到 sys_role_report
+	var useRoleSlice, mgmtRoleSlice []string
+	if param.UseRole != "" {
+		useRoleSlice = strings.Split(param.UseRole, ",")
+	}
+	if param.MgmtRole != "" {
+		mgmtRoleSlice = strings.Split(param.MgmtRole, ",")
+	}
+	execSqlCmd := "INSERT INTO sys_role_report(id,role,report,permission) VALUE (?,?,?,?)"
+	reportId := param.Id
+	var role_report_id string
+	for i := range useRoleSlice {
+		role_report_id = useRoleSlice[i] + "__" + reportId + "__" + "USE"
+		execParams := []interface{}{role_report_id, useRoleSlice[i], reportId, "USE"}
+		action := &execAction{Sql: execSqlCmd, Param: execParams}
+		actions = append(actions, action)
+	}
+	for i := range mgmtRoleSlice {
+		role_report_id = mgmtRoleSlice[i] + "__" + reportId + "__" + "MGMT"
+		execParams := []interface{}{role_report_id, mgmtRoleSlice[i], reportId, "MGMT"}
+		action := &execAction{Sql: execSqlCmd, Param: execParams}
+		actions = append(actions, action)
+	}
+	err = transaction(actions)
 	return
 }
 
