@@ -51,3 +51,10 @@ type UpdateViewParam struct {
 	MGMT          []string `json:"MGMT" xorm:"-"`
 	USE           []string `json:"USE" xorm:"-"`
 }
+
+type SysRoleViewTable struct {
+	Id         string `json:"id" xorm:"id"`
+	Role       string `json:"role" xorm:"role"`
+	View       string `json:"view" xorm:"view"`
+	Permission string `json:"permission" xorm:"permission"`
+}
