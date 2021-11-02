@@ -49,7 +49,7 @@
             <Input v-model="newReport.params.id" :disabled="!newReport.isAdd"></Input>
           </FormItem>
           <FormItem :label="$t('report_name')">
-            <Input v-model="newReport.params.name" :disabled="!newReport.isAdd"></Input>
+            <Input v-model="newReport.params.name"></Input>
           </FormItem>
           <FormItem label="CI">
             <Select v-model="newReport.params.ciType" filterable :disabled="!newReport.isAdd">
@@ -59,10 +59,10 @@
             </Select>
           </FormItem>
           <FormItem :label="$t('data_name')">
-            <Input v-model="newReport.params.dataName" :disabled="!newReport.isAdd"></Input>
+            <Input v-model="newReport.params.dataName"></Input>
           </FormItem>
           <FormItem :label="$t('data_title_name')">
-            <Input v-model="newReport.params.dataTitleName" :disabled="!newReport.isAdd"></Input>
+            <Input v-model="newReport.params.dataTitleName"></Input>
           </FormItem>
         </Form>
         <div>
