@@ -4,7 +4,10 @@
       <template v-for="item in parent">
         <div :key="item.ciTypeAttrId" style="line-height: 32px">
           <Checkbox :label="item.ciTypeAttrId">
-            <div style="width:150px;display:inline-block;">{{ item[displayKey] }}</div>
+            <Tooltip :content="item.name + '/' + item.propertyName">
+              <div style="width:150px;display:inline-block;">{{ item[displayKey] }}</div>
+            </Tooltip>
+            <!-- <div style="width:150px;display:inline-block;">{{ item[displayKey] }}</div> -->
             <div style="width:250px;display:inline-block;" v-show="social.includes(item.ciTypeAttrId)">
               <span>{{ $t('data_name') }}</span>
               <Input v-model="item.dataName" style="width:150px"></Input>
@@ -31,6 +34,7 @@ export default {
   props: ['parentData', 'parentkey', 'childData', 'childKey', 'displayKey'],
   mounted () {
     this.parent = this.parentData
+    console.log(this.parent)
     this.child = this.childData
     this.social =
       this.child &&
