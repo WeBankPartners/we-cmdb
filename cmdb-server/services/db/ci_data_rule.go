@@ -689,7 +689,7 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 }
 
 func buildConditionSql(column, operator, value string, valueList []string) string {
-	if operator == "in" && len(valueList) == 0 {
+	if operator == "in" && len(valueList) == 0 && value != "" {
 		valueList = strings.Split(strings.ReplaceAll(value[1:len(value)-1], "'", ""), ",")
 	}
 	value = strings.ReplaceAll(value, "'", "")
@@ -1034,7 +1034,7 @@ func getLeftFilterResultList(left, operator, value string, rightValueList []stri
 }
 
 func buildLeftExpressCondition(column, operator, value string, valueList []string) string {
-	if operator == "in" && len(valueList) == 0 {
+	if operator == "in" && len(valueList) == 0 && value != "" {
 		valueList = strings.Split(strings.ReplaceAll(value[1:len(value)-1], "'", ""), ",")
 	}
 	value = strings.ReplaceAll(value, "'", "")
