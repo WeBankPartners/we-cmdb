@@ -325,8 +325,8 @@ export default {
         }
         if (found) {
           res.id = found.id
-          attr.dataName = found.dataName
-          attr.dataTitleName = found.dataTitleName
+          res.dataName = found.dataName
+          res.dataTitleName = found.dataTitleName
         }
         return res
       })
@@ -353,8 +353,8 @@ export default {
         }
         if (found) {
           res.id = found.id
-          attr.dataName = found.dataName
-          attr.dataTitleName = found.dataTitleName
+          res.dataName = found.dataName
+          res.dataTitleName = found.dataTitleName
         }
         return res
       })
