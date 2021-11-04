@@ -1701,6 +1701,7 @@ func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title
 	queryParam.Dialect = &models.QueryRequestDialect{QueryMode: "all"}
 	queryParam.Filters = []*models.QueryRequestFilterObj{{Name: "guid", Operator: "eq", Value: inputGuid}}
 	queryParam.Paging = false
+	queryParam.Sorting = &models.QueryRequestSorting{Asc: true, Field: "history_time"}
 	_, rowData, err = CiDataQuery(ciTypeId, &queryParam, &models.CiDataLegalGuidList{Enable: true}, false)
 	if err != nil {
 		return
@@ -1719,7 +1720,7 @@ func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title
 		return rowData, title, nil
 	}
 	var newRowData []map[string]interface{}
-	for i := len(rowData) - 2; i > 0; i-- {
+	for i := len(rowData) - 2; i >= 0; i-- {
 		if rowData[i]["history_state_confirmed"].(string) == "1" {
 			newRowData = append(newRowData, rowData[i])
 			break
