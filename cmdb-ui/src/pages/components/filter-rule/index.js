@@ -286,7 +286,7 @@ export default {
             {this.modalData.length ? (
               this.modalData.map((_, i) => {
                 return (
-                  <div class="filter-rule-modal-content-li" style="justify-content: end;">
+                  <div class="filter-rule-modal-content-li">
                     {this.renderDeleteIcon(i)}
                     {this.renderLeft(this.modalData[i])}
                     {this.renderOperator(this.modalData[i])}
