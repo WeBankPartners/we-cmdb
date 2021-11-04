@@ -425,9 +425,9 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam mod
 
 func getRefFilterSql(filter *models.CiDataRefFilterObj, filterMap map[string]string) (sql string, err error) {
 	startCiType := filter.Left[:strings.LastIndex(filter.Left, "[")]
-	if _, b := filterMap[startCiType]; b {
-		delete(filterMap, startCiType)
-	}
+	//if _, b := filterMap[startCiType]; b {
+	//	delete(filterMap, startCiType)
+	//}
 	column := filter.Left[strings.LastIndex(filter.Left, "[")+1 : strings.LastIndex(filter.Left, "]")]
 	var valueList []string
 	if filter.Right.Type == "expression" {
@@ -449,7 +449,13 @@ func getRefFilterSql(filter *models.CiDataRefFilterObj, filterMap map[string]str
 			valueList = append(valueList, rv.(string))
 		}
 	}
-	sql = buildConditionSql(column, filter.Operator, fmt.Sprintf("%s", filter.Right.Value), valueList)
+	if strings.Contains(filter.Left, ">") || strings.Contains(filter.Left, "~") {
+		valueList, err = getLeftFilterResultList(filter.Left, filter.Operator, fmt.Sprintf("%s", filter.Right.Value), valueList, filterMap)
+		sql = buildConditionSql("guid", "in", "", valueList)
+	} else {
+		sql = buildConditionSql(column, filter.Operator, fmt.Sprintf("%s", filter.Right.Value), valueList)
+	}
+	log.Logger.Debug("getRefFilterSql", log.String("sql", sql))
 	return
 }
 
@@ -525,6 +531,7 @@ func getSameElementList(input [][]string) []string {
 }
 
 func getExpressResultList(express, startCiType string, filterMap map[string]string, permission bool) (result []string, err error) {
+	log.Logger.Debug("getExpressResultList", log.String("express", express))
 	// Example expression -> "host_resource_instance.resource_set>resource_set~(resource_set)unit[{key_name eq 'hhh'},{code in ['u','v']}]:[guid]"
 	var ciList, filterParams, tmpSplitList []string
 	// replace content 'xxx' to '$1' in case of content have '>~.:()[]'
@@ -1012,4 +1019,51 @@ func consumeUniquePathHandle(uniquePathList []*models.AutoActiveHandleParam) {
 			log.Logger.Error("Unique path handle fail", log.Error(err))
 		}
 	}
+}
+
+func getLeftFilterResultList(left, operator, value string, rightValueList []string, filterMap map[string]string) (valueList []string, err error) {
+	log.Logger.Debug("getLeftFilterResultList", log.String("left before", left))
+	column := left[strings.LastIndex(left, "[")+1 : strings.LastIndex(left, "]")]
+	left = left[:strings.LastIndex(left, ":")] + fmt.Sprintf("[{%s}]:[guid]", buildLeftExpressCondition(column, operator, value, rightValueList))
+	log.Logger.Debug("getLeftFilterResultList", log.String("left after", left))
+	valueList, err = getExpressResultList(left, "", filterMap, false)
+	if err != nil {
+		err = fmt.Errorf("Try to analyze filter left express fail,%s ", err.Error())
+	}
+	return
+}
+
+func buildLeftExpressCondition(column, operator, value string, valueList []string) string {
+	if operator == "in" && len(valueList) == 0 {
+		valueList = strings.Split(strings.ReplaceAll(value[1:len(value)-1], "'", ""), ",")
+	}
+	value = strings.ReplaceAll(value, "'", "")
+	var sql string
+	switch operator {
+	case "in":
+		sql = fmt.Sprintf("%s in ['%s']", column, strings.Join(valueList, "','"))
+		break
+	case "eq":
+		sql = fmt.Sprintf("%s %s '%s'", column, operator, value)
+		break
+	case "ne":
+		sql = fmt.Sprintf("%s %s '%s'", column, operator, value)
+		break
+	case "notNull":
+		sql = fmt.Sprintf("%s %s", column, operator)
+		break
+	case "null":
+		sql = fmt.Sprintf("%s %s", column, operator)
+		break
+	case "notEmpty":
+		sql = fmt.Sprintf("%s %s", column, operator)
+		break
+	case "empty":
+		sql = fmt.Sprintf("%s %s", column, operator)
+		break
+	case "like":
+		sql = fmt.Sprintf("%s %s '%s'", column, operator, value)
+		break
+	}
+	return sql
 }
