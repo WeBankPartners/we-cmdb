@@ -55,6 +55,7 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 		}
 	}
 	keyMap["history_state_confirmed"] = "history_state_confirmed"
+	keyMap["history_time"] = "history_time"
 	param.ResultColumns = append([]string{"guid"}, resultColumns.GetNameList()...)
 	filterSql, queryColumn, queryParam := transFiltersToSQL(param, &models.TransFiltersParam{IsStruct: false, KeyMap: keyMap, PrimaryKey: "guid", Prefix: "tt"})
 	var baseSql string
