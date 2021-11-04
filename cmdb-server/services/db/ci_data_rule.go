@@ -689,7 +689,7 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 }
 
 func buildConditionSql(column, operator, value string, valueList []string) string {
-	if operator == "in" && len(valueList) == 0 {
+	if operator == "in" && len(valueList) == 0 && value != "" {
 		valueList = strings.Split(strings.ReplaceAll(value[1:len(value)-1], "'", ""), ",")
 	}
 	value = strings.ReplaceAll(value, "'", "")
@@ -1024,9 +1024,9 @@ func consumeUniquePathHandle(uniquePathList []*models.AutoActiveHandleParam) {
 func getLeftFilterResultList(left, operator, value string, rightValueList []string, filterMap map[string]string) (valueList []string, err error) {
 	log.Logger.Debug("getLeftFilterResultList", log.String("left before", left))
 	column := left[strings.LastIndex(left, "[")+1 : strings.LastIndex(left, "]")]
-	left = left[:strings.LastIndex(left, ":")] + fmt.Sprintf("[{%s}]:[guid]", buildLeftExpressCondition(column, operator, value, rightValueList))
+	left = left[:strings.LastIndex(left, ":")] + fmt.Sprintf("[{%s}]", buildLeftExpressCondition(column, operator, value, rightValueList))
 	log.Logger.Debug("getLeftFilterResultList", log.String("left after", left))
-	valueList, err = getExpressResultList(left, "", filterMap, false)
+	valueList, err = getExpressResultList(left, "", filterMap, true)
 	if err != nil {
 		err = fmt.Errorf("Try to analyze filter left express fail,%s ", err.Error())
 	}
@@ -1034,7 +1034,7 @@ func getLeftFilterResultList(left, operator, value string, rightValueList []stri
 }
 
 func buildLeftExpressCondition(column, operator, value string, valueList []string) string {
-	if operator == "in" && len(valueList) == 0 {
+	if operator == "in" && len(valueList) == 0 && value != "" {
 		valueList = strings.Split(strings.ReplaceAll(value[1:len(value)-1], "'", ""), ",")
 	}
 	value = strings.ReplaceAll(value, "'", "")
