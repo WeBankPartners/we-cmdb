@@ -235,39 +235,49 @@ export default {
             _ciAttrs = ciAttrs.data.filter(_ => this.hiddenAttrType.indexOf(_.inputType) === -1)
           }
         }
-        this.options = this.options.concat(
-          _ciAttrs.map(_ => {
-            const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
-            const _nodeType = isRef ? 'node' : 'attr'
-            const ciType = isRef ? this.ciTypesObjById[_.referenceId].ciTypeId : this.ciTypesObjById[ciTypeId].ciTypeId
-            const attr = _.propertyName
-            const nodeName = isRef ? `.${attr}>${ciType}` : `:[${attr}]`
-            const nodeObj = {
-              innerText: nodeName,
-              props: {
-                class: 'attr-express-node',
-                attrs: {
-                  'attr-index': attrIndex + 1,
-                  filter: false,
-                  citype: ciType,
-                  ciTypeId: this.ciTypesObjByTableName[ciType].ciTypeId,
-                  attr,
-                  nodeType: _nodeType
-                }
-              },
-              data: {
-                inputType: _.inputType,
-                ciTypeId: _.referenceId || 0
+        let cacheOptions = []
+        _ciAttrs.forEach(_ => {
+          const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
+          const _nodeType = isRef ? 'node' : 'attr'
+          const ciType = isRef ? this.ciTypesObjById[_.referenceId].ciTypeId : this.ciTypesObjById[ciTypeId].ciTypeId
+          const attr = _.propertyName
+          const nodeName = isRef ? `.${attr}>${ciType}` : `:[${attr}]`
+          let nodeObj = {
+            innerText: nodeName,
+            props: {
+              class: 'attr-express-node',
+              attrs: {
+                'attr-index': attrIndex + 1,
+                filter: false,
+                citype: ciType,
+                ciTypeId: this.ciTypesObjByTableName[ciType].ciTypeId,
+                attr,
+                nodeType: _nodeType
               }
+            },
+            data: {
+              inputType: _.inputType,
+              ciTypeId: _.referenceId || 0
             }
-            return {
+          }
+          cacheOptions.push({
+            type: 'option',
+            class: 'attr-express-li attr-express-li-ref attr-express-li-ref-to',
+            nodeName,
+            fn: () => this.addNode(attrIndex + 1, nodeObj)
+          })
+          if (isRef) {
+            const nodeName = `:[${attr}]`
+            nodeObj.innerText = nodeName
+            cacheOptions.push({
               type: 'option',
               class: 'attr-express-li attr-express-li-ref attr-express-li-ref-to',
               nodeName,
               fn: () => this.addNode(attrIndex + 1, nodeObj)
-            }
-          })
-        )
+            })
+          }
+        })
+        this.options = this.options.concat(cacheOptions)
       }
     },
     addNode (attrIndex, nodeObj) {
