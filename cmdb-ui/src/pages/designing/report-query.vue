@@ -32,10 +32,11 @@
         :disabled="!currentReportId || treeRoot.length === 0"
         v-if="displayType !== 'table'"
         @click="getReportData"
+        :loading="btnLoading"
         >{{ $t('query') }}</Button
       >
     </Row>
-    <template v-if="displayType === 'table'">
+    <template v-show="displayType === 'table'">
       <Row v-if="filters.length > 0 && displayType === 'table'" style="margin: 16px 0">
         <span v-for="(filter, index) in filters" :key="index" class="report-filter">
           <Button
@@ -62,7 +63,9 @@
               </template>
             </template>
           </span>
-          <Button type="primary" :disabled="filters.length === 0" @click="getReportData">{{ $t('query') }}</Button>
+          <Button type="primary" :disabled="filters.length === 0" :loading="btnLoading" @click="getReportData">{{
+            $t('query')
+          }}</Button>
         </Form>
       </Row>
       <Row v-if="hasTableData">
@@ -79,7 +82,7 @@
         />
       </Row>
     </template>
-    <template v-else>
+    <template v-show="displayType === 'tree'">
       <Tabs @on-click="changeTab" :value="treeSet[0].code" v-if="showTab">
         <TabPane v-for="tree in treeSet" :label="tree.code" :name="tree.code" :key="tree.guid">
           <Row>
@@ -142,6 +145,7 @@ export default {
   data () {
     return {
       MODALHEIGHT: 500,
+      btnLoading: false,
       fullscreen: false,
       dataDetail: {
         isShow: false,
@@ -447,7 +451,12 @@ export default {
         this.payload.pageable.startIndex = 0
       }
       this.requestURL = `/report-data/${this.currentReportId}`
+      this.btnLoading = true
+      setTimeout(() => {
+        this.btnLoading = false
+      }, 5000)
       const { statusCode, data } = await getReportData(this.currentReportId, this.payload)
+      this.btnLoading = false
       if (statusCode === 'OK') {
         this.hasTableData = true
         this.tableData = data.contents
