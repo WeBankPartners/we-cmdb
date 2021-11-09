@@ -39,6 +39,7 @@ export default {
   methods: {
     toggleEditModal (type) {
       this.modalDisplay = type
+      this.modalData = []
       if (type) {
         if (this.value) {
           let filterObj = JSON.parse(this.value)[0]
@@ -48,7 +49,8 @@ export default {
               return filterObj[_]
             })
         } else {
-          this.modalData = JSON.parse(JSON.stringify(this.defaultModalData))
+          this.modalData = []
+          // this.modalData = JSON.parse(JSON.stringify(this.defaultModalData))
         }
       } else {
         this.modalData = []
@@ -124,7 +126,7 @@ export default {
     },
     renderLeft (obj, isReadOnly = false) {
       return (
-        <div style="max-width:200px;display:inline-block">
+        <div style="width:200px;display:inline-block">
           <AttrExpress
             class={`filter-rule-edit-modal input left${isReadOnly ? ' isReadOnly' : ' editable'}`}
             value={obj.left}
