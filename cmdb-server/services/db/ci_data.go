@@ -272,6 +272,9 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 		if len(uniquePathList) > 0 {
 			uniquePathHandleChan <- uniquePathList
 		}
+		if firstAction == "insert" {
+			outputData, err = fetchNewRowData(multiCiData)
+		}
 	}
 	return
 }
@@ -1106,6 +1109,45 @@ func buildRequestBodyWithoutPwd(multiCiData []*models.MultiCiDataObj, baseAction
 		}
 	}
 	newInputBody = fmt.Sprintf("[%s]", strings.Join(inputStringList, ","))
+	return
+}
+
+func fetchNewRowData(multiCiData []*models.MultiCiDataObj) (output []models.CiDataMapObj, err error) {
+	output = []models.CiDataMapObj{}
+	for _, ciDataObj := range multiCiData {
+		inputGuidList := []string{}
+		for _, inputRow := range ciDataObj.InputData {
+			inputGuidList = append(inputGuidList, inputRow["guid"])
+		}
+		joinSql := ""
+		columnSql := "*"
+		for i, attr := range ciDataObj.Attributes {
+			if attr.InputType == models.MultiRefType {
+				joinSql += fmt.Sprintf(" left join (select from_guid,GROUP_CONCAT(to_guid) to_guid from %s$%s where from_guid in ('%s') group by from_guid) t%d on t%d.from_guid=tt.guid ",
+					ciDataObj.CiTypeId, attr.Name, strings.Join(inputGuidList, "','"), i, i)
+				columnSql += fmt.Sprintf(",t%d.to_guid as %s", i, attr.Name)
+			}
+		}
+		queryRowData, tmpErr := x.QueryString(fmt.Sprintf("SELECT %s FROM %s tt %s where tt.guid in ('%s')", columnSql, ciDataObj.CiTypeId, joinSql, strings.Join(inputGuidList, "','")))
+		if tmpErr != nil {
+			err = fmt.Errorf("Try to get exist ci:%s Data fail,%s ", ciDataObj.CiTypeId, tmpErr.Error())
+			break
+		}
+		tmpPwdKeyMap := make(map[string]int)
+		for _, attr := range ciDataObj.Attributes {
+			if attr.InputType == "password" {
+				tmpPwdKeyMap[attr.Name] = 1
+			}
+		}
+		for _, rowData := range queryRowData {
+			for k, _ := range rowData {
+				if _, b := tmpPwdKeyMap[k]; b {
+					rowData[k] = "******"
+				}
+			}
+			output = append(output, rowData)
+		}
+	}
 	return
 }
 
