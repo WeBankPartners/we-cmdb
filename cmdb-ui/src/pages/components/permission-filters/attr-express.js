@@ -267,13 +267,31 @@ export default {
             fn: () => this.addNode(attrIndex + 1, nodeObj)
           })
           if (isRef) {
-            const nodeName = `:[${attr}]`
-            nodeObj.innerText = nodeName
+            const refNodeName = `:[${attr}]`
+            let refNode = {
+              innerText: refNodeName,
+              props: {
+                class: 'attr-express-node',
+                attrs: {
+                  'attr-index': attrIndex + 1,
+                  filter: false,
+                  citype: ciType,
+                  ciTypeId: this.ciTypesObjByTableName[ciType].ciTypeId,
+                  attr,
+                  nodeType: _nodeType
+                }
+              },
+              data: {
+                inputType: _.inputType,
+                ciTypeId: _.referenceId || 0
+              }
+            }
+
             cacheOptions.push({
               type: 'option',
               class: 'attr-express-li attr-express-li-ref attr-express-li-ref-to',
-              nodeName,
-              fn: () => this.addNode(attrIndex + 1, nodeObj)
+              nodeName: refNodeName,
+              fn: () => this.addNode(attrIndex + 1, refNode)
             })
           }
         })
