@@ -344,6 +344,7 @@ export default {
       this.modalDisplay = true
       let currentNode = this.expression[attrIndex].innerText
       let refCiTypeIdArray = []
+      let selectCiTypeIdArray = []
       let _filters = currentNode
         .split(/\[\{|},{|}]/)
         .filter((_, i) => i !== 0 && _ !== '')
@@ -375,6 +376,14 @@ export default {
               })
             }
           }
+          if (['select', 'multiSelect'].includes(inputType)) {
+            if (selectCiTypeIdArray.indexOf(found.name) === -1) {
+              selectCiTypeIdArray.push({
+                code: result.name,
+                type: 'isSelect'
+              })
+            }
+          }
           return result
         })
       this.modalSpin = true
@@ -388,6 +397,11 @@ export default {
             : getEnumCodesByCategoryId(_.referenceId)
         })
       )
+      const selectCiDataArray = await Promise.all(
+        selectCiTypeIdArray.map(_ => {
+          return getEnumCodesByCategoryId(_.code)
+        })
+      )
       this.modalSpin = false
       this.filters = _filters.map(_ => {
         if (_.referenceId) {
@@ -399,6 +413,15 @@ export default {
               }
             })
           }
+        }
+        if (['select', 'multiSelect'].includes(_.inputType)) {
+          selectCiTypeIdArray.forEach((attr, i) => {
+            if (attr.code === _.name) {
+              _.options = selectCiDataArray[i].data
+              _.value = _.value.split(',')
+              this.filterCiAttrOptions[attr.code] = _.options
+            }
+          })
         }
         return _
       })
@@ -418,7 +441,17 @@ export default {
                 : `'${_.value}'`
             return `${_.name} ${_.operator} ${result}`
           } else if (['null', 'notNull'].indexOf(_.operator) === -1) {
-            let result = _.operator === 'in' ? `[${JSON.parse(_.value).join(',')}]` : `'${_.value}'`
+            let result = ''
+            if (_.operator === 'in') {
+              if (Array.isArray(_.value)) {
+                result = `[${_.value.join(',')}]`
+              } else {
+                result = `[${JSON.parse(_.value).join(',')}]`
+              }
+            } else {
+              result = `'${_.value}'`
+            }
+            // let result = _.operator === 'in' ? `[${JSON.parse(_.value).join(',')}]` : `'${_.value}'`
             return `${_.name} ${_.operator} ${result}`
           } else if (['null', 'notNull'].indexOf(_.operator) >= 0) {
             return `${_.name} ${_.operator}`

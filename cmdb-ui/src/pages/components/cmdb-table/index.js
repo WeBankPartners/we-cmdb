@@ -898,6 +898,20 @@ export default {
       <div>
         {!filtersHidden && <div>{this.getFormFilters()}</div>}
         <Row style="margin-bottom:10px">{this.getTableOuterActions()}</Row>
+        <div style="position: relative;left: 98%;">
+          <Poptip placement="bottom-end" width="400">
+            <Button type="primary" shape="circle" icon="ios-funnel-outline"></Button>
+            <div class="api" slot="content">
+              {this.tableColumns.map(col => {
+                return (
+                  <div>
+                    <Checkbox on-on-change={(col.displayByDefault = 'yes')}>{col.name}</Checkbox>
+                  </div>
+                )
+              })}
+            </div>
+          </Poptip>
+        </div>
         <Table
           loading={tableLoading}
           ref="table"
