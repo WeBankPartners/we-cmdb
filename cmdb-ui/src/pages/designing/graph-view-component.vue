@@ -10,26 +10,24 @@
           </div>
         </Card>
         <div class="operation-area">
-          <Collapse v-model="collapseValue">
+          <Button style="float:right" type="primary" @click="openDrawer = !openDrawer">
+            {{ $t('operating_area') }}
+          </Button>
+          <Drawer :closable="false" :width="400" :mask="false" :transfer="false" inner v-model="openDrawer">
             <Spin fix v-if="operationLoading">
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
               <div>{{ $t('loading') }}</div>
             </Spin>
-            <Panel name="operation">
-              {{ $t('operating_area') }}
-              <div slot="content">
-                <Operation
-                  class="operation-container"
-                  ref="operationPanel"
-                  :isEdit="isEdit"
-                  :editable="editable"
-                  :suportVersion="suportVersion"
-                  :ciTypeMapping="ciTypeMapping"
-                  @operationReload="operationReload"
-                ></Operation>
-              </div>
-            </Panel>
-          </Collapse>
+            <Operation
+              class="operation-container"
+              ref="operationPanel"
+              :isEdit="isEdit"
+              :editable="editable"
+              :suportVersion="suportVersion"
+              :ciTypeMapping="ciTypeMapping"
+              @operationReload="operationReload"
+            ></Operation>
+          </Drawer>
         </div>
       </Col>
     </Row>
@@ -51,13 +49,13 @@ export default {
   },
   data () {
     return {
+      openDrawer: false,
       selectedId: '', // 点击选中的图形容器ID值, 赋值会使元素高亮
       cachedIdInfo: { id: '', type: '', graph: '', color: '', pathColor: '' }, // 缓存点击后的图形容器原始信息，比如color
       plainDatas: [], // 存储平面数据[{guid:xxx, metadata: {}, ci: unit, parent: guid_x, data: data, operation: nextOperation}]
       graph: {}, // graph元素，用于存储d3.graphviz
       ignoreOperations: [], // 忽略操作，默认忽略action=Confirm的操作
       loading: false, // 是否显示loading动画
-      collapseValue: [], // 用于控制操作面板的展开
       operationLoading: false
     }
   },
@@ -211,46 +209,6 @@ export default {
       this.plainDatas = []
       this.buildPlainDatas(graphSetting, graphData, graphIndex)
     },
-    // async handleNodeMouseover (e) {
-    //   e.preventDefault()
-    //   e.stopPropagation()
-    //   d3.selectAll('g').attr('cursor', 'pointer')
-    //   var g = e.currentTarget
-    //   var nodeName = g.firstElementChild.textContent.trim()
-    //   this.shadeAll()
-    //   //this.colorNode(nodeName)
-    // },
-    // shadeAll () {
-    //   d3.selectAll('g path')
-    //     .attr('stroke', '#7f8fa6')
-    //     .attr('stroke-opacity', '.2')
-    //   d3.selectAll('g polygon')
-    //     .attr('stroke', '#7f8fa6')
-    //     .attr('stroke-opacity', '.2')
-    //     .attr('fill', '#7f8fa6')
-    //     .attr('fill-opacity', '.2')
-    //   d3.selectAll('.edge text').attr('fill', '#7f8fa6')
-    // },
-    // colorNode (nodeName) {
-    //   d3.selectAll('g[from="' + nodeName + '"] path')
-    //     .attr('stroke', 'red')
-    //     .attr('stroke-opacity', '1')
-    //   d3.selectAll('g[from="' + nodeName + '"] text').attr('fill', 'red')
-    //   d3.selectAll('g[from="' + nodeName + '"] polygon')
-    //     .attr('stroke', 'red')
-    //     .attr('fill', 'red')
-    //     .attr('fill-opacity', '1')
-    //     .attr('stroke-opacity', '1')
-    //   d3.selectAll('g[to="' + nodeName + '"] path')
-    //     .attr('stroke', 'green')
-    //     .attr('stroke-opacity', '1')
-    //   d3.selectAll('g[to="' + nodeName + '"] text').attr('fill', 'green')
-    //   d3.selectAll('g[to="' + nodeName + '"] polygon')
-    //     .attr('stroke', 'green')
-    //     .attr('fill', 'green')
-    //     .attr('fill-opacity', '1')
-    //     .attr('stroke-opacity', '1')
-    // },
     buildPlainDatas (graphSetting, graphData, graphIndex = 0) {
       graphData.forEach(data => {
         let node = {
@@ -301,8 +259,7 @@ export default {
       e.stopPropagation()
       if (e.currentTarget.tagName === 'svg') {
         this.selectedId = ''
-        // 展开面板
-        this.collapseValue = []
+        this.openDrawer = false
         this.$refs.operationPanel.ciType = ''
         this.$refs.operationPanel.nodeGuid = ''
         this.$refs.operationPanel.nodeEditable = []
@@ -321,11 +278,10 @@ export default {
         return false
       })
       if (allNodes.length) {
+        this.openDrawer = true
         let node = allNodes[0]
         // 高亮节点
         this.selectedId = id
-        // 展开面板
-        this.collapseValue = ['operation']
         // 赋值ciType并初始化NodeData
         this.operationLoading = true
         this.$refs.operationPanel.ciType = node.ciType
@@ -396,11 +352,12 @@ export default {
 .operation-area {
   position: absolute;
   width: 450px;
+  height: 100%;
   top: 0;
   right: 0;
 }
 .operation-container {
-  height: calc(100vh - 330px);
+  height: calc(100vh - 300px);
 }
 .buttons {
   position: absolute;
