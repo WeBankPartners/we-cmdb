@@ -69,6 +69,7 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 			}
 			ruleSubIndex = append(ruleSubIndex, i)
 			ruleObjValueList = append(ruleObjValueList, tmpValueList)
+			log.Logger.Debug("make resultValueList 3", log.StringList("list", tmpValueList), log.String("ruleObjValueList", fmt.Sprintf("%s", ruleObjValueList)), log.String("ruleSubIndex", fmt.Sprintf("%v", ruleSubIndex)))
 		} else if ruleObj.Type == "delimiter" {
 			// 连接符
 			ruleObjValueList = append(ruleObjValueList, []string{ruleObj.Value})
@@ -83,7 +84,9 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 			isSpecialStruct = true
 		}
 	}
+	log.Logger.Debug("ruleObjValueList", log.String("data", fmt.Sprintf("%s", ruleObjValueList)))
 	if err != nil || len(ruleObjValueList) == 0 {
+		log.Logger.Debug("-----end buildAutofillValue", log.StringList("result", newValueList))
 		return
 	}
 	// 特殊处理autofillRule类型的值
