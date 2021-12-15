@@ -19,7 +19,7 @@ var (
 )
 
 func buildAutofillValue(columnMap map[string]string, rule, attrInputType string) (newValueList []string, err error) {
-	log.Logger.Debug("columnMap", log.JsonObj("map", columnMap))
+	log.Logger.Debug("-----start buildAutofillValue columnMap", log.JsonObj("map", columnMap))
 	if rule == "" {
 		return
 	}
@@ -156,6 +156,7 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 		}
 		newValueList = tmpValueList
 	}
+	log.Logger.Debug("-----end buildAutofillValue", log.StringList("result", newValueList))
 	return
 }
 
@@ -280,7 +281,7 @@ func getReferRowDataByFilter(ciTypeId, attr string, filters []*models.AutofillFi
 }
 
 func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, startRowData map[string]string) (sql string, err error) {
-	var valueString string
+	var valueString, columnString string
 	var valueList []string
 	log.Logger.Debug("getFilterSql", log.String("ciType", filter.CiType), log.String("attr", filter.Name), log.String("filterType", filter.Type))
 	if filter.Type == "autoFill" {
@@ -302,6 +303,7 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 		valueString = fmt.Sprintf("%s", filter.Value)
 	}
 	if prefix != "" {
+		columnString = filter.Name
 		filter.Name = fmt.Sprintf("%s.%s", prefix, filter.Name)
 	}
 	var multiSql string
@@ -334,11 +336,11 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 		sql = fmt.Sprintf("%s IS NULL", filter.Name)
 		break
 	}
-	if isAttributeMultiRef(filter.CiType, filter.Name) {
+	if isAttributeMultiRef(filter.CiType, columnString) {
 		if multiSql != "" {
 			multiSql = " and " + multiSql
 		}
-		queryRows, queryErr := x.QueryString(fmt.Sprintf("select * from %s$%s where 1=1 %s", filter.CiType, filter.Name, multiSql))
+		queryRows, queryErr := x.QueryString(fmt.Sprintf("select * from %s$%s where 1=1 %s", filter.CiType, columnString, multiSql))
 		if queryErr != nil {
 			err = fmt.Errorf("getFilterSql:Try to query multiRef fail,%s ", queryErr.Error())
 			return
