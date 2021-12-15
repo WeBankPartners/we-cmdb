@@ -19,7 +19,7 @@ var (
 )
 
 func buildAutofillValue(columnMap map[string]string, rule, attrInputType string) (newValueList []string, err error) {
-	log.Logger.Debug("-----start buildAutofillValue columnMap", log.JsonObj("map", columnMap))
+	log.Logger.Debug("-----start buildAutofillValue columnMap", log.JsonObj("map", columnMap), log.String("rule", rule))
 	if rule == "" {
 		return
 	}
