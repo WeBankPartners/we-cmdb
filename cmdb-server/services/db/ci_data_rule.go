@@ -248,6 +248,7 @@ func getRuleValue(rowData map[string]string, ruleString string) (resultValueList
 func getReferRowDataByFilter(ciTypeId, attr string, filters []*models.AutofillFilterObj, rowDataList []map[string]string, multiRef bool, inputType string, startRowData map[string]string) (rowMapList []map[string]string, err error) {
 	var filterSqlList, rowGuidList []string
 	for _, f := range filters {
+		f.CiType = ciTypeId
 		tmpSql, tmpErr := getFilterSql(f, "t1", inputType, startRowData)
 		if tmpErr != nil {
 			err = fmt.Errorf("Get filter:%s sql error:%s ", f, tmpErr.Error())
@@ -281,6 +282,7 @@ func getReferRowDataByFilter(ciTypeId, attr string, filters []*models.AutofillFi
 func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, startRowData map[string]string) (sql string, err error) {
 	var valueString string
 	var valueList []string
+	log.Logger.Debug("getFilterSql", log.String("ciType", filter.CiType), log.String("attr", filter.Name), log.String("filterType", filter.Type))
 	if filter.Type == "autoFill" {
 		valueString := filter.Value.(string)
 		valueList, err = buildAutofillValue(startRowData, valueString, inputType)
@@ -302,15 +304,18 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 	if prefix != "" {
 		filter.Name = fmt.Sprintf("%s.%s", prefix, filter.Name)
 	}
+	var multiSql string
 	switch filter.Operator {
 	case "in":
 		sql = fmt.Sprintf("%s IN ('%s')", filter.Name, strings.Join(valueList, "','"))
+		multiSql = fmt.Sprintf("to_guid IN ('%s')", strings.Join(valueList, "','"))
 		break
 	case "contains":
 		sql = fmt.Sprintf("%s LIKE '%%%s%%'", filter.Name, valueString)
 		break
 	case "eq":
 		sql = fmt.Sprintf("%s='%s'", filter.Name, valueString)
+		multiSql = fmt.Sprintf("to_guid='%s'", valueString)
 		break
 	case "gt":
 		sql = fmt.Sprintf("%s>'%s'", filter.Name, valueString)
@@ -320,6 +325,7 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 		break
 	case "ne":
 		sql = fmt.Sprintf("%s!='%s'", filter.Name, valueString)
+		multiSql = fmt.Sprintf("to_guid!='%s'", valueString)
 		break
 	case "notNull":
 		sql = fmt.Sprintf("%s IS NOT NULL", filter.Name)
@@ -327,6 +333,21 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 	case "null":
 		sql = fmt.Sprintf("%s IS NULL", filter.Name)
 		break
+	}
+	if isAttributeMultiRef(filter.CiType, filter.Name) {
+		if multiSql != "" {
+			multiSql = " and " + multiSql
+		}
+		queryRows, queryErr := x.QueryString(fmt.Sprintf("select * from %s$%s where 1=1 %s", filter.CiType, filter.Name, multiSql))
+		if queryErr != nil {
+			err = fmt.Errorf("getFilterSql:Try to query multiRef fail,%s ", queryErr.Error())
+			return
+		}
+		guidList := []string{}
+		for _, v := range queryRows {
+			guidList = append(guidList, v["from_guid"])
+		}
+		sql = fmt.Sprintf("guid in ('%s')", strings.Join(guidList, "','"))
 	}
 	return
 }
