@@ -291,8 +291,8 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 	var valueList []string
 	log.Logger.Debug("getFilterSql", log.String("ciType", filter.CiType), log.String("attr", filter.Name), log.String("filterType", filter.Type))
 	if filter.Type == "autoFill" {
-		valueString := filter.Value.(string)
-		valueList, err = buildAutofillValue(startRowData, valueString, inputType)
+		tmpValueString := filter.Value.(string)
+		valueList, err = buildAutofillValue(startRowData, tmpValueString, inputType)
 		log.Logger.Debug("getFilterSql value", log.StringList("valueList", valueList))
 		if err != nil {
 			err = fmt.Errorf("Build filter value error:%s ", err.Error())
