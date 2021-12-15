@@ -54,10 +54,15 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 					autofillSubResult, tmpErr := buildAutofillValue(columnMap, autofillObj, models.AutofillRuleType)
 					if tmpErr != nil {
 						log.Logger.Error("sub autofill rule error", log.Error(tmpErr))
-						newTmpValueList = append(newTmpValueList, "")
+						err = fmt.Errorf("sub autofill rule error:%s ", tmpErr.Error())
+						break
+						//newTmpValueList = append(newTmpValueList, "")
 					} else {
 						newTmpValueList = append(newTmpValueList, getAutofillValueString(autofillSubResult))
 					}
+				}
+				if err != nil {
+					break
 				}
 				log.Logger.Debug("auto fill decode result 2", log.StringList("valueList", newTmpValueList))
 				tmpValueList = newTmpValueList
@@ -265,6 +270,7 @@ func getReferRowDataByFilter(ciTypeId, attr string, filters []*models.AutofillFi
 	if len(filterSqlList) > 0 {
 		sql += " AND " + strings.Join(filterSqlList, " AND ")
 	}
+	log.Logger.Debug("getReferRowDataByFilter", log.String("sql", sql))
 	rowMapList, err = x.QueryString(sql)
 	if err != nil {
 		log.Logger.Error("Get reference row data by filter fail", log.Error(err))
