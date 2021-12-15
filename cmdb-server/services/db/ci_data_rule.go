@@ -133,12 +133,10 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 			ruleObjValueList[listIndex] = []string{strings.Join(ruleObjValueList[listIndex], ",")}
 		}
 	}
-	log.Logger.Debug("ruleObjValueList", log.String("data", fmt.Sprintf("%s", ruleObjValueList)))
 	// 起始数组,从第一个不为空的数组开始
 	startRuleValueIndex := 0
 	for i, ruleObjValue := range ruleObjValueList {
 		if len(ruleObjValue) > 0 {
-			log.Logger.Debug("append newValueList", log.StringList("ruleObjValue", ruleObjValue))
 			startRuleValueIndex = i
 			newValueList = ruleObjValue
 			break
@@ -289,7 +287,6 @@ func getReferRowDataByFilter(ciTypeId, attr string, filters []*models.AutofillFi
 func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, startRowData map[string]string) (sql string, err error) {
 	var valueString, columnString string
 	var valueList []string
-	log.Logger.Debug("getFilterSql", log.String("ciType", filter.CiType), log.String("attr", filter.Name), log.String("filterType", filter.Type))
 	if filter.Type == "autoFill" {
 		tmpValueString := filter.Value.(string)
 		valueList, err = buildAutofillValue(startRowData, tmpValueString, inputType)
@@ -306,7 +303,6 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 			valueList = append(valueList, rv.(string))
 		}
 	}
-	log.Logger.Debug("getFilterSql valueString", log.String("value", valueString))
 	if valueString == "" {
 		valueString = fmt.Sprintf("%s", filter.Value)
 	}
@@ -354,12 +350,10 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 			err = fmt.Errorf("getFilterSql:Try to query multiRef fail,%s ", queryErr.Error())
 			return
 		}
-		log.Logger.Debug("query multi result", log.String("data", fmt.Sprintf("%v", queryRows)))
 		guidList := []string{}
 		for _, v := range queryRows {
 			guidList = append(guidList, v["from_guid"])
 		}
-		log.Logger.Debug("query multi guidList", log.StringList("guidList", guidList))
 		sql = fmt.Sprintf("guid in ('%s')", strings.Join(guidList, "','"))
 	}
 	return
