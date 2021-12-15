@@ -84,7 +84,6 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 			isSpecialStruct = true
 		}
 	}
-	log.Logger.Debug("ruleObjValueList", log.String("data", fmt.Sprintf("%s", ruleObjValueList)))
 	if err != nil || len(ruleObjValueList) == 0 {
 		log.Logger.Debug("-----end buildAutofillValue", log.StringList("result", newValueList))
 		return
@@ -134,16 +133,20 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 			ruleObjValueList[listIndex] = []string{strings.Join(ruleObjValueList[listIndex], ",")}
 		}
 	}
+	log.Logger.Debug("ruleObjValueList", log.String("data", fmt.Sprintf("%s", ruleObjValueList)))
 	// 起始数组,从第一个不为空的数组开始
 	startRuleValueIndex := 0
 	for i, ruleObjValue := range ruleObjValueList {
 		if len(ruleObjValue) > 0 {
+			log.Logger.Debug("append newValueList", log.StringList("ruleObjValue", ruleObjValue))
 			startRuleValueIndex = i
 			newValueList = ruleObjValue
 			break
 		}
 	}
+	log.Logger.Debug("ruleObjValueList", log.String("data", fmt.Sprintf("%s", ruleObjValueList)), log.StringList("newValueList", newValueList))
 	if len(ruleObjValueList) == 1 || len(newValueList) == 0 {
+		log.Logger.Debug("-----end buildAutofillValue", log.StringList("result", newValueList))
 		return
 	}
 	// 多段进行笛卡尔积拼接
@@ -290,6 +293,7 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 	if filter.Type == "autoFill" {
 		valueString := filter.Value.(string)
 		valueList, err = buildAutofillValue(startRowData, valueString, inputType)
+		log.Logger.Debug("getFilterSql value", log.StringList("valueList", valueList))
 		if err != nil {
 			err = fmt.Errorf("Build filter value error:%s ", err.Error())
 			return
@@ -302,6 +306,7 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 			valueList = append(valueList, rv.(string))
 		}
 	}
+	log.Logger.Debug("getFilterSql valueString", log.String("value", valueString))
 	if valueString == "" {
 		valueString = fmt.Sprintf("%s", filter.Value)
 	}
@@ -343,15 +348,18 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 		if multiSql != "" {
 			multiSql = " and " + multiSql
 		}
+		log.Logger.Debug("query multi sql", log.String("multiSql", multiSql))
 		queryRows, queryErr := x.QueryString(fmt.Sprintf("select * from %s$%s where 1=1 %s", filter.CiType, columnString, multiSql))
 		if queryErr != nil {
 			err = fmt.Errorf("getFilterSql:Try to query multiRef fail,%s ", queryErr.Error())
 			return
 		}
+		log.Logger.Debug("query multi result", log.String("data", fmt.Sprintf("%v", queryRows)))
 		guidList := []string{}
 		for _, v := range queryRows {
 			guidList = append(guidList, v["from_guid"])
 		}
+		log.Logger.Debug("query multi guidList", log.StringList("guidList", guidList))
 		sql = fmt.Sprintf("guid in ('%s')", strings.Join(guidList, "','"))
 	}
 	return
