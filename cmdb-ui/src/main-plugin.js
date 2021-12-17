@@ -1,6 +1,6 @@
 import 'core-js/stable'
 import 'regenerator-runtime/runtime'
-import router from './router-plugin'
+import router from './project-config/router-plugin'
 import zhCN from './locale/i18n/zh-CN.json'
 import enUS from './locale/i18n/en-US.json'
 
