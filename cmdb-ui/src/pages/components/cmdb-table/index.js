@@ -730,21 +730,42 @@ export default {
         return generalParams
       }
       if (col.inputType === 'multiRef') {
+        const find = this.columns.find(column => column.ciTypeAttrId === col.ciTypeAttrId)
+        let style = ''
+        if (find !== undefined) {
+          style = `width:${find.width - 20}px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;`
+        }
         generalParams.render = (h, params) => {
           return (
-            <span>
-              {params.row.weTableForm[col.key] && (
-                <Icon
-                  size="16"
-                  type="ios-apps-outline"
-                  color="#2d8cf0"
-                  onClick={() => getMutiRefdata(params.row.weTableForm[col.key])}
-                />
-              )}
-              {JSON.parse(params.row.weTableForm[col.key])
+            <Tooltip
+              max-width="300"
+              content={JSON.parse(params.row.weTableForm[col.key])
                 .map(item => item.key_name)
                 .join(', ')}
-            </span>
+              placement="top-start"
+            >
+              <div style={style}>
+                {params.row.weTableForm[col.key] && (
+                  <Icon
+                    size="16"
+                    type="ios-apps-outline"
+                    color="#2d8cf0"
+                    onClick={() => getMutiRefdata(params.row.weTableForm[col.key])}
+                  />
+                )}
+
+                {JSON.parse(params.row.weTableForm[col.key])
+                  .map(item => item.key_name)
+                  .join(', ')}
+              </div>
+              <div slot="content" style="white-space: normal;">
+                <p>
+                  {JSON.parse(params.row.weTableForm[col.key])
+                    .map(item => item.key_name)
+                    .join(', ')}
+                </p>
+              </div>
+            </Tooltip>
           )
         }
         return generalParams
@@ -898,20 +919,6 @@ export default {
       <div>
         {!filtersHidden && <div>{this.getFormFilters()}</div>}
         <Row style="margin-bottom:10px">{this.getTableOuterActions()}</Row>
-        <div style="position: relative;left: 98%;">
-          <Poptip placement="bottom-end" width="400">
-            <Button type="primary" shape="circle" icon="ios-funnel-outline"></Button>
-            <div class="api" slot="content">
-              {this.tableColumns.map(col => {
-                return (
-                  <div>
-                    <Checkbox on-on-change={(col.displayByDefault = 'yes')}>{col.name}</Checkbox>
-                  </div>
-                )
-              })}
-            </div>
-          </Poptip>
-        </div>
         <Table
           loading={tableLoading}
           ref="table"

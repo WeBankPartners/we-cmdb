@@ -60,7 +60,12 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 	filterSql, queryColumn, queryParam := transFiltersToSQL(param, &models.TransFiltersParam{IsStruct: false, KeyMap: keyMap, PrimaryKey: "guid", Prefix: "tt"})
 	var baseSql string
 	if !permission.Enable {
-		filterSql += " and tt.guid in ('" + strings.Join(permission.GuidList, "','") + "') "
+		if strings.Contains(filterSql, "ORDER BY") {
+			tmpFilterSqlList := strings.Split(filterSql, "ORDER BY")
+			filterSql = tmpFilterSqlList[0] + " and tt.guid in ('" + strings.Join(permission.GuidList, "','") + "') ORDER BY " + tmpFilterSqlList[1]
+		} else {
+			filterSql += " and tt.guid in ('" + strings.Join(permission.GuidList, "','") + "') "
+		}
 	}
 	historyFlag := false
 	if param.Dialect == nil {

@@ -795,6 +795,7 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 func getCiRowDataByGuid(ciTypeId string, rowGuidList []string, filters []*models.AutofillFilterObj, inputType string, startRowData map[string]string) (rowMapList []map[string]string, err error) {
 	var filterSqlList []string
 	for _, f := range filters {
+		f.CiType = ciTypeId
 		tmpSql, tmpErr := getFilterSql(f, "", inputType, startRowData)
 		if tmpErr != nil {
 			err = fmt.Errorf("Get filter:%s sql error:%s ", f, tmpErr.Error())
@@ -816,6 +817,7 @@ func getCiRowDataByGuid(ciTypeId string, rowGuidList []string, filters []*models
 func getMultiRefRowData(ciTypeId, attrName, refCiTypeId string, rowGuidList []string, filters []*models.AutofillFilterObj, inputType string, startRowData map[string]string) (rowMapList []map[string]string, err error) {
 	var filterSqlList []string
 	for _, f := range filters {
+		f.CiType = ciTypeId
 		tmpSql, tmpErr := getFilterSql(f, "t2", inputType, startRowData)
 		if tmpErr != nil {
 			err = fmt.Errorf("Get filter:%s sql error:%s ", f, tmpErr.Error())

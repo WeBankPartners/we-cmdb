@@ -40,15 +40,21 @@
                 >{{ operation.name }}</Checkbox
               >
             </template>
-            <Button icon="md-person" type="dashed" size="small" style="visibility: hidden;">{{ $t('details') }}</Button>
+            <!-- <Button icon="md-person" type="dashed" size="small" style="visibility: hidden;">{{ $t('details') }}</Button>
             <Button icon="md-list" type="dashed" size="small" style="margin-right:21px;visibility: hidden;">
               {{ $t('list') }}
-            </Button>
+            </Button> -->
+            <Input v-model="filterParam" :placeholder="$t('graph_filter_values')" style="width:155px"></Input>
           </div>
         </div>
         <div class="tagContainers-auth">
           <Spin size="large" fix v-if="spinShow"></Spin>
-          <div class="data-permissions" v-for="(ci, ciIndex) in ciTypePermissions" :key="ci.ciTypeId">
+          <div
+            class="data-permissions"
+            v-for="(ci, ciIndex) in ciTypePermissions"
+            :key="ci.ciTypeId"
+            v-if="ci.ciTypeName.includes(filterParam)"
+          >
             <span class="ciTypes" :title="ci.ciTypeName">{{ ci.ciTypeName }}</span>
             <div class="ciTypes-options">
               <Checkbox
@@ -170,6 +176,7 @@ export default {
   },
   data () {
     return {
+      filterParam: '',
       listManagementModal: false,
       listRoleCiTypeId: '',
       guidOptions: [],
