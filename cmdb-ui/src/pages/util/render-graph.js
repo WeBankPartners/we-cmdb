@@ -675,6 +675,13 @@ function renderSequence (setting, datas, metadata) {
       let invokeItems = []
       setting.children.forEach(subSetting => {
         let items = data[subSetting.dataName] || []
+        let orderField = subSetting.orderData || 'order_number'
+        items.sort((item1, item2) => {
+          if (orderField in item1) {
+            return parseInt(item1.order_number) - parseInt(item2.order_number)
+          }
+          return 1
+        })
         switch (subSetting.graphType) {
           case 'assist_item':
             assistSetting = subSetting
