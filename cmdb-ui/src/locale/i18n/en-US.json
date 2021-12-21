@@ -16,6 +16,7 @@
   "table_enum_key": "Key",
   "table_enum_value": "Value",
   "table_enum_group": "Group",
+  "save_order": "Update Order",
   "add": "Add",
   "delete": "Delete",
   "modify": "Update",

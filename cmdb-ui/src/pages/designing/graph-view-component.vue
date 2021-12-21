@@ -13,12 +13,25 @@
           <Button style="float: right" type="primary" @click="openDrawer = !openDrawer">
             {{ $t('operating_area') }}
           </Button>
-          <Drawer :closable="false" :width="400" :mask="false" :transfer="false" inner v-model="openDrawer">
+          <Drawer :closable="true" :width="400" :mask="false" :transfer="false" inner v-model="openDrawer">
             <Spin fix v-if="operationLoading">
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
               <div>{{ $t('loading') }}</div>
             </Spin>
+
+            <SeqOperation
+              v-if="dotString.startsWith('sequenceDiagram')"
+              class="operation-container"
+              ref="operationPanel"
+              :isEdit="isEdit"
+              :editable="editable"
+              :suportVersion="suportVersion"
+              :ciTypeMapping="ciTypeMapping"
+              :plainDatas="plainDatas"
+              @operationReload="operationReload"
+            ></SeqOperation>
             <Operation
+              v-else
               class="operation-container"
               ref="operationPanel"
               :isEdit="isEdit"
@@ -43,10 +56,12 @@ import { queryReferenceCiData } from '@/api/server'
 import { addEvent } from '../util/event.js'
 import { renderGraph } from '../util/render-graph.js'
 import Operation from './graph-operation-component'
+import SeqOperation from './graph-sequence-component'
 import mermaid from 'mermaid'
 export default {
   components: {
-    Operation
+    Operation,
+    SeqOperation
   },
   data () {
     return {
@@ -57,7 +72,8 @@ export default {
       graph: {}, // graph元素，用于存储d3.graphviz
       ignoreOperations: [], // 忽略操作，默认忽略action=Confirm的操作
       loading: false, // 是否显示loading动画
-      operationLoading: false
+      operationLoading: false,
+      dotString: ''
     }
   },
   props: [
@@ -179,12 +195,12 @@ export default {
         },
         [graphIndex]
       )[0]
+      this.dotString = dotString
       let graph = d3.select(id)
       if (dotString.startsWith('sequenceDiagram')) {
         const element = document.querySelector(id)
         element.removeAttribute('data-processed')
-        console.log(dotString)
-        mermaid.parse(dotString)
+        // mermaid.parse(dotString)
         element.innerHTML = dotString
         mermaid.initialize({
           startOnLoad: false,
@@ -208,6 +224,7 @@ export default {
         let winWidth = window.innerWidth - 130
         let winHeight = window.innerHeight - 293
         svg.attr('width', winWidth).attr('height', winHeight).attr('style', '')
+        // g.selectAll('.sequenceNumber').on('click', () => {console.log('click ', d3.event.target.innerHTML)})
         // let svgWidth = parseInt(svg.attr("viewBox").split(' ')[2])
         // svg.attr('viewBox', '0 0 ' + winWidth + ' ' + winHeight)
         // svg.select("g").attr("transform", `translate(${winWidth/2 - svgWidth/2}, 200) scale(1)`)
