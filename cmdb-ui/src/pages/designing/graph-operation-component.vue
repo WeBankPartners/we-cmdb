@@ -27,10 +27,17 @@
               <span v-if="formData.nullable === 'no'" class="require-tag">*</span>
               {{ formData.name }}
             </span>
-            <div slot="content" style="white-space: normal;">
+            <div slot="content" style="white-space: normal">
               {{ formData.description }}
             </div>
           </Tooltip>
+          <FormItem v-if="formData.inputType === 'int'" class="form-item-content">
+            <Input
+              v-model="nodeData[formData.propertyName]"
+              type="number"
+              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
+            ></Input>
+          </FormItem>
           <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
             <Input
               v-model="nodeData[formData.propertyName]"
@@ -138,10 +145,17 @@
               <span v-if="formData.nullable == 'no'" class="require-tag">*</span>
               {{ formData.name }}
             </span>
-            <div slot="content" style="white-space: normal;">
+            <div slot="content" style="white-space: normal">
               {{ formData.description }}
             </div>
           </Tooltip>
+          <FormItem v-if="formData.inputType === 'int'" class="form-item-content">
+            <Input
+              v-model="childNodeData[formData.propertyName]"
+              type="number"
+              :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"
+            ></Input>
+          </FormItem>
           <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
             <Input
               v-model="childNodeData[formData.propertyName]"
