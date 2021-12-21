@@ -36,6 +36,7 @@ type AutofillFilterObj struct {
 	Operator string      `json:"operator"`
 	Type     string      `json:"type"`
 	Value    interface{} `json:"value"`
+	CiType   string      `json:"-"`
 }
 
 type SysStateMachineTable struct {
