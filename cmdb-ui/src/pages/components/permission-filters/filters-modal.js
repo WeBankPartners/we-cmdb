@@ -37,7 +37,7 @@ export default {
           item.value = item.operator === 'in' ? [] : ''
         } else if (['select', 'multiSelect'].indexOf(found.inputType) >= 0) {
           if (!this.filterCiAttrOptions[val]) {
-            const { data, statusCode } = await getEnumCodesByCategoryId(found.referenceId)
+            const { data, statusCode } = await getEnumCodesByCategoryId(found.selectList)
             if (statusCode === 'OK') {
               item.options = data
               let _filterCiAttrOptions = JSON.parse(JSON.stringify(this.filterCiAttrOptions))
@@ -96,10 +96,10 @@ export default {
       this.$emit('input', _value)
     },
     renderValueInput (data, i) {
-      if (['null', 'notNull'].indexOf(data.operator) >= 0) {
+      if (['null', 'notNull'].includes(data.operator)) {
         return null
       } else {
-        if (['ref', 'multiRef', 'select', 'multiSelect'].indexOf(data.inputType) >= 0) {
+        if (['ref', 'multiRef', 'select', 'multiSelect'].includes(data.inputType)) {
           return (
             <Select
               value={data.value}
@@ -107,7 +107,7 @@ export default {
               multiple={data.operator === 'in'}
               class="filters-modal-filter-li-input"
             >
-              {['ref', 'multiRef'].indexOf(data.inputType) >= 0
+              {['ref', 'multiRef'].includes(data.inputType)
                 ? data.options.map(_ => (
                   <Option value={_.guid} key={_.guid}>
                     {_.code}
