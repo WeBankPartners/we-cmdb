@@ -19,7 +19,7 @@ var (
 )
 
 func buildAutofillValue(columnMap map[string]string, rule, attrInputType string) (newValueList []string, err error) {
-	log.Logger.Debug("columnMap", log.JsonObj("map", columnMap))
+	log.Logger.Debug("-----start buildAutofillValue columnMap", log.JsonObj("map", columnMap), log.String("rule", rule))
 	if rule == "" {
 		return
 	}
@@ -54,16 +54,22 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 					autofillSubResult, tmpErr := buildAutofillValue(columnMap, autofillObj, models.AutofillRuleType)
 					if tmpErr != nil {
 						log.Logger.Error("sub autofill rule error", log.Error(tmpErr))
-						newTmpValueList = append(newTmpValueList, "")
+						err = fmt.Errorf("sub autofill rule error:%s ", tmpErr.Error())
+						break
+						//newTmpValueList = append(newTmpValueList, "")
 					} else {
 						newTmpValueList = append(newTmpValueList, getAutofillValueString(autofillSubResult))
 					}
+				}
+				if err != nil {
+					break
 				}
 				log.Logger.Debug("auto fill decode result 2", log.StringList("valueList", newTmpValueList))
 				tmpValueList = newTmpValueList
 			}
 			ruleSubIndex = append(ruleSubIndex, i)
 			ruleObjValueList = append(ruleObjValueList, tmpValueList)
+			log.Logger.Debug("make resultValueList 3", log.StringList("list", tmpValueList), log.String("ruleObjValueList", fmt.Sprintf("%s", ruleObjValueList)), log.String("ruleSubIndex", fmt.Sprintf("%v", ruleSubIndex)))
 		} else if ruleObj.Type == "delimiter" {
 			// 连接符
 			ruleObjValueList = append(ruleObjValueList, []string{ruleObj.Value})
@@ -79,6 +85,7 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 		}
 	}
 	if err != nil || len(ruleObjValueList) == 0 {
+		log.Logger.Debug("-----end buildAutofillValue", log.StringList("result", newValueList))
 		return
 	}
 	// 特殊处理autofillRule类型的值
@@ -135,7 +142,9 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 			break
 		}
 	}
+	log.Logger.Debug("ruleObjValueList", log.String("data", fmt.Sprintf("%s", ruleObjValueList)), log.StringList("newValueList", newValueList))
 	if len(ruleObjValueList) == 1 || len(newValueList) == 0 {
+		log.Logger.Debug("-----end buildAutofillValue", log.StringList("result", newValueList))
 		return
 	}
 	// 多段进行笛卡尔积拼接
@@ -151,6 +160,7 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 		}
 		newValueList = tmpValueList
 	}
+	log.Logger.Debug("-----end buildAutofillValue", log.StringList("result", newValueList))
 	return
 }
 
@@ -243,6 +253,7 @@ func getRuleValue(rowData map[string]string, ruleString string) (resultValueList
 func getReferRowDataByFilter(ciTypeId, attr string, filters []*models.AutofillFilterObj, rowDataList []map[string]string, multiRef bool, inputType string, startRowData map[string]string) (rowMapList []map[string]string, err error) {
 	var filterSqlList, rowGuidList []string
 	for _, f := range filters {
+		f.CiType = ciTypeId
 		tmpSql, tmpErr := getFilterSql(f, "t1", inputType, startRowData)
 		if tmpErr != nil {
 			err = fmt.Errorf("Get filter:%s sql error:%s ", f, tmpErr.Error())
@@ -265,6 +276,7 @@ func getReferRowDataByFilter(ciTypeId, attr string, filters []*models.AutofillFi
 	if len(filterSqlList) > 0 {
 		sql += " AND " + strings.Join(filterSqlList, " AND ")
 	}
+	log.Logger.Debug("getReferRowDataByFilter", log.String("sql", sql))
 	rowMapList, err = x.QueryString(sql)
 	if err != nil {
 		log.Logger.Error("Get reference row data by filter fail", log.Error(err))
@@ -273,11 +285,12 @@ func getReferRowDataByFilter(ciTypeId, attr string, filters []*models.AutofillFi
 }
 
 func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, startRowData map[string]string) (sql string, err error) {
-	var valueString string
+	var valueString, columnString string
 	var valueList []string
 	if filter.Type == "autoFill" {
-		valueString := filter.Value.(string)
-		valueList, err = buildAutofillValue(startRowData, valueString, inputType)
+		tmpValueString := filter.Value.(string)
+		valueList, err = buildAutofillValue(startRowData, tmpValueString, inputType)
+		log.Logger.Debug("getFilterSql value", log.StringList("valueList", valueList))
 		if err != nil {
 			err = fmt.Errorf("Build filter value error:%s ", err.Error())
 			return
@@ -294,17 +307,21 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 		valueString = fmt.Sprintf("%s", filter.Value)
 	}
 	if prefix != "" {
+		columnString = filter.Name
 		filter.Name = fmt.Sprintf("%s.%s", prefix, filter.Name)
 	}
+	var multiSql string
 	switch filter.Operator {
 	case "in":
 		sql = fmt.Sprintf("%s IN ('%s')", filter.Name, strings.Join(valueList, "','"))
+		multiSql = fmt.Sprintf("to_guid IN ('%s')", strings.Join(valueList, "','"))
 		break
 	case "contains":
 		sql = fmt.Sprintf("%s LIKE '%%%s%%'", filter.Name, valueString)
 		break
 	case "eq":
 		sql = fmt.Sprintf("%s='%s'", filter.Name, valueString)
+		multiSql = fmt.Sprintf("to_guid='%s'", valueString)
 		break
 	case "gt":
 		sql = fmt.Sprintf("%s>'%s'", filter.Name, valueString)
@@ -314,6 +331,7 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 		break
 	case "ne":
 		sql = fmt.Sprintf("%s!='%s'", filter.Name, valueString)
+		multiSql = fmt.Sprintf("to_guid!='%s'", valueString)
 		break
 	case "notNull":
 		sql = fmt.Sprintf("%s IS NOT NULL", filter.Name)
@@ -321,6 +339,22 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 	case "null":
 		sql = fmt.Sprintf("%s IS NULL", filter.Name)
 		break
+	}
+	if isAttributeMultiRef(filter.CiType, columnString) {
+		if multiSql != "" {
+			multiSql = " and " + multiSql
+		}
+		log.Logger.Debug("query multi sql", log.String("multiSql", multiSql))
+		queryRows, queryErr := x.QueryString(fmt.Sprintf("select * from %s$%s where 1=1 %s", filter.CiType, columnString, multiSql))
+		if queryErr != nil {
+			err = fmt.Errorf("getFilterSql:Try to query multiRef fail,%s ", queryErr.Error())
+			return
+		}
+		guidList := []string{}
+		for _, v := range queryRows {
+			guidList = append(guidList, v["from_guid"])
+		}
+		sql = fmt.Sprintf("guid in ('%s')", strings.Join(guidList, "','"))
 	}
 	return
 }
@@ -425,9 +459,9 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam mod
 
 func getRefFilterSql(filter *models.CiDataRefFilterObj, filterMap map[string]string) (sql string, err error) {
 	startCiType := filter.Left[:strings.LastIndex(filter.Left, "[")]
-	if _, b := filterMap[startCiType]; b {
-		delete(filterMap, startCiType)
-	}
+	//if _, b := filterMap[startCiType]; b {
+	//	delete(filterMap, startCiType)
+	//}
 	column := filter.Left[strings.LastIndex(filter.Left, "[")+1 : strings.LastIndex(filter.Left, "]")]
 	var valueList []string
 	if filter.Right.Type == "expression" {
@@ -449,7 +483,13 @@ func getRefFilterSql(filter *models.CiDataRefFilterObj, filterMap map[string]str
 			valueList = append(valueList, rv.(string))
 		}
 	}
-	sql = buildConditionSql(column, filter.Operator, fmt.Sprintf("%s", filter.Right.Value), valueList)
+	if strings.Contains(filter.Left, ">") || strings.Contains(filter.Left, "~") {
+		valueList, err = getLeftFilterResultList(filter.Left, filter.Operator, fmt.Sprintf("%s", filter.Right.Value), valueList, filterMap)
+		sql = buildConditionSql("guid", "in", "", valueList)
+	} else {
+		sql = buildConditionSql(column, filter.Operator, fmt.Sprintf("%s", filter.Right.Value), valueList)
+	}
+	log.Logger.Debug("getRefFilterSql", log.String("sql", sql))
 	return
 }
 
@@ -525,6 +565,7 @@ func getSameElementList(input [][]string) []string {
 }
 
 func getExpressResultList(express, startCiType string, filterMap map[string]string, permission bool) (result []string, err error) {
+	log.Logger.Debug("getExpressResultList", log.String("express", express))
 	// Example expression -> "host_resource_instance.resource_set>resource_set~(resource_set)unit[{key_name eq 'hhh'},{code in ['u','v']}]:[guid]"
 	var ciList, filterParams, tmpSplitList []string
 	// replace content 'xxx' to '$1' in case of content have '>~.:()[]'
@@ -682,7 +723,7 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 }
 
 func buildConditionSql(column, operator, value string, valueList []string) string {
-	if operator == "in" && len(valueList) == 0 {
+	if operator == "in" && len(valueList) == 0 && value != "" {
 		valueList = strings.Split(strings.ReplaceAll(value[1:len(value)-1], "'", ""), ",")
 	}
 	value = strings.ReplaceAll(value, "'", "")
@@ -1012,4 +1053,51 @@ func consumeUniquePathHandle(uniquePathList []*models.AutoActiveHandleParam) {
 			log.Logger.Error("Unique path handle fail", log.Error(err))
 		}
 	}
+}
+
+func getLeftFilterResultList(left, operator, value string, rightValueList []string, filterMap map[string]string) (valueList []string, err error) {
+	log.Logger.Debug("getLeftFilterResultList", log.String("left before", left))
+	column := left[strings.LastIndex(left, "[")+1 : strings.LastIndex(left, "]")]
+	left = left[:strings.LastIndex(left, ":")] + fmt.Sprintf("[{%s}]", buildLeftExpressCondition(column, operator, value, rightValueList))
+	log.Logger.Debug("getLeftFilterResultList", log.String("left after", left))
+	valueList, err = getExpressResultList(left, "", filterMap, true)
+	if err != nil {
+		err = fmt.Errorf("Try to analyze filter left express fail,%s ", err.Error())
+	}
+	return
+}
+
+func buildLeftExpressCondition(column, operator, value string, valueList []string) string {
+	if operator == "in" && len(valueList) == 0 && value != "" {
+		valueList = strings.Split(strings.ReplaceAll(value[1:len(value)-1], "'", ""), ",")
+	}
+	value = strings.ReplaceAll(value, "'", "")
+	var sql string
+	switch operator {
+	case "in":
+		sql = fmt.Sprintf("%s in ['%s']", column, strings.Join(valueList, "','"))
+		break
+	case "eq":
+		sql = fmt.Sprintf("%s %s '%s'", column, operator, value)
+		break
+	case "ne":
+		sql = fmt.Sprintf("%s %s '%s'", column, operator, value)
+		break
+	case "notNull":
+		sql = fmt.Sprintf("%s %s", column, operator)
+		break
+	case "null":
+		sql = fmt.Sprintf("%s %s", column, operator)
+		break
+	case "notEmpty":
+		sql = fmt.Sprintf("%s %s", column, operator)
+		break
+	case "empty":
+		sql = fmt.Sprintf("%s %s", column, operator)
+		break
+	case "like":
+		sql = fmt.Sprintf("%s %s '%s'", column, operator, value)
+		break
+	}
+	return sql
 }

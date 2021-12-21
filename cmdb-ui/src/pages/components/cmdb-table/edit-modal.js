@@ -319,6 +319,9 @@ export default {
                       </div>
                     )
                   } else if (column.component === 'CMDBPermissionFilters') {
+                    // eslint-disable-next-line no-unused-vars
+                    let value = d[column.propertyName] || []
+                    value = Array.isArray(value) ? value : JSON.parse(value)
                     return (
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
                         <column.component
@@ -328,7 +331,7 @@ export default {
                           disabled={this.isGroupEditDisabled(column, d)}
                           rootCis={column.rootCis}
                           rootCiTypeId={column.ciTypeId}
-                          value={d[column.propertyName] || []}
+                          value={value}
                           onInput={v => {
                             setValueHandler(v, column, d)
                           }}

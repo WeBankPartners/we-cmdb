@@ -499,7 +499,7 @@ CREATE TABLE `sys_role_user` (
 
 LOCK TABLES `sys_role_user` WRITE;
 /*!40000 ALTER TABLE `sys_role_user` DISABLE KEYS */;
-INSERT INTO `sys_role_user` (`id`, `role_id`, `user_id`) VALUES ('super_admin___super_admin','super_admin','super_admin');
+INSERT INTO `sys_role_user` (`id`, `role_id`, `user_id`) VALUES ('SUPER_ADMIN___super_admin','SUPER_ADMIN','super_admin');
 /*!40000 ALTER TABLE `sys_role_user` ENABLE KEYS */;
 UNLOCK TABLES;
 

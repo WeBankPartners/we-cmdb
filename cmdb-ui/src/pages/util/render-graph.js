@@ -575,15 +575,14 @@ function countItemDepth (setting, depth) {
   return maxDepth
 }
 
-function shapeDetection (attrString) {
-  let reg = /shape\s*=\s*([a-z]+)/
-  let shape = 'ellipse'
-  if (reg.test(attrString)) {
-    shape = RegExp.$1
-  }
-  return shape
-}
-console.log(shapeDetection)
+// function shapeDetection (attrString) {
+//   let reg = /shape\s*=\s*([a-z]+)/
+//   let shape = 'ellipse'
+//   if (reg.test(attrString)) {
+//     shape = RegExp.$1
+//   }
+//   return shape
+// }
 function calculateShapeLabel (shape, width, fontSize, label) {
   let factorMapping = {
     ellipse: 0.00887311,

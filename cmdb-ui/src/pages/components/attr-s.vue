@@ -34,7 +34,6 @@ export default {
   props: ['parentData', 'parentkey', 'childData', 'childKey', 'displayKey'],
   mounted () {
     this.parent = this.parentData
-    console.log(this.parent)
     this.child = this.childData
     this.social =
       this.child &&

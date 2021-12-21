@@ -2,13 +2,16 @@
   &-edit-icon {
     cursor: pointer;
   }
+  &-key-word {
+    vertical-align: top;
+  }
 
   &-modal-content {
     &-li {
       align-items: center;
       display: flex;
       margin-bottom: 10px;
-      justify-content: center;
+      // justify-content: center;
       width: 100%;
     }
   }

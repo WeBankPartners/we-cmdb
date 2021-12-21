@@ -20,6 +20,7 @@
     </div>
     <div slot="content">
       <Form>
+        <span v-if="nodeCiAttrs.length === 0">No Data!</span>
         <div v-for="(formData, formDataIndex) in nodeCiAttrs" :key="formDataIndex + nodeGuid">
           <Tooltip :delay="500" placement="left-start">
             <span class="form-item-title">
