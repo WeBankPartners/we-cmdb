@@ -235,15 +235,41 @@ export default {
             _ciAttrs = ciAttrs.data.filter(_ => this.hiddenAttrType.indexOf(_.inputType) === -1)
           }
         }
-        this.options = this.options.concat(
-          _ciAttrs.map(_ => {
-            const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
-            const _nodeType = isRef ? 'node' : 'attr'
-            const ciType = isRef ? this.ciTypesObjById[_.referenceId].ciTypeId : this.ciTypesObjById[ciTypeId].ciTypeId
-            const attr = _.propertyName
-            const nodeName = isRef ? `.${attr}>${ciType}` : `:[${attr}]`
-            const nodeObj = {
-              innerText: nodeName,
+        let cacheOptions = []
+        _ciAttrs.forEach(_ => {
+          const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
+          const _nodeType = isRef ? 'node' : 'attr'
+          const ciType = isRef ? this.ciTypesObjById[_.referenceId].ciTypeId : this.ciTypesObjById[ciTypeId].ciTypeId
+          const attr = _.propertyName
+          const nodeName = isRef ? `.${attr}>${ciType}` : `:[${attr}]`
+          let nodeObj = {
+            innerText: nodeName,
+            props: {
+              class: 'attr-express-node',
+              attrs: {
+                'attr-index': attrIndex + 1,
+                filter: false,
+                citype: ciType,
+                ciTypeId: this.ciTypesObjByTableName[ciType].ciTypeId,
+                attr,
+                nodeType: _nodeType
+              }
+            },
+            data: {
+              inputType: _.inputType,
+              ciTypeId: _.referenceId || 0
+            }
+          }
+          cacheOptions.push({
+            type: 'option',
+            class: 'attr-express-li attr-express-li-ref attr-express-li-ref-to',
+            nodeName,
+            fn: () => this.addNode(attrIndex + 1, nodeObj)
+          })
+          if (isRef) {
+            const refNodeName = `:[${attr}]`
+            let refNode = {
+              innerText: refNodeName,
               props: {
                 class: 'attr-express-node',
                 attrs: {
@@ -260,14 +286,16 @@ export default {
                 ciTypeId: _.referenceId || 0
               }
             }
-            return {
+
+            cacheOptions.push({
               type: 'option',
               class: 'attr-express-li attr-express-li-ref attr-express-li-ref-to',
-              nodeName,
-              fn: () => this.addNode(attrIndex + 1, nodeObj)
-            }
-          })
-        )
+              nodeName: refNodeName,
+              fn: () => this.addNode(attrIndex + 1, refNode)
+            })
+          }
+        })
+        this.options = this.options.concat(cacheOptions)
       }
     },
     addNode (attrIndex, nodeObj) {
@@ -316,6 +344,7 @@ export default {
       this.modalDisplay = true
       let currentNode = this.expression[attrIndex].innerText
       let refCiTypeIdArray = []
+      let selectCiTypeIdArray = []
       let _filters = currentNode
         .split(/\[\{|},{|}]/)
         .filter((_, i) => i !== 0 && _ !== '')
@@ -347,6 +376,14 @@ export default {
               })
             }
           }
+          if (['select', 'multiSelect'].includes(inputType)) {
+            if (selectCiTypeIdArray.indexOf(found.name) === -1) {
+              selectCiTypeIdArray.push({
+                code: result.name,
+                type: 'isSelect'
+              })
+            }
+          }
           return result
         })
       this.modalSpin = true
@@ -360,6 +397,11 @@ export default {
             : getEnumCodesByCategoryId(_.referenceId)
         })
       )
+      const selectCiDataArray = await Promise.all(
+        selectCiTypeIdArray.map(_ => {
+          return getEnumCodesByCategoryId(_.code)
+        })
+      )
       this.modalSpin = false
       this.filters = _filters.map(_ => {
         if (_.referenceId) {
@@ -371,6 +413,15 @@ export default {
               }
             })
           }
+        }
+        if (['select', 'multiSelect'].includes(_.inputType)) {
+          selectCiTypeIdArray.forEach((attr, i) => {
+            if (attr.code === _.name) {
+              _.options = selectCiDataArray[i].data
+              _.value = _.value.split(',')
+              this.filterCiAttrOptions[attr.code] = _.options
+            }
+          })
         }
         return _
       })
@@ -390,7 +441,17 @@ export default {
                 : `'${_.value}'`
             return `${_.name} ${_.operator} ${result}`
           } else if (['null', 'notNull'].indexOf(_.operator) === -1) {
-            let result = _.operator === 'in' ? `[${JSON.parse(_.value).join(',')}]` : `'${_.value}'`
+            let result = ''
+            if (_.operator === 'in') {
+              if (Array.isArray(_.value)) {
+                result = `[${_.value.join(',')}]`
+              } else {
+                result = `[${JSON.parse(_.value).join(',')}]`
+              }
+            } else {
+              result = `'${_.value}'`
+            }
+            // let result = _.operator === 'in' ? `[${JSON.parse(_.value).join(',')}]` : `'${_.value}'`
             return `${_.name} ${_.operator} ${result}`
           } else if (['null', 'notNull'].indexOf(_.operator) >= 0) {
             return `${_.name} ${_.operator}`
