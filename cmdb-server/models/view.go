@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-var BaseElementColumns = []string{"graph", "report_object ", "show_table", "display_expression", "node_group_name", "line_start_data", "line_end_data", "line_display_position", "graph_type", "graph_shape_data", "graph_shapes", "graph_config_data", "graph_configs", "graph_filter_data", "graph_filter_values", "editable", "seq_no"}
+var BaseElementColumns = []string{"graph", "report_object ", "show_table", "display_expression", "node_group_name", "line_start_data", "line_end_data", "line_display_position", "graph_type", "graph_shape_data", "graph_shapes", "graph_config_data", "graph_configs", "graph_filter_data", "graph_filter_values", "editable", "seq_no", "order_data", "update_operation"}
 
 type SysViewTable struct {
 	Id            string    `json:"viewId" xorm:"id"`
