@@ -130,6 +130,9 @@ export default {
       this.graph.graphviz.resetZoom()
     },
     getGraphTransform () {
+      if (this.dotString.startsWith('sequenceDiagram')) {
+        return null
+      }
       let domId = '#graphMgmt' + this.graphIndex + ' > svg'
       let svg = d3.select(domId)
       return d3Zoom.zoomTransform(svg.node())

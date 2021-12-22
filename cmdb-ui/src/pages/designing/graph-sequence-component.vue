@@ -21,11 +21,10 @@
             <div :title="nodeData.key_name" class="panel-text">{{ nodeData.key_name }}</div>
             <div slot="content">
               <Form>
-                <span v-if="nodeCiAttrs.length === 0">No Data!</span>
                 <div v-for="(formData, formDataIndex) in nodeCiAttrs" :key="formDataIndex + nodeData.guid">
                   <Tooltip :delay="500" placement="left-start">
                     <span class="form-item-title">
-                      <span v-if="formData.nullable === 'no'" class="require-tag">*</span>
+                      <span v-if="formData.uiNullable === 'no'" class="require-tag">*</span>
                       {{ formData.name }}
                     </span>
                     <div slot="content" style="white-space: normal">
@@ -145,7 +144,7 @@
         <div v-for="(formData, formDataIndex) in nodeCiAttrs" :key="'newform' + formDataIndex">
           <Tooltip :delay="500" placement="left-start">
             <span class="form-item-title">
-              <span v-if="formData.nullable == 'no'" class="require-tag">*</span>
+              <span v-if="formData.uiNullable == 'no'" class="require-tag">*</span>
               {{ formData.name }}
             </span>
             <div slot="content" style="white-space: normal">
@@ -621,22 +620,15 @@ export default {
     },
     async saveNodeOrder () {
       let orderField = this.graphMetadata.setting.orderData || 'order_number'
-      this.nodeDatas.forEach(el => {
-        el[orderField] = (10001 + parseInt(el[orderField])).toString()
+      let nodes = this.nodeDatas.map(el => {
+        let node = { guid: el.guid }
+        node[orderField] = (10001 + parseInt(el[orderField])).toString()
+        return node
       })
-      const resp = await graphCiDataOperation(
-        this.ciType,
-        this.nodeUpdateOperation,
-        this.nodeDatas.map(el => normalizeFormData(el))
-      )
+      const resp = await graphCiDataOperation(this.ciType, this.nodeUpdateOperation, nodes)
       if (resp.statusCode === 'OK') {
-        this.nodeDatas.forEach((el, idx) => {
+        nodes.forEach((el, idx) => {
           el[orderField] = (idx + 1).toString()
-        })
-        let nodes = this.nodeDatas.map(el => {
-          let newEl = normalizeFormData(el)
-          delete newEl.update_time
-          return newEl
         })
         const resp2 = await graphCiDataOperation(this.ciType, this.nodeUpdateOperation, nodes)
         if (resp2.statusCode === 'OK') {
