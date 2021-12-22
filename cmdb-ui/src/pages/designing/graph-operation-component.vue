@@ -24,7 +24,7 @@
         <div v-for="(formData, formDataIndex) in nodeCiAttrs" :key="formDataIndex + nodeGuid">
           <Tooltip :delay="500" placement="left-start">
             <span class="form-item-title">
-              <span v-if="formData.nullable === 'no'" class="require-tag">*</span>
+              <span v-if="formData.uiNullable === 'no'" class="require-tag">*</span>
               {{ formData.name }}
             </span>
             <div slot="content" style="white-space: normal">
@@ -142,7 +142,7 @@
         <div v-for="(formData, formDataIndex) in childNodeCiAttrs" :key="'childform' + nodeGuid + formDataIndex">
           <Tooltip :delay="500" placement="left-start">
             <span class="form-item-title">
-              <span v-if="formData.nullable == 'no'" class="require-tag">*</span>
+              <span v-if="formData.uiNullable == 'no'" class="require-tag">*</span>
               {{ formData.name }}
             </span>
             <div slot="content" style="white-space: normal">
