@@ -324,6 +324,22 @@ export default {
         guids.push(item.guid)
       }
     })
+    //
+    if (ciType.length === 0) {
+      this.plainDatas.forEach(item => {
+        if (item.metadata.setting.graphType === 'sequence_diagram') {
+          let setting = item.metadata.setting.children.find(el => el.graphType === 'service_invoke_item')
+          graphMetadata = {
+            setting: setting,
+            editRefAttr: setting.editRefAttr,
+            editable: setting.editable
+          }
+          parentNodeDataGuid = item.guid
+          ciType = setting.ciType
+        }
+      })
+    }
+
     // 准备基础数据
     this.ciType = ciType
     this.graphMetadata = graphMetadata
@@ -442,21 +458,24 @@ export default {
             dialect: {}
           }
         }
-        const { data, statusCode } = await queryCiData(payload)
-        if (statusCode === 'OK' && data.contents.length > 0) {
-          data.contents.sort((a, b) => {
-            let orderField = this.graphMetadata.setting.orderData || 'order_number'
-            return parseInt(a[orderField]) - parseInt(b[orderField])
-          })
-          this.nodeDatas = data.contents
-          let stateItems = await this.getCiTypeStateTransition(this.ciType)
-          this.ignoreNodeOperations = this.suportVersion === 'yes' ? this.getCiTypeOperation(stateItems, 'confirm') : []
-          this.nodeDatas.forEach(item => {
-            item._nextOperations = this.buildNextOperations(
-              stateItems,
-              this.filterNextOperations(data.contents[0].nextOperations)
-            )
-          })
+        if (value.length > 0) {
+          const { data, statusCode } = await queryCiData(payload)
+          if (statusCode === 'OK' && data.contents.length > 0) {
+            data.contents.sort((a, b) => {
+              let orderField = this.graphMetadata.setting.orderData || 'order_number'
+              return parseInt(a[orderField]) - parseInt(b[orderField])
+            })
+            this.nodeDatas = data.contents
+            let stateItems = await this.getCiTypeStateTransition(this.ciType)
+            this.ignoreNodeOperations =
+              this.suportVersion === 'yes' ? this.getCiTypeOperation(stateItems, 'confirm') : []
+            this.nodeDatas.forEach(item => {
+              item._nextOperations = this.buildNextOperations(
+                stateItems,
+                this.filterNextOperations(data.contents[0].nextOperations)
+              )
+            })
+          }
         }
         this.nodeCiAttrs = this.getCiFormAttributes(this.ciType)
       }
