@@ -186,10 +186,26 @@ export default {
         this.graph.graphviz.addImage(image, '48px', '48px')
       })
     },
+    nodeConfigStyle (setting, item) {
+      let useMapping = setting.graphConfigData.length !== 0
+      let styleData = {}
+      if (useMapping) {
+        styleData = JSON.parse(setting.graphConfigs)
+      } else {
+        styleData = setting.graphConfigs || ''
+      }
+      if (useMapping) {
+        return styleData[item[setting.graphConfigData] || ''] || ''
+      } else {
+        return styleData
+      }
+    },
     async renderGraph (id) {
       let graphIndex = this.graphIndex
       let graphSetting = this.graphSetting
       let graphData = this.graphData
+      this.plainDatas = []
+      this.buildPlainDatas(graphSetting, graphData, graphIndex)
       let dotString = renderGraph(
         graphSetting,
         graphData,
@@ -231,6 +247,65 @@ export default {
         // let svgWidth = parseInt(svg.attr("viewBox").split(' ')[2])
         // svg.attr('viewBox', '0 0 ' + winWidth + ' ' + winHeight)
         // svg.select("g").attr("transform", `translate(${winWidth/2 - svgWidth/2}, 200) scale(1)`)
+
+        let idFinder = /\$\{([a-z0-9]+(?:_[a-z0-9]+)+)\}/g
+        // note
+        svg
+          .selectAll(' .noteText')
+          .nodes()
+          .forEach(node => {
+            let rets = idFinder.exec(node.innerHTML)
+            if (rets) {
+              node.innerHTML = node.innerHTML.replace(idFinder, '')
+              // mark node.previousElementSibling[rect] color
+              let item = this.plainDatas.find(item => item.guid === rets[1])
+              node.previousElementSibling.style.cssText += this.nodeConfigStyle(item.metadata.setting, item.data)
+            }
+          })
+        // alt, opt, par
+        svg
+          .selectAll(' .loopText')
+          .nodes()
+          .forEach(node => {
+            let rets = idFinder.exec(node.innerHTML)
+            if (rets) {
+              node.innerHTML = node.innerHTML.replace(idFinder, '')
+              // mark node.previousElementSibling[rect] color
+              let item = this.plainDatas.find(item => item.guid === rets[1])
+              node.parentElement.children.forEach(loopNode => {
+                if (loopNode.tagName === 'line') {
+                  loopNode.style.cssText += this.nodeConfigStyle(item.metadata.setting, item.data)
+                }
+              })
+            }
+          })
+        // message
+        svg
+          .selectAll(' .messageLine1')
+          .nodes()
+          .forEach(node => {
+            let rets = idFinder.exec(node.previousElementSibling.innerHTML)
+            if (rets) {
+              node.previousElementSibling.innerHTML = node.previousElementSibling.innerHTML.replace(idFinder, '')
+              // mark node[line] & sibling[text] color
+              let item = this.plainDatas.find(item => item.guid === rets[1])
+              node.style.cssText += this.nodeConfigStyle(item.metadata.setting, item.data)
+              // node.previousElementSibling.style.cssText += this.nodeConfigStyle(item.metadata.setting, item.data)
+            }
+          })
+        // actor
+        svg
+          .selectAll(' text.actor')
+          .nodes()
+          .forEach(node => {
+            let rets = idFinder.exec(node.innerHTML)
+            if (rets) {
+              node.innerHTML = node.innerHTML.replace(idFinder, '')
+              // mark node.previousElementSibling[rect] color
+              let item = this.plainDatas.find(item => item.guid === rets[1])
+              node.previousElementSibling.style.cssText += this.nodeConfigStyle(item.metadata.setting, item.data)
+            }
+          })
       } else {
         this.graph.graphviz = graph
           .graphviz()
@@ -260,9 +335,6 @@ export default {
           svg.attr('viewBox', '0 0 ' + width + ' ' + height)
         }
       }
-
-      this.plainDatas = []
-      this.buildPlainDatas(graphSetting, graphData, graphIndex)
     },
     buildPlainDatas (graphSetting, graphData, graphIndex = 0) {
       graphData.forEach(data => {

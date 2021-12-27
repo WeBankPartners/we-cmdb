@@ -725,7 +725,8 @@ function renderSequence (setting, datas, metadata) {
       })
       for (let key in reduceNodes) {
         let item = reduceNodes[key]
-        dotString += 'participant ' + item[0].guid + ' as ' + renderLabel(item[1], item[0]) + '\n'
+        dotString +=
+          'participant ' + item[0].guid + ' as ' + ('${' + item[0].guid + '}' + renderLabel(item[1], item[0])) + '\n'
       }
       lines.forEach(item => {
         dotString += item[2] + '\n'
@@ -747,7 +748,14 @@ function renderInvoke (setting, datas, metadata) {
           case 'service_invoke':
             let result = renderServiceInvoke(subSetting, data[subSetting.dataName] || [], metadata)
             result.lines.forEach(item => {
-              lines.push([item[0], item[1], item[2] + ': ' + label, item[3], item[4], data.__index])
+              lines.push([
+                item[0],
+                item[1],
+                item[2] + ': ' + ('${' + data.guid + '}') + label,
+                item[3],
+                item[4],
+                data.__index
+              ])
             })
             nodes = nodes.concat(result.nodes)
             break
@@ -864,25 +872,49 @@ function renderAssist (setting, datas, invokeLines, metadata) {
       let invokeLine = _findMaxLessThan(invokeLines, data.__index)
       if (rets) {
         if (rets[1].toLowerCase().startsWith('left')) {
-          label = 'NOTE LEFT OF ' + (invokeLine ? invokeLine[1].guid : '') + ' : ' + rets[2] || ''
+          label =
+            'NOTE LEFT OF ' +
+            (invokeLine ? invokeLine[1].guid : '') +
+            ' : ' +
+            ('${' + data.guid + '}') +
+            (rets[2] || '')
         } else if (rets[1].toLowerCase().startsWith('right')) {
-          label = 'NOTE RIGHT OF ' + (invokeLine ? invokeLine[1].guid : '') + ' : ' + rets[2] || ''
+          label =
+            'NOTE RIGHT OF ' +
+            (invokeLine ? invokeLine[1].guid : '') +
+            ' : ' +
+            ('${' + data.guid + '}') +
+            (rets[2] || '')
         } else {
           // over
           label =
             'NOTE OVER ' +
-              (invokeLine ? invokeLine[0].guid : '') +
-              ',' +
-              (invokeLine ? invokeLine[1].guid : '') +
-              ' : ' +
-              rets[2] || ''
+            (invokeLine ? invokeLine[0].guid : '') +
+            ',' +
+            (invokeLine ? invokeLine[1].guid : '') +
+            ' : ' +
+            ('${' + data.guid + '}') +
+            (rets[2] || '')
         }
       } else {
         // default right
         label =
-          'NOTE LEFT OF ' + (invokeLine ? invokeLine[1].guid : '') + ' : ' + label.slice('note'.length).trimStart() ||
-          ''
+          'NOTE LEFT OF ' +
+          (invokeLine ? invokeLine[1].guid : '') +
+          ' : ' +
+          ('${' + data.guid + '}') +
+          (label.slice('note'.length).trimStart() || '')
       }
+    } else if (label.trimStart().toLowerCase().startsWith('loop')) {
+      label += '${' + data.guid + '}'
+    } else if (label.trimStart().toLowerCase().startsWith('alt')) {
+      label += '${' + data.guid + '}'
+    } else if (label.trimStart().toLowerCase().startsWith('par')) {
+      label += '${' + data.guid + '}'
+    } else if (label.trimStart().toLowerCase().startsWith('and')) {
+      label += '${' + data.guid + '}'
+    } else if (label.trimStart().toLowerCase().startsWith('opt')) {
+      label += '${' + data.guid + '}'
     }
     lines.push([null, null, label, null, null, data.__index])
   })
