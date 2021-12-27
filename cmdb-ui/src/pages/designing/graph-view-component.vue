@@ -10,15 +10,28 @@
           </div>
         </Card>
         <div class="operation-area">
-          <Button style="float:right" type="primary" @click="openDrawer = !openDrawer">
+          <Button style="float: right" type="primary" @click="openDrawer = !openDrawer">
             {{ $t('operating_area') }}
           </Button>
-          <Drawer :closable="false" :width="400" :mask="false" :transfer="false" inner v-model="openDrawer">
+          <Drawer :closable="true" :width="400" :mask="false" :transfer="false" inner v-model="openDrawer">
             <Spin fix v-if="operationLoading">
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
               <div>{{ $t('loading') }}</div>
             </Spin>
+
+            <SeqOperation
+              v-if="dotString.startsWith('sequenceDiagram')"
+              class="operation-container"
+              ref="operationPanel"
+              :isEdit="isEdit"
+              :editable="editable"
+              :suportVersion="suportVersion"
+              :ciTypeMapping="ciTypeMapping"
+              :plainDatas="plainDatas"
+              @operationReload="operationReload"
+            ></SeqOperation>
             <Operation
+              v-else
               class="operation-container"
               ref="operationPanel"
               :isEdit="isEdit"
@@ -36,16 +49,19 @@
 
 <script>
 import * as d3 from 'd3-selection'
-import { zoomTransform } from 'd3-zoom'
+import * as d3Zoom from 'd3-zoom'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
 import { queryReferenceCiData } from '@/api/server'
 import { addEvent } from '../util/event.js'
 import { renderGraph } from '../util/render-graph.js'
 import Operation from './graph-operation-component'
+import SeqOperation from './graph-sequence-component'
+import mermaid from 'mermaid'
 export default {
   components: {
-    Operation
+    Operation,
+    SeqOperation
   },
   data () {
     return {
@@ -56,7 +72,8 @@ export default {
       graph: {}, // graph元素，用于存储d3.graphviz
       ignoreOperations: [], // 忽略操作，默认忽略action=Confirm的操作
       loading: false, // 是否显示loading动画
-      operationLoading: false
+      operationLoading: false,
+      dotString: ''
     }
   },
   props: [
@@ -113,9 +130,12 @@ export default {
       this.graph.graphviz.resetZoom()
     },
     getGraphTransform () {
+      if (this.dotString.startsWith('sequenceDiagram')) {
+        return null
+      }
       let domId = '#graphMgmt' + this.graphIndex + ' > svg'
       let svg = d3.select(domId)
-      return zoomTransform(svg.node())
+      return d3Zoom.zoomTransform(svg.node())
     },
     setGraphTransform (transform) {
       this.graph.graphviz.zoomSelection().call(this.graph.graphviz.zoomBehavior().transform, transform)
@@ -125,16 +145,7 @@ export default {
       const initEvent = id => {
         let graph
         graph = d3.select(id)
-        graph
-          .on('dblclick.zoom', null)
-          .on('wheel.zoom', null)
-          .on('mousewheel.zoom', null)
-        this.graph.graphviz = graph
-          .graphviz()
-          .width(window.innerWidth - 130)
-          .height(window.innerHeight - 293)
-          .fit(true)
-          .zoom(true)
+        graph.on('dblclick.zoom', null).on('wheel.zoom', null).on('mousewheel.zoom', null)
       }
       // 初始化画布和鼠标事件
       let domId = '#graphMgmt' + this.graphIndex
@@ -175,10 +186,26 @@ export default {
         this.graph.graphviz.addImage(image, '48px', '48px')
       })
     },
+    nodeConfigStyle (setting, item) {
+      let useMapping = setting.graphConfigData.length !== 0
+      let styleData = {}
+      if (useMapping) {
+        styleData = JSON.parse(setting.graphConfigs)
+      } else {
+        styleData = setting.graphConfigs || ''
+      }
+      if (useMapping) {
+        return styleData[item[setting.graphConfigData] || ''] || ''
+      } else {
+        return styleData
+      }
+    },
     async renderGraph (id) {
       let graphIndex = this.graphIndex
       let graphSetting = this.graphSetting
       let graphData = this.graphData
+      this.plainDatas = []
+      this.buildPlainDatas(graphSetting, graphData, graphIndex)
       let dotString = renderGraph(
         graphSetting,
         graphData,
@@ -187,27 +214,127 @@ export default {
         },
         [graphIndex]
       )[0]
-      this.loadImage(dotString)
-      this.graph.graphviz
-        .transition()
-        .renderDot(dotString)
-        .on('end', () => {
-          if (this.initTransform) {
-            this.setGraphTransform(this.initTransform)
-          }
-          addEvent(id + ' > svg', 'click', this.handleNodeClick)
-          // addEvent(id + ' .node', 'mouseover', this.handleNodeMouseover)
-          // addEvent(id + ' .cluster', 'mouseover', this.handleNodeMouseover)
-          addEvent(id + ' .node', 'click', this.handleNodeClick)
-          addEvent(id + ' .cluster', 'click', this.handleNodeClick)
-          addEvent(id + ' .edge', 'click', this.handleNodeClick)
+      this.dotString = dotString
+      let graph = d3.select(id)
+      if (dotString.startsWith('sequenceDiagram')) {
+        const element = document.querySelector(id)
+        element.removeAttribute('data-processed')
+        // mermaid.parse(dotString)
+        element.innerHTML = dotString
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'antiscript',
+          sequence: {
+            showSequenceNumbers: true
+          },
+          theme: 'default'
         })
-      let svg = d3.select(id).select('svg')
-      let width = svg.attr('width')
-      let height = svg.attr('height')
-      svg.attr('viewBox', '0 0 ' + width + ' ' + height)
-      this.plainDatas = []
-      this.buildPlainDatas(graphSetting, graphData, graphIndex)
+        mermaid.init(undefined, element)
+        let svg = graph.select('svg')
+        let rawHTML = svg.node().innerHTML
+        svg.node().innerHTML = ''
+        let g = svg.append('g')
+        g.html(rawHTML)
+        g.attr('cursor', 'grab')
+        const zoomed = function (event) {
+          g.attr('transform', d3.event.transform)
+        }
+        svg.call(d3Zoom.zoom().on('zoom', zoomed))
+        let winWidth = window.innerWidth - 130
+        let winHeight = window.innerHeight - 293
+        svg.attr('width', winWidth).attr('height', winHeight).attr('style', '')
+        // g.selectAll('.sequenceNumber').on('click', () => {console.log('click ', d3.event.target.innerHTML)})
+        // let svgWidth = parseInt(svg.attr("viewBox").split(' ')[2])
+        // svg.attr('viewBox', '0 0 ' + winWidth + ' ' + winHeight)
+        // svg.select("g").attr("transform", `translate(${winWidth/2 - svgWidth/2}, 200) scale(1)`)
+
+        let idFinder = /\$\{([a-z0-9]+(?:_[a-z0-9]+)+)\}/g
+        // note
+        svg
+          .selectAll(' .noteText')
+          .nodes()
+          .forEach(node => {
+            let rets = idFinder.exec(node.innerHTML)
+            if (rets) {
+              node.innerHTML = node.innerHTML.replace(idFinder, '')
+              // mark node.previousElementSibling[rect] color
+              let item = this.plainDatas.find(item => item.guid === rets[1])
+              node.previousElementSibling.style.cssText += this.nodeConfigStyle(item.metadata.setting, item.data)
+            }
+          })
+        // alt, opt, par
+        svg
+          .selectAll(' .loopText')
+          .nodes()
+          .forEach(node => {
+            let rets = idFinder.exec(node.innerHTML)
+            if (rets) {
+              node.innerHTML = node.innerHTML.replace(idFinder, '')
+              // mark node.previousElementSibling[rect] color
+              let item = this.plainDatas.find(item => item.guid === rets[1])
+              node.parentElement.children.forEach(loopNode => {
+                if (loopNode.tagName === 'line') {
+                  loopNode.style.cssText += this.nodeConfigStyle(item.metadata.setting, item.data)
+                }
+              })
+            }
+          })
+        // message
+        svg
+          .selectAll(' .messageLine1')
+          .nodes()
+          .forEach(node => {
+            let rets = idFinder.exec(node.previousElementSibling.innerHTML)
+            if (rets) {
+              node.previousElementSibling.innerHTML = node.previousElementSibling.innerHTML.replace(idFinder, '')
+              // mark node[line] & sibling[text] color
+              let item = this.plainDatas.find(item => item.guid === rets[1])
+              node.style.cssText += this.nodeConfigStyle(item.metadata.setting, item.data)
+              // node.previousElementSibling.style.cssText += this.nodeConfigStyle(item.metadata.setting, item.data)
+            }
+          })
+        // actor
+        svg
+          .selectAll(' text.actor')
+          .nodes()
+          .forEach(node => {
+            let rets = idFinder.exec(node.innerHTML)
+            if (rets) {
+              node.innerHTML = node.innerHTML.replace(idFinder, '')
+              // mark node.previousElementSibling[rect] color
+              let item = this.plainDatas.find(item => item.guid === rets[1])
+              node.previousElementSibling.style.cssText += this.nodeConfigStyle(item.metadata.setting, item.data)
+            }
+          })
+      } else {
+        this.graph.graphviz = graph
+          .graphviz()
+          .width(window.innerWidth - 130)
+          .height(window.innerHeight - 293)
+          .fit(true)
+          .zoom(true)
+        this.loadImage(dotString)
+        this.graph.graphviz
+          .transition()
+          .renderDot(dotString)
+          .on('end', () => {
+            if (this.initTransform) {
+              this.setGraphTransform(this.initTransform)
+            }
+            addEvent(id + ' > svg', 'click', this.handleNodeClick)
+            // addEvent(id + ' .node', 'mouseover', this.handleNodeMouseover)
+            // addEvent(id + ' .cluster', 'mouseover', this.handleNodeMouseover)
+            addEvent(id + ' .node', 'click', this.handleNodeClick)
+            addEvent(id + ' .cluster', 'click', this.handleNodeClick)
+            addEvent(id + ' .edge', 'click', this.handleNodeClick)
+          })
+        let svg = graph.select('svg')
+        let width = svg.attr('width')
+        let height = svg.attr('height')
+        if (!width.toString().endsWith('%') && !width.toString().endsWith('%')) {
+          svg.attr('viewBox', '0 0 ' + width + ' ' + height)
+        }
+      }
     },
     buildPlainDatas (graphSetting, graphData, graphIndex = 0) {
       graphData.forEach(data => {
