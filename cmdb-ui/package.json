@@ -25,7 +25,7 @@
     "bpmn-js": "^2.5.1",
     "core-js": "^3.8.3",
     "d3-graphviz": "^2.6.1",
-    "d3-zoom": "^2.0.0",
+    "d3-zoom": "^1.8.3",
     "less-loader": "^4.1.0",
     "lodash": "^4.17.20",
     "mermaid": "^8.1.0",
