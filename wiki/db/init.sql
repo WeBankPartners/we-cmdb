@@ -731,3 +731,8 @@ insert into sys_state_transition(`guid`, `state_machine`, `current_state`, `targ
 #@v2.0.3-begin@;
 alter table sys_log add column response longtext;
 #@v2.0.3-end@;
+
+#@v2.0.6.1-begin@;
+alter table sys_graph_element add column order_data varchar(128) default '';
+alter table sys_graph_element add column update_operation varchar(64) default '';
+#@v2.0.6.1-end@;

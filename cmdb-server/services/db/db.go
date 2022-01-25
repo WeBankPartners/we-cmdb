@@ -173,6 +173,9 @@ func transFiltersToSQL(queryParam *models.QueryRequestParam, transParam *models.
 				}
 			}
 			tmpSpecSql, tmpListParams := createListParams(inValueStringList, "")
+			if tmpSpecSql == "" {
+				tmpSpecSql = "''"
+			}
 			filterSql += fmt.Sprintf(" AND %s%s in (%s) ", transParam.Prefix, transParam.KeyMap[filter.Name], tmpSpecSql)
 			param = append(param, tmpListParams...)
 		} else if filter.Operator == "lt" {

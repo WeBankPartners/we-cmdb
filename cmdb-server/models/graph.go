@@ -38,6 +38,8 @@ type SysGraphElementTable struct {
 	GraphFilterValues   string `json:"graphFilterValues" xorm:"graph_filter_values"`
 	Editable            string `json:"editable" xorm:"editable"`
 	SeqNo               string `json:"seqNo" xorm:"seq_no"`
+	OrderData           string `json:"orderData" xorm:"order_data"`
+	UpdateOperation     string `json:"updateOperation" xorm:"update_operation"`
 }
 
 type GraphElementNode struct {
@@ -64,5 +66,7 @@ type GraphElementNode struct {
 	GraphFilterData     string              `json:"graphFilterData" xorm:"graph_filter_data"`
 	GraphFilterValues   string              `json:"graphFilterValues" xorm:"graph_filter_values"`
 	Editable            string              `json:"editable" xorm:"editable"`
+	OrderData           string              `json:"orderData" xorm:"order_data"`
+	UpdateOperation     string              `json:"updateOperation" xorm:"update_operation"`
 	Children            []*GraphElementNode `json:"children" xorm:"children"`
 }

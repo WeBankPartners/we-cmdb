@@ -28,6 +28,7 @@ export const normalizeFormData = formData => {
   let copyForm = JSON.parse(JSON.stringify(formData))
   delete copyForm.isRowEditable
   delete copyForm.nextOperations
+  delete copyForm._nextOperations
   delete copyForm.weTableForm
   delete copyForm._id
   const keys = Object.keys(copyForm)

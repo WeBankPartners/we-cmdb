@@ -66,7 +66,7 @@
           <Option value="real">{{ $t('type_reality') }}</Option>
           <Option value="all">{{ $t('type_all') }}</Option>
         </Select>
-        <Button type="primary" @click="newInitGraph" style="vertical-align: top;margin-left:20px">{{
+        <Button type="primary" @click="newInitGraph" size="small" style="vertical-align: top;margin-left:20px">{{
           $t('confirm')
         }}</Button>
       </div>
