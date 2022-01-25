@@ -146,6 +146,7 @@ func GetViewData(c *gin.Context) {
 	rootReportObjectsData, err = db.QueryRootReportObj(reportId)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
+		return
 	}
 	var rowDataList []map[string]interface{}
 	for _, roNode := range rootReportObjectsData {

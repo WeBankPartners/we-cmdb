@@ -879,15 +879,15 @@ func validateMultiRefFilterData(multiCiData []*models.MultiCiDataObj) error {
 	var err error
 	for _, ciDataObj := range multiCiData {
 		for _, inputRow := range ciDataObj.InputData {
-			tmpInputRow := make(map[string]string)
-			for k, v := range inputRow {
-				tmpInputRow[k] = v
-			}
 			for _, attr := range ciDataObj.Attributes {
 				if inputRow[attr.Name] == "" {
 					continue
 				}
 				if attr.RefCiType != "" {
+					tmpInputRow := make(map[string]string)
+					for k, v := range inputRow {
+						tmpInputRow[k] = v
+					}
 					_, fetchRows, tmpErr := GetCiDataByFilters(attr.Id, tmpInputRow, models.QueryRequestParam{Paging: false})
 					if tmpErr != nil {
 						err = tmpErr

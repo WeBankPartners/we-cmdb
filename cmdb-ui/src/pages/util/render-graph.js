@@ -47,7 +47,7 @@ export function renderGraph (viewSetting, viewData, imageHooker, indexOnly = fal
             (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
           userStyle.useMapping
         ) {
-          dotString += (userStyle.value[data[graph.rootData.graphConfigData] || ''] || defaultStyle) + '\n'
+          dotString += (userStyle.value[_dataExpression(data, graph.rootData.graphConfigData)] || defaultStyle) + '\n'
         } else {
           dotString += (userStyle.useMapping ? defaultStyle : userStyle.value || defaultStyle) + '\n'
         }
@@ -72,56 +72,66 @@ export function renderGraph (viewSetting, viewData, imageHooker, indexOnly = fal
           dotString += 'color="#dddddd";penwidth=1;'
         }
         dotString += ']}\n'
+      } else if (graph.viewGraphType === 'sequence') {
+        dotString = 'sequenceDiagram\n'
       }
-      graph.rootData.children.forEach(function (value) {
-        if (
-          value.graphFilterData &&
-          value.graphFilterValues &&
-          !JSON.parse(value.graphFilterValues).includes(data[value.graphFilterData])
-        ) {
-          return
-        }
-        let result = null
-        switch (value.graphType) {
-          case 'subgraph':
-            result = renderSubgraph(value, data[value.dataName] || [], updateMetadata(metadata))
-            dotString += result.dotString
-            lines = lines.concat(result.lines)
-            renderedItems.push(...result.renderedItems)
-            break
-          case 'image':
-            result = renderImage(value, data, data[value.dataName] || [], updateMetadata(metadata))
-            dotString += result.dotString
-            if (metadata.graph_type === 'subgraph') {
-              dotString += arrangeNodes(data[value.dataName] || [])
-            }
-            lines = lines.concat(result.lines)
-            renderedItems.push(...result.renderedItems)
-            break
-          case 'node':
-            result = renderNode(value, data[value.dataName] || [], updateMetadata(metadata))
-            dotString += result.dotString
-            if (metadata.graph_type === 'subgraph') {
-              dotString += arrangeNodes(data[value.dataName] || [])
-            }
-            lines = lines.concat(result.lines)
-            renderedItems.push(...result.renderedItems)
-            break
-          case 'line':
-            lines.push(pushLine(value, data[value.dataName] || [], updateMetadata(metadata)))
-            break
-          default:
-            break
-        }
-      })
+      if (graph.viewGraphType !== 'sequence') {
+        graph.rootData.children.forEach(function (value) {
+          if (
+            value.graphFilterData &&
+            value.graphFilterValues &&
+            !JSON.parse(value.graphFilterValues).includes(data[value.graphFilterData])
+          ) {
+            return
+          }
+          let result = null
+          switch (value.graphType) {
+            case 'subgraph':
+              result = renderSubgraph(value, data[value.dataName] || [], updateMetadata(metadata))
+              dotString += result.dotString
+              lines = lines.concat(result.lines)
+              renderedItems.push(...result.renderedItems)
+              break
+            case 'image':
+              result = renderImage(value, data, data[value.dataName] || [], updateMetadata(metadata))
+              dotString += result.dotString
+              if (metadata.graph_type === 'subgraph') {
+                dotString += arrangeNodes(data[value.dataName] || [])
+              }
+              lines = lines.concat(result.lines)
+              renderedItems.push(...result.renderedItems)
+              break
+            case 'node':
+              result = renderNode(value, data[value.dataName] || [], updateMetadata(metadata))
+              dotString += result.dotString
+              if (metadata.graph_type === 'subgraph') {
+                dotString += arrangeNodes(data[value.dataName] || [])
+              }
+              lines = lines.concat(result.lines)
+              renderedItems.push(...result.renderedItems)
+              break
+            case 'line':
+              lines.push(pushLine(value, data[value.dataName] || [], updateMetadata(metadata)))
+              break
+            default:
+              break
+          }
+        })
+      } else {
+        let result = renderSequence(graph.rootData, [data], metadata)
+        dotString += result.dotString
+      }
+
       if (graph.viewGraphType === 'subgraph') {
         dotString += '}\n'
       }
     })
-    lines.forEach(function (line) {
-      dotString += renderLine(line.setting, line.datas, line.metadata, renderedItems)
-    })
-    dotString += '}\n'
+    if (['subgraph', 'group'].indexOf(graph.viewGraphType) >= 0) {
+      lines.forEach(function (line) {
+        dotString += renderLine(line.setting, line.datas, line.metadata, renderedItems)
+      })
+      dotString += '}\n'
+    }
     dotStrings.push(dotString)
   })
   return dotStrings
@@ -156,7 +166,7 @@ function renderSubgraph (setting, datas, metadata) {
       (!data.confirm_time || (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
       userStyle.useMapping
     ) {
-      subgraphAttrs.push(userStyle.value[data[setting.graphConfigData] || ''] || defaultStyle)
+      subgraphAttrs.push(userStyle.value[_dataExpression(data, setting.graphConfigData)] || defaultStyle)
     } else {
       subgraphAttrs.push(userStyle.useMapping ? defaultStyle : userStyle.value || defaultStyle)
     }
@@ -245,7 +255,7 @@ function renderImage (setting, parent, datas, metadata) {
     nodeAttrs.push('fixedsize="true"')
     let shape = ''
     if (userShape.useMapping) {
-      shape = userShape.value[data[setting.graphShapeData]] || defaultShape
+      shape = userShape.value[_dataExpression(data, setting.graphShapeData)] || defaultShape
     } else {
       shape = userShape.value || defaultShape
     }
@@ -259,7 +269,7 @@ function renderImage (setting, parent, datas, metadata) {
       (!data.confirm_time || (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
       userStyle.useMapping
     ) {
-      nodeAttrs.push(userStyle.value[data[setting.graphConfigData] || ''] || defaultStyle)
+      nodeAttrs.push(userStyle.value[_dataExpression(data, setting.graphConfigData)] || defaultStyle)
     } else {
       nodeAttrs.push(userStyle.useMapping ? defaultStyle : userStyle.value || defaultStyle)
     }
@@ -347,7 +357,7 @@ function renderNode (setting, datas, metadata) {
     nodeAttrs.push('fontsize=' + metadata.fontSize)
     let shape = ''
     if (userShape.useMapping) {
-      shape = userShape.value[data[setting.graphShapeData]] || defaultShape
+      shape = userShape.value[_dataExpression(data, setting.graphShapeData)] || defaultShape
     } else {
       shape = userShape.value || defaultShape
     }
@@ -361,7 +371,7 @@ function renderNode (setting, datas, metadata) {
       (!data.confirm_time || (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
       userStyle.useMapping
     ) {
-      nodeAttrs.push(userStyle.value[data[setting.graphConfigData] || ''] || defaultStyle)
+      nodeAttrs.push(userStyle.value[_dataExpression(data, setting.graphConfigData)] || defaultStyle)
     } else {
       nodeAttrs.push(userStyle.useMapping ? defaultStyle : userStyle.value || defaultStyle)
     }
@@ -516,7 +526,7 @@ function renderLine (setting, datas, metadata, renderedItems) {
         if (setting.graphType === 'line') {
           let shapeString = ''
           if (userShape.useMapping) {
-            shapeString = userShape.value[data[setting.graphShapeData]] || defaultShape
+            shapeString = userShape.value[_dataExpression(data, setting.graphShapeData)] || defaultShape
           } else {
             shapeString = userShape.value || defaultShape
           }
@@ -530,7 +540,7 @@ function renderLine (setting, datas, metadata, renderedItems) {
               (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
             userStyle.useMapping
           ) {
-            lineAttrs.push(userStyle.value[data[setting.graphConfigData] || ''] || defaultStyle)
+            lineAttrs.push(userStyle.value[_dataExpression(data, setting.graphConfigData)] || defaultStyle)
           } else {
             lineAttrs.push(userStyle.useMapping ? defaultStyle : userStyle.value || defaultStyle)
           }
@@ -631,7 +641,7 @@ function renderLabel (expression, data) {
     if (value.slice(0, 1) === "'") {
       label += value.slice(1, -1)
     } else {
-      label += data[value] || ''
+      label += _dataExpression(data, value)
     }
   })
   return label
@@ -646,4 +656,267 @@ function normalizeMapping (setting, dataField, mapField, defaultValue) {
     value = setting[mapField] || defaultValue
   }
   return { useMapping: useMapping, value: value }
+}
+
+function renderSequence (setting, datas, metadata) {
+  let dotString = ''
+  datas.forEach(function (data) {
+    if (
+      setting.graphFilterData &&
+      setting.graphFilterValues &&
+      !JSON.parse(setting.graphFilterValues).includes(data[setting.graphFilterData])
+    ) {
+      return
+    }
+    if (setting.children) {
+      let assistSetting = null
+      let invokeSetting = null
+      let assistItems = []
+      let invokeItems = []
+      setting.children.forEach(subSetting => {
+        let items = data[subSetting.dataName] || []
+        let orderField = subSetting.orderData || 'order_number'
+        items.sort((item1, item2) => {
+          if (orderField in item1) {
+            return parseInt(item1.order_number) - parseInt(item2.order_number)
+          }
+          return 1
+        })
+        switch (subSetting.graphType) {
+          case 'assist_item':
+            assistSetting = subSetting
+            for (let i = 0; i < items.length; i++) {
+              if (
+                subSetting.graphFilterData &&
+                subSetting.graphFilterValues &&
+                !JSON.parse(subSetting.graphFilterValues).includes(items[i][subSetting.graphFilterData])
+              ) {
+              } else {
+                assistItems.push({ ...items[i], __index: i })
+              }
+            }
+            break
+          case 'service_invoke_item':
+            invokeSetting = subSetting
+            for (let i = 0; i < items.length; i++) {
+              if (
+                subSetting.graphFilterData &&
+                subSetting.graphFilterValues &&
+                !JSON.parse(subSetting.graphFilterValues).includes(items[i][subSetting.graphFilterData])
+              ) {
+              } else {
+                invokeItems.push({ ...items[i], __index: i })
+              }
+            }
+            break
+        }
+      })
+      let invokeResult = renderInvoke(invokeSetting, invokeItems, metadata)
+      // node1, node2, dotString, __index, node1[display_expression, node2[display_expression]
+      let assitResult = renderAssist(assistSetting, assistItems, invokeResult.lines, metadata)
+      let lines = invokeResult.lines.concat(assitResult.lines)
+      lines.sort((item1, item2) => {
+        return item1[5] - item2[5]
+      })
+      let reduceNodes = {}
+      invokeResult.lines.forEach(item => {
+        reduceNodes[item[0].guid] = [item[0], item[3]]
+        reduceNodes[item[1].guid] = [item[1], item[4]]
+      })
+      for (let key in reduceNodes) {
+        let item = reduceNodes[key]
+        dotString +=
+          'participant ' + item[0].guid + ' as ' + ('${' + item[0].guid + '}' + renderLabel(item[1], item[0])) + '\n'
+      }
+      lines.forEach(item => {
+        dotString += item[2] + '\n'
+      })
+    }
+  })
+  return { dotString: dotString, lines: [], renderedItems: [] }
+}
+
+function renderInvoke (setting, datas, metadata) {
+  // // node1, node2, dotString, display_expression, display_expression, __index
+  let lines = []
+  let nodes = []
+  datas.forEach(function (data) {
+    let label = renderLabel(setting.displayExpression, data)
+    if (setting.children) {
+      setting.children.forEach(function (subSetting) {
+        switch (subSetting.graphType) {
+          case 'service_invoke':
+            let result = renderServiceInvoke(subSetting, data[subSetting.dataName] || [], metadata)
+            result.lines.forEach(item => {
+              lines.push([
+                item[0],
+                item[1],
+                item[2] + ': ' + ('${' + data.guid + '}') + label,
+                item[3],
+                item[4],
+                data.__index
+              ])
+            })
+            nodes = nodes.concat(result.nodes)
+            break
+        }
+      })
+    }
+  })
+  let nodeMapping = {}
+  nodes.forEach(node => {
+    nodeMapping[node.guid] = node
+  })
+  lines.forEach(line => {
+    line[0] = nodeMapping[line[0]]
+    line[1] = nodeMapping[line[1]]
+  })
+  return { lines: lines }
+}
+
+function renderServiceInvoke (setting, datas, metadata) {
+  // [node_guid, node_guid, dotString, display_expression, display_expression]
+  let lines = []
+  let nodes = []
+  let defaultArrow = '->>'
+  let userShape = normalizeMapping(setting, 'graphShapeData', 'graphShapes')
+  datas.forEach(function (data) {
+    let arrow = ''
+    if (userShape.useMapping) {
+      arrow = userShape.value[_dataExpression(data, setting.graphShapeData)] || defaultArrow
+    } else {
+      arrow = userShape.value || defaultArrow
+    }
+    let headNodes = (setting.lineStartData ? data[setting.lineStartData] : []) || []
+    let tailNodes = (setting.lineEndData ? data[setting.lineEndData] : []) || []
+    if (!Array.isArray(headNodes)) {
+      headNodes = [headNodes]
+    }
+    if (!Array.isArray(tailNodes)) {
+      tailNodes = [tailNodes]
+    }
+    headNodes.forEach(hNode => {
+      tailNodes.forEach(tNode => {
+        lines.push([hNode, tNode, hNode + ' ' + arrow + ' ' + tNode])
+      })
+    })
+    if (setting.children) {
+      setting.children.forEach(function (subSetting) {
+        switch (subSetting.graphType) {
+          case 'node':
+            nodes = nodes.concat(data[subSetting.dataName] || [])
+            lines.forEach(item => {
+              item.push(subSetting.displayExpression)
+            })
+            break
+        }
+      })
+    }
+  })
+  return { lines: lines, nodes: nodes }
+}
+
+function _findMaxLessThan (datas, index) {
+  let indexFind = -1
+  let itemFind = null
+  datas.forEach(item => {
+    if (item[5] < index && item[5] > indexFind) {
+      indexFind = item[5]
+      itemFind = item
+    }
+  })
+  return itemFind
+}
+
+function _dataExpression (data, expr) {
+  let parts = expr.split('.')
+  let result = data
+  for (let i = 0; i < parts.length; i++) {
+    let part = parts[i]
+    if (Array.isArray(result)) {
+      result = result.length > 0 ? result[0] : null
+    }
+    if (result && typeof result === 'object' && result.constructor === Object) {
+      if (part in result) {
+        result = result[part]
+      } else {
+        result = ''
+        break
+      }
+    } else {
+      result = ''
+      break
+    }
+  }
+  return result
+}
+
+function renderAssist (setting, datas, invokeLines, metadata) {
+  let lines = []
+  let activateStackItems = []
+  datas.forEach(data => {
+    let label = renderLabel(setting.displayExpression, data)
+    if (label.trimStart().toLowerCase().startsWith('activate')) {
+      let invokeLine = _findMaxLessThan(invokeLines, data.__index)
+      if (invokeLine) {
+        label = 'ACTIVATE ' + invokeLine[1].guid
+        activateStackItems.push(invokeLine[1].guid)
+      }
+    } else if (label.trimStart().toLowerCase().startsWith('deactivate')) {
+      let activateGuid = activateStackItems.pop()
+      label = 'DEACTIVATE ' + activateGuid
+    } else if (label.trimStart().toLowerCase().startsWith('note')) {
+      let rets = /note\s+((?:left\s+of)|(?:right\s+of)|over)(?:\s+[-_a-z0-9]+(?:,\s*[-_a-z0-9]+)?)?\s*:\s*(.*)/gi.exec(
+        label.trimStart()
+      )
+      let invokeLine = _findMaxLessThan(invokeLines, data.__index)
+      if (rets) {
+        if (rets[1].toLowerCase().startsWith('left')) {
+          label =
+            'NOTE LEFT OF ' +
+            (invokeLine ? invokeLine[1].guid : '') +
+            ' : ' +
+            ('${' + data.guid + '}') +
+            (rets[2] || '')
+        } else if (rets[1].toLowerCase().startsWith('right')) {
+          label =
+            'NOTE RIGHT OF ' +
+            (invokeLine ? invokeLine[1].guid : '') +
+            ' : ' +
+            ('${' + data.guid + '}') +
+            (rets[2] || '')
+        } else {
+          // over
+          label =
+            'NOTE OVER ' +
+            (invokeLine ? invokeLine[0].guid : '') +
+            ',' +
+            (invokeLine ? invokeLine[1].guid : '') +
+            ' : ' +
+            ('${' + data.guid + '}') +
+            (rets[2] || '')
+        }
+      } else {
+        // default right
+        label =
+          'NOTE LEFT OF ' +
+          (invokeLine ? invokeLine[1].guid : '') +
+          ' : ' +
+          ('${' + data.guid + '}') +
+          (label.slice('note'.length).trimStart() || '')
+      }
+    } else if (label.trimStart().toLowerCase().startsWith('loop')) {
+      label += '${' + data.guid + '}'
+    } else if (label.trimStart().toLowerCase().startsWith('alt')) {
+      label += '${' + data.guid + '}'
+    } else if (label.trimStart().toLowerCase().startsWith('par')) {
+      label += '${' + data.guid + '}'
+    } else if (label.trimStart().toLowerCase().startsWith('and')) {
+      label += '${' + data.guid + '}'
+    } else if (label.trimStart().toLowerCase().startsWith('opt')) {
+      label += '${' + data.guid + '}'
+    }
+    lines.push([null, null, label, null, null, data.__index])
+  })
+  return { lines: lines }
 }
