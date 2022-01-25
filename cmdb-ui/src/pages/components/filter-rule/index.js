@@ -126,7 +126,7 @@ export default {
     },
     renderLeft (obj, isReadOnly = false) {
       return (
-        <div style="width:200px;display:inline-block">
+        <div style="max-width:400px;display:inline-block">
           <AttrExpress
             class={`filter-rule-edit-modal input left${isReadOnly ? ' isReadOnly' : ' editable'}`}
             value={obj.left}
