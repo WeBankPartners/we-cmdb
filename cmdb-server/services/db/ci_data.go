@@ -642,13 +642,19 @@ func autofillAffectActionFunc(ciTypeId, guid, nowTime string) {
 	var multiRefColumn, updateColumn []string
 	for _, attr := range attrTable {
 		if attr.InputType == models.MultiRefType {
-			multiRefData, tmpErr := x.QueryString(fmt.Sprintf("select GROUP_CONCAT(to_guid) as to_guid from %s$%s where from_guid=? group by from_guid", ciTypeId, attr.Name), guid)
+			multiRefData, tmpErr := queryMultiRefMapData(ciTypeId, attr.Name, []string{guid})
+			//multiRefData, tmpErr := x.QueryString(fmt.Sprintf("select GROUP_CONCAT(to_guid) as to_guid from %s$%s where from_guid=? group by from_guid", ciTypeId, attr.Name), guid)
 			if tmpErr != nil {
 				log.Logger.Error("Try to auto refresh autofill data error when get multi ref data", log.Error(tmpErr))
 				continue
 			}
 			if len(multiRefData) > 0 {
-				nowData[attr.Name] = multiRefData[0]["to_guid"]
+				//nowData[attr.Name] = multiRefData[0]["to_guid"]
+				if tmpMultiRefList, b := multiRefData[guid]; b {
+					nowData[attr.Name] = strings.Join(tmpMultiRefList, ",")
+				} else {
+					nowData[attr.Name] = ""
+				}
 				multiRefColumn = append(multiRefColumn, attr.Name)
 			}
 		}
@@ -836,6 +842,22 @@ func getMultiRefRowData(ciTypeId, attrName, refCiTypeId string, rowGuidList []st
 	return
 }
 
+func queryMultiRefMapData(ciType, attr string, guidList []string) (resultMap map[string][]string, err error) {
+	resultMap = make(map[string][]string)
+	tmpMultiQueryData, tmpErr := x.QueryString(fmt.Sprintf("select from_guid,to_guid from %s$%s where from_guid in ('%s') order by from_guid", ciType, attr, strings.Join(guidList, "','")))
+	if tmpErr != nil {
+		return resultMap, fmt.Errorf("query Multi ref map data fail,%s ", tmpErr.Error())
+	}
+	for _, v := range tmpMultiQueryData {
+		if vv, b := resultMap[v["from_guid"]]; b {
+			resultMap[v["from_guid"]] = append(vv, v["to_guid"])
+		} else {
+			resultMap[v["from_guid"]] = []string{v["to_guid"]}
+		}
+	}
+	return
+}
+
 func getMultiNowData(multiCiData []*models.MultiCiDataObj) error {
 	var err error
 	for _, ciDataObj := range multiCiData {
@@ -845,16 +867,35 @@ func getMultiNowData(multiCiData []*models.MultiCiDataObj) error {
 		}
 		joinSql := ""
 		columnSql := "*"
-		for i, attr := range ciDataObj.Attributes {
-			if attr.InputType == models.MultiRefType {
-				joinSql += fmt.Sprintf(" left join (select from_guid,GROUP_CONCAT(to_guid) to_guid from %s$%s where from_guid in ('%s') group by from_guid) t%d on t%d.from_guid=tt.guid ",
-					ciDataObj.CiTypeId, attr.Name, strings.Join(inputGuidList, "','"), i, i)
-				columnSql += fmt.Sprintf(",t%d.to_guid as %s", i, attr.Name)
-			}
-		}
+		//for i, attr := range ciDataObj.Attributes {
+		//	if attr.InputType == models.MultiRefType {
+		//		tmpMultiQueryData,tmpErr := x.QueryString(fmt.Sprintf("select from_guid,to_guid from %s$%s where from_guid in ('%s') order by from_guid", ciDataObj.CiTypeId, attr.Name, strings.Join(inputGuidList, "','")))
+		//
+		//		joinSql += fmt.Sprintf(" left join (select from_guid,GROUP_CONCAT(to_guid) to_guid from %s$%s where from_guid in ('%s') group by from_guid) t%d on t%d.from_guid=tt.guid ",
+		//			ciDataObj.CiTypeId, attr.Name, strings.Join(inputGuidList, "','"), i, i)
+		//		columnSql += fmt.Sprintf(",t%d.to_guid as %s", i, attr.Name)
+		//	}
+		//}
 		queryRowData, tmpErr := x.QueryString(fmt.Sprintf("SELECT %s FROM %s tt %s where tt.guid in ('%s')", columnSql, ciDataObj.CiTypeId, joinSql, strings.Join(inputGuidList, "','")))
 		if tmpErr != nil {
 			err = fmt.Errorf("Try to get exist ci:%s Data fail,%s ", ciDataObj.CiTypeId, tmpErr.Error())
+			break
+		}
+		for _, attr := range ciDataObj.Attributes {
+			if attr.InputType == models.MultiRefType {
+				tmpMultiMap, tmpErr := queryMultiRefMapData(ciDataObj.CiTypeId, attr.Name, inputGuidList)
+				if tmpErr != nil {
+					err = tmpErr
+					break
+				}
+				for _, baseData := range queryRowData {
+					if tmpMultiDataList, b := tmpMultiMap[baseData["guid"]]; b {
+						baseData[attr.Name] = strings.Join(tmpMultiDataList, ",")
+					}
+				}
+			}
+		}
+		if err != nil {
 			break
 		}
 		for _, inputRow := range ciDataObj.InputData {
@@ -1123,17 +1164,31 @@ func fetchNewRowData(multiCiData []*models.MultiCiDataObj) (output []models.CiDa
 		}
 		joinSql := ""
 		columnSql := "*"
-		for i, attr := range ciDataObj.Attributes {
-			if attr.InputType == models.MultiRefType {
-				joinSql += fmt.Sprintf(" left join (select from_guid,GROUP_CONCAT(to_guid) to_guid from %s$%s where from_guid in ('%s') group by from_guid) t%d on t%d.from_guid=tt.guid ",
-					ciDataObj.CiTypeId, attr.Name, strings.Join(inputGuidList, "','"), i, i)
-				columnSql += fmt.Sprintf(",t%d.to_guid as %s", i, attr.Name)
-			}
-		}
+		//for i, attr := range ciDataObj.Attributes {
+		//	if attr.InputType == models.MultiRefType {
+		//		joinSql += fmt.Sprintf(" left join (select from_guid,GROUP_CONCAT(to_guid) to_guid from %s$%s where from_guid in ('%s') group by from_guid) t%d on t%d.from_guid=tt.guid ",
+		//			ciDataObj.CiTypeId, attr.Name, strings.Join(inputGuidList, "','"), i, i)
+		//		columnSql += fmt.Sprintf(",t%d.to_guid as %s", i, attr.Name)
+		//	}
+		//}
 		queryRowData, tmpErr := x.QueryString(fmt.Sprintf("SELECT %s FROM %s tt %s where tt.guid in ('%s')", columnSql, ciDataObj.CiTypeId, joinSql, strings.Join(inputGuidList, "','")))
 		if tmpErr != nil {
 			err = fmt.Errorf("Try to get exist ci:%s Data fail,%s ", ciDataObj.CiTypeId, tmpErr.Error())
 			break
+		}
+		for _, attr := range ciDataObj.Attributes {
+			if attr.InputType == models.MultiRefType {
+				tmpMultiMap, tmpErr := queryMultiRefMapData(ciDataObj.CiTypeId, attr.Name, inputGuidList)
+				if tmpErr != nil {
+					err = tmpErr
+					break
+				}
+				for _, baseData := range queryRowData {
+					if tmpMultiDataList, b := tmpMultiMap[baseData["guid"]]; b {
+						baseData[attr.Name] = strings.Join(tmpMultiDataList, ",")
+					}
+				}
+			}
 		}
 		tmpPwdKeyMap := make(map[string]int)
 		for _, attr := range ciDataObj.Attributes {
