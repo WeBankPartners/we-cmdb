@@ -51,7 +51,7 @@ func UpdateRoleMenu(param models.UpdateRoleMenuParam) error {
 func ValidateMenuApi(roles []string, apiUrl, method string) (legal bool, err error) {
 	legal = false
 	var roleMenuTable []*models.SysRoleMenuTable
-	err = x.SQL("select * from sys_role_menu where role_guid in ('" + strings.Join(roles, ",") + "')").Find(&roleMenuTable)
+	err = x.SQL("select * from sys_role_menu where role_guid in ('" + strings.Join(roles, "','") + "')").Find(&roleMenuTable)
 	if err != nil {
 		err = fmt.Errorf("Try to validate api permission fail,%s ", err.Error())
 		return
