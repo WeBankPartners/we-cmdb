@@ -935,8 +935,13 @@ func validateMultiRefFilterData(multiCiData []*models.MultiCiDataObj) error {
 						break
 					}
 					if len(fetchRows) == 0 {
-						err = fmt.Errorf("Row:%s column:%s value illegal with refFilter rule ", inputRow["key_name"], attr.Name)
-						break
+						if tmpInputRowData, b := tmpInputRow[attr.Name]; b {
+							if tmpInputRowData != "" && tmpInputRowData != "[]" {
+								err = fmt.Errorf("Row:%s column:%s value illegal with refFilter rule ", inputRow["key_name"], attr.Name)
+								break
+							}
+						}
+						continue
 					}
 					fetchGuidMap := make(map[string]bool)
 					for _, fetRowObj := range fetchRows {
