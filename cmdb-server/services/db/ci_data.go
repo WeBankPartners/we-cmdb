@@ -921,7 +921,7 @@ func validateMultiRefFilterData(multiCiData []*models.MultiCiDataObj) error {
 	for _, ciDataObj := range multiCiData {
 		for _, inputRow := range ciDataObj.InputData {
 			for _, attr := range ciDataObj.Attributes {
-				if inputRow[attr.Name] == "" {
+				if inputRow[attr.Name] == "" || inputRow[attr.Name] == "[]" {
 					continue
 				}
 				if attr.RefCiType != "" {
@@ -935,13 +935,8 @@ func validateMultiRefFilterData(multiCiData []*models.MultiCiDataObj) error {
 						break
 					}
 					if len(fetchRows) == 0 {
-						if tmpInputRowData, b := tmpInputRow[attr.Name]; b {
-							if tmpInputRowData != "" && tmpInputRowData != "[]" {
-								err = fmt.Errorf("Row:%s column:%s value illegal with refFilter rule ", inputRow["key_name"], attr.Name)
-								break
-							}
-						}
-						continue
+						err = fmt.Errorf("Row:%s column:%s value illegal with refFilter rule ", inputRow["key_name"], attr.Name)
+						break
 					}
 					fetchGuidMap := make(map[string]bool)
 					for _, fetRowObj := range fetchRows {
