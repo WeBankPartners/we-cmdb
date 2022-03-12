@@ -921,7 +921,7 @@ func validateMultiRefFilterData(multiCiData []*models.MultiCiDataObj) error {
 	for _, ciDataObj := range multiCiData {
 		for _, inputRow := range ciDataObj.InputData {
 			for _, attr := range ciDataObj.Attributes {
-				if inputRow[attr.Name] == "" {
+				if inputRow[attr.Name] == "" || inputRow[attr.Name] == "[]" {
 					continue
 				}
 				if attr.RefCiType != "" {
