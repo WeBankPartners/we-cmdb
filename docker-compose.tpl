@@ -1,8 +1,8 @@
 version: '2'
 services:
-  consul:
-    image: wecmdb-pro:{{version}}
-    container_name: wecmdb-pro-{{version}}
+  wecmdb:
+    image: wecmdb:{{version}}
+    container_name: wecmdb-{{version}}
     restart: always
     volumes:
       - /etc/localtime:/etc/localtime
