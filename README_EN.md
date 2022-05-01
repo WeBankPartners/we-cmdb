@@ -1,4 +1,4 @@
-# Wecmdb-Pro
+# Wecmdb
 
 <p align="left">
     <a href="https://opensource.org/licenses/Apache-2.0" alt="License">
