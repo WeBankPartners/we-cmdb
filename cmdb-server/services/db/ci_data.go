@@ -1235,7 +1235,7 @@ func validateUniqueColumn(multiCiData []*models.MultiCiDataObj) error {
 				}
 			}
 			if len(tmpInputDataColumn) > 0 {
-				filterSqlList = append(filterSqlList, fmt.Sprintf(" %s in ('%s') ", uc, strings.Join(tmpInputDataColumn, "','")))
+				filterSqlList = append(filterSqlList, fmt.Sprintf(" '%s' in ('%s') ", uc, strings.Join(tmpInputDataColumn, "','")))
 				filterColumnSqlList = append(filterColumnSqlList, fmt.Sprintf("'%s' as unique_c", uc))
 			}
 		}
