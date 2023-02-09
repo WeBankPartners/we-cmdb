@@ -8,19 +8,16 @@ github.com/WeBankPartners/go-common-lib/logger
 github.com/WeBankPartners/go-common-lib/pcre
 github.com/WeBankPartners/go-common-lib/token
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
-## explicit
 github.com/dgrijalva/jwt-go
 # github.com/gin-contrib/sse v0.1.0
 github.com/gin-contrib/sse
-# github.com/gin-gonic/gin v1.7.1
+# github.com/gin-gonic/gin v1.7.7
 ## explicit
 github.com/gin-gonic/gin
 github.com/gin-gonic/gin/binding
 github.com/gin-gonic/gin/internal/bytesconv
 github.com/gin-gonic/gin/internal/json
 github.com/gin-gonic/gin/render
-# github.com/glenn-brown/golang-pkg-pcre v0.0.0-20120522223659-48bb82a8b8ce
-## explicit
 # github.com/go-playground/locales v0.13.0
 github.com/go-playground/locales
 github.com/go-playground/locales/currency
@@ -86,7 +83,6 @@ golang.org/x/sys/unix
 # gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127
 ## explicit
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
-## explicit
 gopkg.in/natefinch/lumberjack.v2
 # gopkg.in/yaml.v2 v2.2.8
 gopkg.in/yaml.v2
