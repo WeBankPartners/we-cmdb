@@ -318,15 +318,109 @@ export default {
     },
     renderFormItem (item, index = 0) {
       if (item.isNotFilterable) return
+
+      const filterParamsForRefSelect = item => {
+        const generateFilters = (type, i) => {
+          switch (type) {
+            case 'text':
+            case 'textArea':
+              filters.push({
+                name: i,
+                operator: 'contains',
+                value: this.form[i]
+              })
+              break
+            case 'select':
+            case 'ref':
+              filters.push({
+                name: i,
+                operator: 'eq',
+                value: this.form[i]
+              })
+              break
+            case 'date':
+              if (this.form[i][0] !== '' && this.form[i][1] !== '') {
+                filters.push({
+                  name: i,
+                  operator: 'gt',
+                  value: moment(this.form[i][0]).format(DATE_FORMAT)
+                })
+                filters.push({
+                  name: i,
+                  operator: 'lt',
+                  value: moment(this.form[i][1]).format(DATE_FORMAT)
+                })
+              }
+              break
+
+            case 'multiSelect':
+            case 'multiRef':
+              if (Array.isArray(this.form[i]) && this.form[i].length) {
+                filters.push({
+                  name: i,
+                  operator: 'in',
+                  value: this.form[i]
+                })
+              }
+              break
+            case 'number':
+              filters.push({
+                name: i,
+                operator: 'eq',
+                value: +this.form[i]
+              })
+              break
+
+            default:
+              filters.push({
+                name: i,
+                operator: 'contains',
+                value: this.form[i]
+              })
+              break
+          }
+        }
+
+        let filters = []
+        for (let i in this.form) {
+          if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
+            this.tableColumns
+              .filter(_ => _.uiSearchOrder || _.children)
+              .forEach(_ => {
+                if (_.children) {
+                  _.children.forEach(j => {
+                    if (i === j.inputKey) {
+                      generateFilters(j.inputType, i)
+                    }
+                  })
+                } else {
+                  if (i === _.inputKey) {
+                    generateFilters(_.inputType, i)
+                  }
+                }
+              })
+          }
+        }
+        let params = {}
+        filters.forEach(f => {
+          params[f.name] = f.value
+        })
+        return params
+      }
       const data = {
         props: {
           ...item,
-          enumId: item.referenceId ? item.referenceId : null
+          enumId: item.referenceId ? item.referenceId : null,
+          filterParams: {
+            attrId: '', // 搜索处赋值
+            params: filterParamsForRefSelect()
+          }
         },
         style: {
           width: '100%'
         }
       }
+
       let renders = item => {
         switch (item.component) {
           case 'WeCMDBSelect':
