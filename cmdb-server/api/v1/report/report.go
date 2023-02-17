@@ -1,8 +1,11 @@
 package report
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
@@ -216,4 +219,24 @@ func QueryReportAttr(c *gin.Context) {
 	} else {
 		middleware.ReturnPageData(c, pageInfo, rowData)
 	}
+}
+
+func ExportReportData(c *gin.Context) {
+	var param models.ExportReportParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	result, err := db.ExportReportData(&param)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+	b, marshalErr := json.Marshal(result)
+	if marshalErr != nil {
+		middleware.ReturnServerHandleError(c, fmt.Errorf("export report data fail, json marshal result error,%s", marshalErr))
+		return
+	}
+	c.Writer.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=report_%s_%s.json", param.ReportId, time.Now().Format("20060102150405")))
+	c.Data(http.StatusOK, "application/octet-stream", b)
 }
