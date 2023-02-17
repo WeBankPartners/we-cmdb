@@ -130,3 +130,24 @@ type ModifyReportObjectAttr struct {
 	DataTitleName string `json:"dataTitleName" xorm:"data_title_name"`
 	Querialbe     string `json:"querialbe" xorm:"querialbe"`
 }
+
+type ExportReportParam struct {
+	ReportId   string   `json:"reportId" binding:"required"`
+	RootCiData []string `json:"rootCiData"`
+}
+
+type ExportReportResult struct {
+	ReportId   string                `json:"reportId"`
+	ExportTime string                `json:"exportTime"`
+	RootCiType string                `json:"rootCiType"`
+	CiData     []*ExportReportCiData `json:"ciData"`
+}
+
+type ExportReportCiData struct {
+	CiType             string                   `json:"ciType"`
+	ParentCiType       string                   `json:"parentCiType"`
+	ParentAttribute    string                   `json:"parentAttribute"`
+	RefParentAttribute string                   `json:"refParentAttribute"`
+	Attributes         []string                 `json:"attributes"`
+	Data               []map[string]interface{} `json:"data"`
+}

@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"reflect"
 	"strconv"
 )
@@ -149,5 +150,40 @@ func DataPasswordQuery(c *gin.Context) {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
 		middleware.ReturnData(c, password)
+	}
+}
+
+func DataImport(c *gin.Context) {
+	ciTypeId := c.Param("ciType")
+	file, err := c.FormFile("file")
+	if err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	f, openFileErr := file.Open()
+	if openFileErr != nil {
+		middleware.ReturnParamValidateError(c, openFileErr)
+		return
+	}
+	var param models.ExportReportResult
+	b, readFileErr := ioutil.ReadAll(f)
+	defer f.Close()
+	if readFileErr != nil {
+		middleware.ReturnServerHandleError(c, readFileErr)
+		return
+	}
+	err = json.Unmarshal(b, &param)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+	if param.RootCiType != ciTypeId {
+		middleware.ReturnParamValidateError(c, fmt.Errorf("rootCiType is %s,not %s", param.RootCiType, ciTypeId))
+		return
+	}
+	if err = db.ImportCiData(&param, middleware.GetRequestUser(c)); err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
 	}
 }
