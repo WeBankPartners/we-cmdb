@@ -92,7 +92,8 @@ import {
   tableOptionExcute,
   operateCiState,
   getEnumCategoriesById,
-  getStateTransition
+  getStateTransition,
+  importReport
 } from '@/api/server'
 import { baseURL } from '@/api/base.js'
 import { pagination, components } from '@/const/actions.js'
@@ -327,6 +328,17 @@ export default {
           disabled: false
         }
       })
+      stateBtn.push({
+        operation: this.$t('import'),
+        operationFormType: 'import_form',
+        // operationMultiple: 'yes',
+        class: 'xxx',
+        operation_en: 'Import',
+        props: {
+          type: 'primary',
+          disabled: false
+        }
+      })
       return stateBtn
     },
     async handleNodeClick (e) {
@@ -404,6 +416,9 @@ export default {
       switch (operate.operationFormType) {
         case 'export_form':
           this.exportHandler(filters)
+          break
+        case 'import_form':
+          this.importHandler(cols, filters)
           break
         case 'editable_form':
           this.editHandler(operate.operation_en)
@@ -699,6 +714,29 @@ export default {
           data: formatData(data.contents)
         })
       }
+    },
+    async importHandler (citypeId, file) {
+      var FR = new FileReader()
+      FR.onload = async ev => {
+        if (ev.target && typeof ev.target.result === 'string') {
+          const parmas = new FormData()
+          parmas.append('file', file)
+          const pram = {
+            ciType: citypeId,
+            data: parmas
+          }
+          const { statusCode } = await importReport(pram)
+          if (statusCode === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: 'Success'
+            })
+            this.queryCiData()
+          }
+        }
+      }
+      FR.readAsDataURL(file)
+      return false
     },
     pageChange (current) {
       this.tabList.forEach(ci => {
