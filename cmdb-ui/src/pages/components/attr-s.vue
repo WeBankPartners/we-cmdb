@@ -7,7 +7,7 @@
             <Tooltip :content="item.name + '/' + item.propertyName">
               <div style="width:150px;display:inline-block;">
                 {{ item[displayKey] }}
-                <span v-if="item.uiNullable === 'yes'" style="color:red;font-size:16px;vertical-align: sub;">*</span>
+                <span v-if="item.nullable === 'no'" style="color:red;font-size:16px;vertical-align: sub;">*</span>
               </div>
             </Tooltip>
             <!-- <div style="width:150px;display:inline-block;">{{ item[displayKey] }}</div> -->
