@@ -63,7 +63,9 @@ export default {
         type: '',
         title: '',
         info: []
-      }
+      },
+      colSelectVisible: true, // 列显示控制
+      isShowFilter: false // 控制列过滤功能
     }
   },
   component: {
@@ -288,6 +290,20 @@ export default {
       if (this.tableOuterActions) {
         const lang = localStorage.getItem('lang')
         return this.tableOuterActions.map(_ => {
+          if (_.operationFormType === 'import_form') {
+            return (
+              <div style="margin-left:100px; width:200px;display:inline-block;">
+                <Upload
+                  action=""
+                  beforeUpload={file => {
+                    this.$emit('actionFun', _, this.selectedRows, this.ciTypeId, file)
+                  }}
+                >
+                  <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button>
+                </Upload>
+              </div>
+            )
+          }
           return (
             <Button
               style="margin-right: 10px"
@@ -316,15 +332,109 @@ export default {
     },
     renderFormItem (item, index = 0) {
       if (item.isNotFilterable) return
+
+      const filterParamsForRefSelect = item => {
+        const generateFilters = (type, i) => {
+          switch (type) {
+            case 'text':
+            case 'textArea':
+              filters.push({
+                name: i,
+                operator: 'contains',
+                value: this.form[i]
+              })
+              break
+            case 'select':
+            case 'ref':
+              filters.push({
+                name: i,
+                operator: 'eq',
+                value: this.form[i]
+              })
+              break
+            case 'date':
+              if (this.form[i][0] !== '' && this.form[i][1] !== '') {
+                filters.push({
+                  name: i,
+                  operator: 'gt',
+                  value: moment(this.form[i][0]).format(DATE_FORMAT)
+                })
+                filters.push({
+                  name: i,
+                  operator: 'lt',
+                  value: moment(this.form[i][1]).format(DATE_FORMAT)
+                })
+              }
+              break
+
+            case 'multiSelect':
+            case 'multiRef':
+              if (Array.isArray(this.form[i]) && this.form[i].length) {
+                filters.push({
+                  name: i,
+                  operator: 'in',
+                  value: this.form[i]
+                })
+              }
+              break
+            case 'number':
+              filters.push({
+                name: i,
+                operator: 'eq',
+                value: +this.form[i]
+              })
+              break
+
+            default:
+              filters.push({
+                name: i,
+                operator: 'contains',
+                value: this.form[i]
+              })
+              break
+          }
+        }
+
+        let filters = []
+        for (let i in this.form) {
+          if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
+            this.tableColumns
+              .filter(_ => _.uiSearchOrder || _.children)
+              .forEach(_ => {
+                if (_.children) {
+                  _.children.forEach(j => {
+                    if (i === j.inputKey) {
+                      generateFilters(j.inputType, i)
+                    }
+                  })
+                } else {
+                  if (i === _.inputKey) {
+                    generateFilters(_.inputType, i)
+                  }
+                }
+              })
+          }
+        }
+        let params = {}
+        filters.forEach(f => {
+          params[f.name] = f.value
+        })
+        return params
+      }
       const data = {
         props: {
           ...item,
-          enumId: item.referenceId ? item.referenceId : null
+          enumId: item.referenceId ? item.referenceId : null,
+          filterParams: {
+            attrId: '', // 搜索处赋值
+            params: filterParamsForRefSelect()
+          }
         },
         style: {
           width: '100%'
         }
       }
+
       let renders = item => {
         switch (item.component) {
           case 'WeCMDBSelect':
@@ -915,10 +1025,63 @@ export default {
     const closeModal = () => {
       this.tableDetailInfo.isShow = false
     }
+    const showColsSelect = () => {
+      this.colSelectVisible = !this.colSelectVisible
+    }
+    let selectAttrs = []
+    this.tableColumns.forEach(t => {
+      if (t.ciTypeAttrId) {
+        this.isShowFilter = true
+      }
+      if (t.displayByDefault === 'yes') {
+        selectAttrs.push(t.ciTypeAttrId)
+      }
+    })
+    const changeColDisplay = ciTypeAttrId => {
+      let attr = this.tableColumns.find(t => t.ciTypeAttrId === ciTypeAttrId)
+      attr.displayByDefault = attr.displayByDefault === 'yes' ? 'no' : 'yes'
+      if (selectAttrs.includes(ciTypeAttrId)) {
+        const index = selectAttrs.findIndex(s => s === ciTypeAttrId)
+        selectAttrs = selectAttrs.splice(index, 1)
+      } else {
+        selectAttrs.push(ciTypeAttrId)
+      }
+    }
     return (
       <div>
         {!filtersHidden && <div>{this.getFormFilters()}</div>}
         <Row style="margin-bottom:10px">{this.getTableOuterActions()}</Row>
+        {this.isShowFilter && (
+          <div style="position: relative;top: -40px;right: 30px;float: right;">
+            <Poptip value={this.colSelectVisible} placement="bottom">
+              <Button type="primary" on-click={showColsSelect} shape="circle" icon="ios-funnel-outline"></Button>
+              <div slot="content">
+                {this.tableColumns.map(t => {
+                  const ciTypeAttrId = t.ciTypeAttrId
+                  if (selectAttrs.includes(ciTypeAttrId)) {
+                    return (
+                      <div
+                        onClick={() => changeColDisplay(ciTypeAttrId)}
+                        style="cursor:pointer;height: 22px;line-height: 22px;margin: 2px 4px 2px 0;padding: 0 2px;border: 1px solid #2d8cf0;color:#2d8cf0;font-size: 12px;vertical-align: middle;opacity: 1;overflow: hidden;border-radius: 3px;"
+                      >
+                        {t.displayName}
+                      </div>
+                    )
+                  } else {
+                    return (
+                      <div
+                        onClick={() => changeColDisplay(ciTypeAttrId)}
+                        style="cursor:pointer;height: 22px;line-height: 22px;margin: 2px 4px 2px 0;padding: 0 2px;border: 1px solid #e8eaec;font-size: 12px;vertical-align: middle;opacity: 1;overflow: hidden;border-radius: 3px;"
+                      >
+                        {t.displayName}
+                      </div>
+                    )
+                  }
+                })}
+              </div>
+            </Poptip>
+          </div>
+        )}
         <Table
           loading={tableLoading}
           ref="table"
