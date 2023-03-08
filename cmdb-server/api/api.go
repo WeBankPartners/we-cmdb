@@ -73,6 +73,7 @@ func init() {
 		&handlerFuncObj{Url: "/ci-data/rollback/query/:guid", Method: "GET", HandlerFunc: ci.DataRollbackList},
 		&handlerFuncObj{Url: "/ci-data/query-password/:ciType/:guid/:field", Method: "GET", HandlerFunc: ci.DataPasswordQuery},
 		&handlerFuncObj{Url: "/ci-data/action-query/:operation/:ciType/:guid", Method: "GET", HandlerFunc: ci.GetActionQueryData},
+		&handlerFuncObj{Url: "/ci-data/import/:ciType", Method: "POST", HandlerFunc: ci.DataImport},
 	)
 	// log
 	httpHandlerFuncList = append(httpHandlerFuncList,
@@ -131,6 +132,7 @@ func init() {
 		&handlerFuncObj{Url: "/report-objects", Method: "POST", HandlerFunc: report.ModifyReportObject},
 		&handlerFuncObj{Url: "/report-objects/query", Method: "POST", HandlerFunc: report.QueryReportObject},
 		&handlerFuncObj{Url: "/report-objects-attr/query", Method: "POST", HandlerFunc: report.QueryReportAttr},
+		&handlerFuncObj{Url: "/report/export", Method: "POST", HandlerFunc: report.ExportReportData},
 	)
 }
 
