@@ -24,7 +24,7 @@
       <Col span="6" v-if="displayType === 'tree'">
         <span style="margin-right: 10px">{{ $t('display_data') }}</span>
         <Select v-model="treeRoot" filterable multiple style="width: 75%;">
-          <Option v-for="item in treeRootOptions" :value="item.code" :key="item.guid">{{ item.code }}</Option>
+          <Option v-for="item in treeRootOptions" :value="item.guid" :key="item.guid">{{ item.code }}</Option>
         </Select>
       </Col>
       <Button
@@ -34,6 +34,16 @@
         @click="getReportData"
         :loading="btnLoading"
         >{{ $t('query') }}</Button
+      >
+
+      <Button
+        type="primary"
+        ghost
+        style="margin-left:24px"
+        :disabled="!currentReportId || treeRoot.length === 0"
+        v-if="displayType !== 'table'"
+        @click="exportReportData"
+        >{{ $t('export') }}</Button
       >
     </Row>
     <template v-show="displayType === 'table'">
@@ -131,6 +141,7 @@
 import {
   getReportListByPermission,
   getReportData,
+  exportReport,
   queryCiData,
   getReportFilterData,
   getCiTypeAttr,
@@ -242,7 +253,7 @@ export default {
     async getData () {
       this.treeSet = []
       this.treeRootOptions.forEach(d => {
-        if (this.treeRoot.includes(d.code)) {
+        if (this.treeRoot.includes(d.guid)) {
           this.treeSet.push(d)
           this.treeSet.forEach(tree => {
             this.singleTree(tree)
@@ -462,6 +473,28 @@ export default {
         this.tableData = data.contents
         this.payload.pageable.total = data.pageInfo.totalRows
       }
+    },
+    async exportReportData () {
+      let params = {
+        reportId: this.currentReportId,
+        rootCiData: this.treeRoot
+      }
+      const { statusCode, data } = await exportReport(params)
+      if (statusCode === 'OK') {
+        this.download(data)
+      }
+    },
+    download (res) {
+      const filename = `${res.reportId}copy.json`
+      res = JSON.stringify(res, undefined, 4)
+      var blob = new Blob([res], { type: 'text/json' })
+      var e = document.createEvent('MouseEvents')
+      var a = document.createElement('a')
+      a.download = filename
+      a.href = window.URL.createObjectURL(blob)
+      a.dataset.downloadurl = ['text/json', a.download, a.href].join(':')
+      e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+      a.dispatchEvent(e)
     }
   }
 }

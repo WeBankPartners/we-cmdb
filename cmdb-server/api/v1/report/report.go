@@ -2,12 +2,11 @@ package report
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 func QueryReport(c *gin.Context) {
@@ -216,4 +215,18 @@ func QueryReportAttr(c *gin.Context) {
 	} else {
 		middleware.ReturnPageData(c, pageInfo, rowData)
 	}
+}
+
+func ExportReportData(c *gin.Context) {
+	var param models.ExportReportParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	result, err := db.ExportReportData(&param)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+	middleware.ReturnData(c, result)
 }

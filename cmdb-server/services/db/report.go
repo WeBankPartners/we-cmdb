@@ -2,7 +2,9 @@ package db
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"reflect"
 	"strconv"
 	"strings"
@@ -1290,5 +1292,282 @@ func QueryReportAttr(param *models.QueryRequestParam) (pageInfo models.PageInfo,
 		queryParam = append(queryParam, pageParam...)
 	}
 	err = x.SQL(baseSql, queryParam...).Find(&rowData)
+	return
+}
+
+func ExportReportData(param *models.ExportReportParam) (result *models.ExportReportResult, err error) {
+	var reportRows []*models.SysReportTable
+	if err = x.SQL("select id,ci_type from sys_report where id=?", param.ReportId).Find(&reportRows); err != nil {
+		return
+	}
+	if len(reportRows) == 0 {
+		err = fmt.Errorf("can not find report %s ", param.ReportId)
+		return
+	}
+	result = &models.ExportReportResult{ReportId: param.ReportId, ExportTime: time.Now().Format(models.DateTimeFormat), RootCiType: reportRows[0].CiType, CiData: []*models.ExportReportCiData{}}
+	var reportObjectRows []*models.SysReportObjectTable
+	if err = x.SQL("select * from sys_report_object where report=?", param.ReportId).Find(&reportObjectRows); err != nil {
+		return
+	}
+	var rootReportObject models.SysReportObjectTable
+	reportObjectCiTypeMap := make(map[string]string)
+	for _, row := range reportObjectRows {
+		if row.ParentObject == "" {
+			rootReportObject = *row
+		}
+		reportObjectCiTypeMap[row.Id] = row.CiType
+	}
+	var reportObjectAttrRows []*models.SysReportObjectAttrTable
+	if err = x.SQL("select * from sys_report_object_attr where report_object in (select id from sys_report_object where report=?) order by id", param.ReportId).Find(&reportObjectAttrRows); err != nil {
+		return
+	}
+	attrMap := make(map[string][]*models.SysReportObjectAttrTable)
+	for _, row := range reportObjectAttrRows {
+		if v, b := attrMap[row.ReportObject]; b {
+			attrMap[row.ReportObject] = append(v, row)
+		} else {
+			attrMap[row.ReportObject] = []*models.SysReportObjectAttrTable{row}
+		}
+	}
+	result.CiData, err = getExportReportCiData(&rootReportObject, param.RootCiData, reportObjectRows, attrMap, reportObjectCiTypeMap)
+	return
+}
+
+func getExportReportCiData(reportObject *models.SysReportObjectTable, guids []string, reportObjects []*models.SysReportObjectTable, attrMap map[string][]*models.SysReportObjectAttrTable, reportObjectCiTypeMap map[string]string) (result []*models.ExportReportCiData, err error) {
+	exportObj := models.ExportReportCiData{CiType: reportObject.CiType, ParentCiType: reportObjectCiTypeMap[reportObject.ParentObject]}
+	var guidFilterValues []interface{}
+	for _, v := range guids {
+		guidFilterValues = append(guidFilterValues, v)
+	}
+	queryParam := models.QueryRequestParam{Dialect: &models.QueryRequestDialect{QueryMode: "new"}, Filters: []*models.QueryRequestFilterObj{}}
+	columnAttrExistsMap := make(map[string]int)
+	queryParamFilterColumn := "guid"
+	for _, attr := range attrMap[reportObject.Id] {
+		attrName := strings.Split(attr.CiTypeAttr, models.SysTableIdConnector)[1]
+		queryParam.ResultColumns = append(queryParam.ResultColumns, attrName)
+		exportObj.Attributes = append(exportObj.Attributes, attrName)
+		columnAttrExistsMap[attrName] = 1
+	}
+	if strings.Contains(reportObject.ParentAttr, models.SysTableIdConnector) {
+		exportObj.ParentAttribute = strings.Split(reportObject.ParentAttr, models.SysTableIdConnector)[1]
+	}
+	if strings.Contains(reportObject.MyAttr, models.SysTableIdConnector) {
+		exportObj.RefParentAttribute = strings.Split(reportObject.MyAttr, models.SysTableIdConnector)[1]
+		queryParamFilterColumn = exportObj.RefParentAttribute
+		if _, b := columnAttrExistsMap[exportObj.RefParentAttribute]; !b {
+			columnAttrExistsMap[exportObj.RefParentAttribute] = 1
+			queryParam.ResultColumns = append(queryParam.ResultColumns, exportObj.RefParentAttribute)
+			exportObj.Attributes = append(exportObj.Attributes, exportObj.RefParentAttribute)
+		}
+	}
+	queryParam.Filters = append(queryParam.Filters, &models.QueryRequestFilterObj{Name: queryParamFilterColumn, Operator: "in", Value: guidFilterValues})
+	for _, v := range reportObjects {
+		if v.ParentObject == reportObject.Id && v.ParentAttr != "" {
+			parentAttr := strings.Split(v.ParentAttr, models.SysTableIdConnector)[1]
+			if _, b := columnAttrExistsMap[parentAttr]; !b {
+				columnAttrExistsMap[parentAttr] = 1
+				queryParam.ResultColumns = append(queryParam.ResultColumns, parentAttr)
+				exportObj.Attributes = append(exportObj.Attributes, parentAttr)
+			}
+		}
+	}
+	_, rowData, queryErr := CiDataQuery(reportObject.CiType, &queryParam, &models.CiDataLegalGuidList{Enable: true}, true)
+	if queryErr != nil {
+		err = fmt.Errorf("query ciType:%s data fail,%s ", reportObject.CiType, queryErr.Error())
+		return
+	}
+	for _, v := range rowData {
+		delete(v, "nextOperations")
+		exportObj.Data = append(exportObj.Data, v)
+	}
+	result = append(result, &exportObj)
+	// children
+	for _, v := range reportObjects {
+		if v.ParentObject == reportObject.Id {
+			childGuids := []string{}
+			parentAttr := strings.Split(v.ParentAttr, models.SysTableIdConnector)[1]
+			for _, ciRowDataMap := range exportObj.Data {
+				if rowValue, b := ciRowDataMap[parentAttr]; b {
+					childGuids = append(childGuids, getRefGuidStringList(rowValue)...)
+				}
+			}
+			childCiData, getChildDataErr := getExportReportCiData(v, childGuids, reportObjects, attrMap, reportObjectCiTypeMap)
+			if getChildDataErr != nil {
+				err = fmt.Errorf("get child ci type:%s data fail,%s ", v.CiType, getChildDataErr.Error())
+				break
+			}
+			result = append(result, childCiData...)
+		}
+	}
+	return
+}
+
+func getRefGuidStringList(input interface{}) (guidList []string) {
+	refType := reflect.TypeOf(input).String()
+	if refType == "[]string" {
+		guidList = input.([]string)
+	} else if refType == "[]interface {}" {
+		for _, v := range input.([]interface{}) {
+			guidList = append(guidList, fmt.Sprintf("%s", v))
+		}
+	} else {
+		guidList = []string{fmt.Sprintf("%s", input)}
+	}
+	return
+}
+
+func ImportCiData(param *models.ExportReportResult, operator string) (err error) {
+	tNow := time.Now().Format(models.DateTimeFormat)
+	var actions []*execAction
+	if len(param.CiData) == 0 {
+		return
+	}
+	newGuidMap := make(map[string]string)
+	ciTypeRefColumn := make(map[string]map[string]int)
+	for _, ciDataObj := range param.CiData {
+		if ciDataObj.ParentCiType != "" {
+			if v, b := ciTypeRefColumn[ciDataObj.ParentCiType]; b {
+				v[ciDataObj.ParentAttribute] = 1
+			} else {
+				ciTypeRefColumn[ciDataObj.ParentCiType] = make(map[string]int)
+				ciTypeRefColumn[ciDataObj.ParentCiType][ciDataObj.ParentAttribute] = 1
+			}
+		}
+		if ciDataObj.RefParentAttribute != "" {
+			if v, b := ciTypeRefColumn[ciDataObj.CiType]; b {
+				v[ciDataObj.RefParentAttribute] = 1
+			} else {
+				ciTypeRefColumn[ciDataObj.CiType] = make(map[string]int)
+				ciTypeRefColumn[ciDataObj.CiType][ciDataObj.RefParentAttribute] = 1
+			}
+		}
+		for _, v := range ciDataObj.Data {
+			oldGuid := fmt.Sprintf("%s", v["guid"])
+			if lastIndex := strings.LastIndex(oldGuid, "_"); lastIndex > 0 {
+				newGuid := oldGuid[:lastIndex] + "_" + guid.CreateGuid()
+				newGuidMap[oldGuid] = newGuid
+			}
+		}
+	}
+	var multiCiData []*models.MultiCiDataObj
+	importedCiGuidMap := make(map[string]int)
+	for _, ciDataObj := range param.CiData {
+		tmpMultiCiDataObj := models.MultiCiDataObj{CiTypeId: ciDataObj.CiType}
+		tmpRefColumnsMap := ciTypeRefColumn[ciDataObj.CiType]
+		for _, row := range ciDataObj.Data {
+			newRowData := make(map[string]string)
+			for k, v := range row {
+				_, b := tmpRefColumnsMap[k]
+				if b || k == "guid" {
+					newRowData[k] = getImportRefCiDataNewValue(v, newGuidMap)
+				} else {
+					newValue, tmpErr := transInputDataToString(v)
+					if tmpErr != nil {
+						err = fmt.Errorf("ciType:%s key:%s data illegal,%s ", ciDataObj.CiType, k, tmpErr.Error())
+						return
+					}
+					newRowData[k] = newValue
+				}
+			}
+			if _, b := importedCiGuidMap[newRowData["guid"]]; b {
+				continue
+			} else {
+				importedCiGuidMap[newRowData["guid"]] = 1
+			}
+			tmpMultiCiDataObj.InputData = append(tmpMultiCiDataObj.InputData, newRowData)
+		}
+		if len(tmpMultiCiDataObj.InputData) > 0 {
+			multiCiData = append(multiCiData, &tmpMultiCiDataObj)
+		}
+	}
+	if err != nil {
+		return
+	}
+	// 获取属性字段
+	if err = getMultiCiAttributes(multiCiData); err != nil {
+		return
+	}
+	// 获取状态机
+	if err = getMultiCiStartTransition(multiCiData); err != nil {
+		return
+	}
+	for _, ciObj := range multiCiData {
+		for _, attr := range ciObj.Attributes {
+			attr.TextValidate = ""
+			attr.Nullable = "yes"
+			attr.UniqueConstraint = "no"
+		}
+		for _, inputRowData := range ciObj.InputData {
+			for _, attr := range ciObj.Attributes {
+				if _, b := inputRowData[attr.Name]; !b {
+					inputRowData[attr.Name] = ""
+				}
+			}
+			actionParam := models.ActionFuncParam{CiType: ciObj.CiTypeId, InputData: inputRowData, Attributes: ciObj.Attributes, ReferenceAttributes: ciObj.ReferenceAttributes, Operator: operator, Operation: "Add", NowTime: tNow, RefCiTypeMap: ciObj.RefCiTypeMap, FromCore: true}
+			// 检查数据目标状态
+			actionParam.Transition = ciObj.Transition[0]
+			// 处理输入,把参数变成对应的SQL加进事务里
+			tmpAction, tmpErr := doActionFunc(&actionParam)
+			if tmpErr != nil {
+				err = fmt.Errorf("CiType:%s do action:%s fail,%s ", ciObj.CiTypeId, actionParam.Transition.Action, tmpErr.Error())
+				return
+			}
+			actions = append(actions, tmpAction...)
+		}
+	}
+	err = transaction(actions)
+	return
+}
+
+func transInputDataToString(input interface{}) (output string, err error) {
+	valueType := reflect.TypeOf(input).String()
+	if valueType == "string" {
+		output = input.(string)
+	} else if valueType == "int" {
+		output = fmt.Sprintf("%d", input.(int))
+	} else {
+		tmpJsonByte, tmpErr := json.Marshal(input)
+		if tmpErr != nil {
+			err = fmt.Errorf("value type %s not support ", valueType)
+		}
+		output = string(tmpJsonByte)
+	}
+	return
+}
+
+func getImportRefCiDataNewValue(input interface{}, guidMap map[string]string) (output string) {
+	valueType := reflect.TypeOf(input).String()
+	valueList := []string{}
+	if valueType == "string" {
+		stringValue := input.(string)
+		if v, b := guidMap[stringValue]; b {
+			output = v
+		} else {
+			output = stringValue
+		}
+		return
+	} else if valueType == "int" {
+		output = fmt.Sprintf("%d", input.(int))
+		return
+	} else if valueType == "[]string" {
+		for _, oldValue := range input.([]string) {
+			if v, b := guidMap[oldValue]; b {
+				valueList = append(valueList, v)
+			} else {
+				valueList = append(valueList, oldValue)
+			}
+		}
+	} else if valueType == "[]interface {}" {
+		for _, oldValue := range input.([]interface{}) {
+			oldValueString := fmt.Sprintf("%s", oldValue)
+			if v, b := guidMap[oldValueString]; b {
+				valueList = append(valueList, v)
+			} else {
+				valueList = append(valueList, oldValueString)
+			}
+		}
+	}
+	tmpJsonByte, _ := json.Marshal(valueList)
+	output = string(tmpJsonByte)
 	return
 }

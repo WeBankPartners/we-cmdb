@@ -283,3 +283,7 @@ export const editCiTemplateAttr = data => req.put(`/ci-template-attr`, data)
 export const addCiTemplateAttr = data => req.post(`/ci-template-attr`, data)
 export const deleteCiTemplateAttr = id => req.delete(`/ci-template-attr?ids=${id}`)
 export const getReportDetail = reportId => req.get(`/report-message/${reportId}`)
+
+export const exportReport = data => req.post(`/report/export`, data)
+
+export const importReport = data => req.post(`/ci-data/import/${data.ciType}`, data.data)
