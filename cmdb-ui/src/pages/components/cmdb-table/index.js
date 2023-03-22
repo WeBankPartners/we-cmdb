@@ -1025,9 +1025,6 @@ export default {
     const closeModal = () => {
       this.tableDetailInfo.isShow = false
     }
-    const showColsSelect = () => {
-      this.colSelectVisible = !this.colSelectVisible
-    }
     let selectAttrs = []
     this.tableColumns.forEach(t => {
       if (t.ciTypeAttrId) {
@@ -1037,51 +1034,10 @@ export default {
         selectAttrs.push(t.ciTypeAttrId)
       }
     })
-    const changeColDisplay = ciTypeAttrId => {
-      let attr = this.tableColumns.find(t => t.ciTypeAttrId === ciTypeAttrId)
-      attr.displayByDefault = attr.displayByDefault === 'yes' ? 'no' : 'yes'
-      if (selectAttrs.includes(ciTypeAttrId)) {
-        const index = selectAttrs.findIndex(s => s === ciTypeAttrId)
-        selectAttrs = selectAttrs.splice(index, 1)
-      } else {
-        selectAttrs.push(ciTypeAttrId)
-      }
-    }
     return (
       <div>
         {!filtersHidden && <div>{this.getFormFilters()}</div>}
         <Row style="margin-bottom:10px">{this.getTableOuterActions()}</Row>
-        {this.isShowFilter && (
-          <div style="position: relative;top: -40px;right: 30px;float: right;">
-            <Poptip value={this.colSelectVisible} placement="bottom">
-              <Button type="primary" on-click={showColsSelect} shape="circle" icon="ios-funnel-outline"></Button>
-              <div slot="content">
-                {this.tableColumns.map(t => {
-                  const ciTypeAttrId = t.ciTypeAttrId
-                  if (selectAttrs.includes(ciTypeAttrId)) {
-                    return (
-                      <div
-                        onClick={() => changeColDisplay(ciTypeAttrId)}
-                        style="cursor:pointer;height: 22px;line-height: 22px;margin: 2px 4px 2px 0;padding: 0 2px;border: 1px solid #2d8cf0;color:#2d8cf0;font-size: 12px;vertical-align: middle;opacity: 1;overflow: hidden;border-radius: 3px;"
-                      >
-                        {t.displayName}
-                      </div>
-                    )
-                  } else {
-                    return (
-                      <div
-                        onClick={() => changeColDisplay(ciTypeAttrId)}
-                        style="cursor:pointer;height: 22px;line-height: 22px;margin: 2px 4px 2px 0;padding: 0 2px;border: 1px solid #e8eaec;font-size: 12px;vertical-align: middle;opacity: 1;overflow: hidden;border-radius: 3px;"
-                      >
-                        {t.displayName}
-                      </div>
-                    )
-                  }
-                })}
-              </div>
-            </Poptip>
-          </div>
-        )}
         <Table
           loading={tableLoading}
           ref="table"
