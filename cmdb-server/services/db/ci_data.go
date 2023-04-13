@@ -626,7 +626,8 @@ func autofillAffectActionFunc(ciTypeId, guid, nowTime string) {
 		return
 	}
 	// get now data
-	nowDataList, err := x.QueryString(fmt.Sprintf("select * from %s%s where guid='%s' order by id desc limit 1", HistoryTablePrefix, ciTypeId, guid))
+	//nowDataList, err := x.QueryString(fmt.Sprintf("select * from %s%s where guid='%s' order by id desc limit 1", HistoryTablePrefix, ciTypeId, guid))
+	nowDataList, err := x.QueryString(fmt.Sprintf("select * from %s where guid='%s'", ciTypeId, guid))
 	if err != nil {
 		log.Logger.Error("Try to auto refresh autofill,get ci data fail", log.String("guid", guid), log.Error(err))
 		return

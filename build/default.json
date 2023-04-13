@@ -10,9 +10,9 @@
     "log_dir": "logs",
     "access_log_enable": true,
     "db_log_enable": true,
-    "archive_max_size": 64,
-    "archive_max_backup": 10,
-    "archive_max_day": 15,
+    "archive_max_size": 200,
+    "archive_max_backup": 50,
+    "archive_max_day": 30,
     "compress": true
   },
   "database": {
