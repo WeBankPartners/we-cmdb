@@ -813,6 +813,26 @@ export default {
           this.tableDetailInfo.isShow = true
         }
       }
+
+      const getDiffVariable = async (row, key) => {
+        this.tableDetailInfo.isShow = false
+        const rowData = this.tableData.find(item => row.guid === item.guid)
+        const vari = rowData[key].replaceAll('\u0001', '').split('=')
+        const keys = vari[0].split(',')
+        const values = vari[1].split(',')
+        let res = []
+        for (let i = 0; i < keys.length; i++) {
+          res.push({
+            key: keys[i],
+            value: values[i]
+          })
+        }
+        this.tableDetailInfo.title = this.$t('variable_format')
+        this.tableDetailInfo.type = 'diffVariable'
+        this.tableDetailInfo.info = res
+        this.tableDetailInfo.isShow = true
+      }
+
       const generalParams = {
         ...col,
         tooltip: true,
@@ -891,6 +911,23 @@ export default {
                 onClick={() => getPassword(params.row, col.key)}
               />
               {params.row.weTableForm[col.key]}
+            </span>
+          )
+        }
+        return generalParams
+      }
+      // if (col.ciTypeAttrId === 'app_instance__variable_values') {
+      if (col.inputType === 'diffVariable') {
+        generalParams.render = (h, params) => {
+          return (
+            <span>
+              <Icon
+                size="16"
+                type="ios-apps-outline"
+                color="#2d8cf0"
+                onClick={() => getDiffVariable(params.row, col.key)}
+              />
+              {params.row.weTableForm[col.key].slice(0, 18) + '...'}
             </span>
           )
         }
@@ -1112,6 +1149,20 @@ export default {
                   )
                 })}
               </Collapse>
+            </div>
+          )}
+          {this.tableDetailInfo.type === 'diffVariable' && (
+            <div style="text-align: justify;word-break: break-word;overflow-y:auto;max-height:500px">
+              <Form label-width={160}>
+                {this.tableDetailInfo.info.map(val => {
+                  return (
+                    <FormItem label={val.key}>
+                      <Input value={val.value} disabled style="width: 300px" />
+                      <span style="color:red;margin-left:4px">{val.value !== '' ? '' : '!!!'}</span>
+                    </FormItem>
+                  )
+                })}
+              </Form>
             </div>
           )}
           <div style="margin-top:20px;height: 30px">
