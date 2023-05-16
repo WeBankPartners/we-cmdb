@@ -11,5 +11,4 @@ cmdb-ui/dist
 cmdb-ui/node_modules
 cmdb-ui/node
 cmdb-ui/build
-cmdb-ui/package-lock.json
 cmdb-ui/vue.config.js
