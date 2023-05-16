@@ -55,7 +55,7 @@ func RoleDelete(roleId string) error {
 		return nil
 	}
 	if roleTable[0].IsSystem == "yes" {
-		return fmt.Errorf("Warnning: system role can not delete ")
+		return nil
 	}
 	var roleCiTypeTable []*models.SysRoleCiTypeTable
 	err = x.SQL("select guid from sys_role_ci_type where role_id=?", roleId).Find(&roleCiTypeTable)
@@ -142,7 +142,7 @@ func SyncCoreRole() {
 		log.Logger.Warn("Get core role key fail with no data")
 		return
 	}
-	var roleTable, addRoleList, delRoleList []*models.SysRoleTable
+	var roleTable, addRoleList, delRoleList, updateRoleList []*models.SysRoleTable
 	err = x.SQL("select * from sys_role").Find(&roleTable)
 	if err != nil {
 		log.Logger.Error("Try to sync core role fail", log.Error(err))
@@ -152,6 +152,9 @@ func SyncCoreRole() {
 		existFlag := false
 		for _, vv := range roleTable {
 			if strings.ToLower(v.Name) == strings.ToLower(vv.Id) {
+				if vv.Description != v.DisplayName {
+					updateRoleList = append(updateRoleList, &models.SysRoleTable{Id: v.Name, Description: v.DisplayName})
+				}
 				existFlag = true
 				break
 			}
@@ -180,12 +183,20 @@ func SyncCoreRole() {
 			}
 		}
 	}
+	if len(updateRoleList) > 0 {
+		for _, role := range updateRoleList {
+			err = RoleUpdate(*role)
+			if err != nil {
+				log.Logger.Error("Try to update core role to local fail", log.Error(err))
+			}
+		}
+	}
 	if len(delRoleList) > 0 {
 		for _, role := range delRoleList {
 			err = RoleDelete(role.Id)
-			//if err != nil {
-			//	log.Logger.Error("Try to delete local role from core data fail", log.Error(err))
-			//}
+			if err != nil {
+				log.Logger.Error("Try to delete local role from core data fail", log.Error(err))
+			}
 		}
 	}
 }
