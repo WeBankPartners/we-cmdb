@@ -40,14 +40,14 @@
           filterable
           :max-tag-count="1"
           v-model="currentciGroup"
-          style="flex: 1;width:180px;margin-right:20px"
+          style="flex: 1;width:200px;margin-right:20px"
         >
           <Option v-for="item in originciGroupList" :value="item.codeId" :key="item.codeId">
             {{ item.value }}
           </Option>
         </Select>
         <span class="filter-title">{{ $t('change_layer') }}</span>
-        <Select multiple filterable :max-tag-count="1" v-model="currentciLayer" style="width: 180px;">
+        <Select multiple filterable :max-tag-count="1" v-model="currentciLayer" style="width: 200px;">
           <Option v-for="item in originciLayerList" :value="item.codeId" :key="item.codeId">
             {{ item.value }}
           </Option>
@@ -1032,14 +1032,14 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-/deep/ .compare-modal .ivu-modal-body {
+::deep .compare-modal .ivu-modal-body {
   padding-top: 40px;
 }
-/deep/ .ivu-table td.highlight {
+::deep .ivu-table td.highlight {
   color: rgba(#ff6600, 0.9);
 }
 
-/deep/ .copy-modal {
+::deep .copy-modal {
   .ivu-modal-body {
     max-height: 450px;
     overflow-y: auto;
@@ -1080,8 +1080,8 @@ export default {
     margin: 0 5px 0 20px;
   }
 
-  /deep/ .ivu-input,
-  /deep/ .ivu-select-selection {
+  ::deep .ivu-input,
+  ::deep .ivu-select-selection {
     height: 28px;
     min-height: 28px !important;
     .ivu-select-placeholder,
@@ -1091,12 +1091,12 @@ export default {
     }
   }
 
-  /deep/ .ivu-select-multiple .ivu-tag {
+  ::deep .ivu-select-multiple .ivu-tag {
     height: 21px;
     line-height: 21px;
   }
 
-  /deep/ .ivu-input-suffix i {
+  ::deep .ivu-input-suffix i {
     line-height: 28px;
   }
 

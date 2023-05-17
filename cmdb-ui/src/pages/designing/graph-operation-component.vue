@@ -672,11 +672,11 @@ export default {
   margin: 0 16px;
 }
 
-.opertaion /deep/ .ivu-tabs-tab {
+.opertaion ::v-deep .ivu-tabs-tab {
   width: 100%;
   text-align: center;
 }
-.opertaion /deep/ .ivu-tabs-ink-bar {
+.opertaion ::v-deep .ivu-tabs-ink-bar {
   width: 100% !important;
 }
 
