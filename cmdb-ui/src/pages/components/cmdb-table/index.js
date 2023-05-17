@@ -1157,8 +1157,10 @@ export default {
                 {this.tableDetailInfo.info.map(val => {
                   return (
                     <FormItem label={val.key}>
-                      <span style="width: 480px;">:{val.value}</span>
-                      <span style="color:red;float:right">{val.value !== '' ? '' : '!!!'}</span>
+                      <div slot="label">
+                        <span style={val.value === '' ? 'color:red' : ''}>{val.key}</span>
+                      </div>
+                      <span style="width: 480px;">:&nbsp;&nbsp;{val.value}</span>
                     </FormItem>
                   )
                 })}
