@@ -54,6 +54,11 @@ export const INPUT_TYPE_CONFIG = [
     length: 0
   },
   {
+    code: 'longText',
+    value: 'text',
+    length: 0
+  },
+  {
     code: 'diffVariable',
     value: 'text',
     length: 0
