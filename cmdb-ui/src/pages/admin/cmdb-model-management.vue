@@ -2140,7 +2140,7 @@ export default {
   border: 1px solid #7cd8f9;
 }
 
-.cmdb-model-management-left-card /deep/ .ivu-card-body {
+.cmdb-model-management-left-card ::v-deep .ivu-card-body {
   padding: 0;
 }
 .attrContainer {
@@ -2206,7 +2206,7 @@ export default {
     float: right;
   }
 }
-.validation-form /deep/ .ivu-form-item {
+.validation-form ::v-deep .ivu-form-item {
   margin-bottom: 10px;
 }
 .filter-col {
@@ -2218,7 +2218,7 @@ export default {
     margin-right: 5px;
   }
 }
-/deep/ .validation-form {
+::v-deep .validation-form {
   .no-need-validation {
     .ivu-form-item-label:before {
       content: ' ';
