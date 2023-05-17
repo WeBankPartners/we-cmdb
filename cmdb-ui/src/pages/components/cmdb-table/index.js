@@ -919,17 +919,20 @@ export default {
       // if (col.ciTypeAttrId === 'app_instance__variable_values') {
       if (col.inputType === 'diffVariable') {
         generalParams.render = (h, params) => {
-          return (
-            <span>
-              <Icon
-                size="16"
-                type="ios-apps-outline"
-                color="#2d8cf0"
-                onClick={() => getDiffVariable(params.row, col.key)}
-              />
-              {params.row.weTableForm[col.key].slice(0, 18) + '...'}
-            </span>
-          )
+          const val = params.row.weTableForm[col.key]
+          if (val) {
+            return (
+              <span>
+                <Icon
+                  size="16"
+                  type="ios-apps-outline"
+                  color="#2d8cf0"
+                  onClick={() => getDiffVariable(params.row, col.key)}
+                />
+                {params.row.weTableForm[col.key].slice(0, 18) + '...'}
+              </span>
+            )
+          }
         }
         return generalParams
       }
