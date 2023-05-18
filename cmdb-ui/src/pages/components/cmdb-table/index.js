@@ -816,6 +816,16 @@ export default {
 
       const getDiffVariable = async (row, key) => {
         this.tableDetailInfo.isShow = false
+        const res = await formatData(row, key)
+        this.tableDetailInfo.title = this.$t('variable_format')
+        this.tableDetailInfo.type = 'diffVariable'
+        this.tableDetailInfo.info = res
+        this.$nextTick(() => {
+          this.tableDetailInfo.isShow = true
+        })
+      }
+
+      const formatData = (row, key) => {
         const rowData = this.tableData.find(item => row.guid === item.guid)
         const vari = rowData[key].replaceAll('\u0001', '').split('=')
         const keys = vari[0].split(',')
@@ -827,12 +837,8 @@ export default {
             value: values[i]
           })
         }
-        this.tableDetailInfo.title = this.$t('variable_format')
-        this.tableDetailInfo.type = 'diffVariable'
-        this.tableDetailInfo.info = res
-        this.tableDetailInfo.isShow = true
+        return res
       }
-
       const generalParams = {
         ...col,
         tooltip: true,
