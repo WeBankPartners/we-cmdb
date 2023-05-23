@@ -1907,3 +1907,18 @@ func getMultiStringInputTypeValue(inputType, value string) []string {
 	}
 	return result
 }
+
+func GetGuidByKeyName(ciType string, keyNameList []string) (guidList []string, err error) {
+	if len(keyNameList) == 0 {
+		return
+	}
+	dataRows, queryErr := x.QueryString(fmt.Sprintf("select guid,key_name from %s where key_name in ('%s')", ciType, strings.Join(keyNameList, "','")))
+	if queryErr != nil {
+		err = fmt.Errorf("query %s table fail,%s ", ciType, queryErr.Error())
+		return
+	}
+	for _, v := range dataRows {
+		guidList = append(guidList, v["guid"])
+	}
+	return
+}
