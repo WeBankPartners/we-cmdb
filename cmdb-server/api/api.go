@@ -74,6 +74,7 @@ func init() {
 		&handlerFuncObj{Url: "/ci-data/query-password/:ciType/:guid/:field", Method: "GET", HandlerFunc: ci.DataPasswordQuery},
 		&handlerFuncObj{Url: "/ci-data/action-query/:operation/:ciType/:guid", Method: "GET", HandlerFunc: ci.GetActionQueryData},
 		&handlerFuncObj{Url: "/ci-data/import/:ciType", Method: "POST", HandlerFunc: ci.DataImport},
+		&handlerFuncObj{Url: "/ci-data/simple/import/:ciType", Method: "POST", HandlerFunc: ci.SimpleCiDataImport},
 	)
 	// log
 	httpHandlerFuncList = append(httpHandlerFuncList,
