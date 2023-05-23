@@ -1132,7 +1132,7 @@ export default {
             </div>
           )}
         </div>
-        <Modal value={this.tableDetailInfo.isShow} footer-hide={true} title={this.tableDetailInfo.title} width={700}>
+        <Modal value={this.tableDetailInfo.isShow} footer-hide={true} title={this.tableDetailInfo.title} width={900}>
           {this.tableDetailInfo.type === 'string' && (
             <div style="text-align: justify;word-break: break-word;">{this.tableDetailInfo.info}</div>
           )}
@@ -1162,18 +1162,18 @@ export default {
           )}
           {this.tableDetailInfo.type === 'diffVariable' && (
             <div style="text-align: justify;word-break: break-word;overflow-y:auto;max-height:500px">
-              <Form label-width={200}>
-                {this.tableDetailInfo.info.map(val => {
-                  return (
-                    <FormItem label={val.key}>
-                      <div slot="label">
-                        <span style={val.value === '' ? 'color:red' : ''}>{val.key}</span>
-                      </div>
-                      <span style="width: 480px;">:&nbsp;&nbsp;{val.value}</span>
-                    </FormItem>
-                  )
-                })}
-              </Form>
+              {this.tableDetailInfo.info.map(val => {
+                return (
+                  <div>
+                    <div style="width: 300px;display:inline-block;margin:4px 0;text-align:right">
+                      <span style={val.value === '' ? 'color:red' : ''}>{val.key}</span>
+                    </div>
+                    <div style="width: 560px;display:inline-block;margin:4px 0;">
+                      <span>:&nbsp;&nbsp;{val.value}</span>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
           <div style="margin-top:20px;height: 30px">
