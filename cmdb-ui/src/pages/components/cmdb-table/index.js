@@ -827,9 +827,9 @@ export default {
 
       const formatData = (row, key) => {
         const rowData = this.tableData.find(item => row.guid === item.guid)
-        const vari = rowData[key].replaceAll('\u0001', '').split('=')
-        const keys = vari[0].split(',')
-        const values = vari[1].split(',')
+        const vari = rowData[key].split('=')
+        const keys = vari[0].split(',\u0001')
+        const values = vari[1].split(',\u0001')
         let res = []
         for (let i = 0; i < keys.length; i++) {
           res.push({
@@ -1132,7 +1132,7 @@ export default {
             </div>
           )}
         </div>
-        <Modal value={this.tableDetailInfo.isShow} footer-hide={true} title={this.tableDetailInfo.title} width={900}>
+        <Modal value={this.tableDetailInfo.isShow} footer-hide={true} title={this.tableDetailInfo.title} width={1100}>
           {this.tableDetailInfo.type === 'string' && (
             <div style="text-align: justify;word-break: break-word;">{this.tableDetailInfo.info}</div>
           )}
@@ -1144,11 +1144,11 @@ export default {
                     <Panel name={column.title}>
                       {column.title}
                       <p slot="content">
-                        <Form label-width={100}>
+                        <Form label-width={200}>
                           {column.value.map(val => {
                             return (
                               <FormItem label={val.key}>
-                                <Input value={val.value} disabled style="width: 300px" />
+                                <Input value={val.value} disabled />
                               </FormItem>
                             )
                           })}
@@ -1165,11 +1165,11 @@ export default {
               {this.tableDetailInfo.info.map(val => {
                 return (
                   <div>
-                    <div style="width: 300px;display:inline-block;margin:4px 0;text-align:right">
-                      <span style={val.value === '' ? 'color:red' : ''}>{val.key}</span>
+                    <div style="width: 300px;display:inline-block;word-break: break-all;margin:4px 0;vertical-align: top;text-align:right">
+                      <span style={val.value ? '' : 'color:red'}>{val.key}</span>
                     </div>
-                    <div style="width: 560px;display:inline-block;margin:4px 0;">
-                      <span>:&nbsp;&nbsp;{val.value}</span>
+                    <div style="width: 740px;display:inline-block;word-break: break-all;margin:4px 0;">
+                      ：{val.value}
                     </div>
                   </div>
                 )
