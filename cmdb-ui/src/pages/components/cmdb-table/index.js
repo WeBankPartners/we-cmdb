@@ -827,14 +827,14 @@ export default {
 
       const formatData = (row, key) => {
         const rowData = this.tableData.find(item => row.guid === item.guid)
-        const vari = rowData[key].split('=')
+        const vari = rowData[key].split('\u0001=\u0001')
         const keys = vari[0].split(',\u0001')
         const values = vari[1].split(',\u0001')
         let res = []
         for (let i = 0; i < keys.length; i++) {
           res.push({
-            key: keys[i],
-            value: values[i]
+            key: (keys[i] || '').replace('\u0001', ''),
+            value: (values[i] || '').replace('\u0001', '')
           })
         }
         return res
