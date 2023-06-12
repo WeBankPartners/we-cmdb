@@ -38,12 +38,13 @@ func HandleCiModelRequest(c *gin.Context) {
 	}
 	c.Request.Body.Close()
 	newInputData := string(bodyBytes)
+	headerOperation := c.GetHeader("operation")
 	if operation == "query" {
 		resp.Data, err = ciModelQuery(ciType, bodyBytes)
 	} else if operation == "create" {
 		resp.Data, logResp.Data, newInputData, err = ciModelCreate(ciType, bodyBytes)
 	} else if operation == "update" {
-		resp.Data, logResp.Data, newInputData, err = ciModeUpdate(ciType, bodyBytes)
+		resp.Data, logResp.Data, newInputData, err = ciModeUpdate(ciType, bodyBytes, headerOperation)
 	} else if operation == "delete" {
 		newInputData, err = ciModeDelete(ciType, bodyBytes)
 	} else {
@@ -196,7 +197,7 @@ func ciModelCreate(ciType string, bodyBytes []byte) (result, logResult []map[str
 	return
 }
 
-func ciModeUpdate(ciType string, bodyBytes []byte) (result, logResult []map[string]interface{}, newInputData string, err error) {
+func ciModeUpdate(ciType string, bodyBytes []byte, operation string) (result, logResult []map[string]interface{}, newInputData string, err error) {
 	newInputData = string(bodyBytes)
 	var param []map[string]interface{}
 	var stringParam []models.CiDataMapObj
@@ -240,7 +241,12 @@ func ciModeUpdate(ciType string, bodyBytes []byte) (result, logResult []map[stri
 	if err != nil {
 		return
 	}
-	handleParam := models.HandleCiDataParam{InputData: stringParam, CiTypeId: ciType, Operation: "update", Operator: "wecube", BareAction: "update", Roles: []string{}, Permission: false, FromCore: true}
+	var bareAction string
+	if operation == "" {
+		operation = "update"
+		bareAction = "update"
+	}
+	handleParam := models.HandleCiDataParam{InputData: stringParam, CiTypeId: ciType, Operation: operation, Operator: "wecube", BareAction: bareAction, Roles: []string{}, Permission: false, FromCore: true}
 	output, newInput, tmpErr := db.HandleCiDataOperation(handleParam)
 	newInputData = newInput
 	if tmpErr != nil {
