@@ -424,7 +424,7 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 				param.InputData[ciAttr.Name] = param.NowData[ciAttr.Name]
 			}
 		}
-		buildValueParam := models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action}
+		buildValueParam := models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, FromCore: param.FromCore}
 		if ciAttr.Name == "update_user" {
 			param.InputData["update_user"] = param.Operator
 			buildValueParam.IsSystem = true
@@ -740,7 +740,7 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 		}
 	}
 	// if enable empty
-	if param.AttributeConfig.Nullable == "no" && inputValue == "" && param.AttributeConfig.DataType != "datetime" {
+	if param.AttributeConfig.Nullable == "no" && inputValue == "" && param.AttributeConfig.DataType != "datetime" && !param.FromCore {
 		err = fmt.Errorf("Attribute:%s can not empty ", param.AttributeConfig.Name)
 		return
 	}
