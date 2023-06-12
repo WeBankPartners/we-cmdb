@@ -39,18 +39,31 @@ func HandleCiModelRequest(c *gin.Context) {
 	c.Request.Body.Close()
 	newInputData := string(bodyBytes)
 	headerOperation := c.GetHeader("operation")
+	var dataGuidList []string
 	if operation == "query" {
 		resp.Data, err = ciModelQuery(ciType, bodyBytes)
 	} else if operation == "create" {
 		resp.Data, logResp.Data, newInputData, err = ciModelCreate(ciType, bodyBytes)
 	} else if operation == "update" {
-		resp.Data, logResp.Data, newInputData, err = ciModeUpdate(ciType, bodyBytes, headerOperation)
+		resp.Data, logResp.Data, newInputData, dataGuidList, err = ciModeUpdate(ciType, bodyBytes)
 	} else if operation == "delete" {
 		newInputData, err = ciModeDelete(ciType, bodyBytes)
 	} else {
 		err = fmt.Errorf("Url param operation is illegal ")
 	}
 	c.Set("requestBody", newInputData)
+	if err == nil && headerOperation != "" && len(dataGuidList) > 0 {
+		doOperationParam := models.PluginCiDataOperationRequestObj{CiType: ciType, Operation: headerOperation}
+		var dataGuidMapList []map[string]string
+		for _, v := range dataGuidList {
+			tmpGuidData := make(map[string]string)
+			tmpGuidData["guid"] = v
+			dataGuidMapList = append(dataGuidMapList, tmpGuidData)
+		}
+		mapJsonBytes, _ := json.Marshal(dataGuidMapList)
+		doOperationParam.JsonData = string(mapJsonBytes)
+		_, _, err = pluginCiDataOperation(&doOperationParam)
+	}
 	if err != nil {
 		log.Logger.Error("Request entity data fail", log.Error(err))
 		resp.Status = "ERROR"
@@ -197,7 +210,7 @@ func ciModelCreate(ciType string, bodyBytes []byte) (result, logResult []map[str
 	return
 }
 
-func ciModeUpdate(ciType string, bodyBytes []byte, operation string) (result, logResult []map[string]interface{}, newInputData string, err error) {
+func ciModeUpdate(ciType string, bodyBytes []byte) (result, logResult []map[string]interface{}, newInputData string, dataGuidList []string, err error) {
 	newInputData = string(bodyBytes)
 	var param []map[string]interface{}
 	var stringParam []models.CiDataMapObj
@@ -218,6 +231,9 @@ func ciModeUpdate(ciType string, bodyBytes []byte, operation string) (result, lo
 		for k, v := range tmpMap {
 			if v == nil {
 				continue
+			}
+			if k == "guid" {
+				dataGuidList = append(dataGuidList, v.(string))
 			}
 			valueType := reflect.TypeOf(v).String()
 			if valueType == "string" {
@@ -241,12 +257,7 @@ func ciModeUpdate(ciType string, bodyBytes []byte, operation string) (result, lo
 	if err != nil {
 		return
 	}
-	var bareAction string
-	if operation == "" {
-		operation = "update"
-		bareAction = "update"
-	}
-	handleParam := models.HandleCiDataParam{InputData: stringParam, CiTypeId: ciType, Operation: operation, Operator: "wecube", BareAction: bareAction, Roles: []string{}, Permission: false, FromCore: true}
+	handleParam := models.HandleCiDataParam{InputData: stringParam, CiTypeId: ciType, Operation: "update", Operator: "wecube", BareAction: "update", Roles: []string{}, Permission: false, FromCore: true}
 	output, newInput, tmpErr := db.HandleCiDataOperation(handleParam)
 	newInputData = newInput
 	if tmpErr != nil {
