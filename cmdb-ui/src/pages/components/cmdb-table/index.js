@@ -303,6 +303,21 @@ export default {
               </div>
             )
           }
+          if (_.operationFormType === 'import_ci_form') {
+            return (
+              <div style="margin-left:8px; width:200px;display:inline-block;">
+                <Upload
+                  action=""
+                  accept=".csv"
+                  beforeUpload={file => {
+                    this.$emit('actionFun', _, this.selectedRows, this.ciTypeId, file)
+                  }}
+                >
+                  <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button>
+                </Upload>
+              </div>
+            )
+          }
           return (
             <Button
               style="margin-right: 10px"
