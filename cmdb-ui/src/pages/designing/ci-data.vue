@@ -93,7 +93,8 @@ import {
   operateCiState,
   getEnumCategoriesById,
   getStateTransition,
-  importReport
+  importReport,
+  importCiData
 } from '@/api/server'
 import { baseURL } from '@/api/base.js'
 import { pagination, components } from '@/const/actions.js'
@@ -328,8 +329,21 @@ export default {
           disabled: false
         }
       })
+
       stateBtn.push({
         operation: this.$t('import'),
+        operationFormType: 'import_ci_form',
+        // operationMultiple: 'yes',
+        class: 'xxx',
+        operation_en: 'Import',
+        props: {
+          type: 'primary',
+          disabled: false
+        }
+      })
+
+      stateBtn.push({
+        operation: this.$t('view_data_import'),
         operationFormType: 'import_form',
         // operationMultiple: 'yes',
         class: 'xxx',
@@ -419,6 +433,9 @@ export default {
           break
         case 'import_form':
           this.importHandler(cols, filters)
+          break
+        case 'import_ci_form':
+          this.importCiHandler(cols, filters)
           break
         case 'editable_form':
           this.editHandler(operate.operation_en)
@@ -726,6 +743,29 @@ export default {
             data: parmas
           }
           const { statusCode } = await importReport(pram)
+          if (statusCode === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: 'Success'
+            })
+            this.queryCiData()
+          }
+        }
+      }
+      FR.readAsDataURL(file)
+      return false
+    },
+    async importCiHandler (citypeId, file) {
+      var FR = new FileReader()
+      FR.onload = async ev => {
+        if (ev.target && typeof ev.target.result === 'string') {
+          const parmas = new FormData()
+          parmas.append('file', file)
+          const pram = {
+            ciType: citypeId,
+            data: parmas
+          }
+          const { statusCode } = await importCiData(pram)
           if (statusCode === 'OK') {
             this.$Notice.success({
               title: 'Success',

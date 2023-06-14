@@ -287,3 +287,4 @@ export const getReportDetail = reportId => req.get(`/report-message/${reportId}`
 export const exportReport = data => req.post(`/report/export`, data)
 
 export const importReport = data => req.post(`/ci-data/import/${data.ciType}`, data.data)
+export const importCiData = data => req.post(`/ci-data/simple/import/${data.ciType}`, data.data)
