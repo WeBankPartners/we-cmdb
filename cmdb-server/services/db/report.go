@@ -1466,6 +1466,9 @@ func ImportCiData(param *models.ExportReportResult, operator string) (err error)
 						err = fmt.Errorf("ciType:%s key:%s data illegal,%s ", ciDataObj.CiType, k, tmpErr.Error())
 						return
 					}
+					if tmpNewGuid, isMatchNewGuid := newGuidMap[newValue]; isMatchNewGuid {
+						newValue = tmpNewGuid
+					}
 					newRowData[k] = newValue
 				}
 			}
