@@ -1,6 +1,29 @@
 <template>
   <div class="ci-data-page">
     <Tabs type="card" :value="currentTab" closable @on-tab-remove="handleTabRemove" @on-click="handleTabClick">
+      <TabPane :closable="false" name="CMDBSimple" :label="$t('cmdb_simple_model')">
+        <card>
+          <List size="small">
+            <ListItem v-for="tab in originCITypesByLayers" :key="tab.code">
+              <div class="sim-item">
+                <div class="item-head"><Icon type="md-arrow-dropright" />{{ tab.value }}</div>
+                <div
+                  class="item-child-item"
+                  shape="circle"
+                  v-for="attr in tab.ciTypes"
+                  :key="attr.ciTypeId"
+                  @click="e => handleTagClick(e, attr)"
+                >
+                  {{ attr.name }}
+                </div>
+              </div>
+            </ListItem>
+          </List>
+          <Spin fix v-if="spinShow">
+            <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+          </Spin>
+        </card>
+      </TabPane>
       <TabPane :closable="false" name="CMDB" :label="$t('cmdb_model')">
         <card>
           <div class="graph-container" id="graph"></div>
@@ -85,6 +108,7 @@ import * as d3Graphviz from 'd3-graphviz'
 import moment from 'moment'
 import { addEvent } from '../util/event.js'
 import {
+  getAllCITypesByLayers,
   getAllCITypesByLayerWithAttr,
   getEnumCodesByCategoryId,
   getCiTypeAttributes,
@@ -114,7 +138,7 @@ export default {
       baseURL,
       currentZoomLevelId: [],
       tabList: [],
-      currentTab: 'CMDB',
+      currentTab: 'CMDBSimple',
       payload: {
         dialect: {
           queryMode: 'new'
@@ -154,6 +178,7 @@ export default {
       ciLayerList: [],
       ciGroupList: [],
       originCITypesByLayerWithAttr: [],
+      originCITypesByLayers: [],
       MODALHEIGHT: 0
     }
   },
@@ -365,12 +390,22 @@ export default {
       if (isLayerSelected) {
         return
       }
-      const found = this.tabList.find(_ => _.id === g.id)
+      this.commonNodeClickHandler({ id: g.id, name: g.lastElementChild.textContent.trim() })
+    },
+    async handleTagClick (e, attr) {
+      e.preventDefault()
+      e.stopPropagation()
+      const { ciTypeId, name } = attr
+
+      this.commonNodeClickHandler({ id: ciTypeId, name })
+    },
+    async commonNodeClickHandler ({ id, name }) {
+      const found = this.tabList.find(_ => _.id === id)
       if (!found) {
-        const stateTransition = await this.getStateTransition(g.id)
+        const stateTransition = await this.getStateTransition(id)
         const ci = {
-          name: g.lastElementChild.textContent.trim() || 'Default',
-          id: g.id,
+          name: name || 'Default',
+          id: id,
           tableData: [],
           outerActions: stateTransition,
           innerActions: [
@@ -385,21 +420,21 @@ export default {
               }
             }
           ],
-          tableColumns: await this.queryCiAttrs(g.id),
+          tableColumns: await this.queryCiAttrs(id),
           pagination: JSON.parse(JSON.stringify(pagination)),
           ascOptions: {}
         }
         const query = {
-          id: g.id,
+          id: id,
           queryObject: this.payload
         }
         this.tabList.push(ci)
-        this.currentTab = g.id
+        this.currentTab = id
         this.$nextTick(() => {
           this.queryCiData(query)
         })
       } else {
-        this.currentTab = g.id
+        this.currentTab = id
       }
       setTimeout(() => {
         this.isHandleNodeClick = false
@@ -950,6 +985,15 @@ export default {
         this.renderGraph()
       })
     },
+    async getInitSimpleData () {
+      // this.spinShow = true
+      const ciResponse = await getAllCITypesByLayers(['created', 'dirty'])
+
+      if (ciResponse.statusCode === 'OK') {
+        this.originCITypesByLayers = ciResponse.data
+        this.spinShow = false
+      }
+    },
     renderGraph () {
       let nodesString = this.genDOT()
       this.loadImage(nodesString)
@@ -1063,7 +1107,11 @@ export default {
   },
   mounted () {
     this.MODALHEIGHT = window.MODALHEIGHT
-    this.getInitGraphData()
+    this.getInitSimpleData()
+
+    this.$nextTick(() => {
+      this.getInitGraphData()
+    })
   },
   components: {
     SelectFormOperation
@@ -1154,6 +1202,30 @@ export default {
 
   .filter-col-icon {
     margin-right: 5px;
+  }
+}
+
+.sim-item {
+  padding-bottom: 15px;
+  .item-head {
+    padding-bottom: 10px;
+  }
+  .item-child-item {
+    margin-right: 8px;
+    margin-bottom: 8px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    height: 32px;
+    padding: 0 15px;
+    font-size: 14px;
+    border-radius: 4px;
+    color: #515a6e;
+    background-color: #fff;
+    border-color: #dcdee2;
   }
 }
 </style>
