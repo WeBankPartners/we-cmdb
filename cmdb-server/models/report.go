@@ -37,6 +37,7 @@ type SysReportObjectAttrTable struct {
 	DataName      string `json:"dataName" xorm:"data_name"`
 	DataTitleName string `json:"dataTitleName" xorm:"data_title_name"`
 	Querialbe     string `json:"querialbe" xorm:"querialbe"`
+	AttrInputType string `json:"-" xorm:"attr_input_type"`
 }
 
 type SysReportObjectFilterTable struct {
@@ -150,4 +151,9 @@ type ExportReportCiData struct {
 	RefParentAttribute string                   `json:"refParentAttribute"`
 	Attributes         []string                 `json:"attributes"`
 	Data               []map[string]interface{} `json:"data"`
+}
+
+type MultiRefTable struct {
+	FromGuid string `json:"fromGuid" xorm:"from_guid"`
+	ToGuid   string `json:"toGuid" xorm:"to_guid"`
 }
