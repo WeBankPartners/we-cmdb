@@ -360,7 +360,7 @@ export default {
                     }
                     const fun = {
                       input: function (v) {
-                        d[column.inputKey] = v
+                        d[column.inputKey] = v.trim()
                       }
                     }
                     const data = {
@@ -381,7 +381,7 @@ export default {
                     }
                     const fun = {
                       input: function (v) {
-                        d[column.inputKey] = v
+                        d[column.inputKey] = v.trim()
                       }
                     }
                     const data = {
@@ -402,7 +402,7 @@ export default {
                     }
                     const fun = {
                       input: function (v) {
-                        d[column.inputKey] = v
+                        d[column.inputKey] = v.trim()
                       }
                     }
                     const data = {
@@ -429,7 +429,7 @@ export default {
                         setValueHandler(v, column, d)
                       },
                       input: function (v) {
-                        setValueHandler(v, column, d)
+                        setValueHandler(v.trim(), column, d)
                       }
                     }
                     const data = {
@@ -456,7 +456,7 @@ export default {
                     }
                     const fun = {
                       input: function (v) {
-                        setValueHandler(v, column, d)
+                        setValueHandler(v.trim(), column, d)
                       }
                     }
                     const data = {
