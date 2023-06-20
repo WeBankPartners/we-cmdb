@@ -55,8 +55,13 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 	}
 	//attrDataNameMap := make(map[string]string)
 	roAttrDataNames := []string{"guid"}
+	multiRefColumnMap := make(map[string]string)
 	for _, roAttr := range roAttrData {
 		//nameMap[roAttrData[i].DataName] = roAttrData[i].DataDisplayName
+		if roAttr.AttrInputType == "multiRef" {
+			multiRefColumnMap[roAttr.CiTypeAttr[strings.Index(roAttr.CiTypeAttr, "__")+2:]] = roAttr.CiTypeAttr
+			continue
+		}
 		columnName := roAttr.CiTypeAttr
 		columnName = columnName[strings.Index(columnName, "__")+2:]
 		//attrDataNameMap[columnName] = roAttr.DataName
@@ -78,8 +83,19 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 	if root.MyAttr != "" {
 		if strings.Index(root.MyAttr, "__") < len(root.MyAttr)-2 {
 			tmpFilter = root.MyAttr[strings.Index(root.MyAttr, "__")+2:]
+			if _, ok := multiRefColumnMap[tmpFilter]; ok {
+				// trans multiRef attr filter data
+				if multiRefRows, getMultiRefErr := getMultiRefTableData(root.CiType, tmpFilter, rootGuidList, []string{}); getMultiRefErr != nil {
+					err = getMultiRefErr
+					return
+				} else {
+					rootGuidList = []string{}
+					for _, v := range multiRefRows {
+						rootGuidList = append(rootGuidList, v.ToGuid)
+					}
+				}
+			}
 		}
-
 	}
 	extendFilterSql := ""
 	queryTableName := root.CiType
@@ -113,6 +129,41 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 		rowData = append(rowData, tmpMap)
 		if isEditable {
 			editableList = append(editableList, v["guid"])
+		}
+	}
+	if len(multiRefColumnMap) > 0 {
+		var ciDataGuid []string
+		for _, v := range rowData {
+			if tmpGuid, ok := v["guid"]; ok {
+				ciDataGuid = append(ciDataGuid, tmpGuid.(string))
+			}
+		}
+		for multiRefColumn, _ := range multiRefColumnMap {
+			colRefData, getMultiRefErr := getMultiRefTableData(root.CiType, multiRefColumn, ciDataGuid, []string{})
+			if getMultiRefErr != nil {
+				err = getMultiRefErr
+				break
+			}
+			multiRefDataMap := make(map[string][]string)
+			for _, v := range colRefData {
+				if vv, b := multiRefDataMap[v.FromGuid]; b {
+					multiRefDataMap[v.FromGuid] = append(vv, v.ToGuid)
+				} else {
+					multiRefDataMap[v.FromGuid] = []string{v.ToGuid}
+				}
+			}
+			for i, v := range rowData {
+				if tmpGuid, ok := v["guid"]; ok {
+					if multiRefColumnData, ok := multiRefDataMap[tmpGuid.(string)]; ok {
+						if len(multiRefColumnData) > 0 {
+							rowData[i][multiRefColumn] = multiRefColumnData
+						}
+					}
+				}
+			}
+		}
+		if err != nil {
+			return
 		}
 	}
 
@@ -218,7 +269,7 @@ func checkReportObjectEditable(viewId, reportObjId string) bool {
 }
 
 func GetReportAttr(reportObj string) (roAttrData []*models.SysReportObjectAttrTable, dataNameMap map[string]string, err error) {
-	err = x.SQL(`SELECT * FROM sys_report_object_attr WHERE report_object=?`, reportObj).Find(&roAttrData)
+	err = x.SQL(`SELECT t1.*,t2.input_type as attr_input_type FROM sys_report_object_attr t1 left join sys_ci_type_attr t2 on t1.ci_type_attr=t2.id WHERE t1.report_object=?`, reportObj).Find(&roAttrData)
 	if err != nil {
 		err = fmt.Errorf("Query report:%s object attr error,%s ", reportObj, err.Error())
 		log.Logger.Error("Query report object attr error", log.String("reportObjectId", reportObj), log.Error(err))
@@ -1572,5 +1623,23 @@ func getImportRefCiDataNewValue(input interface{}, guidMap map[string]string) (o
 	}
 	tmpJsonByte, _ := json.Marshal(valueList)
 	output = string(tmpJsonByte)
+	return
+}
+
+func getMultiRefTableData(ciType, attrName string, fromGuidList, toGuidList []string) (result []*models.MultiRefTable, err error) {
+	if ciType == "" || attrName == "" {
+		err = fmt.Errorf("get multiRef data illegal with ciType:%s and attrName:%s", ciType, attrName)
+		return
+	}
+	baseSql := fmt.Sprintf("select from_guid,to_guid from `%s$%s` where 1=1 ", ciType, attrName)
+	if len(fromGuidList) > 0 {
+		baseSql += fmt.Sprintf("and from_guid in ('%s') ", strings.Join(fromGuidList, "','"))
+	}
+	if len(toGuidList) > 0 {
+		baseSql += fmt.Sprintf("and to_guid in ('%s') ", strings.Join(toGuidList, "','"))
+	}
+	if err = x.SQL(baseSql).Find(&result); err != nil {
+		err = fmt.Errorf("get multiRef error with database:%s ", err.Error())
+	}
 	return
 }
