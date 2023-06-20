@@ -4,6 +4,13 @@
       <TabPane :closable="false" name="CMDBSimple" :label="$t('cmdb_simple_model')">
         <card>
           <List size="small">
+            <ListItem class="search-area">
+              <Input v-model="searchString" class="search-input">
+                <template #suffix>
+                  <Button type="primary" @click="handleSearch">{{ $t('search') }}</Button>
+                </template>
+              </Input>
+            </ListItem>
             <ListItem v-for="tab in originCITypesByLayers" :key="tab.code">
               <div class="sim-item">
                 <div class="item-head"><Icon type="md-arrow-dropright" />{{ tab.value }}</div>
@@ -12,6 +19,7 @@
                   shape="circle"
                   v-for="attr in tab.ciTypes"
                   :key="attr.ciTypeId"
+                  :class="attr.selected ? 'active' : ''"
                   @click="e => handleTagClick(e, attr)"
                 >
                   {{ attr.name }}
@@ -136,6 +144,7 @@ export default {
     return {
       spinShow: false,
       baseURL,
+      searchString: '',
       currentZoomLevelId: [],
       tabList: [],
       currentTab: 'CMDBSimple',
@@ -212,6 +221,21 @@ export default {
   methods: {
     callback () {
       this.queryCiData()
+    },
+    handleSearch () {
+      const str = this.searchString.trim()
+
+      this.originCITypesByLayers = this.originCITypesByLayers.map(it => {
+        it.ciTypes = it.ciTypes.map(item => {
+          if (item.name.indexOf(str) !== -1) {
+            item.selected = true
+          } else {
+            item.selected = false
+          }
+          return item
+        })
+        return it
+      })
     },
     handleDateChange (date) {
       if (date !== '') {
@@ -1205,6 +1229,15 @@ export default {
   }
 }
 
+.search-area {
+  display: flex;
+  justify-content: center;
+
+  .search-input {
+    width: 360px;
+  }
+}
+
 .sim-item {
   padding-bottom: 15px;
   .item-head {
@@ -1226,6 +1259,11 @@ export default {
     color: #515a6e;
     background-color: #fff;
     border-color: #dcdee2;
+
+    &.active {
+      border: 1px solid #2d8cf0;
+      color: #2d8cf0;
+    }
   }
 }
 </style>
