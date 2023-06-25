@@ -389,5 +389,6 @@
   "customizable": "Customizable",
   "display_type": "Display Type",
   "display_data": "Display Data",
-  "success": "successfully"
+  "success": "successfully",
+  "refresh": "Refresh"
 }
