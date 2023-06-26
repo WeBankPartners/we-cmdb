@@ -38,7 +38,7 @@ func HandleCiModelRequest(c *gin.Context) {
 	}
 	c.Request.Body.Close()
 	newInputData := string(bodyBytes)
-	headerOperation := c.GetHeader("operation")
+	headerOperation := c.GetHeader("x-operation")
 	var dataGuidList []string
 	if operation == "query" {
 		resp.Data, err = ciModelQuery(ciType, bodyBytes)
