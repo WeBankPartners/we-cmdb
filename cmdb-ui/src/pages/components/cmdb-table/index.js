@@ -64,7 +64,10 @@ export default {
         title: '',
         info: []
       },
-      isShowFilter: false // 控制列过滤功能
+      isShowFilter: false, // 控制列过滤功能
+      diffVariableKeyName: '', // 所选差异化值所在行唯一名称
+      diffVariableColKey: '', // 差异化值对应的key
+      remarkedKeys: [] // 差异化值中标记出的值
     }
   },
   component: {
@@ -120,6 +123,20 @@ export default {
   },
   computed: {},
   methods: {
+    formatData (row, key) {
+      const rowData = this.tableData.find(item => row.guid === item.guid)
+      const vari = rowData[key].split('\u0001=\u0001')
+      const keys = vari[0].split(',\u0001')
+      const values = vari[1].split(',\u0001')
+      let res = []
+      for (let i = 0; i < keys.length; i++) {
+        res.push({
+          key: (keys[i] || '').replace('\u0001', ''),
+          value: (values[i] || '').replace('\u0001', '')
+        })
+      }
+      return res
+    },
     pushNewAddedRowToSelections (data) {
       if (this.selectedRows.length === 0) {
         this.selectedRows.push(data)
@@ -829,29 +846,17 @@ export default {
       }
 
       const getDiffVariable = async (row, key) => {
+        this.remarkedKeys = []
+        this.diffVariableKeyName = row.key_name
+        this.diffVariableColKey = key
         this.tableDetailInfo.isShow = false
-        const res = await formatData(row, key)
+        const res = await this.formatData(row, key)
         this.tableDetailInfo.title = this.$t('variable_format')
         this.tableDetailInfo.type = 'diffVariable'
         this.tableDetailInfo.info = res
         this.$nextTick(() => {
           this.tableDetailInfo.isShow = true
         })
-      }
-
-      const formatData = (row, key) => {
-        const rowData = this.tableData.find(item => row.guid === item.guid)
-        const vari = rowData[key].split('\u0001=\u0001')
-        const keys = vari[0].split(',\u0001')
-        const values = vari[1].split(',\u0001')
-        let res = []
-        for (let i = 0; i < keys.length; i++) {
-          res.push({
-            key: (keys[i] || '').replace('\u0001', ''),
-            value: (values[i] || '').replace('\u0001', '')
-          })
-        }
-        return res
       }
       const generalParams = {
         ...col,
@@ -1104,6 +1109,36 @@ export default {
         selectAttrs.push(ciTypeAttrId)
       }
     }
+
+    const choiceKey = chioceObj => {
+      const key = chioceObj.key
+      if (this.remarkedKeys.includes(key)) {
+        // 元素存在于数组中，移除它
+        const index = this.remarkedKeys.indexOf(key)
+        this.remarkedKeys.splice(index, 1)
+      } else {
+        // 元素不存在于数组中，添加它
+        this.remarkedKeys.push(key)
+      }
+    }
+
+    const refreshDiffVariable = async () => {
+      const { data } = await queryCiData({
+        id: this.ciTypeId,
+        queryObject: {
+          dialect: { queryMode: 'new' },
+          filters: [{ name: 'key_name', operator: 'eq', value: this.diffVariableKeyName }],
+          paging: false
+        }
+      })
+
+      const res = await this.formatData(data.contents[0], this.diffVariableColKey)
+      this.$nextTick(() => {
+        this.tableDetailInfo.info = res
+        this.tableDetailInfo.isShow = true
+      })
+    }
+
     return (
       <div>
         {!filtersHidden && <div>{this.getFormFilters()}</div>}
@@ -1217,10 +1252,18 @@ export default {
           )}
           {this.tableDetailInfo.type === 'diffVariable' && (
             <div style="text-align: justify;word-break: break-word;overflow-y:auto;max-height:500px">
+              <div style="text-align:right">
+                <Button style="margin-right: 20px" type="primary" size="small" onClick={() => refreshDiffVariable()}>
+                  {this.$t('refresh')}
+                </Button>
+              </div>
               {this.tableDetailInfo.info.map(val => {
                 return (
-                  <div>
-                    <div style="width: 300px;display:inline-block;word-break: break-all;margin:4px 0;vertical-align: top;text-align:right">
+                  <div
+                    onClick={() => choiceKey(val)}
+                    style={this.remarkedKeys.includes(val.key) ? 'background:#d9d9d9' : ''}
+                  >
+                    <div style="width: 300px;display:inline-block;word-break: break-all;margin:4px 0;vertical-align: top;text-align:right;cursor:pointer">
                       <span style={val.value ? '' : 'color:red'}>{val.key}</span>
                     </div>
                     <div style="width: 740px;display:inline-block;word-break: break-all;margin:4px 0;">
