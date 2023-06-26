@@ -11,7 +11,7 @@
                 </template>
               </Input>
             </ListItem>
-            <ListItem v-for="tab in originCITypesByLayers" :key="tab.code">
+            <ListItem v-for="tab in filtedCiTypesByLayers" :key="tab.code">
               <div class="sim-item">
                 <div class="item-head"><Icon type="md-arrow-dropright" />{{ tab.value }}</div>
                 <div
@@ -188,6 +188,7 @@ export default {
       ciGroupList: [],
       originCITypesByLayerWithAttr: [],
       originCITypesByLayers: [],
+      filtedCiTypesByLayers: [],
       MODALHEIGHT: 0
     }
   },
@@ -225,7 +226,7 @@ export default {
     handleSearch () {
       const str = this.searchString.trim()
 
-      this.originCITypesByLayers = this.originCITypesByLayers.map(it => {
+      this.filtedCiTypesByLayers = this.filtedCiTypesByLayers.map(it => {
         it.ciTypes = it.ciTypes.map(item => {
           if (item.name.indexOf(str) !== -1) {
             item.selected = true
@@ -1007,6 +1008,7 @@ export default {
       initEvent()
       this.$nextTick(() => {
         this.renderGraph()
+        this.newInitSimpleCITypes()
       })
     },
     async getInitSimpleData () {
@@ -1015,8 +1017,23 @@ export default {
 
       if (ciResponse.statusCode === 'OK') {
         this.originCITypesByLayers = ciResponse.data
+        this.filtedCiTypesByLayers = ciResponse.data
         this.spinShow = false
       }
+    },
+    newInitSimpleCITypes () {
+      const layers = this.originCITypesByLayers
+      if (Array.isArray(layers)) {
+        this.filtedCiTypesByLayers = layers
+          .filter(val => {
+            return this.currentciGroup.indexOf(val.codeId) !== -1
+          })
+          .map(item => {
+            item.ciTypes = item.ciTypes.filter(v => this.currentciLayer.indexOf(v.ciLayer) !== -1)
+            return item
+          })
+      }
+      return []
     },
     renderGraph () {
       let nodesString = this.genDOT()
