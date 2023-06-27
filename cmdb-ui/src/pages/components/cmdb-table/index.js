@@ -124,8 +124,7 @@ export default {
   computed: {},
   methods: {
     formatData (row, key) {
-      const rowData = this.tableData.find(item => row.guid === item.guid)
-      const vari = rowData[key].split('\u0001=\u0001')
+      const vari = row[key].split('\u0001=\u0001')
       const keys = vari[0].split(',\u0001')
       const values = vari[1].split(',\u0001')
       let res = []
@@ -847,7 +846,7 @@ export default {
 
       const getDiffVariable = async (row, key) => {
         this.remarkedKeys = []
-        this.diffVariableKeyName = row.key_name
+        this.diffVariableKeyName = row.guid
         this.diffVariableColKey = key
         this.tableDetailInfo.isShow = false
         const res = await this.formatData(row, key)
@@ -1127,11 +1126,10 @@ export default {
         id: this.ciTypeId,
         queryObject: {
           dialect: { queryMode: 'new' },
-          filters: [{ name: 'key_name', operator: 'eq', value: this.diffVariableKeyName }],
+          filters: [{ name: 'guid', operator: 'eq', value: this.diffVariableKeyName }],
           paging: false
         }
       })
-
       const res = await this.formatData(data.contents[0], this.diffVariableColKey)
       this.$nextTick(() => {
         this.tableDetailInfo.info = res
