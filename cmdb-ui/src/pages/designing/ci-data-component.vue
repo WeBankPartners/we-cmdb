@@ -78,8 +78,10 @@ export default {
       handler: function (val) {
         if (val) {
           this.outerActions = this.ciOuterActions
+          this.needCheckout = true
         } else {
           this.outerActions = []
+          this.needCheckout = false
         }
       },
       deep: true,
