@@ -424,7 +424,7 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 				param.InputData[ciAttr.Name] = param.NowData[ciAttr.Name]
 			}
 		}
-		buildValueParam := models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action}
+		buildValueParam := models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, FromCore: param.FromCore}
 		if ciAttr.Name == "update_user" {
 			param.InputData["update_user"] = param.Operator
 			buildValueParam.IsSystem = true
@@ -626,7 +626,8 @@ func autofillAffectActionFunc(ciTypeId, guid, nowTime string) {
 		return
 	}
 	// get now data
-	nowDataList, err := x.QueryString(fmt.Sprintf("select * from %s%s where guid='%s' order by id desc limit 1", HistoryTablePrefix, ciTypeId, guid))
+	//nowDataList, err := x.QueryString(fmt.Sprintf("select * from %s%s where guid='%s' order by id desc limit 1", HistoryTablePrefix, ciTypeId, guid))
+	nowDataList, err := x.QueryString(fmt.Sprintf("select * from %s where guid='%s'", ciTypeId, guid))
 	if err != nil {
 		log.Logger.Error("Try to auto refresh autofill,get ci data fail", log.String("guid", guid), log.Error(err))
 		return
@@ -739,7 +740,7 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 		}
 	}
 	// if enable empty
-	if param.AttributeConfig.Nullable == "no" && inputValue == "" && param.AttributeConfig.DataType != "datetime" {
+	if param.AttributeConfig.Nullable == "no" && inputValue == "" && param.AttributeConfig.DataType != "datetime" && !param.FromCore {
 		err = fmt.Errorf("Attribute:%s can not empty ", param.AttributeConfig.Name)
 		return
 	}
@@ -1905,4 +1906,19 @@ func getMultiStringInputTypeValue(inputType, value string) []string {
 		}
 	}
 	return result
+}
+
+func GetGuidByKeyName(ciType string, keyNameList []string) (guidList []string, err error) {
+	if len(keyNameList) == 0 {
+		return
+	}
+	dataRows, queryErr := x.QueryString(fmt.Sprintf("select guid,key_name from %s where key_name in ('%s')", ciType, strings.Join(keyNameList, "','")))
+	if queryErr != nil {
+		err = fmt.Errorf("query %s table fail,%s ", ciType, queryErr.Error())
+		return
+	}
+	for _, v := range dataRows {
+		guidList = append(guidList, v["guid"])
+	}
+	return
 }

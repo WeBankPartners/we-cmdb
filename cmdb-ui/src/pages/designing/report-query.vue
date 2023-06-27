@@ -24,7 +24,7 @@
       <Col span="6" v-if="displayType === 'tree'">
         <span style="margin-right: 10px">{{ $t('display_data') }}</span>
         <Select v-model="treeRoot" filterable multiple style="width: 75%;">
-          <Option v-for="item in treeRootOptions" :value="item.guid" :key="item.guid">{{ item.code }}</Option>
+          <Option v-for="item in treeRootOptions" :value="item.guid" :key="item.guid">{{ item.key_name }}</Option>
         </Select>
       </Col>
       <Button
@@ -93,8 +93,8 @@
       </Row>
     </template>
     <template v-show="displayType === 'tree'">
-      <Tabs @on-click="changeTab" :value="treeSet[0].code" v-if="showTab">
-        <TabPane v-for="tree in treeSet" :label="tree.code" :name="tree.code" :key="tree.guid">
+      <Tabs @on-click="changeTab" :value="treeSet[0].key_name" v-if="showTab">
+        <TabPane v-for="tree in treeSet" :label="tree.key_name" :name="tree.key_name" :key="tree.guid">
           <Row>
             <Col span="7">
               <div :style="{ height: MODALHEIGHT + 'px', overflow: 'auto' }">
@@ -213,7 +213,7 @@ export default {
       this.treeRoot = []
     },
     changeTab (val) {
-      this.currentTabIndex = this.treeSet.findIndex(item => item.code === val)
+      this.currentTabIndex = this.treeSet.findIndex(item => item.key_name === val)
     },
     renderContent (h, { root, node, data }) {
       return h(
@@ -513,5 +513,4 @@ export default {
     flex: 1;
   }
 }
-// .report-filter /deep/
 </style>

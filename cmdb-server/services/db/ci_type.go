@@ -255,6 +255,9 @@ func CiTypesDelete(ciTypeId string) error {
 	if len(refAttrs) > 0 {
 		refCiTypeList := []string{}
 		for _, attr := range refAttrs {
+			if attr.Status == "deleted" {
+				continue
+			}
 			refCiTypeList = append(refCiTypeList, attr.CiType)
 		}
 		var refCiTypeTable []*models.SysCiTypeTable
