@@ -64,8 +64,10 @@ export default {
         title: '',
         info: []
       },
-      colSelectVisible: true, // 列显示控制
-      isShowFilter: false // 控制列过滤功能
+      isShowFilter: false, // 控制列过滤功能
+      diffVariableKeyName: '', // 所选差异化值所在行唯一名称
+      diffVariableColKey: '', // 差异化值对应的key
+      remarkedKeys: [] // 差异化值中标记出的值
     }
   },
   component: {
@@ -114,6 +116,20 @@ export default {
       },
       deep: true,
       immediate: true
+    },
+    showCheckbox: {
+      handler: function (val) {
+        if (val && !this.highlightRow) {
+          this.columns.unshift({
+            type: 'selection',
+            width: 60,
+            align: 'center',
+            fixed: 'left'
+          })
+        }
+      },
+      deep: true,
+      immediate: true
     }
   },
   beforeDestroy () {
@@ -121,6 +137,19 @@ export default {
   },
   computed: {},
   methods: {
+    formatData (row, key) {
+      const vari = row[key].split('\u0001=\u0001')
+      const keys = vari[0].split(',\u0001')
+      const values = vari[1].split(',\u0001')
+      let res = []
+      for (let i = 0; i < keys.length; i++) {
+        res.push({
+          key: (keys[i] || '').replace('\u0001', ''),
+          value: (values[i] || '').replace('\u0001', '')
+        })
+      }
+      return res
+    },
     pushNewAddedRowToSelections (data) {
       if (this.selectedRows.length === 0) {
         this.selectedRows.push(data)
@@ -295,6 +324,21 @@ export default {
               <div style="margin-left:100px; width:200px;display:inline-block;">
                 <Upload
                   action=""
+                  beforeUpload={file => {
+                    this.$emit('actionFun', _, this.selectedRows, this.ciTypeId, file)
+                  }}
+                >
+                  <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button>
+                </Upload>
+              </div>
+            )
+          }
+          if (_.operationFormType === 'import_ci_form') {
+            return (
+              <div style="margin-left:8px; width:200px;display:inline-block;">
+                <Upload
+                  action=""
+                  accept=".csv"
                   beforeUpload={file => {
                     this.$emit('actionFun', _, this.selectedRows, this.ciTypeId, file)
                   }}
@@ -813,6 +857,20 @@ export default {
           this.tableDetailInfo.isShow = true
         }
       }
+
+      const getDiffVariable = async (row, key) => {
+        this.remarkedKeys = []
+        this.diffVariableKeyName = row.guid
+        this.diffVariableColKey = key
+        this.tableDetailInfo.isShow = false
+        const res = await this.formatData(row, key)
+        this.tableDetailInfo.title = this.$t('variable_format')
+        this.tableDetailInfo.type = 'diffVariable'
+        this.tableDetailInfo.info = res
+        this.$nextTick(() => {
+          this.tableDetailInfo.isShow = true
+        })
+      }
       const generalParams = {
         ...col,
         tooltip: true,
@@ -893,6 +951,26 @@ export default {
               {params.row.weTableForm[col.key]}
             </span>
           )
+        }
+        return generalParams
+      }
+      // if (col.ciTypeAttrId === 'app_instance__variable_values') {
+      if (col.inputType === 'diffVariable') {
+        generalParams.render = (h, params) => {
+          const val = params.row.weTableForm[col.key]
+          if (val) {
+            return (
+              <span>
+                <Icon
+                  size="16"
+                  type="ios-apps-outline"
+                  color="#2d8cf0"
+                  onClick={() => getDiffVariable(params.row, col.key)}
+                />
+                {params.row.weTableForm[col.key].slice(0, 18) + '...'}
+              </span>
+            )
+          }
         }
         return generalParams
       }
@@ -1025,9 +1103,6 @@ export default {
     const closeModal = () => {
       this.tableDetailInfo.isShow = false
     }
-    const showColsSelect = () => {
-      this.colSelectVisible = !this.colSelectVisible
-    }
     let selectAttrs = []
     this.tableColumns.forEach(t => {
       if (t.ciTypeAttrId) {
@@ -1047,15 +1122,44 @@ export default {
         selectAttrs.push(ciTypeAttrId)
       }
     }
+
+    const choiceKey = chioceObj => {
+      const key = chioceObj.key
+      if (this.remarkedKeys.includes(key)) {
+        // 元素存在于数组中，移除它
+        const index = this.remarkedKeys.indexOf(key)
+        this.remarkedKeys.splice(index, 1)
+      } else {
+        // 元素不存在于数组中，添加它
+        this.remarkedKeys.push(key)
+      }
+    }
+
+    const refreshDiffVariable = async () => {
+      const { data } = await queryCiData({
+        id: this.ciTypeId,
+        queryObject: {
+          dialect: { queryMode: 'new' },
+          filters: [{ name: 'guid', operator: 'eq', value: this.diffVariableKeyName }],
+          paging: false
+        }
+      })
+      const res = await this.formatData(data.contents[0], this.diffVariableColKey)
+      this.$nextTick(() => {
+        this.tableDetailInfo.info = res
+        this.tableDetailInfo.isShow = true
+      })
+    }
+
     return (
       <div>
         {!filtersHidden && <div>{this.getFormFilters()}</div>}
         <Row style="margin-bottom:10px">{this.getTableOuterActions()}</Row>
         {this.isShowFilter && (
           <div style="position: relative;top: -40px;right: 30px;float: right;">
-            <Poptip value={this.colSelectVisible} placement="bottom">
-              <Button type="primary" on-click={showColsSelect} shape="circle" icon="ios-funnel-outline"></Button>
-              <div slot="content">
+            <Poptip placement="bottom">
+              <Button type="primary" shape="circle" icon="ios-funnel-outline"></Button>
+              <div slot="content" style="max-height: 400px;">
                 {this.tableColumns.map(t => {
                   const ciTypeAttrId = t.ciTypeAttrId
                   if (selectAttrs.includes(ciTypeAttrId)) {
@@ -1130,7 +1234,7 @@ export default {
             </div>
           )}
         </div>
-        <Modal value={this.tableDetailInfo.isShow} footer-hide={true} title={this.tableDetailInfo.title}>
+        <Modal value={this.tableDetailInfo.isShow} footer-hide={true} title={this.tableDetailInfo.title} width={1100}>
           {this.tableDetailInfo.type === 'string' && (
             <div style="text-align: justify;word-break: break-word;">{this.tableDetailInfo.info}</div>
           )}
@@ -1142,11 +1246,11 @@ export default {
                     <Panel name={column.title}>
                       {column.title}
                       <p slot="content">
-                        <Form label-width={100}>
+                        <Form label-width={200}>
                           {column.value.map(val => {
                             return (
                               <FormItem label={val.key}>
-                                <Input value={val.value} disabled style="width: 300px" />
+                                <Input value={val.value} disabled />
                               </FormItem>
                             )
                           })}
@@ -1156,6 +1260,30 @@ export default {
                   )
                 })}
               </Collapse>
+            </div>
+          )}
+          {this.tableDetailInfo.type === 'diffVariable' && (
+            <div style="text-align: justify;word-break: break-word;overflow-y:auto;max-height:500px">
+              <div style="text-align:right">
+                <Button style="margin-right: 20px" type="primary" size="small" onClick={() => refreshDiffVariable()}>
+                  {this.$t('refresh')}
+                </Button>
+              </div>
+              {this.tableDetailInfo.info.map(val => {
+                return (
+                  <div
+                    onClick={() => choiceKey(val)}
+                    style={this.remarkedKeys.includes(val.key) ? 'background:#d9d9d9' : ''}
+                  >
+                    <div style="width: 300px;display:inline-block;word-break: break-all;margin:4px 0;vertical-align: top;text-align:right;cursor:pointer">
+                      <span style={val.value ? '' : 'color:red'}>{val.key}</span>
+                    </div>
+                    <div style="width: 740px;display:inline-block;word-break: break-all;margin:4px 0;">
+                      ：{val.value}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
           <div style="margin-top:20px;height: 30px">
