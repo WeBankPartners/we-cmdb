@@ -19,7 +19,7 @@
                   shape="circle"
                   v-for="attr in tab.ciTypes"
                   :key="attr.ciTypeId"
-                  :class="attr.selected ? 'active' : ''"
+                  :class="attr.hidden ? 'hidden' : attr.selected ? 'active' : ''"
                   @click="e => handleTagClick(e, attr)"
                 >
                   {{ attr.name }}
@@ -187,7 +187,7 @@ export default {
       ciLayerList: [],
       ciGroupList: [],
       originCITypesByLayerWithAttr: [],
-      originCITypesByLayers: [],
+      originCITypesByLayers: Object.freeze([]),
       filtedCiTypesByLayers: [],
       MODALHEIGHT: 0
     }
@@ -943,19 +943,9 @@ export default {
     },
     async getInitGraphData () {
       this.spinShow = true
-      let [ciResponse, _ciLayerList, _ciGroupList] = await Promise.all([
-        getAllCITypesByLayerWithAttr(['created', 'dirty']),
-        getEnumCodesByCategoryId(CI_LAYER),
-        getEnumCodesByCategoryId(CI_GROUP)
-      ])
-      if (ciResponse.statusCode === 'OK' && _ciLayerList.statusCode === 'OK' && _ciGroupList.statusCode === 'OK') {
-        this.originciLayerList = _ciLayerList.data
-        this.originciGroupList = _ciGroupList.data
+      let ciResponse = await getAllCITypesByLayerWithAttr(['created', 'dirty'])
+      if (ciResponse.statusCode === 'OK') {
         this.originCITypesByLayerWithAttr = ciResponse.data
-        // this.currentciGroup = this.originciGroupList.map(item => item.codeId)
-        this.currentciGroup =
-          this.currentciGroup.length > 0 ? this.currentciGroup : this.originciGroupList.map(item => item.codeId)
-        this.currentciLayer = this.currentciLayer.length > 0 ? this.currentciLayer : [_ciLayerList.data[0].codeId]
 
         // 初始化自动填充数据
         let allCiTypesWithAttr = []
@@ -1012,28 +1002,31 @@ export default {
       })
     },
     async getInitSimpleData () {
-      // this.spinShow = true
       const ciResponse = await getAllCITypesByLayers(['created', 'dirty'])
 
       if (ciResponse.statusCode === 'OK') {
         this.originCITypesByLayers = ciResponse.data
-        this.filtedCiTypesByLayers = ciResponse.data
+        this.newInitSimpleCITypes()
         this.spinShow = false
       }
     },
     newInitSimpleCITypes () {
-      const layers = this.originCITypesByLayers
-      if (Array.isArray(layers)) {
-        this.filtedCiTypesByLayers = layers
-          .filter(val => {
-            return this.currentciGroup.indexOf(val.codeId) !== -1
-          })
-          .map(item => {
-            item.ciTypes = item.ciTypes.filter(v => this.currentciLayer.indexOf(v.ciLayer) !== -1)
-            return item
-          })
-      }
-      return []
+      const layers = [...this.originCITypesByLayers]
+      let temp = layers.filter(val => {
+        return this.currentciGroup.indexOf(val.codeId) !== -1
+      })
+      temp = temp.map(item => {
+        item.ciTypes = item.ciTypes.map(v => {
+          if (this.currentciLayer.indexOf(v.ciLayer) !== -1) {
+            v.hidden = false
+          } else {
+            v.hidden = true
+          }
+          return v
+        })
+        return item
+      })
+      this.filtedCiTypesByLayers = [...temp]
     },
     renderGraph () {
       let nodesString = this.genDOT()
@@ -1144,10 +1137,25 @@ export default {
       })
       dot += groupDot + '}'
       return dot
+    },
+    getEnumCodes () {
+      return Promise.all([getEnumCodesByCategoryId(CI_LAYER), getEnumCodesByCategoryId(CI_GROUP)])
     }
   },
-  mounted () {
+  async mounted () {
     this.MODALHEIGHT = window.MODALHEIGHT
+
+    const [ciLayerList, ciGroupList] = await this.getEnumCodes()
+
+    if (ciLayerList.statusCode === 'OK' && ciGroupList.statusCode === 'OK') {
+      this.originciLayerList = ciLayerList.data
+      this.originciGroupList = ciGroupList.data
+
+      this.currentciGroup =
+        this.currentciGroup.length > 0 ? this.currentciGroup : this.originciGroupList.map(item => item.codeId)
+      this.currentciLayer = this.currentciLayer.length > 0 ? this.currentciLayer : [ciLayerList.data[0].codeId]
+    }
+
     this.getInitSimpleData()
 
     this.$nextTick(() => {
@@ -1280,6 +1288,9 @@ export default {
     &.active {
       border: 1px solid #2d8cf0;
       color: #2d8cf0;
+    }
+    &.hidden {
+      display: none !important;
     }
   }
 }
