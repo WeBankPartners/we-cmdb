@@ -1,6 +1,37 @@
 <template>
   <div class="ci-data-page">
     <Tabs type="card" :value="currentTab" closable @on-tab-remove="handleTabRemove" @on-click="handleTabClick">
+      <TabPane :closable="false" name="CMDBSimple" :label="$t('cmdb_simple_model')">
+        <card>
+          <List size="small">
+            <ListItem class="search-area">
+              <Input v-model="searchString" class="search-input">
+                <template #suffix>
+                  <Button type="primary" @click="handleSearch">{{ $t('search') }}</Button>
+                </template>
+              </Input>
+            </ListItem>
+            <ListItem v-for="tab in filtedCiTypesByLayers" :key="tab.code">
+              <div class="sim-item">
+                <div class="item-head"><Icon type="md-arrow-dropright" />{{ tab.value }}</div>
+                <div
+                  class="item-child-item"
+                  shape="circle"
+                  v-for="attr in tab.ciTypes"
+                  :key="attr.ciTypeId"
+                  :class="attr.hidden ? 'hidden' : attr.selected ? 'active' : ''"
+                  @click="e => handleTagClick(e, attr)"
+                >
+                  {{ attr.name }}
+                </div>
+              </div>
+            </ListItem>
+          </List>
+          <Spin fix v-if="spinShow">
+            <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+          </Spin>
+        </card>
+      </TabPane>
       <TabPane :closable="false" name="CMDB" :label="$t('cmdb_model')">
         <card>
           <div class="graph-container" id="graph"></div>
@@ -40,14 +71,14 @@
           filterable
           :max-tag-count="1"
           v-model="currentciGroup"
-          style="flex: 1;width:180px;margin-right:20px"
+          style="flex: 1;width:200px;margin-right:20px"
         >
           <Option v-for="item in originciGroupList" :value="item.codeId" :key="item.codeId">
             {{ item.value }}
           </Option>
         </Select>
         <span class="filter-title">{{ $t('change_layer') }}</span>
-        <Select multiple filterable :max-tag-count="1" v-model="currentciLayer" style="width: 180px;">
+        <Select multiple filterable :max-tag-count="1" v-model="currentciLayer" style="width: 200px;">
           <Option v-for="item in originciLayerList" :value="item.codeId" :key="item.codeId">
             {{ item.value }}
           </Option>
@@ -85,6 +116,7 @@ import * as d3Graphviz from 'd3-graphviz'
 import moment from 'moment'
 import { addEvent } from '../util/event.js'
 import {
+  getAllCITypesByLayers,
   getAllCITypesByLayerWithAttr,
   getEnumCodesByCategoryId,
   getCiTypeAttributes,
@@ -93,7 +125,8 @@ import {
   operateCiState,
   getEnumCategoriesById,
   getStateTransition,
-  importReport
+  importReport,
+  importCiData
 } from '@/api/server'
 import { baseURL } from '@/api/base.js'
 import { pagination, components } from '@/const/actions.js'
@@ -111,9 +144,10 @@ export default {
     return {
       spinShow: false,
       baseURL,
+      searchString: '',
       currentZoomLevelId: [],
       tabList: [],
-      currentTab: 'CMDB',
+      currentTab: 'CMDBSimple',
       payload: {
         dialect: {
           queryMode: 'new'
@@ -153,6 +187,8 @@ export default {
       ciLayerList: [],
       ciGroupList: [],
       originCITypesByLayerWithAttr: [],
+      originCITypesByLayers: Object.freeze([]),
+      filtedCiTypesByLayers: [],
       MODALHEIGHT: 0
     }
   },
@@ -186,6 +222,21 @@ export default {
   methods: {
     callback () {
       this.queryCiData()
+    },
+    handleSearch () {
+      const str = this.searchString.trim()
+
+      this.filtedCiTypesByLayers = this.filtedCiTypesByLayers.map(it => {
+        it.ciTypes = it.ciTypes.map(item => {
+          if (item.name.indexOf(str) !== -1) {
+            item.selected = true
+          } else {
+            item.selected = false
+          }
+          return item
+        })
+        return it
+      })
     },
     handleDateChange (date) {
       if (date !== '') {
@@ -328,8 +379,21 @@ export default {
           disabled: false
         }
       })
+
       stateBtn.push({
         operation: this.$t('import'),
+        operationFormType: 'import_ci_form',
+        // operationMultiple: 'yes',
+        class: 'xxx',
+        operation_en: 'Import',
+        props: {
+          type: 'primary',
+          disabled: false
+        }
+      })
+
+      stateBtn.push({
+        operation: this.$t('view_data_import'),
         operationFormType: 'import_form',
         // operationMultiple: 'yes',
         class: 'xxx',
@@ -351,12 +415,22 @@ export default {
       if (isLayerSelected) {
         return
       }
-      const found = this.tabList.find(_ => _.id === g.id)
+      this.commonNodeClickHandler({ id: g.id, name: g.lastElementChild.textContent.trim() })
+    },
+    async handleTagClick (e, attr) {
+      e.preventDefault()
+      e.stopPropagation()
+      const { ciTypeId, name } = attr
+
+      this.commonNodeClickHandler({ id: ciTypeId, name })
+    },
+    async commonNodeClickHandler ({ id, name }) {
+      const found = this.tabList.find(_ => _.id === id)
       if (!found) {
-        const stateTransition = await this.getStateTransition(g.id)
+        const stateTransition = await this.getStateTransition(id)
         const ci = {
-          name: g.lastElementChild.textContent.trim() || 'Default',
-          id: g.id,
+          name: name || 'Default',
+          id: id,
           tableData: [],
           outerActions: stateTransition,
           innerActions: [
@@ -371,21 +445,21 @@ export default {
               }
             }
           ],
-          tableColumns: await this.queryCiAttrs(g.id),
+          tableColumns: await this.queryCiAttrs(id),
           pagination: JSON.parse(JSON.stringify(pagination)),
           ascOptions: {}
         }
         const query = {
-          id: g.id,
+          id: id,
           queryObject: this.payload
         }
         this.tabList.push(ci)
-        this.currentTab = g.id
+        this.currentTab = id
         this.$nextTick(() => {
           this.queryCiData(query)
         })
       } else {
-        this.currentTab = g.id
+        this.currentTab = id
       }
       setTimeout(() => {
         this.isHandleNodeClick = false
@@ -419,6 +493,9 @@ export default {
           break
         case 'import_form':
           this.importHandler(cols, filters)
+          break
+        case 'import_ci_form':
+          this.importCiHandler(cols, filters)
           break
         case 'editable_form':
           this.editHandler(operate.operation_en)
@@ -738,6 +815,29 @@ export default {
       FR.readAsDataURL(file)
       return false
     },
+    async importCiHandler (citypeId, file) {
+      var FR = new FileReader()
+      FR.onload = async ev => {
+        if (ev.target && typeof ev.target.result === 'string') {
+          const parmas = new FormData()
+          parmas.append('file', file)
+          const pram = {
+            ciType: citypeId,
+            data: parmas
+          }
+          const { statusCode } = await importCiData(pram)
+          if (statusCode === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: 'Success'
+            })
+            this.queryCiData()
+          }
+        }
+      }
+      FR.readAsDataURL(file)
+      return false
+    },
     pageChange (current) {
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
@@ -843,19 +943,9 @@ export default {
     },
     async getInitGraphData () {
       this.spinShow = true
-      let [ciResponse, _ciLayerList, _ciGroupList] = await Promise.all([
-        getAllCITypesByLayerWithAttr(['created', 'dirty']),
-        getEnumCodesByCategoryId(CI_LAYER),
-        getEnumCodesByCategoryId(CI_GROUP)
-      ])
-      if (ciResponse.statusCode === 'OK' && _ciLayerList.statusCode === 'OK' && _ciGroupList.statusCode === 'OK') {
-        this.originciLayerList = _ciLayerList.data
-        this.originciGroupList = _ciGroupList.data
+      let ciResponse = await getAllCITypesByLayerWithAttr(['created', 'dirty'])
+      if (ciResponse.statusCode === 'OK') {
         this.originCITypesByLayerWithAttr = ciResponse.data
-        // this.currentciGroup = this.originciGroupList.map(item => item.codeId)
-        this.currentciGroup =
-          this.currentciGroup.length > 0 ? this.currentciGroup : this.originciGroupList.map(item => item.codeId)
-        this.currentciLayer = this.currentciLayer.length > 0 ? this.currentciLayer : [_ciLayerList.data[0].codeId]
 
         // 初始化自动填充数据
         let allCiTypesWithAttr = []
@@ -908,7 +998,35 @@ export default {
       initEvent()
       this.$nextTick(() => {
         this.renderGraph()
+        this.newInitSimpleCITypes()
       })
+    },
+    async getInitSimpleData () {
+      const ciResponse = await getAllCITypesByLayers(['created', 'dirty'])
+
+      if (ciResponse.statusCode === 'OK') {
+        this.originCITypesByLayers = ciResponse.data
+        this.newInitSimpleCITypes()
+        this.spinShow = false
+      }
+    },
+    newInitSimpleCITypes () {
+      const layers = [...this.originCITypesByLayers]
+      let temp = layers.filter(val => {
+        return this.currentciGroup.indexOf(val.codeId) !== -1
+      })
+      temp = temp.map(item => {
+        item.ciTypes = item.ciTypes.map(v => {
+          if (this.currentciLayer.indexOf(v.ciLayer) !== -1) {
+            v.hidden = false
+          } else {
+            v.hidden = true
+          }
+          return v
+        })
+        return item
+      })
+      this.filtedCiTypesByLayers = [...temp]
     },
     renderGraph () {
       let nodesString = this.genDOT()
@@ -1019,11 +1137,30 @@ export default {
       })
       dot += groupDot + '}'
       return dot
+    },
+    getEnumCodes () {
+      return Promise.all([getEnumCodesByCategoryId(CI_LAYER), getEnumCodesByCategoryId(CI_GROUP)])
     }
   },
-  mounted () {
+  async mounted () {
     this.MODALHEIGHT = window.MODALHEIGHT
-    this.getInitGraphData()
+
+    const [ciLayerList, ciGroupList] = await this.getEnumCodes()
+
+    if (ciLayerList.statusCode === 'OK' && ciGroupList.statusCode === 'OK') {
+      this.originciLayerList = ciLayerList.data
+      this.originciGroupList = ciGroupList.data
+
+      this.currentciGroup =
+        this.currentciGroup.length > 0 ? this.currentciGroup : this.originciGroupList.map(item => item.codeId)
+      this.currentciLayer = this.currentciLayer.length > 0 ? this.currentciLayer : [ciLayerList.data[0].codeId]
+    }
+
+    this.getInitSimpleData()
+
+    this.$nextTick(() => {
+      this.getInitGraphData()
+    })
   },
   components: {
     SelectFormOperation
@@ -1032,14 +1169,14 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-/deep/ .compare-modal .ivu-modal-body {
+::deep .compare-modal .ivu-modal-body {
   padding-top: 40px;
 }
-/deep/ .ivu-table td.highlight {
+::deep .ivu-table td.highlight {
   color: rgba(#ff6600, 0.9);
 }
 
-/deep/ .copy-modal {
+::deep .copy-modal {
   .ivu-modal-body {
     max-height: 450px;
     overflow-y: auto;
@@ -1080,8 +1217,8 @@ export default {
     margin: 0 5px 0 20px;
   }
 
-  /deep/ .ivu-input,
-  /deep/ .ivu-select-selection {
+  ::deep .ivu-input,
+  ::deep .ivu-select-selection {
     height: 28px;
     min-height: 28px !important;
     .ivu-select-placeholder,
@@ -1091,12 +1228,12 @@ export default {
     }
   }
 
-  /deep/ .ivu-select-multiple .ivu-tag {
+  ::deep .ivu-select-multiple .ivu-tag {
     height: 21px;
     line-height: 21px;
   }
 
-  /deep/ .ivu-input-suffix i {
+  ::deep .ivu-input-suffix i {
     line-height: 28px;
   }
 
@@ -1114,6 +1251,47 @@ export default {
 
   .filter-col-icon {
     margin-right: 5px;
+  }
+}
+
+.search-area {
+  display: flex;
+  justify-content: center;
+
+  .search-input {
+    width: 360px;
+  }
+}
+
+.sim-item {
+  padding-bottom: 15px;
+  .item-head {
+    padding-bottom: 10px;
+  }
+  .item-child-item {
+    margin-right: 8px;
+    margin-bottom: 8px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    height: 32px;
+    padding: 0 15px;
+    font-size: 14px;
+    border-radius: 4px;
+    color: #515a6e;
+    background-color: #fff;
+    border-color: #dcdee2;
+
+    &.active {
+      border: 1px solid #2d8cf0;
+      color: #2d8cf0;
+    }
+    &.hidden {
+      display: none !important;
+    }
   }
 }
 </style>

@@ -87,6 +87,10 @@ export const getAllCITypesByLayerWithAttr = data => {
   const status = data.toString()
   return req.get(`/ci-types?group-by=group&with-attributes=yes&status=${status}`)
 }
+export const getAllCITypesByLayers = data => {
+  const status = data.toString()
+  return req.get(`/ci-types?group-by=group&with-attributes=no&status=${status}`)
+}
 export const getAllCITypesWithAttr = data => {
   const status = data.toString()
   return req.get(`/ci-types?with-attributes=yes&status=${status}`)
@@ -287,3 +291,4 @@ export const getReportDetail = reportId => req.get(`/report-message/${reportId}`
 export const exportReport = data => req.post(`/report/export`, data)
 
 export const importReport = data => req.post(`/ci-data/import/${data.ciType}`, data.data)
+export const importCiData = data => req.post(`/ci-data/simple/import/${data.ciType}`, data.data)

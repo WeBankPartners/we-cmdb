@@ -209,7 +209,22 @@ func CiAttrDelete(ciAttrId string) error {
 }
 
 func CiAttrRollback(ciAttrId string) error {
-	_, err := x.Exec("UPDATE sys_ci_type_attr SET status='created' where id=?", ciAttrId)
+	ciAttrData, err := getCiAttrById(ciAttrId)
+	if err != nil {
+		return err
+	}
+	var refCiTypeTable []*models.SysCiTypeTable
+	err = x.SQL("select id,status from sys_ci_type where id=?", ciAttrData.RefCiType).Find(&refCiTypeTable)
+	if err != nil {
+		return fmt.Errorf("Try to validate reference ciType:%s fail,%s ", ciAttrData.RefCiType, err.Error())
+	}
+	if len(refCiTypeTable) == 0 {
+		return fmt.Errorf("can not find ref ciType:%s ", ciAttrData.RefCiType)
+	}
+	if refCiTypeTable[0].Status == "deleted" {
+		return fmt.Errorf("target ciType:%s is deleted,please rollback it first", ciAttrData.RefCiType)
+	}
+	_, err = x.Exec("UPDATE sys_ci_type_attr SET status='created' where id=?", ciAttrId)
 	return err
 }
 
