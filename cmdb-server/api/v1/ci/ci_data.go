@@ -1,6 +1,8 @@
 package ci
 
 import (
+	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
@@ -10,6 +12,7 @@ import (
 	"io/ioutil"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 func DataQuery(c *gin.Context) {
@@ -185,5 +188,98 @@ func DataImport(c *gin.Context) {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
 		middleware.ReturnSuccess(c)
+	}
+}
+
+func SimpleCiDataImport(c *gin.Context) {
+	ciTypeId := c.Param("ciType")
+	file, err := c.FormFile("file")
+	if err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	f, openFileErr := file.Open()
+	if openFileErr != nil {
+		middleware.ReturnParamValidateError(c, openFileErr)
+		return
+	}
+	fileBytes, readFileErr := ioutil.ReadAll(f)
+	defer f.Close()
+	if readFileErr != nil {
+		middleware.ReturnServerHandleError(c, readFileErr)
+		return
+	}
+	r := csv.NewReader(bytes.NewReader(fileBytes))
+	r.LazyQuotes = true
+	dataRowList, formatErr := r.ReadAll()
+	if formatErr != nil {
+		middleware.ReturnServerHandleError(c, formatErr)
+		return
+	}
+	if len(dataRowList) == 0 {
+		middleware.ReturnServerHandleError(c, fmt.Errorf("data row empty"))
+		return
+	}
+	ciAttrList, getAttrErr := db.GetCiAttrByCiType(ciTypeId, true)
+	if getAttrErr != nil {
+		middleware.ReturnServerHandleError(c, getAttrErr)
+		return
+	}
+	attrIndexMap := make(map[int]*models.SysCiTypeAttrTable)
+	for i, attrDisplayName := range dataRowList[0] {
+		for _, attrObj := range ciAttrList {
+			if attrObj.DisplayName == attrDisplayName {
+				attrIndexMap[i] = attrObj
+				break
+			}
+		}
+	}
+	var param []models.CiDataMapObj
+	for i, inputRow := range dataRowList {
+		if i == 0 {
+			continue
+		}
+		stringMap := make(map[string]string)
+		for k, v := range inputRow {
+			if v == "" {
+				continue
+			}
+			if attrObj, ok := attrIndexMap[k]; ok {
+				if attrObj.InputType == "ref" {
+					if tmpGuidList, tmpErr := db.GetGuidByKeyName(attrObj.RefCiType, []string{v}); tmpErr != nil {
+						err = tmpErr
+						break
+					} else {
+						stringMap[attrObj.Name] = tmpGuidList[0]
+					}
+				} else if attrObj.InputType == "multiRef" {
+					if tmpGuidList, tmpErr := db.GetGuidByKeyName(attrObj.RefCiType, strings.Split(v, ",")); tmpErr != nil {
+						err = tmpErr
+						break
+					} else {
+						guidListBytes, _ := json.Marshal(tmpGuidList)
+						stringMap[attrObj.Name] = string(guidListBytes)
+					}
+				} else {
+					stringMap[attrObj.Name] = v
+				}
+			}
+		}
+		if err != nil {
+			break
+		}
+		param = append(param, stringMap)
+	}
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+	handleParam := models.HandleCiDataParam{InputData: param, CiTypeId: ciTypeId, Operation: "Add", Operator: middleware.GetRequestUser(c), Roles: middleware.GetRequestRoles(c), Permission: false}
+	handleParam.UserToken = c.GetHeader("Authorization")
+	resultData, _, handleErr := db.HandleCiDataOperation(handleParam)
+	if handleErr != nil {
+		middleware.ReturnServerHandleError(c, handleErr)
+	} else {
+		middleware.ReturnData(c, resultData)
 	}
 }

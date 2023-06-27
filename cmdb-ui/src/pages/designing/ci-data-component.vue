@@ -78,8 +78,10 @@ export default {
       handler: function (val) {
         if (val) {
           this.outerActions = this.ciOuterActions
+          this.needCheckout = true
         } else {
           this.outerActions = []
+          this.needCheckout = false
         }
       },
       deep: true,
@@ -626,14 +628,14 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-/deep/ .compare-modal .ivu-modal-body {
+::v-deep .compare-modal .ivu-modal-body {
   padding-top: 40px;
 }
-/deep/ .ivu-table td.highlight {
+::v-deep .ivu-table td.highlight {
   color: rgba(#ff6600, 0.9);
 }
 
-/deep/ .copy-modal {
+::v-deep .copy-modal {
   .ivu-modal-body {
     max-height: 450px;
     overflow-y: auto;
@@ -671,8 +673,8 @@ export default {
     margin: 0 5px 0 20px;
   }
 
-  /deep/ .ivu-input,
-  /deep/ .ivu-select-selection {
+  ::v-deep .ivu-input,
+  ::v-deep .ivu-select-selection {
     height: 28px;
     min-height: 28px !important;
     .ivu-select-placeholder,
@@ -682,12 +684,12 @@ export default {
     }
   }
 
-  /deep/ .ivu-select-multiple .ivu-tag {
+  ::v-deep .ivu-select-multiple .ivu-tag {
     height: 21px;
     line-height: 21px;
   }
 
-  /deep/ .ivu-input-suffix i {
+  ::v-deep .ivu-input-suffix i {
     line-height: 28px;
   }
 

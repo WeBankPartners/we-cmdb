@@ -109,6 +109,7 @@ type BuildAttrValueParam struct {
 	AttributeConfig *SysCiTypeAttrTable
 	InputData       CiDataMapObj
 	Action          string
+	FromCore        bool
 }
 
 type ActionFuncParam struct {

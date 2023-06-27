@@ -216,7 +216,8 @@
   "please_select_system_design_and_environmental_type": "Please select System Design and Dnv Type",
   "please_select_system": "Please select Systems",
   "start_execution": "Start Execution",
-  "cmdb_model": "Model Overview",
+  "cmdb_model": "Classic Model Overview",
+  "cmdb_simple_model": "Simple Model Overview",
   "root_ci_type": "Root CI Type",
   "integrated_query_name": "Report Name",
   "basic_data": "Response Data",
@@ -335,6 +336,8 @@
   "creat_report": "Creat Report",
   "edit_report": "Edit Report",
   "json_edit": "JSON Edit",
+  "variable_format": "Variable Format",
+  "view_data_import": "Import View Data",
   "data_name": "Data Name",
   "data_title_name": "Data Title Name",
   "view": "View",
@@ -387,5 +390,6 @@
   "customizable": "Customizable",
   "display_type": "Display Type",
   "display_data": "Display Data",
-  "success": "successfully"
+  "success": "successfully",
+  "refresh": "Refresh"
 }
