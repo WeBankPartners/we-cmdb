@@ -116,6 +116,20 @@ export default {
       },
       deep: true,
       immediate: true
+    },
+    showCheckbox: {
+      handler: function (val) {
+        if (val && !this.highlightRow) {
+          this.columns.unshift({
+            type: 'selection',
+            width: 60,
+            align: 'center',
+            fixed: 'left'
+          })
+        }
+      },
+      deep: true,
+      immediate: true
     }
   },
   beforeDestroy () {
