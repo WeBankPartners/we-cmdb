@@ -120,12 +120,15 @@ export default {
     showCheckbox: {
       handler: function (val) {
         if (val && !this.highlightRow) {
-          this.columns.unshift({
-            type: 'selection',
-            width: 60,
-            align: 'center',
-            fixed: 'left'
-          })
+          const haveSelection = this.columns.some(c => c.type === 'selection')
+          if (!haveSelection) {
+            this.columns.unshift({
+              type: 'selection',
+              width: 60,
+              align: 'center',
+              fixed: 'left'
+            })
+          }
         }
       },
       deep: true,
@@ -724,12 +727,15 @@ export default {
         }
       })
       if (this.showCheckbox && !this.highlightRow) {
-        this.columns.unshift({
-          type: 'selection',
-          width: 60,
-          align: 'center',
-          fixed: 'left'
-        })
+        const haveSelection = this.columns.some(c => c.type === 'selection')
+        if (!haveSelection) {
+          this.columns.unshift({
+            type: 'selection',
+            width: 60,
+            align: 'center',
+            fixed: 'left'
+          })
+        }
       }
       this.tableInnerActions &&
         this.columns.push({
