@@ -2254,3 +2254,5 @@ INSERT INTO `unit_design` (`guid`, `create_time`, `create_user`, `update_time`, 
 /*!40000 ALTER TABLE `unit_design` ENABLE KEYS */;
 UNLOCK TABLES;
 
+update sys_ci_type_attr set input_type='diffVariable' where id='app_instance__variable_values';
+update sys_ci_type_attr set input_type='diffVariable' where id='rdb_instance__variable_values';
