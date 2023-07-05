@@ -110,6 +110,7 @@ type BuildAttrValueParam struct {
 	InputData       CiDataMapObj
 	Action          string
 	FromCore        bool
+	NowData         CiDataMapObj
 }
 
 type ActionFuncParam struct {
@@ -127,6 +128,7 @@ type ActionFuncParam struct {
 	BareAction          string
 	DeleteList          []string
 	FromCore            bool
+	MultiColumnDelMap   map[string][]string
 }
 
 type MultiCiDataObj struct {
@@ -275,8 +277,9 @@ func (a AttrAutofillSortList) Less(i, j int) bool {
 }
 
 type AutofillChainObj struct {
-	Guid         string
-	UpdateColumn []string
+	Guid              string
+	UpdateColumn      []string
+	MultiColumnDelMap map[string][]string
 }
 
 type AutofillChainCiColumn struct {
@@ -286,6 +289,7 @@ type AutofillChainCiColumn struct {
 	AutofillRule  string
 	UsedColumn    []string
 	UpdatedSubMap map[string][]string
+	DeleteList    []string
 }
 
 type AutoActiveHandleParam struct {

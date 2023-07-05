@@ -850,6 +850,21 @@ func handleAffectGuidMap(autofillChainMap map[string][]*models.AutofillChainObj)
 			autofillAffectActionFunc(attr.CiTypeId, row, nowTime)
 		}
 	}
+	for _, rows := range autofillChainMap {
+		for _, row := range rows {
+			if row.MultiColumnDelMap != nil {
+				log.Logger.Debug("MultiColumnDelMap", log.JsonObj("data", row.MultiColumnDelMap))
+				for _, guidList := range row.MultiColumnDelMap {
+					for _, rowGuid := range guidList {
+						if lastIndex := strings.LastIndex(rowGuid, "_"); lastIndex >= 0 {
+							tmpCiType := rowGuid[:lastIndex]
+							autofillAffectActionFunc(tmpCiType, rowGuid, nowTime)
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 func handleAffectCiType(ciType string) {
