@@ -1177,6 +1177,10 @@ func GetUpdateTableExecAction(tableName string, primeKey string, primeKeyVal str
 	t := reflect.TypeOf(data)
 	v := reflect.ValueOf(data)
 	for i := 0; i < t.NumField(); i++ {
+		tmpJsonTag := t.Field(i).Tag.Get("json")
+		if tmpJsonTag == "" || tmpJsonTag == "-" {
+			continue
+		}
 		if i > 0 {
 			columnStr += ","
 		}
