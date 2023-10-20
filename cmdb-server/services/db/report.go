@@ -109,7 +109,7 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 			extendFilterSql = fmt.Sprintf(" AND ((confirm_time<='%s' AND history_state_confirmed=1) OR (update_time<='%s' AND confirm_time IS NULL))", confirmTime, confirmTime)
 		}
 	}
-	sqlCmd := "SELECT " + filterCols + " FROM " + queryTableName + " WHERE " + tmpFilter + " in ('" + strings.Join(rootGuidList, "','") + "')" + extendFilterSql
+	sqlCmd := "SELECT " + filterCols + " FROM " + queryTableName + " WHERE " + tmpFilter + " in ('" + strings.Join(rootGuidList, "','") + "')  order by key_name" + extendFilterSql
 	ciTypeTableData, err := x.QueryString(sqlCmd)
 	if err != nil {
 		log.Logger.Error("Query report object citype table error", log.String("ciTypeTable", root.CiType), log.Error(err))
