@@ -5,7 +5,7 @@
         <card>
           <List size="small">
             <ListItem class="search-area">
-              <Input v-model="searchString" class="search-input">
+              <Input v-model="searchString" @keyup.enter.native="handleSearch" class="search-input">
                 <template #suffix>
                   <Button type="primary" @click="handleSearch">{{ $t('search') }}</Button>
                 </template>
@@ -229,7 +229,7 @@ export default {
 
         this.filtedCiTypesByLayers = this.filtedCiTypesByLayers.map(it => {
           it.ciTypes = it.ciTypes.map(item => {
-            if (typeof item.name === 'string' && item.name.toLowerCase().indexOf(str) !== -1) {
+            if (typeof item.name === 'string' && item.name.toLowerCase().indexOf(str) !== -1 && str) {
               item.selected = true
             } else {
               item.selected = false
@@ -967,6 +967,8 @@ export default {
       }
     },
     async newInitGraph () {
+      // 确定按钮为静态搜索，手动添加加载效果
+      this.spinShow = true
       this.newInitSimpleCITypes()
 
       let graph
@@ -1001,7 +1003,10 @@ export default {
       }
       initEvent()
       this.$nextTick(() => {
-        this.renderGraph()
+        setTimeout(() => {
+          this.spinShow = false
+          this.renderGraph()
+        }, 100)
       })
     },
     async getInitSimpleData () {
@@ -1048,7 +1053,6 @@ export default {
           addEvent('svg', 'mouseover', this.handleSvgMouseover)
           addEvent('.node', 'click', this.handleNodeClick)
         })
-      this.spinShow = false
     },
     genDOT () {
       const status = this.currentStatus
