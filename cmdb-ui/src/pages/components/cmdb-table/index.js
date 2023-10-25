@@ -151,6 +151,17 @@ export default {
           value: (values[i] || '').replace('\u0001', '')
         })
       }
+      res = res.sort((first, second) => {
+        const firstKey = first.key.toLocaleUpperCase()
+        const secondKey = second.key.toLocaleUpperCase()
+        if (firstKey < secondKey) {
+          return -1
+        } else if (firstKey > secondKey) {
+          return 1
+        } else {
+          return 0
+        }
+      })
       return res
     },
     pushNewAddedRowToSelections (data) {
@@ -1270,11 +1281,6 @@ export default {
           )}
           {this.tableDetailInfo.type === 'diffVariable' && (
             <div style="text-align: justify;word-break: break-word;overflow-y:auto;max-height:500px">
-              <div style="text-align:right">
-                <Button style="margin-right: 20px" type="primary" size="small" onClick={() => refreshDiffVariable()}>
-                  {this.$t('refresh')}
-                </Button>
-              </div>
               {this.tableDetailInfo.info.map(val => {
                 return (
                   <div
@@ -1295,6 +1301,9 @@ export default {
           <div style="margin-top:20px;height: 30px">
             <Button style="float: right;margin-right: 20px" onClick={() => closeModal()}>
               {this.$t('close')}
+            </Button>
+            <Button style="float: right;margin-right: 20px" type="primary" onClick={() => refreshDiffVariable()}>
+              {this.$t('refresh')}
             </Button>
           </div>
         </Modal>
