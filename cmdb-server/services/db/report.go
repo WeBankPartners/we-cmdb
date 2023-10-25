@@ -109,7 +109,7 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 			extendFilterSql = fmt.Sprintf(" AND ((confirm_time<='%s' AND history_state_confirmed=1) OR (update_time<='%s' AND confirm_time IS NULL))", confirmTime, confirmTime)
 		}
 	}
-	sqlCmd := "SELECT " + filterCols + " FROM " + queryTableName + " WHERE " + tmpFilter + " in ('" + strings.Join(rootGuidList, "','") + "')" + extendFilterSql
+	sqlCmd := "SELECT " + filterCols + " FROM " + queryTableName + " WHERE " + tmpFilter + " in ('" + strings.Join(rootGuidList, "','") + "')" + extendFilterSql + " order by key_name"
 	ciTypeTableData, err := x.QueryString(sqlCmd)
 	if err != nil {
 		log.Logger.Error("Query report object citype table error", log.String("ciTypeTable", root.CiType), log.Error(err))
@@ -1144,6 +1144,10 @@ func GetInsertTableExecAction(tableName string, data interface{}, transNullStr m
 	t := reflect.TypeOf(data)
 	v := reflect.ValueOf(data)
 	for i := 0; i < t.NumField(); i++ {
+		tmpJsonTag := t.Field(i).Tag.Get("json")
+		if tmpJsonTag == "" || tmpJsonTag == "-" {
+			continue
+		}
 		if i > 0 {
 			columnStr += ","
 			valueStr += ","
@@ -1173,6 +1177,10 @@ func GetUpdateTableExecAction(tableName string, primeKey string, primeKeyVal str
 	t := reflect.TypeOf(data)
 	v := reflect.ValueOf(data)
 	for i := 0; i < t.NumField(); i++ {
+		tmpJsonTag := t.Field(i).Tag.Get("json")
+		if tmpJsonTag == "" || tmpJsonTag == "-" {
+			continue
+		}
 		if i > 0 {
 			columnStr += ","
 		}
