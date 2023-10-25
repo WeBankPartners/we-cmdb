@@ -55,7 +55,21 @@ func GetRoleCiTypeCondition(roleCiType string) (result models.RoleAttrConditionR
 		err = fmt.Errorf("There is no attribute enable permission control ")
 		return
 	}
-	result.Header = attrs
+	for _, v := range attrs {
+		tmpHeaderObj := models.RoleAttrConditionHeaderObj{SysCiTypeAttrTable: *v}
+		if tmpHeaderObj.InputType == "select" || tmpHeaderObj.InputType == "multiSelect" {
+			if tmpOptions, getOptionsErr := getSelectInputTypeOptions(tmpHeaderObj.SelectList); getOptionsErr != nil {
+				err = getOptionsErr
+				break
+			} else {
+				tmpHeaderObj.Options = tmpOptions
+			}
+		}
+		result.Header = append(result.Header, &tmpHeaderObj)
+	}
+	if err != nil {
+		return
+	}
 	var conditionTable []*models.SysRoleCiTypeConditionTable
 	err = x.SQL("select * from sys_role_ci_type_condition where role_ci_type=?", roleCiType).Find(&conditionTable)
 	if err != nil {
@@ -100,6 +114,20 @@ func GetRoleCiTypeCondition(roleCiType string) (result models.RoleAttrConditionR
 		resultBodyObj["query"] = condition.Query
 		resultBodyObj["execute"] = condition.Execution
 		result.Body = append(result.Body, resultBodyObj)
+	}
+	return
+}
+
+func getSelectInputTypeOptions(catId string) (options []*models.RoleAttrOptionItem, err error) {
+	var rowData []*models.SysBaseKeyCodeTable
+	err = x.SQL("SELECT `code`,`value` FROM sys_basekey_code WHERE cat_id=? order by seq_no", catId).Find(&rowData)
+	if err != nil {
+		err = fmt.Errorf("query sys basekey code fail,%s ", err.Error())
+		return
+	}
+	options = []*models.RoleAttrOptionItem{}
+	for _, v := range rowData {
+		options = append(options, &models.RoleAttrOptionItem{Label: v.Value, Value: v.Code})
 	}
 	return
 }
