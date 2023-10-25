@@ -73,8 +73,18 @@ type RoleAttrConditionObj struct {
 }
 
 type RoleAttrConditionResult struct {
-	Body   []map[string]interface{} `json:"body"`
-	Header []*SysCiTypeAttrTable    `json:"header"`
+	Body   []map[string]interface{}      `json:"body"`
+	Header []*RoleAttrConditionHeaderObj `json:"header"`
+}
+
+type RoleAttrConditionHeaderObj struct {
+	SysCiTypeAttrTable
+	Options []*RoleAttrOptionItem `json:"Options"`
+}
+
+type RoleAttrOptionItem struct {
+	Label string `json:"Label"`
+	Value string `json:"Value"`
 }
 
 type CiDataPermission struct {
