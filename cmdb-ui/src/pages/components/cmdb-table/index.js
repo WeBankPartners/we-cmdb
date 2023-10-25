@@ -831,6 +831,7 @@ export default {
       })
       return res
     },
+    // 自定义渲染表格内容
     renderCol (col, isLastCol = false) {
       const getRefdata = async val => {
         this.tableDetailInfo.isShow = false
@@ -888,6 +889,7 @@ export default {
           this.tableDetailInfo.isShow = true
         })
       }
+      // 自定义渲染表格内容generalParams.render
       const generalParams = {
         ...col,
         tooltip: true,
@@ -895,6 +897,12 @@ export default {
         width: isLastCol ? null : this.colWidth < MIN_WIDTH ? MIN_WIDTH : this.colWidth, // 除最后一列，都加上默认宽度，等宽
         resizable: !isLastCol, // 除最后一列，该属性都为true
         sortable: this.isSortable ? 'custom' : false
+      }
+      if (col.inputType === 'text') {
+        generalParams.render = (h, params) => {
+          return <span style={{ whiteSpace: 'pre' }}>{params.row.weTableForm[col.key]}</span>
+        }
+        return generalParams
       }
       if (col.inputType === 'ref') {
         generalParams.render = (h, params) => {
@@ -1281,6 +1289,14 @@ export default {
           )}
           {this.tableDetailInfo.type === 'diffVariable' && (
             <div style="text-align: justify;word-break: break-word;overflow-y:auto;max-height:500px">
+              <div style="text-align:right">
+                <Button style="margin-right: 20px" type="primary" size="small" onClick={() => refreshDiffVariable()}>
+                  {this.$t('refresh')}
+                </Button>
+              </div>
+              <div style="text-align: left;">
+                <Alert type="warning">如出现页面值未显示，请点击刷新按钮</Alert>
+              </div>
               {this.tableDetailInfo.info.map(val => {
                 return (
                   <div
