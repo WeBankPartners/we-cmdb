@@ -79,12 +79,12 @@ type RoleAttrConditionResult struct {
 
 type RoleAttrConditionHeaderObj struct {
 	SysCiTypeAttrTable
-	Options []*RoleAttrOptionItem `json:"Options"`
+	Options []*RoleAttrOptionItem `json:"options"`
 }
 
 type RoleAttrOptionItem struct {
-	Label string `json:"Label"`
-	Value string `json:"Value"`
+	Label string `json:"label"`
+	Value string `json:"value"`
 }
 
 type CiDataPermission struct {

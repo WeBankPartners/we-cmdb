@@ -31,3 +31,8 @@ type BaseKeyCodeSwapPositionParam struct {
 	TargetIndex int    `json:"targetIndex"`
 	Up          bool   `json:"up"`
 }
+
+type OptionItemObj struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
+}

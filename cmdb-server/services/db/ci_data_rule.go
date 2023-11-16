@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -58,7 +59,7 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 						break
 						//newTmpValueList = append(newTmpValueList, "")
 					} else {
-						newTmpValueList = append(newTmpValueList, getAutofillValueString(autofillSubResult))
+						newTmpValueList = append(newTmpValueList, getAutofillValueString(autofillSubResult, attrInputType))
 					}
 				}
 				if err != nil {
@@ -217,11 +218,12 @@ func getRuleValue(rowData map[string]string, ruleString string) (resultValueList
 				if !isMultiRef || i == 1 {
 					// 直接从rowDataList里面的相应attr拿下一个关联的guid列表
 					for _, tmpRowData := range rowDataList {
-						if strings.Contains(tmpRowData[tmpAttrSplit[1]], ",") {
-							tmpGuidList = append(tmpGuidList, strings.Split(tmpRowData[tmpAttrSplit[1]], ",")...)
-						} else {
-							tmpGuidList = append(tmpGuidList, tmpRowData[tmpAttrSplit[1]])
-						}
+						tmpGuidList = append(tmpGuidList, transStringToList(tmpRowData[tmpAttrSplit[1]])...)
+						//if strings.Contains(tmpRowData[tmpAttrSplit[1]], ",") {
+						//	tmpGuidList = append(tmpGuidList, strings.Split(tmpRowData[tmpAttrSplit[1]], ",")...)
+						//} else {
+						//	tmpGuidList = append(tmpGuidList, tmpRowData[tmpAttrSplit[1]])
+						//}
 					}
 					log.Logger.Debug("tmpGuidList 1", log.StringList("guidList", tmpGuidList), log.String("attr", tmpAttrSplit[1]))
 					rowDataList, err = getCiRowDataByGuid(rule.CiTypeId, tmpGuidList, rule.Filters, tmpAttrInputType, rowData)
@@ -359,7 +361,33 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 	return
 }
 
-func getAutofillValueString(valueList []string) string {
+func getAutofillValueString(valueList []string, attributeInputType string) string {
+	log.Logger.Debug("getAutofillValueString", log.StringList("value", valueList), log.String("inputType", attributeInputType))
+	if attributeInputType == models.CountInputType {
+		return fmt.Sprintf("%d", len(valueList))
+	}
+	if attributeInputType == models.SumInputType {
+		count := 0
+		for _, v := range valueList {
+			if tmpV, tmpErr := strconv.Atoi(v); tmpErr == nil {
+				count += tmpV
+			}
+		}
+		return fmt.Sprintf("%d", count)
+	}
+	if attributeInputType == models.AvgInputType {
+		var count, num float64
+		for _, v := range valueList {
+			num = num + 1
+			if tmpV, tmpErr := strconv.ParseFloat(v, 64); tmpErr == nil {
+				count += tmpV
+			}
+		}
+		if num > 0 {
+			count = count / num
+		}
+		return fmt.Sprintf("%.2f", count)
+	}
 	if len(valueList) == 0 {
 		return ""
 	}
@@ -1115,4 +1143,18 @@ func buildLeftExpressCondition(column, operator, value string, valueList []strin
 		break
 	}
 	return sql
+}
+
+func transStringToList(input string) (output []string) {
+	if strings.HasPrefix(input, "[") {
+		if tmpErr := json.Unmarshal([]byte(input), &output); tmpErr == nil {
+			return
+		}
+	}
+	if strings.Contains(input, ",") {
+		output = strings.Split(input, ",")
+	} else {
+		output = []string{input}
+	}
+	return
 }

@@ -34,7 +34,7 @@
   },
   "auth": {
     "enable": true,
-    "password_seed": "",
+    "password_seed": "{{ENCRYPT_SEED}}",
     "expire_sec": 600,
     "fresh_token_expire": 1800
   },
