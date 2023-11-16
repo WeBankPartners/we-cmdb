@@ -41,6 +41,7 @@ func init() {
 		&handlerFuncObj{Url: "/base-key/codes/:codeId", Method: "PUT", HandlerFunc: basekey.CodesUpdate, LogOperation: true},
 		&handlerFuncObj{Url: "/base-key/codes", Method: "DELETE", HandlerFunc: basekey.CodesDelete, LogOperation: true},
 		&handlerFuncObj{Url: "/base-key/codes/swap-position", Method: "POST", HandlerFunc: basekey.CodesPositionSwap, LogOperation: true},
+		&handlerFuncObj{Url: "/referenceEnumCodes/:ciAttr/query", Method: "POST", HandlerFunc: basekey.ReferenceEnumCodes, LogOperation: true},
 	)
 	// ciTypes
 	httpHandlerFuncList = append(httpHandlerFuncList,
