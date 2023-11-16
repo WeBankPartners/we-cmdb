@@ -1,8 +1,10 @@
 package db
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/go-common-lib/pcre"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
@@ -681,10 +683,10 @@ func autofillAffectActionFunc(ciTypeId, guid, nowTime string) {
 			log.Logger.Error("Try to auto refresh autofill data fail,build value error", log.String("guid", guid), log.String("attr", attr.Name), log.Error(err))
 			continue
 		}
-		afterAutoBuildData := getAutofillValueString(autofillValueList)
+		afterAutoBuildData := getAutofillValueString(autofillValueList, attr.InputType)
 		if afterAutoBuildData != nowData[attr.Name] {
 			updateColumn = append(updateColumn, attr.Name)
-			nowData[attr.Name] = getAutofillValueString(autofillValueList)
+			nowData[attr.Name] = getAutofillValueString(autofillValueList, attr.InputType)
 			updateColumnList = append(updateColumnList, &models.CiDataColumnObj{ColumnName: attr.Name, ColumnValue: nowData[attr.Name]})
 		}
 	}
@@ -738,7 +740,7 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 				err = tmpErr
 				return
 			}
-			inputValue = getAutofillValueString(autofillValueList)
+			inputValue = getAutofillValueString(autofillValueList, param.AttributeConfig.InputType)
 		}
 		// check unique
 		if param.AttributeConfig.UniqueConstraint == "yes" {
@@ -788,6 +790,24 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 	if param.AttributeConfig.InputType == models.MultiRefType {
 		multiRefAction, deleteGuidList, err = buildMultiRefActions(param)
 		return
+	}
+	if param.AttributeConfig.InputType == models.PasswordInputType {
+		if pwdBytes, pwdErr := base64.StdEncoding.DecodeString(inputValue); pwdErr == nil {
+			inputValue = string(pwdBytes)
+		}
+		matchPrefix := false
+		for _, v := range cipher.CIPHER_MAP {
+			if strings.HasPrefix(inputValue, v) {
+				matchPrefix = true
+				break
+			}
+		}
+		if !matchPrefix {
+			if inputValue, err = cipher.AesEnPasswordByGuid(param.InputData["guid"], models.Config.Auth.PasswordSeed, inputValue, ""); err != nil {
+				err = fmt.Errorf("try to encrypt password type column:%s value:%s fail,%s  ", param.AttributeConfig.Name, inputValue, err.Error())
+				return
+			}
+		}
 	}
 	// add to column list
 	if param.AttributeConfig.DataType == "int" {
