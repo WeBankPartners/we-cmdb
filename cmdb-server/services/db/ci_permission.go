@@ -152,8 +152,8 @@ func AddRoleCiTypeCondition(roleCiType string, conditions []*models.RoleAttrCond
 			roleCiType, condition.Insert, condition.Delete, condition.Update, condition.Query, condition.Execution}})
 		filterGuidList := guid.CreateGuidList(len(condition.Filters))
 		for j, filter := range condition.Filters {
-			filterActions = append(filterActions, &execAction{Sql: "insert into sys_role_ci_type_condition_filter value (?,?,?,?,?)", Param: []interface{}{"filter_" + filterGuidList[j],
-				tmpConditionGuid, roleCiTypeData.CiType + models.SysTableIdConnector + filter.CiTypeAttrName, filter.CiTypeAttrName, filter.Expression}})
+			filterActions = append(filterActions, &execAction{Sql: "insert into sys_role_ci_type_condition_filter value (?,?,?,?,?,?,?)", Param: []interface{}{"filter_" + filterGuidList[j],
+				tmpConditionGuid, roleCiTypeData.CiType + models.SysTableIdConnector + filter.CiTypeAttrName, filter.CiTypeAttrName, filter.Expression, filter.FilterType, filter.SelectList}})
 		}
 	}
 	if err != nil {
@@ -185,8 +185,8 @@ func EditRoleCiTypeCondition(roleCiType string, conditions []*models.RoleAttrCon
 		filterGuidList := guid.CreateGuidList(len(condition.Filters))
 		actions = append(actions, &execAction{Sql: "delete from sys_role_ci_type_condition_filter where role_ci_type_condition=?", Param: []interface{}{condition.Guid}})
 		for j, filter := range condition.Filters {
-			actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type_condition_filter value (?,?,?,?,?)", Param: []interface{}{"filter_" + filterGuidList[j],
-				condition.Guid, roleCiTypeData.CiType + models.SysTableIdConnector + filter.CiTypeAttrName, filter.CiTypeAttrName, filter.Expression}})
+			actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type_condition_filter value (?,?,?,?,?,?,?)", Param: []interface{}{"filter_" + filterGuidList[j],
+				condition.Guid, roleCiTypeData.CiType + models.SysTableIdConnector + filter.CiTypeAttrName, filter.CiTypeAttrName, filter.Expression, filter.FilterType, filter.SelectList}})
 		}
 	}
 	if err != nil {
@@ -399,7 +399,7 @@ func GetRoleCiDataPermission(roles []string, ciType string) (result models.CiDat
 	}
 	for _, conditionFilter := range conditionQuery {
 		tmpFilterObj := models.SysRoleCiTypeConditionFilterTable{Guid: conditionFilter.Guid, RoleCiTypeCondition: conditionFilter.RoleCiTypeCondition, CiTypeAttr: conditionFilter.CiTypeAttr,
-			CiTypeAttrName: conditionFilter.CiTypeAttrName, Expression: conditionFilter.Expression}
+			CiTypeAttrName: conditionFilter.CiTypeAttrName, Expression: conditionFilter.Expression, FilterType: conditionFilter.FilterType, SelectList: conditionFilter.SelectList}
 		tmpConditionObj := models.RoleAttrConditionObj{Guid: conditionFilter.RoleCiTypeCondition, RoleCiTypeId: conditionFilter.RoleCiType, Insert: conditionFilter.Insert,
 			Delete: conditionFilter.Delete, Update: conditionFilter.Update, Query: conditionFilter.Query, Execution: conditionFilter.Execution, Filters: []*models.SysRoleCiTypeConditionFilterTable{&tmpFilterObj}}
 		if _, b := roleCiTypeMap[conditionFilter.RoleCiType]; b {
@@ -470,6 +470,13 @@ func GetCiDataPermissionGuidList(config *models.CiDataPermission, action string)
 			}
 			columnFilterList := []string{}
 			for _, filter := range condition.Filters {
+				if filter.FilterType == models.FilterTypeSelectList {
+					if filter.SelectList != "" {
+						tmpSelectFilterList := strings.Split(filter.SelectList, ",")
+						columnFilterList = append(columnFilterList, fmt.Sprintf(" %s in ('%s') ", filter.CiTypeAttrName, strings.Join(tmpSelectFilterList, "','")))
+					}
+					continue
+				}
 				if filter.Expression == "" {
 					continue
 				}

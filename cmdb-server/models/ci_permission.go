@@ -40,6 +40,8 @@ type SysRoleCiTypeConditionFilterTable struct {
 	CiTypeAttrName      string   `json:"ciTypeAttrName" xorm:"ci_type_attr_name"`
 	Expression          string   `json:"expression" xorm:"expression"`
 	ConditionValueExprs []string `json:"conditionValueExprs" xorm:"-"`
+	FilterType          string   `json:"filterType" xorm:"filter_type"`
+	SelectList          string   `json:"selectList" xorm:"select_list"`
 }
 
 type SysRoleCiTypeListTable struct {
@@ -114,9 +116,16 @@ type ConditionListQueryObj struct {
 	Update              string `json:"update" xorm:"update"`
 	Query               string `json:"query" xorm:"query"`
 	Execution           string `json:"execute" xorm:"execute"`
+	FilterType          string `json:"filterType" xorm:"filter_type"`
+	SelectList          string `json:"selectList" xorm:"select_list"`
 }
 
 type RoleCiTypePermissionObj struct {
 	Conditions []*RoleAttrConditionObj
 	List       []*SysRoleCiTypeListTable
+}
+
+type RoleAttrConditionExtendObj struct {
+	Expression   string   `json:"expression"`
+	SelectValues []string `json:"selectValues"`
 }
