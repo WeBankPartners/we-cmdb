@@ -20,6 +20,8 @@ const (
 	PlatformUser         = "SYS_PLATFORM"
 	PasswordDisplay      = "****"
 	RollbackAction       = "rollback"
+	FilterTypeExpression = "expression"
+	FilterTypeSelectList = "selectList"
 )
 
 var (

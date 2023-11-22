@@ -111,9 +111,19 @@ func bindRoleCiTypeConditionParam(c *gin.Context) (conditions []*models.RoleAttr
 			if k == "insert" || k == "update" || k == "delete" || k == "query" || k == "execute" || k == "roleCiType" || k == "roleConditionGuid" {
 				continue
 			}
-			tmpValueMap := v.(map[string]interface{})
-			tmpFilterObj := models.SysRoleCiTypeConditionFilterTable{Expression: tmpValueMap["expression"].(string), CiTypeAttrName: k}
-			tmpCondition.Filters = append(tmpCondition.Filters, &tmpFilterObj)
+			if tmpValueMap, isMap := v.(map[string]interface{}); isMap {
+				tmpFilterObj := models.SysRoleCiTypeConditionFilterTable{Expression: tmpValueMap["expression"].(string), CiTypeAttrName: k, FilterType: models.FilterTypeExpression}
+				tmpCondition.Filters = append(tmpCondition.Filters, &tmpFilterObj)
+			} else {
+				if tmpValueList, isList := v.([]interface{}); isList {
+					tmpValueStringList := []string{}
+					for _, tmpV := range tmpValueList {
+						tmpValueStringList = append(tmpValueStringList, tmpV.(string))
+					}
+					tmpFilterObj := models.SysRoleCiTypeConditionFilterTable{CiTypeAttrName: k, FilterType: models.FilterTypeExpression, SelectList: strings.Join(tmpValueStringList, ",")}
+					tmpCondition.Filters = append(tmpCondition.Filters, &tmpFilterObj)
+				}
+			}
 		}
 		conditions = append(conditions, &tmpCondition)
 	}
