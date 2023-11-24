@@ -42,6 +42,7 @@ type SysRoleCiTypeConditionFilterTable struct {
 	ConditionValueExprs []string `json:"conditionValueExprs" xorm:"-"`
 	FilterType          string   `json:"filterType" xorm:"filter_type"`
 	SelectList          string   `json:"selectList" xorm:"select_list"`
+	SelectValues        []string `json:"selectValues" xorm:"-"`
 }
 
 type SysRoleCiTypeListTable struct {
