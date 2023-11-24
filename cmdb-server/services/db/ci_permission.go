@@ -1,6 +1,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
@@ -92,7 +93,13 @@ func GetRoleCiTypeCondition(roleCiType string) (result models.RoleAttrConditionR
 	}
 	var filterMap = make(map[string][]*models.SysRoleCiTypeConditionFilterTable)
 	for _, filterObj := range filterTable {
-		filterObj.ConditionValueExprs = []string{filterObj.Expression}
+		tmpExpressionList := []string{}
+		if tmpUnmarshalErr := json.Unmarshal([]byte(filterObj.Expression), &tmpExpressionList); tmpUnmarshalErr == nil {
+			filterObj.ConditionValueExprs = tmpExpressionList
+		} else {
+			filterObj.ConditionValueExprs = []string{filterObj.Expression}
+		}
+		filterObj.SelectValues = strings.Split(filterObj.SelectList, ",")
 		if _, b := filterMap[filterObj.RoleCiTypeCondition]; b {
 			filterMap[filterObj.RoleCiTypeCondition] = append(filterMap[filterObj.RoleCiTypeCondition], filterObj)
 		} else {
@@ -477,12 +484,28 @@ func GetCiDataPermissionGuidList(config *models.CiDataPermission, action string)
 					}
 					continue
 				}
-				if filter.Expression == "" {
+				if filter.Expression == "" || filter.Expression == "[\"\"]" {
 					continue
 				}
-				filterColumnGuidList, tmpErr := getConditionExpressResult(filter.Expression, "", make(map[string]string), true)
-				if tmpErr != nil {
-					err = fmt.Errorf("Try to analyze filter expression fail,%s ", tmpErr.Error())
+				filterExpressionList := []string{}
+				if strings.HasPrefix(filter.Expression, "[") {
+					if tmpErr := json.Unmarshal([]byte(filter.Expression), &filterExpressionList); tmpErr != nil {
+						err = fmt.Errorf("Try to parse expression filter to []string fail,data:%s,err:%s ", filter.Expression, tmpErr.Error())
+						break
+					}
+				} else {
+					filterExpressionList = append(filterExpressionList, filter.Expression)
+				}
+				filterColumnGuidList := []string{}
+				for _, tmpExpression := range filterExpressionList {
+					tmpFilterColumnGuidList, tmpErr := getConditionExpressResult(tmpExpression, "", make(map[string]string), true)
+					if tmpErr != nil {
+						err = fmt.Errorf("Try to analyze filter expression fail,%s ", tmpErr.Error())
+						break
+					}
+					filterColumnGuidList = append(filterColumnGuidList, tmpFilterColumnGuidList...)
+				}
+				if err != nil {
 					break
 				}
 				//tmpCiType := filter.CiTypeAttr[:strings.Index(filter.CiTypeAttr, models.SysTableIdConnector)]
