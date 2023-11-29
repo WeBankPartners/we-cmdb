@@ -803,7 +803,7 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 			}
 		}
 		if !matchPrefix {
-			if inputValue, err = cipher.AesEnPasswordByGuid(param.InputData["guid"], models.Config.Auth.PasswordSeed, inputValue, ""); err != nil {
+			if inputValue, err = cipher.AesEnPasswordByGuid(param.InputData["guid"], models.Config.Wecube.EncryptSeed, inputValue, ""); err != nil {
 				err = fmt.Errorf("try to encrypt password type column:%s value:%s fail,%s  ", param.AttributeConfig.Name, inputValue, err.Error())
 				return
 			}
