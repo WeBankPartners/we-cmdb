@@ -920,17 +920,47 @@ func getCiTypeAutofillDepColumn(ciType string) (ciColumnList []*models.AutofillC
 		return
 	}
 	for _, attr := range attributes {
-		tmpColumnList := []string{}
-		for i, v := range strings.Split(attr.AutofillRule, ciType+"#") {
-			if i == 0 {
-				continue
-			}
-			tmpColumnList = append(tmpColumnList, v[:strings.Index(v, "\\\"")])
-		}
+		tmpColumnList := getAutofillRuleColumnList(attr.AutofillRule, ciType)
+		log.Logger.Debug("getAutofillRuleColumnList", log.String("ciType", ciType), log.String("attr", attr.Name), log.StringList("columnList", tmpColumnList))
 		if len(tmpColumnList) == 0 {
 			continue
 		}
 		ciColumnList = append(ciColumnList, &models.AutofillChainCiColumn{AttrId: attr.Id, CiTypeId: attr.CiType, CiAttrName: attr.Name, AutofillRule: attr.AutofillRule, UsedColumn: tmpColumnList})
+	}
+	return
+}
+
+func getAutofillRuleColumnList(autofillString, ciType string) (columnList []string) {
+	if autofillString == "" {
+		return
+	}
+	var autofillList []*models.AutofillObj
+	if err := json.Unmarshal([]byte(autofillString), &autofillList); err != nil {
+		log.Logger.Warn("ci attr autofill config rule json unmarshal fail", log.String("config", autofillString), log.Error(err))
+		return
+	}
+	for _, ruleConfig := range autofillList {
+		if ruleConfig.Type != "rule" {
+			continue
+		}
+		ruleList := []*models.AutofillValueObj{}
+		if tmpErr := json.Unmarshal([]byte(ruleConfig.Value), &ruleList); tmpErr != nil {
+			log.Logger.Warn("autofill value rule json unmarshal fail", log.String("ruleString", ruleConfig.Value), log.Error(tmpErr))
+			continue
+		}
+		for _, v := range ruleList {
+			if v.CiTypeId != ciType {
+				continue
+			}
+			if splitIndex := strings.Index(v.ParentRs.AttrId, "#"); splitIndex >= 0 {
+				columnList = append(columnList, v.ParentRs.AttrId[splitIndex+1:])
+			}
+			if len(v.Filters) > 0 {
+				for _, tmpFilter := range v.Filters {
+					columnList = append(columnList, tmpFilter.Name)
+				}
+			}
+		}
 	}
 	return
 }
