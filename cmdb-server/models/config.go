@@ -42,6 +42,7 @@ type WecubeConfig struct {
 	JwtSigningKey string `json:"jwt_signing_key"`
 	SubSystemCode string `json:"sub_system_code"`
 	SubSystemKey  string `json:"sub_system_key"`
+	EncryptSeed   string `json:"encrypt_seed"`
 }
 
 type AuthConfig struct {

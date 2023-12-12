@@ -1,6 +1,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
@@ -55,7 +56,21 @@ func GetRoleCiTypeCondition(roleCiType string) (result models.RoleAttrConditionR
 		err = fmt.Errorf("There is no attribute enable permission control ")
 		return
 	}
-	result.Header = attrs
+	for _, v := range attrs {
+		tmpHeaderObj := models.RoleAttrConditionHeaderObj{SysCiTypeAttrTable: *v}
+		if tmpHeaderObj.InputType == "select" || tmpHeaderObj.InputType == "multiSelect" {
+			if tmpOptions, getOptionsErr := getSelectInputTypeOptions(tmpHeaderObj.SelectList); getOptionsErr != nil {
+				err = getOptionsErr
+				break
+			} else {
+				tmpHeaderObj.Options = tmpOptions
+			}
+		}
+		result.Header = append(result.Header, &tmpHeaderObj)
+	}
+	if err != nil {
+		return
+	}
 	var conditionTable []*models.SysRoleCiTypeConditionTable
 	err = x.SQL("select * from sys_role_ci_type_condition where role_ci_type=?", roleCiType).Find(&conditionTable)
 	if err != nil {
@@ -78,7 +93,13 @@ func GetRoleCiTypeCondition(roleCiType string) (result models.RoleAttrConditionR
 	}
 	var filterMap = make(map[string][]*models.SysRoleCiTypeConditionFilterTable)
 	for _, filterObj := range filterTable {
-		filterObj.ConditionValueExprs = []string{filterObj.Expression}
+		tmpExpressionList := []string{}
+		if tmpUnmarshalErr := json.Unmarshal([]byte(filterObj.Expression), &tmpExpressionList); tmpUnmarshalErr == nil {
+			filterObj.ConditionValueExprs = tmpExpressionList
+		} else {
+			filterObj.ConditionValueExprs = []string{filterObj.Expression}
+		}
+		filterObj.SelectValues = strings.Split(filterObj.SelectList, ",")
 		if _, b := filterMap[filterObj.RoleCiTypeCondition]; b {
 			filterMap[filterObj.RoleCiTypeCondition] = append(filterMap[filterObj.RoleCiTypeCondition], filterObj)
 		} else {
@@ -104,6 +125,20 @@ func GetRoleCiTypeCondition(roleCiType string) (result models.RoleAttrConditionR
 	return
 }
 
+func getSelectInputTypeOptions(catId string) (options []*models.RoleAttrOptionItem, err error) {
+	var rowData []*models.SysBaseKeyCodeTable
+	err = x.SQL("SELECT `code`,`value` FROM sys_basekey_code WHERE cat_id=? order by seq_no", catId).Find(&rowData)
+	if err != nil {
+		err = fmt.Errorf("query sys basekey code fail,%s ", err.Error())
+		return
+	}
+	options = []*models.RoleAttrOptionItem{}
+	for _, v := range rowData {
+		options = append(options, &models.RoleAttrOptionItem{Label: v.Value, Value: v.Code})
+	}
+	return
+}
+
 func AddRoleCiTypeCondition(roleCiType string, conditions []*models.RoleAttrConditionObj) error {
 	if len(conditions) == 0 {
 		return fmt.Errorf("Param list is empty ")
@@ -124,8 +159,8 @@ func AddRoleCiTypeCondition(roleCiType string, conditions []*models.RoleAttrCond
 			roleCiType, condition.Insert, condition.Delete, condition.Update, condition.Query, condition.Execution}})
 		filterGuidList := guid.CreateGuidList(len(condition.Filters))
 		for j, filter := range condition.Filters {
-			filterActions = append(filterActions, &execAction{Sql: "insert into sys_role_ci_type_condition_filter value (?,?,?,?,?)", Param: []interface{}{"filter_" + filterGuidList[j],
-				tmpConditionGuid, roleCiTypeData.CiType + models.SysTableIdConnector + filter.CiTypeAttrName, filter.CiTypeAttrName, filter.Expression}})
+			filterActions = append(filterActions, &execAction{Sql: "insert into sys_role_ci_type_condition_filter value (?,?,?,?,?,?,?)", Param: []interface{}{"filter_" + filterGuidList[j],
+				tmpConditionGuid, roleCiTypeData.CiType + models.SysTableIdConnector + filter.CiTypeAttrName, filter.CiTypeAttrName, filter.Expression, filter.FilterType, filter.SelectList}})
 		}
 	}
 	if err != nil {
@@ -157,8 +192,8 @@ func EditRoleCiTypeCondition(roleCiType string, conditions []*models.RoleAttrCon
 		filterGuidList := guid.CreateGuidList(len(condition.Filters))
 		actions = append(actions, &execAction{Sql: "delete from sys_role_ci_type_condition_filter where role_ci_type_condition=?", Param: []interface{}{condition.Guid}})
 		for j, filter := range condition.Filters {
-			actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type_condition_filter value (?,?,?,?,?)", Param: []interface{}{"filter_" + filterGuidList[j],
-				condition.Guid, roleCiTypeData.CiType + models.SysTableIdConnector + filter.CiTypeAttrName, filter.CiTypeAttrName, filter.Expression}})
+			actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type_condition_filter value (?,?,?,?,?,?,?)", Param: []interface{}{"filter_" + filterGuidList[j],
+				condition.Guid, roleCiTypeData.CiType + models.SysTableIdConnector + filter.CiTypeAttrName, filter.CiTypeAttrName, filter.Expression, filter.FilterType, filter.SelectList}})
 		}
 	}
 	if err != nil {
@@ -371,7 +406,7 @@ func GetRoleCiDataPermission(roles []string, ciType string) (result models.CiDat
 	}
 	for _, conditionFilter := range conditionQuery {
 		tmpFilterObj := models.SysRoleCiTypeConditionFilterTable{Guid: conditionFilter.Guid, RoleCiTypeCondition: conditionFilter.RoleCiTypeCondition, CiTypeAttr: conditionFilter.CiTypeAttr,
-			CiTypeAttrName: conditionFilter.CiTypeAttrName, Expression: conditionFilter.Expression}
+			CiTypeAttrName: conditionFilter.CiTypeAttrName, Expression: conditionFilter.Expression, FilterType: conditionFilter.FilterType, SelectList: conditionFilter.SelectList}
 		tmpConditionObj := models.RoleAttrConditionObj{Guid: conditionFilter.RoleCiTypeCondition, RoleCiTypeId: conditionFilter.RoleCiType, Insert: conditionFilter.Insert,
 			Delete: conditionFilter.Delete, Update: conditionFilter.Update, Query: conditionFilter.Query, Execution: conditionFilter.Execution, Filters: []*models.SysRoleCiTypeConditionFilterTable{&tmpFilterObj}}
 		if _, b := roleCiTypeMap[conditionFilter.RoleCiType]; b {
@@ -442,12 +477,35 @@ func GetCiDataPermissionGuidList(config *models.CiDataPermission, action string)
 			}
 			columnFilterList := []string{}
 			for _, filter := range condition.Filters {
-				if filter.Expression == "" {
+				if filter.FilterType == models.FilterTypeSelectList {
+					if filter.SelectList != "" {
+						tmpSelectFilterList := strings.Split(filter.SelectList, ",")
+						columnFilterList = append(columnFilterList, fmt.Sprintf(" %s in ('%s') ", filter.CiTypeAttrName, strings.Join(tmpSelectFilterList, "','")))
+					}
 					continue
 				}
-				filterColumnGuidList, tmpErr := getConditionExpressResult(filter.Expression, "", make(map[string]string), true)
-				if tmpErr != nil {
-					err = fmt.Errorf("Try to analyze filter expression fail,%s ", tmpErr.Error())
+				if filter.Expression == "" || filter.Expression == "[\"\"]" {
+					continue
+				}
+				filterExpressionList := []string{}
+				if strings.HasPrefix(filter.Expression, "[") {
+					if tmpErr := json.Unmarshal([]byte(filter.Expression), &filterExpressionList); tmpErr != nil {
+						err = fmt.Errorf("Try to parse expression filter to []string fail,data:%s,err:%s ", filter.Expression, tmpErr.Error())
+						break
+					}
+				} else {
+					filterExpressionList = append(filterExpressionList, filter.Expression)
+				}
+				filterColumnGuidList := []string{}
+				for _, tmpExpression := range filterExpressionList {
+					tmpFilterColumnGuidList, tmpErr := getConditionExpressResult(tmpExpression, "", make(map[string]string), true)
+					if tmpErr != nil {
+						err = fmt.Errorf("Try to analyze filter expression fail,%s ", tmpErr.Error())
+						break
+					}
+					filterColumnGuidList = append(filterColumnGuidList, tmpFilterColumnGuidList...)
+				}
+				if err != nil {
 					break
 				}
 				//tmpCiType := filter.CiTypeAttr[:strings.Index(filter.CiTypeAttr, models.SysTableIdConnector)]

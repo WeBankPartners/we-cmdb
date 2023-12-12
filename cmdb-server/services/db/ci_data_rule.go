@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -58,7 +59,7 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 						break
 						//newTmpValueList = append(newTmpValueList, "")
 					} else {
-						newTmpValueList = append(newTmpValueList, getAutofillValueString(autofillSubResult))
+						newTmpValueList = append(newTmpValueList, getAutofillValueString(autofillSubResult, attrInputType))
 					}
 				}
 				if err != nil {
@@ -217,11 +218,12 @@ func getRuleValue(rowData map[string]string, ruleString string) (resultValueList
 				if !isMultiRef || i == 1 {
 					// 直接从rowDataList里面的相应attr拿下一个关联的guid列表
 					for _, tmpRowData := range rowDataList {
-						if strings.Contains(tmpRowData[tmpAttrSplit[1]], ",") {
-							tmpGuidList = append(tmpGuidList, strings.Split(tmpRowData[tmpAttrSplit[1]], ",")...)
-						} else {
-							tmpGuidList = append(tmpGuidList, tmpRowData[tmpAttrSplit[1]])
-						}
+						tmpGuidList = append(tmpGuidList, transStringToList(tmpRowData[tmpAttrSplit[1]])...)
+						//if strings.Contains(tmpRowData[tmpAttrSplit[1]], ",") {
+						//	tmpGuidList = append(tmpGuidList, strings.Split(tmpRowData[tmpAttrSplit[1]], ",")...)
+						//} else {
+						//	tmpGuidList = append(tmpGuidList, tmpRowData[tmpAttrSplit[1]])
+						//}
 					}
 					log.Logger.Debug("tmpGuidList 1", log.StringList("guidList", tmpGuidList), log.String("attr", tmpAttrSplit[1]))
 					rowDataList, err = getCiRowDataByGuid(rule.CiTypeId, tmpGuidList, rule.Filters, tmpAttrInputType, rowData)
@@ -359,7 +361,33 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 	return
 }
 
-func getAutofillValueString(valueList []string) string {
+func getAutofillValueString(valueList []string, attributeInputType string) string {
+	log.Logger.Debug("getAutofillValueString", log.StringList("value", valueList), log.String("inputType", attributeInputType))
+	if attributeInputType == models.CountInputType {
+		return fmt.Sprintf("%d", len(valueList))
+	}
+	if attributeInputType == models.SumInputType {
+		count := 0
+		for _, v := range valueList {
+			if tmpV, tmpErr := strconv.Atoi(v); tmpErr == nil {
+				count += tmpV
+			}
+		}
+		return fmt.Sprintf("%d", count)
+	}
+	if attributeInputType == models.AvgInputType {
+		var count, num float64
+		for _, v := range valueList {
+			num = num + 1
+			if tmpV, tmpErr := strconv.ParseFloat(v, 64); tmpErr == nil {
+				count += tmpV
+			}
+		}
+		if num > 0 {
+			count = count / num
+		}
+		return fmt.Sprintf("%.2f", count)
+	}
 	if len(valueList) == 0 {
 		return ""
 	}
@@ -850,6 +878,21 @@ func handleAffectGuidMap(autofillChainMap map[string][]*models.AutofillChainObj)
 			autofillAffectActionFunc(attr.CiTypeId, row, nowTime)
 		}
 	}
+	for _, rows := range autofillChainMap {
+		for _, row := range rows {
+			if row.MultiColumnDelMap != nil {
+				log.Logger.Debug("MultiColumnDelMap", log.JsonObj("data", row.MultiColumnDelMap))
+				for _, guidList := range row.MultiColumnDelMap {
+					for _, rowGuid := range guidList {
+						if lastIndex := strings.LastIndex(rowGuid, "_"); lastIndex >= 0 {
+							tmpCiType := rowGuid[:lastIndex]
+							autofillAffectActionFunc(tmpCiType, rowGuid, nowTime)
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 func handleAffectCiType(ciType string) {
@@ -877,17 +920,47 @@ func getCiTypeAutofillDepColumn(ciType string) (ciColumnList []*models.AutofillC
 		return
 	}
 	for _, attr := range attributes {
-		tmpColumnList := []string{}
-		for i, v := range strings.Split(attr.AutofillRule, ciType+"#") {
-			if i == 0 {
-				continue
-			}
-			tmpColumnList = append(tmpColumnList, v[:strings.Index(v, "\\\"")])
-		}
+		tmpColumnList := getAutofillRuleColumnList(attr.AutofillRule, ciType)
+		log.Logger.Debug("getAutofillRuleColumnList", log.String("ciType", ciType), log.String("attr", attr.Name), log.StringList("columnList", tmpColumnList))
 		if len(tmpColumnList) == 0 {
 			continue
 		}
 		ciColumnList = append(ciColumnList, &models.AutofillChainCiColumn{AttrId: attr.Id, CiTypeId: attr.CiType, CiAttrName: attr.Name, AutofillRule: attr.AutofillRule, UsedColumn: tmpColumnList})
+	}
+	return
+}
+
+func getAutofillRuleColumnList(autofillString, ciType string) (columnList []string) {
+	if autofillString == "" {
+		return
+	}
+	var autofillList []*models.AutofillObj
+	if err := json.Unmarshal([]byte(autofillString), &autofillList); err != nil {
+		log.Logger.Warn("ci attr autofill config rule json unmarshal fail", log.String("config", autofillString), log.Error(err))
+		return
+	}
+	for _, ruleConfig := range autofillList {
+		if ruleConfig.Type != "rule" {
+			continue
+		}
+		ruleList := []*models.AutofillValueObj{}
+		if tmpErr := json.Unmarshal([]byte(ruleConfig.Value), &ruleList); tmpErr != nil {
+			log.Logger.Warn("autofill value rule json unmarshal fail", log.String("ruleString", ruleConfig.Value), log.Error(tmpErr))
+			continue
+		}
+		for _, v := range ruleList {
+			if v.CiTypeId != ciType {
+				continue
+			}
+			if splitIndex := strings.Index(v.ParentRs.AttrId, "#"); splitIndex >= 0 {
+				columnList = append(columnList, v.ParentRs.AttrId[splitIndex+1:])
+			}
+			if len(v.Filters) > 0 {
+				for _, tmpFilter := range v.Filters {
+					columnList = append(columnList, tmpFilter.Name)
+				}
+			}
+		}
 	}
 	return
 }
@@ -1100,4 +1173,18 @@ func buildLeftExpressCondition(column, operator, value string, valueList []strin
 		break
 	}
 	return sql
+}
+
+func transStringToList(input string) (output []string) {
+	if strings.HasPrefix(input, "[") {
+		if tmpErr := json.Unmarshal([]byte(input), &output); tmpErr == nil {
+			return
+		}
+	}
+	if strings.Contains(input, ",") {
+		output = strings.Split(input, ",")
+	} else {
+		output = []string{input}
+	}
+	return
 }

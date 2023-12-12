@@ -5,7 +5,7 @@
         <card>
           <List size="small">
             <ListItem class="search-area">
-              <Input v-model="searchString" class="search-input">
+              <Input v-model="searchString" @keyup.enter.native="handleSearch" class="search-input">
                 <template #suffix>
                   <Button type="primary" @click="handleSearch">{{ $t('search') }}</Button>
                 </template>
@@ -224,19 +224,21 @@ export default {
       this.queryCiData()
     },
     handleSearch () {
-      const str = this.searchString.trim()
+      if (typeof this.searchString === 'string') {
+        const str = this.searchString.toLowerCase().trim()
 
-      this.filtedCiTypesByLayers = this.filtedCiTypesByLayers.map(it => {
-        it.ciTypes = it.ciTypes.map(item => {
-          if (item.name.indexOf(str) !== -1) {
-            item.selected = true
-          } else {
-            item.selected = false
-          }
-          return item
+        this.filtedCiTypesByLayers = this.filtedCiTypesByLayers.map(it => {
+          it.ciTypes = it.ciTypes.map(item => {
+            if (typeof item.name === 'string' && item.name.toLowerCase().indexOf(str) !== -1 && str) {
+              item.selected = true
+            } else {
+              item.selected = false
+            }
+            return item
+          })
+          return it
         })
-        return it
-      })
+      }
     },
     handleDateChange (date) {
       if (date !== '') {
@@ -965,6 +967,10 @@ export default {
       }
     },
     async newInitGraph () {
+      // 确定按钮为静态搜索，手动添加加载效果
+      this.spinShow = true
+      this.newInitSimpleCITypes()
+
       let graph
       const graphEl = document.getElementById('graph')
       const initEvent = () => {
@@ -997,8 +1003,10 @@ export default {
       }
       initEvent()
       this.$nextTick(() => {
-        this.renderGraph()
-        this.newInitSimpleCITypes()
+        setTimeout(() => {
+          this.spinShow = false
+          this.renderGraph()
+        }, 100)
       })
     },
     async getInitSimpleData () {
@@ -1045,7 +1053,6 @@ export default {
           addEvent('svg', 'mouseover', this.handleSvgMouseover)
           addEvent('.node', 'click', this.handleNodeClick)
         })
-      this.spinShow = false
     },
     genDOT () {
       const status = this.currentStatus
