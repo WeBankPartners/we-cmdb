@@ -78,6 +78,11 @@ export default {
       }
     },
     async getFilterRulesOptions (val) {
+      if (this.options.length > 1) {
+        this.filterOpts = this.options
+        return
+      }
+
       if (val && this.filterParams) {
         const rows = JSON.parse(JSON.stringify(this.filterParams.params))
         delete rows.isRowEditable
@@ -95,14 +100,12 @@ export default {
         }
         const { data, statusCode } = await queryReferenceEnumCodes(payload)
         if (statusCode === 'OK') {
-          this.filterOpts = data.contents
-            .filter(j => j.status === 'active')
-            .map(i => {
-              return {
-                label: i.value,
-                value: i.codeId
-              }
-            })
+          this.filterOpts = data.map(i => {
+            return {
+              label: i.label,
+              value: i.value
+            }
+          })
         }
       }
       if (val && !this.filterParams && this.enumId) {
