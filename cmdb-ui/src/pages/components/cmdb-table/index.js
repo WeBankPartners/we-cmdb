@@ -151,6 +151,17 @@ export default {
           value: (values[i] || '').replace('\u0001', '')
         })
       }
+      res = res.sort((first, second) => {
+        const firstKey = first.key.toLocaleUpperCase()
+        const secondKey = second.key.toLocaleUpperCase()
+        if (firstKey < secondKey) {
+          return -1
+        } else if (firstKey > secondKey) {
+          return 1
+        } else {
+          return 0
+        }
+      })
       return res
     },
     pushNewAddedRowToSelections (data) {
@@ -820,6 +831,7 @@ export default {
       })
       return res
     },
+    // 自定义渲染表格内容
     renderCol (col, isLastCol = false) {
       const getRefdata = async val => {
         this.tableDetailInfo.isShow = false
@@ -877,6 +889,7 @@ export default {
           this.tableDetailInfo.isShow = true
         })
       }
+      // 自定义渲染表格内容generalParams.render
       const generalParams = {
         ...col,
         tooltip: true,
@@ -884,6 +897,12 @@ export default {
         width: isLastCol ? null : this.colWidth < MIN_WIDTH ? MIN_WIDTH : this.colWidth, // 除最后一列，都加上默认宽度，等宽
         resizable: !isLastCol, // 除最后一列，该属性都为true
         sortable: this.isSortable ? 'custom' : false
+      }
+      if (col.inputType === 'text') {
+        generalParams.render = (h, params) => {
+          return <span style={{ whiteSpace: 'pre' }}>{params.row.weTableForm[col.key]}</span>
+        }
+        return generalParams
       }
       if (col.inputType === 'ref') {
         generalParams.render = (h, params) => {
@@ -1275,6 +1294,9 @@ export default {
                   {this.$t('refresh')}
                 </Button>
               </div>
+              <div style="text-align: left;">
+                <Alert type="warning">如出现页面值未显示，请点击刷新按钮</Alert>
+              </div>
               {this.tableDetailInfo.info.map(val => {
                 return (
                   <div
@@ -1295,6 +1317,9 @@ export default {
           <div style="margin-top:20px;height: 30px">
             <Button style="float: right;margin-right: 20px" onClick={() => closeModal()}>
               {this.$t('close')}
+            </Button>
+            <Button style="float: right;margin-right: 20px" type="primary" onClick={() => refreshDiffVariable()}>
+              {this.$t('refresh')}
             </Button>
           </div>
         </Modal>

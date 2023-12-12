@@ -30,7 +30,8 @@
     "base_url": "{{GATEWAY_URL}}",
     "jwt_signing_key": "{{JWT_SIGNING_KEY}}",
     "sub_system_code": "{{SUB_SYSTEM_CODE}}",
-    "sub_system_key": "{{SUB_SYSTEM_KEY}}"
+    "sub_system_key": "{{SUB_SYSTEM_KEY}}",
+    "encrypt_seed": "{{ENCRYPT_SEED}}"
   },
   "auth": {
     "enable": true,
