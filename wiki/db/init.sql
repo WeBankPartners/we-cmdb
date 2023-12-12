@@ -736,3 +736,8 @@ alter table sys_log add column response longtext;
 alter table sys_graph_element add column order_data varchar(128) default '';
 alter table sys_graph_element add column update_operation varchar(64) default '';
 #@v2.0.6.1-end@;
+
+#@v2.0.9.12-begin@;
+alter table sys_role_ci_type_condition_filter add column filter_type varchar(32) default 'expression';
+alter table sys_role_ci_type_condition_filter add column select_list varchar(500) default null;
+#@v2.0.9.12-end@;

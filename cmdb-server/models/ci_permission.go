@@ -40,6 +40,9 @@ type SysRoleCiTypeConditionFilterTable struct {
 	CiTypeAttrName      string   `json:"ciTypeAttrName" xorm:"ci_type_attr_name"`
 	Expression          string   `json:"expression" xorm:"expression"`
 	ConditionValueExprs []string `json:"conditionValueExprs" xorm:"-"`
+	FilterType          string   `json:"filterType" xorm:"filter_type"`
+	SelectList          string   `json:"selectList" xorm:"select_list"`
+	SelectValues        []string `json:"selectValues" xorm:"-"`
 }
 
 type SysRoleCiTypeListTable struct {
@@ -73,8 +76,18 @@ type RoleAttrConditionObj struct {
 }
 
 type RoleAttrConditionResult struct {
-	Body   []map[string]interface{} `json:"body"`
-	Header []*SysCiTypeAttrTable    `json:"header"`
+	Body   []map[string]interface{}      `json:"body"`
+	Header []*RoleAttrConditionHeaderObj `json:"header"`
+}
+
+type RoleAttrConditionHeaderObj struct {
+	SysCiTypeAttrTable
+	Options []*RoleAttrOptionItem `json:"options"`
+}
+
+type RoleAttrOptionItem struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
 }
 
 type CiDataPermission struct {
@@ -104,9 +117,16 @@ type ConditionListQueryObj struct {
 	Update              string `json:"update" xorm:"update"`
 	Query               string `json:"query" xorm:"query"`
 	Execution           string `json:"execute" xorm:"execute"`
+	FilterType          string `json:"filterType" xorm:"filter_type"`
+	SelectList          string `json:"selectList" xorm:"select_list"`
 }
 
 type RoleCiTypePermissionObj struct {
 	Conditions []*RoleAttrConditionObj
 	List       []*SysRoleCiTypeListTable
+}
+
+type RoleAttrConditionExtendObj struct {
+	Expression   string   `json:"expression"`
+	SelectValues []string `json:"selectValues"`
 }

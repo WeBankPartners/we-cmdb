@@ -1,7 +1,9 @@
 package permission
 
 import (
+	"encoding/json"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
@@ -111,9 +113,32 @@ func bindRoleCiTypeConditionParam(c *gin.Context) (conditions []*models.RoleAttr
 			if k == "insert" || k == "update" || k == "delete" || k == "query" || k == "execute" || k == "roleCiType" || k == "roleConditionGuid" {
 				continue
 			}
-			tmpValueMap := v.(map[string]interface{})
-			tmpFilterObj := models.SysRoleCiTypeConditionFilterTable{Expression: tmpValueMap["expression"].(string), CiTypeAttrName: k}
-			tmpCondition.Filters = append(tmpCondition.Filters, &tmpFilterObj)
+			if tmpValueMap, isMap := v.(map[string]interface{}); isMap {
+				if selectValueList, isSelect := tmpValueMap["conditionValueSelects"]; isSelect {
+					tmpValueStringList := []string{}
+					for _, selectItem := range selectValueList.([]interface{}) {
+						tmpValueStringList = append(tmpValueStringList, selectItem.(string))
+					}
+					tmpFilterObj := models.SysRoleCiTypeConditionFilterTable{CiTypeAttrName: k, FilterType: models.FilterTypeSelectList, SelectList: strings.Join(tmpValueStringList, ",")}
+					tmpCondition.Filters = append(tmpCondition.Filters, &tmpFilterObj)
+				} else {
+					if expressionValue, isExpression := tmpValueMap["expression"]; isExpression {
+						tmpExpressionStringList := []string{}
+						if tmpExpressionList, isMultiExpression := expressionValue.([]interface{}); isMultiExpression {
+							for _, expressionItem := range tmpExpressionList {
+								tmpExpressionStringList = append(tmpExpressionStringList, expressionItem.(string))
+							}
+						} else {
+							tmpExpressionStringList = append(tmpExpressionStringList, expressionValue.(string))
+						}
+						tmpExpressionDataValueBytes, _ := json.Marshal(tmpExpressionStringList)
+						tmpFilterObj := models.SysRoleCiTypeConditionFilterTable{Expression: string(tmpExpressionDataValueBytes), CiTypeAttrName: k, FilterType: models.FilterTypeExpression}
+						tmpCondition.Filters = append(tmpCondition.Filters, &tmpFilterObj)
+					}
+				}
+			} else {
+				log.Logger.Warn("bindRoleCiTypeConditionParam with illegal config attr data", log.String("attr", k), log.JsonObj("data", params))
+			}
 		}
 		conditions = append(conditions, &tmpCondition)
 	}
