@@ -1,8 +1,10 @@
 package db
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/go-common-lib/pcre"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
@@ -216,9 +218,9 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 			if actionParam.Transition.Action == "update" {
 				log.Logger.Info("update column", log.StringList("column", actionParam.UpdateColumn))
 				if _, b := autofillChainMap[ciObj.CiTypeId]; b {
-					autofillChainMap[ciObj.CiTypeId] = append(autofillChainMap[ciObj.CiTypeId], &models.AutofillChainObj{Guid: inputRowData["guid"], UpdateColumn: actionParam.UpdateColumn})
+					autofillChainMap[ciObj.CiTypeId] = append(autofillChainMap[ciObj.CiTypeId], &models.AutofillChainObj{Guid: inputRowData["guid"], UpdateColumn: actionParam.UpdateColumn, MultiColumnDelMap: actionParam.MultiColumnDelMap})
 				} else {
-					autofillChainMap[ciObj.CiTypeId] = []*models.AutofillChainObj{&models.AutofillChainObj{Guid: inputRowData["guid"], UpdateColumn: actionParam.UpdateColumn}}
+					autofillChainMap[ciObj.CiTypeId] = []*models.AutofillChainObj{&models.AutofillChainObj{Guid: inputRowData["guid"], UpdateColumn: actionParam.UpdateColumn, MultiColumnDelMap: actionParam.MultiColumnDelMap}}
 				}
 			}
 			if actionParam.Transition.TargetUniquePath == "yes" {
@@ -347,7 +349,7 @@ func insertActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 			}
 		}
 		buildValueParam.InputData = param.InputData
-		tmpColumn, multiRefActions, tmpErr := buildAttrValue(&buildValueParam)
+		tmpColumn, multiRefActions, _, tmpErr := buildAttrValue(&buildValueParam)
 		if tmpErr != nil {
 			err = fmt.Errorf("Column:%s %s \n", ciAttr.Name, tmpErr.Error())
 			break
@@ -415,6 +417,7 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 		}
 		//log.Logger.Debug("input data", log.String("k", k), log.String("v", v))
 	}
+	param.MultiColumnDelMap = make(map[string][]string)
 	for _, ciAttr := range param.Attributes {
 		if ciAttr.Name == "guid" {
 			continue
@@ -455,23 +458,29 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 			}
 		}
 		buildValueParam.InputData = param.InputData
-		tmpColumn, multiRefActions, tmpErr := buildAttrValue(&buildValueParam)
+		buildValueParam.NowData = param.NowData
+		tmpColumn, multiRefActions, deleteGuidList, tmpErr := buildAttrValue(&buildValueParam)
 		if tmpErr != nil {
 			err = fmt.Errorf("KeyName:%s column:%s %s \n", param.InputData["key_name"], ciAttr.Name, tmpErr.Error())
 			break
 		}
+		if param.InputData[ciAttr.Name] != param.NowData[ciAttr.Name] {
+			param.UpdateColumn = append(param.UpdateColumn, ciAttr.Name)
+		}
 		if ciAttr.InputType == models.MultiRefType {
 			result = append(result, multiRefActions...)
 			multiRefColumnList = append(multiRefColumnList, ciAttr.Name)
+			log.Logger.Debug("deleteGuidList", log.String("column", ciAttr.Name), log.StringList("data", deleteGuidList))
+			param.MultiColumnDelMap[fmt.Sprintf("%s$%s", param.CiType, ciAttr.Name)] = deleteGuidList
 			continue
 		}
 		if !buildValueParam.IsSystem {
 			param.InputData[ciAttr.Name] = tmpColumn.ValueString
 		}
 		columnList = append(columnList, tmpColumn)
-		if param.InputData[ciAttr.Name] != param.NowData[ciAttr.Name] {
-			param.UpdateColumn = append(param.UpdateColumn, ciAttr.Name)
-		}
+		//if param.InputData[ciAttr.Name] != param.NowData[ciAttr.Name] {
+		//	param.UpdateColumn = append(param.UpdateColumn, ciAttr.Name)
+		//}
 	}
 	for _, multiRefColumn := range multiRefColumnList {
 		delete(param.InputData, multiRefColumn)
@@ -527,7 +536,7 @@ func confirmActionFunc(param *models.ActionFuncParam) (result []*execAction, err
 		}
 		if ciAttr.RefCiType != "" {
 			if ciAttr.InputType == models.MultiRefType {
-				multiRefActions, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData})
+				multiRefActions, _, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData})
 				if tmpErr != nil {
 					err = tmpErr
 					break
@@ -559,18 +568,20 @@ func deleteActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 			return
 		}
 	}
+	param.MultiColumnDelMap = make(map[string][]string)
 	for _, ciAttr := range param.Attributes {
 		if ciAttr.DataType == "datetime" && param.NowData[ciAttr.Name] == "" {
 			delete(param.NowData, ciAttr.Name)
 			continue
 		}
 		if ciAttr.InputType == models.MultiRefType {
-			multiRefActions, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData})
+			multiRefActions, deleteGuidList, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData, NowData: param.NowData})
 			if tmpErr != nil {
 				err = tmpErr
 				break
 			}
 			result = append(result, multiRefActions...)
+			param.MultiColumnDelMap[fmt.Sprintf("%s$%s", param.CiType, ciAttr.Name)] = deleteGuidList
 			delete(param.NowData, ciAttr.Name)
 		}
 	}
@@ -592,7 +603,7 @@ func executeActionFunc(param *models.ActionFuncParam) (result []*execAction, err
 		}
 		if ciAttr.RefCiType != "" {
 			if ciAttr.InputType == models.MultiRefType {
-				multiRefActions, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData})
+				multiRefActions, _, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData})
 				if tmpErr != nil {
 					err = tmpErr
 					break
@@ -672,10 +683,10 @@ func autofillAffectActionFunc(ciTypeId, guid, nowTime string) {
 			log.Logger.Error("Try to auto refresh autofill data fail,build value error", log.String("guid", guid), log.String("attr", attr.Name), log.Error(err))
 			continue
 		}
-		afterAutoBuildData := getAutofillValueString(autofillValueList)
+		afterAutoBuildData := getAutofillValueString(autofillValueList, attr.InputType)
 		if afterAutoBuildData != nowData[attr.Name] {
 			updateColumn = append(updateColumn, attr.Name)
-			nowData[attr.Name] = getAutofillValueString(autofillValueList)
+			nowData[attr.Name] = getAutofillValueString(autofillValueList, attr.InputType)
 			updateColumnList = append(updateColumnList, &models.CiDataColumnObj{ColumnName: attr.Name, ColumnValue: nowData[attr.Name]})
 		}
 	}
@@ -707,7 +718,7 @@ func autofillAffectActionFunc(ciTypeId, guid, nowTime string) {
 	}
 }
 
-func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataColumnObj, multiRefAction []*execAction, err error) {
+func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataColumnObj, multiRefAction []*execAction, deleteGuidList []string, err error) {
 	if param.IsSystem {
 		result = &models.CiDataColumnObj{ColumnName: param.AttributeConfig.Name, ColumnValue: param.InputData[param.AttributeConfig.Name]}
 		return
@@ -729,7 +740,7 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 				err = tmpErr
 				return
 			}
-			inputValue = getAutofillValueString(autofillValueList)
+			inputValue = getAutofillValueString(autofillValueList, param.AttributeConfig.InputType)
 		}
 		// check unique
 		if param.AttributeConfig.UniqueConstraint == "yes" {
@@ -777,8 +788,26 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 	}
 	// build multi ref data
 	if param.AttributeConfig.InputType == models.MultiRefType {
-		multiRefAction, err = buildMultiRefActions(param)
+		multiRefAction, deleteGuidList, err = buildMultiRefActions(param)
 		return
+	}
+	if param.AttributeConfig.InputType == models.PasswordInputType {
+		if pwdBytes, pwdErr := base64.StdEncoding.DecodeString(inputValue); pwdErr == nil {
+			inputValue = string(pwdBytes)
+		}
+		matchPrefix := false
+		for _, v := range cipher.CIPHER_MAP {
+			if strings.HasPrefix(inputValue, v) {
+				matchPrefix = true
+				break
+			}
+		}
+		if !matchPrefix {
+			if inputValue, err = cipher.AesEnPasswordByGuid(param.InputData["guid"], models.Config.Wecube.EncryptSeed, inputValue, ""); err != nil {
+				err = fmt.Errorf("try to encrypt password type column:%s value:%s fail,%s  ", param.AttributeConfig.Name, inputValue, err.Error())
+				return
+			}
+		}
 	}
 	// add to column list
 	if param.AttributeConfig.DataType == "int" {
@@ -1641,12 +1670,8 @@ func validateRightStateTrans(param *models.ActionFuncParam) error {
 	return err
 }
 
-func buildMultiRefActions(param *models.BuildAttrValueParam) (actions []*execAction, err error) {
-	inputValue := param.InputData[param.AttributeConfig.Name]
-	if param.Action == "insert" && inputValue == "" {
-		return
-	}
-	valueList := []string{}
+func transStringValueToList(inputValue string) (valueList []string, err error) {
+	valueList = []string{}
 	if strings.Contains(inputValue, "[") {
 		err = json.Unmarshal([]byte(inputValue), &valueList)
 		if err != nil {
@@ -1656,8 +1681,36 @@ func buildMultiRefActions(param *models.BuildAttrValueParam) (actions []*execAct
 	} else {
 		valueList = strings.Split(inputValue, ",")
 	}
-	if len(valueList) == 0 {
+	return
+}
+
+func buildMultiRefActions(param *models.BuildAttrValueParam) (actions []*execAction, deleteGuidList []string, err error) {
+	inputValue := param.InputData[param.AttributeConfig.Name]
+	if param.Action == "insert" && inputValue == "" {
 		return
+	}
+	valueList, transInputValueErr := transStringValueToList(inputValue)
+	if transInputValueErr != nil {
+		err = transInputValueErr
+		return
+	}
+	if len(param.NowData) > 0 {
+		if nowValueList, _ := transStringValueToList(param.NowData[param.AttributeConfig.Name]); len(nowValueList) > 0 {
+			for _, nowItem := range nowValueList {
+				deleteFlag := true
+				if param.Action != "delete" {
+					for _, inputItem := range valueList {
+						if inputItem == nowItem {
+							deleteFlag = false
+							break
+						}
+					}
+				}
+				if deleteFlag {
+					deleteGuidList = append(deleteGuidList, nowItem)
+				}
+			}
+		}
 	}
 	var specList []string
 	var toGuidList []interface{}

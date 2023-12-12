@@ -252,14 +252,23 @@ export default {
     },
     async getData () {
       this.treeSet = []
-      this.treeRootOptions.forEach(d => {
-        if (this.treeRoot.includes(d.guid)) {
-          this.treeSet.push(d)
-          this.treeSet.forEach(tree => {
-            this.singleTree(tree)
-          })
+      // 优化tab页签数据push顺序，解决切换页签数据丢失问题(新增的tab始终push到结尾，否则有问题)
+      this.treeRoot.forEach(guid => {
+        for (let item of this.treeRootOptions) {
+          if (item.guid === guid) {
+            this.treeSet.push(item)
+            this.singleTree(item)
+          }
         }
       })
+      // this.treeRootOptions.forEach(d => {
+      //   if (this.treeRoot.includes(d.guid)) {
+      //     this.treeSet.push(d)
+      //     this.treeSet.forEach(tree => {
+      //       this.singleTree(tree)
+      //     })
+      //   }
+      // })
     },
     singleTree (tree) {
       tree.title = tree.key_name
