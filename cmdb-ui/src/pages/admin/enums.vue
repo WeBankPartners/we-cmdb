@@ -96,7 +96,7 @@ export default {
           component: 'WeCMDBSelect',
           inputType: 'select',
           placeholder: 'status',
-          optionKey: 'statusOpts',
+          optionKey: '',
           options: [],
           editable: 'yes',
           isAuto: false,
