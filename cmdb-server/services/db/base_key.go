@@ -174,3 +174,43 @@ func BaseKeyCodeSwapPosition(param *models.BaseKeyCodeSwapPositionParam) error {
 	}
 	return transaction(updateAction)
 }
+
+func ReferenceEnumCodes(ciAttr string) (result []*models.OptionItemObj, err error) {
+	if ciAttr == "catId" {
+		var rows []*models.SysBaseKeyCatTable
+		err = x.SQL("select id,name from sys_basekey_cat").Find(&rows)
+		if err != nil {
+			err = fmt.Errorf("query basekey cat table fail,%s ", err.Error())
+			return
+		}
+		for _, v := range rows {
+			result = append(result, &models.OptionItemObj{Value: v.Id, Label: v.Name})
+		}
+	} else {
+		var rows []*models.SysCiTypeAttrTable
+		err = x.SQL("select select_list from sys_ci_type_attr where id=?", ciAttr).Find(&rows)
+		if err != nil {
+			err = fmt.Errorf("query ci type attribute table fail,%s ", err.Error())
+			return
+		}
+		if len(rows) == 0 {
+			err = fmt.Errorf("can not find attribute with:%s ", ciAttr)
+			return
+		}
+		selectGroup := rows[0].SelectList
+		if selectGroup == "" {
+			err = fmt.Errorf("attribute %s select list config is empty ", ciAttr)
+			return
+		}
+		var codeRows []*models.SysBaseKeyCodeTable
+		err = x.SQL("select `code`,value from sys_basekey_code where cat_id='ad_launcher_type' and status='active' order by seq_no").Find(&codeRows)
+		if err != nil {
+			err = fmt.Errorf("query sys basekey code table fail,%s ", err.Error())
+			return
+		}
+		for _, v := range codeRows {
+			result = append(result, &models.OptionItemObj{Value: v.Code, Label: v.Value})
+		}
+	}
+	return
+}
