@@ -19,14 +19,11 @@
 
 English / [中文](README.md)
 
-## Live Demo
-[Live Demo](http://119.91.78.168:8090/wecmdb)  (user/pass: admin/admin)  
+## Experience
 
 <img src="./wiki/images/ci-data-management-en.gif" />
 
-> Note:
->  1. Live Demo will reset on 2:00 - 4:00am every day. The environment is not available during the period, and all changes will be discarded.
->  2. Multiple people use [admin] at the same time, may influence each other, if you want to get better experience, please set up your private environment refer to: [WeCMDB experience manaul](wiki/docs/install_guide.md)
+if you want to get better experience, please set up your private environment refer to: [WeCMDB experience manaul](wiki/docs/install_guide.md)
 
 
 
