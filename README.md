@@ -19,15 +19,11 @@
 
 中文 / [English](README_EN.md)
 
-## 在线体验环境
-[点此体验WeCMDB](http://119.91.78.168:8090/wecmdb)  (用户/密码: admin/admin)  
+## 功能体验
 
 <img src="./wiki/images/ci-data-management.gif" /> 
 
-> 注意：
->
-> 1. 体验环境每天凌晨2:00-4:00进行重建，重建时间段内环境将不可用，且所有用户修改内容将被丢弃
-> 2. 多人同时使用admin用户，可能会相互影响，若希望更好的体验可参照：[WeCMDB独立安装说明](wiki/docs/install_guide.md) 搭建私有环境
+若希望更好的体验可参照：[WeCMDB独立安装说明](wiki/docs/install_guide.md) 搭建私有环境
 
 
 ## 引言
