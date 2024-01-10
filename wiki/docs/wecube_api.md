@@ -1,7 +1,11 @@
 ## 提供给 WeCube 用的 API 概览及实例：
-#### 接口鉴权
-所有接口调用都需要在http请求的header里带上Authorization字段，值是wecube界面登录请求获取的accessToken    
-例如：Authorization: Bearer xxxxxx    
+#### 接口鉴权 
+使⽤http请求调⽤wecube接⼝需要开发提供⼀个⻓期有效的wecubeToken，否则鉴权会有问题，如果是短时间调用的话该token可以从Wecube登录界面的登录接口中获取(有效时长较短)，发送HTTP请求时，鉴权相关的操作就是在http的header部分加上Authorization，wecube请求header如下
+```
+"Authorization": "Bearer " + WecubeToken
+"Content-Type" : "application/json"
+"Accept":"application/json"
+```
 
 #### POST: /wecmdb/entities/{ciType}/query
 查询CI数据，其中URL中的{ciType}是要查询的CI类型
