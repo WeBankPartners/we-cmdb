@@ -1477,11 +1477,14 @@ func getRefGuidStringList(input interface{}) (guidList []string) {
 
 func ImportCiData(param *models.ExportReportResult, operator string) (err error) {
 	tNow := time.Now().Format(models.DateTimeFormat)
-	var actions []*execAction
+	var actions, newGuidActions []*execAction
 	if len(param.CiData) == 0 {
 		return
 	}
 	newGuidMap := make(map[string]string)
+	if newGuidMap, err = getCiImportGuidMap(); err != nil {
+		return
+	}
 	ciTypeRefColumn := make(map[string]map[string]int)
 	for _, ciDataObj := range param.CiData {
 		if ciDataObj.ParentCiType != "" {
@@ -1505,19 +1508,34 @@ func ImportCiData(param *models.ExportReportResult, operator string) (err error)
 			if lastIndex := strings.LastIndex(oldGuid, "_"); lastIndex > 0 {
 				newGuid := oldGuid[:lastIndex] + "_" + guid.CreateGuid()
 				newGuidMap[oldGuid] = newGuid
+				newGuidActions = append(newGuidActions, &execAction{Sql: "insert into sys_ci_import_guid_map(`source`,`target`) values (?,?)", Param: []interface{}{oldGuid, newGuid}})
 			}
 		}
 	}
 	var multiCiData []*models.MultiCiDataObj
-	importedCiGuidMap := make(map[string]int)
 	for _, ciDataObj := range param.CiData {
-		tmpMultiCiDataObj := models.MultiCiDataObj{CiTypeId: ciDataObj.CiType}
+		multiCiData = append(multiCiData, &models.MultiCiDataObj{CiTypeId: ciDataObj.CiType})
+	}
+	// 获取属性字段
+	if err = getMultiCiAttributes(multiCiData); err != nil {
+		return
+	}
+	importedCiGuidMap := make(map[string]int)
+	for i, ciObj := range multiCiData {
+		ciDataObj := param.CiData[i]
 		tmpRefColumnsMap := ciTypeRefColumn[ciDataObj.CiType]
+		tmpRefAttrMap := make(map[string]int)
+		for _, ciAttr := range ciObj.Attributes {
+			if ciAttr.DataType == "ref" || ciAttr.DataType == models.MultiRefType {
+				tmpRefAttrMap[ciAttr.Name] = 1
+			}
+		}
 		for _, row := range ciDataObj.Data {
 			newRowData := make(map[string]string)
 			for k, v := range row {
-				_, b := tmpRefColumnsMap[k]
-				if b || k == "guid" {
+				_, isInputRef := tmpRefColumnsMap[k]
+				_, isAttrRef := tmpRefAttrMap[k]
+				if isInputRef || k == "guid" || isAttrRef {
 					newRowData[k] = getImportRefCiDataNewValue(v, newGuidMap)
 				} else {
 					newValue, tmpErr := transInputDataToString(v)
@@ -1536,17 +1554,42 @@ func ImportCiData(param *models.ExportReportResult, operator string) (err error)
 			} else {
 				importedCiGuidMap[newRowData["guid"]] = 1
 			}
-			tmpMultiCiDataObj.InputData = append(tmpMultiCiDataObj.InputData, newRowData)
-		}
-		if len(tmpMultiCiDataObj.InputData) > 0 {
-			multiCiData = append(multiCiData, &tmpMultiCiDataObj)
+			ciObj.InputData = append(ciObj.InputData, newRowData)
 		}
 	}
+	//for _, ciDataObj := range param.CiData {
+	//	tmpMultiCiDataObj := models.MultiCiDataObj{CiTypeId: ciDataObj.CiType}
+	//	tmpRefColumnsMap := ciTypeRefColumn[ciDataObj.CiType]
+	//	for _, row := range ciDataObj.Data {
+	//		newRowData := make(map[string]string)
+	//		for k, v := range row {
+	//			_, b := tmpRefColumnsMap[k]
+	//			if b || k == "guid" {
+	//				newRowData[k] = getImportRefCiDataNewValue(v, newGuidMap)
+	//			} else {
+	//				newValue, tmpErr := transInputDataToString(v)
+	//				if tmpErr != nil {
+	//					err = fmt.Errorf("ciType:%s key:%s data illegal,%s ", ciDataObj.CiType, k, tmpErr.Error())
+	//					return
+	//				}
+	//				if tmpNewGuid, isMatchNewGuid := newGuidMap[newValue]; isMatchNewGuid {
+	//					newValue = tmpNewGuid
+	//				}
+	//				newRowData[k] = newValue
+	//			}
+	//		}
+	//		if _, b := importedCiGuidMap[newRowData["guid"]]; b {
+	//			continue
+	//		} else {
+	//			importedCiGuidMap[newRowData["guid"]] = 1
+	//		}
+	//		tmpMultiCiDataObj.InputData = append(tmpMultiCiDataObj.InputData, newRowData)
+	//	}
+	//	if len(tmpMultiCiDataObj.InputData) > 0 {
+	//		multiCiData = append(multiCiData, &tmpMultiCiDataObj)
+	//	}
+	//}
 	if err != nil {
-		return
-	}
-	// 获取属性字段
-	if err = getMultiCiAttributes(multiCiData); err != nil {
 		return
 	}
 	// 获取状态机
@@ -1578,6 +1621,22 @@ func ImportCiData(param *models.ExportReportResult, operator string) (err error)
 		}
 	}
 	err = transaction(actions)
+	if err == nil {
+		// record guid map
+		if len(newGuidActions) > 0 {
+			if recordErr := transaction(newGuidActions); recordErr != nil {
+				log.Logger.Error("try to record import ci data guid map fail", log.Error(recordErr))
+			}
+		}
+		// do autofill
+		nowTime := time.Now().Format(models.DateTimeFormat)
+		for _, ciObj := range multiCiData {
+			for _, inputRowData := range ciObj.InputData {
+				autofillAffectActionFunc(ciObj.CiTypeId, inputRowData["guid"], nowTime)
+				log.Logger.Info("import ci data autofill update done", log.String("guid", inputRowData["guid"]))
+			}
+		}
+	}
 	return
 }
 
@@ -1648,6 +1707,20 @@ func getMultiRefTableData(ciType, attrName string, fromGuidList, toGuidList []st
 	}
 	if err = x.SQL(baseSql).Find(&result); err != nil {
 		err = fmt.Errorf("get multiRef error with database:%s ", err.Error())
+	}
+	return
+}
+
+func getCiImportGuidMap() (historyMap map[string]string, err error) {
+	historyMap = make(map[string]string)
+	var mapRows []*models.SysCiImportGuidMap
+	err = x.SQL("select source,target from sys_ci_import_guid_map").Find(&mapRows)
+	if err != nil {
+		err = fmt.Errorf("query ci import history guid map fail,%s ", err.Error())
+		return
+	}
+	for _, v := range mapRows {
+		historyMap[v.Source] = v.Target
 	}
 	return
 }

@@ -741,3 +741,13 @@ alter table sys_graph_element add column update_operation varchar(64) default ''
 alter table sys_role_ci_type_condition_filter add column filter_type varchar(32) default 'expression';
 alter table sys_role_ci_type_condition_filter add column select_list varchar(500) default null;
 #@v2.0.9.12-end@;
+
+#@v2.0.9.24-begin@;
+CREATE TABLE `sys_ci_import_guid_map` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `source` varchar(64) DEFAULT NULL COMMENT '原纪录id',
+  `target` varchar(64) DEFAULT NULL COMMENT '目标纪录id',
+  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+#@v2.0.9.24-end@;
