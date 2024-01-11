@@ -315,3 +315,9 @@ type HandleCiDataParam struct {
 	FromCore   bool
 	UserToken  string
 }
+
+type SysCiImportGuidMap struct {
+	Id     int    `json:"id" xorm:"id"`
+	Source string `json:"source" xorm:"source"`
+	Target string `json:"target" xorm:"target"`
+}
