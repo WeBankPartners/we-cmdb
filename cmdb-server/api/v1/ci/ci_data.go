@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
@@ -282,4 +283,9 @@ func SimpleCiDataImport(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, resultData)
 	}
+}
+
+func GetCiPasswordAESKey(c *gin.Context) {
+	md5sum := cipher.Md5Encode(models.Config.Wecube.EncryptSeed)
+	middleware.ReturnData(c, md5sum[0:16])
 }
