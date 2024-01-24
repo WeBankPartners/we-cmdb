@@ -288,7 +288,12 @@ export const addCiTemplateAttr = data => req.post(`/ci-template-attr`, data)
 export const deleteCiTemplateAttr = id => req.delete(`/ci-template-attr?ids=${id}`)
 export const getReportDetail = reportId => req.get(`/report-message/${reportId}`)
 
-export const exportReport = data => req.post(`/report/export`, data)
+export const editGraph = data => req.put(`/view-graphs`, data)
+export const editView = data => req.put(`/views`, data)
+export const getViewById = viewId => req.get(`/view-message/${viewId}`)
 
+export const exportReport = data => req.post(`/report/export`, data)
 export const importReport = data => req.post(`/ci-data/import/${data.ciType}`, data.data)
 export const importCiData = data => req.post(`/ci-data/simple/import/${data.ciType}`, data.data)
+
+export const getEncryptKey = () => req.get(`/ci-data/password/encrypt-key`)
