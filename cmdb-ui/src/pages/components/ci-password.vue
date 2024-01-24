@@ -18,6 +18,7 @@
       <Form ref="form" :model="editFormData" :rules="rules" label-position="right" :label-width="120">
         <FormItem :label="useLocalValue ? $t('password') : $t('new_password')" prop="newPassword">
           <Input
+            class="encrypt-password"
             password
             :placeholder="$t('new_password_input_placeholder')"
             ref="newPasswordInput"
@@ -27,6 +28,7 @@
         </FormItem>
         <FormItem :label="useLocalValue ? $t('confirm_password') : $t('confirm_password')" prop="comparedPassword">
           <Input
+            class="encrypt-password"
             password
             :placeholder="$t('please_input_new_password_again')"
             ref="comparedPasswordInput"
@@ -46,11 +48,13 @@
 </template>
 
 <script>
-import { queryPassword } from '@/api/server'
+import { queryPassword, getEncryptKey } from '@/api/server'
+import CryptoJS from 'crypto-js'
 export default {
   name: '',
   data () {
     return {
+      encryptKey: '',
       realPassword: '',
       useLocalValue: false,
       isShowPassword: false,
@@ -84,7 +88,17 @@ export default {
         }
       })
     },
-    handleInput () {
+    async handleInput () {
+      if (this.editFormData.newPassword) {
+        await this.getEncryptKey()
+        const key = CryptoJS.enc.Utf8.parse(this.encryptKey)
+        const config = {
+          iv: key,
+          mode: CryptoJS.mode.CBC
+          // padding: CryptoJS.pad.PKcs7
+        }
+        this.editFormData.newPassword = CryptoJS.AES.encrypt(this.editFormData.newPassword, key, config).toString()
+      }
       this.panalData[this.formData.propertyName] = this.editFormData.newPassword
       this.realPassword = this.editFormData.newPassword
       this.editFormData = {
@@ -115,6 +129,12 @@ export default {
         }
       }
       this.isShowPassword = !this.isShowPassword
+    },
+    async getEncryptKey () {
+      const { statusCode, data } = await getEncryptKey()
+      if (statusCode === 'OK') {
+        this.encryptKey = data
+      }
     }
   },
   mounted () {}
@@ -137,5 +157,10 @@ export default {
   width: 200px;
   white-space: nowrap;
   line-height: 1.5;
+}
+</style>
+<style>
+.encrypt-password .ivu-input-suffix {
+  display: none;
 }
 </style>
