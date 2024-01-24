@@ -317,7 +317,7 @@ export default {
               ciType: { id: h.referenceId, name: h.name },
               component: h.inputType === 'select' ? 'WeCMDBSelect' : 'CMDBPermissionFilters',
               isMultiple: true,
-              options: [],
+              options: h.options || [],
               filterRule: null,
               isEditable: true,
               // PermissionFilters需要的参数

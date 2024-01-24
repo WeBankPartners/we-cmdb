@@ -333,4 +333,19 @@ export function setMatchMedia () {
   }
 }
 
+export function isJsonArray (str) {
+  if (typeof str === 'string') {
+    try {
+      var obj = JSON.parse(str)
+      if (typeof obj === 'object' && Array.isArray(obj)) {
+        return true
+      } else {
+        return false
+      }
+    } catch (e) {
+      return false
+    }
+  }
+}
+
 export const sharpMatcherRegx = /#([^#]+)$/

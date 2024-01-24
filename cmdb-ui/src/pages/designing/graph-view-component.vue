@@ -145,7 +145,10 @@ export default {
       const initEvent = id => {
         let graph
         graph = d3.select(id)
-        graph.on('dblclick.zoom', null).on('wheel.zoom', null).on('mousewheel.zoom', null)
+        graph
+          .on('dblclick.zoom', null)
+          .on('wheel.zoom', null)
+          .on('mousewheel.zoom', null)
       }
       // 初始化画布和鼠标事件
       let domId = '#graphMgmt' + this.graphIndex
@@ -242,7 +245,10 @@ export default {
         svg.call(d3Zoom.zoom().on('zoom', zoomed))
         let winWidth = window.innerWidth - 130
         let winHeight = window.innerHeight - 293
-        svg.attr('width', winWidth).attr('height', winHeight).attr('style', '')
+        svg
+          .attr('width', winWidth)
+          .attr('height', winHeight)
+          .attr('style', '')
         // g.selectAll('.sequenceNumber').on('click', () => {console.log('click ', d3.event.target.innerHTML)})
         // let svgWidth = parseInt(svg.attr("viewBox").split(' ')[2])
         // svg.attr('viewBox', '0 0 ' + winWidth + ' ' + winHeight)
