@@ -17,6 +17,7 @@ var (
 	specialEqualChar     = models.SEPERATOR + "=" + models.SEPERATOR
 	specialSeparateChar  = "," + models.SEPERATOR
 	specialAndChar       = "&" + models.SEPERATOR
+	specialNullChar      = "NULL" + models.SEPERATOR
 )
 
 func buildAutofillValue(columnMap map[string]string, rule, attrInputType string) (newValueList []string, err error) {
@@ -248,6 +249,10 @@ func getRuleValue(rowData map[string]string, ruleString string) (resultValueList
 		if err != nil {
 			break
 		}
+		//if len(rowDataList) == 0 {
+		//	resultValueList = []string{specialNullChar}
+		//	break
+		//}
 	}
 	return
 }
@@ -362,7 +367,6 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 }
 
 func getAutofillValueString(valueList []string, attributeInputType string) string {
-	log.Logger.Debug("getAutofillValueString", log.StringList("value", valueList), log.String("inputType", attributeInputType))
 	if attributeInputType == models.CountInputType {
 		return fmt.Sprintf("%d", len(valueList))
 	}
@@ -389,7 +393,7 @@ func getAutofillValueString(valueList []string, attributeInputType string) strin
 		return fmt.Sprintf("%.2f", count)
 	}
 	if len(valueList) == 0 {
-		return ""
+		return specialNullChar
 	}
 	if len(valueList) == 1 {
 		return valueList[0]
@@ -414,7 +418,7 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam mod
 	}
 	if attrTable[0].RefFilter == "" {
 		var queryResults []*models.CiDataRefDataObj
-		err = x.SQL(fmt.Sprintf("select guid,key_name from %s", attrTable[0].RefCiType)).Find(&queryResults)
+		err = x.SQL(fmt.Sprintf("select guid,key_name from %s order by update_time desc", attrTable[0].RefCiType)).Find(&queryResults)
 		if err != nil {
 			return
 		}
@@ -453,9 +457,9 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam mod
 		err = fmt.Errorf("Get ci reference data fail when build filter sql,%s ", err.Error())
 		return
 	}
-	querySql := fmt.Sprintf("select guid,key_name from %s ", attrTable[0].RefCiType)
+	querySql := fmt.Sprintf("select guid,key_name from %s order by update_time desc", attrTable[0].RefCiType)
 	if len(filterSqlList) > 0 {
-		querySql = fmt.Sprintf("select guid,key_name from %s where 1=1 AND (%s)", attrTable[0].RefCiType, strings.Join(filterSqlList, ") AND ("))
+		querySql = fmt.Sprintf("select guid,key_name from %s where 1=1 AND (%s) order by update_time desc", attrTable[0].RefCiType, strings.Join(filterSqlList, ") AND ("))
 	}
 	rowStringData, queryErr := x.QueryString(querySql)
 	if queryErr != nil {
