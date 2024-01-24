@@ -1526,7 +1526,7 @@ func ImportCiData(param *models.ExportReportResult, operator string) (err error)
 		tmpRefColumnsMap := ciTypeRefColumn[ciDataObj.CiType]
 		tmpRefAttrMap := make(map[string]int)
 		for _, ciAttr := range ciObj.Attributes {
-			if ciAttr.DataType == "ref" || ciAttr.DataType == models.MultiRefType {
+			if ciAttr.InputType == "ref" || ciAttr.InputType == models.MultiRefType {
 				tmpRefAttrMap[ciAttr.Name] = 1
 			}
 		}

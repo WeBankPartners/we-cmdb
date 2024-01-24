@@ -2,6 +2,7 @@ package db
 
 import (
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/cipher"
@@ -730,6 +731,9 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 		if param.InputData[param.AttributeConfig.Name] == models.AutofillSuggest {
 			suggestActive = true
 		}
+		if param.AttributeConfig.Nullable == "no" && inputValue == "" && param.AttributeConfig.DataType != "datetime" && !param.FromCore {
+			suggestActive = true
+		}
 		if param.AttributeConfig.AutofillType == "forced" || suggestActive {
 			inputStringData := make(map[string]string)
 			for k, v := range param.InputData {
@@ -791,9 +795,12 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 		multiRefAction, deleteGuidList, err = buildMultiRefActions(param)
 		return
 	}
-	if param.AttributeConfig.InputType == models.PasswordInputType {
+	if param.AttributeConfig.InputType == models.PasswordInputType && inputValue != "" {
 		if pwdBytes, pwdErr := base64.StdEncoding.DecodeString(inputValue); pwdErr == nil {
-			inputValue = string(pwdBytes)
+			inputValue = hex.EncodeToString(pwdBytes)
+		}
+		if decodePwd, decodeErr := cipher.AesDePassword(models.Config.Wecube.EncryptSeed, inputValue); decodeErr == nil {
+			inputValue = decodePwd
 		}
 		matchPrefix := false
 		for _, v := range cipher.CIPHER_MAP {
