@@ -1,4 +1,7 @@
 {
+  "view_element": "Element",
+  "graph_config_data": "Graph Config Data",
+  "edit_graph": "Edit Graph",
   "home_tip": "Welcome to WeCMDB, Please select the menu to continue exploring!",
   "logout": "Logout",
   "no_password_set": "No Password Set",
@@ -85,6 +88,7 @@
   "enum_config": "Enum Configuration",
   "is_refreshable": "Reset On Edit",
   "is_displayed": "Display By Default",
+  "is_displayed_table": "Display Table",
   "is_access_controlled": "Permission Usage",
   "is_nullable": "Nullable",
   "is_editable": "Editable",
@@ -336,8 +340,6 @@
   "creat_report": "Creat Report",
   "edit_report": "Edit Report",
   "json_edit": "JSON Edit",
-  "variable_format": "Variable Format",
-  "view_data_import": "Import View Data",
   "data_name": "Data Name",
   "data_title_name": "Data Title Name",
   "view": "View",
@@ -391,5 +393,9 @@
   "display_type": "Display Type",
   "display_data": "Display Data",
   "success": "successfully",
+  "graph_order_data": "Order Data",
+  "graph_update_operation": "Update Operation",
+  "variable_format": "Variable Format",
+  "view_data_import": "Import View Data",
   "refresh": "Refresh"
 }
