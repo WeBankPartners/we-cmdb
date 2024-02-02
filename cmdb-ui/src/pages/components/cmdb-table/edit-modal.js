@@ -5,6 +5,7 @@ import { queryCiData } from '@/api/server.js'
 // import AutoComplete from './auto-complete.vue'
 import JSONConfig from './json-config.vue'
 import MultiConfig from './multi-config.vue'
+import { isJsonArray } from './utils/assist'
 const WIDTH = 300
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 export default {
@@ -153,6 +154,20 @@ export default {
             d['isNewAddedRow'] = true
           }
         })
+        // 处理'[{guid:xxx}]'类型数据为[xxx]
+        const keys = Object.keys(d)
+        keys.forEach(key => {
+          // 满足'[]'类型数据
+          if (isJsonArray(d[key])) {
+            d[key] = JSON.parse(d[key])
+            d[key] = d[key].map(item => {
+              if (typeof item === 'object' && item.hasOwnProperty('guid')) {
+                return item.guid
+              }
+              return item
+            })
+          }
+        })
       })
       return data
     },
@@ -162,7 +177,8 @@ export default {
         const keys = Object.keys(item)
         keys.forEach(key => {
           const find = this.columns.find(col => col.propertyName === key)
-          if (find && find.inputType !== 'object') {
+          if (find && find.inputType === 'autofillRule') {
+          } else if (find && find.inputType !== 'object') {
             if (
               Array.isArray(item[key]) &&
               !['multiSelect', 'multiRef', 'multiText', 'multiInt', 'multiObject'].includes(find.inputType)
@@ -286,6 +302,13 @@ export default {
           })
         } else if (['date'].indexOf(col.inputType) >= 0) {
           v = moment(v).format(DATE_FORMAT)
+        } else if (['autofillRule'].includes(col.inputType)) {
+          if (v !== '') {
+            attrsWillReset.push({
+              propertyName: col.inputKey,
+              value: JSON.stringify(JSON.parse(v))
+            })
+          }
         }
         row[col.inputKey] = v
         attrsWillReset.forEach(attr => {
@@ -414,6 +437,30 @@ export default {
                         <MultiConfig {...data}></MultiConfig>
                       </div>
                     )
+                  } else if (column.component === 'Input' && column.inputType === 'autofillRule') {
+                    let dataTmp = JSON.stringify(d[column.inputKey])
+                    // if (d[column.inputKey].length === 1) {
+                    //   dataTmp = d[column.inputKey][0].value
+                    // }
+                    const props = {
+                      ...column,
+                      data: dataTmp,
+                      value: dataTmp
+                    }
+                    const fun = {
+                      input: function (v) {
+                        setValueHandler(v.trim(), column, d)
+                      }
+                    }
+                    const data = {
+                      props,
+                      on: fun
+                    }
+                    return (
+                      <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
+                        <Input style="width:80%" {...data}></Input>
+                      </div>
+                    )
                   } else if (column.component === 'Input' && column.inputType !== 'object') {
                     const props = {
                       ...column,
@@ -478,8 +525,8 @@ export default {
                               ? []
                               : ''
                             : column.inputType === 'multiSelect'
-                              ? Array.isArray(JSON.parse(d[column.inputKey]))
-                                ? JSON.parse(d[column.inputKey])
+                              ? Array.isArray(d[column.inputKey])
+                                ? d[column.inputKey]
                                 : ''
                               : formatValue(column, d[column.inputKey]),
                           disabled: this.isGroupEditDisabled(column, d),
@@ -498,8 +545,8 @@ export default {
                           value: column.isRefreshable
                             ? ''
                             : column.inputType === 'multiRef'
-                              ? Array.isArray(JSON.parse(d[column.inputKey]))
-                                ? JSON.parse(d[column.inputKey]).map(item => item.guid)
+                              ? Array.isArray(d[column.inputKey])
+                                ? d[column.inputKey]
                                 : []
                               : d[column.inputKey] || '',
                           disabled: this.isGroupEditDisabled(column, d),
