@@ -160,7 +160,7 @@
       v-model="isAddNewAttrModalVisible"
       :title="$t('new_ci_attribute')"
       @on-visible-change="addAttrModalToggle"
-      footer-hide
+      v-auto-height
     >
       <Form class="validation-form" ref="ciAttrForm" :model="addNewAttrForm" label-position="right" :label-width="150">
         <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
@@ -356,12 +356,15 @@
             :banRootCiDelete="true"
           ></FilterRule>
         </FormItem>
-        <FormItem>
-          <Button type="primary" small @click="addNewAttr" :loading="buttonLoading.addNewAttr" style="float: right">{{
+        <!-- <FormItem>
+          <Button class="fixed" type="primary" small @click="addNewAttr" :loading="buttonLoading.addNewAttr" style="float: right">{{
             $t('save')
           }}</Button>
-        </FormItem>
+        </FormItem> -->
       </Form>
+      <div slot="footer">
+        <Button type="primary" small @click="addNewAttr" :loading="buttonLoading.addNewAttr">{{ $t('save') }}</Button>
+      </div>
     </Modal>
     <!-- 新增CI属性-结束 -->
 
@@ -799,6 +802,13 @@
                   }}</Option>
                 </Select>
               </FormItem>
+              <FormItem :label="$t('ci_template')">
+                <Select v-model="editGroupAttr.ciTemplate" :disabled="editGroupAttr.status === 'deleted'" filterable>
+                  <Option v-for="layer in ciTemplateOptions" :value="layer.id" :key="layer.id">{{
+                    layer.description
+                  }}</Option>
+                </Select>
+              </FormItem>
               <FormItem class="no-need-validation" :label="$t('description')" prop="description">
                 <Input v-model="editGroupAttr.description" :disabled="editGroupAttr.status === 'deleted'"></Input>
               </FormItem>
@@ -937,8 +947,12 @@ import { CI_LAYER, CI_GROUP, INPUT_TYPE_CONFIG } from '@/const/init-params.js'
 import AttrKeyValueConfig from '@/pages/components/attr-key-value-config'
 import AttrKeyConfig from '@/pages/components/attr-key-config'
 import EditGroupControlConfig from '@/pages/components/edit-group-control-config'
+import autoHeight from '@/directive/auto-height'
 
 export default {
+  directives: {
+    autoHeight
+  },
   components: {
     AutoFill,
     FilterRule,
@@ -1879,9 +1893,13 @@ export default {
         this.getGroupByOptions()
       }
     },
-    openDrawer (type, element, index) {
+    async openDrawer (type, element, index) {
       this.editCiAttr = {}
       this.editGroupAttr = {}
+      let [ciTemplate] = await Promise.all([getCiTemplate()])
+      if (ciTemplate.statusCode === 'OK') {
+        this.ciTemplateOptions = ciTemplate.data
+      }
       this.$nextTick(() => {
         this.getCatOptions()
         if (type === 'CI') {
@@ -2119,6 +2137,32 @@ export default {
 }
 </script>
 
+<style lang="scss">
+.cmdb-model-management-left-card .ivu-card-body {
+  padding: 0;
+}
+.validation-form .ivu-form-item {
+  margin-bottom: 10px !important;
+}
+.validation-form {
+  .no-need-validation {
+    .ivu-form-item-label:before {
+      content: ' ';
+      display: inline-block;
+      margin-right: 4px;
+      line-height: 1;
+    }
+  }
+  .ivu-form-item-label:before {
+    content: '*';
+    display: inline-block;
+    margin-right: 4px;
+    line-height: 1;
+    font-size: 12px;
+    color: #ed4014;
+  }
+}
+</style>
 <style lang="scss" scoped>
 .search-item {
   width: 260px;
@@ -2140,9 +2184,9 @@ export default {
   border: 1px solid #7cd8f9;
 }
 
-.cmdb-model-management-left-card ::v-deep .ivu-card-body {
-  padding: 0;
-}
+// .cmdb-model-management-left-card ::v-deep .ivu-card-body {
+//   padding: 0;
+// }
 .attrContainer {
   overflow: auto;
   height: calc(100vh - 205px);
@@ -2206,9 +2250,9 @@ export default {
     float: right;
   }
 }
-.validation-form ::v-deep .ivu-form-item {
-  margin-bottom: 10px;
-}
+// .validation-form ::v-deep .ivu-form-item {
+//   margin-bottom: 10px;
+// }
 .filter-col {
   align-items: center;
   display: flex;
@@ -2218,24 +2262,24 @@ export default {
     margin-right: 5px;
   }
 }
-::v-deep .validation-form {
-  .no-need-validation {
-    .ivu-form-item-label:before {
-      content: ' ';
-      display: inline-block;
-      margin-right: 4px;
-      line-height: 1;
-    }
-  }
-  .ivu-form-item-label:before {
-    content: '*';
-    display: inline-block;
-    margin-right: 4px;
-    line-height: 1;
-    font-size: 12px;
-    color: #ed4014;
-  }
-}
+// ::v-deep .validation-form {
+//   .no-need-validation {
+//     .ivu-form-item-label:before {
+//       content: ' ';
+//       display: inline-block;
+//       margin-right: 4px;
+//       line-height: 1;
+//     }
+//   }
+//   .ivu-form-item-label:before {
+//     content: '*';
+//     display: inline-block;
+//     margin-right: 4px;
+//     line-height: 1;
+//     font-size: 12px;
+//     color: #ed4014;
+//   }
+// }
 .btn-add-c {
   height: 30px;
   width: 30px;
