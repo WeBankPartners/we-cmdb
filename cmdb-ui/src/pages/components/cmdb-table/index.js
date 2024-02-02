@@ -206,12 +206,16 @@ export default {
             _['weTableForm'][i] = _['weTableForm'][i].value || _['weTableForm'][i].key_name
           } else {
             if (Array.isArray(_['weTableForm'][i]) && i !== 'nextOperations') {
-              _['weTableForm'][i] = _['weTableForm'][i]
               if (found && found.inputType === 'multiSelect') {
                 _[i] = _['weTableForm'][i].map(j => j.codeId)
               }
               if (found && found.inputType === 'multiRef') {
                 _[i] = _['weTableForm'][i].map(j => j.guid)
+              }
+            } else if (isArrayString(_['weTableForm'][i]) && i !== 'nextOperations') {
+              if (found && found.inputType === 'multiSelect') {
+                _['weTableForm'][i] = JSON.parse(_['weTableForm'][i])
+                _[i] = _['weTableForm'][i].map(j => j.codeId)
               }
             }
           }
@@ -222,6 +226,15 @@ export default {
           }
         }
       })
+
+      function isArrayString (str) {
+        try {
+          const array = JSON.parse(str)
+          return Array.isArray(array)
+        } catch (error) {
+          return false
+        }
+      }
     },
     handleSubmit: lodash.debounce(
       function (ref) {
@@ -1175,7 +1188,6 @@ export default {
         this.tableDetailInfo.isShow = true
       })
     }
-
     return (
       <div>
         {!filtersHidden && <div>{this.getFormFilters()}</div>}
@@ -1289,11 +1301,6 @@ export default {
           )}
           {this.tableDetailInfo.type === 'diffVariable' && (
             <div style="text-align: justify;word-break: break-word;overflow-y:auto;max-height:500px">
-              <div style="text-align:right">
-                <Button style="margin-right: 20px" type="primary" size="small" onClick={() => refreshDiffVariable()}>
-                  {this.$t('refresh')}
-                </Button>
-              </div>
               <div style="text-align: left;">
                 <Alert type="warning">如出现页面值未显示，请点击刷新按钮</Alert>
               </div>
@@ -1304,7 +1311,7 @@ export default {
                     style={this.remarkedKeys.includes(val.key) ? 'background:#d9d9d9' : ''}
                   >
                     <div style="width: 300px;display:inline-block;word-break: break-all;margin:4px 0;vertical-align: top;text-align:right;cursor:pointer">
-                      <span style={val.value ? '' : 'color:red'}>{val.key}</span>
+                      <span style={!['', 'NULL'].includes(val.value) ? '' : 'color:red'}>{val.key}</span>
                     </div>
                     <div style="width: 740px;display:inline-block;word-break: break-all;margin:4px 0;">
                       ：{val.value}

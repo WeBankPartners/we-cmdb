@@ -1,4 +1,7 @@
 {
+  "view_element": "元素",
+  "graph_config_data": "图形配置数据",
+  "edit_graph": "编辑图表",
   "home_tip": "欢迎来到WeCMDB, 请选择菜单继续探索！",
   "logout": "注销",
   "no_password_set": "未设置密码",
@@ -85,6 +88,7 @@
   "enum_config": "枚举配置",
   "is_refreshable": "编辑重置",
   "is_displayed": "显示在表",
+  "is_displayed_table": "显示表格",
   "is_access_controlled": "权限控制",
   "is_nullable": "允许为空",
   "is_editable": "允许编辑",
@@ -391,5 +395,7 @@
   "display_type": "展示类型",
   "display_data": "展示数据",
   "success": "成功",
+  "graph_order_data": "排序数据",
+  "graph_update_operation": "CI更新操作",
   "refresh": "刷新"
 }

@@ -856,16 +856,31 @@ function renderAssist (setting, datas, invokeLines, metadata) {
   let activateStackItems = []
   datas.forEach(data => {
     let label = renderLabel(setting.displayExpression, data)
-    if (label.trimStart().toLowerCase().startsWith('activate')) {
+    if (
+      label
+        .trimStart()
+        .toLowerCase()
+        .startsWith('activate')
+    ) {
       let invokeLine = _findMaxLessThan(invokeLines, data.__index)
       if (invokeLine) {
         label = 'ACTIVATE ' + invokeLine[1].guid
         activateStackItems.push(invokeLine[1].guid)
       }
-    } else if (label.trimStart().toLowerCase().startsWith('deactivate')) {
+    } else if (
+      label
+        .trimStart()
+        .toLowerCase()
+        .startsWith('deactivate')
+    ) {
       let activateGuid = activateStackItems.pop()
       label = 'DEACTIVATE ' + activateGuid
-    } else if (label.trimStart().toLowerCase().startsWith('note')) {
+    } else if (
+      label
+        .trimStart()
+        .toLowerCase()
+        .startsWith('note')
+    ) {
       let rets = /note\s+((?:left\s+of)|(?:right\s+of)|over)(?:\s+[-_a-z0-9]+(?:,\s*[-_a-z0-9]+)?)?\s*:\s*(.*)/gi.exec(
         label.trimStart()
       )
@@ -905,15 +920,40 @@ function renderAssist (setting, datas, invokeLines, metadata) {
           ('${' + data.guid + '}') +
           (label.slice('note'.length).trimStart() || '')
       }
-    } else if (label.trimStart().toLowerCase().startsWith('loop')) {
+    } else if (
+      label
+        .trimStart()
+        .toLowerCase()
+        .startsWith('loop')
+    ) {
       label += '${' + data.guid + '}'
-    } else if (label.trimStart().toLowerCase().startsWith('alt')) {
+    } else if (
+      label
+        .trimStart()
+        .toLowerCase()
+        .startsWith('alt')
+    ) {
       label += '${' + data.guid + '}'
-    } else if (label.trimStart().toLowerCase().startsWith('par')) {
+    } else if (
+      label
+        .trimStart()
+        .toLowerCase()
+        .startsWith('par')
+    ) {
       label += '${' + data.guid + '}'
-    } else if (label.trimStart().toLowerCase().startsWith('and')) {
+    } else if (
+      label
+        .trimStart()
+        .toLowerCase()
+        .startsWith('and')
+    ) {
       label += '${' + data.guid + '}'
-    } else if (label.trimStart().toLowerCase().startsWith('opt')) {
+    } else if (
+      label
+        .trimStart()
+        .toLowerCase()
+        .startsWith('opt')
+    ) {
       label += '${' + data.guid + '}'
     }
     lines.push([null, null, label, null, null, data.__index])
