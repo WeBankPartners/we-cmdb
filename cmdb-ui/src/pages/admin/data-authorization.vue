@@ -566,7 +566,7 @@ export default {
               ciType: { id: h.referenceId, name: h.name },
               component: h.inputType === 'select' ? 'WeCMDBSelect' : 'CMDBPermissionFilters',
               isMultiple: true,
-              options: [],
+              options: h.options || [],
               autoFillRule: null,
               editable: 'yes',
               // PermissionFilters需要的参数
@@ -593,7 +593,7 @@ export default {
             if (isRef) {
               obj[i] = _[i] ? _[i].conditionValueExprs.map(item => item.replace(':[guid]', '')) : []
             } else if (isSelect) {
-              obj[i] = _[i] ? _[i].conditionValueSelects : []
+              obj[i] = _[i] ? this.getSelectVal(_[i].selectValues, found) : []
             } else {
               obj[i] = {
                 codeId: _[i],
@@ -608,6 +608,18 @@ export default {
       }
     },
 
+    getSelectVal (vals, found) {
+      let res = []
+      found.options.forEach(o => {
+        if (vals.includes(o.value)) {
+          res.push({
+            codeId: o.value,
+            value: o.label
+          })
+        }
+      })
+      return res
+    },
     async exportHandler () {
       const data = this.ciTypeAttrsPermissions.map(_ => {
         let result = {}
@@ -800,7 +812,7 @@ export default {
       let emptyRowData = {}
       this.attrsPermissionsColumns.forEach(_ => {
         if (['ref', 'multiRef', 'select', 'multiSelect'].indexOf(_.inputType) >= 0) {
-          emptyRowData[_.inputKey] = []
+          emptyRowData[_.inputKey] = '[]'
         } else {
           emptyRowData[_.inputKey] = ''
         }
