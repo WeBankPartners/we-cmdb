@@ -926,7 +926,8 @@ function renderAssist (setting, datas, invokeLines, metadata) {
         .toLowerCase()
         .startsWith('loop')
     ) {
-      label += '${' + data.guid + '}'
+      // FIXME: loop的html元素是换行生成多个text元素，后续处理较麻烦，暂时屏蔽
+      // label += '${' + data.guid + '}'
     } else if (
       label
         .trimStart()
