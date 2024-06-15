@@ -42,10 +42,10 @@ export function renderGraph (viewSetting, viewData, imageHooker, indexOnly = fal
         // hidden node represent subgraph
         dotString += data.guid + '[penwidth=0;width=0;height=0;label=""];\n'
         if (
-          metadata.suport_version === 'yes' &&
-          (!data.confirm_time ||
-            (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
-          userStyle.useMapping
+            metadata.suport_version === 'yes' &&
+            (!data.confirm_time ||
+                (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
+            userStyle.useMapping
         ) {
           dotString += (userStyle.value[_dataExpression(data, graph.rootData.graphConfigData)] || defaultStyle) + '\n'
         } else {
@@ -54,20 +54,20 @@ export function renderGraph (viewSetting, viewData, imageHooker, indexOnly = fal
       } else if (graph.viewGraphType === 'group') {
         // push root data
         dotString +=
-          '{rank=same;"' +
-          graph.rootData.nodeGroupName +
-          '"; ' +
-          data.guid +
-          '[id="' +
-          data.guid +
-          '";label="' +
-          label +
-          '";' +
-          'fontsize=' +
-          metadata.fontSize +
-          ';penwidth=1;width=2;image="' +
-          imageHooker(graph.rootData.ciType) +
-          '";labelloc="b";shape="box";'
+            '{rank=same;"' +
+            graph.rootData.nodeGroupName +
+            '"; ' +
+            data.guid +
+            '[id="' +
+            data.guid +
+            '";label="' +
+            label +
+            '";' +
+            'fontsize=' +
+            metadata.fontSize +
+            ';penwidth=1;width=2;image="' +
+            imageHooker(graph.rootData.ciType) +
+            '";labelloc="b";shape="box";'
         if (metadata.suport_version === 'yes') {
           dotString += 'color="#dddddd";penwidth=1;'
         }
@@ -78,9 +78,9 @@ export function renderGraph (viewSetting, viewData, imageHooker, indexOnly = fal
       if (graph.viewGraphType !== 'sequence') {
         graph.rootData.children.forEach(function (value) {
           if (
-            value.graphFilterData &&
-            value.graphFilterValues &&
-            !JSON.parse(value.graphFilterValues).includes(data[value.graphFilterData])
+              value.graphFilterData &&
+              value.graphFilterValues &&
+              !JSON.parse(value.graphFilterValues).includes(data[value.graphFilterData])
           ) {
             return
           }
@@ -145,9 +145,9 @@ function renderSubgraph (setting, datas, metadata) {
   let userStyle = normalizeMapping(setting, 'graphConfigData', 'graphConfigs')
   datas.forEach(function (data) {
     if (
-      setting.graphFilterData &&
-      setting.graphFilterValues &&
-      !JSON.parse(setting.graphFilterValues).includes(data[setting.graphFilterData])
+        setting.graphFilterData &&
+        setting.graphFilterValues &&
+        !JSON.parse(setting.graphFilterValues).includes(data[setting.graphFilterData])
     ) {
       return
     }
@@ -162,9 +162,9 @@ function renderSubgraph (setting, datas, metadata) {
     subgraphAttrs.push('label="' + label + '"')
     subgraphAttrs.push('tooltip="' + (data.key_name || label) + '"')
     if (
-      metadata.suport_version === 'yes' &&
-      (!data.confirm_time || (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
-      userStyle.useMapping
+        metadata.suport_version === 'yes' &&
+        (!data.confirm_time || (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
+        userStyle.useMapping
     ) {
       subgraphAttrs.push(userStyle.value[_dataExpression(data, setting.graphConfigData)] || defaultStyle)
     } else {
@@ -228,9 +228,9 @@ function renderImage (setting, parent, datas, metadata) {
   }
   datas.forEach(function (data) {
     if (
-      setting.graphFilterData &&
-      setting.graphFilterValues &&
-      !JSON.parse(setting.graphFilterValues).includes(data[setting.graphFilterData])
+        setting.graphFilterData &&
+        setting.graphFilterValues &&
+        !JSON.parse(setting.graphFilterValues).includes(data[setting.graphFilterData])
     ) {
       return
     }
@@ -265,9 +265,9 @@ function renderImage (setting, parent, datas, metadata) {
     nodeAttrs.push('label="' + newLable + '"')
     nodeAttrs.push('image="' + metadata.imageHooker(setting.ciType) + '"')
     if (
-      metadata.suport_version === 'yes' &&
-      (!data.confirm_time || (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
-      userStyle.useMapping
+        metadata.suport_version === 'yes' &&
+        (!data.confirm_time || (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
+        userStyle.useMapping
     ) {
       nodeAttrs.push(userStyle.value[_dataExpression(data, setting.graphConfigData)] || defaultStyle)
     } else {
@@ -339,9 +339,9 @@ function renderNode (setting, datas, metadata) {
   let userStyle = normalizeMapping(setting, 'graphConfigData', 'graphConfigs')
   datas.forEach(function (data) {
     if (
-      setting.graphFilterData &&
-      setting.graphFilterValues &&
-      !JSON.parse(setting.graphFilterValues).includes(data[setting.graphFilterData])
+        setting.graphFilterData &&
+        setting.graphFilterValues &&
+        !JSON.parse(setting.graphFilterValues).includes(data[setting.graphFilterData])
     ) {
       return
     }
@@ -367,9 +367,9 @@ function renderNode (setting, datas, metadata) {
     nodeAttrs.push('label="' + newLable + '"')
     nodeAttrs.push('tooltip="' + label + '"')
     if (
-      metadata.suport_version === 'yes' &&
-      (!data.confirm_time || (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
-      userStyle.useMapping
+        metadata.suport_version === 'yes' &&
+        (!data.confirm_time || (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
+        userStyle.useMapping
     ) {
       nodeAttrs.push(userStyle.value[_dataExpression(data, setting.graphConfigData)] || defaultStyle)
     } else {
@@ -445,9 +445,9 @@ function renderLine (setting, datas, metadata, renderedItems) {
   let userStyle = normalizeMapping(setting, 'graphConfigData', 'graphConfigs')
   datas.forEach(function (data) {
     if (
-      setting.graphFilterData &&
-      setting.graphFilterValues &&
-      !JSON.parse(setting.graphFilterValues).includes(data[setting.graphFilterData])
+        setting.graphFilterData &&
+        setting.graphFilterValues &&
+        !JSON.parse(setting.graphFilterValues).includes(data[setting.graphFilterData])
     ) {
       return
     }
@@ -535,10 +535,10 @@ function renderLine (setting, datas, metadata, renderedItems) {
           }
           lineAttrs.push('arrowhead=' + shapeString)
           if (
-            metadata.suport_version === 'yes' &&
-            (!data.confirm_time ||
-              (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
-            userStyle.useMapping
+              metadata.suport_version === 'yes' &&
+              (!data.confirm_time ||
+                  (data.confirm_time === metadata.confirm_time && data.confirm_time === data.update_time)) &&
+              userStyle.useMapping
           ) {
             lineAttrs.push(userStyle.value[_dataExpression(data, setting.graphConfigData)] || defaultStyle)
           } else {
@@ -662,9 +662,9 @@ function renderSequence (setting, datas, metadata) {
   let dotString = ''
   datas.forEach(function (data) {
     if (
-      setting.graphFilterData &&
-      setting.graphFilterValues &&
-      !JSON.parse(setting.graphFilterValues).includes(data[setting.graphFilterData])
+        setting.graphFilterData &&
+        setting.graphFilterValues &&
+        !JSON.parse(setting.graphFilterValues).includes(data[setting.graphFilterData])
     ) {
       return
     }
@@ -687,9 +687,9 @@ function renderSequence (setting, datas, metadata) {
             assistSetting = subSetting
             for (let i = 0; i < items.length; i++) {
               if (
-                subSetting.graphFilterData &&
-                subSetting.graphFilterValues &&
-                !JSON.parse(subSetting.graphFilterValues).includes(items[i][subSetting.graphFilterData])
+                  subSetting.graphFilterData &&
+                  subSetting.graphFilterValues &&
+                  !JSON.parse(subSetting.graphFilterValues).includes(items[i][subSetting.graphFilterData])
               ) {
               } else {
                 assistItems.push({ ...items[i], __index: i })
@@ -700,9 +700,9 @@ function renderSequence (setting, datas, metadata) {
             invokeSetting = subSetting
             for (let i = 0; i < items.length; i++) {
               if (
-                subSetting.graphFilterData &&
-                subSetting.graphFilterValues &&
-                !JSON.parse(subSetting.graphFilterValues).includes(items[i][subSetting.graphFilterData])
+                  subSetting.graphFilterData &&
+                  subSetting.graphFilterValues &&
+                  !JSON.parse(subSetting.graphFilterValues).includes(items[i][subSetting.graphFilterData])
               ) {
               } else {
                 invokeItems.push({ ...items[i], __index: i })
@@ -726,7 +726,7 @@ function renderSequence (setting, datas, metadata) {
       for (let key in reduceNodes) {
         let item = reduceNodes[key]
         dotString +=
-          'participant ' + item[0].guid + ' as ' + ('${' + item[0].guid + '}' + renderLabel(item[1], item[0])) + '\n'
+            'participant ' + item[0].guid + ' as ' + ('${' + item[0].guid + '}' + renderLabel(item[1], item[0])) + '\n'
       }
       lines.forEach(item => {
         dotString += item[2] + '\n'
@@ -857,10 +857,10 @@ function renderAssist (setting, datas, invokeLines, metadata) {
   datas.forEach(data => {
     let label = renderLabel(setting.displayExpression, data)
     if (
-      label
-        .trimStart()
-        .toLowerCase()
-        .startsWith('activate')
+        label
+            .trimStart()
+            .toLowerCase()
+            .startsWith('activate')
     ) {
       let invokeLine = _findMaxLessThan(invokeLines, data.__index)
       if (invokeLine) {
@@ -868,92 +868,92 @@ function renderAssist (setting, datas, invokeLines, metadata) {
         activateStackItems.push(invokeLine[1].guid)
       }
     } else if (
-      label
-        .trimStart()
-        .toLowerCase()
-        .startsWith('deactivate')
+        label
+            .trimStart()
+            .toLowerCase()
+            .startsWith('deactivate')
     ) {
       let activateGuid = activateStackItems.pop()
       label = 'DEACTIVATE ' + activateGuid
     } else if (
-      label
-        .trimStart()
-        .toLowerCase()
-        .startsWith('note')
+        label
+            .trimStart()
+            .toLowerCase()
+            .startsWith('note')
     ) {
       let rets = /note\s+((?:left\s+of)|(?:right\s+of)|over)(?:\s+[-_a-z0-9]+(?:,\s*[-_a-z0-9]+)?)?\s*:\s*(.*)/gi.exec(
-        label.trimStart()
+          label.trimStart()
       )
       let invokeLine = _findMaxLessThan(invokeLines, data.__index)
       if (rets) {
         if (rets[1].toLowerCase().startsWith('left')) {
           label =
-            'NOTE LEFT OF ' +
-            (invokeLine ? invokeLine[1].guid : '') +
-            ' : ' +
-            ('${' + data.guid + '}') +
-            (rets[2] || '')
+              'NOTE LEFT OF ' +
+              (invokeLine ? invokeLine[1].guid : '') +
+              ' : ' +
+              ('${' + data.guid + '}') +
+              (rets[2] || '')
         } else if (rets[1].toLowerCase().startsWith('right')) {
           label =
-            'NOTE RIGHT OF ' +
-            (invokeLine ? invokeLine[1].guid : '') +
-            ' : ' +
-            ('${' + data.guid + '}') +
-            (rets[2] || '')
+              'NOTE RIGHT OF ' +
+              (invokeLine ? invokeLine[1].guid : '') +
+              ' : ' +
+              ('${' + data.guid + '}') +
+              (rets[2] || '')
         } else {
           // over
           label =
-            'NOTE OVER ' +
-            (invokeLine ? invokeLine[0].guid : '') +
-            ',' +
-            (invokeLine ? invokeLine[1].guid : '') +
-            ' : ' +
-            ('${' + data.guid + '}') +
-            (rets[2] || '')
+              'NOTE OVER ' +
+              (invokeLine ? invokeLine[0].guid : '') +
+              ',' +
+              (invokeLine ? invokeLine[1].guid : '') +
+              ' : ' +
+              ('${' + data.guid + '}') +
+              (rets[2] || '')
         }
       } else {
         // default right
         label =
-          'NOTE LEFT OF ' +
-          (invokeLine ? invokeLine[1].guid : '') +
-          ' : ' +
-          ('${' + data.guid + '}') +
-          (label.slice('note'.length).trimStart() || '')
+            'NOTE LEFT OF ' +
+            (invokeLine ? invokeLine[1].guid : '') +
+            ' : ' +
+            ('${' + data.guid + '}') +
+            (label.slice('note'.length).trimStart() || '')
       }
     } else if (
-      label
-        .trimStart()
-        .toLowerCase()
-        .startsWith('loop')
+        label
+            .trimStart()
+            .toLowerCase()
+            .startsWith('loop')
     ) {
       // FIXME: loop的html元素是换行生成多个text元素，后续处理较麻烦，暂时屏蔽
       // label += '${' + data.guid + '}'
     } else if (
-      label
-        .trimStart()
-        .toLowerCase()
-        .startsWith('alt')
+        label
+            .trimStart()
+            .toLowerCase()
+            .startsWith('alt')
     ) {
       label += '${' + data.guid + '}'
     } else if (
-      label
-        .trimStart()
-        .toLowerCase()
-        .startsWith('par')
+        label
+            .trimStart()
+            .toLowerCase()
+            .startsWith('par')
     ) {
       label += '${' + data.guid + '}'
     } else if (
-      label
-        .trimStart()
-        .toLowerCase()
-        .startsWith('and')
+        label
+            .trimStart()
+            .toLowerCase()
+            .startsWith('and')
     ) {
       label += '${' + data.guid + '}'
     } else if (
-      label
-        .trimStart()
-        .toLowerCase()
-        .startsWith('opt')
+        label
+            .trimStart()
+            .toLowerCase()
+            .startsWith('opt')
     ) {
       label += '${' + data.guid + '}'
     }
