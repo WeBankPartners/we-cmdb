@@ -34,7 +34,7 @@ func DataQuery(c *gin.Context) {
 		middleware.ReturnDataPermissionError(c, tmpErr)
 		return
 	}
-	if !legalGuidList.Enable && len(legalGuidList.GuidList) == 0 {
+	if !legalGuidList.Disable && len(legalGuidList.GuidList) == 0 {
 		middleware.ReturnDataPermissionDenyError(c)
 		return
 	}
@@ -251,7 +251,12 @@ func SimpleCiDataImport(c *gin.Context) {
 						err = tmpErr
 						break
 					} else {
-						stringMap[attrObj.Name] = tmpGuidList[0]
+						if len(tmpGuidList) == 0 {
+							err = fmt.Errorf("can not find ciType:%s with name:%s ", attrObj.RefCiType, v)
+							break
+						} else {
+							stringMap[attrObj.Name] = tmpGuidList[0]
+						}
 					}
 				} else if attrObj.InputType == "multiRef" {
 					if tmpGuidList, tmpErr := db.GetGuidByKeyName(attrObj.RefCiType, strings.Split(v, ",")); tmpErr != nil {
@@ -273,6 +278,10 @@ func SimpleCiDataImport(c *gin.Context) {
 	}
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+	if len(param) == 0 {
+		middleware.ReturnServerHandleError(c, fmt.Errorf("data row empty"))
 		return
 	}
 	handleParam := models.HandleCiDataParam{InputData: param, CiTypeId: ciTypeId, Operation: "Add", Operator: middleware.GetRequestUser(c), Roles: middleware.GetRequestRoles(c), Permission: false}

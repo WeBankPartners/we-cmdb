@@ -177,6 +177,22 @@ func CiAttrUpdate(param *models.SysCiTypeAttrTable) (updateAutoFill bool, err er
 				updateAutoFill = true
 			}
 		}
+		if ciAttrData.Nullable == "no" && param.Nullable == "yes" {
+			alterSql := fmt.Sprintf("alter table %s modify column %s %s(%d) default null", ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, param.DataLength)
+			alertHistorySql := fmt.Sprintf("alter table %s%s modify column %s %s(%d) default null", HistoryTablePrefix, ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, param.DataLength)
+			actions = append(actions, &execAction{Sql: alterSql, Param: []interface{}{}})
+			actions = append(actions, &execAction{Sql: alertHistorySql, Param: []interface{}{}})
+			extendUpdateColumn += ",nullable=?"
+			execParams = append(execParams, param.Nullable)
+		}
+		if ciAttrData.Nullable == "yes" && param.Nullable == "no" {
+			alterSql := fmt.Sprintf("alter table %s modify column %s %s(%d) not null", ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, param.DataLength)
+			alertHistorySql := fmt.Sprintf("alter table %s%s modify column %s %s(%d) not null", HistoryTablePrefix, ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, param.DataLength)
+			actions = append(actions, &execAction{Sql: alterSql, Param: []interface{}{}})
+			actions = append(actions, &execAction{Sql: alertHistorySql, Param: []interface{}{}})
+			extendUpdateColumn += ",nullable=?"
+			execParams = append(execParams, param.Nullable)
+		}
 	}
 	if param.SelectList != "" {
 		extendUpdateColumn += ",select_list=?"
@@ -203,7 +219,15 @@ func CiAttrDelete(ciAttrId string) error {
 	if ciAttrData.Status == "notCreated" {
 		_, err = x.Exec("DELETE FROM sys_ci_type_attr WHERE id=?", ciAttrId)
 	} else {
-		_, err = x.Exec("UPDATE sys_ci_type_attr SET status='deleted' WHERE id=?", ciAttrId)
+		var actions []*execAction
+		actions = append(actions, &execAction{Sql: "UPDATE sys_ci_type_attr SET status='deleted' WHERE id=?", Param: []interface{}{ciAttrId}})
+		if ciAttrData.Nullable == "no" {
+			alterSql := fmt.Sprintf("alter table %s modify column %s %s(%d) default null", ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, ciAttrData.DataLength)
+			alertHistorySql := fmt.Sprintf("alter table %s%s modify column %s %s(%d) default null", HistoryTablePrefix, ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, ciAttrData.DataLength)
+			actions = append(actions, &execAction{Sql: alterSql, Param: []interface{}{}})
+			actions = append(actions, &execAction{Sql: alertHistorySql, Param: []interface{}{}})
+		}
+		err = transaction(actions)
 	}
 	return err
 }
@@ -213,18 +237,28 @@ func CiAttrRollback(ciAttrId string) error {
 	if err != nil {
 		return err
 	}
-	var refCiTypeTable []*models.SysCiTypeTable
-	err = x.SQL("select id,status from sys_ci_type where id=?", ciAttrData.RefCiType).Find(&refCiTypeTable)
-	if err != nil {
-		return fmt.Errorf("Try to validate reference ciType:%s fail,%s ", ciAttrData.RefCiType, err.Error())
+	if ciAttrData.RefCiType != "" {
+		var refCiTypeTable []*models.SysCiTypeTable
+		err = x.SQL("select id,status from sys_ci_type where id=?", ciAttrData.RefCiType).Find(&refCiTypeTable)
+		if err != nil {
+			return fmt.Errorf("Try to validate reference ciType:%s fail,%s ", ciAttrData.RefCiType, err.Error())
+		}
+		if len(refCiTypeTable) == 0 {
+			return fmt.Errorf("can not find ref ciType:%s ", ciAttrData.RefCiType)
+		}
+		if refCiTypeTable[0].Status == "deleted" {
+			return fmt.Errorf("target ciType:%s is deleted,please rollback it first", ciAttrData.RefCiType)
+		}
 	}
-	if len(refCiTypeTable) == 0 {
-		return fmt.Errorf("can not find ref ciType:%s ", ciAttrData.RefCiType)
+	var actions []*execAction
+	actions = append(actions, &execAction{Sql: "UPDATE sys_ci_type_attr SET status='created' where id=?", Param: []interface{}{ciAttrId}})
+	if ciAttrData.Nullable == "no" {
+		alterSql := fmt.Sprintf("alter table %s modify column %s %s(%d) not null", ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, ciAttrData.DataLength)
+		alertHistorySql := fmt.Sprintf("alter table %s%s modify column %s %s(%d) not null", HistoryTablePrefix, ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, ciAttrData.DataLength)
+		actions = append(actions, &execAction{Sql: alterSql, Param: []interface{}{}})
+		actions = append(actions, &execAction{Sql: alertHistorySql, Param: []interface{}{}})
 	}
-	if refCiTypeTable[0].Status == "deleted" {
-		return fmt.Errorf("target ciType:%s is deleted,please rollback it first", ciAttrData.RefCiType)
-	}
-	_, err = x.Exec("UPDATE sys_ci_type_attr SET status='created' where id=?", ciAttrId)
+	err = transaction(actions)
 	return err
 }
 
