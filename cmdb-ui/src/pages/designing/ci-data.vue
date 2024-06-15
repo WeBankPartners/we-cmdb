@@ -368,43 +368,42 @@ export default {
             item.props.disabled = !['Add'].includes(item.operation_en)
             return item
           })
+          stateBtn.push({
+            operation: this.$t('export'),
+            operationFormType: 'export_form',
+            operationMultiple: 'yes',
+            class: 'xxx',
+            operation_en: 'Export',
+            props: {
+              type: 'primary',
+              disabled: false
+            }
+          })
+          stateBtn.push({
+            operation: this.$t('import'),
+            operationFormType: 'import_ci_form',
+            // operationMultiple: 'yes',
+            class: 'xxx',
+            operation_en: 'Import',
+            props: {
+              type: 'primary',
+              disabled: false
+            }
+          })
+
+          stateBtn.push({
+            operation: this.$t('view_data_import'),
+            operationFormType: 'import_form',
+            // operationMultiple: 'yes',
+            class: 'xxx',
+            operation_en: 'Import',
+            props: {
+              type: 'primary',
+              disabled: false
+            }
+          })
         }
       }
-      stateBtn.push({
-        operation: this.$t('export'),
-        operationFormType: 'export_form',
-        operationMultiple: 'yes',
-        class: 'xxx',
-        operation_en: 'Export',
-        props: {
-          type: 'primary',
-          disabled: false
-        }
-      })
-
-      stateBtn.push({
-        operation: this.$t('import'),
-        operationFormType: 'import_ci_form',
-        // operationMultiple: 'yes',
-        class: 'xxx',
-        operation_en: 'Import',
-        props: {
-          type: 'primary',
-          disabled: false
-        }
-      })
-
-      stateBtn.push({
-        operation: this.$t('view_data_import'),
-        operationFormType: 'import_form',
-        // operationMultiple: 'yes',
-        class: 'xxx',
-        operation_en: 'Import',
-        props: {
-          type: 'primary',
-          disabled: false
-        }
-      })
       return stateBtn
     },
     async handleNodeClick (e) {

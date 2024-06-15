@@ -447,17 +447,17 @@ func GetCiDataPermissionGuidList(config *models.CiDataPermission, action string)
 	result = models.CiDataLegalGuidList{}
 	switch action {
 	case "insert":
-		result.Enable = config.Insert
+		result.Disable = config.Insert
 	case "delete":
-		result.Enable = config.Delete
+		result.Disable = config.Delete
 	case "update":
-		result.Enable = config.Update
+		result.Disable = config.Update
 	case "query":
-		result.Enable = config.Query
+		result.Disable = config.Query
 	case "execute":
-		result.Enable = config.Execute
+		result.Disable = config.Execute
 	}
-	if result.Enable {
+	if result.Disable {
 		return
 	}
 	guidMap := make(map[string]bool)
