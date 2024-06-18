@@ -197,17 +197,21 @@ export default {
               _['weTableForm'][i] = JSON.stringify(_['weTableForm'][i], null, 4)
             }
           } else if (
-            typeof _['weTableForm'][i] === 'object' &&
-            _['weTableForm'][i] !== null &&
-            !Array.isArray(_['weTableForm'][i]) &&
-            i !== 'weTableForm'
+              typeof _['weTableForm'][i] === 'object' &&
+              _['weTableForm'][i] !== null &&
+              !Array.isArray(_['weTableForm'][i]) &&
+              i !== 'weTableForm'
           ) {
             _[i] = _['weTableForm'][i].codeId || _['weTableForm'][i].guid
             _['weTableForm'][i] = _['weTableForm'][i].value || _['weTableForm'][i].key_name
           } else {
             if (Array.isArray(_['weTableForm'][i]) && i !== 'nextOperations') {
               if (found && found.inputType === 'multiSelect') {
-                _[i] = _['weTableForm'][i].map(j => j.codeId)
+                if (isObjArray(_['weTableForm'][i])) {
+                  _[i] = _['weTableForm'][i].map(j => j.codeId)
+                } else {
+                  _[i] = _['weTableForm'][i]
+                }
               }
               if (found && found.inputType === 'multiRef') {
                 _[i] = _['weTableForm'][i].map(j => j.guid)
@@ -215,7 +219,11 @@ export default {
             } else if (isArrayString(_['weTableForm'][i]) && i !== 'nextOperations') {
               if (found && found.inputType === 'multiSelect') {
                 _['weTableForm'][i] = JSON.parse(_['weTableForm'][i])
-                _[i] = _['weTableForm'][i].map(j => j.codeId)
+                if (isObjArray(_['weTableForm'][i])) {
+                  _[i] = _['weTableForm'][i].map(j => j.codeId)
+                } else {
+                  _[i] = _['weTableForm'][i]
+                }
               }
             }
           }
@@ -235,97 +243,106 @@ export default {
           return false
         }
       }
+      function isObjArray (arr) {
+        for (let i of arr) {
+          if (typeof i === 'object' && i !== null) {
+            return true
+          } else {
+            return false
+          }
+        }
+      }
     },
     handleSubmit: lodash.debounce(
-      function (ref) {
-        const generateFilters = (type, i) => {
-          switch (type) {
-            case 'text':
-            case 'textArea':
-              filters.push({
-                name: i,
-                operator: 'contains',
-                value: this.form[i]
-              })
-              break
-            case 'select':
-            case 'ref':
-              filters.push({
-                name: i,
-                operator: 'eq',
-                value: this.form[i]
-              })
-              break
-            case 'date':
-              if (this.form[i][0] !== '' && this.form[i][1] !== '') {
+        function (ref) {
+          const generateFilters = (type, i) => {
+            switch (type) {
+              case 'text':
+              case 'textArea':
                 filters.push({
                   name: i,
-                  operator: 'gt',
-                  value: moment(this.form[i][0]).format(DATE_FORMAT)
-                })
-                filters.push({
-                  name: i,
-                  operator: 'lt',
-                  value: moment(this.form[i][1]).format(DATE_FORMAT)
-                })
-              }
-              break
-
-            case 'multiSelect':
-            case 'multiRef':
-              if (Array.isArray(this.form[i]) && this.form[i].length) {
-                filters.push({
-                  name: i,
-                  operator: 'in',
+                  operator: 'contains',
                   value: this.form[i]
                 })
-              }
-              break
-            case 'number':
-              filters.push({
-                name: i,
-                operator: 'eq',
-                value: +this.form[i]
-              })
-              break
+                break
+              case 'select':
+              case 'ref':
+                filters.push({
+                  name: i,
+                  operator: 'eq',
+                  value: this.form[i]
+                })
+                break
+              case 'date':
+                if (this.form[i][0] !== '' && this.form[i][1] !== '') {
+                  filters.push({
+                    name: i,
+                    operator: 'gt',
+                    value: moment(this.form[i][0]).format(DATE_FORMAT)
+                  })
+                  filters.push({
+                    name: i,
+                    operator: 'lt',
+                    value: moment(this.form[i][1]).format(DATE_FORMAT)
+                  })
+                }
+                break
 
-            default:
-              filters.push({
-                name: i,
-                operator: 'contains',
-                value: this.form[i]
-              })
-              break
+              case 'multiSelect':
+              case 'multiRef':
+                if (Array.isArray(this.form[i]) && this.form[i].length) {
+                  filters.push({
+                    name: i,
+                    operator: 'in',
+                    value: this.form[i]
+                  })
+                }
+                break
+              case 'number':
+                filters.push({
+                  name: i,
+                  operator: 'eq',
+                  value: +this.form[i]
+                })
+                break
+
+              default:
+                filters.push({
+                  name: i,
+                  operator: 'contains',
+                  value: this.form[i]
+                })
+                break
+            }
           }
-        }
 
-        let filters = []
-        for (let i in this.form) {
-          if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
-            this.tableColumns
-              .filter(_ => _.uiSearchOrder || _.children)
-              .forEach(_ => {
-                if (_.children) {
-                  _.children.forEach(j => {
-                    if (i === j.inputKey) {
-                      generateFilters(j.inputType, i)
+          let filters = []
+          for (let i in this.form) {
+            if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
+              this.tableColumns
+                  .filter(_ => _.uiSearchOrder || _.children)
+                  .forEach(_ => {
+                    if (_.children) {
+                      _.children.forEach(j => {
+                        if (i === j.inputKey) {
+                          generateFilters(j.inputType, i)
+                        }
+                      })
+                    } else {
+                      if (i === _.inputKey) {
+                        generateFilters(_.inputType, i)
+                      }
                     }
                   })
-                } else {
-                  if (i === _.inputKey) {
-                    generateFilters(_.inputType, i)
-                  }
-                }
-              })
+            }
           }
+          this.$emit('handleSubmit', filters)
+        },
+        2000,
+        {
+          leading: true,
+          trailing: false
         }
-        this.$emit('handleSubmit', filters)
-      },
-      2000,
-      {
-        leading: true,
-        trailing: false
-      }
     ),
     reset (ref) {
       this.tableColumns.forEach(_ => {
@@ -348,55 +365,55 @@ export default {
         return this.tableOuterActions.map(_ => {
           if (_.operationFormType === 'import_form') {
             return (
-              <div style="margin-left:100px; width:200px;display:inline-block;">
-                <Upload
-                  action=""
-                  beforeUpload={file => {
-                    this.$emit('actionFun', _, this.selectedRows, this.ciTypeId, file)
-                  }}
-                >
-                  <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button>
-                </Upload>
-              </div>
+                <div style="margin-left:100px; width:200px;display:inline-block;">
+                  <Upload
+                      action=""
+                      beforeUpload={file => {
+                        this.$emit('actionFun', _, this.selectedRows, this.ciTypeId, file)
+                      }}
+                  >
+                    <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button>
+                  </Upload>
+                </div>
             )
           }
           if (_.operationFormType === 'import_ci_form') {
             return (
-              <div style="margin-left:8px; width:200px;display:inline-block;">
-                <Upload
-                  action=""
-                  accept=".csv"
-                  beforeUpload={file => {
-                    this.$emit('actionFun', _, this.selectedRows, this.ciTypeId, file)
-                  }}
-                >
-                  <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button>
-                </Upload>
-              </div>
+                <div style="margin-left:8px; width:200px;display:inline-block;">
+                  <Upload
+                      action=""
+                      accept=".csv"
+                      beforeUpload={file => {
+                        this.$emit('actionFun', _, this.selectedRows, this.ciTypeId, file)
+                      }}
+                  >
+                    <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button>
+                  </Upload>
+                </div>
             )
           }
           return (
-            <Button
-              style="margin-right: 10px"
-              {..._}
-              onClick={() => {
-                this.currentOperateType = _.operation_en
-                const keys = Object.keys(this.form)
-                let filters = []
-                keys.forEach(key => {
-                  if (this.form[key] !== '') {
-                    filters.push({
-                      name: key,
-                      operator: 'contains',
-                      value: this.form[key]
+              <Button
+                  style="margin-right: 10px"
+                  {..._}
+                  onClick={() => {
+                    this.currentOperateType = _.operation_en
+                    const keys = Object.keys(this.form)
+                    let filters = []
+                    keys.forEach(key => {
+                      if (this.form[key] !== '') {
+                        filters.push({
+                          name: key,
+                          operator: 'contains',
+                          value: this.form[key]
+                        })
+                      }
                     })
-                  }
-                })
-                this.$emit('actionFun', _, this.selectedRows, this.columns, filters)
-              }}
-            >
-              {lang === 'en-US' ? _.operation_en : _.operation}
-            </Button>
+                    this.$emit('actionFun', _, this.selectedRows, this.columns, filters)
+                  }}
+              >
+                {lang === 'en-US' ? _.operation_en : _.operation}
+              </Button>
           )
         })
       }
@@ -470,20 +487,20 @@ export default {
         for (let i in this.form) {
           if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
             this.tableColumns
-              .filter(_ => _.uiSearchOrder || _.children)
-              .forEach(_ => {
-                if (_.children) {
-                  _.children.forEach(j => {
-                    if (i === j.inputKey) {
-                      generateFilters(j.inputType, i)
+                .filter(_ => _.uiSearchOrder || _.children)
+                .forEach(_ => {
+                  if (_.children) {
+                    _.children.forEach(j => {
+                      if (i === j.inputKey) {
+                        generateFilters(j.inputType, i)
+                      }
+                    })
+                  } else {
+                    if (i === _.inputKey) {
+                      generateFilters(_.inputType, i)
                     }
-                  })
-                } else {
-                  if (i === _.inputKey) {
-                    generateFilters(_.inputType, i)
                   }
-                }
-              })
+                })
           }
         }
         let params = {}
@@ -510,49 +527,49 @@ export default {
         switch (item.component) {
           case 'WeCMDBSelect':
             return (
-              <item.component
-                on-on-enter={() => this.handleSubmit('form')}
-                onInput={v => (this.form[item.inputKey] = v)}
-                onChange={v => item.onChange && this.$emit(item.onChange, v)}
-                value={this.form[item.inputKey]}
-                filterable
-                clearable
-                {...data}
-                options={item.optionKey ? this.ascOptions[item.optionKey] : item.options}
-              />
+                <item.component
+                    on-on-enter={() => this.handleSubmit('form')}
+                    onInput={v => (this.form[item.inputKey] = v)}
+                    onChange={v => item.onChange && this.$emit(item.onChange, v)}
+                    value={this.form[item.inputKey]}
+                    filterable
+                    clearable
+                    {...data}
+                    options={item.optionKey ? this.ascOptions[item.optionKey] : item.options}
+                />
             )
           case 'WeCMDBRefSelect':
             return (
-              <item.component
-                on-on-enter={() => this.handleSubmit('form')}
-                onInput={v => (this.form[item.inputKey] = v)}
-                value={this.form[item.inputKey]}
-                {...data}
-              />
+                <item.component
+                    on-on-enter={() => this.handleSubmit('form')}
+                    onInput={v => (this.form[item.inputKey] = v)}
+                    value={this.form[item.inputKey]}
+                    {...data}
+                />
             )
           default:
             return (
-              <item.component
-                on-on-enter={() => this.handleSubmit('form')}
-                value={this.form[item.inputKey]}
-                onInput={v => (this.form[item.inputKey] = v)}
-                isReadOnly={item.component === 'CMDBPermissionFilters'}
-                {...data}
-              />
+                <item.component
+                    on-on-enter={() => this.handleSubmit('form')}
+                    value={this.form[item.inputKey]}
+                    onInput={v => (this.form[item.inputKey] = v)}
+                    isReadOnly={item.component === 'CMDBPermissionFilters'}
+                    {...data}
+                />
             )
         }
       }
       return (
-        <Col
-          span={item.span || 3}
-          class={
-            index < DEFAULT_FILTER_NUMBER ? '' : this.isShowHiddenFilters ? 'hidden-filters-show' : 'hidden-filters'
-          }
-        >
-          <FormItem label={item.title} prop={item.inputKey} key={item.inputKey}>
-            {renders(item)}
-          </FormItem>
-        </Col>
+          <Col
+              span={item.span || 3}
+              class={
+                index < DEFAULT_FILTER_NUMBER ? '' : this.isShowHiddenFilters ? 'hidden-filters-show' : 'hidden-filters'
+              }
+          >
+            <FormItem label={item.title} prop={item.inputKey} key={item.inputKey}>
+              {renders(item)}
+            </FormItem>
+          </Col>
       )
     },
     getFormFilters () {
@@ -566,106 +583,106 @@ export default {
         return 0
       }
       return (
-        <Form ref="form" label-position="top" inline>
-          <Row>
-            {this.tableColumns
-              .filter(_ => !!_.children || !!_.uiSearchOrder)
-              .sort(compare)
-              .map((_, index) => {
-                if (_.children) {
-                  return (
-                    <Row>
-                      <Col span={3}>
-                        <strong>{_.title}</strong>
-                      </Col>
-                      <Col span={21}>
-                        {_.children
-                          .filter(_ => !!_.uiSearchOrder)
-                          .sort(compare)
-                          .map(j => {
-                            let o = { ...j }
-                            if (j.optionKey) {
-                              o = {
-                                ...j,
-                                optionKey: null,
-                                options: this.ascOptions[j.optionKey]
-                              }
-                            }
-                            return this.renderFormItem(o)
-                          })}
-                      </Col>
-                    </Row>
-                  )
-                }
-                let obj = { ..._ }
-                if (_.optionKey) {
-                  obj = {
-                    ..._,
-                    optionKey: null,
-                    options: this.ascOptions[_.optionKey]
-                  }
-                }
-                return this.renderFormItem(obj, index)
-              })}
-            <Col span={6}>
-              <div style="display: flex;">
-                {this.tableColumns.filter(_ => !!_.uiSearchOrder).sort(compare).length > DEFAULT_FILTER_NUMBER &&
-                  (!this.isShowHiddenFilters ? (
-                    <FormItem>
-                      <div slot="label" style="visibility: hidden;">
-                        <span>Placeholder</span>
-                      </div>
-                      <Button
-                        type="info"
-                        ghost
-                        shape="circle"
-                        icon="ios-arrow-down"
-                        onClick={() => {
-                          this.isShowHiddenFilters = true
-                        }}
-                      >
-                        {this.$t('more_filter')}
-                      </Button>
-                    </FormItem>
-                  ) : (
-                    <FormItem>
-                      <div slot="label" style="visibility: hidden;">
-                        <span>Placeholder</span>
-                      </div>
-                      <Button
-                        type="info"
-                        ghost
-                        shape="circle"
-                        icon="ios-arrow-up"
-                        onClick={() => {
-                          this.isShowHiddenFilters = false
-                        }}
-                      >
-                        {this.$t('less_filter')}
-                      </Button>
-                    </FormItem>
-                  ))}
+          <Form ref="form" label-position="top" inline>
+            <Row>
+              {this.tableColumns
+                  .filter(_ => !!_.children || !!_.uiSearchOrder)
+                  .sort(compare)
+                  .map((_, index) => {
+                    if (_.children) {
+                      return (
+                          <Row>
+                            <Col span={3}>
+                              <strong>{_.title}</strong>
+                            </Col>
+                            <Col span={21}>
+                              {_.children
+                                  .filter(_ => !!_.uiSearchOrder)
+                                  .sort(compare)
+                                  .map(j => {
+                                    let o = { ...j }
+                                    if (j.optionKey) {
+                                      o = {
+                                        ...j,
+                                        optionKey: null,
+                                        options: this.ascOptions[j.optionKey]
+                                      }
+                                    }
+                                    return this.renderFormItem(o)
+                                  })}
+                            </Col>
+                          </Row>
+                      )
+                    }
+                    let obj = { ..._ }
+                    if (_.optionKey) {
+                      obj = {
+                        ..._,
+                        optionKey: null,
+                        options: this.ascOptions[_.optionKey]
+                      }
+                    }
+                    return this.renderFormItem(obj, index)
+                  })}
+              <Col span={6}>
+                <div style="display: flex;">
+                  {this.tableColumns.filter(_ => !!_.uiSearchOrder).sort(compare).length > DEFAULT_FILTER_NUMBER &&
+                      (!this.isShowHiddenFilters ? (
+                          <FormItem>
+                            <div slot="label" style="visibility: hidden;">
+                              <span>Placeholder</span>
+                            </div>
+                            <Button
+                                type="info"
+                                ghost
+                                shape="circle"
+                                icon="ios-arrow-down"
+                                onClick={() => {
+                                  this.isShowHiddenFilters = true
+                                }}
+                            >
+                              {this.$t('more_filter')}
+                            </Button>
+                          </FormItem>
+                      ) : (
+                          <FormItem>
+                            <div slot="label" style="visibility: hidden;">
+                              <span>Placeholder</span>
+                            </div>
+                            <Button
+                                type="info"
+                                ghost
+                                shape="circle"
+                                icon="ios-arrow-up"
+                                onClick={() => {
+                                  this.isShowHiddenFilters = false
+                                }}
+                            >
+                              {this.$t('less_filter')}
+                            </Button>
+                          </FormItem>
+                      ))}
 
-                <FormItem>
-                  <div slot="label" style="visibility: hidden;">
-                    <span>Placeholder</span>
-                  </div>
-                  <Button type="primary" icon="ios-search" onClick={() => this.handleSubmit('form')}>
-                    {this.$t('search')}
-                  </Button>
-                </FormItem>
-                <FormItem>
-                  <div slot="label" style="visibility: hidden;">
-                    <span>Placeholder</span>
-                  </div>
-                  <Button icon="md-refresh" onClick={() => this.reset('form')}>
-                    {this.$t('reset')}
-                  </Button>
-                </FormItem>
-              </div>
-            </Col>
-          </Row>
-        </Form>
+                  <FormItem>
+                    <div slot="label" style="visibility: hidden;">
+                      <span>Placeholder</span>
+                    </div>
+                    <Button type="primary" icon="ios-search" onClick={() => this.handleSubmit('form')}>
+                      {this.$t('search')}
+                    </Button>
+                  </FormItem>
+                  <FormItem>
+                    <div slot="label" style="visibility: hidden;">
+                      <span>Placeholder</span>
+                    </div>
+                    <Button icon="md-refresh" onClick={() => this.reset('form')}>
+                      {this.$t('reset')}
+                    </Button>
+                  </FormItem>
+                </div>
+              </Col>
+            </Row>
+          </Form>
       )
     },
     onCheckboxSelect (selection) {
@@ -730,8 +747,8 @@ export default {
         return 0
       }
       const columns = this.tableColumns
-        .filter(_ => (_.displayByDefault === 'yes' && _.uiFormOrder > 0) || _.children)
-        .sort(compare)
+          .filter(_ => (_.displayByDefault === 'yes' && _.uiFormOrder > 0) || _.children)
+          .sort(compare)
       const tableWidth = this.$refs.table ? this.$refs.table.$el.clientWidth : 1000 // 获取table宽度，默认值1000
       const colLength = columns.length // 获取传入展示的column长度
       this.colWidth = Math.floor(tableWidth / colLength)
@@ -762,34 +779,34 @@ export default {
         }
       }
       this.tableInnerActions &&
-        this.columns.push({
-          title: this.$t('actions'),
-          fixed: 'right',
-          key: 'actions',
-          maxWidth: 500,
-          minWidth: 200,
-          render: (h, params) => {
-            return (
+      this.columns.push({
+        title: this.$t('actions'),
+        fixed: 'right',
+        key: 'actions',
+        maxWidth: 500,
+        minWidth: 200,
+        render: (h, params) => {
+          return (
               <div>
                 {this.tableInnerActions.map(_ => {
                   return (
-                    <Button
-                      style="margin-right: 10px"
-                      {..._}
-                      size="small"
-                      onClick={() => {
-                        this.currentOperateType = _.operation_en
-                        this.$emit('actionFun', _, params.row, this.columns)
-                      }}
-                    >
-                      {_.operation}
-                    </Button>
+                      <Button
+                          style="margin-right: 10px"
+                          {..._}
+                          size="small"
+                          onClick={() => {
+                            this.currentOperateType = _.operation_en
+                            this.$emit('actionFun', _, params.row, this.columns)
+                          }}
+                      >
+                        {_.operation}
+                      </Button>
                   )
                 })}
               </div>
-            )
-          }
-        })
+          )
+        }
+      })
     },
     isJSON (jsons) {
       try {
@@ -816,13 +833,13 @@ export default {
       })
       const attrRes = await getCiTypeAttributes(ci)
       const showAttr = attrRes.data
-        .filter(item => item.displayByDefault === 'yes')
-        .map(attr => {
-          return {
-            attr: attr.ciTypeAttrId.split('__')[1],
-            displayName: attr.displayName
-          }
-        })
+          .filter(item => item.displayByDefault === 'yes')
+          .map(attr => {
+            return {
+              attr: attr.ciTypeAttrId.split('__')[1],
+              displayName: attr.displayName
+            }
+          })
       const res = showAttr.map(sa => {
         let tmp = {
           key: sa.displayName,
@@ -831,10 +848,10 @@ export default {
         const attrValue = data.contents[0][sa.attr]
         if (Array.isArray(attrValue)) {
           tmp.value = attrValue
-            .map(item => {
-              return item.key_name
-            })
-            .join(',')
+              .map(item => {
+                return item.key_name
+              })
+              .join(',')
         } else if (this.isJSON(attrValue)) {
           tmp.value = attrValue.key_name
         } else {
@@ -920,16 +937,16 @@ export default {
       if (col.inputType === 'ref') {
         generalParams.render = (h, params) => {
           return (
-            <span>
+              <span>
               {params.row.weTableForm[col.key] && (
-                <Icon
-                  size="16"
-                  type="ios-apps-outline"
-                  color="#2d8cf0"
-                  onClick={() => getRefdata(params.row.weTableForm[col.key])}
-                />
+                  <Icon
+                      size="16"
+                      type="ios-apps-outline"
+                      color="#2d8cf0"
+                      onClick={() => getRefdata(params.row.weTableForm[col.key])}
+                  />
               )}
-              {params.row.weTableForm[col.key]}
+                {params.row.weTableForm[col.key]}
             </span>
           )
         }
@@ -943,35 +960,35 @@ export default {
         }
         generalParams.render = (h, params) => {
           return (
-            <Tooltip
-              max-width="300"
-              content={JSON.parse(params.row.weTableForm[col.key])
-                .map(item => item.key_name)
-                .join(', ')}
-              placement="top-start"
-            >
-              <div style={style}>
-                {params.row.weTableForm[col.key] && (
-                  <Icon
-                    size="16"
-                    type="ios-apps-outline"
-                    color="#2d8cf0"
-                    onClick={() => getMutiRefdata(params.row.weTableForm[col.key])}
-                  />
-                )}
+              <Tooltip
+                  max-width="300"
+                  content={JSON.parse(params.row.weTableForm[col.key])
+                      .map(item => item.key_name)
+                      .join(', ')}
+                  placement="top-start"
+              >
+                <div style={style}>
+                  {params.row.weTableForm[col.key] && (
+                      <Icon
+                          size="16"
+                          type="ios-apps-outline"
+                          color="#2d8cf0"
+                          onClick={() => getMutiRefdata(params.row.weTableForm[col.key])}
+                      />
+                  )}
 
-                {JSON.parse(params.row.weTableForm[col.key])
-                  .map(item => item.key_name)
-                  .join(', ')}
-              </div>
-              <div slot="content" style="white-space: normal;">
-                <p>
                   {JSON.parse(params.row.weTableForm[col.key])
-                    .map(item => item.key_name)
-                    .join(', ')}
-                </p>
-              </div>
-            </Tooltip>
+                      .map(item => item.key_name)
+                      .join(', ')}
+                </div>
+                <div slot="content" style="white-space: normal;">
+                  <p>
+                    {JSON.parse(params.row.weTableForm[col.key])
+                        .map(item => item.key_name)
+                        .join(', ')}
+                  </p>
+                </div>
+              </Tooltip>
           )
         }
         return generalParams
@@ -979,14 +996,14 @@ export default {
       if (col.inputType === 'password') {
         generalParams.render = (h, params) => {
           return (
-            <span>
+              <span>
               <Icon
-                size="16"
-                type="ios-apps-outline"
-                color="#2d8cf0"
-                onClick={() => getPassword(params.row, col.key)}
+                  size="16"
+                  type="ios-apps-outline"
+                  color="#2d8cf0"
+                  onClick={() => getPassword(params.row, col.key)}
               />
-              {params.row.weTableForm[col.key]}
+                {params.row.weTableForm[col.key]}
             </span>
           )
         }
@@ -998,14 +1015,14 @@ export default {
           const val = params.row.weTableForm[col.key]
           if (val) {
             return (
-              <span>
+                <span>
                 <Icon
-                  size="16"
-                  type="ios-apps-outline"
-                  color="#2d8cf0"
-                  onClick={() => getDiffVariable(params.row, col.key)}
+                    size="16"
+                    type="ios-apps-outline"
+                    color="#2d8cf0"
+                    onClick={() => getDiffVariable(params.row, col.key)}
                 />
-                {params.row.weTableForm[col.key].slice(0, 18) + '...'}
+                  {params.row.weTableForm[col.key].slice(0, 18) + '...'}
               </span>
             )
           }
@@ -1016,7 +1033,15 @@ export default {
         let content = ''
         if (Array.isArray(params.row.weTableForm[col.key])) {
           if (['select', 'multiSelect'].indexOf(params.column.inputType) >= 0) {
-            content = params.row.weTableForm[col.key].map(_ => _.value).toString()
+            content = params.row.weTableForm[col.key]
+                .map(_ => {
+                  if (typeof _ === 'object' && _ !== null) {
+                    return _.value
+                  } else {
+                    return _
+                  }
+                })
+                .toString()
           } else if (params.column.inputType === 'multiRef') {
             content = params.row.weTableForm[col.key].map(_ => _.key_name).toString()
           }
@@ -1029,41 +1054,41 @@ export default {
         const containerId = 'ref' + Math.ceil(Math.random() * 1000000)
 
         return h(
-          'span',
-          {
-            class: 'ivu-table-cell-tooltip-content',
-            on: {
-              mouseenter: event => {
-                if (
-                  document.getElementById(containerId).scrollWidth > document.getElementById(containerId).clientWidth
-                ) {
-                  this.timer = setTimeout(
-                    params => {
-                      this.tipContent = content
-                      const popcorn = document.querySelector('#' + containerId)
-                      const tooltip = document.querySelector('#' + params.randomId)
-                      createPopper(popcorn, tooltip, {
-                        placement: 'bottom'
-                      })
-                    },
-                    800,
-                    {
-                      randomId: this.randomId,
-                      content
-                    }
-                  )
+            'span',
+            {
+              class: 'ivu-table-cell-tooltip-content',
+              on: {
+                mouseenter: event => {
+                  if (
+                      document.getElementById(containerId).scrollWidth > document.getElementById(containerId).clientWidth
+                  ) {
+                    this.timer = setTimeout(
+                        params => {
+                          this.tipContent = content
+                          const popcorn = document.querySelector('#' + containerId)
+                          const tooltip = document.querySelector('#' + params.randomId)
+                          createPopper(popcorn, tooltip, {
+                            placement: 'bottom'
+                          })
+                        },
+                        800,
+                        {
+                          randomId: this.randomId,
+                          content
+                        }
+                    )
+                  }
+                },
+                mouseleave: event => {
+                  clearInterval(this.timer)
+                  this.tipContent = ''
                 }
               },
-              mouseleave: event => {
-                clearInterval(this.timer)
-                this.tipContent = ''
+              attrs: {
+                id: containerId
               }
             },
-            attrs: {
-              id: containerId
-            }
-          },
-          content
+            content
         )
       }
       return generalParams
@@ -1189,148 +1214,148 @@ export default {
       })
     }
     return (
-      <div>
-        {!filtersHidden && <div>{this.getFormFilters()}</div>}
-        <Row style="margin-bottom:10px">{this.getTableOuterActions()}</Row>
-        {this.isShowFilter && (
-          <div style="position: relative;top: -40px;right: 30px;float: right;">
-            <Poptip placement="bottom">
-              <Button type="primary" shape="circle" icon="ios-funnel-outline"></Button>
-              <div slot="content" style="max-height: 400px;">
-                {this.tableColumns.map(t => {
-                  const ciTypeAttrId = t.ciTypeAttrId
-                  if (selectAttrs.includes(ciTypeAttrId)) {
-                    return (
-                      <div
-                        onClick={() => changeColDisplay(ciTypeAttrId)}
-                        style="cursor:pointer;height: 22px;line-height: 22px;margin: 2px 4px 2px 0;padding: 0 2px;border: 1px solid #2d8cf0;color:#2d8cf0;font-size: 12px;vertical-align: middle;opacity: 1;overflow: hidden;border-radius: 3px;"
-                      >
-                        {t.displayName}
-                      </div>
-                    )
-                  } else {
-                    return (
-                      <div
-                        onClick={() => changeColDisplay(ciTypeAttrId)}
-                        style="cursor:pointer;height: 22px;line-height: 22px;margin: 2px 4px 2px 0;padding: 0 2px;border: 1px solid #e8eaec;font-size: 12px;vertical-align: middle;opacity: 1;overflow: hidden;border-radius: 3px;"
-                      >
-                        {t.displayName}
-                      </div>
-                    )
-                  }
-                })}
-              </div>
-            </Poptip>
-          </div>
-        )}
-        <Table
-          loading={tableLoading}
-          ref="table"
-          border
-          data={data}
-          columns={columns}
-          highlight-row={highlightRow}
-          on-on-selection-change={this.onCheckboxSelect}
-          on-on-current-change={this.onRadioSelect}
-          on-on-sort-change={this.sortHandler}
-          on-on-column-width-resize={this.onColResize}
-          size="small"
-        />
-        {pagination && (
-          <Page
-            total={pagination.total}
-            page-size={pagination.pageSize}
-            current={pagination.currentPage}
-            on-on-change={v => this.$emit('pageChange', v)}
-            on-on-page-size-change={v => this.$emit('pageSizeChange', v)}
-            show-elevator
-            show-sizer
-            show-total
-            style="float: right; margin: 10px 0;"
-          />
-        )}
-        <EditModal
-          isEdit={this.modalTitle === this.titles.edit}
-          title={this.modalTitle}
-          columns={filterColums(columns)}
-          tableColumns={this.tableColumns}
-          guidFilters={this.guidFilters}
-          guidFilterEffects={this.guidFilterEffects[this.ciTypeId] || []}
-          data={selectedRows}
-          ascOptions={ascOptions}
-          on-closeEditModal={this.closeEditModal}
-          on-editModalOkHandler={this.editModalOkHandler}
-          modalVisible={modalVisible}
-          modalLoading={modalLoading}
-          onGetGroupList={v => this.$emit('getGroupList', v)}
-        ></EditModal>
-        <div id={this.randomId} style="z-index: 100;">
-          {this.tipContent && (
-            <div style="word-break: break-word;background-color: rgba(70,76,91,.9);padding: 8px 12px;color: #fff;text-align: left;border-radius: 4px;border-radius: 4px;box-shadow: 0 1px 6px rgba(0,0,0,.2);width: 400px;">
-              <p style="white-space: pre-wrap;">{this.tipContent}</p>
-            </div>
-          )}
-        </div>
-        <Modal value={this.tableDetailInfo.isShow} footer-hide={true} title={this.tableDetailInfo.title} width={1100}>
-          {this.tableDetailInfo.type === 'string' && (
-            <div style="text-align: justify;word-break: break-word;">{this.tableDetailInfo.info}</div>
-          )}
-          {this.tableDetailInfo.type === 'array' && (
-            <div style="overflow: auto;max-height:500px;overflow:auto">
-              <Collapse>
-                {this.tableDetailInfo.info.map(column => {
-                  return (
-                    <Panel name={column.title}>
-                      {column.title}
-                      <p slot="content">
-                        <Form label-width={200}>
-                          {column.value.map(val => {
-                            return (
-                              <FormItem label={val.key}>
-                                <Input value={val.value} disabled />
-                              </FormItem>
-                            )
-                          })}
-                        </Form>
-                      </p>
-                    </Panel>
-                  )
-                })}
-              </Collapse>
-            </div>
-          )}
-          {this.tableDetailInfo.type === 'diffVariable' && (
-            <div style="text-align: justify;word-break: break-word;overflow-y:auto;max-height:500px">
-              <div style="text-align: left;">
-                <Alert type="warning">如出现页面值未显示，请点击刷新按钮</Alert>
-              </div>
-              {this.tableDetailInfo.info.map(val => {
-                return (
-                  <div
-                    onClick={() => choiceKey(val)}
-                    style={this.remarkedKeys.includes(val.key) ? 'background:#d9d9d9' : ''}
-                  >
-                    <div style="width: 300px;display:inline-block;word-break: break-all;margin:4px 0;vertical-align: top;text-align:right;cursor:pointer">
-                      <span style={!['', 'NULL'].includes(val.value) ? '' : 'color:red'}>{val.key}</span>
-                    </div>
-                    <div style="width: 740px;display:inline-block;word-break: break-all;margin:4px 0;">
-                      ：{val.value}
-                    </div>
+        <div>
+          {!filtersHidden && <div>{this.getFormFilters()}</div>}
+          <Row style="margin-bottom:10px">{this.getTableOuterActions()}</Row>
+          {this.isShowFilter && (
+              <div style="position: relative;top: -40px;right: 30px;float: right;">
+                <Poptip placement="bottom">
+                  <Button type="primary" shape="circle" icon="ios-funnel-outline"></Button>
+                  <div slot="content" style="max-height: 400px;">
+                    {this.tableColumns.map(t => {
+                      const ciTypeAttrId = t.ciTypeAttrId
+                      if (selectAttrs.includes(ciTypeAttrId)) {
+                        return (
+                            <div
+                                onClick={() => changeColDisplay(ciTypeAttrId)}
+                                style="cursor:pointer;height: 22px;line-height: 22px;margin: 2px 4px 2px 0;padding: 0 2px;border: 1px solid #2d8cf0;color:#2d8cf0;font-size: 12px;vertical-align: middle;opacity: 1;overflow: hidden;border-radius: 3px;"
+                            >
+                              {t.displayName}
+                            </div>
+                        )
+                      } else {
+                        return (
+                            <div
+                                onClick={() => changeColDisplay(ciTypeAttrId)}
+                                style="cursor:pointer;height: 22px;line-height: 22px;margin: 2px 4px 2px 0;padding: 0 2px;border: 1px solid #e8eaec;font-size: 12px;vertical-align: middle;opacity: 1;overflow: hidden;border-radius: 3px;"
+                            >
+                              {t.displayName}
+                            </div>
+                        )
+                      }
+                    })}
                   </div>
-                )
-              })}
-            </div>
+                </Poptip>
+              </div>
           )}
-          <div style="margin-top:20px;height: 30px">
-            <Button style="float: right;margin-right: 20px" onClick={() => closeModal()}>
-              {this.$t('close')}
-            </Button>
-            <Button style="float: right;margin-right: 20px" type="primary" onClick={() => refreshDiffVariable()}>
-              {this.$t('refresh')}
-            </Button>
+          <Table
+              loading={tableLoading}
+              ref="table"
+              border
+              data={data}
+              columns={columns}
+              highlight-row={highlightRow}
+              on-on-selection-change={this.onCheckboxSelect}
+              on-on-current-change={this.onRadioSelect}
+              on-on-sort-change={this.sortHandler}
+              on-on-column-width-resize={this.onColResize}
+              size="small"
+          />
+          {pagination && (
+              <Page
+                  total={pagination.total}
+                  page-size={pagination.pageSize}
+                  current={pagination.currentPage}
+                  on-on-change={v => this.$emit('pageChange', v)}
+                  on-on-page-size-change={v => this.$emit('pageSizeChange', v)}
+                  show-elevator
+                  show-sizer
+                  show-total
+                  style="float: right; margin: 10px 0;"
+              />
+          )}
+          <EditModal
+              isEdit={this.modalTitle === this.titles.edit}
+              title={this.modalTitle}
+              columns={filterColums(columns)}
+              tableColumns={this.tableColumns}
+              guidFilters={this.guidFilters}
+              guidFilterEffects={this.guidFilterEffects[this.ciTypeId] || []}
+              data={selectedRows}
+              ascOptions={ascOptions}
+              on-closeEditModal={this.closeEditModal}
+              on-editModalOkHandler={this.editModalOkHandler}
+              modalVisible={modalVisible}
+              modalLoading={modalLoading}
+              onGetGroupList={v => this.$emit('getGroupList', v)}
+          ></EditModal>
+          <div id={this.randomId} style="z-index: 100;">
+            {this.tipContent && (
+                <div style="word-break: break-word;background-color: rgba(70,76,91,.9);padding: 8px 12px;color: #fff;text-align: left;border-radius: 4px;border-radius: 4px;box-shadow: 0 1px 6px rgba(0,0,0,.2);width: 400px;">
+                  <p style="white-space: pre-wrap;">{this.tipContent}</p>
+                </div>
+            )}
           </div>
-        </Modal>
-      </div>
+          <Modal value={this.tableDetailInfo.isShow} footer-hide={true} title={this.tableDetailInfo.title} width={1100}>
+            {this.tableDetailInfo.type === 'string' && (
+                <div style="text-align: justify;word-break: break-word;">{this.tableDetailInfo.info}</div>
+            )}
+            {this.tableDetailInfo.type === 'array' && (
+                <div style="overflow: auto;max-height:500px;overflow:auto">
+                  <Collapse>
+                    {this.tableDetailInfo.info.map(column => {
+                      return (
+                          <Panel name={column.title}>
+                            {column.title}
+                            <p slot="content">
+                              <Form label-width={200}>
+                                {column.value.map(val => {
+                                  return (
+                                      <FormItem label={val.key}>
+                                        <Input value={val.value} disabled />
+                                      </FormItem>
+                                  )
+                                })}
+                              </Form>
+                            </p>
+                          </Panel>
+                      )
+                    })}
+                  </Collapse>
+                </div>
+            )}
+            {this.tableDetailInfo.type === 'diffVariable' && (
+                <div style="text-align: justify;word-break: break-word;overflow-y:auto;max-height:500px">
+                  <div style="text-align: left;">
+                    <Alert type="warning">如出现页面值未显示，请点击刷新按钮</Alert>
+                  </div>
+                  {this.tableDetailInfo.info.map(val => {
+                    return (
+                        <div
+                            onClick={() => choiceKey(val)}
+                            style={this.remarkedKeys.includes(val.key) ? 'background:#d9d9d9' : ''}
+                        >
+                          <div style="width: 300px;display:inline-block;word-break: break-all;margin:4px 0;vertical-align: top;text-align:right;cursor:pointer">
+                            <span style={!['', 'NULL'].includes(val.value) ? '' : 'color:red'}>{val.key}</span>
+                          </div>
+                          <div style="width: 740px;display:inline-block;word-break: break-all;margin:4px 0;">
+                            ：{val.value}
+                          </div>
+                        </div>
+                    )
+                  })}
+                </div>
+            )}
+            <div style="margin-top:20px;height: 30px">
+              <Button style="float: right;margin-right: 20px" onClick={() => closeModal()}>
+                {this.$t('close')}
+              </Button>
+              <Button style="float: right;margin-right: 20px" type="primary" onClick={() => refreshDiffVariable()}>
+                {this.$t('refresh')}
+              </Button>
+            </div>
+          </Modal>
+        </div>
     )
   }
 }

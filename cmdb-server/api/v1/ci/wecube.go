@@ -3,6 +3,7 @@ package ci
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
@@ -41,7 +42,7 @@ func HandleCiModelRequest(c *gin.Context) {
 	headerOperation := c.GetHeader("x-operation")
 	var dataGuidList []string
 	if operation == "query" {
-		resp.Data, err = ciModelQuery(ciType, bodyBytes)
+		resp.Data, err = ciModelQuery(ciType, bodyBytes, middleware.GetRequestUser(c), middleware.GetRequestRoles(c))
 	} else if operation == "create" {
 		resp.Data, logResp.Data, newInputData, err = ciModelCreate(ciType, bodyBytes)
 	} else if operation == "update" {
@@ -88,7 +89,7 @@ func HandleCiModelRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func ciModelQuery(ciType string, bodyBytes []byte) (result []map[string]interface{}, err error) {
+func ciModelQuery(ciType string, bodyBytes []byte, user string, roles []string) (result []map[string]interface{}, err error) {
 	var param models.EntityQueryParam
 	err = json.Unmarshal(bodyBytes, &param)
 	if err != nil {
@@ -122,7 +123,19 @@ func ciModelQuery(ciType string, bodyBytes []byte) (result []map[string]interfac
 		queryParam.Filters = append(queryParam.Filters, &models.QueryRequestFilterObj{Name: filter.AttrName, Operator: filter.Op, Value: filter.Condition})
 	}
 	queryParam.Paging = false
-	_, result, err = db.CiDataQuery(ciType, &queryParam, &models.CiDataLegalGuidList{Enable: true}, true)
+	legalGuidList := models.CiDataLegalGuidList{Disable: true}
+	if user != models.PlatformUser {
+		permissions, tmpErr := db.GetRoleCiDataPermission(roles, ciType)
+		if tmpErr != nil {
+			err = tmpErr
+			return
+		}
+		legalGuidList, err = db.GetCiDataPermissionGuidList(&permissions, "query")
+		if err != nil {
+			return
+		}
+	}
+	_, result, err = db.CiDataQuery(ciType, &queryParam, &legalGuidList, true)
 	for _, tmpObj := range result {
 		tmpObj["id"] = tmpObj["guid"]
 		tmpObj["displayName"] = tmpObj["key_name"]
@@ -456,6 +469,18 @@ func pluginCiDataOperation(input *models.PluginCiDataOperationRequestObj) (resul
 			if inputDataGuid == "" {
 				inputDataGuid = v
 			}
+		}
+		if input.Operation == "Rollback" {
+			if dataStringMap["guid"] == "" {
+				err = fmt.Errorf("Rollback need history data guid,please check input data ")
+				break
+			}
+			lastConfirmData, getErr := db.GetRollbackLastConfirmData(dataStringMap["guid"])
+			if getErr != nil {
+				err = fmt.Errorf("Rollback try to get last confirm data fail,%s ", getErr.Error())
+				break
+			}
+			dataStringMap = lastConfirmData
 		}
 		handleDataList = append(handleDataList, dataStringMap)
 	}

@@ -218,6 +218,7 @@ export default {
         [graphIndex]
       )[0]
       this.dotString = dotString
+      // console.log(dotString)
       let graph = d3.select(id)
       if (dotString.startsWith('sequenceDiagram')) {
         const element = document.querySelector(id)
@@ -273,6 +274,7 @@ export default {
           .selectAll(' .loopText')
           .nodes()
           .forEach(node => {
+            // console.log(node)
             let rets = idFinder.exec(node.innerHTML)
             if (rets) {
               node.innerHTML = node.innerHTML.replace(idFinder, '')
@@ -288,6 +290,19 @@ export default {
         // message
         svg
           .selectAll(' .messageLine1')
+          .nodes()
+          .forEach(node => {
+            let rets = idFinder.exec(node.previousElementSibling.innerHTML)
+            if (rets) {
+              node.previousElementSibling.innerHTML = node.previousElementSibling.innerHTML.replace(idFinder, '')
+              // mark node[line] & sibling[text] color
+              let item = this.plainDatas.find(item => item.guid === rets[1])
+              node.style.cssText += this.nodeConfigStyle(item.metadata.setting, item.data)
+              // node.previousElementSibling.style.cssText += this.nodeConfigStyle(item.metadata.setting, item.data)
+            }
+          })
+        svg
+          .selectAll(' .messageLine0')
           .nodes()
           .forEach(node => {
             let rets = idFinder.exec(node.previousElementSibling.innerHTML)

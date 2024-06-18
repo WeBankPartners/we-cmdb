@@ -39,10 +39,20 @@
                     ></Input>
                   </FormItem>
                   <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-                    <Input
-                      v-model="nodeData[formData.propertyName]"
-                      :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
-                    ></Input>
+                    <template v-if="formData.autofillable === 'yes' && formData.autoFillType === 'suggest'">
+                      <Input
+                        style="width:84%"
+                        v-model="nodeData[formData.propertyName]"
+                        :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
+                      ></Input>
+                      <Button icon="md-checkmark" @click="nodeData[formData.propertyName] = 'suggest#'"></Button>
+                    </template>
+                    <template v-else>
+                      <Input
+                        v-model="nodeData[formData.propertyName]"
+                        :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
+                      ></Input>
+                    </template>
                   </FormItem>
                   <FormItem v-if="formData.inputType === 'longText'" class="form-item-content">
                     <textarea

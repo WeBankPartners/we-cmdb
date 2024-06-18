@@ -59,7 +59,7 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 	param.ResultColumns = append([]string{"guid"}, resultColumns.GetNameList()...)
 	filterSql, queryColumn, queryParam := transFiltersToSQL(param, &models.TransFiltersParam{IsStruct: false, KeyMap: keyMap, PrimaryKey: "guid", Prefix: "tt"})
 	var baseSql string
-	if !permission.Enable {
+	if !permission.Disable {
 		if strings.Contains(filterSql, "ORDER BY") {
 			tmpFilterSqlList := strings.Split(filterSql, "ORDER BY")
 			filterSql = tmpFilterSqlList[0] + " and tt.guid in ('" + strings.Join(permission.GuidList, "','") + "') ORDER BY " + tmpFilterSqlList[1]
