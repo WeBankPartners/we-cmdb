@@ -48,6 +48,7 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 			return
 		}
 	}
+	// TODO myAttr如果是多对多
 	myAttrQuery, tmpErr := x.QueryString("select my_attr from sys_report_object where id = ?", root.Id)
 	if tmpErr != nil {
 		err = fmt.Errorf("Try to query report owner attribute fail,%s ", tmpErr.Error())
@@ -479,7 +480,7 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 				ciAttrName := myAttr
 				multiRefTable = myTable
 				if isAttributeMultiRef(ciTypeTable, ciAttrName) == true {
-					multiRefTable = fmt.Sprintf("(select %s.*,%s$%s.to_guid as %s from %s left join %s$%s on %s.guid=%s$%s.from_guid)",
+					multiRefTable = fmt.Sprintf("(select %s.*,%s$%s.to_guid as `%s` from %s left join %s$%s on %s.guid=%s$%s.from_guid)",
 						ciTypeTable, ciTypeTable, ciAttrName, ciAttrName, ciTypeTable, ciTypeTable, ciAttrName, ciTypeTable, ciTypeTable, ciAttrName)
 				}
 				ciTypeTableMapMultiRef[myTable] = multiRefTable
@@ -488,7 +489,7 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 				ciAttrName := parentAttr
 				multiRefTable = parentTable
 				if isAttributeMultiRef(ciTypeTable, ciAttrName) == true {
-					multiRefTable = fmt.Sprintf("(select %s.*,%s$%s.to_guid as %s from %s left join %s$%s on %s.guid=%s$%s.from_guid)",
+					multiRefTable = fmt.Sprintf("(select %s.*,%s$%s.to_guid as `%s` from %s left join %s$%s on %s.guid=%s$%s.from_guid)",
 						ciTypeTable, ciTypeTable, ciAttrName, ciAttrName, ciTypeTable, ciTypeTable, ciAttrName, ciTypeTable, ciTypeTable, ciAttrName)
 				}
 				ciTypeTableMapMultiRef[parentTable] = multiRefTable
@@ -500,7 +501,7 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 		tableAliasName = "t" + strconv.Itoa(i+1)
 
 		for k, v := range roaCiTypeAttrMapAttrId[roData[i]["id"]] {
-			resultSqlCmd += tableAliasName + "." + k + " AS " + v + ","
+			resultSqlCmd += tableAliasName + "." + k + " AS `" + v + "`,"
 			filterKeyMap[v] = tableAliasName + "." + k
 		}
 		if i == len(roData)-1 {
@@ -989,6 +990,9 @@ func ModifyReportObject(param models.ModifyReportObject) (err error) {
 		defaultRoAttrIds := make(map[string]int)
 		for i := range defaultReportObjAttr {
 			v := defaultReportObjAttr[i]
+			if v.Id != "guid" && v.Id != "key_name" {
+				continue
+			}
 			defaultRoAttrMap[v.Id] = make(map[string]string)
 			defaultRoAttrMap[v.Id]["title"] = v.Title
 			defaultRoAttrMap[v.Id]["querialbe"] = v.Querialbe
@@ -1430,7 +1434,7 @@ func getExportReportCiData(reportObject *models.SysReportObjectTable, guids []st
 			}
 		}
 	}
-	_, rowData, queryErr := CiDataQuery(reportObject.CiType, &queryParam, &models.CiDataLegalGuidList{Enable: true}, true)
+	_, rowData, queryErr := CiDataQuery(reportObject.CiType, &queryParam, &models.CiDataLegalGuidList{Disable: true}, true)
 	if queryErr != nil {
 		err = fmt.Errorf("query ciType:%s data fail,%s ", reportObject.CiType, queryErr.Error())
 		return
