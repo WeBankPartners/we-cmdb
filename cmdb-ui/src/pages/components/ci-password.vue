@@ -93,7 +93,7 @@ export default {
         await this.getEncryptKey()
         const key = CryptoJS.enc.Utf8.parse(this.encryptKey)
         const config = {
-          iv: key,
+          iv: CryptoJS.enc.Utf8.parse(Math.trunc(new Date() / 100000) * 100000000),
           mode: CryptoJS.mode.CBC
           // padding: CryptoJS.pad.PKcs7
         }
