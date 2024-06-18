@@ -76,7 +76,7 @@ func ListCiDataVariableCallback(ciType, rowGuid, userToken string) (processList 
 		return
 	}
 	for _, tmpProcess := range coreProcessList {
-		tmpRootCi := tmpProcess.RootEntity
+		tmpRootCi := tmpProcess.RootEntityExpression
 		tmpFilter := ""
 		if strings.Contains(tmpRootCi, "{") {
 			tmpFilter = tmpRootCi[strings.Index(tmpRootCi, "{")+1 : len(tmpRootCi)-1]
@@ -96,7 +96,8 @@ func ListCiDataVariableCallback(ciType, rowGuid, userToken string) (processList 
 }
 
 func getCoreProcessList(userToken string) (processList []*models.CodeProcessQueryObj, err error) {
-	req, reqErr := http.NewRequest(http.MethodGet, models.Config.Wecube.BaseUrl+"/platform/v1/process/definitions?includeDraft=0&permission=USE&tags="+models.ProcessFetchTabs, nil)
+	//req, reqErr := http.NewRequest(http.MethodGet, models.Config.Wecube.BaseUrl+"/platform/v1/process/definitions?includeDraft=0&permission=USE&tags="+models.ProcessFetchTabs, nil)
+	req, reqErr := http.NewRequest(http.MethodGet, models.Config.Wecube.BaseUrl+"/platform/v1/public/process/definitions?plugin=wecmdb&permission=USE&all=N", nil)
 	if reqErr != nil {
 		err = fmt.Errorf("Try to new http request to core fail,%s ", reqErr.Error())
 		return

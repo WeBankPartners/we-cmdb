@@ -466,7 +466,7 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam mod
 		err = queryErr
 		return
 	}
-	if reqParam.Paging == false {
+	if reqParam.Paging == false && len(reqParam.Filters) == 0 {
 		log.Logger.Debug("req Param paging is false")
 		for _, row := range rowStringData {
 			tmpRowData := make(map[string]interface{})
@@ -476,14 +476,15 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam mod
 			rowData = append(rowData, tmpRowData)
 		}
 	} else {
-		filterGuidParam := models.CiDataLegalGuidList{Enable: false}
+		filterGuidParam := models.CiDataLegalGuidList{Disable: false}
 		if len(filterSqlList) > 0 {
-			filterGuidParam.Enable = true
+			filterGuidParam.Disable = true
 			filterGuidParam.GuidList = []string{}
 			for _, row := range rowStringData {
 				filterGuidParam.GuidList = append(filterGuidParam.GuidList, row["guid"])
 			}
 		}
+		reqParam.ResultColumns = []string{"guid", "key_name"}
 		pageInfo, rowData, err = CiDataQuery(attrTable[0].RefCiType, &reqParam, &filterGuidParam, false)
 	}
 	return
@@ -609,7 +610,7 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 				if i == len(tmpSplitList)-1 {
 					express += v
 				} else {
-					express += fmt.Sprintf("%s'$%d'", v, i/2)
+					express += fmt.Sprintf("%s'$%d$'", v, i/2)
 				}
 			} else {
 				filterParams = append(filterParams, strings.ReplaceAll(v, "'", ""))
@@ -709,12 +710,13 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 			whereSql += v.WhereSql
 		}
 		if i == 0 {
-			if _, b := filterMap[v.Table]; b {
-				if strings.Contains(filterMap[v.Table], ",") {
-					whereSql += fmt.Sprintf(" and %s.guid in ('%s') ", v.IndexTableName, strings.ReplaceAll(filterMap[v.Table], ",", "','"))
-				} else {
-					whereSql += fmt.Sprintf(" and %s.guid='%s' ", v.IndexTableName, filterMap[v.Table])
-				}
+			if filterValueString, b := filterMap[v.Table]; b {
+				whereSql += fmt.Sprintf(" and %s.guid in ('%s') ", v.IndexTableName, strings.Join(transStringToList(filterValueString), "','"))
+				//if strings.Contains(filterMap[v.Table], ",") {
+				//	whereSql += fmt.Sprintf(" and %s.guid in ('%s') ", v.IndexTableName, strings.Join(transStringToList(filterMap[v.Table]), "','"))
+				//} else {
+				//	whereSql += fmt.Sprintf(" and %s.guid='%s' ", v.IndexTableName, filterMap[v.Table])
+				//}
 			} else {
 				joinColumn := ""
 				if v.LeftJoinColumn != "" {
@@ -722,12 +724,13 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 				} else if v.RightJoinColumn != "" {
 					joinColumn = v.RightJoinColumn
 				}
-				if _, b := filterMap[joinColumn]; b {
-					if strings.Contains(filterMap[joinColumn], ",") {
-						whereSql += fmt.Sprintf(" and %s.guid in ('%s') ", v.IndexTableName, strings.ReplaceAll(filterMap[joinColumn], ",", "','"))
-					} else {
-						whereSql += fmt.Sprintf(" and %s.guid='%s' ", v.IndexTableName, filterMap[joinColumn])
-					}
+				if joinFilterValueString, ok := filterMap[joinColumn]; ok {
+					whereSql += fmt.Sprintf(" and %s.guid in ('%s') ", v.IndexTableName, strings.Join(transStringToList(joinFilterValueString), "','"))
+					//if strings.Contains(filterMap[joinColumn], ",") {
+					//	whereSql += fmt.Sprintf(" and %s.guid in ('%s') ", v.IndexTableName, strings.Join(transStringToList(filterMap[joinColumn]), "','"))
+					//} else {
+					//	whereSql += fmt.Sprintf(" and %s.guid='%s' ", v.IndexTableName, filterMap[joinColumn])
+					//}
 				}
 			}
 		}
@@ -736,7 +739,7 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 		sql += " where 1=1 " + whereSql
 	}
 	for i, v := range filterParams {
-		sql = strings.ReplaceAll(sql, fmt.Sprintf("$%d", i), v)
+		sql = strings.ReplaceAll(sql, fmt.Sprintf("$%d$", i), v)
 	}
 	log.Logger.Debug("Expression filter sql", log.String("sql", sql))
 	queryResults, queryErr := x.QueryString(sql)

@@ -3,7 +3,7 @@
     <CheckboxGroup v-model="social">
       <template v-for="item in parent">
         <div :key="item.ciTypeAttrId" style="line-height: 32px">
-          <Checkbox :label="item.ciTypeAttrId">
+          <Checkbox :label="item.ciTypeAttrId" :disabled="['guid', 'key_name'].includes(item.dataName)">
             <Tooltip :content="item.name + '/' + item.propertyName">
               <div style="width:150px;display:inline-block;">
                 {{ item[displayKey] }}
@@ -13,11 +13,19 @@
             <!-- <div style="width:150px;display:inline-block;">{{ item[displayKey] }}</div> -->
             <div style="width:250px;display:inline-block;" v-show="social.includes(item.ciTypeAttrId)">
               <span>{{ $t('data_name') }}</span>
-              <Input v-model="item.dataName" style="width:150px"></Input>
+              <Input
+                v-model="item.dataName"
+                style="width:150px"
+                :disabled="['guid', 'key_name'].includes(item.dataName)"
+              ></Input>
             </div>
             <div style="width:250px;display:inline-block;" v-show="social.includes(item.ciTypeAttrId)">
               <span>{{ $t('data_title_name') }}</span>
-              <Input v-model="item.dataTitleName" style="width:150px"></Input>
+              <Input
+                v-model="item.dataTitleName"
+                style="width:150px"
+                :disabled="['guid', 'key_name'].includes(item.dataName)"
+              ></Input>
             </div>
           </Checkbox>
         </div>

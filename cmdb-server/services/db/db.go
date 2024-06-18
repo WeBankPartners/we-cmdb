@@ -163,13 +163,16 @@ func transFiltersToSQL(queryParam *models.QueryRequestParam, transParam *models.
 			filterSql += fmt.Sprintf(" AND %s%s LIKE ? ", transParam.Prefix, transParam.KeyMap[filter.Name])
 			param = append(param, fmt.Sprintf("%%%s%%", filter.Value))
 		} else if filter.Operator == "in" {
-			inValueList := filter.Value.([]interface{})
 			inValueStringList := []string{}
-			for _, inValueInterfaceObj := range inValueList {
-				if inValueInterfaceObj == nil {
-					inValueStringList = append(inValueStringList, "")
-				} else {
-					inValueStringList = append(inValueStringList, inValueInterfaceObj.(string))
+			if filter.Value != nil {
+				if inValueList, ok := filter.Value.([]interface{}); ok {
+					for _, inValueInterfaceObj := range inValueList {
+						if inValueInterfaceObj == nil {
+							inValueStringList = append(inValueStringList, "")
+						} else {
+							inValueStringList = append(inValueStringList, inValueInterfaceObj.(string))
+						}
+					}
 				}
 			}
 			tmpSpecSql, tmpListParams := createListParams(inValueStringList, "")
