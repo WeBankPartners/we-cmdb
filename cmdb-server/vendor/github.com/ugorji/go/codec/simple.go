@@ -5,6 +5,7 @@ package codec
 
 import (
 	"math"
+	"reflect"
 	"time"
 )
 
@@ -60,8 +61,9 @@ func simpledesc(bd byte) (s string) {
 type simpleEncDriver struct {
 	noBuiltInTypes
 	encDriverNoopContainerWriter
+	encDriverNoState
 	h *SimpleHandle
-	b [8]byte
+	// b [8]byte
 	e Encoder
 }
 
@@ -91,7 +93,7 @@ func (e *simpleEncDriver) EncodeFloat32(f float32) {
 		return
 	}
 	e.e.encWr.writen1(simpleVdFloat32)
-	bigenHelper{e.b[:4], e.e.w()}.writeUint32(math.Float32bits(f))
+	bigen.writeUint32(e.e.w(), math.Float32bits(f))
 }
 
 func (e *simpleEncDriver) EncodeFloat64(f float64) {
@@ -100,7 +102,7 @@ func (e *simpleEncDriver) EncodeFloat64(f float64) {
 		return
 	}
 	e.e.encWr.writen1(simpleVdFloat64)
-	bigenHelper{e.b[:8], e.e.w()}.writeUint64(math.Float64bits(f))
+	bigen.writeUint64(e.e.w(), math.Float64bits(f))
 }
 
 func (e *simpleEncDriver) EncodeInt(v int64) {
@@ -124,13 +126,13 @@ func (e *simpleEncDriver) encUint(v uint64, bd uint8) {
 		e.e.encWr.writen2(bd, uint8(v))
 	} else if v <= math.MaxUint16 {
 		e.e.encWr.writen1(bd + 1)
-		bigenHelper{e.b[:2], e.e.w()}.writeUint16(uint16(v))
+		bigen.writeUint16(e.e.w(), uint16(v))
 	} else if v <= math.MaxUint32 {
 		e.e.encWr.writen1(bd + 2)
-		bigenHelper{e.b[:4], e.e.w()}.writeUint32(uint32(v))
+		bigen.writeUint32(e.e.w(), uint32(v))
 	} else { // if v <= math.MaxUint64 {
 		e.e.encWr.writen1(bd + 3)
-		bigenHelper{e.b[:8], e.e.w()}.writeUint64(v)
+		bigen.writeUint64(e.e.w(), v)
 	}
 }
 
@@ -142,32 +144,37 @@ func (e *simpleEncDriver) encLen(bd byte, length int) {
 		e.e.encWr.writen1(uint8(length))
 	} else if length <= math.MaxUint16 {
 		e.e.encWr.writen1(bd + 2)
-		bigenHelper{e.b[:2], e.e.w()}.writeUint16(uint16(length))
+		bigen.writeUint16(e.e.w(), uint16(length))
 	} else if int64(length) <= math.MaxUint32 {
 		e.e.encWr.writen1(bd + 3)
-		bigenHelper{e.b[:4], e.e.w()}.writeUint32(uint32(length))
+		bigen.writeUint32(e.e.w(), uint32(length))
 	} else {
 		e.e.encWr.writen1(bd + 4)
-		bigenHelper{e.b[:8], e.e.w()}.writeUint64(uint64(length))
+		bigen.writeUint64(e.e.w(), uint64(length))
 	}
 }
 
-func (e *simpleEncDriver) EncodeExt(v interface{}, xtag uint64, ext Ext) {
-	var bs []byte
+func (e *simpleEncDriver) EncodeExt(v interface{}, basetype reflect.Type, xtag uint64, ext Ext) {
+	var bs0, bs []byte
 	if ext == SelfExt {
-		bs = e.e.blist.get(1024)
-		e.e.sideEncode(v, &bs)
+		bs0 = e.e.blist.get(1024)
+		bs = bs0
+		e.e.sideEncode(v, basetype, &bs)
 	} else {
 		bs = ext.WriteExt(v)
 	}
 	if bs == nil {
 		e.EncodeNil()
-		return
+		goto END
 	}
 	e.encodeExtPreamble(uint8(xtag), len(bs))
 	e.e.encWr.writeb(bs)
+END:
 	if ext == SelfExt {
 		e.e.blist.put(bs)
+		if !byteSliceSameData(bs0, bs) {
+			e.e.blist.put(bs0)
+		}
 	}
 }
 
@@ -227,17 +234,21 @@ func (e *simpleEncDriver) EncodeTime(t time.Time) {
 //------------------------------------
 
 type simpleDecDriver struct {
-	h      *SimpleHandle
-	bdRead bool
-	bd     byte
-	_      bool
+	h *SimpleHandle
+	bdAndBdread
+	_ bool
 	noBuiltInTypes
 	decDriverNoopContainerReader
+	decDriverNoopNumberHelper
 	d Decoder
 }
 
 func (d *simpleDecDriver) decoder() *Decoder {
 	return &d.d
+}
+
+func (d *simpleDecDriver) descBd() string {
+	return sprintf("%v (%s)", d.bd, simpledesc(d.bd))
 }
 
 func (d *simpleDecDriver) readNextBd() {
@@ -284,30 +295,45 @@ func (d *simpleDecDriver) TryNil() bool {
 	return d.advanceNil()
 }
 
-func (d *simpleDecDriver) decCheckInteger() (ui uint64, neg bool) {
+func (d *simpleDecDriver) decFloat() (f float64, ok bool) {
+	ok = true
+	switch d.bd {
+	case simpleVdFloat32:
+		f = float64(math.Float32frombits(bigen.Uint32(d.d.decRd.readn4())))
+	case simpleVdFloat64:
+		f = math.Float64frombits(bigen.Uint64(d.d.decRd.readn8()))
+	default:
+		ok = false
+	}
+	return
+}
+
+func (d *simpleDecDriver) decInteger() (ui uint64, neg, ok bool) {
+	ok = true
 	switch d.bd {
 	case simpleVdPosInt:
 		ui = uint64(d.d.decRd.readn1())
 	case simpleVdPosInt + 1:
-		ui = uint64(bigen.Uint16(d.d.decRd.readx(2)))
+		ui = uint64(bigen.Uint16(d.d.decRd.readn2()))
 	case simpleVdPosInt + 2:
-		ui = uint64(bigen.Uint32(d.d.decRd.readx(4)))
+		ui = uint64(bigen.Uint32(d.d.decRd.readn4()))
 	case simpleVdPosInt + 3:
-		ui = uint64(bigen.Uint64(d.d.decRd.readx(8)))
+		ui = uint64(bigen.Uint64(d.d.decRd.readn8()))
 	case simpleVdNegInt:
 		ui = uint64(d.d.decRd.readn1())
 		neg = true
 	case simpleVdNegInt + 1:
-		ui = uint64(bigen.Uint16(d.d.decRd.readx(2)))
+		ui = uint64(bigen.Uint16(d.d.decRd.readn2()))
 		neg = true
 	case simpleVdNegInt + 2:
-		ui = uint64(bigen.Uint32(d.d.decRd.readx(4)))
+		ui = uint64(bigen.Uint32(d.d.decRd.readn4()))
 		neg = true
 	case simpleVdNegInt + 3:
-		ui = uint64(bigen.Uint64(d.d.decRd.readx(8)))
+		ui = uint64(bigen.Uint64(d.d.decRd.readn8()))
 		neg = true
 	default:
-		d.d.errorf("integer only valid from pos/neg integer1..8. Invalid descriptor: %v", d.bd)
+		ok = false
+		// d.d.errorf("integer only valid from pos/neg integer1..8. Invalid descriptor: %v", d.bd)
 	}
 	// DO NOT do this check below, because callers may only want the unsigned value:
 	//
@@ -322,11 +348,7 @@ func (d *simpleDecDriver) DecodeInt64() (i int64) {
 	if d.advanceNil() {
 		return
 	}
-	ui, neg := d.decCheckInteger()
-	i = chkOvf.SignedIntV(ui)
-	if neg {
-		i = -i
-	}
+	i = decNegintPosintFloatNumberHelper{&d.d}.int64(d.decInteger())
 	d.bdRead = false
 	return
 }
@@ -335,10 +357,7 @@ func (d *simpleDecDriver) DecodeUint64() (ui uint64) {
 	if d.advanceNil() {
 		return
 	}
-	ui, neg := d.decCheckInteger()
-	if neg {
-		d.d.errorf("assigning negative signed value to unsigned type")
-	}
+	ui = decNegintPosintFloatNumberHelper{&d.d}.uint64(d.decInteger())
 	d.bdRead = false
 	return
 }
@@ -347,17 +366,7 @@ func (d *simpleDecDriver) DecodeFloat64() (f float64) {
 	if d.advanceNil() {
 		return
 	}
-	if d.bd == simpleVdFloat32 {
-		f = float64(math.Float32frombits(bigen.Uint32(d.d.decRd.readx(4))))
-	} else if d.bd == simpleVdFloat64 {
-		f = math.Float64frombits(bigen.Uint64(d.d.decRd.readx(8)))
-	} else {
-		if d.bd >= simpleVdPosInt && d.bd <= simpleVdNegInt+3 {
-			f = float64(d.DecodeInt64())
-		} else {
-			d.d.errorf("float only valid from float32/64: Invalid descriptor: %v", d.bd)
-		}
-	}
+	f = decNegintPosintFloatNumberHelper{&d.d}.float64(d.decFloat())
 	d.bdRead = false
 	return
 }
@@ -401,49 +410,59 @@ func (d *simpleDecDriver) uint2Len(ui uint64) int {
 }
 
 func (d *simpleDecDriver) decLen() int {
-	switch d.bd % 8 {
+	switch d.bd & 7 { // d.bd % 8 {
 	case 0:
 		return 0
 	case 1:
 		return int(d.d.decRd.readn1())
 	case 2:
-		return int(bigen.Uint16(d.d.decRd.readx(2)))
+		return int(bigen.Uint16(d.d.decRd.readn2()))
 	case 3:
-		return d.uint2Len(uint64(bigen.Uint32(d.d.decRd.readx(4))))
+		return d.uint2Len(uint64(bigen.Uint32(d.d.decRd.readn4())))
 	case 4:
-		return d.uint2Len(bigen.Uint64(d.d.decRd.readx(8)))
+		return d.uint2Len(bigen.Uint64(d.d.decRd.readn8()))
 	}
 	d.d.errorf("cannot read length: bd%%8 must be in range 0..4. Got: %d", d.bd%8)
 	return -1
 }
 
 func (d *simpleDecDriver) DecodeStringAsBytes() (s []byte) {
-	return d.DecodeBytes(d.d.b[:], true)
+	return d.DecodeBytes(nil)
 }
 
-func (d *simpleDecDriver) DecodeBytes(bs []byte, zerocopy bool) (bsOut []byte) {
+func (d *simpleDecDriver) DecodeBytes(bs []byte) (bsOut []byte) {
+	d.d.decByteState = decByteStateNone
 	if d.advanceNil() {
 		return
 	}
 	// check if an "array" of uint8's (see ContainerType for how to infer if an array)
 	if d.bd >= simpleVdArray && d.bd <= simpleVdMap+4 {
-		if len(bs) == 0 && zerocopy {
+		if bs == nil {
+			d.d.decByteState = decByteStateReuseBuf
 			bs = d.d.b[:]
 		}
 		slen := d.ReadArrayStart()
-		bs = usableByteSlice(bs, slen)
+		var changed bool
+		if bs, changed = usableByteSlice(bs, slen); changed {
+			d.d.decByteState = decByteStateNone
+		}
 		for i := 0; i < len(bs); i++ {
 			bs[i] = uint8(chkOvf.UintV(d.DecodeUint64(), 8))
+		}
+		for i := len(bs); i < slen; i++ {
+			bs = append(bs, uint8(chkOvf.UintV(d.DecodeUint64(), 8)))
 		}
 		return bs
 	}
 
 	clen := d.decLen()
 	d.bdRead = false
-	if d.d.bytes && (zerocopy || d.h.ZeroCopy) {
+	if d.d.zerocopy() {
+		d.d.decByteState = decByteStateZerocopy
 		return d.d.decRd.rb.readx(uint(clen))
 	}
-	if zerocopy && len(bs) == 0 {
+	if bs == nil {
+		d.d.decByteState = decByteStateReuseBuf
 		bs = d.d.b[:]
 	}
 	return decByteSlice(d.d.r(), clen, d.d.h.MaxInitLen, bs)
@@ -463,27 +482,27 @@ func (d *simpleDecDriver) DecodeTime() (t time.Time) {
 	return
 }
 
-func (d *simpleDecDriver) DecodeExt(rv interface{}, xtag uint64, ext Ext) {
+func (d *simpleDecDriver) DecodeExt(rv interface{}, basetype reflect.Type, xtag uint64, ext Ext) {
 	if xtag > 0xff {
 		d.d.errorf("ext: tag must be <= 0xff; got: %v", xtag)
 	}
 	if d.advanceNil() {
 		return
 	}
-	realxtag1, xbs := d.decodeExtV(ext != nil, uint8(xtag))
+	xbs, realxtag1, zerocopy := d.decodeExtV(ext != nil, uint8(xtag))
 	realxtag := uint64(realxtag1)
 	if ext == nil {
 		re := rv.(*RawExt)
 		re.Tag = realxtag
-		re.Data = detachZeroCopyBytes(d.d.bytes, re.Data, xbs)
+		re.setData(xbs, zerocopy)
 	} else if ext == SelfExt {
-		d.d.sideDecode(rv, xbs)
+		d.d.sideDecode(rv, basetype, xbs)
 	} else {
 		ext.ReadExt(rv, xbs)
 	}
 }
 
-func (d *simpleDecDriver) decodeExtV(verifyTag bool, tag byte) (xtag byte, xbs []byte) {
+func (d *simpleDecDriver) decodeExtV(verifyTag bool, tag byte) (xbs []byte, xtag byte, zerocopy bool) {
 	switch d.bd {
 	case simpleVdExt, simpleVdExt + 1, simpleVdExt + 2, simpleVdExt + 3, simpleVdExt + 4:
 		l := d.decLen()
@@ -493,12 +512,13 @@ func (d *simpleDecDriver) decodeExtV(verifyTag bool, tag byte) (xtag byte, xbs [
 		}
 		if d.d.bytes {
 			xbs = d.d.decRd.rb.readx(uint(l))
+			zerocopy = true
 		} else {
 			xbs = decByteSlice(d.d.r(), l, d.d.h.MaxInitLen, d.d.b[:])
 		}
 	case simpleVdByteArray, simpleVdByteArray + 1,
 		simpleVdByteArray + 2, simpleVdByteArray + 3, simpleVdByteArray + 4:
-		xbs = d.DecodeBytes(nil, true)
+		xbs = d.DecodeBytes(nil)
 	default:
 		d.d.errorf("ext - %s - expecting extensions/bytearray, got: 0x%x", msgBadDesc, d.bd)
 	}
@@ -546,10 +566,10 @@ func (d *simpleDecDriver) DecodeNaked() {
 	case simpleVdString, simpleVdString + 1,
 		simpleVdString + 2, simpleVdString + 3, simpleVdString + 4:
 		n.v = valueTypeString
-		n.s = string(d.DecodeStringAsBytes())
+		n.s = d.d.stringZC(d.DecodeStringAsBytes())
 	case simpleVdByteArray, simpleVdByteArray + 1,
 		simpleVdByteArray + 2, simpleVdByteArray + 3, simpleVdByteArray + 4:
-		fauxUnionReadRawBytes(d, &d.d, n, d.h.RawToString)
+		d.d.fauxUnionReadRawBytes(false)
 	case simpleVdExt, simpleVdExt + 1, simpleVdExt + 2, simpleVdExt + 3, simpleVdExt + 4:
 		n.v = valueTypeExt
 		l := d.decLen()
@@ -575,66 +595,72 @@ func (d *simpleDecDriver) DecodeNaked() {
 	}
 }
 
-func (d *simpleDecDriver) nextValueBytes(start []byte) (v []byte) {
+func (d *simpleDecDriver) nextValueBytes(v0 []byte) (v []byte) {
 	if !d.bdRead {
 		d.readNextBd()
 	}
-	v = append(start, d.bd)
+	v = v0
+	var h = decNextValueBytesHelper{d: &d.d}
+	var cursor = d.d.rb.c - 1
+	h.append1(&v, d.bd)
 	v = d.nextValueBytesBdReadR(v)
 	d.bdRead = false
+	h.bytesRdV(&v, cursor)
 	return
 }
 
 func (d *simpleDecDriver) nextValueBytesR(v0 []byte) (v []byte) {
 	d.readNextBd()
-	v = append(v0, d.bd)
+	v = v0
+	var h = decNextValueBytesHelper{d: &d.d}
+	h.append1(&v, d.bd)
 	return d.nextValueBytesBdReadR(v)
 }
 
 func (d *simpleDecDriver) nextValueBytesBdReadR(v0 []byte) (v []byte) {
 	v = v0
+	var h = decNextValueBytesHelper{d: &d.d}
+
 	c := d.bd
 
-	var x []byte
 	var length uint
 
 	switch c {
 	case simpleVdNil, simpleVdFalse, simpleVdTrue, simpleVdString, simpleVdByteArray:
 		// pass
 	case simpleVdPosInt, simpleVdNegInt:
-		v = append(v, d.d.decRd.readn1())
+		h.append1(&v, d.d.decRd.readn1())
 	case simpleVdPosInt + 1, simpleVdNegInt + 1:
-		v = append(v, d.d.decRd.readx(2)...)
+		h.appendN(&v, d.d.decRd.readx(2)...)
 	case simpleVdPosInt + 2, simpleVdNegInt + 2, simpleVdFloat32:
-		v = append(v, d.d.decRd.readx(4)...)
+		h.appendN(&v, d.d.decRd.readx(4)...)
 	case simpleVdPosInt + 3, simpleVdNegInt + 3, simpleVdFloat64:
-		v = append(v, d.d.decRd.readx(8)...)
+		h.appendN(&v, d.d.decRd.readx(8)...)
 	case simpleVdTime:
 		c = d.d.decRd.readn1()
-		v = append(v, c)
-		v = append(v, d.d.decRd.readx(uint(c))...)
+		h.append1(&v, c)
+		h.appendN(&v, d.d.decRd.readx(uint(c))...)
 
 	default:
-		switch c % 8 {
+		switch c & 7 { // c % 8 {
 		case 0:
-			x = nil
 			length = 0
 		case 1:
-			x = d.d.decRd.readx(1)
-			length = uint(x[0])
+			b := d.d.decRd.readn1()
+			length = uint(b)
+			h.append1(&v, b)
 		case 2:
-			x = d.d.decRd.readx(2)
+			x := d.d.decRd.readn2()
 			length = uint(bigen.Uint16(x))
+			h.appendN(&v, x[:]...)
 		case 3:
-			x = d.d.decRd.readx(4)
+			x := d.d.decRd.readn4()
 			length = uint(bigen.Uint32(x))
+			h.appendN(&v, x[:]...)
 		case 4:
-			x = d.d.decRd.readx(8)
+			x := d.d.decRd.readn8()
 			length = uint(bigen.Uint64(x))
-		}
-
-		if len(x) > 0 {
-			v = append(v, x...)
+			h.appendN(&v, x[:]...)
 		}
 
 		bExt := c >= simpleVdExt && c <= simpleVdExt+7
@@ -648,7 +674,7 @@ func (d *simpleDecDriver) nextValueBytesBdReadR(v0 []byte) (v []byte) {
 		}
 
 		if bExt {
-			v = append(v, d.d.decRd.readn1()) // tag
+			h.append1(&v, d.d.decRd.readn1()) // tag
 		}
 
 		if length == 0 {
@@ -665,7 +691,7 @@ func (d *simpleDecDriver) nextValueBytesBdReadR(v0 []byte) (v []byte) {
 				v = d.nextValueBytesR(v)
 			}
 		} else {
-			v = append(v, d.d.decRd.readx(length)...)
+			h.appendN(&v, d.d.decRd.readx(length)...)
 		}
 	}
 	return
@@ -718,13 +744,6 @@ func (h *SimpleHandle) newDecDriver() decDriver {
 	d.d.init(h)
 	d.reset()
 	return d
-}
-
-func (e *simpleEncDriver) reset() {
-}
-
-func (d *simpleDecDriver) reset() {
-	d.bd, d.bdRead = 0, false
 }
 
 var _ decDriver = (*simpleDecDriver)(nil)

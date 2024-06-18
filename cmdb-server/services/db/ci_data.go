@@ -61,7 +61,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 				err = tmpErr
 				return
 			}
-			if !legalGuidList.Enable {
+			if !legalGuidList.Disable {
 				for _, tmpGuid := range legalGuidList.GuidList {
 					legalGuidMap[tmpGuid] = true
 				}
@@ -310,7 +310,7 @@ func insertActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 	var columnList []*models.CiDataColumnObj
 	var multiRefColumnList []string
 	for _, ciAttr := range param.Attributes {
-		buildValueParam := models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action}
+		buildValueParam := models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, FromCore: param.FromCore}
 		if ciAttr.Name == "guid" {
 			buildValueParam.IsSystem = true
 		}
@@ -383,15 +383,25 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 	}
 	if rollbackFlag {
 		// Rollback action
-		rollbackData, tmpErr := x.QueryString(fmt.Sprintf("select * from %s%s where id=?", HistoryTablePrefix, param.CiType), param.InputData["id"])
-		if tmpErr != nil {
-			err = fmt.Errorf("Try to get history data with id:%s fail,%s ", param.InputData["id"], tmpErr.Error())
-			return
+		if !param.FromCore {
+			inputHistoryId := param.InputData["id"]
+			if inputHistoryId != "" {
+				rollbackData, tmpErr := x.QueryString(fmt.Sprintf("select * from %s%s where id=?", HistoryTablePrefix, param.CiType), param.InputData["id"])
+				if tmpErr != nil {
+					err = fmt.Errorf("Try to get history data with id:%s fail,%s ", param.InputData["id"], tmpErr.Error())
+					return
+				}
+				if len(rollbackData) > 0 {
+					rollbackFlag = true
+					param.InputData = rollbackData[0]
+				}
+			} else {
+				err = fmt.Errorf("Rollback need history data id,please check input data ")
+				return
+			}
 		}
-		if len(rollbackData) > 0 {
-			rollbackFlag = true
-			param.InputData = rollbackData[0]
-		}
+		inputDataBytes, _ := json.Marshal(param.InputData)
+		log.Logger.Info("updateActionFunc", log.String("inputData", string(inputDataBytes)))
 	} else {
 		if param.InputData["update_time"] != "" {
 			if param.InputData["update_time"] != param.NowData["update_time"] {
@@ -799,7 +809,7 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 		if pwdBytes, pwdErr := base64.StdEncoding.DecodeString(inputValue); pwdErr == nil {
 			inputValue = hex.EncodeToString(pwdBytes)
 		}
-		if decodePwd, decodeErr := cipher.AesDePassword(models.Config.Wecube.EncryptSeed, inputValue); decodeErr == nil {
+		if decodePwd, decodeErr := decodeAesPassword(models.Config.Wecube.EncryptSeed, inputValue); decodeErr == nil {
 			inputValue = decodePwd
 		}
 		matchPrefix := false
@@ -1862,7 +1872,7 @@ func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title
 	queryParam.Filters = []*models.QueryRequestFilterObj{{Name: "guid", Operator: "eq", Value: inputGuid}}
 	queryParam.Paging = false
 	queryParam.Sorting = &models.QueryRequestSorting{Asc: true, Field: "history_time"}
-	_, rowData, err = CiDataQuery(ciTypeId, &queryParam, &models.CiDataLegalGuidList{Enable: true}, false)
+	_, rowData, err = CiDataQuery(ciTypeId, &queryParam, &models.CiDataLegalGuidList{Disable: true}, false)
 	if err != nil {
 		return
 	}
@@ -1883,6 +1893,7 @@ func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title
 	for i := len(rowData) - 2; i >= 0; i-- {
 		if rowData[i]["history_state_confirmed"].(string) == "1" {
 			newRowData = append(newRowData, rowData[i])
+			log.Logger.Info("get DataRollbackList find history row data", log.String("id", fmt.Sprintf("%v", rowData[i]["id"])))
 			break
 		} else {
 			newRowData = append(newRowData, rowData[i])
@@ -1979,6 +1990,55 @@ func GetGuidByKeyName(ciType string, keyNameList []string) (guidList []string, e
 	}
 	for _, v := range dataRows {
 		guidList = append(guidList, v["guid"])
+	}
+	return
+}
+
+func GetRollbackLastConfirmData(ciDataGuid string) (targetData models.CiDataMapObj, err error) {
+	historyDataList, _, getDataErr := DataRollbackList(ciDataGuid)
+	if getDataErr != nil {
+		err = getDataErr
+		return
+	}
+	b, _ := json.Marshal(historyDataList)
+	log.Logger.Info("GetRollbackLastConfirmData", log.String("findHistoryData", string(b)))
+	targetData = models.CiDataMapObj{}
+	for _, historyRow := range historyDataList {
+		if historyRow["history_state_confirmed"] == "1" {
+			for k, v := range historyRow {
+				if k == "nextOperations" {
+					continue
+				}
+				if vs, ok := v.(string); ok {
+					targetData[k] = vs
+				} else {
+					tmpMapData := make(map[string]interface{})
+					jmBytes, _ := json.Marshal(v)
+					if jsonUnmarshalErr := json.Unmarshal(jmBytes, &tmpMapData); jsonUnmarshalErr == nil {
+						if objectGuid, existGuidFlag := tmpMapData["guid"]; existGuidFlag {
+							targetData[k] = objectGuid.(string)
+						}
+					}
+				}
+			}
+			break
+		}
+	}
+	if targetData["guid"] == "" {
+		err = fmt.Errorf("auto rollback can not find last confirm data with guid:%s ", ciDataGuid)
+	} else {
+		targetDataBytes, _ := json.Marshal(targetData)
+		log.Logger.Info("GetRollbackLastConfirmData", log.String("targetData", string(targetDataBytes)))
+	}
+	return
+}
+
+func decodeAesPassword(seed, password string) (decodePwd string, err error) {
+	unixTime := time.Now().Unix() / 100
+	decodePwd, err = cipher.AesDePasswordWithIV(seed, password, fmt.Sprintf("%d", unixTime*100000000))
+	if err != nil {
+		unixTime = unixTime - 1
+		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, fmt.Sprintf("%d", unixTime*100000000))
 	}
 	return
 }

@@ -101,7 +101,7 @@ type CiDataPermission struct {
 }
 
 type CiDataLegalGuidList struct {
-	Enable   bool
+	Disable  bool
 	GuidList []string
 }
 
