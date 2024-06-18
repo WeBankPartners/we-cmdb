@@ -8,19 +8,25 @@ import "io"
 // decReader abstracts the reading source, allowing implementations that can
 // read from an io.Reader or directly off a byte slice with zero-copying.
 type decReader interface {
-	// readx will use the implementation scratch buffer if possible i.e. n < len(scratchbuf), OR
-	// just return a view of the []byte being decoded from.
-	// Ensure you call detachZeroCopyBytes later if this needs to be sent outside codec control.
+	// readx will return a view of the []byte if decoding from a []byte, OR
+	// read into the implementation scratch buffer if possible i.e. n < len(scratchbuf), OR
+	// create a new []byte and read into that
 	readx(n uint) []byte
+
 	readb([]byte)
-	readn1() uint8
+
+	readn1() byte
+	readn2() [2]byte
+	// readn3 will read 3 bytes into the top-most elements of a 4-byte array
+	readn3() [4]byte
+	readn4() [4]byte
+	readn8() [8]byte
 	// readn1eof() (v uint8, eof bool)
 
-	// read up to 7 bytes at a time
-	readn(num uint8) (v [rwNLen]byte)
-	numread() uint // number of bytes read
+	// // read up to 8 bytes at a time
+	// readn(num uint8) (v [8]byte)
 
-	// readNumber(includeLastByteRead bool) []byte
+	numread() uint // number of bytes read
 
 	// skip any whitespace characters, and return the first non-matching byte
 	skipWhitespace() (token byte)
@@ -78,6 +84,7 @@ func (z *ioDecReaderCommon) reset(r io.Reader, blist *bytesFreelist) {
 	z.r = r
 	z.ls = unreadByteUndefined
 	z.l, z.n = 0, 0
+	z.bufr = z.blist.check(z.bufr, 256)
 }
 
 func (z *ioDecReaderCommon) numread() uint {
@@ -174,9 +181,23 @@ func (z *ioDecReader) UnreadByte() (err error) {
 	return
 }
 
-func (z *ioDecReader) readn(num uint8) (bs [rwNLen]byte) {
-	z.readb(bs[:num])
-	// copy(bs[:], z.readx(uint(num)))
+func (z *ioDecReader) readn2() (bs [2]byte) {
+	z.readb(bs[:])
+	return
+}
+
+func (z *ioDecReader) readn3() (bs [4]byte) {
+	z.readb(bs[1:])
+	return
+}
+
+func (z *ioDecReader) readn4() (bs [4]byte) {
+	z.readb(bs[:])
+	return
+}
+
+func (z *ioDecReader) readn8() (bs [8]byte) {
+	z.readb(bs[:])
 	return
 }
 
@@ -225,7 +246,7 @@ func (z *ioDecReader) readn1eof() (b uint8, eof bool) {
 
 func (z *ioDecReader) jsonReadNum() (bs []byte) {
 	z.unreadn1()
-	z.bufr = z.blist.check(z.bufr, 256)
+	z.bufr = z.bufr[:0]
 LOOP:
 	i, eof := z.readn1eof()
 	if eof {
@@ -240,7 +261,7 @@ LOOP:
 }
 
 func (z *ioDecReader) jsonReadAsisChars() (bs []byte) {
-	z.bufr = z.blist.check(z.bufr, 256)
+	z.bufr = z.bufr[:0]
 LOOP:
 	i := z.readn1()
 	z.bufr = append(z.bufr, i)
@@ -260,7 +281,7 @@ LOOP:
 }
 
 func (z *ioDecReader) readUntil(stop byte) []byte {
-	z.bufr = z.blist.check(z.bufr, 256)
+	z.bufr = z.bufr[:0]
 LOOP:
 	token := z.readn1()
 	z.bufr = append(z.bufr, token)
@@ -398,9 +419,23 @@ func (z *bufioDecReader) unreadn1() {
 	z.n--
 }
 
-func (z *bufioDecReader) readn(num uint8) (bs [rwNLen]byte) {
-	z.readb(bs[:num])
-	// copy(bs[:], z.readx(uint(num)))
+func (z *bufioDecReader) readn2() (bs [2]byte) {
+	z.readb(bs[:])
+	return
+}
+
+func (z *bufioDecReader) readn3() (bs [4]byte) {
+	z.readb(bs[1:])
+	return
+}
+
+func (z *bufioDecReader) readn4() (bs [4]byte) {
+	z.readb(bs[:])
+	return
+}
+
+func (z *bufioDecReader) readn8() (bs [8]byte) {
+	z.readb(bs[:])
 	return
 }
 
@@ -424,7 +459,7 @@ func (z *bufioDecReader) readx(n uint) (bs []byte) {
 
 func (z *bufioDecReader) jsonReadNum() (bs []byte) {
 	z.unreadn1()
-	z.bufr = z.blist.check(z.bufr, 256)
+	z.bufr = z.bufr[:0]
 LOOP:
 	i, eof := z.readn1eof()
 	if eof {
@@ -439,7 +474,7 @@ LOOP:
 }
 
 func (z *bufioDecReader) jsonReadAsisChars() (bs []byte) {
-	z.bufr = z.blist.check(z.bufr, 256)
+	z.bufr = z.bufr[:0]
 LOOP:
 	i := z.readn1()
 	z.bufr = append(z.bufr, i)
@@ -513,7 +548,7 @@ FINISH:
 }
 
 func (z *bufioDecReader) readUntilFill(stop byte) []byte {
-	z.bufr = z.blist.check(z.bufr, 256)
+	z.bufr = z.bufr[:0]
 	z.n += uint(len(z.buf)) - z.c
 	z.bufr = append(z.bufr, z.buf[z.c:]...)
 	for {
@@ -561,47 +596,78 @@ func (z *bytesDecReader) numread() uint {
 	return z.c
 }
 
-func (z *bytesDecReader) readx(n uint) (bs []byte) {
-	// slicing from a non-constant start position is more expensive,
-	// as more computation is required to decipher the pointer start position.
-	// However, we do it only once, and it's better than reslicing both z.b and return value.
+// Note: slicing from a non-constant start position is more expensive,
+// as more computation is required to decipher the pointer start position.
+// However, we do it only once, and it's better than reslicing both z.b and return value.
 
-	z.c += n
-	return z.b[z.c-n : z.c]
+func (z *bytesDecReader) readx(n uint) (bs []byte) {
+	x := z.c + n
+	bs = z.b[z.c:x]
+	z.c = x
+	return
 }
 
 func (z *bytesDecReader) readb(bs []byte) {
 	copy(bs, z.readx(uint(len(bs))))
 }
 
+// MARKER: do not use this - as it calls into memmove (as the size of data to move is unknown)
+// func (z *bytesDecReader) readnn(bs []byte, n uint) {
+// 	x := z.c
+// 	copy(bs, z.b[x:x+n])
+// 	z.c += n
+// }
+
+// func (z *bytesDecReader) readn(num uint8) (bs [8]byte) {
+// 	x := z.c + uint(num)
+// 	copy(bs[:], z.b[z.c:x]) // slice z.b completely, so we get bounds error if past
+// 	z.c = x
+// 	return
+// }
+
+// func (z *bytesDecReader) readn1() uint8 {
+// 	z.c++
+// 	return z.b[z.c-1]
+// }
+
 func (z *bytesDecReader) readn1() (v uint8) {
-	v = z.b[z.c] // cost 7
-	z.c++        // cost 4
+	v = z.b[z.c]
+	z.c++
 	return
 }
 
-func (z *bytesDecReader) readn(num uint8) (bs [rwNLen]byte) {
-	// if z.c >= uint(len(z.b)) || z.c+uint(num) >= uint(len(z.b)) {
-	// 	panic(io.EOF)
-	// }
+// MARKER: for readn{2,3,4,8}, ensure you slice z.b completely so we get bounds error if past end.
 
-	// for bounds-check elimination, reslice z.b and ensure bs is within len
-	// bb := z.b[z.c:][:num]
-	bb := z.b[z.c : z.c+uint(num)]
-	_ = bs[len(bb)-1]
-	var i int
-LOOP:
-	if i < len(bb) {
-		bs[i] = bb[i]
-		i++
-		goto LOOP
-	}
-
-	z.c += uint(num)
+func (z *bytesDecReader) readn2() (bs [2]byte) {
+	// copy(bs[:], z.b[z.c:z.c+2])
+	bs[1] = z.b[z.c+1]
+	bs[0] = z.b[z.c]
+	z.c += 2
 	return
 }
 
-func (z *bytesDecReader) jsonReadNum() (out []byte) {
+func (z *bytesDecReader) readn3() (bs [4]byte) {
+	// copy(bs[1:], z.b[z.c:z.c+3])
+	bs = okBytes3(z.b[z.c : z.c+3])
+	z.c += 3
+	return
+}
+
+func (z *bytesDecReader) readn4() (bs [4]byte) {
+	// copy(bs[:], z.b[z.c:z.c+4])
+	bs = okBytes4(z.b[z.c : z.c+4])
+	z.c += 4
+	return
+}
+
+func (z *bytesDecReader) readn8() (bs [8]byte) {
+	// copy(bs[:], z.b[z.c:z.c+8])
+	bs = okBytes8(z.b[z.c : z.c+8])
+	z.c += 8
+	return
+}
+
+func (z *bytesDecReader) jsonReadNum() []byte {
 	z.c--
 	i := z.c
 LOOP:
@@ -609,31 +675,31 @@ LOOP:
 		i++
 		goto LOOP
 	}
-	out = z.b[z.c:i]
-	z.c = i
-	return // z.b[c:i]
+	z.c, i = i, z.c
+	return z.b[i:z.c]
 }
 
-func (z *bytesDecReader) jsonReadAsisChars() (out []byte) {
+func (z *bytesDecReader) jsonReadAsisChars() []byte {
 	i := z.c
 LOOP:
 	token := z.b[i]
 	i++
 	if token == '"' || token == '\\' {
-		out = z.b[z.c:i]
-		z.c = i
-		return // z.b[c:i]
+		z.c, i = i, z.c
+		return z.b[i:z.c]
 	}
 	goto LOOP
 }
 
 func (z *bytesDecReader) skipWhitespace() (token byte) {
+	i := z.c
 LOOP:
-	token = z.b[z.c]
-	z.c++
+	token = z.b[i]
 	if isWhitespaceChar(token) {
+		i++
 		goto LOOP
 	}
+	z.c = i + 1
 	return
 }
 
@@ -641,9 +707,8 @@ func (z *bytesDecReader) readUntil(stop byte) (out []byte) {
 	i := z.c
 LOOP:
 	if z.b[i] == stop {
-		i++
-		out = z.b[z.c : i-1]
-		z.c = i
+		out = z.b[z.c:i]
+		z.c = i + 1
 		return
 	}
 	i++
@@ -667,8 +732,15 @@ type decRd struct {
 	rb bytesDecReader
 	ri *ioDecReader
 	bi *bufioDecReader
+
+	decReader
 }
 
+// From out benchmarking, we see the following in terms of performance:
+//
+// - interface calls
+// - branch that can inline what it calls
+//
 // the if/else-if/else block is expensive to inline.
 // Each node of this construct costs a lot and dominates the budget.
 // Best to only do an if fast-path else block (so fast-path is inlined).
@@ -686,6 +758,11 @@ type decRd struct {
 // If golang inlining gets better and bytesDecReader methods can be inlined,
 // then we can revert to using these 2 functions so the bytesDecReader
 // methods are inlined and the IO paths call out to a function.
+//
+// decRd is designed to embed a decReader, and then re-implement some of the decReader
+// methods using a conditional branch. We only override the ones that have a bytes version
+// that is small enough to be inlined. We use ./run.sh -z to check.
+// Right now, only numread and readn1 can be inlined.
 
 func (z *decRd) numread() uint {
 	if z.bytes {
@@ -694,36 +771,6 @@ func (z *decRd) numread() uint {
 		return z.bi.numread()
 	} else {
 		return z.ri.numread()
-	}
-}
-
-func (z *decRd) readn(num uint8) [rwNLen]byte {
-	if z.bytes {
-		return z.rb.readn(num)
-	} else if z.bufio {
-		return z.bi.readn(num)
-	} else {
-		return z.ri.readn(num)
-	}
-}
-
-func (z *decRd) readx(n uint) []byte {
-	if z.bytes {
-		return z.rb.readx(n)
-	} else if z.bufio {
-		return z.bi.readx(n)
-	} else {
-		return z.ri.readx(n)
-	}
-}
-
-func (z *decRd) readb(s []byte) {
-	if z.bytes {
-		z.rb.readb(s)
-	} else if z.bufio {
-		z.bi.readb(s)
-	} else {
-		z.ri.readb(s)
 	}
 }
 
@@ -746,45 +793,10 @@ func (z *decRd) readn1IO() uint8 {
 	return z.ri.readn1()
 }
 
-func (z *decRd) skipWhitespace() (token byte) {
-	if z.bytes {
-		return z.rb.skipWhitespace()
-	} else if z.bufio {
-		return z.bi.skipWhitespace()
-	} else {
-		return z.ri.skipWhitespace()
-	}
-}
+type devNullReader struct{}
 
-func (z *decRd) readUntil(stop byte) (out []byte) {
-	if z.bytes {
-		return z.rb.readUntil(stop)
-	} else if z.bufio {
-		return z.bi.readUntil(stop)
-	} else {
-		return z.ri.readUntil(stop)
-	}
-}
-
-func (z *decRd) jsonReadNum() (bs []byte) {
-	if z.bytes {
-		return z.rb.jsonReadNum()
-	} else if z.bufio {
-		return z.bi.jsonReadNum()
-	} else {
-		return z.ri.jsonReadNum()
-	}
-}
-
-func (z *decRd) jsonReadAsisChars() (bs []byte) {
-	if z.bytes {
-		return z.rb.jsonReadAsisChars()
-	} else if z.bufio {
-		return z.bi.jsonReadAsisChars()
-	} else {
-		return z.ri.jsonReadAsisChars()
-	}
-}
+func (devNullReader) Read(p []byte) (int, error) { return 0, io.EOF }
+func (devNullReader) Close() error               { return nil }
 
 func readFull(r io.Reader, bs []byte) (n uint, err error) {
 	var nn int
