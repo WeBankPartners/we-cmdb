@@ -85,7 +85,7 @@ func (c *CoreToken) refreshToken() error {
 }
 
 func (c *CoreToken) requestCoreToken(rsaKey string) error {
-	encryptBytes, err := cipher.RSAEncryptByPrivate([]byte(fmt.Sprintf("%s:%s", c.SubSystemCode, requestCoreNonce)), rsaKey)
+	encryptBytes, err := cipher.RSAEncryptByPrivate([]byte(fmt.Sprintf("%s:%s", c.SubSystemCode, requestCoreNonce)), []byte(rsaKey))
 	encryptString := base64.StdEncoding.EncodeToString(encryptBytes)
 	if err != nil {
 		return err
