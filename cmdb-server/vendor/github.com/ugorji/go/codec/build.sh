@@ -5,31 +5,54 @@
 
 _tests() {
     local vet="" # TODO: make it off
-    local gover=$( go version | cut -f 3 -d ' ' )
+    local gover=$( ${gocmd} version | cut -f 3 -d ' ' )
+    [[ $( ${gocmd} version ) == *"gccgo"* ]] && zcover=0
+    [[ $( ${gocmd} version ) == *"gollvm"* ]] && zcover=0
     case $gover in
         go1.[7-9]*|go1.1[0-9]*|go2.*|devel*) true ;;
         *) return 1
     esac
-    # note that codecgen requires fastpath, so you cannot do "codecgen notfastpath"
-    # we test the following permutations: fastpath/unsafe, !fastpath/!unsafe, codecgen/unsafe
-    ## local a=( "" "safe"  "notfastpath safe" "codecgen" )
-    echo "TestCodecSuite: (fastpath/unsafe), (!fastpath/!unsafe), (codecgen/unsafe)"
-    local a=( "" "notfastpath safe"  "codecgen" )
+    # note that codecgen requires fastpath, so you cannot do "codecgen codec.notfastpath"
+    # we test the following permutations wnich all execute different code paths as below.
+    echo "TestCodecSuite: (fastpath/unsafe), (!fastpath/unsafe), (fastpath/!unsafe), (!fastpath/!unsafe), (codecgen/unsafe)"
+    local echo=1
+    local nc=2 # count
+    local cpus="1,$(nproc)"
+    # if using the race detector, then set nc to
+    if [[ " ${zargs[@]} " =~ "-race" ]]; then
+        cpus="$(nproc)"
+    fi
+    local a=( "" "codec.notfastpath" "codec.safe" "codec.notfastpath codec.safe"  "codecgen" )
     local b=()
+    local c=()
     for i in "${a[@]}"
     do
         local i2=${i:-default}
-        [[ "$zwait" == "1" ]] && echo ">>>> TAGS: '$i'"
+        [[ "$zwait" == "1" ]] && echo ">>>> TAGS: 'alltests $i'; RUN: 'TestCodecSuite'"
+        [[ "$zcover" == "1" ]] && c=( -coverprofile "${i2// /-}.cov.out" )
         true &&
-            go vet -printfuncs "errorf" "$@" &&
-            go test ${zargs[*]} ${ztestargs[*]} -vet "$vet" -tags "alltests $i" \
-               -run "TestCodecSuite" -coverprofile "${i2// /-}.cov.out" "$@" &
+            ${gocmd} vet -printfuncs "errorf" "$@" &&
+            if [[ "$echo" == 1 ]]; then set -o xtrace; fi &&
+            ${gocmd} test ${zargs[*]} ${ztestargs[*]} -vet "$vet" -tags "alltests $i" -count $nc -cpu $cpus -run "TestCodecSuite" "${c[@]}" "$@" &
+        if [[ "$echo" == 1 ]]; then set +o xtrace; fi
         b+=("${i2// /-}.cov.out")
         [[ "$zwait" == "1" ]] && wait
+            
         # if [[ "$?" != 0 ]]; then return 1; fi
     done
+    if [[ "$zextra" == "1" ]]; then
+        [[ "$zwait" == "1" ]] && echo ">>>> TAGS: 'codec.notfastpath x'; RUN: 'Test.*X$'"
+        [[ "$zcover" == "1" ]] && c=( -coverprofile "x.cov.out" )
+        ${gocmd} test ${zargs[*]} ${ztestargs[*]} -vet "$vet" -tags "codec.notfastpath x" -count $nc -run 'Test.*X$' "${c[@]}" &
+        b+=("x.cov.out")
+        [[ "$zwait" == "1" ]] && wait
+    fi
     wait
-    [[ "$zcover" == "1" ]] && command -v gocovmerge && gocovmerge "${b[@]}" > __merge.cov.out && go tool cover -html=__merge.cov.out
+    # go tool cover is not supported for gccgo, gollvm, other non-standard go compilers
+    [[ "$zcover" == "1" ]] &&
+        command -v gocovmerge &&
+        gocovmerge "${b[@]}" > __merge.cov.out &&
+        ${gocmd} tool cover -html=__merge.cov.out
 }
 
 # is a generation needed?
@@ -99,21 +122,6 @@ func GenRunTmpl2Go(in, out string) { genRunTmpl2Go(in, out) }
 func GenRunSortTmpl2Go(in, out string) { genRunSortTmpl2Go(in, out) }
 EOF
 
-    cat > gen-from-tmpl.generated.go <<EOF
-// +build ignore
-
-package main
-
-import "${zpkg}"
-
-func main() {
-codec.GenRunTmpl2Go("fast-path.go.tmpl", "fast-path.generated.go")
-codec.GenRunTmpl2Go("gen-helper.go.tmpl", "gen-helper.generated.go")
-codec.GenRunTmpl2Go("mammoth-test.go.tmpl", "mammoth_generated_test.go")
-codec.GenRunTmpl2Go("mammoth2-test.go.tmpl", "mammoth2_generated_test.go")
-}
-EOF
-
     # stub xxxRv and xxxRvSlice creation, before you create it
     cat > gen-from-tmpl.sort-slice-stubs.generated.go <<EOF
 // +build codecgen.sort_slice
@@ -141,9 +149,24 @@ func (${i}RvSlice) Len() int { return 0 }
 func (${i}RvSlice) Less(i, j int) bool { return false }
 func (${i}RvSlice) Swap(i, j int) {}
 
+type ${i}Intf struct { v ${i2}; i interface{} }
+
+type ${i}IntfSlice []${i}Intf
+
+func (${i}IntfSlice) Len() int { return 0 }
+func (${i}IntfSlice) Less(i, j int) bool { return false }
+func (${i}IntfSlice) Swap(i, j int) {}
+
 EOF
     done
 
+    sed -e 's+// __DO_NOT_REMOVE__NEEDED_FOR_REPLACING__IMPORT_PATH__FOR_CODEC_BENCH__+import . "github.com/ugorji/go/codec"+' \
+        shared_test.go > bench/shared_test.go
+
+    # explicitly return 0 if this passes, else return 1
+    local btags="codec.notfastpath codec.safe codecgen.exec"
+    rm -f sort-slice.generated.go fast-path.generated.go gen-helper.generated.go mammoth_generated_test.go mammoth2_generated_test.go
+    
     cat > gen-from-tmpl.sort-slice.generated.go <<EOF
 // +build ignore
 
@@ -156,14 +179,27 @@ codec.GenRunSortTmpl2Go("sort-slice.go.tmpl", "sort-slice.generated.go")
 }
 EOF
 
-    sed -e 's+// __DO_NOT_REMOVE__NEEDED_FOR_REPLACING__IMPORT_PATH__FOR_CODEC_BENCH__+import . "github.com/ugorji/go/codec"+' \
-        shared_test.go > bench/shared_test.go
+    ${gocmd} run -tags "$btags codecgen.sort_slice" gen-from-tmpl.sort-slice.generated.go || return 1
+    rm -f gen-from-tmpl.sort-slice.generated.go
+    
+    cat > gen-from-tmpl.generated.go <<EOF
+// +build ignore
 
-    # explicitly return 0 if this passes, else return 1
-    local btags="notfastpath safe codecgen.exec"
-    rm -f sort-slice.generated.go fast-path.generated.go gen-helper.generated.go mammoth_generated_test.go mammoth2_generated_test.go
-    go run -tags "$btags codecgen.sort_slice" gen-from-tmpl.sort-slice.generated.go || return 1
-    go run -tags "$btags" gen-from-tmpl.generated.go || return 1
+package main
+
+import "${zpkg}"
+
+func main() {
+codec.GenRunTmpl2Go("fast-path.go.tmpl", "fast-path.generated.go")
+codec.GenRunTmpl2Go("gen-helper.go.tmpl", "gen-helper.generated.go")
+codec.GenRunTmpl2Go("mammoth-test.go.tmpl", "mammoth_generated_test.go")
+codec.GenRunTmpl2Go("mammoth2-test.go.tmpl", "mammoth2_generated_test.go")
+}
+EOF
+
+    ${gocmd} run -tags "$btags" gen-from-tmpl.generated.go || return 1
+    rm -f gen-from-tmpl.generated.go
+    
     rm -f gen-from-tmpl.*generated.go
     return 0
 }
@@ -180,11 +216,11 @@ _codegenerators() {
     true &&
         echo "codecgen ... " &&
         if [[ $zforce || ! -f "$c8" || "$c7/gen.go" -nt "$c8" ]]; then
-            echo "rebuilding codecgen ... " && ( cd codecgen && go build -o $c8 ${zargs[*]} . )
+            echo "rebuilding codecgen ... " && ( cd codecgen && ${gocmd} build -o $c8 ${zargs[*]} . )
         fi &&
         $c8 -rt 'codecgen' -t 'codecgen generated' -o "values_codecgen${c5}" -d 19780 "$zfin" "$zfin2" &&
         cp mammoth2_generated_test.go $c9 &&
-        $c8 -t 'codecgen,!notfastpath generated,!notfastpath' -o "mammoth2_codecgen${c5}" -d 19781 "mammoth2_generated_test.go" &&
+        $c8 -t 'codecgen,!codec.notfastpath,!codec.notmammoth generated,!codec.notfastpath,!codec.notmammoth' -o "mammoth2_codecgen${c5}" -d 19781 "mammoth2_generated_test.go" &&
         rm -f $c9 &&
         echo "generators done!" 
 }
@@ -206,7 +242,7 @@ _prebuild() {
         cp $d/values_flex_test.go $d/$zfin2 &&
         _codegenerators &&
         if [[ "$(type -t _codegenerators_external )" = "function" ]]; then _codegenerators_external ; fi &&
-        if [[ $zforce ]]; then go install ${zargs[*]} .; fi &&
+        if [[ $zforce ]]; then ${gocmd} install ${zargs[*]} .; fi &&
         returncode=0 &&
         echo "prebuild done successfully"
     rm -f $d/$zfin $d/$zfin2
@@ -217,12 +253,13 @@ _prebuild() {
 _make() {
     local makeforce=${zforce}
     zforce=1
-    (cd codecgen && go install ${zargs[*]} .) && _prebuild && go install ${zargs[*]} .
+    (cd codecgen && ${gocmd} install ${zargs[*]} .) && _prebuild && ${gocmd} install ${zargs[*]} .
     zforce=${makeforce}
 }
 
 _clean() {
-    rm -f gen-from-tmpl.*generated.go \
+    rm -f \
+       gen-from-tmpl.*generated.go \
        codecgen-*.go \
        test_values.generated.go test_values_flex.generated.go
 }
@@ -265,9 +302,12 @@ EOF
 }
 
 _usage() {
+    # hidden args:
+    # -pf [p=prebuild (f=force)]
+    
     cat <<EOF
 primary usage: $0 
-    -[tosw m pf n l d]   -> [t=tests (o=cover, s=short, w=wait), m=make, p=prebuild (f=force), n=inlining diagnostics, l=mid-stack inlining, d=race detector]
+    -[tesow m n l d]   -> [t=tests (e=extra, s=short, o=cover, w=wait), m=make, n=inlining diagnostics, l=mid-stack inlining, d=race detector]
     -v                   -> v=verbose
 EOF
     if [[ "$(type -t _usage_run)" = "function" ]]; then _usage_run ; fi
@@ -275,19 +315,25 @@ EOF
 
 _main() {
     if [[ -z "$1" ]]; then _usage; return 1; fi
-    local x
-    local zforce
-    local zcover
-    local zwait
+    local x # determines the main action to run in this build
+    local zforce # force
+    local zcover # generate cover profile and show in browser when done
+    local zwait # run tests in sequence, not parallel ie wait for one to finish before starting another
+    local zextra # means run extra (python based tests, etc) during testing
+    
     local ztestargs=()
     local zargs=()
     local zverbose=()
     local zbenchflags=""
+
+    local gocmd=${MYGOCMD:-go}
+    
     OPTIND=1
-    while getopts ":ctmnrgpfvlyzdsowxb:" flag
+    while getopts ":cetmnrgpfvldsowkxyzb:" flag
     do
         case "x$flag" in
             'xo') zcover=1 ;;
+            'xe') zextra=1 ;;
             'xw') zwait=1 ;;
             'xf') zforce=1 ;;
             'xs') ztestargs+=("-short") ;;
@@ -312,6 +358,7 @@ _main() {
         'xx') _analyze_checks "$@" ;;
         'xy') _analyze_debug_types "$@" ;;
         'xz') _analyze_do_inlining_and_more "$@" ;;
+        'xk') _go_compiler_validation_suite ;;
         'xb') _bench "$@" ;;
     esac
     # unset zforce zargs zbenchflags
