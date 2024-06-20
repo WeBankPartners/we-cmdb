@@ -54,6 +54,25 @@ func AesEncode(key string, rawData string) (string, error) {
 	return hex.EncodeToString(crypted), nil
 }
 
+func AesEncodeWithIV(key string, rawData, iv string) (string, error) {
+	bytesRawKey := []byte(key)
+	block, err := aes.NewCipher(bytesRawKey)
+	if err != nil {
+		return "", err
+	}
+	blockSize := block.BlockSize()
+	ivBytes := []byte(iv)
+	if len(ivBytes) != blockSize {
+		err = fmt.Errorf("iv len:%d illegal,should be %d ", len(ivBytes), blockSize)
+		return "", err
+	}
+	origData := PKCS7Padding([]byte(rawData), blockSize)
+	blockMode := cipher.NewCBCEncrypter(block, ivBytes)
+	crypted := make([]byte, len([]byte(origData)))
+	blockMode.CryptBlocks(crypted, origData)
+	return hex.EncodeToString(crypted), nil
+}
+
 func AesDecode(key string, encryptData string) (password string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -71,13 +90,42 @@ func AesDecode(key string, encryptData string) (password string, err error) {
 	blockMode := cipher.NewCBCDecrypter(block, bytesRawKey[:blockSize])
 	origData := make([]byte, len(bytesRawData))
 	blockMode.CryptBlocks(origData, bytesRawData)
-
 	origData = PKCS7UnPadding(origData)
 	if len(origData) == 0 {
 		err = fmt.Errorf("password wrong")
 		return
 	}
 
+	password = string(origData)
+	return
+}
+
+func AesDecodeWithIV(key string, encryptData, iv string) (password string, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%v", r)
+		}
+	}()
+	bytesRawKey := []byte(key)
+	bytesRawData, _ := hex.DecodeString(encryptData)
+	block, err := aes.NewCipher(bytesRawKey)
+	if err != nil {
+		return
+	}
+	blockSize := block.BlockSize()
+	ivBytes := []byte(iv)
+	if len(ivBytes) != blockSize {
+		err = fmt.Errorf("iv len:%d illegal,should be %d ", len(ivBytes), blockSize)
+		return
+	}
+	blockMode := cipher.NewCBCDecrypter(block, ivBytes)
+	origData := make([]byte, len(bytesRawData))
+	blockMode.CryptBlocks(origData, bytesRawData)
+	origData = PKCS7UnPadding(origData)
+	if len(origData) == 0 {
+		err = fmt.Errorf("password wrong")
+		return
+	}
 	password = string(origData)
 	return
 }
@@ -103,9 +151,27 @@ func AesEnPassword(seed, password string) (string, error) {
 	return enPassword, nil
 }
 
+func AesEnPasswordWithIV(seed, password, iv string) (string, error) {
+	md5sum := Md5Encode(seed)
+	enPassword, err := AesEncodeWithIV(md5sum[0:16], password, iv)
+	if err != nil {
+		return "", err
+	}
+	return enPassword, nil
+}
+
 func AesDePassword(seed, password string) (string, error) {
 	md5sum := Md5Encode(seed)
 	dePassword, err := AesDecode(md5sum[0:16], password)
+	if err != nil {
+		return "", err
+	}
+	return dePassword, nil
+}
+
+func AesDePasswordWithIV(seed, password, iv string) (string, error) {
+	md5sum := Md5Encode(seed)
+	dePassword, err := AesDecodeWithIV(md5sum[0:16], password, iv)
 	if err != nil {
 		return "", err
 	}

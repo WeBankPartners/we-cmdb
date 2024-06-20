@@ -809,7 +809,7 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 		if pwdBytes, pwdErr := base64.StdEncoding.DecodeString(inputValue); pwdErr == nil {
 			inputValue = hex.EncodeToString(pwdBytes)
 		}
-		if decodePwd, decodeErr := cipher.AesDePassword(models.Config.Wecube.EncryptSeed, inputValue); decodeErr == nil {
+		if decodePwd, decodeErr := decodeAesPassword(models.Config.Wecube.EncryptSeed, inputValue); decodeErr == nil {
 			inputValue = decodePwd
 		}
 		matchPrefix := false
@@ -2029,6 +2029,16 @@ func GetRollbackLastConfirmData(ciDataGuid string) (targetData models.CiDataMapO
 	} else {
 		targetDataBytes, _ := json.Marshal(targetData)
 		log.Logger.Info("GetRollbackLastConfirmData", log.String("targetData", string(targetDataBytes)))
+	}
+	return
+}
+
+func decodeAesPassword(seed, password string) (decodePwd string, err error) {
+	unixTime := time.Now().Unix() / 100
+	decodePwd, err = cipher.AesDePasswordWithIV(seed, password, fmt.Sprintf("%d", unixTime*100000000))
+	if err != nil {
+		unixTime = unixTime - 1
+		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, fmt.Sprintf("%d", unixTime*100000000))
 	}
 	return
 }
