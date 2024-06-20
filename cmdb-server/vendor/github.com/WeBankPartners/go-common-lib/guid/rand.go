@@ -10,7 +10,7 @@ import (
 func CreateGuid() string {
 	b := make([]byte, 16)
 	rand.Read(b)
-	return fmt.Sprintf("%x%x", uint32(time.Now().Unix()), b[4:8])
+	return fmt.Sprintf("%x%x", time.Now().UnixMicro(), b[4:8])
 }
 
 func CreateGuidList(num int) []string {
