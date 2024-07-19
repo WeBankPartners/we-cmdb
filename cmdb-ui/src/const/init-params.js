@@ -77,7 +77,7 @@ export const INPUT_TYPE_CONFIG = [
     codeId: 'ref',
     code: 'ref',
     value: 'varchar',
-    length: 255
+    length: 64
   },
   {
     code: 'multiRef',

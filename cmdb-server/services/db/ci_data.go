@@ -2035,10 +2035,12 @@ func GetRollbackLastConfirmData(ciDataGuid string) (targetData models.CiDataMapO
 
 func decodeAesPassword(seed, password string) (decodePwd string, err error) {
 	unixTime := time.Now().Unix() / 100
-	decodePwd, err = cipher.AesDePasswordWithIV(seed, password, fmt.Sprintf("%d", unixTime*100000000))
+	ivValue := fmt.Sprintf("%d", unixTime*100000000)
+	decodePwd, err = cipher.AesDePasswordWithIV(seed, password, ivValue)
 	if err != nil {
 		unixTime = unixTime - 1
-		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, fmt.Sprintf("%d", unixTime*100000000))
+		ivValue = fmt.Sprintf("%d", unixTime*100000000)
+		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, ivValue)
 	}
 	return
 }
