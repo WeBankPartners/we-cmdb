@@ -454,7 +454,7 @@ func buildColumnSqlFromCiAttr(ciAttr *models.SysCiTypeAttrTable) (nowTable, hist
 
 func GetCiTypesReference(ciTypeId string) (result []*models.CiTypeReferenceObj, err error) {
 	result = []*models.CiTypeReferenceObj{}
-	err = x.SQL("SELECT t1.id,t1.ci_type,t1.name,t1.display_name,t1.description,t1.status,t1.input_type,t1.ref_ci_type,t1.ref_name,t1.ref_type,t2.display_name as ci_type_name FROM sys_ci_type_attr t1 left join sys_ci_type t2 on t1.ci_type=t2.id WHERE t1.ref_ci_type=?", ciTypeId).Find(&result)
+	err = x.SQL("SELECT t1.id,t1.ci_type,t1.name,t1.display_name,t1.description,t1.status,t1.input_type,t1.ref_ci_type,t1.ref_name,t1.ref_type,t2.display_name as ci_type_name FROM sys_ci_type_attr t1 left join sys_ci_type t2 on t1.ci_type=t2.id WHERE t1.status!='deleted' and t1.ref_ci_type=?", ciTypeId).Find(&result)
 	for _, row := range result {
 		row.DisplayNameTmp = row.DisplayName
 	}
