@@ -48,7 +48,6 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 			return
 		}
 	}
-	// TODO myAttr如果是多对多
 	myAttrQuery, tmpErr := x.QueryString("select my_attr from sys_report_object where id = ?", root.Id)
 	if tmpErr != nil {
 		err = fmt.Errorf("Try to query report owner attribute fail,%s ", tmpErr.Error())
@@ -71,29 +70,90 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 		}
 		roAttrDataNames = append(roAttrDataNames, columnName)
 	}
+	rootCiAttrDefList, getErr := GetCiAttrByCiType(root.CiType, false)
+	if getErr != nil {
+		err = fmt.Errorf("get root ci type %s attr list fail,%s ", root.CiType, getErr.Error())
+		return
+	}
+	// 把自己的关联属性加到查询属性里
 	if len(myAttrQuery) > 0 {
 		for _, v := range myAttrQuery {
-			if v["my_attr"] != "" {
-				roAttrDataNames = append(roAttrDataNames, v["my_attr"][strings.Index(v["my_attr"], "__")+2:])
+			myAttr := v["my_attr"]
+			if myAttr != "" {
+				myAttrName := myAttr[strings.Index(myAttr, "__")+2:]
+				attrMultipleFlag := false
+				for _, attrDef := range rootCiAttrDefList {
+					if attrDef.Name == myAttrName {
+						if attrDef.InputType == "multiRef" {
+							attrMultipleFlag = true
+						}
+						break
+					}
+				}
+				if attrMultipleFlag {
+					multiRefColumnMap[myAttrName] = myAttr
+				} else {
+					roAttrDataNames = append(roAttrDataNames, myAttrName)
+				}
 			}
 		}
 	}
-
-	filterCols := strings.Join(roAttrDataNames, ",")
+	// 查子关联对象，尝试把子关联对象中的父属性也给加到查询里
+	var childReportObjectList []*models.ReportObjectNode
+	err = x.SQL(`SELECT * FROM sys_report_object WHERE parent_object=?`, root.Id).Find(&childReportObjectList)
+	if err != nil {
+		log.Logger.Error("Query report object by parent object error", log.String("parentObjectId", root.Id), log.Error(err))
+		return
+	}
+	if len(childReportObjectList) > 0 {
+		for _, childReportObj := range childReportObjectList {
+			if childReportObj.ParentAttr == "" {
+				continue
+			}
+			parentAttrName := childReportObj.ParentAttr[strings.Index(childReportObj.ParentAttr, "__")+2:]
+			attrMultipleFlag := false
+			for _, attrDef := range rootCiAttrDefList {
+				if attrDef.Name == parentAttrName {
+					if attrDef.InputType == "multiRef" {
+						attrMultipleFlag = true
+					}
+					break
+				}
+			}
+			if attrMultipleFlag {
+				multiRefColumnMap[parentAttrName] = childReportObj.ParentAttr
+			} else {
+				roAttrDataNames = append(roAttrDataNames, parentAttrName)
+			}
+		}
+	}
+	attrDistinctMap := make(map[string]int)
+	var distinctAttrNames []string
+	for _, v := range roAttrDataNames {
+		if _, ok := attrDistinctMap[v]; ok {
+			continue
+		}
+		distinctAttrNames = append(distinctAttrNames, v)
+		attrDistinctMap[v] = 1
+	}
+	filterCols := strings.Join(distinctAttrNames, ",")
 	tmpFilter := "guid"
+	//multiFilterTableMap := make(map[string][]*models.MultiRefTable)
 	if root.MyAttr != "" {
 		if strings.Index(root.MyAttr, "__") < len(root.MyAttr)-2 {
 			tmpFilter = root.MyAttr[strings.Index(root.MyAttr, "__")+2:]
 			if _, ok := multiRefColumnMap[tmpFilter]; ok {
 				// trans multiRef attr filter data
-				if multiRefRows, getMultiRefErr := getMultiRefTableData(root.CiType, tmpFilter, rootGuidList, []string{}); getMultiRefErr != nil {
+				if multiRefRows, getMultiRefErr := getMultiRefTableData(root.CiType, tmpFilter, []string{}, rootGuidList); getMultiRefErr != nil {
 					err = getMultiRefErr
 					return
 				} else {
+					tmpFilter = "guid"
 					rootGuidList = []string{}
 					for _, v := range multiRefRows {
-						rootGuidList = append(rootGuidList, v.ToGuid)
+						rootGuidList = append(rootGuidList, v.FromGuid)
 					}
+					//multiFilterTableMap[tmpFilter] = multiRefRows
 				}
 			}
 		}
@@ -155,7 +215,7 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 			}
 			for i, v := range rowData {
 				if tmpGuid, ok := v["guid"]; ok {
-					if multiRefColumnData, ok := multiRefDataMap[tmpGuid.(string)]; ok {
+					if multiRefColumnData, matchFlag := multiRefDataMap[tmpGuid.(string)]; matchFlag {
 						if len(multiRefColumnData) > 0 {
 							rowData[i][multiRefColumn] = multiRefColumnData
 						}
@@ -168,31 +228,37 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 		}
 	}
 
-	var roData []*models.ReportObjectNode
-	err = x.SQL(`SELECT * FROM sys_report_object WHERE parent_object=?`, root.Id).Find(&roData)
-	if err != nil {
-		log.Logger.Error("Query report object by parent object error", log.String("parentObjectId", root.Id), log.Error(err))
-		return
-	}
+	//var childReportObjectList []*models.ReportObjectNode
+	//err = x.SQL(`SELECT * FROM sys_report_object WHERE parent_object=?`, root.Id).Find(&childReportObjectList)
+	//if err != nil {
+	//	log.Logger.Error("Query report object by parent object error", log.String("parentObjectId", root.Id), log.Error(err))
+	//	return
+	//}
 
-	if len(roData) == 0 {
+	if len(childReportObjectList) == 0 {
 		err = nil
 		return
 	}
 
-	for _, ro := range roData {
+	for _, ro := range childReportObjectList {
 		tmpList := []string{}
-		for _, v := range ciTypeTableData {
-			tmpList = append(tmpList, v[ro.ParentAttr[strings.Index(ro.ParentAttr, "__")+2:]])
+		parentAttr := ro.ParentAttr[strings.Index(ro.ParentAttr, "__")+2:]
+		for _, parentDataRow := range rowData {
+			if parentRowValue, ok := parentDataRow[parentAttr]; ok {
+				tmpList = append(tmpList, transInterfaceToStringList(parentRowValue)...)
+			}
 		}
-		subReportAttr, subReportNameMap, tmpErr := GetReportAttr(ro.Id)
-		if tmpErr != nil {
-			err = tmpErr
+		//for _, v := range ciTypeTableData {
+		//	tmpList = append(tmpList, v[ro.ParentAttr[strings.Index(ro.ParentAttr, "__")+2:]])
+		//}
+		subReportAttr, subReportNameMap, getReportAtrrErr := GetReportAttr(ro.Id)
+		if getReportAtrrErr != nil {
+			err = getReportAtrrErr
 			break
 		}
-		childDataList, childEditList, tmpErr := GetChildReportObject(ro, tmpList, subReportAttr, confirmTime, viewId)
-		if tmpErr != nil {
-			err = tmpErr
+		childDataList, childEditList, getChildReportObjectErr := GetChildReportObject(ro, tmpList, subReportAttr, confirmTime, viewId)
+		if getChildReportObjectErr != nil {
+			err = getChildReportObjectErr
 			break
 		}
 		if len(childEditList) > 0 {
@@ -201,7 +267,8 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 		for i, v := range rowData {
 			var sub []map[string]interface{}
 			for _, v2 := range childDataList {
-				if v2[ro.MyAttr[strings.Index(ro.MyAttr, "__")+2:]] == v[ro.ParentAttr[strings.Index(ro.ParentAttr, "__")+2:]] {
+				if interfaceEqual(v2[ro.MyAttr[strings.Index(ro.MyAttr, "__")+2:]], v[ro.ParentAttr[strings.Index(ro.ParentAttr, "__")+2:]]) {
+					//if v2[ro.MyAttr[strings.Index(ro.MyAttr, "__")+2:]] == v[ro.ParentAttr[strings.Index(ro.ParentAttr, "__")+2:]] {
 					tmpSubObj := make(map[string]interface{})
 					for subKey, subValue := range v2 {
 						if _, b := subReportNameMap[subKey]; b {
@@ -1725,6 +1792,42 @@ func getCiImportGuidMap() (historyMap map[string]string, err error) {
 	}
 	for _, v := range mapRows {
 		historyMap[v.Source] = v.Target
+	}
+	return
+}
+
+func transInterfaceToStringList(input interface{}) (output []string) {
+	if input == nil {
+		return
+	}
+	valueType := reflect.TypeOf(input).String()
+	if valueType == "string" {
+		stringValue := input.(string)
+		output = []string{stringValue}
+		return
+	} else if valueType == "[]string" {
+		output = input.([]string)
+	} else if valueType == "[]interface {}" {
+		for _, v := range input.([]interface{}) {
+			output = append(output, fmt.Sprintf("%s", v))
+		}
+	}
+	return
+}
+
+func interfaceEqual(left, right interface{}) (equal bool) {
+	leftList := transInterfaceToStringList(left)
+	rightList := transInterfaceToStringList(right)
+	for _, lv := range leftList {
+		for _, rv := range rightList {
+			if lv == rv {
+				equal = true
+				break
+			}
+		}
+		if equal {
+			break
+		}
 	}
 	return
 }

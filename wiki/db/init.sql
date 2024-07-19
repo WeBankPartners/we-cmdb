@@ -17,7 +17,7 @@ INSERT INTO `sys_basekey_cat` (`id`, `name`, `description`) VALUES ('ref_type','
 UNLOCK TABLES;
 
 CREATE TABLE `sys_basekey_code` (
-  `id` varchar(32) NOT NULL COMMENT '主键',
+  `id` varchar(128) NOT NULL COMMENT '主键',
   `cat_id` varchar(32) NOT NULL COMMENT '所属配置组',
   `code` varchar(255) NOT NULL COMMENT '配置key',
   `value` varchar(255) DEFAULT NULL COMMENT '配置value',
@@ -73,7 +73,7 @@ CREATE TABLE `sys_ci_template_attr` (
   `text_validate` varchar(1024) DEFAULT NULL COMMENT '正则校验',
   `ref_ci_type` varchar(32) DEFAULT NULL COMMENT '关联ci',
   `ref_name` varchar(64) DEFAULT NULL COMMENT '关联显示名',
-  `ref_type` varchar(32) DEFAULT NULL COMMENT '关联类型',
+  `ref_type` varchar(128) DEFAULT NULL COMMENT '关联类型',
   `ref_filter` varchar(4096) DEFAULT NULL COMMENT '关联过滤规则',
   `ref_update_state_validate` varchar(2048) DEFAULT NULL COMMENT '关联状态映射',
   `ref_confirm_state_validate` varchar(2048) DEFAULT NULL COMMENT '确认状态映射',
@@ -143,8 +143,8 @@ CREATE TABLE `sys_ci_type` (
   `description` varchar(255) DEFAULT NULL COMMENT '描述',
   `status` varchar(20) DEFAULT 'notCreated' COMMENT '描述',
   `image_file` varchar(32) NOT NULL COMMENT '图标',
-  `ci_group` varchar(32) NOT NULL COMMENT '所属图层',
-  `ci_layer` varchar(32) NOT NULL COMMENT '图层层级',
+  `ci_group` varchar(128) NOT NULL COMMENT '所属图层',
+  `ci_layer` varchar(128) NOT NULL COMMENT '图层层级',
   `ci_template` varchar(32) NOT NULL COMMENT '所属模版',
   `state_machine` varchar(32) NOT NULL COMMENT '关联状态机',
   `seq_no` int(11) DEFAULT NULL,
@@ -174,7 +174,7 @@ CREATE TABLE `sys_ci_type_attr` (
   `text_validate` varchar(1024) DEFAULT NULL COMMENT '正则校验',
   `ref_ci_type` varchar(32) DEFAULT NULL COMMENT '关联ci',
   `ref_name` varchar(64) DEFAULT NULL COMMENT '关联显示名',
-  `ref_type` varchar(32) DEFAULT NULL COMMENT '关联类型',
+  `ref_type` varchar(128) DEFAULT NULL COMMENT '关联类型',
   `ref_filter` varchar(4096) DEFAULT NULL COMMENT '关联过滤规则',
   `ref_update_state_validate` varchar(2048) DEFAULT NULL COMMENT '关联状态映射',
   `ref_confirm_state_validate` varchar(2048) DEFAULT NULL,
@@ -750,4 +750,5 @@ CREATE TABLE `sys_ci_import_guid_map` (
   `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+alter table sys_basekey_code modify column `id` varchar(128) NOT NULL COMMENT '主键';
 #@v2.0.9.24-end@;
