@@ -3,6 +3,7 @@ package view
 import (
 	"fmt"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
@@ -128,10 +129,14 @@ func GetViewData(c *gin.Context) {
 	var reportId string
 	if param.ReportId != "" {
 		reportId = param.ReportId
-		rootGuidList, err = db.GetRootCiDataWithReportId(reportId)
-		if err != nil {
-			middleware.ReturnServerHandleError(c, err)
-			return
+		if len(param.RootCiList) > 0 {
+			rootGuidList = param.RootCiList
+		} else {
+			rootGuidList, err = db.GetRootCiDataWithReportId(reportId)
+			if err != nil {
+				middleware.ReturnServerHandleError(c, err)
+				return
+			}
 		}
 	} else {
 		rootGuidList = strings.Split(param.RootCi, ",")
@@ -148,6 +153,7 @@ func GetViewData(c *gin.Context) {
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
+	log.Logger.Info("view-data", log.StringList("rootGuidList", rootGuidList))
 	var rowDataList []map[string]interface{}
 	for _, roNode := range rootReportObjectsData {
 		var rowData []map[string]interface{}
@@ -156,7 +162,7 @@ func GetViewData(c *gin.Context) {
 			err = tmpErr
 			break
 		}
-		rowData, _, err = db.GetChildReportObject(roNode, rootGuidList, rootReportAttr, param.ConfirmTime, param.ViewId)
+		rowData, _, err = db.GetChildReportObject(roNode, rootGuidList, rootReportAttr, param.ConfirmTime, param.ViewId, param.WithoutChildren)
 		if err != nil {
 			break
 		}

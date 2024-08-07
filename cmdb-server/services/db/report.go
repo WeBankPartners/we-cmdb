@@ -28,7 +28,7 @@ func QueryRootReportObj(reportId string) (rowData []*models.ReportObjectNode, er
 	return
 }
 
-func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, roAttrData []*models.SysReportObjectAttrTable, confirmTime, viewId string) (rowData []map[string]interface{}, editableList []string, err error) {
+func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, roAttrData []*models.SysReportObjectAttrTable, confirmTime, viewId string, withoutChildren bool) (rowData []map[string]interface{}, editableList []string, err error) {
 	if root == nil {
 		err = nil
 		return
@@ -234,6 +234,9 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 	//	log.Logger.Error("Query report object by parent object error", log.String("parentObjectId", root.Id), log.Error(err))
 	//	return
 	//}
+	if withoutChildren {
+		return
+	}
 
 	if len(childReportObjectList) == 0 {
 		err = nil
@@ -256,7 +259,7 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 			err = getReportAtrrErr
 			break
 		}
-		childDataList, childEditList, getChildReportObjectErr := GetChildReportObject(ro, tmpList, subReportAttr, confirmTime, viewId)
+		childDataList, childEditList, getChildReportObjectErr := GetChildReportObject(ro, tmpList, subReportAttr, confirmTime, viewId, false)
 		if getChildReportObjectErr != nil {
 			err = getChildReportObjectErr
 			break

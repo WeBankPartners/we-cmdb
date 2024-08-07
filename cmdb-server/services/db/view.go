@@ -171,7 +171,7 @@ func ViewConfirmAction(param models.ViewData, userToken, operator string, userRo
 			err = tmpErr
 			break
 		}
-		_, tmpEditableList, queryErr := GetChildReportObject(roNode, rootGuidList, rootReportAttr, param.ConfirmTime, param.ViewId)
+		_, tmpEditableList, queryErr := GetChildReportObject(roNode, rootGuidList, rootReportAttr, param.ConfirmTime, param.ViewId, false)
 		if queryErr != nil {
 			err = queryErr
 			break

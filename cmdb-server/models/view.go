@@ -37,6 +37,8 @@ type ViewData struct {
 	ReportId    string `json:"reportId"`
 	ConfirmTime string `json:"confirmTime" xorm:"confirm_time"`
 	// Permission  string `json:"permission" xorm:"permission" binding:"required"`
+	RootCiList      []string `json:"rootCiList"`
+	WithoutChildren bool     `json:"withoutChildren"`
 }
 
 type UpdateViewParam struct {
