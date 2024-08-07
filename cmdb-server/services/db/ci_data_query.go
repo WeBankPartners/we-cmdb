@@ -3,6 +3,7 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"strings"
 )
@@ -57,6 +58,39 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 	keyMap["history_state_confirmed"] = "history_state_confirmed"
 	keyMap["history_time"] = "history_time"
 	param.ResultColumns = append([]string{"guid"}, resultColumns.GetNameList()...)
+	// 多对多条件转换
+	var appendFilters []*models.QueryRequestFilterObj
+	for _, v := range param.Filters {
+		tmpMultiAttr := &models.SysCiTypeAttrTable{}
+		for _, attr := range ciAttrs {
+			if v.Name == attr.Name {
+				if attr.InputType == models.MultiRefType {
+					tmpMultiAttr = attr
+				}
+				break
+			}
+		}
+		if tmpMultiAttr.Id != "" {
+			multiTableData, getErr := getMultiRefTableData(tmpMultiAttr.CiType, tmpMultiAttr.Name, []string{}, transInterfaceToStringList(v.Value))
+			if getErr != nil {
+				err = getErr
+				return
+			}
+			tmpGuidFilterList := []interface{}{}
+			for _, row := range multiTableData {
+				tmpGuidFilterList = append(tmpGuidFilterList, row.FromGuid)
+			}
+			appendFilters = append(appendFilters, &models.QueryRequestFilterObj{
+				Name:     "guid",
+				Operator: "in",
+				Value:    tmpGuidFilterList,
+			})
+		}
+	}
+	log.Logger.Info("appendFilters", log.JsonObj("data", appendFilters))
+	if len(appendFilters) > 0 {
+		param.Filters = append(param.Filters, appendFilters...)
+	}
 	filterSql, queryColumn, queryParam := transFiltersToSQL(param, &models.TransFiltersParam{IsStruct: false, KeyMap: keyMap, PrimaryKey: "guid", Prefix: "tt"})
 	var baseSql string
 	if !permission.Disable {
