@@ -23,7 +23,7 @@
       </Col>
       <Col span="6" v-if="displayType === 'tree'">
         <span style="margin-right: 10px">{{ $t('display_data') }}</span>
-        <Select v-model="treeRoot" filterable multiple style="width: 75%;">
+        <Select v-model="treeRoot" filterable multiple style="width: 75%;" @on-change="getReportData">
           <Option v-for="item in treeRootOptions" :value="item.guid" :key="item.guid">{{ item.key_name }}</Option>
         </Select>
       </Col>
@@ -92,7 +92,7 @@
         />
       </Row>
     </template>
-    <template v-show="displayType === 'tree'">
+    <template v-if="displayType === 'tree' && treeSet.length > 0">
       <Tabs @on-click="changeTab" :value="treeSet[0].key_name" v-if="showTab">
         <TabPane v-for="tree in treeSet" :label="tree.key_name" :name="tree.key_name" :key="tree.guid">
           <Row>
@@ -246,29 +246,28 @@ export default {
       }
     },
     async displayTree () {
+      this.treeSet = []
       await this.getStrc()
-      this.getData()
+      await this.getData()
       this.showTab = true
     },
     async getData () {
-      this.treeSet = []
-      // 优化tab页签数据push顺序，解决切换页签数据丢失问题(新增的tab始终push到结尾，否则有问题)
-      this.treeRoot.forEach(guid => {
-        for (let item of this.treeRootOptions) {
-          if (item.guid === guid) {
-            this.treeSet.push(item)
-            this.singleTree(item)
-          }
-        }
-      })
-      // this.treeRootOptions.forEach(d => {
-      //   if (this.treeRoot.includes(d.guid)) {
-      //     this.treeSet.push(d)
-      //     this.treeSet.forEach(tree => {
-      //       this.singleTree(tree)
-      //     })
-      //   }
-      // })
+      if (this.treeRoot.length === 0) {
+        return
+      }
+      let params = {
+        reportId: this.currentReportId,
+        withoutChildren: false,
+        rootCiList: this.treeRoot
+      }
+      const { statusCode, data } = await graphQueryRootCI(params)
+      if (statusCode === 'OK') {
+        let treeOptions = data || []
+        treeOptions.forEach(tree => {
+          this.treeSet.push(tree)
+          this.singleTree(tree)
+        })
+      }
     },
     singleTree (tree) {
       tree.title = tree.key_name
@@ -424,7 +423,8 @@ export default {
     async getReportRoot () {
       this.treeRoot = []
       let params = {
-        reportId: this.currentReportId
+        reportId: this.currentReportId,
+        withoutChildren: true
       }
       const { statusCode, data } = await graphQueryRootCI(params)
       if (statusCode === 'OK') {
@@ -450,6 +450,7 @@ export default {
     },
     async getReportData (tag = true) {
       if (this.displayType !== 'table') {
+        this.currentTabIndex = 0
         this.displayTree()
         return
       }
