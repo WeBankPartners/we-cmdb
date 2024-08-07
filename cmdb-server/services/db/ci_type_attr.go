@@ -347,6 +347,9 @@ func CiAttrApply(ciTypeId, ciAttrId string, updateAutofill bool) error {
 		var actions []*execAction
 		actions = append(actions, &execAction{Sql: fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s", ciTypeId, attrSql)})
 		actions = append(actions, &execAction{Sql: fmt.Sprintf("ALTER TABLE %s%s ADD COLUMN %s", HistoryTablePrefix, ciTypeId, historyAttrSql)})
+		if ciAttrData.InputType == "ref" {
+			actions = append(actions, &execAction{Sql: fmt.Sprintf("CREATE INDEX idx_%s_%s ON %s (`%s`)", ciTypeId, ciAttrData.Name, ciTypeId, ciAttrData.Name)})
+		}
 		err = transaction(actions)
 		if err != nil {
 			err = fmt.Errorf("Try to alter table %s add column %s fail,%s ", ciTypeId, ciAttrData.Name, err.Error())

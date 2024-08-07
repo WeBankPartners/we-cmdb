@@ -300,6 +300,7 @@ func CreateCiTable(ciTypeId string) error {
 	// build attribute column
 	var multiRefAttr []*models.SysCiTypeAttrTable
 	var columnList, historyColumnList, attrRefCiTypeList []string
+	actions := []*execAction{}
 	historyColumnList = append(historyColumnList, "`id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY")
 	for _, ciAttr := range ciAttrRows {
 		if ciAttr.InputType == models.MultiRefType {
@@ -313,6 +314,9 @@ func CreateCiTable(ciTypeId string) error {
 		tmpAttrSql, tmpHistoryAttrSql := buildColumnSqlFromCiAttr(ciAttr)
 		columnList = append(columnList, tmpAttrSql)
 		historyColumnList = append(historyColumnList, tmpHistoryAttrSql)
+		if ciAttr.InputType == "ref" {
+			actions = append(actions, &execAction{Sql: fmt.Sprintf("CREATE INDEX idx_%s_%s ON %s (`%s`)", ciTypeId, ciAttr.Name, ciTypeId, ciAttr.Name)})
+		}
 	}
 	// check ciType reference ci is confirmed
 	if len(attrRefCiTypeList) > 0 {
@@ -343,6 +347,11 @@ func CreateCiTable(ciTypeId string) error {
 	_, err = x.Exec(fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s` (%s) ENGINE=InnoDB DEFAULT CHARSET=utf8", ciTypeId, strings.Join(columnList, ",")))
 	if err != nil {
 		return fmt.Errorf("Try to create table %s fail,%s ", ciTypeId, err.Error())
+	}
+	if len(actions) > 0 {
+		if createIndexErr := transaction(actions); createIndexErr != nil {
+			log.Logger.Error("Try to create ci table index fail", log.String("ciType", ciTypeId), log.Error(createIndexErr))
+		}
 	}
 	historyColumnList = append(historyColumnList, "`history_action` VARCHAR(16) NOT NULL")
 	historyColumnList = append(historyColumnList, "`history_state_confirmed` TINYINT DEFAULT 0")
@@ -445,7 +454,7 @@ func buildColumnSqlFromCiAttr(ciAttr *models.SysCiTypeAttrTable) (nowTable, hist
 
 func GetCiTypesReference(ciTypeId string) (result []*models.CiTypeReferenceObj, err error) {
 	result = []*models.CiTypeReferenceObj{}
-	err = x.SQL("SELECT t1.id,t1.ci_type,t1.name,t1.display_name,t1.description,t1.status,t1.input_type,t1.ref_ci_type,t1.ref_name,t1.ref_type,t2.display_name as ci_type_name FROM sys_ci_type_attr t1 left join sys_ci_type t2 on t1.ci_type=t2.id WHERE t1.ref_ci_type=?", ciTypeId).Find(&result)
+	err = x.SQL("SELECT t1.id,t1.ci_type,t1.name,t1.display_name,t1.description,t1.status,t1.input_type,t1.ref_ci_type,t1.ref_name,t1.ref_type,t2.display_name as ci_type_name FROM sys_ci_type_attr t1 left join sys_ci_type t2 on t1.ci_type=t2.id WHERE t1.status!='deleted' and t1.ref_ci_type=?", ciTypeId).Find(&result)
 	for _, row := range result {
 		row.DisplayNameTmp = row.DisplayName
 	}
