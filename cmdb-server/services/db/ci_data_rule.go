@@ -666,6 +666,9 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 			}
 			for _, v := range strings.Split(tmpFilterStr, "},{") {
 				tmpFilterList := strings.Split(v, " ")
+				if len(tmpFilterList) < 2 {
+					continue
+				}
 				if len(tmpFilterList) > 2 {
 					eso.WhereSql += " and " + buildConditionSql(fmt.Sprintf("%s.%s", eso.IndexTableName, tmpFilterList[0]), tmpFilterList[1], tmpFilterList[2], []string{})
 				} else {

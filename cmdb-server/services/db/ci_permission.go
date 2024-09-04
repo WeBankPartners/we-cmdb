@@ -598,12 +598,35 @@ func ciTypeInsertPermissionValidate(ciType string, param *InsertPermissionObj, r
 			}
 			columnFilterList := []string{}
 			for _, filter := range condition.Filters {
-				if filter.Expression == "" {
+				if filter.FilterType == models.FilterTypeSelectList {
+					if filter.SelectList != "" {
+						tmpSelectFilterList := strings.Split(filter.SelectList, ",")
+						columnFilterList = append(columnFilterList, fmt.Sprintf(" %s in ('%s') ", filter.CiTypeAttrName, strings.Join(tmpSelectFilterList, "','")))
+					}
 					continue
 				}
-				filterColumnGuidList, tmpErr := getExpressResultList(filter.Expression, "", make(map[string]string), true)
-				if tmpErr != nil {
-					err = fmt.Errorf("Try to analyze filter expression fail,%s ", tmpErr.Error())
+				if filter.Expression == "" || filter.Expression == "[\"\"]" {
+					continue
+				}
+				filterExpressionList := []string{}
+				if strings.HasPrefix(filter.Expression, "[") {
+					if tmpErr := json.Unmarshal([]byte(filter.Expression), &filterExpressionList); tmpErr != nil {
+						err = fmt.Errorf("Try to parse expression filter to []string fail,data:%s,err:%s ", filter.Expression, tmpErr.Error())
+						break
+					}
+				} else {
+					filterExpressionList = append(filterExpressionList, filter.Expression)
+				}
+				filterColumnGuidList := []string{}
+				for _, tmpExpression := range filterExpressionList {
+					tmpFilterColumnGuidList, tmpErr := getConditionExpressResult(tmpExpression, "", make(map[string]string), true)
+					if tmpErr != nil {
+						err = fmt.Errorf("Try to analyze filter expression fail,%s ", tmpErr.Error())
+						break
+					}
+					filterColumnGuidList = append(filterColumnGuidList, tmpFilterColumnGuidList...)
+				}
+				if err != nil {
 					break
 				}
 				//tmpCiType := filter.CiTypeAttr[:strings.Index(filter.CiTypeAttr, models.SysTableIdConnector)]
