@@ -32,7 +32,7 @@ func RenderDot(graph models.GraphQuery, dataList []map[string]interface{}, optio
 
 	dot = "\ndigraph G {\n"
 	dot += fmt.Sprintf("rankdir=%s;edge[minlen=3];compound=true;\n", graph.GraphDir)
-	if graph.ViewGraphType == "group" {
+	if graph.ViewGraphType == GroupType {
 		dot += "Node [color=\"transparent\";fixedsize=\"true\";width=\"1.1\";height=\"1.1\";shape=box];\n"
 		dot += "{\nnode [shape=plaintext];\n" + graph.NodeGroups + ";\n}\n"
 	}
@@ -65,14 +65,14 @@ func RenderDot(graph models.GraphQuery, dataList []map[string]interface{}, optio
 
 		switch graph.ViewGraphType {
 		case GroupType:
-			dot += fmt.Sprintf("{rank=same; \"%s\"; %s[id=\"%s\";label=\"%s\"; fontsize=%s; penwidth=1;width=2; image=\"%s\"; labelloc=\"b\"; shape=\"box\";",
+			dot += fmt.Sprintf(`{rank=same; "%s"; %s[id="%s";label="%s"; fontsize=%s; penwidth=1;width=2; image="%s"; labelloc="b"; shape="box";`,
 				graph.RootData.NodeGroupName, guid, guid, label, strconv.FormatFloat(meta.FontSize, 'g', -1, 64), option.ImageMap[graph.RootData.CiType])
 
 			if meta.SuportVersion == "yes" {
-				dot += "color=\"#dddddd\";penwidth=1;"
+				dot += `color="#dddddd";penwidth=1;`
 			}
 
-			dot += "}\n"
+			dot += "]}\n"
 
 		case SubgraphType:
 			depth := countDepth(graph)
@@ -261,7 +261,7 @@ func renderImage(el *models.GraphElementNode, parentGuid string, dataList []map[
 		renderedItems = append(renderedItems, guid)
 		var nodeString strings.Builder
 
-		if meta.GraphType == "group" {
+		if meta.GraphType == GroupType {
 			nodeString.WriteString(fmt.Sprintf(`{rank=same;"%s"; %s`, el.NodeGroupName, guid))
 		} else {
 			nodeString.WriteString(guid)
@@ -291,14 +291,14 @@ func renderImage(el *models.GraphElementNode, parentGuid string, dataList []map[
 
 		nodeString.WriteString("[" + strings.Join(nodeAttrs, ";") + "]\n")
 
-		if meta.GraphType == "group" {
+		if meta.GraphType == GroupType {
 			nodeString.WriteString("}")
 		}
 
 		dot.WriteString(nodeString.String())
 
-		if parentGuid != "" && meta.GraphType == "group" {
-			dot.WriteString(fmt.Sprintf(`%s -> %s [arrowsize=0]\n`, parentGuid, guid))
+		if parentGuid != "" && meta.GraphType == GroupType {
+			dot.WriteString(fmt.Sprintf("%s -> %s [arrowsize=0]\n", parentGuid, guid))
 		}
 
 		ret := renderChildren(el.Children, data, meta)
@@ -367,7 +367,7 @@ func renderNode(el *models.GraphElementNode, dataList []map[string]interface{}, 
 		nodeString := fmt.Sprintf("%s[%s];\n", guid, strings.Join(nodeAttrs, ";"))
 		dot.WriteString(nodeString)
 
-		if meta.GraphType == "group" {
+		if meta.GraphType == GroupType {
 			dot.WriteString(fmt.Sprintf("{rank=same;\"%s\"; %s}\n", el.NodeGroupName, nodeString))
 		}
 
@@ -404,6 +404,8 @@ func renderLine(el *models.GraphElementNode, dataList []map[string]interface{}, 
 			continue
 		}
 
+		keyName := mapGetStringAttr(data, "key_name")
+
 		for _, child := range el.Children {
 			var ret RenderResult
 
@@ -433,7 +435,7 @@ func renderLine(el *models.GraphElementNode, dataList []map[string]interface{}, 
 					MetaData: meta,
 				})
 			}
-			if child.GraphType != "line" {
+			if child.GraphType != LineType {
 				dot.WriteString(ret.DotString)
 				lines = append(lines, ret.Lines...)
 				renderedItems = append(renderedItems, ret.RenderedItems...)
@@ -460,7 +462,7 @@ func renderLine(el *models.GraphElementNode, dataList []map[string]interface{}, 
 				}
 
 				// Handle labels based on display position of line
-				if el.GraphType == "line" {
+				if el.GraphType == LineType {
 					label := renderLabel(el.DisplayExpression, data)
 					switch el.LineDisplayPosition {
 					case "middle":
@@ -470,7 +472,12 @@ func renderLine(el *models.GraphElementNode, dataList []map[string]interface{}, 
 					case "tail":
 						lineAttrs = append(lineAttrs, fmt.Sprintf(`taillabel="%s"`, label))
 					}
-					lineAttrs = append(lineAttrs, fmt.Sprintf(`tooltip="%s"`, data["key_name"].(string)))
+
+					tooltip := keyName
+					if tooltip == "" {
+						tooltip = label
+					}
+					lineAttrs = append(lineAttrs, fmt.Sprintf(`tooltip="%s"`, tooltip))
 				}
 
 				// Add attributes for clusters
@@ -478,7 +485,7 @@ func renderLine(el *models.GraphElementNode, dataList []map[string]interface{}, 
 				lineAttrs = append(lineAttrs, fmt.Sprintf("ltail=cluster_%s", hLine))
 
 				// Add arrowhead and style if it's a line graph type
-				if el.GraphType == "line" {
+				if el.GraphType == LineType {
 					shape := getShape(el.GraphShapeData, el.GraphShapes, data, ShapeNormal)
 					lineAttrs = append(lineAttrs, fmt.Sprintf("arrowhead=%s", shape))
 
