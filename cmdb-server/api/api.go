@@ -119,6 +119,7 @@ func init() {
 		&handlerFuncObj{Url: "/views", Method: "GET", HandlerFunc: view.GetViewList},
 		&handlerFuncObj{Url: "/view/:viewId", Method: "GET", HandlerFunc: view.GetView},
 		&handlerFuncObj{Url: "/view-data", Method: "POST", HandlerFunc: view.GetViewData},
+		&handlerFuncObj{Url: "/view-graph-data", Method: "POST", HandlerFunc: view.GetGraphViewData},
 		&handlerFuncObj{Url: "/view-confirm", Method: "POST", HandlerFunc: view.ConfirmView},
 	)
 

@@ -41,6 +41,13 @@ type ViewData struct {
 	WithoutChildren bool     `json:"withoutChildren"`
 }
 
+type GraphViewData struct {
+	ViewId      string `json:"viewId" binding:"required"`
+	RootCi      string `json:"rootCi" binding:"required"`
+	GraphId     string `json:"graphId" binding:"required"`
+	ConfirmTime string `json:"confirmTime"`
+}
+
 type UpdateViewParam struct {
 	Id            string   `json:"viewId" xorm:"id" binding:"required"`
 	Name          string   `json:"name" xorm:"name" binding:"required"`

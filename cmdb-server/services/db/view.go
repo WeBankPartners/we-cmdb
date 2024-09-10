@@ -63,6 +63,21 @@ func GetGraphByView(viewId string) (rowData []*models.SysGraphTable, err error) 
 	return
 }
 
+func GetGraphById(graphId string) (rowData *models.SysGraphTable, err error) {
+	var exist bool
+	rowData = &models.SysGraphTable{Id: graphId}
+	if exist, err = x.Table("sys_graph").Get(rowData); err != nil {
+		log.Logger.Error("Get graph by id error", log.String("graphId", graphId), log.Error(err))
+		return
+	}
+
+	if !exist {
+		err = fmt.Errorf("Get graph by id %s can not found ", graphId)
+		log.Logger.Warn("Get graph by view fail", log.Error(err))
+	}
+	return
+}
+
 func GetRootGraphElementByGraph(graphId string) (rowData *models.GraphElementNode, err error) {
 	var geData []*models.GraphElementNode
 	err = x.SQL(`SELECT t1.*,t2.ci_type,t2.data_name FROM sys_graph_element t1 left join sys_report_object t2 

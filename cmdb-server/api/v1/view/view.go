@@ -3,10 +3,12 @@ package view
 import (
 	"fmt"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/graph"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
+	"path/filepath"
 	"strings"
 )
 
@@ -205,4 +207,120 @@ func ConfirmView(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, result)
 	}
+}
+
+func GetGraphViewData(c *gin.Context) {
+
+	var param models.GraphViewData
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+
+	// Query for ciTypeMapping and create imageMap
+	paramCi := models.CiTypeQuery{
+		CiTypeId:       c.Query("id"),
+		WithAttributes: "yes",
+		Status:         []string{"dirty", "created"},
+	}
+	err = db.CiTypesQuery(&paramCi)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+
+	imageMap := map[string]string{}
+	for _, ciType := range paramCi.CiTypeListData {
+		imageMap[ciType.Id] = filepath.Join("/wecmdb/fonts/", ciType.ImageFile)
+	}
+
+	// Query for viewSettings for graph
+	var viewSettings *models.ViewQuery
+	if viewSettings, err = db.QueryViewById(param.ViewId); err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+
+	var graphData *models.SysGraphTable
+	if graphData, err = db.GetGraphById(param.GraphId); err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+
+	var graphElementNode *models.GraphElementNode
+	if graphElementNode, err = db.GetRootGraphElementByGraph(graphData.Id); err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+
+	if graphElementNode != nil {
+		if _, err = db.GetChildGraphElement(graphElementNode); err != nil {
+			middleware.ReturnServerHandleError(c, err)
+			return
+		}
+	}
+
+	viewSettings.Graphs = []*models.GraphQuery{{
+		ViewGraphType: graphData.GraphType,
+		NodeGroups:    graphData.NodeGroups,
+		GraphDir:      graphData.GraphDir,
+		Name:          graphData.Name,
+		RootData:      graphElementNode,
+	}}
+
+	// Query ViewData for graph
+	var rootReportObjectsData []*models.ReportObjectNode
+	if rootReportObjectsData, err = db.QueryRootReportObj(viewSettings.Report); err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+
+	// todo: duplicate code
+	var rowDataList []map[string]interface{}
+	rootGuidList := strings.Split(param.RootCi, ",")
+	for _, roNode := range rootReportObjectsData {
+		var rowData []map[string]interface{}
+		rootReportAttr, rootAttrMap, tmpErr := db.GetReportAttr(roNode.Id)
+		if tmpErr != nil {
+			err = tmpErr
+			break
+		}
+		rowData, _, err = db.GetChildReportObject(roNode, rootGuidList, rootReportAttr, param.ConfirmTime, param.ViewId, false)
+		if err != nil {
+			break
+		}
+		for _, rowDataObj := range rowData {
+			tmpRowData := make(map[string]interface{})
+			for k, v := range rowDataObj {
+				if _, b := rootAttrMap[k]; b {
+					tmpRowData[rootAttrMap[k]] = v
+				} else {
+					if strings.HasSuffix(k, "^") {
+						k = k[:len(k)-1]
+					}
+					tmpRowData[k] = v
+				}
+			}
+			rowDataList = append(rowDataList, tmpRowData)
+		}
+	}
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+
+	// Render graph
+	var dots []string
+	for _, g := range viewSettings.Graphs {
+		dot, _ := graph.Render(*g, rowDataList, graph.RenderOption{
+			SuportVersion: viewSettings.SuportVersion, ImageMap: imageMap,
+		})
+		//fmt.Println(dot)
+		dotSingle := strings.Replace(strings.Replace(dot, "\n", "", -1), "\t", "", -1)
+		dots = append(dots, dotSingle)
+	}
+
+	// always return only one graph
+	middleware.ReturnData(c, dots[0])
 }
