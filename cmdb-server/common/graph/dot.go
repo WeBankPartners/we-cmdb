@@ -3,8 +3,8 @@ package graph
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
-	"log"
 	"math"
 	"strconv"
 	"strings"
@@ -41,9 +41,9 @@ func RenderDot(graph models.GraphQuery, dataList []map[string]interface{}, optio
 	var lines []Line
 
 	for _, data := range dataList {
-		confirmTime := mapGetStringAttr(data, "confirm_time")
-		guid := mapGetStringAttr(data, "guid")
-		keyName := mapGetStringAttr(data, "key_name")
+		confirmTime := mapGetStr(data, "confirm_time")
+		guid := mapGetStr(data, "guid")
+		keyName := mapGetStr(data, "key_name")
 
 		meta := Meta{
 			SuportVersion: suportVersion,
@@ -100,6 +100,7 @@ func RenderDot(graph models.GraphQuery, dataList []map[string]interface{}, optio
 			}
 
 			dot += ret.DotString
+
 			renderedItems = append(renderedItems, ret.RenderedItems...)
 			lines = append(lines, ret.Lines...)
 		}
@@ -148,13 +149,11 @@ func renderChild(index int, child *models.GraphElementNode, data map[string]inte
 	//newMeta := meta
 	//newMeta := copyMetaData(meta)
 
+	// todo
 	var childData []map[string]interface{}
 	tmp, _ := json.Marshal(data[child.DataName])
-	err := json.Unmarshal(tmp, &childData)
-	if err != nil {
-		log.Fatalf("childData err: %v+", err)
-	}
-
+	_ = json.Unmarshal(tmp, &childData)
+	log.Logger.Info("renderChild", log.String("graphType", child.GraphType), log.String("meta.graphType", meta.GraphType), log.String("graphElementId", child.Id), log.String("dataName", child.DataName), log.JsonObj("childData", childData))
 	//fmt.Printf("childData: %v+", childData)
 	//childData, ok = data[child.DataName].([]map[string]interface{})
 
@@ -167,7 +166,7 @@ func renderChild(index int, child *models.GraphElementNode, data map[string]inte
 	case SubgraphType:
 		ret = renderSubgraph(child, childData, meta)
 	case ImageType:
-		parentGuid := mapGetStringAttr(data, "guid")
+		parentGuid := mapGetStr(data, "guid")
 		ret = renderImage(child, parentGuid, childData, meta)
 		ret.DotString += nodeDot
 	case NodeType:
@@ -192,15 +191,22 @@ func renderSubgraph(el *models.GraphElementNode, dataList []map[string]interface
 	var dot strings.Builder
 
 	for _, data := range dataList {
+		log.Logger.Info("renderSubgraph", log.String("guid", mapGetStr(data, "guid")))
 		if isFilterFailed(el, data) {
+			log.Logger.Error("isFilterFailed", log.String("guid", mapGetStr(data, "guid")))
+			log.Logger.Error("isFilterFailed", log.JsonObj("el", el))
+			log.Logger.Error("isFilterFailed", log.JsonObj("data", data))
 			continue
 		}
-		guid := mapGetStringAttr(data, "guid")
-		keyName := mapGetStringAttr(data, "key_name")
+		guid := mapGetStr(data, "guid")
+		keyName := mapGetStr(data, "key_name")
 
 		if isIn(guid, *meta.RenderedItems) {
+			log.Logger.Info("isIn", log.String("guid", guid), log.JsonObj("renderedItems", *meta.RenderedItems))
 			continue
 		}
+
+		log.Logger.Info(guid)
 
 		renderedItems = append(renderedItems, guid)
 
@@ -225,10 +231,15 @@ func renderSubgraph(el *models.GraphElementNode, dataList []map[string]interface
 		dot.WriteString(fmt.Sprintf("%s[penwidth=0;width=0;height=0;label=\"\"];\n", guid))
 
 		if el.Children != nil {
+			log.Logger.Info("renderChildren of: ", log.String("guid", guid), log.Int("children", len(el.Children)))
+			log.Logger.Info("", log.JsonObj("children", el.Children))
+			log.Logger.Info("", log.JsonObj("data", data))
 			ret := renderChildren(el.Children, data, meta)
 			lines = append(lines, ret.Lines...)
 			renderedItems = append(renderedItems, ret.RenderedItems...)
 			dot.WriteString(ret.DotString)
+		} else {
+			log.Logger.Info("skip renderChildren of: ", log.String("guid", guid), log.Int("children", len(el.Children)))
 		}
 
 		dot.WriteString("}\n")
@@ -250,7 +261,7 @@ func renderImage(el *models.GraphElementNode, parentGuid string, dataList []map[
 	}
 
 	for _, data := range dataList {
-		guid := mapGetStringAttr(data, "guid")
+		guid := mapGetStr(data, "guid")
 		if isFilterFailed(el, data) {
 			continue
 		}
@@ -330,7 +341,7 @@ func renderNode(el *models.GraphElementNode, dataList []map[string]interface{}, 
 	var dot strings.Builder
 
 	for _, data := range dataList {
-		guid := mapGetStringAttr(data, "guid")
+		guid := mapGetStr(data, "guid")
 
 		if isFilterFailed(el, data) {
 			continue
@@ -404,7 +415,7 @@ func renderLine(el *models.GraphElementNode, dataList []map[string]interface{}, 
 			continue
 		}
 
-		keyName := mapGetStringAttr(data, "key_name")
+		keyName := mapGetStr(data, "key_name")
 
 		for _, child := range el.Children {
 			var ret RenderResult
@@ -424,7 +435,7 @@ func renderLine(el *models.GraphElementNode, dataList []map[string]interface{}, 
 			case SubgraphType:
 				ret = renderSubgraph(child, childData, meta)
 			case ImageType:
-				parentGuid := mapGetStringAttr(data, "guid")
+				parentGuid := mapGetStr(data, "guid")
 				ret = renderImage(child, parentGuid, childData, meta)
 			case NodeType:
 				ret = renderNode(child, childData, meta)

@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
-	"log"
 	"math"
-	"os"
 	"strings"
 )
 
-func mapGetStringAttr(m map[string]interface{}, attr string) string {
+func mapGetStr(m map[string]interface{}, attr string) string {
 	if v, ok := m[attr].(string); ok {
 		return v
 	}
@@ -41,8 +39,8 @@ func isFilterFailed(setting *models.GraphElementNode, data map[string]interface{
 			return false
 		}
 
-		wantVal := mapGetStringAttr(data, setting.GraphFilterData)
-		return isIn(wantVal, filterValues)
+		wantVal := mapGetStr(data, setting.GraphFilterData)
+		return !isIn(wantVal, filterValues)
 	}
 	return false
 }
@@ -189,7 +187,7 @@ func arrangeNodes(nodes []map[string]interface{}) string {
 		numRow := int(math.Ceil(math.Sqrt(float64(len(nodes)))))
 
 		for index, node := range nodes {
-			guid := node["guid"].(string)
+			guid := mapGetStr(node, "guid")
 
 			if index%numRow == 0 {
 				dot.WriteString("{rank=same;")
@@ -259,12 +257,4 @@ func copyMetaData(metaData Meta) Meta {
 		newMetaData.FontSize = math.Round((newMetaData.FontSize-newMetaData.FontStep)*100) / 100
 	}
 	return newMetaData
-}
-
-func jsonDebug(data interface{}, filename string) {
-	v, _ := json.Marshal(data)
-	err := os.WriteFile(filename, []byte(v), 0666)
-	if err != nil {
-		log.Fatal(err)
-	}
 }
