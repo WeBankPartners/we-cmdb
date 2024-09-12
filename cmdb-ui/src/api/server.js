@@ -297,3 +297,5 @@ export const importReport = data => req.post(`/ci-data/import/${data.ciType}`, d
 export const importCiData = data => req.post(`/ci-data/simple/import/${data.ciType}`, data.data)
 
 export const getEncryptKey = () => req.get(`/ci-data/password/encrypt-key`)
+// 获取视图dot
+export const viewGraphDot = data => req.post(`/view-graph-data`, data)

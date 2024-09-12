@@ -52,9 +52,9 @@ import * as d3 from 'd3-selection'
 import * as d3Zoom from 'd3-zoom'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import { queryReferenceCiData } from '@/api/server'
+import { queryReferenceCiData, viewGraphDot } from '@/api/server'
 import { addEvent } from '../util/event.js'
-import { renderGraph } from '../util/render-graph.js'
+// import { renderGraph } from '../util/render-graph.js'
 import Operation from './graph-operation-component'
 import SeqOperation from './graph-sequence-component'
 import mermaid from 'mermaid'
@@ -73,7 +73,9 @@ export default {
       ignoreOperations: [], // 忽略操作，默认忽略action=Confirm的操作
       loading: false, // 是否显示loading动画
       operationLoading: false,
-      dotString: ''
+      dotString: '',
+      confirmTime: '', // 确认时间，获取视图dot有值需传
+      graphNum: null // 视图顺序，通过此获取视图参数
     }
   },
   props: [
@@ -140,7 +142,9 @@ export default {
     setGraphTransform (transform) {
       this.graph.graphviz.zoomSelection().call(this.graph.graphviz.zoomBehavior().transform, transform)
     },
-    async initGraph () {
+    async initGraph (confirmTime, graphNum) {
+      this.confirmTime = confirmTime
+      this.graphNum = graphNum
       this.loading = true
       const initEvent = id => {
         let graph
@@ -209,16 +213,33 @@ export default {
       let graphData = this.graphData
       this.plainDatas = []
       this.buildPlainDatas(graphSetting, graphData, graphIndex)
-      let dotString = renderGraph(
-        graphSetting,
-        graphData,
-        ci => {
-          return '/wecmdb/fonts/' + this.ciTypeMapping[ci].imageFile
-        },
-        [graphIndex]
-      )[0]
+      let params = {
+        viewId: this.graphSetting.report,
+        rootCi: this.graphData[0].guid,
+        graphId: this.graphSetting.graphs[this.graphNum].rootData.graph
+      }
+      if (this.confirmTime) {
+        params.confirmTime = this.confirmTime
+      }
+      // let params = {
+      //   viewId: 'app_arc',
+      //   rootCi: 'app_system_design_60b9e3479afe1d2c',
+      //   graphId: 'app_arc__service',
+      // }
+      const { data, statusCode } = await viewGraphDot(params)
+      let dotString = ''
+      if (statusCode === 'OK') {
+        dotString = data
+      }
+      // let dotString = renderGraph(
+      //   graphSetting,
+      //   graphData,
+      //   ci => {
+      //     return '/wecmdb/fonts/' + this.ciTypeMapping[ci].imageFile
+      //   },
+      //   [graphIndex]
+      // )[0]
       this.dotString = dotString
-      // console.log(dotString)
       let graph = d3.select(id)
       if (dotString.startsWith('sequenceDiagram')) {
         const element = document.querySelector(id)
@@ -488,7 +509,7 @@ export default {
     }
   },
   mounted () {
-    this.initGraph()
+    // this.initGraph()
   }
 }
 </script>

@@ -51,9 +51,9 @@
                 </span>
               </Option>
               <Option
-                v-for="item in rootOptions"
+                v-for="(item, itemIndex) in rootOptions"
                 :value="item._id"
-                :key="item._id"
+                :key="item._id + itemIndex"
                 :label="item.name || item.key_name"
                 style="display: flex; flex-flow: row nowrap; justify-content: space-between; align-items: center"
               >
@@ -85,11 +85,15 @@
                   <Button @click.stop.prevent="onAddRoot()" icon="md-add" type="success" long></Button>
                 </span>
               </Option>
-              <OptionGroup v-for="data in rootGroupOptions" :key="data.key_name" :label="data.name || data.key_name">
+              <OptionGroup
+                v-for="(data, dataIndex) in rootGroupOptions"
+                :key="data.key_name + dataIndex"
+                :label="data.name || data.key_name"
+              >
                 <Option
-                  v-for="item in data.options"
+                  v-for="(item, itemIndex) in data.options"
                   :value="item._id"
-                  :key="item._id"
+                  :key="item._id + itemIndex"
                   :label="`${item.name || item.key_name}${item.confirm_time ? ' ' + item.confirm_time : ''}`"
                   style="display: flex; flex-flow: row nowrap; justify-content: space-between; align-items: center"
                 >
@@ -342,6 +346,21 @@ export default {
         if (ciType) {
           ciType.isInit = true
         }
+      } else if (name.startsWith('tabgraph')) {
+        this.$nextTick(() => {
+          let currentRoots = [this.currentRoot]
+          if (Array.isArray(this.currentRoot)) {
+            currentRoots = this.currentRoot
+          }
+          let rootDetails = currentRoots.map(currentRoot => {
+            let rootDetail = this.rootOptions.find(el => {
+              return el._id === currentRoot
+            })
+            return rootDetail
+          })
+          const num = name.slice(-1)
+          this.$refs['graphView' + num][0].initGraph(rootDetails[0]['confirm_time'], Number(num))
+        })
       }
     },
     onChildFormJSONInput (jsonData, key) {
@@ -598,6 +617,7 @@ export default {
         this.generateCiTypeTab()
         if (this.viewSetting.graphs.length > 0) {
           this.$refs.tab.activeKey = 'tabgraph0'
+          this.handleTabClick('tabgraph0')
         }
       })
     },
@@ -738,39 +758,40 @@ export default {
         this.ciTypeTableEditRef = {}
         this.ciTypeTableFilters = {}
         let ciFilters = {}
-        this.viewSetting.graphs.forEach((graph, graphIndex) => {
-          // refs -> graphView + index -> index=0 -> plainDatas
-          let plainDatas = this.$refs['graphView' + graphIndex][0].plainDatas
-          plainDatas.forEach(node => {
-            if (node.metadata.setting.editable !== 'no') {
-              if (!(node.metadata.setting.ciType in ciFilters)) {
-                ciFilters[node.metadata.setting.ciType] = new Set()
-                ciFilters[node.metadata.setting.ciType].add(node.guid)
-              } else {
-                ciFilters[node.metadata.setting.ciType].add(node.guid)
-              }
-            }
-          })
-          plainDatas.forEach(el => {
-            ;(el.metadata.setting.children || []).forEach(gEl => {
-              if (gEl.editRefAttr) {
-                if (!(gEl.ciType in this.ciTypeTableEditRef)) {
-                  this.ciTypeTableEditRef[gEl.ciType] = [gEl.editRefAttr]
-                } else if (this.ciTypeTableEditRef[gEl.ciType].indexOf(gEl.editRefAttr) === -1) {
-                  this.ciTypeTableEditRef[gEl.ciType].push(gEl.editRefAttr)
+        if (this.viewSetting.graphs.length > 0) {
+          this.$nextTick(() => {
+            let plainDatas = this.$refs['graphView' + 0][0].plainDatas
+            plainDatas.forEach(node => {
+              if (node.metadata.setting.editable !== 'no') {
+                if (!(node.metadata.setting.ciType in ciFilters)) {
+                  ciFilters[node.metadata.setting.ciType] = new Set()
+                  ciFilters[node.metadata.setting.ciType].add(node.guid)
+                } else {
+                  ciFilters[node.metadata.setting.ciType].add(node.guid)
                 }
               }
             })
+            plainDatas.forEach(el => {
+              ;(el.metadata.setting.children || []).forEach(gEl => {
+                if (gEl.editRefAttr) {
+                  if (!(gEl.ciType in this.ciTypeTableEditRef)) {
+                    this.ciTypeTableEditRef[gEl.ciType] = [gEl.editRefAttr]
+                  } else if (this.ciTypeTableEditRef[gEl.ciType].indexOf(gEl.editRefAttr) === -1) {
+                    this.ciTypeTableEditRef[gEl.ciType].push(gEl.editRefAttr)
+                  }
+                }
+              })
+            })
+            Object.keys(ciFilters).forEach(ci => {
+              this.ciTypeTableFilters[ci] = Array.from(ciFilters[ci])
+            })
+            this.ciTypeTables.forEach(ci => {
+              if (!(ci.id in this.ciTypeTableFilters)) {
+                this.ciTypeTableFilters[ci.id] = []
+              }
+            })
           })
-        })
-        Object.keys(ciFilters).forEach(ci => {
-          this.ciTypeTableFilters[ci] = Array.from(ciFilters[ci])
-        })
-        this.ciTypeTables.forEach(ci => {
-          if (!(ci.id in this.ciTypeTableFilters)) {
-            this.ciTypeTableFilters[ci.id] = []
-          }
-        })
+        }
       })
     },
     gatherGraphCiType (setting) {

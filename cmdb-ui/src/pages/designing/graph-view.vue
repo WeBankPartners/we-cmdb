@@ -16,9 +16,9 @@
               style="width: 35%;z-index:auto"
             >
               <Option
-                v-for="item in viewOptions"
+                v-for="(item, itemIndex) in viewOptions"
                 :value="item.viewId"
-                :key="item.viewId"
+                :key="item.viewId + itemIndex"
                 :label="item.name"
                 style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
               >
@@ -51,9 +51,9 @@
                 </span>
               </Option>
               <Option
-                v-for="item in rootOptions"
+                v-for="(item, itemIndex) in rootOptions"
                 :value="item._id"
-                :key="item._id"
+                :key="item._id + itemIndex"
                 :label="item.name || item.key_name"
                 style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
               >
@@ -85,11 +85,15 @@
                   <Button @click.stop.prevent="onAddRoot()" icon="md-add" type="success" long></Button>
                 </span>
               </Option>
-              <OptionGroup v-for="data in rootGroupOptions" :key="data.key_name" :label="data.name || data.key_name">
+              <OptionGroup
+                v-for="(data, dataIndex) in rootGroupOptions"
+                :key="data.key_name + dataIndex"
+                :label="data.name || data.key_name"
+              >
                 <Option
-                  v-for="item in data.options"
+                  v-for="(item, itemIndex) in data.options"
                   :value="item._id"
-                  :key="item._id"
+                  :key="item._id + itemIndex"
                   :label="`${item.name || item.key_name}${item.confirm_time ? ' ' + item.confirm_time : ''}`"
                   style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
                 >
@@ -150,7 +154,12 @@
                   ></Graph>
                 </div>
               </TabPane>
-              <TabPane v-for="citype in ciTypeTables" :label="citype.name" :key="citype.id" :name="'tabci' + citype.id">
+              <TabPane
+                v-for="(citype, itemIndex) in ciTypeTables"
+                :label="citype.name"
+                :key="citype.id + itemIndex"
+                :name="'tabci' + citype.id"
+              >
                 <CITable
                   v-if="citype.isInit"
                   :ci="citype.id"
@@ -322,6 +331,21 @@ export default {
         if (ciType) {
           ciType.isInit = true
         }
+      } else if (name.startsWith('tabgraph')) {
+        this.$nextTick(() => {
+          let currentRoots = [this.currentRoot]
+          if (Array.isArray(this.currentRoot)) {
+            currentRoots = this.currentRoot
+          }
+          let rootDetails = currentRoots.map(currentRoot => {
+            let rootDetail = this.rootOptions.find(el => {
+              return el._id === currentRoot
+            })
+            return rootDetail
+          })
+          const num = name.slice(-1)
+          this.$refs['graphView' + num][0].initGraph(rootDetails[0]['confirm_time'], Number(num))
+        })
       }
     },
     onChildFormJSONInput (jsonData, key) {
@@ -556,6 +580,7 @@ export default {
         this.generateCiTypeTab()
         if (this.viewSetting.graphs.length > 0) {
           this.$refs.tab.activeKey = 'tabgraph0'
+          this.handleTabClick('tabgraph0')
         }
       })
     },
@@ -695,23 +720,25 @@ export default {
       this.$nextTick(function () {
         this.ciTypeTableFilters = {}
         let ciFilters = {}
-        this.viewSetting.graphs.forEach((graph, graphIndex) => {
-          // refs -> graphView + index -> index=0 -> plainDatas
-          let plainDatas = this.$refs['graphView' + graphIndex][0].plainDatas
-          plainDatas.forEach(node => {
-            if (node.metadata.setting.editable !== 'no') {
-              if (!(node.metadata.setting.ciType in ciFilters)) {
-                ciFilters[node.metadata.setting.ciType] = new Set()
-                ciFilters[node.metadata.setting.ciType].add(node.guid)
-              } else {
-                ciFilters[node.metadata.setting.ciType].add(node.guid)
+        if (this.viewSetting.graphs.length > 0) {
+          this.$nextTick(() => {
+            //   // refs -> graphView + index -> index=0 -> plainDatas
+            let plainDatas = this.$refs['graphView' + 0][0].plainDatas
+            plainDatas.forEach(node => {
+              if (node.metadata.setting.editable !== 'no') {
+                if (!(node.metadata.setting.ciType in ciFilters)) {
+                  ciFilters[node.metadata.setting.ciType] = new Set()
+                  ciFilters[node.metadata.setting.ciType].add(node.guid)
+                } else {
+                  ciFilters[node.metadata.setting.ciType].add(node.guid)
+                }
               }
-            }
+            })
+            Object.keys(ciFilters).forEach(ci => {
+              this.ciTypeTableFilters[ci] = Array.from(ciFilters[ci])
+            })
           })
-        })
-        Object.keys(ciFilters).forEach(ci => {
-          this.ciTypeTableFilters[ci] = Array.from(ciFilters[ci])
-        })
+        }
       })
     },
     gatherGraphCiType (setting) {
