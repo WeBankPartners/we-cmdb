@@ -5,7 +5,7 @@ export const components = {
     component: 'Input',
     type: 'number'
   },
-  date: {
+  datetime: {
     component: 'DatePicker',
     type: 'datetimerange'
   },
@@ -18,6 +18,10 @@ export const components = {
     options: []
   },
   ref: {
+    component: 'WeCMDBRefSelect',
+    highlightRow: true
+  },
+  extRef: {
     component: 'WeCMDBRefSelect',
     highlightRow: true
   },

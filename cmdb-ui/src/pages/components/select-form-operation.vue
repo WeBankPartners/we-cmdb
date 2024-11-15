@@ -158,21 +158,29 @@ export default {
     },
     async confirmData () {
       const selectedData = this.selectFormConfig.table.tableData.filter(item => item.id === this.currentChoose)
-      const { statusCode, message } = await tableOptionExcute(this.params.operation, this.params.ciType, selectedData)
-      if (statusCode === 'OK') {
-        this.$Notice.success({
-          title: this.$t('success'),
-          desc: message
-        })
+      if (this.params.operation === 'Execute') {
+        window.sessionStorage.currentPath = ''
+        const path = `${window.location.origin}/#/implementation/workflow-execution/normal-create?templateId=${selectedData[0].procDefId}&subProc=main&targetId=${selectedData[0].guid}`
+        window.open(path, '_blank')
+        this.currentChoose = ''
         this.selectFormConfig.isShow = false
-        // if (this.$parent.queryCiData) {
-        //   this.$parent.queryCiData()
-        // } else {
-        //   this.$emit('callback', this.params.ciType, selectedData)
-        // }
-        this.$emit('callback', this.params.ciType, selectedData)
+      } else {
+        const { statusCode, message } = await tableOptionExcute(this.params.operation, this.params.ciType, selectedData)
+        if (statusCode === 'OK') {
+          this.$Notice.success({
+            title: this.$t('success'),
+            desc: message
+          })
+          this.selectFormConfig.isShow = false
+          // if (this.$parent.queryCiData) {
+          //   this.$parent.queryCiData()
+          // } else {
+          //   this.$emit('callback', this.params.ciType, selectedData)
+          // }
+          this.$emit('callback', this.params.ciType, selectedData)
+        }
+        this.currentChoose = ''
       }
-      this.currentChoose = ''
     }
   },
   components: {}

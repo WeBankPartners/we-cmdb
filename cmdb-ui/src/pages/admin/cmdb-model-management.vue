@@ -199,7 +199,9 @@
         <FormItem
           prop="length"
           :label="$t('length')"
-          v-if="['text', 'ref', 'textArea', 'number', 'password', 'multiText'].includes(addNewAttrForm.inputType)"
+          v-if="
+            ['text', 'ref', 'extRef', 'textArea', 'number', 'password', 'multiText'].includes(addNewAttrForm.inputType)
+          "
         >
           <InputNumber :min="1" v-model="addNewAttrForm.length"></InputNumber>
         </FormItem>
@@ -212,6 +214,11 @@
             <Option v-for="item in allCiTypesWithAttr" :value="item.ciTypeId" :key="item.ciTypeId">{{
               item.name
             }}</Option>
+          </Select>
+        </FormItem>
+        <FormItem prop="extRefEntity" v-if="['extRef'].includes(addNewAttrForm.inputType)" label="外部引用选择">
+          <Select v-model="addNewAttrForm.extRefEntity" filterable>
+            <Option v-for="item in extRefOptions" :value="item.value" :key="item.value">{{ item.label }}</Option>
           </Select>
         </FormItem>
         <FormItem
@@ -231,7 +238,7 @@
           </Select>
         </FormItem>
         <FormItem
-          prop="referenceId"
+          prop="selectList"
           v-if="['select', 'multiSelect'].includes(addNewAttrForm.inputType)"
           :label="$t('enum_config')"
         >
@@ -270,7 +277,7 @@
         </FormItem>
         <FormItem
           prop="permissionUsage"
-          v-if="['select', 'multiSelect', 'ref', 'multiRef'].includes(addNewAttrForm.inputType)"
+          v-if="['select', 'multiSelect', 'ref', 'extRef', 'multiRef'].includes(addNewAttrForm.inputType)"
           :label="$t('is_access_controlled')"
         >
           <RadioGroup v-model="addNewAttrForm.permissionUsage">
@@ -311,6 +318,12 @@
         </FormItem>
         <FormItem prop="uniqueConstraint" :label="$t('is_unique')">
           <RadioGroup v-model="addNewAttrForm.uniqueConstraint">
+            <Radio label="yes">Yes</Radio>
+            <Radio label="no">No</Radio>
+          </RadioGroup>
+        </FormItem>
+        <FormItem prop="confirmNullable" :label="$t('confirmed_empty')">
+          <RadioGroup v-model="addNewAttrForm.confirmNullable">
             <Radio label="yes">Yes</Radio>
             <Radio label="no">No</Radio>
           </RadioGroup>
@@ -520,7 +533,11 @@
               <FormItem
                 prop="length"
                 :label="$t('length')"
-                v-if="['text', 'ref', 'textArea', 'number', 'password', 'multiText'].includes(editCiAttr.inputType)"
+                v-if="
+                  ['text', 'ref', 'extRef', 'textArea', 'number', 'password', 'multiText'].includes(
+                    editCiAttr.inputType
+                  )
+                "
               >
                 <InputNumber
                   :min="1"
@@ -543,27 +560,14 @@
                   }}</Option>
                 </Select>
               </FormItem>
-              <FormItem
-                class="no-need-validation"
-                v-if="['ref', 'multiRef'].includes(editCiAttr.inputType) && editCiAttr.referenceId !== ''"
-                :label="$t('update_state')"
-              >
-                <Button
-                  @click="configState('refUpdateStateValidate', 'edit')"
-                  :disabled="editCiAttr.customizable !== 'yes'"
-                  >{{ $t('configuration') }}</Button
+              <FormItem prop="extRefEntity" v-if="['extRef'].includes(editCiAttr.inputType)" label="外部引用选择">
+                <Select
+                  v-model="editCiAttr.extRefEntity"
+                  :disabled="editCiAttr.status === 'deleted' || editCiAttr.customizable !== 'yes'"
+                  filterable
                 >
-              </FormItem>
-              <FormItem
-                class="no-need-validation"
-                v-if="['ref', 'multiRef'].includes(editCiAttr.inputType) && editCiAttr.referenceId !== ''"
-                :label="$t('confirm_state')"
-              >
-                <Button
-                  @click="configState('refConfirmStateValidate', 'edit')"
-                  :disabled="editCiAttr.customizable !== 'yes'"
-                  >{{ $t('configuration') }}</Button
-                >
+                  <Option v-for="item in extRefOptions" :value="item.value" :key="item.value">{{ item.label }}</Option>
+                </Select>
               </FormItem>
               <FormItem
                 prop="referenceName"
@@ -591,7 +595,29 @@
                 </Select>
               </FormItem>
               <FormItem
-                prop="referenceId"
+                class="no-need-validation"
+                v-if="['ref', 'multiRef'].includes(editCiAttr.inputType) && editCiAttr.referenceId !== ''"
+                :label="$t('update_state')"
+              >
+                <Button
+                  @click="configState('refUpdateStateValidate', 'edit')"
+                  :disabled="editCiAttr.customizable !== 'yes'"
+                  >{{ $t('configuration') }}</Button
+                >
+              </FormItem>
+              <FormItem
+                class="no-need-validation"
+                v-if="['ref', 'multiRef'].includes(editCiAttr.inputType) && editCiAttr.referenceId !== ''"
+                :label="$t('confirm_state')"
+              >
+                <Button
+                  @click="configState('refConfirmStateValidate', 'edit')"
+                  :disabled="editCiAttr.customizable !== 'yes'"
+                  >{{ $t('configuration') }}</Button
+                >
+              </FormItem>
+              <FormItem
+                prop="selectList"
                 v-if="['select', 'multiSelect'].includes(editCiAttr.inputType)"
                 :label="$t('enum_config')"
               >
@@ -646,7 +672,7 @@
               </FormItem>
               <FormItem
                 prop="permissionUsage"
-                v-if="['select', 'ref', 'multiSelect', 'multiRef'].includes(editCiAttr.inputType)"
+                v-if="['select', 'ref', 'extRef', 'multiSelect', 'multiRef'].includes(editCiAttr.inputType)"
                 :label="$t('is_access_controlled')"
               >
                 <RadioGroup v-model="editCiAttr.permissionUsage">
@@ -690,6 +716,16 @@
               </FormItem>
               <FormItem prop="uniqueConstraint" :label="$t('is_unique')">
                 <RadioGroup v-model="editCiAttr.uniqueConstraint">
+                  <Radio :disabled="editCiAttr.status === 'deleted' || editCiAttr.customizable !== 'yes'" label="yes"
+                    >Yes</Radio
+                  >
+                  <Radio :disabled="editCiAttr.status === 'deleted' || editCiAttr.customizable !== 'yes'" label="no"
+                    >No</Radio
+                  >
+                </RadioGroup>
+              </FormItem>
+              <FormItem prop="confirmNullable" :label="$t('confirmed_empty')">
+                <RadioGroup v-model="editCiAttr.confirmNullable">
                   <Radio :disabled="editCiAttr.status === 'deleted' || editCiAttr.customizable !== 'yes'" label="yes"
                     >Yes</Radio
                   >
@@ -882,7 +918,7 @@
       @on-ok="confirmSelectListData"
       width="1200"
     >
-      <DataAuthorization ref="DataAuthorization"></DataAuthorization>
+      <DataAuthorization ref="DataAuthorization" @hideModal="showDataPermissionModal = false"></DataAuthorization>
     </Modal>
 
     <!-- 新增cat 配置 -->
@@ -939,7 +975,8 @@ import {
   createEnumCode,
   getCiTemplate,
   getAllEnumCategories,
-  moveLayer
+  moveLayer,
+  getExtRefOptions
 } from '@/api/server'
 import AutoFill from '../components/auto-fill.js'
 import FilterRule from '../components/filter-rule/index.js'
@@ -1045,10 +1082,13 @@ export default {
         editable: 'yes',
         uiNullable: 'yes',
         autoFillType: 'suggest',
-        uniqueConstraint: 'no'
+        uniqueConstraint: 'no',
+        confirmNullable: 'yes',
+        extRefEntity: ''
       },
       allCiTypesWithAttr: [],
       allCiTypesFormatByCiTypeId: {},
+      extRefOptions: [],
       specialDelimiters: [
         { code: '&', value: '&' },
         { code: '=', value: '=' }
@@ -1541,6 +1581,7 @@ export default {
           uiNullable: 'yes',
           autoFillType: 'suggest',
           uniqueConstraint: 'no',
+          confirmNullable: 'yes',
           nullable: 'no',
           resetOnEdit: 'no',
           uiSearchOrder: 0
@@ -1746,6 +1787,13 @@ export default {
         })
         this.allCiTypesWithAttr = allCiTypesWithAttr
         this.allCiTypesFormatByCiTypeId = allCiTypesFormatByCiTypeId
+      }
+    },
+    // 获取extRef类型下拉选项
+    async getExtRefOptions () {
+      const { statusCode, data } = await getExtRefOptions()
+      if (statusCode === 'OK') {
+        this.extRefOptions = data || []
       }
     },
     async newInitGraph () {
@@ -2133,6 +2181,7 @@ export default {
   mounted () {
     this.getCatOptions()
     this.getInitGraphData()
+    this.getExtRefOptions()
   }
 }
 </script>

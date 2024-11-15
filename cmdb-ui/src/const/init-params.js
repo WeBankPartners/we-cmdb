@@ -85,6 +85,12 @@ export const INPUT_TYPE_CONFIG = [
     length: 0
   },
   {
+    codeId: 'extRef',
+    code: 'extRef',
+    value: 'varchar',
+    length: 180
+  },
+  {
     codeId: 'select',
     code: 'select',
     value: 'varchar',

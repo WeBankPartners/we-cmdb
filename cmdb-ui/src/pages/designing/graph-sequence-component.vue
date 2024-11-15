@@ -63,9 +63,9 @@
                   </FormItem>
                   <FormItem v-if="formData.inputType === 'datetime'" class="form-item-content">
                     <DatePicker
-                      v-model="nodeData[formData.propertyName]"
+                      @on-change="val => setDateTime(val, 'nodeData', formData.propertyName)"
                       :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
-                      type="date"
+                      type="datetime"
                       placeholder="Select date"
                     ></DatePicker>
                   </FormItem>
@@ -183,9 +183,9 @@
           </FormItem>
           <FormItem v-if="formData.inputType === 'datetime'" class="form-item-content">
             <DatePicker
-              v-model="newNodeData[formData.propertyName]"
+              @on-change="val => setDateTime(val, 'newNodeData', formData.propertyName)"
               :disabled="isNewNodeDisabled(nodeCiAttrs, formData, newNodeData)"
-              type="date"
+              type="datetime"
               placeholder="Select date"
             ></DatePicker>
           </FormItem>
@@ -369,6 +369,9 @@ export default {
   },
   watch: {},
   methods: {
+    setDateTime (val, obj, key) {
+      this[obj][key] = val
+    },
     isGroupEditDisabled (allAttrs, attr, item) {
       let attrGroupEditDisabled = false
       if (attr.editGroupControl === 'yes') {
