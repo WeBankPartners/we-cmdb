@@ -115,7 +115,7 @@
                   style="display: flex; flex-flow: row nowrap;  align-items: center"
                 >
                   <Tag :color="item.confirm_time === '' ? 'default' : 'primary'">{{
-                    `${item.confirm_time === '' ? $t('db_draft') : $t('db_final')} ${item.version}`
+                    `${item.confirm_time === '' ? $t('db_draft') : $t('db_final')} ${item.version || ''}`
                   }}</Tag>
                   <div>{{ item.key_name }}</div>
                   <div style="color: #ccc; flex-shrink: 1; margin-right: auto; margin-left: 4px;">
@@ -128,9 +128,9 @@
               </OptionGroup>
             </Select>
           </template>
-          <Button @click="onQuery()" :disabled="!(currentView && validateCurrentRoot())">
+          <!-- <Button @click="onQuery()" :disabled="!(currentView && validateCurrentRoot())">
             {{ $t('query') }}
-          </Button>
+          </Button> -->
           <Button
             :disabled="viewSetting.editable !== 'yes' || viewData.length == 0 || isEditMode || !isGroupFirstNode()"
             @click="onEditMode()"
@@ -578,32 +578,32 @@ export default {
             rootOptions = rootOptions.concat(extendRootOptions)
             this.rootGroupOptions = groupOptions
             // 给数据添加版本号
-            this.rootGroupOptions.forEach(item => {
-              if (item.options && item.options.length > 0) {
-                // 草稿数据根据时间排序给出版本号
-                const draftArr = item.options.filter(_ => !_.confirm_time) || []
-                draftArr.reverse().forEach((_, index) => {
-                  _.version = `v${index + 1}`
-                })
-                // 定版数据据根据时间排序给出版本号
-                const confirmArr = item.options.filter(_ => _.confirm_time) || []
-                confirmArr.reverse().forEach((_, index) => {
-                  _.version = `v${index + 1}`
-                })
-                item.options.forEach(_ => {
-                  draftArr.forEach(i => {
-                    if (i.id === _.id) {
-                      _.version = i.version
-                    }
-                  })
-                  confirmArr.forEach(i => {
-                    if (i.id === _.id) {
-                      _.version = i.version
-                    }
-                  })
-                })
-              }
-            })
+            // this.rootGroupOptions.forEach(item => {
+            //   if (item.options && item.options.length > 0) {
+            //     // 草稿数据根据时间排序给出版本号
+            //     const draftArr = item.options.filter(_ => !_.confirm_time) || []
+            //     draftArr.reverse().forEach((_, index) => {
+            //       _.version = `v${index + 1}`
+            //     })
+            //     // 定版数据据根据时间排序给出版本号
+            //     const confirmArr = item.options.filter(_ => _.confirm_time) || []
+            //     confirmArr.reverse().forEach((_, index) => {
+            //       _.version = `v${index + 1}`
+            //     })
+            //     item.options.forEach(_ => {
+            //       draftArr.forEach(i => {
+            //         if (i.id === _.id) {
+            //           _.version = i.version
+            //         }
+            //       })
+            //       confirmArr.forEach(i => {
+            //         if (i.id === _.id) {
+            //           _.version = i.version
+            //         }
+            //       })
+            //     })
+            //   }
+            // })
           }
           this.rootOptions = rootOptions
         }
