@@ -752,3 +752,95 @@ CREATE TABLE `sys_ci_import_guid_map` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 alter table sys_basekey_code modify column `id` varchar(128) NOT NULL COMMENT '主键';
 #@v2.0.9.24-end@;
+
+#@v2.0.26.1-begin@;
+alter table sys_graph add column graph_node_config varchar(1024) default null;
+alter table sys_graph add column graph_edge_config varchar(1024) default null;
+alter table sys_ci_type_attr add column ext_ref_entity varchar(255) default null;
+alter table sys_role_ci_type add column `confirm` varchar(4) default 'N';
+alter table sys_role_ci_type_condition add column `confirm` varchar(4) default 'N';
+alter table sys_role_ci_type_list add column `confirm` varchar(4) default 'N';
+alter table sys_ci_type_attr add column confirm_nullable varchar(16) default 'yes';
+alter table sys_ci_template_attr add column ext_ref_entity varchar(255) default null;
+alter table sys_ci_template_attr add column confirm_nullable varchar(16) default 'yes';
+#@v2.0.26.1-end@;
+
+#@v2.0.26.2-begin@;
+ALTER TABLE `sys_ci_template_attr`
+DROP FOREIGN KEY `sys_ci_template_attr_ref_type`;
+
+
+ALTER TABLE `sys_ci_type`
+DROP FOREIGN KEY `sys_ci_type_group`,
+DROP FOREIGN KEY `sys_ci_type_layer`;
+
+ALTER TABLE `sys_ci_type_attr`
+DROP FOREIGN KEY `sys_ci_type_attr_ref_type`;
+
+
+
+ALTER TABLE `sys_basekey_code`
+    CHANGE COLUMN `id` `id` VARCHAR(128) NOT NULL COMMENT '主键' ;
+
+
+ALTER TABLE `sys_ci_template_attr`
+    CHANGE COLUMN `ref_type` `ref_type` VARCHAR(128) NULL DEFAULT NULL COMMENT '关联类型' ;
+ALTER TABLE `sys_ci_template_attr`
+    ADD CONSTRAINT `sys_ci_template_attr_ref_type`
+        FOREIGN KEY (`ref_type`)
+            REFERENCES `sys_basekey_code` (`id`);
+
+ALTER TABLE `sys_ci_type_attr`
+    CHANGE COLUMN `ref_type` `ref_type` VARCHAR(128) NULL DEFAULT NULL COMMENT '关联类型' ;
+ALTER TABLE `sys_ci_type_attr`
+    ADD CONSTRAINT `sys_ci_type_attr_ref_type`
+        FOREIGN KEY (`ref_type`)
+            REFERENCES `sys_basekey_code` (`id`);
+
+ALTER TABLE `sys_ci_type`
+    CHANGE COLUMN `ci_group` `ci_group` VARCHAR(128) NOT NULL COMMENT '所属图层' ,
+    CHANGE COLUMN `ci_layer` `ci_layer` VARCHAR(128) NOT NULL COMMENT '图层层级' ;
+ALTER TABLE `sys_ci_type`
+    ADD CONSTRAINT `sys_ci_type_group`
+        FOREIGN KEY (`ci_group`)
+            REFERENCES `sys_basekey_code` (`id`),
+ADD CONSTRAINT `sys_ci_type_layer`
+  FOREIGN KEY (`ci_layer`)
+  REFERENCES `sys_basekey_code` (`id`);
+
+
+ALTER TABLE `sys_graph_element`
+    CHANGE COLUMN `graph_configs` `graph_configs` TEXT NULL DEFAULT NULL ;
+ALTER TABLE `sys_graph_element`
+    CHANGE COLUMN `graph_config_data` `graph_config_data` VARCHAR(255) NULL DEFAULT NULL ;
+ALTER TABLE `sys_graph_element`
+    CHANGE COLUMN `graph_shapes` `graph_shapes` VARCHAR(1024) NULL DEFAULT NULL ;
+#@v2.0.26.2-end@;
+
+#@v2.0.26.3-begin@;
+CREATE TABLE `sys_report_import_history` (
+                                             `guid` varchar(64) NOT NULL COMMENT '导入guid',
+                                             `report` varchar(64) NOT NULL COMMENT '关联报告',
+                                             `root_ci_type` varchar(32) NOT NULL COMMENT '根关联ci',
+                                             `key_names` varchar(512) NOT NULL COMMENT '数据名称',
+                                             `total_count` int(10) DEFAULT 0 COMMENT '导入数据条数',
+                                             `status` varchar(20) NOT NULL COMMENT '状态',
+                                             `confirm_time` datetime NULL COMMENT '确认时间',
+                                             `create_user` varchar(32) NOT NULL COMMENT '创建人',
+                                             `create_time` datetime NOT NULL COMMENT '创建时间',
+                                             `update_user` varchar(32) NOT NULL COMMENT '更新人',
+                                             `update_time` datetime NOT NULL COMMENT '更新时间',
+                                             PRIMARY KEY (`guid`),
+                                             KEY `sys_report_attr_report_idx` (`report`),
+                                             KEY `sys_ci_type_attr_root_ci_type_idx` (`root_ci_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+alter table `sys_ci_import_guid_map` add column `report_import_guid` varchar(64) null default null COMMENT '报告导入guid';
+alter table `sys_ci_import_guid_map` add column `ci_type` varchar(32) null default null COMMENT '关联ci';
+alter table `sys_ci_import_guid_map` add column `is_unique` int(1) null default 1 COMMENT '是否唯一';
+alter table `sys_ci_import_guid_map` add column `is_not_empty` int(1) null default 1 COMMENT '是否不为空';
+#@v2.0.26.3-end@;
+
+#@v2.0.27.2-begin@;
+INSERT INTO sys_menu (id,display_name,url,seq_no,parent,is_active) values ('data_management_import','数据管理(导入)',NULL,3,'data_mgmt','yes');
+#@v2.0.27.2-end@;
