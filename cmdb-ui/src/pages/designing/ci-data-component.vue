@@ -27,8 +27,13 @@
     ></CMDBTable>
 
     <!-- 对比 -->
-    <Modal footer-hide v-model="compareVisible" width="90" class-name="compare-modal">
-      <Table :columns="compareColumns" :data="compareData" border />
+    <Modal footer-hide v-model="compareVisible" width="90" :fullscreen="fullscreen" class-name="compare-modal">
+      <p slot="header">
+        <span>{{ $t('compare') }}</span>
+        <Icon v-if="!fullscreen" @click="zoomModalMax" class="header-icon" type="ios-expand" />
+        <Icon v-else @click="zoomModalMin" class="header-icon" type="ios-contract" />
+      </p>
+      <Table :columns="compareColumns" :data="compareData" :max-height="fileContentHeight.slice(0, -2)" border />
     </Modal>
 
     <!-- @on-cancel="cancel" -->
@@ -90,6 +95,8 @@ export default {
   },
   data () {
     return {
+      fullscreen: false,
+      fileContentHeight: window.screen.availHeight * 0.5 + 'px',
       tableColumns: [],
       tableData: [],
       ciOuterActions: [],
@@ -141,7 +148,7 @@ export default {
       copyEditData: null
     }
   },
-  props: ['ci', 'ciTypeName', 'tableFilters', 'tableFilterEffects', 'isEdit'],
+  props: ['ci', 'ciTypeName', 'tableFilters', 'tableFilterEffects', 'isEdit', 'isDialectAll', 'confirmTime'],
   computed: {
     filterByDate () {
       if (this.queryDate) {
@@ -158,6 +165,14 @@ export default {
     }
   },
   methods: {
+    zoomModalMax () {
+      this.fileContentHeight = window.screen.availHeight - 310 + 'px'
+      this.fullscreen = true
+    },
+    zoomModalMin () {
+      this.fileContentHeight = window.screen.availHeight * 0.5 + 'px'
+      this.fullscreen = false
+    },
     callback (ci, items) {
       this.queryCiData()
       this.$emit('editCiRowData', ci, items)
@@ -225,44 +240,43 @@ export default {
       this.$refs.table.showCopyModal()
     },
     async compareHandler (row) {
+      this.fullscreen = false
       // this.$set(row.weTableForm, 'compareLoading', true)
       this.compareColumns = this.tableColumns
       const query = {
         id: this.ci,
         queryObject: {
-          dialect: { queryMode: this.queryType },
+          dialect: { queryMode: 'all' },
           filters: [
             {
               name: 'guid',
               operator: 'in',
               value: [row.weTableForm.guid, row.weTableForm.p_guid]
             }
-          ]
+          ],
+          sorting: { asc: false, field: 'update_time' }
         }
       }
       const { statusCode, data } = await queryCiData(query)
       this.$set(row.weTableForm, 'compareLoading', false)
       if (statusCode === 'OK') {
         this.compareData = data && data.contents
-        this.compareData = this.compareData
-          .map(x => {
-            for (let k in x) {
-              if (typeof x[k] === 'object' && x[k] !== null) x[k] = x[k].value || x[k].key_name
+        this.compareData = this.compareData.map(x => {
+          for (let k in x) {
+            if (typeof x[k] === 'object' && x[k] !== null) x[k] = x[k].value || x[k].key_name
+          }
+          return x
+        })
+        for (let i = 0; i < this.compareData.length - 1; i++) {
+          const pre = this.compareData[i]
+          const cur = this.compareData[i + 1]
+          for (let key in cur) {
+            cur.cellClassName = cur.cellClassName || {}
+            if (cur[key] !== pre[key]) {
+              cur.cellClassName[key] = 'highlightTableCell'
             }
-            return x
-          })
-          .map((x, idx) => {
-            const len = this.compareData.length
-            // if (x.guid === row.weTableForm.guid) {
-            x.cellClassName = {}
-            for (let k in x) {
-              if (this.compareData[len - idx] && x[k] !== this.compareData[len - idx][k]) {
-                x.cellClassName[k] = 'highlight'
-              }
-            }
-            // }
-            return x
-          })
+          }
+        }
       }
       this.compareVisible = true
     },
@@ -538,6 +552,14 @@ export default {
           })
         )
         query.queryObject.filters.push({ name: 'guid', operator: 'in', value: guids })
+        // if (this.isDialectAll && this.confirmTime !== '') {
+        //   query.queryObject.dialect.queryMode = 'all'
+        //   query.queryObject.filters.push({ name: 'confirm_time', operator: 'eq', value: this.confirmTime })
+        //   query.queryObject.filters.push({ name: 'update_time', operator: 'eq', value: this.confirmTime })
+        //   query.queryObject.filters.push({ name: 'history_action', operator: 'eq', value: 'confirm' })
+        // } else {
+        //   query.queryObject.dialect.queryMode = 'new'
+        // }
         const method = queryCiData
         this.$refs.table.isTableLoading(true)
         const { statusCode, data } = await method(query)
@@ -567,7 +589,8 @@ export default {
                 data[index].options = res.data.map(item => {
                   return {
                     label: item.value,
-                    value: item.code
+                    value: item.code,
+                    codeDescription: item.codeDescription
                   }
                 })
               }
@@ -597,7 +620,7 @@ export default {
               disAdded: !data[index].isEditable,
               placeholder: data[index].name,
               component: 'Input',
-              referenceFilter: !!data[index].referenceFilter,
+              referenceFilter: data[index].referenceFilter,
               ciType: { id: data[index].referenceId, name: data[index].name },
               type: 'text',
               isMultiple: data[index].inputType === 'multiSelect',
@@ -619,6 +642,7 @@ export default {
     }
   },
   mounted () {
+    this.fileContentHeight = window.screen.availHeight * 0.5 + 'px'
     this.init()
   },
   components: {
@@ -626,13 +650,18 @@ export default {
   }
 }
 </script>
-
+<style lang="scss">
+.highlightTableCell {
+  color: rgba(#ff6600, 0.9) !important;
+}
+</style>
 <style lang="scss" scoped>
+.header-icon {
+  float: right;
+  margin: 3px 20px 0 0 !important;
+}
 ::v-deep .compare-modal .ivu-modal-body {
   padding-top: 40px;
-}
-::v-deep .ivu-table td.highlight {
-  color: rgba(#ff6600, 0.9);
 }
 
 ::v-deep .copy-modal {

@@ -4,9 +4,9 @@
     <Modal v-model="showModal" :title="$t('configuration')" @on-ok="confirmData" @on-cancel="cancel">
       <template v-for="(item, itemIndex) in multiData">
         <div :key="itemIndex" style="margin:4px">
-          <Input v-model="item.value" :type="type" v-if="type !== 'json'" style="width:400px"></Input>
+          <Input v-model="item.value" :type="type" v-if="type !== 'json'" style="width:360px"></Input>
           <Button @click="addItem" type="primary" icon="md-add"></Button>
-          <Button @click="deleteItem" v-if="multiData.length !== 1" type="error" icon="ios-trash"></Button>
+          <Button @click="deleteItem(itemIndex)" v-if="multiData.length !== 1" type="error" icon="ios-trash"></Button>
         </div>
       </template>
     </Modal>
@@ -40,7 +40,7 @@ export default {
   },
   props: ['inputKey', 'data', 'type', 'disabled'],
   mounted () {
-    let tmp = this.data ? JSON.parse(this.data) : []
+    let tmp = this.data ? this.data : []
     if (this.type === 'json') {
       this.originData = tmp || []
     } else {

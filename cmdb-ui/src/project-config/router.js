@@ -7,7 +7,7 @@ export default new Router({
     {
       path: '/',
       name: 'IndexPage',
-      redirect: '/wecmdb/designing/ci-data-enquiry',
+      redirect: '/wecmdb/designing/ci-data-management',
       component: () => import('@/pages/index'),
       children: [
         {
@@ -72,6 +72,21 @@ export default new Router({
           path: '/wecmdb/designing/ci-data-management',
           name: 'ciDataManage',
           component: () => import('@/pages/designing/ci-data')
+        },
+        {
+          path: '/wecmdb/designing/data-management-import',
+          name: 'dataManagementImport',
+          component: () => import('@/pages/designing/data-import')
+        },
+        {
+          path: '/wecmdb/designing/data-import-detail',
+          name: 'dataImportDetail',
+          component: () => import('@/pages/designing/data-import-detail')
+        },
+        {
+          path: '/wecmdb/designing/ci-template-configuration',
+          name: '',
+          component: () => import('@/pages/designing/ci-template-configuration')
         },
         {
           path: '/wecmdb/designing/ci-data-enquiry',

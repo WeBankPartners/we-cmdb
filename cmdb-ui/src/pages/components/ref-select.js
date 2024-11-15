@@ -1,8 +1,10 @@
 import { queryCiData, getCiTypeAttributes, getEnumCodesByCategoryId, queryReferenceCiData } from '@/api/server'
 import { components } from '@/const/actions.js'
 import { finalDataForRequest } from '@/pages/util/component-util'
+import CustomMultipleRefSelect from './custom-ref-select.vue'
 export default {
   name: 'WeCMDBRefSelect',
+  components: { CustomMultipleRefSelect },
   props: {
     value: {},
     highlightRow: {},
@@ -11,7 +13,8 @@ export default {
     disabled: { default: () => false },
     filterParams: {},
     guidFilters: { default: () => null },
-    guidFilterEnabled: { default: () => false }
+    guidFilterEnabled: { default: () => false },
+    title: ''
   },
   watch: {
     value: {
@@ -89,14 +92,14 @@ export default {
       this.payload.filters = data
       this.queryCiData()
     },
-    pageChange (current) {
+    async pageChange (current) {
       this.pagination.currentPage = current
-      this.queryCiData()
+      await this.queryCiData()
       this.highlightRowHandler()
     },
-    pageSizeChange (size) {
+    async pageSizeChange (size) {
       this.pagination.pageSize = size
-      this.queryCiData()
+      await this.queryCiData()
       this.highlightRowHandler()
     },
     async queryCiData () {
@@ -113,9 +116,10 @@ export default {
         attrId: this.filterParams ? this.filterParams.attrId : null,
         queryObject: this.filterParams ? { ...this.payload, dialect: { data: rows } } : this.payload
       }
+      query.queryObject.withRefRowData = true
       const { statusCode, data } = this.filterParams ? await queryReferenceCiData(query) : await queryCiData(query)
       if (statusCode === 'OK') {
-        this.tableData = this.filterParams ? data.contents : data.contents.map(_ => _.data)
+        this.tableData = data.contents
         this.pagination.total = data.pageInfo.totalRows
       }
     },
@@ -162,26 +166,22 @@ export default {
       })
       return columns
     },
-    showRefModal (e) {
+    async showRefModal (e) {
       e.preventDefault()
       e.stopPropagation()
       this.visibleSwap = true
-      this.queryCiAttrs(this.ciType.id)
-      this.queryCiData()
-      this.$nextTick(() => {
-        this.highlightRowHandler()
-      })
+      await this.queryCiAttrs(this.ciType.id)
+      await this.queryCiData()
+      this.highlightRowHandler()
     },
     highlightRowHandler () {
       if (!this.highlightRow) {
-        /* to get iview original data to reset _ischecked flag */
-        let data = this.$refs.refTable.$refs.table.$refs.tbody.objData
-        for (let obj in data) {
-          data[obj]._isChecked = false
-        }
-        this.selected.forEach(_ => {
-          const index = this.tableData.findIndex(el => el.guid === _)
-          data[index]._isChecked = true
+        this.tableData.forEach(i => {
+          if (this.selected.includes(i.guid)) {
+            this.$set(i, '_checked', true)
+          } else {
+            this.$set(i, '_checked', false)
+          }
         })
       } else {
         const index = this.tableData.findIndex(el => el.guid === this.selected)
@@ -247,34 +247,48 @@ export default {
       )
     })
     return (
-      <div style="width:100%">
-        <Select
-          onInput={this.handleInput}
-          value={this.selected}
-          multiple={!this.highlightRow}
-          disabled={this.selectDisabled || this.disabled}
-          style="width:100%"
-          filterable
-          clearable
-          on-on-change={this.selectChangeHandler}
-          on-on-open-change={this.getFilterRulesOptions}
-          max-tag-count={2}
-        >
-          <span slot="prefix" onClick={e => this.showRefModal(e)}>
-            @
-          </span>
-          {renderOptions}
-        </Select>
+      <div class="cmdb-ref-select">
+        {this.highlightRow && (
+          <Select
+            onInput={this.handleInput}
+            value={this.selected}
+            disabled={this.selectDisabled || this.disabled}
+            style="width:100%"
+            filterable
+            clearable
+            on-on-change={this.selectChangeHandler}
+            on-on-open-change={this.getFilterRulesOptions}
+            max-tag-count={2}
+            placeholder={this.title || this.$t('select_placeholder')}
+          >
+            <span slot="prefix" style="cursor:pointer;" onClick={e => this.showRefModal(e)}>
+              @
+            </span>
+            {renderOptions}
+          </Select>
+        )}
+        {// 引用多选下拉框组件封装
+          !this.highlightRow && (
+            <CustomMultipleRefSelect
+              options={this.allTableDataWithoutPaging}
+              onShowRefModal={e => this.showRefModal(e)}
+              onChange={val => this.$emit('input', val)}
+              onOpenChange={this.getFilterRulesOptions}
+              disabled={this.selectDisabled || this.disabled}
+              v-model={this.selected}
+              title={this.title}
+            ></CustomMultipleRefSelect>
+          )}
         <Modal
           title={this.ciType.name}
           value={this.visibleSwap}
           footer-hide={true}
           mask-closable={false}
           scrollable={true}
-          width={1300}
+          width={1000}
           on-on-visible-change={status => this.hideRefModal(status)}
         >
-          <div class="modalTable" style="padding:20px;">
+          <div class="modalTable">
             {this.visibleSwap && (
               <CMDBTable
                 tableData={this.tableData}
@@ -294,7 +308,7 @@ export default {
               />
             )}
           </div>
-          <div style="text-align:right;margin-top:40px">
+          <div style="text-align:right;margin-top:60px">
             <span style="margin-right:20px">
               <Button type="info" onClick={this.modalOk}>
                 OK

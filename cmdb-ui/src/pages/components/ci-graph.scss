@@ -2,3 +2,12 @@
   max-height: calc(80vh - 200px);
   overflow-y: auto;
 }
+
+.ci-graph-root {
+  height: calc(100vh - 250px);
+  width: 50%;
+} 
+.first-tab-pane {
+  max-height: calc(100vh - 380px);
+  overflow-y: auto;
+}
