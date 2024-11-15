@@ -2,7 +2,7 @@
   <Row>
     <Col span="24">
       <Row>
-        <Col span="12">
+        <Col span="16">
           <template>
             <!-- select view -->
             <Select
@@ -16,9 +16,9 @@
               style="width: 35%;z-index:auto"
             >
               <Option
-                v-for="item in viewOptions"
+                v-for="(item, itemIndex) in viewOptions"
                 :value="item.viewId"
-                :key="item.viewId"
+                :key="item.viewId + itemIndex"
                 :label="item.name"
                 style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
               >
@@ -37,27 +37,30 @@
               filterable
               :multiple="viewSetting.multiple == 'yes'"
               label-in-name
-              style="width: 35%;z-index:auto"
+              style="width: 45%;z-index:auto"
               ref="rootSelect"
             >
               <Option
-                v-if="currentView && viewSetting.editable === 'yes'"
-                :value="-1"
-                :key="-1"
-                style="padding: 0 0 0 0px;"
-              >
-                <span style="width: 95%;">
-                  <Button @click.stop.prevent="onAddRoot()" icon="md-add" type="success" long></Button>
-                </span>
-              </Option>
-              <Option
-                v-for="item in rootOptions"
+                v-for="(item, itemIndex) in rootOptions"
                 :value="item._id"
-                :key="item._id"
-                :label="item.name || item.key_name"
+                :key="item._id + itemIndex"
+                :label="
+                  `${item.key_name}${item.name ? '(' + item.name + ')' : ''}${
+                    item.confirm_time ? ' ' + item.confirm_time : ''
+                  }${item.update_user ? ' ' + item.update_user : ''}`
+                "
                 style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
               >
-                {{ item.name || item.key_name }}
+                <Tag :color="item.confirm_time === '' ? 'default' : 'primary'">{{
+                  item.confirm_time === '' ? $t('db_draft') : $t('db_final')
+                }}</Tag>
+                <div>{{ item.key_name }}{{ item.name ? '(' + item.name + ')' : '' }}</div>
+                <div style="color: #ccc; flex-shrink: 1; margin-right: auto; margin-left: 4px;">
+                  {{ item.confirm_time || item.update_time }}
+                </div>
+                <div v-if="item.update_user" style="color: blue; flex-shrink: 1; margin-left: 10px">
+                  {{ item.update_user || '' }}
+                </div>
               </Option>
             </Select>
             <!-- group select -->
@@ -72,30 +75,34 @@
               filterable
               :multiple="viewSetting.multiple == 'yes'"
               label-in-name
-              style="width: 35%;z-index:auto"
+              style="width: 45%;z-index:auto"
               ref="rootSelect"
             >
-              <Option
-                v-if="currentView && viewSetting.editable === 'yes'"
-                :value="-1"
-                :key="-1"
-                style="padding: 0 0 0 0px;"
+              <OptionGroup
+                v-for="(data, dataIndex) in rootGroupOptions"
+                :key="data.key_name + dataIndex"
+                :label="data.name || data.key_name"
               >
-                <span style="width: 95%;">
-                  <Button @click.stop.prevent="onAddRoot()" icon="md-add" type="success" long></Button>
-                </span>
-              </Option>
-              <OptionGroup v-for="data in rootGroupOptions" :key="data.key_name" :label="data.name || data.key_name">
                 <Option
-                  v-for="item in data.options"
+                  v-for="(item, itemIndex) in data.options"
                   :value="item._id"
-                  :key="item._id"
-                  :label="`${item.name || item.key_name}${item.confirm_time ? ' ' + item.confirm_time : ''}`"
-                  style="display:flex; flex-flow:row nowrap; justify-content:space-between; align-items:center"
+                  :key="item._id + itemIndex"
+                  :label="
+                    `${item.key_name}${item.name ? '(' + item.name + ')' : ''}${
+                      item.confirm_time ? ' ' + item.confirm_time : ''
+                    }${item.update_user ? ' ' + item.update_user : ''}`
+                  "
+                  style="display: flex; flex-flow: row nowrap;  align-items: center"
                 >
-                  <div>{{ item.name || item.key_name }}</div>
-                  <div v-if="item.confirm_time" style="color:#ccc; flex-shrink:1; margin-left:10px">
-                    {{ item.confirm_time }}
+                  <Tag :color="item.confirm_time === '' ? 'default' : 'primary'">{{
+                    item.confirm_time === '' ? $t('db_draft') : $t('db_final')
+                  }}</Tag>
+                  <div>{{ item.key_name }}</div>
+                  <div style="color: #ccc; flex-shrink: 1; margin-right: auto; margin-left: 4px;">
+                    {{ item.confirm_time || item.update_time }}
+                  </div>
+                  <div v-if="item.update_user" style="color: blue; flex-shrink: 1; margin-left: 10px">
+                    {{ item.update_user || '' }}
                   </div>
                 </Option>
               </OptionGroup>
@@ -104,21 +111,6 @@
           <Button @click="onQuery()" :disabled="!(currentView && validateCurrentRoot())">
             {{ $t('query') }}
           </Button>
-          <!-- <Button
-            :disabled="viewSetting.editable !== 'yes' || viewData.length == 0 || isEditMode || !isGroupFirstNode()"
-            @click="onEditMode()"
-            >{{ $t('version_change') }}</Button
-          >
-          <Button
-            v-if="viewSetting.suportVersion === 'yes'"
-            :disabled="viewSetting.suportVersion !== 'yes' || viewSetting.editable !== 'yes' || !isEditMode"
-            @click="onConfirmVersion()"
-            >{{ $t('fix_version') }}</Button
-          > -->
-
-          <!-- <Button :disabled="!(currentView && viewSetting.editable === 'yes')" @click="onAddRoot()">{{
-            $t('new_root')
-          }}</Button> -->
         </Col>
       </Row>
       <Row>
@@ -131,7 +123,7 @@
               </Spin>
               <TabPane
                 v-for="(graph, graphIndex) in viewSetting.graphs"
-                :label="graph.name"
+                :label="() => renderLabel(graph.name, 0)"
                 :key="graph.name + graphIndex"
                 :name="'tabgraph' + graphIndex"
               >
@@ -139,6 +131,7 @@
                   <Graph
                     :ref="'graphView' + graphIndex"
                     :key="'graphView' + graphIndex"
+                    :suportVersion="isSuportVersion"
                     :isEdit="isEditMode"
                     :graphSetting="viewSetting"
                     :graphData="viewData"
@@ -150,9 +143,16 @@
                   ></Graph>
                 </div>
               </TabPane>
-              <TabPane v-for="citype in ciTypeTables" :label="citype.name" :key="citype.id" :name="'tabci' + citype.id">
+              <TabPane
+                v-for="(citype, itemIndex) in ciTypeTables"
+                :label="() => renderLabel(citype.name, 1)"
+                :key="citype.id + itemIndex"
+                :name="'tabci' + citype.id"
+              >
                 <CITable
                   v-if="citype.isInit"
+                  :isDialectAll="isSuportVersion === 'yes'"
+                  :confirmTime="confirmTime"
                   :ci="citype.id"
                   :ciTypeName="citype.name"
                   :tableFilters="ciTypeTableFilters"
@@ -190,9 +190,9 @@
           </FormItem>
           <FormItem v-if="formData.inputType === 'datetime' && formData.editable == 'yes'" class="form-item-content">
             <DatePicker
-              v-model="childNodeData[formData.propertyName]"
+              @on-change="val => setDateTime(val, 'childNodeData', formData.propertyName)"
               :disabled="formData.editable == 'no'"
-              type="date"
+              type="datetime"
               placeholder="Select date"
             ></DatePicker>
           </FormItem>
@@ -293,6 +293,7 @@ export default {
       currentView: '',
       viewOptions: [],
       currentRoot: '',
+      currentRootDisplayName: '',
       rootOptions: [],
       rootGroupOptions: [],
       viewSetting: {},
@@ -309,12 +310,37 @@ export default {
       childNodeAddOperation: '',
       childNodeData: {},
       childBtnLoading: false,
-      baseKeyCatMapping: {}
+      baseKeyCatMapping: {},
+      confirmTime: ''
     }
   },
-  computed: {},
+  computed: {
+    isSuportVersion: function () {
+      if (this.currentView === '') {
+        return 'no'
+      } else {
+        const view = this.viewOptions.find(v => v.viewId === this.currentView)
+        return view.suportVersion
+      }
+    }
+  },
   watch: {},
   methods: {
+    setDateTime (val, obj, key) {
+      this[obj][key] = val
+    },
+    renderLabel (name, type) {
+      return (
+        <div>
+          <Icon
+            size="20"
+            type={type === 0 ? 'md-analytics' : 'ios-list-box-outline'}
+            style="vertical-align: top;margin-right: 8px;"
+          />
+          <strong>{name}</strong>
+        </div>
+      )
+    },
     handleTabClick (name) {
       if (name.startsWith('tabci')) {
         let ciTypeId = name.substring('tabci'.length)
@@ -322,7 +348,27 @@ export default {
         if (ciType) {
           ciType.isInit = true
         }
+      } else if (name.startsWith('tabgraph')) {
+        this.$nextTick(() => {
+          const num = name.slice(-1)
+          this.renderGraph(Number(num))
+        })
       }
+    },
+    renderGraph (num) {
+      this.$nextTick(() => {
+        let currentRoots = [this.currentRoot]
+        if (Array.isArray(this.currentRoot)) {
+          currentRoots = this.currentRoot
+        }
+        let rootDetails = currentRoots.map(currentRoot => {
+          let rootDetail = this.rootOptions.find(el => {
+            return el._id === currentRoot
+          })
+          return rootDetail
+        })
+        this.$refs['graphView' + num][0].initGraph(rootDetails[0]['confirm_time'], num)
+      })
     },
     onChildFormJSONInput (jsonData, key) {
       let copyData = JSON.parse(JSON.stringify(jsonData))
@@ -356,10 +402,12 @@ export default {
       return false
     },
     async onViewSelect (key) {
+      this.confirmTime = ''
       if (key) {
         this.onClearViewSelect()
         const { data } = await graphViewDetail(key)
         this.viewSetting = data
+        this.viewSetting.viewId = key
       }
     },
     onClearViewSelect () {
@@ -381,8 +429,14 @@ export default {
       }
     },
     onRootSelect (key) {
+      this.confirmTime = ''
       if (key) {
         this.onClearRootSelect()
+        const find = this.rootOptions.find(item => item._id === key)
+        if (find) {
+          this.currentRootDisplayName = `${find.key_name}${find.name ? '(' + find.name + ')' : ''}`
+          this.confirmTime = find.confirm_time
+        }
       }
     },
     onClearRootSelect () {
@@ -556,6 +610,11 @@ export default {
         this.generateCiTypeTab()
         if (this.viewSetting.graphs.length > 0) {
           this.$refs.tab.activeKey = 'tabgraph0'
+          for (let i = 0; i < this.viewSetting.graphs.length; i++) {
+            let name = this.viewSetting.graphs[i].name
+            this.viewSetting.graphs[i].graphExportName = `${this.currentRootDisplayName}_[${name}]`
+            this.renderGraph(i)
+          }
         }
       })
     },
@@ -696,21 +755,23 @@ export default {
         this.ciTypeTableFilters = {}
         let ciFilters = {}
         this.viewSetting.graphs.forEach((graph, graphIndex) => {
-          // refs -> graphView + index -> index=0 -> plainDatas
-          let plainDatas = this.$refs['graphView' + graphIndex][0].plainDatas
-          plainDatas.forEach(node => {
-            if (node.metadata.setting.editable !== 'no') {
-              if (!(node.metadata.setting.ciType in ciFilters)) {
-                ciFilters[node.metadata.setting.ciType] = new Set()
-                ciFilters[node.metadata.setting.ciType].add(node.guid)
-              } else {
-                ciFilters[node.metadata.setting.ciType].add(node.guid)
+          this.$nextTick(() => {
+            // refs -> graphView + index -> index=0 -> plainDatas
+            let plainDatas = this.$refs['graphView' + graphIndex][0].plainDatas
+            plainDatas.forEach(node => {
+              if (node.metadata.setting.editable !== 'no') {
+                if (!(node.metadata.setting.ciType in ciFilters)) {
+                  ciFilters[node.metadata.setting.ciType] = new Set()
+                  ciFilters[node.metadata.setting.ciType].add(node.guid)
+                } else {
+                  ciFilters[node.metadata.setting.ciType].add(node.guid)
+                }
               }
-            }
+            })
+            Object.keys(ciFilters).forEach(ci => {
+              this.ciTypeTableFilters[ci] = Array.from(ciFilters[ci])
+            })
           })
-        })
-        Object.keys(ciFilters).forEach(ci => {
-          this.ciTypeTableFilters[ci] = Array.from(ciFilters[ci])
         })
       })
     },
@@ -761,8 +822,7 @@ export default {
   },
   async mounted () {
     await this.getAllCITypes()
-  },
-  created () {}
+  }
 }
 </script>
 <style lang="scss" scoped>
@@ -779,7 +839,7 @@ export default {
 }
 
 .view-card {
-  height: calc(100vh - 180px);
+  height: calc(100vh - 160px);
   width: 100%;
 }
 .require-tag {
