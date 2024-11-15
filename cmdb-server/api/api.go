@@ -55,6 +55,8 @@ func init() {
 		&handlerFuncObj{Url: "/ci-template", Method: "GET", HandlerFunc: ci.GetCiTemplate},
 		&handlerFuncObj{Url: "/state-machine", Method: "GET", HandlerFunc: ci.GetStateMachine},
 		&handlerFuncObj{Url: "/state-transition/:ciType", Method: "GET", HandlerFunc: ci.GetStateTransition},
+		&handlerFuncObj{Url: "/extend/ci-types/model/list", Method: "GET", HandlerFunc: ci.GetExtendModelList},
+		&handlerFuncObj{Url: "/ci-types/query/id-and-name", Method: "GET", HandlerFunc: ci.QueryIdAndName},
 	)
 	// ciAttributes
 	httpHandlerFuncList = append(httpHandlerFuncList,
@@ -77,6 +79,7 @@ func init() {
 		&handlerFuncObj{Url: "/ci-data/import/:ciType", Method: "POST", HandlerFunc: ci.DataImport},
 		&handlerFuncObj{Url: "/ci-data/simple/import/:ciType", Method: "POST", HandlerFunc: ci.SimpleCiDataImport},
 		&handlerFuncObj{Url: "/ci-data/password/encrypt-key", Method: "GET", HandlerFunc: ci.GetCiPasswordAESKey},
+		&handlerFuncObj{Url: "/extend/ci-data/model/query/:ciAttr", Method: "POST", HandlerFunc: ci.GetExtendModelData},
 	)
 	// log
 	httpHandlerFuncList = append(httpHandlerFuncList,
@@ -119,6 +122,7 @@ func init() {
 		&handlerFuncObj{Url: "/views", Method: "GET", HandlerFunc: view.GetViewList},
 		&handlerFuncObj{Url: "/view/:viewId", Method: "GET", HandlerFunc: view.GetView},
 		&handlerFuncObj{Url: "/view-data", Method: "POST", HandlerFunc: view.GetViewData},
+		&handlerFuncObj{Url: "/view-graph-data", Method: "POST", HandlerFunc: view.GetGraphViewData},
 		&handlerFuncObj{Url: "/view-confirm", Method: "POST", HandlerFunc: view.ConfirmView},
 	)
 
@@ -136,6 +140,20 @@ func init() {
 		&handlerFuncObj{Url: "/report-objects/query", Method: "POST", HandlerFunc: report.QueryReportObject},
 		&handlerFuncObj{Url: "/report-objects-attr/query", Method: "POST", HandlerFunc: report.QueryReportAttr},
 		&handlerFuncObj{Url: "/report/export", Method: "POST", HandlerFunc: report.ExportReportData},
+		&handlerFuncObj{Url: "/report/copy", Method: "POST", HandlerFunc: report.CopyReportData},
+	)
+
+	// report import history
+	httpHandlerFuncList = append(httpHandlerFuncList,
+		&handlerFuncObj{Url: "/report-import-history/list", Method: "POST", HandlerFunc: report.QueryReportImportHistory},
+		&handlerFuncObj{Url: "/report-import-history/query", Method: "GET", HandlerFunc: report.QueryReportImportHistoryById},
+		&handlerFuncObj{Url: "/report-import-history/confirm-ci-data", Method: "POST", HandlerFunc: report.ConfirmReportImport},
+		&handlerFuncObj{Url: "/report-import-history/cancel-ci-data", Method: "POST", HandlerFunc: report.CancelReportImport},
+		&handlerFuncObj{Url: "/report-import-history/ci-types-attr/:ciType/attributes", Method: "GET", HandlerFunc: report.AttrQueryWithCheckResult},
+		&handlerFuncObj{Url: "/report-import-history/ci-data/query/:ciType", Method: "POST", HandlerFunc: report.DataQueryWithCheckResult},
+		&handlerFuncObj{Url: "/report-import-history/user", Method: "GET", HandlerFunc: report.QueryReportImportUser},
+		&handlerFuncObj{Url: "/report-import-history/refresh-check-result/list", Method: "GET", HandlerFunc: report.RefreshReportImportHistory},
+		&handlerFuncObj{Url: "/report-import-history/refresh-check-result/query", Method: "GET", HandlerFunc: report.RefreshReportImportHistoryById},
 	)
 }
 

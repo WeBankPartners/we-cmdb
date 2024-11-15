@@ -12,6 +12,7 @@ const (
 	SumInputType         = "sum"
 	AvgInputType         = "avg"
 	PasswordInputType    = "password"
+	ExtRefInputType      = "extRef"
 	AutofillSuggest      = "suggest#"
 	SystemUser           = "system"
 	AdminUser            = "SUPER_ADMIN"
@@ -22,6 +23,14 @@ const (
 	RollbackAction       = "rollback"
 	FilterTypeExpression = "expression"
 	FilterTypeSelectList = "selectList"
+
+	HeaderAuthorization = "Authorization"
+
+	MultiText   = "multiText"
+	MultiInt    = "multiInt"
+	Int         = "int"
+	MultiObject = "multiObject"
+	MultiSelect = "multiSelect"
 )
 
 var (

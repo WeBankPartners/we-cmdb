@@ -17,12 +17,13 @@ type QueryRequestDialect struct {
 }
 
 type QueryRequestParam struct {
-	Filters       []*QueryRequestFilterObj `json:"filters"`
-	Dialect       *QueryRequestDialect     `json:"dialect"`
-	Paging        bool                     `json:"paging"`
-	Pageable      *PageInfo                `json:"pageable"`
-	Sorting       *QueryRequestSorting     `json:"sorting"`
-	ResultColumns []string                 `json:"resultColumns"`
+	Filters        []*QueryRequestFilterObj `json:"filters"`
+	Dialect        *QueryRequestDialect     `json:"dialect"`
+	Paging         bool                     `json:"paging"`
+	Pageable       *PageInfo                `json:"pageable"`
+	Sorting        *QueryRequestSorting     `json:"sorting"`
+	ResultColumns  []string                 `json:"resultColumns"`
+	WithRefRowData bool                     `json:"withRefRowData"` // ref选项查询时是否返回整行数据，默认否只返回guid、keyName
 }
 
 type TransFiltersParam struct {

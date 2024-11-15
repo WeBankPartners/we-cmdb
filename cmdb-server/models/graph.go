@@ -1,20 +1,24 @@
 package models
 
 type SysGraphTable struct {
-	Id         string `json:"graphId" xorm:"id"`
-	Name       string `json:"name" xorm:"name"`
-	View       string `json:"view" xorm:"view"`
-	GraphType  string `json:"graphType" xorm:"graph_type"`
-	NodeGroups string `json:"nodeGroups" xorm:"node_groups"`
-	GraphDir   string `json:"graphDir" xorm:"graph_dir"`
+	Id              string `json:"graphId" xorm:"id"`
+	Name            string `json:"name" xorm:"name"`
+	View            string `json:"view" xorm:"view"`
+	GraphType       string `json:"graphType" xorm:"graph_type"`
+	NodeGroups      string `json:"nodeGroups" xorm:"node_groups"`
+	GraphDir        string `json:"graphDir" xorm:"graph_dir"`
+	GraphNodeConfig string `json:"graphNodeConfig" xorm:"graph_node_config"`
+	GraphEdgeConfig string `json:"graphEdgeConfig" xorm:"graph_edge_config"`
 }
 
 type GraphQuery struct {
-	Name          string            `json:"name" xorm:"name"`
-	ViewGraphType string            `json:"viewGraphType" xorm:"view_graph_type"`
-	NodeGroups    string            `json:"nodeGroups" xorm:"node_groups"`
-	GraphDir      string            `json:"graphDir" xorm:"graph_dir"`
-	RootData      *GraphElementNode `json:"rootData" xorm:"root_data"`
+	Name            string            `json:"name" xorm:"name"`
+	ViewGraphType   string            `json:"viewGraphType" xorm:"view_graph_type"`
+	NodeGroups      string            `json:"nodeGroups" xorm:"node_groups"`
+	GraphDir        string            `json:"graphDir" xorm:"graph_dir"`
+	RootData        *GraphElementNode `json:"rootData" xorm:"root_data"`
+	GraphNodeConfig string            `json:"graphNodeConfig" xorm:"graph_node_config"`
+	GraphEdgeConfig string            `json:"graphEdgeConfig" xorm:"graph_edge_config"`
 }
 
 type SysGraphElementTable struct {
