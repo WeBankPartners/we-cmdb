@@ -126,3 +126,31 @@ type PluginViewConfirmOutputObj struct {
 	ErrorMessage      string `json:"errorMessage"`
 	ErrorDetail       string `json:"errorDetail,omitempty"`
 }
+
+type PlatformDataModel struct {
+	Id           string                     `json:"id" xorm:"id"`                      // 唯一标识
+	Version      int                        `json:"version" xorm:"version"`            // 版本
+	PackageName  string                     `json:"packageName" xorm:"package_name"`   // 包名
+	IsDynamic    bool                       `json:"dynamic" xorm:"is_dynamic"`         // 是否动态
+	UpdatePath   string                     `json:"updatePath" xorm:"update_path"`     // 请求路径
+	UpdateMethod string                     `json:"updateMethod" xorm:"update_method"` // 请求方法
+	UpdateSource string                     `json:"updateSource" xorm:"update_source"` // 来源
+	Entities     []*PlatformDataModelEntity `json:"entities"`
+}
+
+type PlatformDataModelEntity struct {
+	Id               string `json:"id" xorm:"id"`                               // 唯一标识
+	DataModelId      string `json:"dataModelId" xorm:"data_model_id"`           // 所属数据模型
+	DataModelVersion int    `json:"dataModelVersion" xorm:"data_model_version"` // 版本
+	PackageName      string `json:"packageName" xorm:"package_name"`            // 包名
+	Name             string `json:"name" xorm:"name"`                           // 模型名
+	DisplayName      string `json:"displayName" xorm:"display_name"`            // 显示名
+	Description      string `json:"description" xorm:"description"`             // 描述
+}
+
+type PlatformEntityQueryResponse struct {
+	Code    int                  `json:"code"`
+	Status  string               `json:"status"`
+	Message string               `json:"message"`
+	Data    []*PlatformDataModel `json:"data"`
+}

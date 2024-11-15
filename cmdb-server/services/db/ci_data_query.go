@@ -8,14 +8,20 @@ import (
 	"strings"
 )
 
-func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *models.CiDataLegalGuidList, fromCore bool) (pageInfo models.PageInfo, rowData []map[string]interface{}, err error) {
+/*
+hasCheckResultColumn 表示是否需要在查询结果中包含检查结果列。
+如果为 true，则会在 SELECT 语句中添加额外的检查结果列（如 is_unique 和 is_not_empty），并在 SQL 查询中加入相应的过滤条件。
+如果为 false，则仅查询基本列而不包含检查结果列。
+*/
+func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *models.CiDataLegalGuidList, fromCore bool, hasCheckResultColumn bool) (pageInfo models.PageInfo, rowData []map[string]interface{}, err error) {
 	ciAttrs, err := GetCiAttrByCiType(ciType, true)
 	if err != nil {
 		err = fmt.Errorf("Try to get ci attribute with ciType:%s error,%s ", ciType, err.Error())
 		return
 	}
+	//
 	var keyMap = make(map[string]string)
-	var refAttrs, multiRefAttrs, objectAttrs, passwordAttrs, multiTextAttrs, multiIntAttrs []*models.CiDataQueryRefAttrObj
+	var refAttrs, multiRefAttrs, objectAttrs, passwordAttrs, multiTextAttrs, multiIntAttrs, extRefAttrs []*models.CiDataQueryRefAttrObj
 	resultColumns := models.CiQueryColumnList{}
 	for _, attr := range ciAttrs {
 		if attr.InputType != models.MultiRefType {
@@ -44,6 +50,8 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 			}
 			if attr.RefCiType != "" {
 				refAttrs = append(refAttrs, &models.CiDataQueryRefAttrObj{Attribute: attr})
+			} else if attr.ExtRefEntity != "" {
+				extRefAttrs = append(extRefAttrs, &models.CiDataQueryRefAttrObj{Attribute: attr})
 			} else if attr.InputType == "object" || attr.InputType == "multiObject" {
 				objectAttrs = append(objectAttrs, &models.CiDataQueryRefAttrObj{Attribute: attr})
 			} else if attr.InputType == "password" {
@@ -105,8 +113,22 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 	if param.Dialect == nil {
 		param.Dialect = &models.QueryRequestDialect{QueryMode: "new"}
 	}
+	//
+	var (
+		checkResultFilterSql  string
+		checkResultQueryParam []interface{}
+	)
 	if param.Dialect.QueryMode == "new" {
-		baseSql = fmt.Sprintf("SELECT %s FROM %s tt WHERE 1=1 %s ", queryColumn, ciType, filterSql)
+		if hasCheckResultColumn {
+			filterKeyMap := make(map[string]string)
+			filterKeyMap["is_unique"] = "is_unique"
+			filterKeyMap["is_not_empty"] = "is_not_empty"
+			filterKeyMap["report_import_guid"] = "report_import_guid"
+			checkResultFilterSql, checkResultQueryParam = addFiltersToSQL(param, &models.TransFiltersParam{IsStruct: false, KeyMap: filterKeyMap, Prefix: "scigm"})
+			baseSql = fmt.Sprintf("SELECT %s, scigm.is_unique, scigm.is_not_empty FROM %s tt left join sys_ci_import_guid_map scigm on tt.guid = scigm.target WHERE 1=1 %s %s ", queryColumn, ciType, checkResultFilterSql, filterSql)
+		} else {
+			baseSql = fmt.Sprintf("SELECT %s FROM %s tt WHERE 1=1 %s ", queryColumn, ciType, filterSql)
+		}
 	} else if param.Dialect.QueryMode == "all" {
 		historyFlag = true
 		if queryColumn != " * " {
@@ -128,6 +150,7 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 	if param.Paging {
 		pageInfo.StartIndex = param.Pageable.StartIndex
 		pageInfo.PageSize = param.Pageable.PageSize
+		queryParam = append(checkResultQueryParam, queryParam...)
 		pageInfo.TotalRows = queryCount(baseSql, queryParam...)
 		pageSql, pageParam := transPageInfoToSQL(*param.Pageable)
 		baseSql += pageSql
@@ -196,6 +219,17 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 			}
 		}
 	}
+	if len(extRefAttrs) > 0 && !fromCore {
+		err = fetchExtRefAttrData(extRefAttrs)
+		if err != nil {
+			return
+		}
+		for i, row := range rowData {
+			for _, refAttr := range extRefAttrs {
+				rowData[i][refAttr.Attribute.Name] = refAttr.RefObj[row[refAttr.Attribute.Name].(string)]
+			}
+		}
+	}
 	if len(multiRefAttrs) > 0 {
 		err = fetchMultiRefAttrData(rowData, multiRefAttrs, historyFlag)
 		if err != nil {
@@ -236,6 +270,22 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 			for _, multiIntAttr := range multiIntAttrs {
 				handleQueryRowMultiInt(multiIntAttr.Attribute.Name, row)
 			}
+		}
+	}
+	return
+}
+
+func addFiltersToSQL(queryParam *models.QueryRequestParam, transParam *models.TransFiltersParam) (filterSql string, param []interface{}) {
+	if transParam.Prefix != "" && !strings.HasSuffix(transParam.Prefix, ".") {
+		transParam.Prefix = transParam.Prefix + "."
+	}
+	for _, filter := range queryParam.Filters {
+		if transParam.KeyMap[filter.Name] == "" || transParam.KeyMap[filter.Name] == "-" {
+			continue
+		}
+		if filter.Operator == "eq" {
+			filterSql += fmt.Sprintf(" AND %s%s=? ", transParam.Prefix, transParam.KeyMap[filter.Name])
+			param = append(param, filter.Value)
 		}
 	}
 	return
@@ -399,6 +449,34 @@ func fetchMultiRefAttrData(rowData []map[string]interface{}, multiRefAttrs []*mo
 			}
 		}
 		attr.MultiRefObj = guidGroupMap
+	}
+	return err
+}
+
+func fetchExtRefAttrData(refAttrs []*models.CiDataQueryRefAttrObj) (err error) {
+	for _, refAttr := range refAttrs {
+		entitySplit := strings.Split(refAttr.Attribute.ExtRefEntity, ":")
+		if len(entitySplit) != 2 {
+			log.Logger.Warn("fetchExtRefAttrData extRefEntity illegal", log.String("extRefEntity", refAttr.Attribute.ExtRefEntity))
+			continue
+		}
+		tmpQueryRows, tmpQueryErr := GetExtendModelData(entitySplit[0], entitySplit[1], "", models.CoreToken.GetCoreToken())
+		if tmpQueryErr != nil {
+			err = fmt.Errorf("get ext model data fail,%s ", tmpQueryErr.Error())
+			break
+		}
+		refRowDatas := []*models.CiDataRefDataObj{}
+		for _, row := range tmpQueryRows {
+			refRowDatas = append(refRowDatas, &models.CiDataRefDataObj{
+				Guid:    row["id"].(string),
+				KeyName: row["displayName"].(string),
+			})
+		}
+		refRowMap := make(map[string]*models.CiDataRefDataObj)
+		for _, refRow := range refRowDatas {
+			refRowMap[refRow.Guid] = refRow
+		}
+		refAttr.RefObj = refRowMap
 	}
 	return err
 }

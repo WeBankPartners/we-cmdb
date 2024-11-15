@@ -39,6 +39,14 @@ type ViewData struct {
 	// Permission  string `json:"permission" xorm:"permission" binding:"required"`
 	RootCiList      []string `json:"rootCiList"`
 	WithoutChildren bool     `json:"withoutChildren"`
+	RootCiKeyName   string   `json:"rootCiKeyName"`
+}
+
+type GraphViewData struct {
+	ViewId      string `json:"viewId" binding:"required"`
+	RootCi      string `json:"rootCi" binding:"required"`
+	GraphId     string `json:"graphId" binding:"required"`
+	ConfirmTime string `json:"confirmTime"`
 }
 
 type UpdateViewParam struct {
