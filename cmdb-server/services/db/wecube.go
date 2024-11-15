@@ -1,7 +1,14 @@
 package db
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/WeBankPartners/go-common-lib/guid"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"io"
+	"net/http"
 	"strings"
 )
 
@@ -71,5 +78,90 @@ func GetAllDataModel() (result models.SyncDataModelResponse, err error) {
 		}
 		result.Data = append(result.Data, ci)
 	}
+	return
+}
+
+// GetExtendModelList 获取平台的数据模型
+func GetExtendModelList(userToken string) (result []*models.OptionItemObj, err error) {
+	responseBytes, respErr := doRequestPlatform("/platform/v1/models?withAttr=no", http.MethodGet, userToken, nil)
+	if respErr != nil {
+		err = respErr
+		return
+	}
+	var response models.PlatformEntityQueryResponse
+	if err = json.Unmarshal(responseBytes, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response fail,%s ", err.Error())
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	for _, v := range response.Data {
+		if v.PackageName == "wecmdb" {
+			continue
+		}
+		for _, entity := range v.Entities {
+			result = append(result, &models.OptionItemObj{Value: fmt.Sprintf("%s:%s", v.PackageName, entity.Name), Label: entity.DisplayName})
+		}
+	}
+	return
+}
+
+func GetExtendModelData(packageName, entity, id, userToken string) (result []map[string]interface{}, err error) {
+	param := models.EntityQueryParam{}
+	if id != "" {
+		param.Criteria = models.EntityQueryObj{AttrName: "id", Op: "eq", Condition: id}
+	}
+	responseBytes, respErr := doRequestPlatform(fmt.Sprintf("/%s/entities/%s/query", packageName, entity), http.MethodPost, userToken, &param)
+	if respErr != nil {
+		err = respErr
+		return
+	}
+	var response models.EntityResponse
+	if err = json.Unmarshal(responseBytes, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response fail,%s ", err.Error())
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	result = response.Data
+	return
+}
+
+func doRequestPlatform(url, method, token string, postData interface{}) (responseBytes []byte, err error) {
+	var req *http.Request
+	if method == http.MethodGet {
+		req, err = http.NewRequest(http.MethodGet, models.Config.Wecube.BaseUrl+url, nil)
+	} else if method == http.MethodPost {
+		postBytes, jsonParseErr := json.Marshal(postData)
+		if jsonParseErr != nil {
+			err = fmt.Errorf("json marshal postData fail,%s ", jsonParseErr.Error())
+			return
+		}
+		req, err = http.NewRequest(http.MethodPost, models.Config.Wecube.BaseUrl+url, bytes.NewReader(postBytes))
+	}
+	if err != nil {
+		err = fmt.Errorf("Start new request to platform fail:%s ", err.Error())
+		return
+	}
+	req.Header.Set("Authorization", token)
+	req.Header.Set("Content-Type", "application/json")
+	requestId := "req_" + guid.CreateGuid()
+	req.Header.Set("RequestId", requestId)
+	log.Logger.Debug("doRequest to Platform start --->", log.String("requestId", requestId), log.String("url", url), log.String("method", method))
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		err = fmt.Errorf("Start do request to platform fail:%s ", respErr.Error())
+		return
+	}
+	log.Logger.Debug("doRequest to Platform end <---", log.String("requestId", requestId), log.String("url", url), log.String("method", method))
+	if responseBytes, err = io.ReadAll(resp.Body); err != nil {
+		err = fmt.Errorf("Try to read response body fail,%s ", err.Error())
+		return
+	}
+	resp.Body.Close()
 	return
 }

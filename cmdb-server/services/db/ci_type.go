@@ -597,3 +597,12 @@ func createListParams(inputList []string, prefix string) (specSql string, paramL
 	}
 	return
 }
+
+func QueryIdAndName() (rowData []*models.SysCiTypeTable, err error) {
+	err = x.SQL("SELECT id, display_name FROM sys_ci_type").Find(&rowData)
+	if err != nil {
+		log.Logger.Error("Get ci type fail", log.Error(err))
+		return
+	}
+	return
+}

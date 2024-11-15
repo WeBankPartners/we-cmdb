@@ -1,13 +1,19 @@
 <template>
   <div>
     <Row>
-      <Col span="6">
+      <Col span="4">
         <span style="margin-right: 10px">{{ $t('display_type') }}</span>
-        <Select v-model="displayType" @on-change="changeReportType" style="width: 75%;">
-          <Option v-for="item in ['table', 'tree']" :value="item" :key="item">{{ item }}</Option>
-        </Select>
+        <RadioGroup
+          v-model="displayType"
+          class="report-query-radio"
+          type="button"
+          button-style="solid"
+          @on-change="onDisplayTypeRadioChange"
+        >
+          <Radio v-for="item in ['tree', 'table']" :key="item" :label="item" border>{{ item }}</Radio>
+        </RadioGroup>
       </Col>
-      <Col span="6">
+      <Col span="5">
         <span style="margin-right: 10px">{{ $t('report') }}</span>
         <Select
           v-model="currentReportId"
@@ -21,32 +27,75 @@
           <Option v-for="item in reportList" :value="item.id" :key="item.id">{{ item.name }}</Option>
         </Select>
       </Col>
-      <Col span="6" v-if="displayType === 'tree'">
-        <span style="margin-right: 10px">{{ $t('display_data') }}</span>
-        <Select v-model="treeRoot" filterable multiple style="width: 75%;">
-          <Option v-for="item in treeRootOptions" :value="item.guid" :key="item.guid">{{ item.key_name }}</Option>
+      <Col span="8" v-if="displayType === 'tree'" style="margin-left: 15px">
+        <span style="margin-right: 10px">{{ displayDataLable }}</span>
+        <Select
+          v-model="treeRoot"
+          filterable
+          multiple
+          :max-tag-count="1"
+          style="width: 60%;"
+          @on-query-change="
+            e => {
+              rootCiKeyName = e
+              debounceGetRootOptions()
+            }
+          "
+          @on-open-change="onTreeRootOpenChange"
+          @on-change="getReportData"
+        >
+          <Option
+            v-for="item in treeRootOptions"
+            :value="item.guid"
+            :key="item.guid"
+            :label="item.key_name + item.update_time"
+          >
+            <div style="display: flex; justify-content: space-between">
+              <span>{{ item.key_name }}</span>
+              <span style="display: inline-block;font-size: 12px; color: #A7ACB5; margin-right: 15px">{{
+                item.update_time
+              }}</span>
+            </div>
+          </Option>
         </Select>
+        <Button
+          v-if="currentReportId"
+          style="margin-left: 5px"
+          type="primary"
+          shape="circle"
+          size="small"
+          icon="ios-funnel-outline"
+          @click="onFilterButtonClick"
+        ></Button>
       </Col>
-      <Button
-        type="primary"
-        :disabled="!currentReportId || treeRoot.length === 0"
-        v-if="displayType !== 'table'"
-        @click="getReportData"
-        :loading="btnLoading"
-        >{{ $t('query') }}</Button
-      >
-
-      <Button
-        type="primary"
-        ghost
-        style="margin-left:24px"
-        :disabled="!currentReportId || treeRoot.length === 0"
-        v-if="displayType !== 'table'"
-        @click="exportReportData"
-        >{{ $t('export') }}</Button
-      >
+      <div class="upload-content" v-if="displayType === 'tree'">
+        <Button @click="enterImportHistoryPage" class="import-history-button">{{ $t('db_import_history') }}</Button>
+        <Poptip confirm :title="$t('db_quick_confirm')" placement="left" @on-ok="onItemCopyConfirm">
+          <Button style="margin-left: 10px" type="success" :disabled="!currentReportId || treeRoot.length === 0">{{
+            $t('db_quick_copy')
+          }}</Button>
+        </Poptip>
+        <Upload
+          :action="uploadUrl"
+          :show-upload-list="false"
+          :max-size="1000"
+          with-credentials
+          :headers="{ Authorization: token }"
+          :on-success="uploadSucess"
+          :on-error="uploadFailed"
+        >
+          <Button type="primary" class="btn-left">
+            <img src="../../assets/import.png" class="btn-img" alt="" />
+            {{ $t('import') }}
+          </Button>
+        </Upload>
+        <Button type="info" :disabled="!currentReportId || treeRoot.length === 0" @click="exportReportData">
+          <img src="../../assets/export.png" class="btn-img" alt="" />
+          {{ $t('export') }}
+        </Button>
+      </div>
     </Row>
-    <template v-show="displayType === 'table'">
+    <div v-show="displayType === 'table'">
       <Row v-if="filters.length > 0 && displayType === 'table'" style="margin: 16px 0">
         <span v-for="(filter, index) in filters" :key="index" class="report-filter">
           <Button
@@ -91,10 +140,19 @@
           show-total
         />
       </Row>
-    </template>
-    <template v-show="displayType === 'tree'">
-      <Tabs @on-click="changeTab" :value="treeSet[0].key_name" v-if="showTab">
-        <TabPane v-for="tree in treeSet" :label="tree.key_name" :name="tree.key_name" :key="tree.guid">
+    </div>
+    <div class="fix-right-icon" v-if="currentReportId" @click="onFixIconClick">
+      <Icon type="md-git-merge" :size="25" />
+      <span>{{ $t('db_report_template') }}</span>
+    </div>
+    <template v-if="displayType === 'tree' && treeSet.length > 0">
+      <Tabs @on-click="changeTab" :value="treeSet[0].guid" v-if="showTab">
+        <TabPane
+          v-for="tree in treeSet"
+          :label="'[' + tree.dataTitleName + '] ' + tree.key_name"
+          :name="tree.guid"
+          :key="tree.guid"
+        >
           <Row>
             <Col span="7">
               <div :style="{ height: MODALHEIGHT + 'px', overflow: 'auto' }">
@@ -110,6 +168,35 @@
         </TabPane>
       </Tabs>
     </template>
+    <Drawer
+      v-model="isDrawerShow"
+      :title="$t('db_report_template')"
+      :width="70"
+      :closable="true"
+      :mask="true"
+      :mask-style="{ opacity: 0.2 }"
+    >
+      <div class="drawer-tips" @click="onDrawerTipsClick">
+        {{
+          reportDetail.name +
+            ' -【' +
+            reportDetail.createUser +
+            '】- ' +
+            (reportDetail.updateTime || reportDetail.createTime)
+        }}
+      </div>
+      <div v-if="isDrawerShow">
+        <CiGraph
+          class="ci-graph"
+          :editorBoxInRight="true"
+          :isPreviewState="true"
+          :ciGraphData="ciGraphData"
+          :attributeObject="attributeObject"
+          :currentReportId="currentReportId"
+          @onRefresh="getStrc"
+        />
+      </div>
+    </Drawer>
     <Modal v-model="showRowData" :title="$t('basic_data')" width="700" footer-hide>
       <div :style="{ maxHeight: MODALHEIGHT + 'px', maxWidth: '700px', overflow: 'auto' }">
         <pre>{{ rowData }}</pre>
@@ -134,10 +221,65 @@
         </Row>
       </div>
     </Modal>
+
+    <Modal
+      v-model="isFilterModelShow"
+      :title="displayDataLable"
+      width="75"
+      :ok-text="$t('search')"
+      :mask-closable="false"
+      @on-ok="filterTreeRoot"
+    >
+      <div class="filter-model-content">
+        <div class="filter-content-item" v-for="(item, index) in filterSearchInfo" :key="index">
+          <span class="filter-content-item-label">{{ item.description }}</span>
+          <Input
+            v-if="['text', 'textArea'].includes(item.inputType)"
+            v-model="filterSearchValue[item.propertyName]"
+            clearable
+            style="width: 60%;"
+          >
+          </Input>
+          <Select
+            v-if="['select', 'ref'].includes(item.inputType)"
+            v-model="filterSearchValue[item.propertyName]"
+            filterable
+            clearable
+            style="width: 60%;"
+            @on-open-change="isShow => getFilterRulesOptions(isShow, item)"
+          >
+            <Option
+              v-for="single in item.options || []"
+              :value="single.guid"
+              :key="single.guid"
+              :label="single.key_name"
+            >
+            </Option>
+          </Select>
+          <Select
+            v-if="['multiSelect', 'multiRef'].includes(item.inputType)"
+            v-model="filterSearchValue[item.propertyName]"
+            filterable
+            multiple
+            style="width: 60%;"
+            @on-open-change="isShow => getFilterRulesOptions(isShow, item)"
+          >
+            <Option
+              v-for="single in item.options || []"
+              :value="single.guid"
+              :key="single.guid"
+              :label="single.key_name"
+            >
+            </Option>
+          </Select>
+        </div>
+      </div>
+    </Modal>
   </div>
 </template>
 
 <script>
+import { isEmpty, debounce, cloneDeep, find } from 'lodash'
 import {
   getReportListByPermission,
   getReportData,
@@ -146,12 +288,30 @@ import {
   getReportFilterData,
   getCiTypeAttr,
   graphQueryRootCI,
-  getReportStruct
+  getReportStruct,
+  getCiTypeNameMap,
+  getCiTypeAttributes,
+  queryReferenceCiData,
+  reportCopyQuick,
+  getEnumCategoriesById
 } from '@/api/server'
 import CiDisplay from '@/pages/designing/report-query-tree-attr'
+import CiGraph from '../components/ci-graph.js'
+import { getCookie } from '@/pages/util/cookie'
+
+const operatorMap = {
+  text: 'contains',
+  textArea: 'contains',
+  select: 'eq',
+  ref: 'eq',
+  multiSelect: 'in',
+  multiRef: 'in'
+}
+
 export default {
   components: {
-    CiDisplay
+    CiDisplay,
+    CiGraph
   },
   data () {
     return {
@@ -169,9 +329,9 @@ export default {
       treeRootOptions: [],
       treeSet: [],
       currentReportId: '',
+      currentCiType: '',
       reportList: [],
       filters: [],
-
       allCiTypes: [],
       selectedQueryName: '',
       tableData: [],
@@ -192,17 +352,44 @@ export default {
       filtersAndResultModal: false,
       showfiltersAndResultModalData: '',
       requestURL: '',
-      currentTabIndex: 0
-      // MODALHEIGHT: 600
+      currentTabIndex: 0,
+      token: '',
+      uploadUrl: '/wecmdb/api/v1/ci-data/import/app_system_design',
+      oriDataMap: {},
+      isDrawerShow: false,
+      ciGraphData: null,
+      attributeObject: {},
+      reportDetail: {},
+      rootCiKeyName: '',
+      isFilterModelShow: false,
+      filterSearchValue: {},
+      filterSearchInfo: [],
+      filterAllInputType: ['text', 'textArea', 'select', 'ref', 'multiSelect', 'multiRef'],
+      find: find
     }
   },
-  created () {},
-  mounted () {
+  async mounted () {
     this.MODALHEIGHT = document.body.scrollHeight - 200
+    this.token = getCookie('accessToken')
+    const { data, statusCode } = await getCiTypeNameMap()
+    if (statusCode === 'OK') {
+      this.oriDataMap = data
+    }
+    this.getReportList('init')
+  },
+  computed: {
+    displayDataLable () {
+      let label = this.$t('db_root_objects')
+      if (this.reportDetail.ciType) {
+        label = label + '[' + this.oriDataMap[this.reportDetail.ciType] + ']'
+      }
+      return label
+    }
   },
   methods: {
     changeReportType () {
       this.currentReportId = ''
+      this.currentCiType = ''
       this.clearReport()
     },
     clearReport () {
@@ -211,6 +398,9 @@ export default {
       this.hasTableData = false
       this.treeRootOptions = []
       this.treeRoot = []
+      this.reportDetail = {}
+      this.currentReportId = ''
+      this.currentCiType = ''
     },
     changeTab (val) {
       this.currentTabIndex = this.treeSet.findIndex(item => item.key_name === val)
@@ -224,7 +414,22 @@ export default {
             width: '100%'
           }
         },
-        [h('a', [h('span', data.title)])]
+        [
+          h(
+            'Button',
+            {
+              props: {
+                size: 'small'
+              },
+              style: {
+                display: data.dataTitleName ? 'inline-block' : 'none',
+                marginRight: '10px'
+              }
+            },
+            data.dataTitleName
+          ),
+          h('span', [h('span', data.title)])
+        ]
       )
     },
     async showDetail (itemArray, itemSingle) {
@@ -246,41 +451,45 @@ export default {
       }
     },
     async displayTree () {
+      this.treeSet = []
       await this.getStrc()
-      this.getData()
+      await this.getData()
       this.showTab = true
     },
     async getData () {
-      this.treeSet = []
-      // 优化tab页签数据push顺序，解决切换页签数据丢失问题(新增的tab始终push到结尾，否则有问题)
-      this.treeRoot.forEach(guid => {
-        for (let item of this.treeRootOptions) {
-          if (item.guid === guid) {
-            this.treeSet.push(item)
-            this.singleTree(item)
-          }
-        }
-      })
-      // this.treeRootOptions.forEach(d => {
-      //   if (this.treeRoot.includes(d.guid)) {
-      //     this.treeSet.push(d)
-      //     this.treeSet.forEach(tree => {
-      //       this.singleTree(tree)
-      //     })
-      //   }
-      // })
+      if (this.treeRoot.length === 0) {
+        return
+      }
+      let params = {
+        reportId: this.currentReportId,
+        withoutChildren: false,
+        rootCiList: this.treeRoot
+      }
+      let { statusCode, data } = await graphQueryRootCI(params)
+      if (statusCode === 'OK') {
+        let treeOptions = data || []
+        this.treeSet = []
+        treeOptions.forEach(tree => {
+          this.treeSet.push(tree)
+          this.singleTree(tree)
+        })
+      }
     },
     singleTree (tree) {
       tree.title = tree.key_name
+      tree.expand = true
+      tree.dataTitleName = this.oriDataMap[this.splitString(tree.guid)]
       const keys = Object.keys(tree)
       let tmp = []
       keys.forEach(key => {
         if (Array.isArray(tree[key])) {
-          const find = this.strcData.find(item => item === key + '*-*' + 'parent')
+          const resKey = key + '*-*' + 'parent'
+          const find = this.strcData.find(item => item === resKey)
           if (find) {
             let tmpChildren = tree[key]
             tmpChildren.forEach(t => {
               t.parent = key
+              t.dataTitleName = this.oriDataMap[this.splitString(t.guid)]
             })
             tmp = tmp.concat(tmpChildren)
           }
@@ -292,16 +501,17 @@ export default {
     managementData (children) {
       children.forEach(child => {
         child.title = child.key_name
-        // child.expand = true
         const keys = Object.keys(child)
         let tmp = []
         keys.forEach(key => {
           if (Array.isArray(child[key])) {
-            const find = this.strcData.find(item => item === child.parent + '*-*' + key)
+            const resKey = child.parent + '*-*' + key
+            const find = this.strcData.find(item => item === resKey)
             if (find) {
               let tmpChildren = child[key]
               tmpChildren.forEach(t => {
                 t.parent = key
+                t.dataTitleName = this.oriDataMap[this.splitString(t.guid)]
               })
               tmp = tmp.concat(tmpChildren)
             }
@@ -311,13 +521,22 @@ export default {
         this.managementData(child.children)
       })
     },
+    splitString (str) {
+      if (str) {
+        return str.substring(0, str.lastIndexOf('_'))
+      }
+      return ''
+    },
     async getStrc () {
       const { statusCode, data } = await getReportStruct(this.currentReportId)
       if (statusCode === 'OK') {
+        this.reportDetail = data
         const oriData = data.object[0].object
         oriData.forEach(ori => {
           this.strcData.push(ori.dataName + '*-*' + 'parent')
         })
+        this.ciGraphData = this.formatAttr(data.object)[0]
+        // this.attrs = this.calCiTypeAttrs(data.object)
         this.returnPath(oriData)
       }
     },
@@ -343,15 +562,36 @@ export default {
     openFilter (index) {
       this.filters[index].isOpen = !this.filters[index].isOpen
     },
-    async getReportList () {
+    async getReportList (type = '') {
       const { statusCode, data } = await getReportListByPermission('USE')
       if (statusCode === 'OK') {
         this.reportList = data
+        if (type === 'init' && !isEmpty(this.reportList)) {
+          // 路由携带reportId, 默认选择
+          if (this.$route.query.reportId) {
+            this.currentReportId = this.$route.query.reportId
+            this.getReportFilterData()
+          } else {
+            this.currentReportId = this.reportList[0].id
+            this.currentCiType = this.reportList[0].ciType
+            this.getReportFilterData()
+            setTimeout(() => {
+              this.treeRoot = [this.treeRootOptions[1].guid]
+              this.getReportData(true)
+            }, 800)
+          }
+        }
       }
     },
     async getReportFilterData () {
       if (!this.currentReportId) return
+      const findOne = find(this.reportList, { id: this.currentReportId })
+      this.currentCiType = findOne.ciType
+      await this.getStrc()
       if (this.displayType === 'tree') {
+        this.filterSearchValue = {}
+        this.filterSearchInfo = []
+        this.treeRoot = []
         this.getReportRoot()
         return
       }
@@ -421,14 +661,55 @@ export default {
         })
       }
     },
-    async getReportRoot () {
-      this.treeRoot = []
-      let params = {
-        reportId: this.currentReportId
+    async filterTreeRoot () {
+      if (isEmpty(this.filterSearchValue)) {
+        return
       }
-      const { statusCode, data } = await graphQueryRootCI(params)
+      const filters = []
+      for (let key in this.filterSearchValue) {
+        if (isEmpty(this.filterSearchValue[key])) {
+          continue
+        }
+        const findOne = find(this.filterSearchInfo, { propertyName: key })
+        filters.push({
+          name: key,
+          operator: operatorMap[findOne.inputType],
+          value: this.filterSearchValue[key]
+        })
+      }
+      if (isEmpty(filters)) {
+        return
+      }
+      this.treeRoot = []
+      const query = {
+        id: this.currentCiType,
+        queryObject: {
+          dialect: { queryMode: 'new' },
+          filters,
+          sorting: { asc: false, field: 'update_time' }
+        }
+      }
+      const { statusCode, data } = await queryCiData(query)
       if (statusCode === 'OK') {
-        this.treeRootOptions = data
+        !isEmpty(data.contents) &&
+          data.contents.forEach(item => {
+            this.treeRoot.push(item.guid)
+          })
+      }
+    },
+    async getReportRoot () {
+      if (!this.currentCiType) return
+      const query = {
+        id: this.currentCiType,
+        queryObject: {
+          dialect: { queryMode: 'new' },
+          filters: [],
+          sorting: { asc: false, field: 'update_time' }
+        }
+      }
+      const { statusCode, data } = await queryCiData(query)
+      if (statusCode === 'OK') {
+        this.treeRootOptions = data.contents || []
       }
     },
     showRowDataFun (row) {
@@ -450,6 +731,7 @@ export default {
     },
     async getReportData (tag = true) {
       if (this.displayType !== 'table') {
+        this.currentTabIndex = 0
         this.displayTree()
         return
       }
@@ -504,6 +786,126 @@ export default {
       a.dataset.downloadurl = ['text/json', a.download, a.href].join(':')
       e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
       a.dispatchEvent(e)
+    },
+    uploadFailed () {
+      this.$Message.error(this.$t('db_import_tips_failed'))
+    },
+    uploadSucess (res) {
+      if (res.statusCode === 'OK') {
+        this.$router.push('/wecmdb/designing/data-management-import')
+      } else {
+        this.$Message.error({
+          content: res.statusMessage || this.$t('db_request_error'),
+          duration: 4
+        })
+      }
+    },
+    enterImportHistoryPage () {
+      this.$router.push('/wecmdb/designing/data-management-import')
+    },
+    onFixIconClick () {
+      this.isDrawerShow = true
+    },
+    formatAttr (data) {
+      return data.map(_ => {
+        let result = {
+          ..._,
+          attributeList: _.attr
+            ? _.attr.map((attrId, index) => {
+              let _result = {
+                ciTypeAttrId: attrId.id
+              }
+              _result.name = _.dataTitleName
+              _result.attrKeyName = _.dataName
+              this.attributeObject[attrId.id] = _result
+              return _result
+            })
+            : []
+        }
+        if (_.object instanceof Array) {
+          result.object = this.formatAttr(_.object)
+        }
+        return result
+      })
+    },
+    onDrawerTipsClick () {
+      this.$router.push({ path: '/wecmdb/report-configuration', query: { reportId: this.currentReportId } })
+    },
+    onDisplayTypeRadioChange () {
+      this.currentReportId = ''
+      this.currentCiType = ''
+      this.treeRoot = []
+      this.treeRootOptions = []
+      this.filterSearchValue = {}
+      this.filterSearchInfo = []
+      this.treeSet = []
+    },
+    onTreeRootOpenChange (status) {
+      if (status) {
+        this.getReportRoot()
+      }
+    },
+    debounceGetRootOptions: debounce(function () {
+      this.getReportRoot()
+    }, 800),
+    async onItemCopyConfirm () {
+      const params = {
+        reportId: this.currentReportId,
+        rootCiData: this.treeRoot
+      }
+      const { statusCode } = await reportCopyQuick(params)
+      if (statusCode === 'OK') {
+        this.$router.push('/wecmdb/designing/data-management-import')
+      }
+    },
+    async onFilterButtonClick () {
+      if (isEmpty(this.filterSearchValue) && isEmpty(this.filterSearchInfo)) {
+        const { statusCode, data } = await getCiTypeAttributes(this.currentCiType)
+
+        if (statusCode === 'OK') {
+          const filterSearchArr = data.filter(item => {
+            if (item.uiSearchOrder > 0 && this.filterAllInputType.includes(item.inputType)) {
+              return item
+            }
+          })
+          for (let index = 0; index < filterSearchArr.length; index++) {
+            const filterItem = filterSearchArr[index]
+            this.filterSearchValue[filterItem.propertyName] = ''
+            filterItem.options = filterItem.options || []
+            if (filterItem.status !== 'decommissioned' && filterItem.status !== 'notCreated') {
+              if (['select', 'multiSelect'].includes(filterItem.inputType) && filterItem.selectList !== '') {
+                const res = await getEnumCategoriesById(filterItem.selectList)
+                if (res.statusCode === 'OK') {
+                  filterItem.options = res.data.map(item => {
+                    return {
+                      key_name: item.value,
+                      guid: item.code
+                    }
+                  })
+                }
+              }
+            }
+          }
+          this.filterSearchInfo = cloneDeep(filterSearchArr)
+        }
+      }
+      this.isFilterModelShow = true
+    },
+    async getFilterRulesOptions (isShow, item) {
+      if (isShow && ['ref', 'multiRef'].includes(item.inputType)) {
+        item.options = await this.getAllDataWithoutPaging(item.ciTypeAttrId)
+      }
+    },
+    async getAllDataWithoutPaging (ciTypeAttrId) {
+      return new Promise(async resolve => {
+        const { statusCode, data } = await queryReferenceCiData({
+          attrId: ciTypeAttrId,
+          queryObject: { filters: [], paging: false, dialect: { associatedData: {} } }
+        })
+        if (statusCode === 'OK') {
+          resolve(data)
+        }
+      })
     }
   }
 }
@@ -520,6 +922,100 @@ export default {
   }
   > div {
     flex: 1;
+  }
+}
+
+.fix-right-icon {
+  position: fixed;
+  top: calc(50% - 14px);
+  right: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  border: 1px solid #a7acb5;
+  z-index: 3;
+  opacity: 1;
+  background-color: #5bb4ef;
+  font-size: 12px;
+}
+
+.drawer-tips {
+  margin-top: -5px;
+  margin-bottom: 5px;
+  display: inline-block;
+  width: 100%;
+  height: 32px;
+  line-height: 1.5;
+  font-size: 14px;
+  color: rgb(6, 156, 236);
+  cursor: pointer;
+  padding: 4px 20px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgb(6, 156, 236);
+  border-image: initial;
+  border-radius: 4px;
+}
+
+.upload-content {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  .btn-left {
+    margin: 0 10px;
+  }
+  .btn-img {
+    width: 16px;
+    vertical-align: middle;
+  }
+}
+
+.filter-model-content {
+  display: flex;
+  flex-wrap: wrap;
+  .filter-content-item {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 30%;
+    margin-top: 20px;
+    margin-left: 15px;
+    .filter-content-item-label {
+      display: flex;
+      width: 120px;
+      justify-content: center;
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+.report-query-radio {
+  .ivu-radio-wrapper-checked.ivu-radio-border {
+    background-color: #2d8cf0;
+    color: #fff;
+  }
+}
+.ci-graph {
+  .ci-graph-root {
+    height: 87vh;
+    max-width: 35% !important;
+    border: 1px solid #bbbbbb;
+    border-right: 0px;
+  }
+  .editor-box-right {
+    margin-left: 0;
+    width: 65% !important;
+    border: 1px solid #bbbbbb;
+    .first-tab-pane {
+      max-height: 80vh;
+    }
+  }
+  .attribute-content {
+    max-height: 80vh;
   }
 }
 </style>

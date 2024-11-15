@@ -39,7 +39,7 @@ func DataQuery(c *gin.Context) {
 		return
 	}
 	//Query database
-	pageInfo, rowData, err := db.CiDataQuery(c.Param("ciType"), &param, &legalGuidList, false)
+	pageInfo, rowData, err := db.CiDataQuery(c.Param("ciType"), &param, &legalGuidList, false, false)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
@@ -109,7 +109,10 @@ func DataReferenceQuery(c *gin.Context) {
 		return
 	}
 	ciAttrId := c.Param("ciAttr")
-	pageInfo, resultData, err := db.GetCiDataByFilters(ciAttrId, param.Dialect.AssociatedData, param)
+	if param.Dialect == nil {
+		param.Dialect = &models.QueryRequestDialect{}
+	}
+	pageInfo, resultData, err := db.GetCiDataByFilters(ciAttrId, param.Dialect.AssociatedData, param, c.GetHeader(models.HeaderAuthorization))
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
@@ -158,7 +161,6 @@ func DataPasswordQuery(c *gin.Context) {
 }
 
 func DataImport(c *gin.Context) {
-	ciTypeId := c.Param("ciType")
 	file, err := c.FormFile("file")
 	if err != nil {
 		middleware.ReturnParamValidateError(c, err)
@@ -181,10 +183,10 @@ func DataImport(c *gin.Context) {
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
-	if param.RootCiType != ciTypeId {
-		middleware.ReturnParamValidateError(c, fmt.Errorf("rootCiType is %s,not %s", param.RootCiType, ciTypeId))
-		return
-	}
+	//if param.RootCiType != ciTypeId {
+	//middleware.ReturnParamValidateError(c, fmt.Errorf("rootCiType is %s,not %s", param.RootCiType, ciTypeId))
+	//return
+	//}
 	if err = db.ImportCiData(&param, middleware.GetRequestUser(c)); err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
@@ -297,4 +299,37 @@ func SimpleCiDataImport(c *gin.Context) {
 func GetCiPasswordAESKey(c *gin.Context) {
 	md5sum := cipher.Md5Encode(models.Config.Wecube.EncryptSeed)
 	middleware.ReturnData(c, md5sum[0:16])
+}
+
+func GetExtendModelData(c *gin.Context) {
+	ciAttr := c.Param("ciAttr")
+	ciAttrRow, getAttrErr := db.GetCiAttrById(ciAttr)
+	if getAttrErr != nil {
+		middleware.ReturnParamValidateError(c, getAttrErr)
+		return
+	}
+	entitySplit := strings.Split(ciAttrRow.ExtRefEntity, ":")
+	if len(entitySplit) != 2 {
+		middleware.ReturnServerHandleError(c, fmt.Errorf("attr refCiType:%s illegal with extent model", ciAttrRow.RefCiType))
+		return
+	}
+	//Param validate
+	var param models.QueryRequestParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	var dataGuid string
+	for _, v := range param.Filters {
+		if v.Name == "guid" && v.Operator == "eq" {
+			dataGuid = fmt.Sprintf("%s", v.Value)
+			break
+		}
+	}
+	result, err := db.GetExtendModelData(entitySplit[0], entitySplit[1], dataGuid, c.GetHeader(models.HeaderAuthorization))
+	if err != nil {
+		middleware.ReturnServerHandleError(c, fmt.Errorf("get ext model data fail,%s ", err.Error()))
+		return
+	}
+	middleware.ReturnPageData(c, models.PageInfo{}, result)
 }
