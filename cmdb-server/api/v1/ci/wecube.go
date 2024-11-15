@@ -135,7 +135,7 @@ func ciModelQuery(ciType string, bodyBytes []byte, user string, roles []string) 
 			return
 		}
 	}
-	_, result, err = db.CiDataQuery(ciType, &queryParam, &legalGuidList, true)
+	_, result, err = db.CiDataQuery(ciType, &queryParam, &legalGuidList, true, false)
 	for _, tmpObj := range result {
 		tmpObj["id"] = tmpObj["guid"]
 		tmpObj["displayName"] = tmpObj["key_name"]
@@ -398,7 +398,7 @@ func PluginCiDataOperationHandle(c *gin.Context) {
 func pluginCiDataOperation(input *models.PluginCiDataOperationRequestObj) (result *models.PluginCiDataOperationOutputObj, newInputData string, err error) {
 	newInputData = input.JsonData
 	result = &models.PluginCiDataOperationOutputObj{CallbackParameter: input.CallbackParameter, ErrorCode: "0", ErrorMessage: ""}
-	if input.JsonData == "" || input.JsonData == "{}" || input.JsonData == "[]" {
+	if input.JsonData == "" || input.JsonData == "{}" || input.JsonData == "<nil>" || input.JsonData == "[]" {
 		return
 	}
 	if input.CiType == "" || input.Operation == "" {
@@ -412,6 +412,10 @@ func pluginCiDataOperation(input *models.PluginCiDataOperationRequestObj) (resul
 	if err != nil {
 		err = json.Unmarshal([]byte(input.JsonData), &dataMap)
 		if err != nil {
+			if !strings.Contains(input.JsonData, "_") {
+				err = fmt.Errorf("Param jsonData illegal ")
+				return
+			}
 			if strings.HasPrefix(input.JsonData, "[") && strings.HasSuffix(input.JsonData, "]") {
 				for _, tmpSplitData := range strings.Split(input.JsonData[1:len(input.JsonData)-1], ",") {
 					if tmpSplitData == "" {

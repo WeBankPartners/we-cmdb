@@ -26,6 +26,59 @@ func GetRoleCiPermission(query *models.RolePermissionQuery) error {
 	}
 	if len(ciTypePermissionTable) == 0 {
 		ciTypePermissionTable = []*models.CiTypePermissionObj{}
+	} else {
+		var ciTypeConditionRows []*models.SysRoleCiTypeConditionTable
+		err = x.SQL("select * from sys_role_ci_type_condition").Find(&ciTypeConditionRows)
+		if err != nil {
+			return fmt.Errorf("Try to get role ci condition data fail,%s ", err.Error())
+		}
+		conditionMap := make(map[string]*models.SysRoleCiTypeConditionTable)
+		for _, row := range ciTypeConditionRows {
+			if v, ok := conditionMap[row.RoleCiType]; ok {
+				if row.Insert == "Y" {
+					v.Insert = "Y"
+				}
+				if row.Update == "Y" {
+					v.Update = "Y"
+				}
+				if row.Delete == "Y" {
+					v.Delete = "Y"
+				}
+				if row.Query == "Y" {
+					v.Query = "Y"
+				}
+				if row.Execution == "Y" {
+					v.Execution = "Y"
+				}
+				if row.Confirm == "Y" {
+					v.Confirm = "Y"
+				}
+			} else {
+				conditionMap[row.RoleCiType] = row
+			}
+		}
+		for _, row := range ciTypePermissionTable {
+			if conditionObj, ok := conditionMap[row.Guid]; ok {
+				if row.Query != "Y" && conditionObj.Query == "Y" {
+					row.Query = "P"
+				}
+				if row.Insert != "Y" && conditionObj.Insert == "Y" {
+					row.Insert = "P"
+				}
+				if row.Update != "Y" && conditionObj.Update == "Y" {
+					row.Update = "P"
+				}
+				if row.Delete != "Y" && conditionObj.Delete == "Y" {
+					row.Delete = "P"
+				}
+				if row.Execution != "Y" && conditionObj.Execution == "Y" {
+					row.Execution = "P"
+				}
+				if row.Confirm != "Y" && conditionObj.Confirm == "Y" {
+					row.Confirm = "P"
+				}
+			}
+		}
 	}
 	query.CiTypePermissions = ciTypePermissionTable
 	return nil
@@ -34,8 +87,8 @@ func GetRoleCiPermission(query *models.RolePermissionQuery) error {
 func UpdateRoleCiPermission(role string, params []*models.CiTypePermissionObj) error {
 	var actions []*execAction
 	for _, param := range params {
-		actions = append(actions, &execAction{Sql: "update sys_role_ci_type set `insert`=?,`delete`=?,`update`=?,`query`=?,`execute`=? where role_id=? and ci_type=?",
-			Param: []interface{}{param.Insert, param.Delete, param.Update, param.Query, param.Execution, role, param.CiType}})
+		actions = append(actions, &execAction{Sql: "update sys_role_ci_type set `insert`=?,`delete`=?,`update`=?,`query`=?,`execute`=?,`Confirm`=? where role_id=? and ci_type=?",
+			Param: []interface{}{param.Insert, param.Delete, param.Update, param.Query, param.Execution, param.Confirm, role, param.CiType}})
 	}
 	return transaction(actions)
 }
@@ -120,6 +173,7 @@ func GetRoleCiTypeCondition(roleCiType string) (result models.RoleAttrConditionR
 		resultBodyObj["delete"] = condition.Delete
 		resultBodyObj["query"] = condition.Query
 		resultBodyObj["execute"] = condition.Execution
+		resultBodyObj["confirm"] = condition.Confirm
 		result.Body = append(result.Body, resultBodyObj)
 	}
 	return
@@ -155,8 +209,8 @@ func AddRoleCiTypeCondition(roleCiType string, conditions []*models.RoleAttrCond
 			break
 		}
 		tmpConditionGuid := "condition_" + conditionGuidList[i]
-		actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type_condition value (?,?,?,?,?,?,?)", Param: []interface{}{tmpConditionGuid,
-			roleCiType, condition.Insert, condition.Delete, condition.Update, condition.Query, condition.Execution}})
+		actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type_condition(guid,role_ci_type,`insert`,`delete`,`update`,query,`execute`,`Confirm`) values (?,?,?,?,?,?,?,?)", Param: []interface{}{tmpConditionGuid,
+			roleCiType, condition.Insert, condition.Delete, condition.Update, condition.Query, condition.Execution, condition.Confirm}})
 		filterGuidList := guid.CreateGuidList(len(condition.Filters))
 		for j, filter := range condition.Filters {
 			filterActions = append(filterActions, &execAction{Sql: "insert into sys_role_ci_type_condition_filter value (?,?,?,?,?,?,?)", Param: []interface{}{"filter_" + filterGuidList[j],
@@ -187,8 +241,8 @@ func EditRoleCiTypeCondition(roleCiType string, conditions []*models.RoleAttrCon
 			err = fmt.Errorf("InputRow:%d have no attribute column ", i)
 			break
 		}
-		actions = append(actions, &execAction{Sql: "update sys_role_ci_type_condition set `insert`=?,`delete`=?,`update`=?,`query`=?,`execute`=? where guid=?", Param: []interface{}{condition.Insert,
-			condition.Delete, condition.Update, condition.Query, condition.Execution, condition.Guid}})
+		actions = append(actions, &execAction{Sql: "update sys_role_ci_type_condition set `insert`=?,`delete`=?,`update`=?,`query`=?,`execute`=?,`Confirm`=? where guid=?", Param: []interface{}{condition.Insert,
+			condition.Delete, condition.Update, condition.Query, condition.Execution, condition.Confirm, condition.Guid}})
 		filterGuidList := guid.CreateGuidList(len(condition.Filters))
 		actions = append(actions, &execAction{Sql: "delete from sys_role_ci_type_condition_filter where role_ci_type_condition=?", Param: []interface{}{condition.Guid}})
 		for j, filter := range condition.Filters {
@@ -260,8 +314,8 @@ func AddRoleCiTypeList(roleCiType string, inputData []*models.SysRoleCiTypeListT
 	guidList := guid.CreateGuidList(len(inputData))
 	var actions []*execAction
 	for i, data := range inputData {
-		actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type_list value (?,?,?,?,?,?,?,?)", Param: []interface{}{"role_list_" + guidList[i],
-			roleCiType, data.List, data.Insert, data.Delete, data.Update, data.Query, data.Execution}})
+		actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type_list(guid,role_ci_type,list,`insert`,`delete`,`update`,query,`execute`,`Confirm`) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{"role_list_" + guidList[i],
+			roleCiType, data.List, data.Insert, data.Delete, data.Update, data.Query, data.Execution, data.Confirm}})
 	}
 	return transaction(actions)
 }
@@ -272,8 +326,8 @@ func EditRoleCiTypeList(roleCiType string, inputData []*models.SysRoleCiTypeList
 	}
 	var actions []*execAction
 	for _, data := range inputData {
-		actions = append(actions, &execAction{Sql: "update sys_role_ci_type_list set `list`=?,`insert`=?,`delete`=?,`update`=?,`query`=?,`execute`=? where guid=?", Param: []interface{}{data.List,
-			data.Insert, data.Delete, data.Update, data.Query, data.Execution, data.Guid}})
+		actions = append(actions, &execAction{Sql: "update sys_role_ci_type_list set `list`=?,`insert`=?,`delete`=?,`update`=?,`query`=?,`execute`=?,`Confirm`=? where guid=?", Param: []interface{}{data.List,
+			data.Insert, data.Delete, data.Update, data.Query, data.Execution, data.Confirm, data.Guid}})
 	}
 	return transaction(actions)
 }
@@ -322,7 +376,7 @@ func AutoCreateRoleCiTypeDataByCiType(ciTypeId string) {
 	guidList := guid.CreateGuidList(len(roles))
 	for i, role := range roles {
 		if strings.ToLower(role.Id) == strings.ToLower(models.AdminUser) {
-			actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type value (?,?,?,'Y','Y','Y','Y','Y')", Param: []interface{}{"role_ci_" + guidList[i], role.Id, ciTypeId}})
+			actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type(guid,role_id,ci_type,`insert`,`delete`,`update`,query,`execute`,`Confirm`) values (?,?,?,'Y','Y','Y','Y','Y','Y')", Param: []interface{}{"role_ci_" + guidList[i], role.Id, ciTypeId}})
 		} else {
 			actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type(guid,role_id,ci_type) value (?,?,?)", Param: []interface{}{"role_ci_" + guidList[i], role.Id, ciTypeId}})
 		}
@@ -346,7 +400,7 @@ func AutoCreateRoleCiTypeDataByRole(roleId string) {
 	var actions []*execAction
 	for i, ciType := range ciTypeTable {
 		if strings.ToLower(roleId) == strings.ToLower(models.AdminUser) {
-			actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type value (?,?,?,'Y','Y','Y','Y','Y')", Param: []interface{}{"role_ci_" + guidList[i], roleId, ciType.Id}})
+			actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type(guid,role_id,ci_type,`insert`,`delete`,`update`,query,`execute`,`Confirm`) value (?,?,?,'Y','Y','Y','Y','Y','Y')", Param: []interface{}{"role_ci_" + guidList[i], roleId, ciType.Id}})
 		} else {
 			actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type(guid,role_id,ci_type) value (?,?,?)", Param: []interface{}{"role_ci_" + guidList[i], roleId, ciType.Id}})
 		}
@@ -372,6 +426,7 @@ func GetRoleCiDataPermission(roles []string, ciType string) (result models.CiDat
 		result.Delete = true
 		result.Update = true
 		result.Execute = true
+		result.Confirm = true
 		return
 	}
 	result.CiType = ciType
@@ -392,14 +447,17 @@ func GetRoleCiDataPermission(roles []string, ciType string) (result models.CiDat
 		if !result.Execute && roleCiTypeObj.Execution == "Y" {
 			result.Execute = true
 		}
+		if !result.Confirm && roleCiTypeObj.Confirm == "Y" {
+			result.Confirm = true
+		}
 		roleCiTypeGuidList = append(roleCiTypeGuidList, roleCiTypeObj.Guid)
 	}
-	if result.Insert && result.Delete && result.Update && result.Query && result.Execute {
+	if result.Insert && result.Delete && result.Update && result.Query && result.Execute && result.Confirm {
 		return
 	}
 	var roleCiTypeMap = make(map[string]*models.RoleCiTypePermissionObj)
 	var conditionQuery []*models.ConditionListQueryObj
-	err = x.SQL("select t2.*,t1.role_ci_type,t1.`insert`,t1.`delete`,t1.`update`,t1.`query`,t1.`execute` from sys_role_ci_type_condition t1 left join sys_role_ci_type_condition_filter t2 on t1.guid=t2.role_ci_type_condition where role_ci_type in ('" + strings.Join(roleCiTypeGuidList, "','") + "')").Find(&conditionQuery)
+	err = x.SQL("select t2.*,t1.role_ci_type,t1.`insert`,t1.`delete`,t1.`update`,t1.`query`,t1.`execute`,t1.`Confirm` from sys_role_ci_type_condition t1 left join sys_role_ci_type_condition_filter t2 on t1.guid=t2.role_ci_type_condition where role_ci_type in ('" + strings.Join(roleCiTypeGuidList, "','") + "')").Find(&conditionQuery)
 	if err != nil {
 		err = fmt.Errorf("Get role condition data fail,%s ", err.Error())
 		return
@@ -408,7 +466,7 @@ func GetRoleCiDataPermission(roles []string, ciType string) (result models.CiDat
 		tmpFilterObj := models.SysRoleCiTypeConditionFilterTable{Guid: conditionFilter.Guid, RoleCiTypeCondition: conditionFilter.RoleCiTypeCondition, CiTypeAttr: conditionFilter.CiTypeAttr,
 			CiTypeAttrName: conditionFilter.CiTypeAttrName, Expression: conditionFilter.Expression, FilterType: conditionFilter.FilterType, SelectList: conditionFilter.SelectList}
 		tmpConditionObj := models.RoleAttrConditionObj{Guid: conditionFilter.RoleCiTypeCondition, RoleCiTypeId: conditionFilter.RoleCiType, Insert: conditionFilter.Insert,
-			Delete: conditionFilter.Delete, Update: conditionFilter.Update, Query: conditionFilter.Query, Execution: conditionFilter.Execution, Filters: []*models.SysRoleCiTypeConditionFilterTable{&tmpFilterObj}}
+			Delete: conditionFilter.Delete, Update: conditionFilter.Update, Query: conditionFilter.Query, Execution: conditionFilter.Execution, Confirm: conditionFilter.Confirm, Filters: []*models.SysRoleCiTypeConditionFilterTable{&tmpFilterObj}}
 		if _, b := roleCiTypeMap[conditionFilter.RoleCiType]; b {
 			indexFlag := -1
 			for i, condition := range roleCiTypeMap[conditionFilter.RoleCiType].Conditions {
@@ -456,6 +514,8 @@ func GetCiDataPermissionGuidList(config *models.CiDataPermission, action string)
 		result.Disable = config.Query
 	case "execute":
 		result.Disable = config.Execute
+	case "confirm":
+		result.Disable = config.Confirm
 	}
 	if result.Disable {
 		return
@@ -649,8 +709,8 @@ func ciTypeInsertPermissionValidate(ciType string, param *InsertPermissionObj, r
 				break
 			}
 			if len(columnFilterList) == 0 {
-				err = fmt.Errorf("Get permission legal data fail,condition:%s build with empty filter sql ", condition.Guid)
-				break
+				log.Logger.Warn("ciTypeInsertPermissionValidate Get permission legal data fail, build with empty filter sql", log.String(condition.Guid, "condition.Guid"))
+				continue
 			}
 			queryRows, tmpErr := session.QueryString(fmt.Sprintf("select guid from %s where %s", ciType, strings.Join(columnFilterList, " and ")))
 			if tmpErr != nil {
@@ -665,10 +725,12 @@ func ciTypeInsertPermissionValidate(ciType string, param *InsertPermissionObj, r
 			break
 		}
 	}
-	for i, rowGuid := range param.GuidList {
-		if _, b := guidMap[rowGuid]; !b {
-			err = fmt.Errorf("Row: %s permission deny ", param.KeyNameList[i])
-			break
+	if err == nil {
+		for i, rowGuid := range param.GuidList {
+			if _, b := guidMap[rowGuid]; !b {
+				err = fmt.Errorf("Row: %s permission deny ", param.KeyNameList[i])
+				break
+			}
 		}
 	}
 	session.Rollback()
@@ -689,6 +751,8 @@ func isRoleListActionEnable(action string, roleListConfig *models.SysRoleCiTypeL
 		enableString = roleListConfig.Query
 	case "execute":
 		enableString = roleListConfig.Execution
+	case "confirm":
+		enableString = roleListConfig.Confirm
 	}
 	if enableString == "Y" {
 		return true
@@ -709,6 +773,8 @@ func isConditionActionEnable(action string, condition *models.RoleAttrConditionO
 		enableString = condition.Query
 	case "execute":
 		enableString = condition.Execution
+	case "confirm":
+		enableString = condition.Confirm
 	}
 	if enableString == "Y" {
 		return true

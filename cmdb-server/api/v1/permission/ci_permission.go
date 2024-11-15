@@ -103,6 +103,11 @@ func bindRoleCiTypeConditionParam(c *gin.Context) (conditions []*models.RoleAttr
 	}
 	for _, tmpMap := range params {
 		tmpCondition := models.RoleAttrConditionObj{Insert: tmpMap["insert"].(string), Update: tmpMap["update"].(string), Delete: tmpMap["delete"].(string), Query: tmpMap["query"].(string), Execution: tmpMap["execute"].(string)}
+		if confirmInputValue, ok := tmpMap["confirm"]; ok {
+			tmpCondition.Confirm = confirmInputValue.(string)
+		} else {
+			tmpCondition.Confirm = "N"
+		}
 		if _, b := tmpMap["roleCiType"]; b {
 			tmpCondition.RoleCiTypeId = tmpMap["roleCiType"].(string)
 		}
@@ -110,7 +115,7 @@ func bindRoleCiTypeConditionParam(c *gin.Context) (conditions []*models.RoleAttr
 			tmpCondition.Guid = tmpMap["roleConditionGuid"].(string)
 		}
 		for k, v := range tmpMap {
-			if k == "insert" || k == "update" || k == "delete" || k == "query" || k == "execute" || k == "roleCiType" || k == "roleConditionGuid" {
+			if k == "insert" || k == "update" || k == "delete" || k == "query" || k == "execute" || k == "confirm" || k == "roleCiType" || k == "roleConditionGuid" {
 				continue
 			}
 			if tmpValueMap, isMap := v.(map[string]interface{}); isMap {

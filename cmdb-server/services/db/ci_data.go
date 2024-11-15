@@ -45,28 +45,32 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 	} else {
 		// 按ciType归类输入的数据行
 		legalGuidMap := make(map[string]bool)
-		guidPermissionEnable := false
+		legalCiTypeMap := make(map[string]int)
+		//guidPermissionEnable := false
 		if param.Permission {
 			permissionAction := firstAction
-			if permissionAction == "confirm" {
-				permissionAction = "execute"
-			}
-			permissions, tmpErr := GetRoleCiDataPermission(param.Roles, param.CiTypeId)
-			if tmpErr != nil {
-				err = tmpErr
-				return
-			}
-			legalGuidList, tmpErr := GetCiDataPermissionGuidList(&permissions, permissionAction)
-			if tmpErr != nil {
-				err = tmpErr
-				return
-			}
-			if !legalGuidList.Disable {
-				for _, tmpGuid := range legalGuidList.GuidList {
-					legalGuidMap[tmpGuid] = true
+			permissionCiTypeList := getDataHandleCiTypeList(&param)
+			for _, permissionCiType := range permissionCiTypeList {
+				permissions, tmpGetPermissionConfigErr := GetRoleCiDataPermission(param.Roles, permissionCiType)
+				if tmpGetPermissionConfigErr != nil {
+					err = tmpGetPermissionConfigErr
+					return
 				}
-				guidPermissionEnable = true
+				tmpLegalGuidList, tmpGetPermissionGuidListErr := GetCiDataPermissionGuidList(&permissions, permissionAction)
+				if tmpGetPermissionGuidListErr != nil {
+					err = tmpGetPermissionGuidListErr
+					return
+				}
+				if !tmpLegalGuidList.Disable {
+					for _, tmpGuid := range tmpLegalGuidList.GuidList {
+						legalGuidMap[tmpGuid] = true
+					}
+					//guidPermissionEnable = true
+				} else {
+					legalCiTypeMap[permissionCiType] = 1
+				}
 			}
+			log.Logger.Debug("handle ci data permission", log.JsonObj("legalGuidMap", legalGuidMap))
 		}
 		for i, inputRowData := range param.InputData {
 			tmpRowGuid := inputRowData["guid"]
@@ -82,10 +86,13 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 					break
 				}
 			}
-			if guidPermissionEnable {
-				if _, b := legalGuidMap[tmpRowGuid]; !b {
-					err = fmt.Errorf("Row:%d %s permission deny ", i, inputRowData["key_name"])
-					break
+			inputRowCiType := tmpRowGuid[:strings.LastIndex(tmpRowGuid, "_")]
+			if param.Permission {
+				if _, permissionLegalFlag := legalCiTypeMap[inputRowCiType]; !permissionLegalFlag {
+					if _, b := legalGuidMap[tmpRowGuid]; !b {
+						err = fmt.Errorf("Row:%d %s permission deny ", i, inputRowData["guid"])
+						break
+					}
 				}
 			}
 			if firstAction == "delete" {
@@ -94,7 +101,6 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 			if firstAction == "execute" {
 				inputRowData["Authorization"] = param.UserToken
 			}
-			inputRowCiType := tmpRowGuid[:strings.LastIndex(tmpRowGuid, "_")]
 			existFlag := false
 			for j, tmpCiData := range multiCiData {
 				if tmpCiData.CiTypeId == inputRowCiType {
@@ -114,7 +120,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 	}
 	tNow := time.Now().Format(models.DateTimeFormat)
 	// 获取属性字段
-	if err = getMultiCiAttributes(multiCiData); err != nil {
+	if err = GetMultiCiAttributes(multiCiData); err != nil {
 		return
 	}
 	outputData, newInputBody = buildRequestBodyWithoutPwd(multiCiData, param.BareAction, tNow, param.Operation)
@@ -133,7 +139,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 			return
 		}
 		if param.BareAction == "" {
-			if err = validateMultiRefFilterData(multiCiData); err != nil {
+			if err = validateMultiRefFilterData(multiCiData, param.UserToken); err != nil {
 				return
 			}
 		}
@@ -156,6 +162,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 	for _, ciObj := range multiCiData {
 		for i, inputRowData := range ciObj.InputData {
 			actionParam := models.ActionFuncParam{CiType: ciObj.CiTypeId, InputData: inputRowData, Attributes: ciObj.Attributes, ReferenceAttributes: ciObj.ReferenceAttributes, Operator: param.Operator, Operation: param.Operation, NowTime: tNow, RefCiTypeMap: ciObj.RefCiTypeMap, DeleteList: deleteList, FromCore: param.FromCore}
+			actionParam.MultiCiData = ciObj
 			// 检查数据目标状态
 			if param.BareAction != "" {
 				if param.BareAction == "insert" {
@@ -163,6 +170,9 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 				} else {
 					actionParam.NowData = ciObj.NowData[i]
 					actionParam.Transition = &models.SysStateTransitionQuery{Action: param.BareAction, TargetStateName: actionParam.NowData["state"], TargetState: actionParam.NowData["state"]}
+					if param.BareAction == "update" {
+						actionParam.Transition.TargetIsConfirm = "no"
+					}
 				}
 				actionParam.BareAction = param.BareAction
 			} else {
@@ -199,10 +209,32 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 					break
 				}
 			}
+			//
+			if firstAction == "confirm" {
+				// 检查ciObj.InputData的guid是否在历史记录中，并且status为confirmed
+				if inputRowData["guid"] != "" {
+					reportImportRowData, errQuery := QueryReportImportHistoryStatusByCiTypeGuid(inputRowData["guid"])
+					if errQuery != nil {
+						log.Logger.Error("QueryReportImportHistoryStatusByCiTypeGuid", log.Error(errQuery))
+					}
+					if reportImportRowData != nil && len(reportImportRowData) > 0 {
+						status := reportImportRowData[0].Status
+						if status != "confirmed" {
+							// guid未在导入历史中确认，请检查
+							err = fmt.Errorf("Guid:%s .data is not confirmed in report import history", inputRowData["guid"])
+							break
+						}
+					}
+				}
+			}
 			// 处理输入,把参数变成对应的SQL加进事务里
 			tmpAction, tmpErr := doActionFunc(&actionParam)
 			if tmpErr != nil {
-				err = fmt.Errorf("CiType:%s do action:%s fail,%s ", ciObj.CiTypeId, actionParam.Transition.Action, tmpErr.Error())
+				tmpRowKeyName := actionParam.InputData["key_name"]
+				if tmpRowKeyName == "" {
+					tmpRowKeyName = actionParam.NowData["key_name"]
+				}
+				err = fmt.Errorf("CiType:%s Row:%s do action:%s fail,%s ", ciObj.CiTypeId, tmpRowKeyName, actionParam.Transition.Action, tmpErr.Error())
 				break
 			}
 			//outputData = append(outputData, actionParam.InputData)
@@ -222,6 +254,17 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 					autofillChainMap[ciObj.CiTypeId] = append(autofillChainMap[ciObj.CiTypeId], &models.AutofillChainObj{Guid: inputRowData["guid"], UpdateColumn: actionParam.UpdateColumn, MultiColumnDelMap: actionParam.MultiColumnDelMap})
 				} else {
 					autofillChainMap[ciObj.CiTypeId] = []*models.AutofillChainObj{&models.AutofillChainObj{Guid: inputRowData["guid"], UpdateColumn: actionParam.UpdateColumn, MultiColumnDelMap: actionParam.MultiColumnDelMap}}
+				}
+				//
+				tmpAction, tmpErr := addActionForReportCiImportGuidMap(ciObj)
+				if tmpAction != nil && tmpErr == nil {
+					actions = append(actions, tmpAction...)
+				}
+			}
+			if actionParam.Transition.Action == "delete" {
+				tmpAction, tmpErr := deleteActionForReportCiImportGuidMap(ciObj)
+				if tmpAction != nil && tmpErr == nil {
+					actions = append(actions, tmpAction...)
 				}
 			}
 			if actionParam.Transition.TargetUniquePath == "yes" {
@@ -350,6 +393,7 @@ func insertActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 			}
 		}
 		buildValueParam.InputData = param.InputData
+		buildValueParam.MultiCiData = param.MultiCiData
 		tmpColumn, multiRefActions, _, tmpErr := buildAttrValue(&buildValueParam)
 		if tmpErr != nil {
 			err = fmt.Errorf("Column:%s %s \n", ciAttr.Name, tmpErr.Error())
@@ -545,6 +589,10 @@ func confirmActionFunc(param *models.ActionFuncParam) (result []*execAction, err
 		if ciAttr.DataType == "datetime" && param.NowData[ciAttr.Name] == "" {
 			param.NowData[ciAttr.Name] = "reset_null^"
 		}
+		if ciAttr.ConfirmNullable == "no" && param.NowData[ciAttr.Name] == "" {
+			err = fmt.Errorf("Column:%s value is empty, confirm nullable validate fail ", ciAttr.Name)
+			break
+		}
 		if ciAttr.RefCiType != "" {
 			if ciAttr.InputType == models.MultiRefType {
 				multiRefActions, _, tmpErr := buildMultiRefActions(&models.BuildAttrValueParam{NowTime: param.NowTime, AttributeConfig: ciAttr, IsSystem: false, Action: param.Transition.Action, InputData: param.NowData})
@@ -631,7 +679,7 @@ func executeActionFunc(param *models.ActionFuncParam) (result []*execAction, err
 	param.NowData = cleanInputData(param.NowData, param.Attributes)
 	result = append(result, getUpdateActionByColumnList(columnList, param.CiType, param.InputData["guid"]))
 	result = append(result, getHistoryActionByData(param.NowData, param.CiType, param.NowTime, param.Transition))
-	err = StartCiDataCallback(models.CiDataCallbackParam{RowGuid: param.InputData["guid"], ProcessName: param.InputData["procDefName"], ProcessKey: param.InputData["procDefKey"], CiType: param.CiType, UserToken: param.InputData["Authorization"]})
+	err = StartCiDataCallback(models.CiDataCallbackParam{RowGuid: param.InputData["guid"], ProcessName: param.InputData["procDefName"], ProcessKey: param.InputData["procDefKey"], CiType: param.CiType, UserToken: param.InputData["Authorization"], OperationUser: param.Operator})
 	return
 }
 
@@ -710,9 +758,9 @@ func autofillAffectActionFunc(ciTypeId, guid, nowTime string) {
 	var actions []*execAction
 	actions = append(actions, getUpdateActionByColumnList(updateColumnList, ciTypeId, guid))
 	isConfirm := "no"
-	if nowData["history_state_confirmed"] == "1" {
-		isConfirm = "yes"
-	}
+	//if nowData["history_state_confirmed"] == "1" {
+	//	isConfirm = "yes"
+	//}
 	for _, col := range multiRefColumn {
 		delete(nowData, col)
 	}
@@ -762,6 +810,20 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 			if err != nil {
 				return
 			}
+			if param.MultiCiData != nil && len(param.MultiCiData.InputData) > 1 {
+				// 判断输入的如果是多行的话，多行之间有没有唯一性冲突
+				for _, inputRow := range param.MultiCiData.InputData {
+					if inputRow["guid"] != param.InputData["guid"] {
+						if inputRow[param.AttributeConfig.Name] == inputValue {
+							err = fmt.Errorf("Unique validate in input rows fail,row:%s column:%s is same with row:%s ", param.InputData["key_name"], param.AttributeConfig.Name, inputRow["key_name"])
+							break
+						}
+					}
+				}
+				if err != nil {
+					return
+				}
+			}
 		}
 	}
 	// if enable empty
@@ -781,7 +843,14 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 		needValidateText = false
 	}
 	if needValidateText {
-		textReg, tmpErr := pcre.Compile(param.AttributeConfig.TextValidate, 0)
+		regValidateExpr := param.AttributeConfig.TextValidate
+		if !strings.HasPrefix(regValidateExpr, "^") {
+			regValidateExpr = "^" + regValidateExpr
+		}
+		if !strings.HasSuffix(regValidateExpr, "$") {
+			regValidateExpr = regValidateExpr + "$"
+		}
+		textReg, tmpErr := pcre.Compile(regValidateExpr, 0)
 		if tmpErr != nil {
 			err = fmt.Errorf("Try to validate column:%s fail,init regexp rule error:%s ", param.AttributeConfig.Name, tmpErr.Message)
 			return
@@ -963,7 +1032,7 @@ func getMultiNowData(multiCiData []*models.MultiCiDataObj) error {
 	return err
 }
 
-func validateMultiRefFilterData(multiCiData []*models.MultiCiDataObj) error {
+func validateMultiRefFilterData(multiCiData []*models.MultiCiDataObj, userToken string) error {
 	var err error
 	for _, ciDataObj := range multiCiData {
 		for _, inputRow := range ciDataObj.InputData {
@@ -976,7 +1045,7 @@ func validateMultiRefFilterData(multiCiData []*models.MultiCiDataObj) error {
 					for k, v := range inputRow {
 						tmpInputRow[k] = v
 					}
-					_, fetchRows, tmpErr := GetCiDataByFilters(attr.Id, tmpInputRow, models.QueryRequestParam{Paging: false})
+					_, fetchRows, tmpErr := GetCiDataByFilters(attr.Id, tmpInputRow, models.QueryRequestParam{Paging: false}, userToken)
 					if tmpErr != nil {
 						err = tmpErr
 						break
@@ -1100,7 +1169,7 @@ func getMultiCiStartTransition(multiCiData []*models.MultiCiDataObj) error {
 	return err
 }
 
-func getMultiCiAttributes(multiCiData []*models.MultiCiDataObj) error {
+func GetMultiCiAttributes(multiCiData []*models.MultiCiDataObj) error {
 	var ciTypeList []string
 	var attrTable []*models.SysCiTypeAttrTable
 	for _, ciDataObj := range multiCiData {
@@ -1276,9 +1345,16 @@ func validateUniqueColumn(multiCiData []*models.MultiCiDataObj) error {
 		var filterSqlList, filterColumnSqlList []string
 		for _, uc := range uniqueColumnList {
 			tmpInputDataColumn := []string{}
+			tmpUniqueCheckMap := make(map[string]int)
 			for _, inputRow := range ciDataObj.InputData {
-				if inputRow[uc] != "" {
-					tmpInputDataColumn = append(tmpInputDataColumn, inputRow[uc])
+				tmpRowValue := inputRow[uc]
+				if tmpRowValue != "" {
+					if _, existFlag := tmpUniqueCheckMap[tmpRowValue]; existFlag {
+						err = fmt.Errorf("Try to validate unique column %s value fail,value:%s duplicate ", uc, tmpRowValue)
+						return err
+					}
+					tmpUniqueCheckMap[tmpRowValue] = 1
+					tmpInputDataColumn = append(tmpInputDataColumn, tmpRowValue)
 				}
 			}
 			if len(tmpInputDataColumn) > 0 {
@@ -1872,7 +1948,7 @@ func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title
 	queryParam.Filters = []*models.QueryRequestFilterObj{{Name: "guid", Operator: "eq", Value: inputGuid}}
 	queryParam.Paging = false
 	queryParam.Sorting = &models.QueryRequestSorting{Asc: true, Field: "history_time"}
-	_, rowData, err = CiDataQuery(ciTypeId, &queryParam, &models.CiDataLegalGuidList{Disable: true}, false)
+	_, rowData, err = CiDataQuery(ciTypeId, &queryParam, &models.CiDataLegalGuidList{Disable: true}, false, false)
 	if err != nil {
 		return
 	}
@@ -2041,6 +2117,21 @@ func decodeAesPassword(seed, password string) (decodePwd string, err error) {
 		unixTime = unixTime - 1
 		ivValue = fmt.Sprintf("%d", unixTime*100000000)
 		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, ivValue)
+	}
+	return
+}
+
+func getDataHandleCiTypeList(param *models.HandleCiDataParam) (ciTypeList []string) {
+	ciTypeMap := make(map[string]int)
+	for _, inputRowData := range param.InputData {
+		tmpRowGuid := inputRowData["guid"]
+		if tmpRowGuidSplitIndex := strings.LastIndex(tmpRowGuid, "_"); tmpRowGuidSplitIndex > 0 {
+			inputRowCiType := tmpRowGuid[:tmpRowGuidSplitIndex]
+			if _, ok := ciTypeMap[inputRowCiType]; !ok {
+				ciTypeList = append(ciTypeList, inputRowCiType)
+				ciTypeMap[inputRowCiType] = 1
+			}
+		}
 	}
 	return
 }

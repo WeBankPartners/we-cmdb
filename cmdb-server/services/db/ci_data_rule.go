@@ -393,17 +393,36 @@ func getAutofillValueString(valueList []string, attributeInputType string) strin
 		return fmt.Sprintf("%.2f", count)
 	}
 	if len(valueList) == 0 {
+		if attributeInputType == models.MultiText || attributeInputType == models.MultiObject || attributeInputType == models.MultiSelect || attributeInputType == models.MultiInt || attributeInputType == models.Int {
+			return ""
+		}
 		return specialNullChar
 	}
-	if len(valueList) == 1 {
+	if len(valueList) == 1 && attributeInputType != models.MultiText && attributeInputType != models.MultiObject && attributeInputType != models.MultiSelect && attributeInputType != models.MultiInt {
 		return valueList[0]
+	}
+	if attributeInputType == models.MultiText || attributeInputType == models.MultiObject || attributeInputType == models.MultiSelect {
+		return fmt.Sprintf("[\"%s\"]", strings.Join(filterNonEmpty(valueList), "\",\""))
+	}
+	if attributeInputType == models.MultiInt {
+		return fmt.Sprintf("[%s]", strings.Join(filterNonEmpty(valueList), ","))
 	}
 	return fmt.Sprintf("[%s]", strings.Join(valueList, ","))
 }
 
-func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam models.QueryRequestParam) (pageInfo models.PageInfo, rowData []map[string]interface{}, err error) {
+func filterNonEmpty(values []string) []string {
+	var nonEmptyValues []string
+	for _, v := range values {
+		if v != "" {
+			nonEmptyValues = append(nonEmptyValues, v)
+		}
+	}
+	return nonEmptyValues
+}
+
+func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam models.QueryRequestParam, userToken string) (pageInfo models.PageInfo, rowData []map[string]interface{}, err error) {
 	var attrTable []*models.SysCiTypeAttrTable
-	err = x.SQL("select name,input_type,ref_ci_type,ref_filter from sys_ci_type_attr where id=?", attrId).Find(&attrTable)
+	err = x.SQL("select name,input_type,ref_ci_type,ref_filter,ext_ref_entity from sys_ci_type_attr where id=?", attrId).Find(&attrTable)
 	if err != nil {
 		err = fmt.Errorf("Get ci reference data fail,query database error:%s ", err.Error())
 		return
@@ -412,10 +431,28 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam mod
 		err = fmt.Errorf("Get ci reference data fail,can not find attribyte:%s ", attrId)
 		return
 	}
+	if attrTable[0].InputType == models.ExtRefInputType {
+		entitySplit := strings.Split(attrTable[0].ExtRefEntity, ":")
+		if len(entitySplit) != 2 {
+			err = fmt.Errorf("attr refCiType:%s illegal with extent model", attrTable[0].ExtRefEntity)
+			return
+		}
+		rowData, err = GetExtendModelData(entitySplit[0], entitySplit[1], "", userToken)
+		if err != nil {
+			err = fmt.Errorf("get extend model data fail,%s ", err.Error())
+		} else {
+			for _, row := range rowData {
+				row["guid"] = row["id"]
+				row["key_name"] = row["displayName"]
+			}
+		}
+		return
+	}
 	if attrTable[0].RefCiType == "" {
 		err = fmt.Errorf("Get ci reference data fail,attr:%s is not reference type ", attrId)
 		return
 	}
+	filterGuidParam := models.CiDataLegalGuidList{Disable: false, GuidList: []string{}}
 	if attrTable[0].RefFilter == "" {
 		var queryResults []*models.CiDataRefDataObj
 		err = x.SQL(fmt.Sprintf("select guid,key_name from %s order by update_time desc", attrTable[0].RefCiType)).Find(&queryResults)
@@ -427,6 +464,10 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam mod
 			tmpMap["guid"] = row.Guid
 			tmpMap["key_name"] = row.KeyName
 			rowData = append(rowData, tmpMap)
+			filterGuidParam.GuidList = append(filterGuidParam.GuidList, row.Guid)
+		}
+		if reqParam.WithRefRowData {
+			_, rowData, err = CiDataQuery(attrTable[0].RefCiType, &reqParam, &filterGuidParam, false, false)
 		}
 		return
 	}
@@ -473,19 +514,24 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam mod
 			for k, v := range row {
 				tmpRowData[k] = v
 			}
+			filterGuidParam.GuidList = append(filterGuidParam.GuidList, fmt.Sprintf("%s", tmpRowData["guid"]))
 			rowData = append(rowData, tmpRowData)
 		}
+		if reqParam.WithRefRowData {
+			_, rowData, err = CiDataQuery(attrTable[0].RefCiType, &reqParam, &filterGuidParam, false, false)
+		}
 	} else {
-		filterGuidParam := models.CiDataLegalGuidList{Disable: false}
 		if len(filterSqlList) > 0 {
-			filterGuidParam.Disable = true
+			//filterGuidParam.Disable = true
 			filterGuidParam.GuidList = []string{}
 			for _, row := range rowStringData {
 				filterGuidParam.GuidList = append(filterGuidParam.GuidList, row["guid"])
 			}
 		}
-		reqParam.ResultColumns = []string{"guid", "key_name"}
-		pageInfo, rowData, err = CiDataQuery(attrTable[0].RefCiType, &reqParam, &filterGuidParam, false)
+		if !reqParam.WithRefRowData {
+			reqParam.ResultColumns = []string{"guid", "key_name"}
+		}
+		pageInfo, rowData, err = CiDataQuery(attrTable[0].RefCiType, &reqParam, &filterGuidParam, false, false)
 	}
 	return
 }

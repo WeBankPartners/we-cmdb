@@ -52,6 +52,7 @@ func GetCallbackQueryData(ciType, rowGuid, userToken string) (result models.CiDa
 	for i, v := range processList {
 		tmpRow := make(map[string]interface{})
 		tmpRow["id"] = i + 1
+		tmpRow["procDefId"] = v.ProcDefId
 		tmpRow["procDefName"] = v.ProcDefName
 		tmpRow["procDefKey"] = v.ProcDefKey
 		tmpRow["version"] = v.ProcDefVersion
@@ -70,34 +71,36 @@ func ListCiDataVariableCallback(ciType, rowGuid, userToken string) (processList 
 	if !models.PluginRunningMode {
 		return
 	}
-	coreProcessList, coreErr := getCoreProcessList(userToken)
+	coreProcessList, coreErr := getCoreProcessList(userToken, "wecmdb:"+ciType, rowGuid)
 	if coreErr != nil {
 		err = coreErr
 		return
 	}
-	for _, tmpProcess := range coreProcessList {
-		tmpRootCi := tmpProcess.RootEntityExpression
-		tmpFilter := ""
-		if strings.Contains(tmpRootCi, "{") {
-			tmpFilter = tmpRootCi[strings.Index(tmpRootCi, "{")+1 : len(tmpRootCi)-1]
-			tmpRootCi = tmpRootCi[:strings.Index(tmpRootCi, "{")]
-		}
-		if tmpRootCi != fmt.Sprintf("wecmdb:%s", ciType) {
-			continue
-		}
-		if tmpFilter != "" {
-			if !ifCiDataProcessMatch(ciType, rowGuid, tmpFilter) {
-				continue
-			}
-		}
-		processList = append(processList, tmpProcess)
-	}
+	processList = coreProcessList
+	// 过滤编排根表达式过滤规则，不需要了，平台已支持
+	//for _, tmpProcess := range coreProcessList {
+	//	tmpRootCi := tmpProcess.RootEntityExpression
+	//	tmpFilter := ""
+	//	if strings.Contains(tmpRootCi, "{") {
+	//		tmpFilter = tmpRootCi[strings.Index(tmpRootCi, "{")+1 : len(tmpRootCi)-1]
+	//		tmpRootCi = tmpRootCi[:strings.Index(tmpRootCi, "{")]
+	//	}
+	//	if tmpRootCi != fmt.Sprintf("wecmdb:%s", ciType) {
+	//		continue
+	//	}
+	//	if tmpFilter != "" {
+	//		if !ifCiDataProcessMatch(ciType, rowGuid, tmpFilter) {
+	//			continue
+	//		}
+	//	}
+	//	processList = append(processList, tmpProcess)
+	//}
 	return
 }
 
-func getCoreProcessList(userToken string) (processList []*models.CodeProcessQueryObj, err error) {
-	//req, reqErr := http.NewRequest(http.MethodGet, models.Config.Wecube.BaseUrl+"/platform/v1/process/definitions?includeDraft=0&permission=USE&tags="+models.ProcessFetchTabs, nil)
-	req, reqErr := http.NewRequest(http.MethodGet, models.Config.Wecube.BaseUrl+"/platform/v1/public/process/definitions?plugin=wecmdb&permission=USE&all=N", nil)
+func getCoreProcessList(userToken, rootEntity, rootEntityGuid string) (processList []*models.CodeProcessQueryObj, err error) {
+	path := fmt.Sprintf("/platform/v1/public/process/definitions?plugin=wecmdb&permission=USE&all=N&rootEntity=%s&rootEntityGuid=%s", rootEntity, rootEntityGuid)
+	req, reqErr := http.NewRequest(http.MethodGet, models.Config.Wecube.BaseUrl+path, nil)
 	if reqErr != nil {
 		err = fmt.Errorf("Try to new http request to core fail,%s ", reqErr.Error())
 		return
