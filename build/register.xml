@@ -13,6 +13,7 @@
         <menu code='data_query_view' cat='DESIGNING' displayName="Data Query(View)" localDisplayName="数据查询(视图)">/wecmdb/data-query-view</menu>
         <menu code='data_mgmt_ci' cat='DESIGNING' displayName="Data MGMT(CI)" localDisplayName="数据管理(CI)">/wecmdb/data-mgmt-ci</menu>
         <menu code='data_mgmt_view' cat='DESIGNING' displayName="Data MGMT(View)" localDisplayName="数据管理(视图)">/wecmdb/data-mgmt-view</menu>
+        <menu code='data_management_import' cat='DESIGNING' displayName="Data MGMT(Import)" localDisplayName="数据管理(导入)">/wecmdb/designing/data-management-import</menu>
         <menu code='model_configuration' cat='DESIGNING' displayName="Model Configuration" localDisplayName="模型配置">/wecmdb/model-configuration</menu>
         <menu code='report_configuration' cat='DESIGNING' displayName="Report Configuration" localDisplayName="报表配置">/wecmdb/report-configuration</menu>
         <menu code='basekey_configuration' cat='DESIGNING' displayName="Basekey Configuration" localDisplayName="基础数据配置">/wecmdb/basekey-configuration</menu>
@@ -45,6 +46,7 @@
             <menu code="data_query_view" />
             <menu code="data_mgmt_ci" />
             <menu code="data_mgmt_view" />
+            <menu code="data_management_import" />
             <menu code="model_configuration" />
             <menu code="report_configuration" />
             <menu code="basekey_configuration" />
