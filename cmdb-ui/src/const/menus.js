@@ -60,6 +60,24 @@ export const MENUS = [
     link: '/wecmdb/designing/ci-data-enquiry'
   },
   {
+    code: 'data_management_import',
+    cnName: '数据管理(导入)',
+    enName: 'Data Management Import',
+    seqNo: 3,
+    parent: 'data_mgmt',
+    isActive: 'yes',
+    link: '/wecmdb/designing/data-management-import'
+  },
+  {
+    code: 'data_import_detail',
+    cnName: '数据导入详情',
+    enName: 'Data Import Detail',
+    seqNo: 4,
+    parent: 'data_mgmt',
+    isActive: 'yes',
+    link: '/wecmdb/designing/data-import-detail'
+  },
+  {
     code: 'data_query_report',
     cnName: '数据查询(报表)',
     enName: 'Report Data Query',

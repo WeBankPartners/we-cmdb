@@ -7,10 +7,16 @@
       :disabled="disabled"
       filterable
       clearable
+      :placeholder="title"
       @on-change="changeValue"
       @on-open-change="getFilterRulesOptions"
     >
-      <Option v-for="item in opts" :value="item.value || ''" :key="item.value">{{ item.label }}</Option>
+      <!-- <Option v-for="item in opts" :value="item.value || ''" :key="item.value">{{ item.label }}</Option> -->
+      <Option v-for="item in opts" :value="item.value || ''" :key="item.value" :label="item.label">
+        <Tooltip :content="item.codeDescription" style="width: 100%">
+          {{ item.label }}
+        </Tooltip>
+      </Option>
     </Select>
     <Select
       v-else
@@ -19,6 +25,7 @@
       :disabled="disabled"
       filterable
       clearable
+      :placeholder="title"
       @on-change="changeValue"
       @on-open-change="getFilterRulesOptions"
       :max-tag-count="maxTags"
@@ -43,7 +50,8 @@ export default {
     maxTags: { default: () => DEFAULT_TAG_NUMBER },
     filterParams: {},
     disabled: { default: () => false },
-    enumId: { default: () => null }
+    enumId: { default: () => null },
+    title: ''
   },
   data () {
     return {

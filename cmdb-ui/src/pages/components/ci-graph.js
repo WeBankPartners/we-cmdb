@@ -1,14 +1,25 @@
 import vis from 'vis'
-import { getRefCiTypeFrom, getCiTypeAttr, configReport } from '@/api/server'
+import { getRefCiTypeFrom, getCiTypeAttr, configReport, getCiTypeNameMap } from '@/api/server'
 import './ci-graph.scss'
 import Attrs from './attr-s.vue'
-// import { _ } from 'core-js'
 
 const visOptions = {
   interaction: {
     hover: true
   },
+  nodes: {
+    margin: 15,
+    color: {
+      highlight: {
+        background: '#f5c278', // 选中节点的背景色
+        border: '#F7990F'
+      }
+    }
+  },
   edges: {
+    color: {
+      highlight: '#f5c278' // 选中边的颜色
+    },
     smooth: {
       type: 'cubicBezier',
       forceDirection: 'horizontal',
@@ -29,7 +40,19 @@ export default {
     ciGraphData: { type: Object },
     attributeObject: { type: Object },
     // eslint-disable-next-line standard/object-curly-even-spacing
-    currentReportId: { type: String }
+    currentReportId: { type: String },
+    editorBoxInRight: {
+      type: Boolean,
+      default: false
+    },
+    isPreviewState: {
+      type: Boolean,
+      default: false
+    },
+    recordClickNodeId: {
+      type: String,
+      default: ''
+    }
   },
   data () {
     return {
@@ -48,13 +71,18 @@ export default {
       ciTypeAttrs: [],
       selectedAttrs: [],
       currentTab: 'name1',
-
       editAttr: [],
       editToParams: [],
-      editFromParams: []
+      editFromParams: [],
+      refreshFlag: '',
+      oriDataMap: {}
     }
   },
-  mounted () {
+  async mounted () {
+    const { data, statusCode } = await getCiTypeNameMap()
+    if (statusCode === 'OK') {
+      this.oriDataMap = data
+    }
     this.renderGraph()
   },
   watch: {
@@ -82,13 +110,12 @@ export default {
           })
         }
       })
-
       return t
     },
     createNode (item) {
       return {
         id: `${item.label || item.name}`,
-        label: `${item.label || item.name}`,
+        label: `CI[${this.oriDataMap[item.ciType]}]\n${item.label || item.name}`,
         shape: 'box'
       }
     },
@@ -162,7 +189,6 @@ export default {
           }
         })
       }
-
       return ret
     },
     deleteRemovedNode (host, targets) {
@@ -236,12 +262,23 @@ export default {
         nodes: this.deduplicate(this.createNodes(this.generateCiRelation(this.ciGraphData))),
         edges: this.createEdges(this.generateCiRelation(this.ciGraphData))
       }
+      const clickedNodeId = this.recordClickNodeId || data.nodes[0].id
       const network = new vis.Network(container, data, visOptions)
+      network.once('stabilized', () => {
+        network.selectNodes([clickedNodeId])
+        setTimeout(() => {
+          const params = {
+            nodes: [clickedNodeId]
+          }
+          this.handler(params)
+        }, 0)
+      })
       this.savedNetWork = network
       this.savedNetWork.on('click', this.handler)
     },
     handler (e) {
       if (e.nodes.length === 0) return
+      this.currentTab = 'name1'
       this.savedClickedNode = this.savedRenderedNodes[e.nodes[0]]
       if (!this.savedClickedNode) {
         // 从from和to中寻找当前点击node label === e.nodes[0]
@@ -274,11 +311,9 @@ export default {
               break
             }
           }
-
           if (this.savedClickedNode) break
         }
       }
-
       this.savedSelectedRefs.bys = this.savedClickedNode.from
       this.savedSelectedRefs.tos = this.savedClickedNode.to
       this.tos = this.savedClickedNode.to
@@ -290,6 +325,7 @@ export default {
         await this.getTosBysAttrs()
       }
       this.isSwitcherOpen = status
+      this.refreshFlag = +new Date() + ''
     },
     async getTosBysAttrs () {
       const id = this.savedClickedNode.node.ciTypeId
@@ -330,8 +366,12 @@ export default {
         }
         return res
       })
+      referTos.forEach(item => {
+        item.displayName = `CI[${this.oriDataMap[item.ciTypeId]}]-${item.displayName}`
+      })
       return (
         <Attrs
+          isPreviewState={this.isPreviewState}
           parentData={referTos}
           ref="toAttrs"
           displayKey="displayName"
@@ -358,8 +398,12 @@ export default {
         }
         return res
       })
+      referBys.forEach(item => {
+        item.ciTypeName = `CI[${this.oriDataMap[item.ciTypeId]}]-${item.displayName}`
+      })
       return (
         <Attrs
+          isPreviewState={this.isPreviewState}
           parentData={referBys}
           ref="byAttrs"
           displayKey="ciTypeName"
@@ -390,6 +434,7 @@ export default {
         <Attrs
           parentData={ciTypeAttrs}
           ref="ownAttrs"
+          isPreviewState={this.isPreviewState}
           displayKey="displayName"
           parentkey="ciTypeAttrId"
           childData={currentAttrs}
@@ -398,6 +443,22 @@ export default {
           {' '}
         </Attrs>
       )
+    },
+    getRepeatAttrName (arr, key = 'dataName') {
+      const tempAttrArr = []
+      let resStr = ''
+      for (let i = 0; i < arr.length; i++) {
+        if (tempAttrArr.includes(arr[i][key])) {
+          resStr = arr[i][key]
+          break
+        } else {
+          tempAttrArr.push(arr[i][key])
+        }
+      }
+      return resStr
+    },
+    getCheckTips (templateText, keyName, boxText) {
+      return templateText.replace(/###/, keyName).replace(/xxx/, boxText)
     },
     checkData (attr, toAttrs, byAttrs) {
       const attrDataNameSet = new Set(attr.map(att => att.dataName))
@@ -408,67 +469,85 @@ export default {
       const byAttrDataTitleNameSet = new Set(byAttrs.map(att => att.dataTitleName))
       let checkDataResult = []
       if (attrDataNameSet.size !== attr.length) {
-        checkDataResult.push(`${this.$t('attribute')}:${this.$t('data_name')}->${this.$t('has_duplicates')}`)
+        const repeatDataName = this.getRepeatAttrName(attr)
+        const checkTips = this.getCheckTips(this.$t('db_repeat_tips_template'), repeatDataName, this.$t('attribute'))
+        checkDataResult.push(checkTips)
       }
       if (attrDataTitleNameSet.size !== attr.length) {
-        checkDataResult.push(`${this.$t('attribute')}:${this.$t('data_title_name')}->${this.$t('has_duplicates')}`)
+        const repeatDataName = this.getRepeatAttrName(attr, 'dataTitleName')
+        const checkTips = this.getCheckTips(this.$t('db_repeat_tips_template'), repeatDataName, this.$t('attribute'))
+        checkDataResult.push(checkTips)
       }
       if (toAttrDataNameSet.size !== toAttrs.length) {
-        checkDataResult.push(`${this.$t('attribute')}:${this.$t('data_name')}->${this.$t('has_duplicates')}`)
+        const repeatDataName = this.getRepeatAttrName(toAttrs)
+        const checkTips = this.getCheckTips(this.$t('db_repeat_tips_template'), repeatDataName, this.$t('refrence_to'))
+        checkDataResult.push(checkTips)
       }
       if (toAttrDataTitleNameSet.size !== toAttrs.length) {
-        checkDataResult.push(`${this.$t('attribute')}:${this.$t('data_title_name')}->${this.$t('has_duplicates')}`)
+        const repeatDataName = this.getRepeatAttrName(toAttrs, 'dataTitleName')
+        const checkTips = this.getCheckTips(this.$t('db_repeat_tips_template'), repeatDataName, this.$t('refrence_to'))
+        checkDataResult.push(checkTips)
       }
       if (byAttrDataNameSet.size !== byAttrs.length) {
-        checkDataResult.push(`${this.$t('attribute')}:${this.$t('data_name')}->${this.$t('has_duplicates')}`)
+        const repeatDataName = this.getRepeatAttrName(byAttrs)
+        const checkTips = this.getCheckTips(this.$t('db_repeat_tips_template'), repeatDataName, this.$t('refrence_by'))
+        checkDataResult.push(checkTips)
       }
       if (byAttrDataTitleNameSet.size !== byAttrs.length) {
-        checkDataResult.push(`${this.$t('attribute')}:${this.$t('data_title_name')}->${this.$t('has_duplicates')}`)
+        const repeatDataName = this.getRepeatAttrName(byAttrs, 'dataTitleName')
+        const checkTips = this.getCheckTips(this.$t('db_repeat_tips_template'), repeatDataName, this.$t('refrence_by'))
+        checkDataResult.push(checkTips)
       }
       toAttrs.forEach(ta => {
         if (attrDataNameSet.has(ta.dataName)) {
-          checkDataResult.push(
-            `${this.$t('refrence_to')}->${this.$t('data_name')}:${ta.dataName} === ${this.$t('attribute')}->${this.$t(
-              'data_name'
-            )}`
+          const checkTips = this.getCheckTips(
+            this.$t('db_conflict_tips_template'),
+            ta.dataName,
+            this.$t('refrence_to') + this.$t('db_and') + this.$t('refrence_by')
           )
+          checkDataResult.push(checkTips)
         }
         if (attrDataTitleNameSet.has(ta.dataTitleName)) {
-          checkDataResult.push(
-            `${this.$t('refrence_to')}->${this.$t('data_title_name')}:${ta.dataTitleName} === ${this.$t(
-              'attribute'
-            )}->${this.$t('data_title_name')}`
+          const checkTips = this.getCheckTips(
+            this.$t('db_conflict_tips_template'),
+            ta.dataTitleName,
+            this.$t('refrence_to') + this.$t('db_and') + this.$t('refrence_by')
           )
+          checkDataResult.push(checkTips)
         }
       })
       byAttrs.forEach(ta => {
         if (attrDataNameSet.has(ta.dataName)) {
-          checkDataResult.push(
-            `${this.$t('refrence_by')}->${this.$t('data_name')}:${ta.dataName} === ${this.$t('attribute')}->${this.$t(
-              'data_name'
-            )}`
+          const checkTips = this.getCheckTips(
+            this.$t('db_conflict_tips_template'),
+            ta.dataName,
+            this.$t('refrence_by') + this.$t('db_and') + this.$t('attribute')
           )
+          checkDataResult.push(checkTips)
         }
         if (attrDataTitleNameSet.has(ta.dataTitleName)) {
-          checkDataResult.push(
-            `${this.$t('refrence_by')}->${this.$t('data_title_name')}:${ta.dataTitleName} === ${this.$t(
-              'attribute'
-            )}->${this.$t('data_title_name')}}`
+          const checkTips = this.getCheckTips(
+            this.$t('db_conflict_tips_template'),
+            ta.dataTitleName,
+            this.$t('refrence_by') + this.$t('db_and') + this.$t('attribute')
           )
+          checkDataResult.push(checkTips)
         }
         if (toAttrDataNameSet.has(ta.dataName)) {
-          checkDataResult.push(
-            `${this.$t('refrence_by')}->${this.$t('data_name')}:${ta.dataName} === ${this.$t('refrence_to')}->${this.$t(
-              'data_name'
-            )}`
+          const checkTips = this.getCheckTips(
+            this.$t('db_conflict_tips_template'),
+            ta.dataName,
+            this.$t('refrence_to') + this.$t('db_and') + this.$t('refrence_by')
           )
+          checkDataResult.push(checkTips)
         }
         if (toAttrDataTitleNameSet.has(ta.dataTitleName)) {
-          checkDataResult.push(
-            `${this.$t('refrence_by')}->${this.$t('data_title_name')}:${ta.dataTitleName} === ${this.$t(
-              'refrence_to'
-            )}->${this.$t('data_title_name')}}`
+          const checkTips = this.getCheckTips(
+            this.$t('db_conflict_tips_template'),
+            ta.dataTitleName,
+            this.$t('refrence_to') + this.$t('db_and') + this.$t('refrence_by')
           )
+          checkDataResult.push(checkTips)
         }
       })
       this.checkDataResult = checkDataResult
@@ -540,17 +619,57 @@ export default {
           title: this.$t('success'),
           desc: this.$t('success')
         })
-        this.$emit('onRefresh')
+        this.$emit('onRefresh', node.label)
       }
     }
   },
   render (h) {
-    const { isSwitcherOpen, savedClickedNode, handleConfirm, isShowError } = this
+    const { isSwitcherOpen, editorBoxInRight, savedClickedNode, handleConfirm, isShowError } = this
     return (
       <div>
-        <div id="mynetwork" class="CiGraph-root" style="height: 800px" />
+        <div style="display: flex">
+          <div id="mynetwork" class="ci-graph-root" />
+          {isSwitcherOpen && editorBoxInRight && (
+            <div class="editor-box-right" style="width: 46%">
+              <div style="margin-left:20px;" key={this.refreshFlag}>
+                <Tabs
+                  class="config-tabs"
+                  value={this.currentTab}
+                  on-input={val => {
+                    this.currentTab = val
+                  }}
+                >
+                  <TabPane label={this.$t('db_reference_relationship')} name="name1">
+                    <div class="first-tab-pane">
+                      <Divider size="small" orientation="left">
+                        <span style="size:12px">{this.$t('refrence_to')}</span>
+                      </Divider>
+                      {isSwitcherOpen && this.renderTos()}
+                      <Divider size="small" orientation="left">
+                        <span style="size:12px">{this.$t('refrence_by')}</span>
+                      </Divider>
+                      {isSwitcherOpen && this.renderBys()}
+                    </div>
+                  </TabPane>
+                  <TabPane label={this.$t('attribute')} name="name2">
+                    {isSwitcherOpen && this.renderAttrs()}
+                  </TabPane>
+                </Tabs>
+              </div>
+              {!this.isPreviewState && (
+                <Button
+                  style="position: fixed; bottom: 30px; right: 50px"
+                  onClick={() => handleConfirm()}
+                  type="primary"
+                >
+                  {this.$t('save')}
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
         <Modal
-          value={isSwitcherOpen}
+          value={isSwitcherOpen && !editorBoxInRight}
           width="800"
           title={(savedClickedNode.node && savedClickedNode.node.label) || ''}
           // on-on-ok={handleConfirm}
@@ -561,26 +680,28 @@ export default {
           mask-closable={false}
         >
           <div>
-            <Tabs
-              value={this.currentTab}
-              on-input={val => {
-                this.currentTab = val
-              }}
-            >
-              <TabPane label={this.$t('attribute')} name="name1">
-                {isSwitcherOpen && this.renderAttrs()}
-              </TabPane>
-              <TabPane label={this.$t('refrence_object')} name="name2">
-                <Divider size="small" orientation="left">
-                  <span style="size:12px">{this.$t('refrence_to')}</span>
-                </Divider>
-                {isSwitcherOpen && this.renderTos()}
-                <Divider size="small" orientation="left">
-                  <span style="size:12px">{this.$t('refrence_by')}</span>
-                </Divider>
-                {isSwitcherOpen && this.renderBys()}
-              </TabPane>
-            </Tabs>
+            {isSwitcherOpen && !editorBoxInRight && (
+              <Tabs
+                value={this.currentTab}
+                on-input={val => {
+                  this.currentTab = val
+                }}
+              >
+                <TabPane label={this.$t('attribute')} name="name1">
+                  {isSwitcherOpen && this.renderAttrs()}
+                </TabPane>
+                <TabPane label={this.$t('refrence_object')} name="name2">
+                  <Divider size="small" orientation="left">
+                    <span style="size:12px">{this.$t('refrence_to')}</span>
+                  </Divider>
+                  {isSwitcherOpen && this.renderTos()}
+                  <Divider size="small" orientation="left">
+                    <span style="size:12px">{this.$t('refrence_by')}</span>
+                  </Divider>
+                  {isSwitcherOpen && this.renderBys()}
+                </TabPane>
+              </Tabs>
+            )}
           </div>
           <div slot="footer">
             <Button onClick={() => handleConfirm()} type="primary">

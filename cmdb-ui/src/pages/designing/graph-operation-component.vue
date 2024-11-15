@@ -1,5 +1,5 @@
 <template>
-  <div class="operation">
+  <div>
     <div class="add-btn" v-if="editable">
       <!-- 可新增的子节点类型，由父组件进行管理 -->
       <Dropdown v-if="nodeGuid && nodeEditable && isEdit" @on-click="showAddChildModal">
@@ -19,123 +19,133 @@
       </Dropdown>
     </div>
     <div slot="content">
-      <Form>
-        <span v-if="nodeCiAttrs.length === 0">No Data!</span>
-        <div v-for="(formData, formDataIndex) in nodeCiAttrs" :key="formDataIndex + nodeGuid">
-          <Tooltip :delay="500" placement="left-start">
-            <span class="form-item-title">
-              <span v-if="formData.uiNullable === 'no'" class="require-tag">*</span>
-              {{ formData.name }}
-            </span>
-            <div slot="content" style="white-space: normal">
-              {{ formData.description }}
-            </div>
-          </Tooltip>
-          <FormItem v-if="formData.inputType === 'int'" class="form-item-content">
-            <Input
-              v-model="nodeData[formData.propertyName]"
-              type="number"
-              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
-            ></Input>
-          </FormItem>
-          <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-            <Input
-              v-model="nodeData[formData.propertyName]"
-              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
-            ></Input>
-          </FormItem>
-          <FormItem v-if="formData.inputType === 'longText'" class="form-item-content">
-            <textarea
-              v-model="nodeData[formData.propertyName]"
-              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
-              class="textArea-style"
-            ></textarea>
-          </FormItem>
-          <FormItem v-if="formData.inputType === 'datetime'" class="form-item-content">
-            <DatePicker
-              v-model="nodeData[formData.propertyName]"
-              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
-              type="date"
-              placeholder="Select date"
-            ></DatePicker>
-          </FormItem>
-          <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
-            <Ref
-              :formData="formData"
-              :panalData="nodeData"
-              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
-            ></Ref>
-          </FormItem>
-          <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
-            <MutiRef
-              :formData="formData"
-              :panalData="nodeData"
-              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
-            ></MutiRef>
-          </FormItem>
-          <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
-            <WeCMDBCIPassword
-              :formData="formData"
-              :panalData="nodeData"
-              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
-            ></WeCMDBCIPassword>
-          </FormItem>
-          <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
-            <Select
-              v-model="nodeData[formData.propertyName]"
-              filterable
-              clearable
-              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
-            >
-              <Option
-                v-for="choice in getEnumCode(nodeData[formData.propertyName], formData.selectList)"
-                :value="choice.code"
-                :key="choice.code"
-                >{{ choice.value }}</Option
+      <div :class="isEdit ? 'operation-hasBtn' : 'operation-noBtn'">
+        <Form>
+          <span v-if="nodeCiAttrs.length === 0">No Data!</span>
+          <div v-for="(formData, formDataIndex) in nodeCiAttrs" :key="formDataIndex + nodeGuid">
+            <Tooltip :delay="500" placement="left-start">
+              <span class="form-item-title">
+                <span v-if="formData.uiNullable === 'no'" class="require-tag">*</span>
+                {{ formData.name }}
+              </span>
+              <div slot="content" style="white-space: normal">
+                {{ formData.description }}
+              </div>
+            </Tooltip>
+            <FormItem v-if="formData.inputType === 'int'" class="form-item-content">
+              <Input
+                v-model="nodeData[formData.propertyName]"
+                type="number"
+                :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
+              ></Input>
+            </FormItem>
+            <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
+              <Input
+                v-model="nodeData[formData.propertyName]"
+                :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
+              ></Input>
+            </FormItem>
+            <FormItem v-if="formData.inputType === 'longText'" class="form-item-content">
+              <textarea
+                v-model="nodeData[formData.propertyName]"
+                :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
+                class="textArea-style"
+              ></textarea>
+            </FormItem>
+            <FormItem v-if="formData.inputType === 'datetime'" class="form-item-content">
+              <DatePicker
+                @on-change="val => setDateTime(val, 'nodeData', formData.propertyName)"
+                :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
+                type="datetime"
+                placeholder="Select date"
+              ></DatePicker>
+            </FormItem>
+            <FormItem v-if="formData.inputType === 'ref'" class="form-item-content">
+              <Ref
+                :formData="formData"
+                :panalData="nodeData"
+                :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
+              ></Ref>
+            </FormItem>
+            <FormItem v-if="formData.inputType === 'multiRef'" class="form-item-content">
+              <MutiRef
+                :formData="formData"
+                :panalData="nodeData"
+                :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
+              ></MutiRef>
+            </FormItem>
+            <FormItem v-if="formData.inputType === 'password'" class="form-item-content">
+              <WeCMDBCIPassword
+                :formData="formData"
+                :panalData="nodeData"
+                :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
+              ></WeCMDBCIPassword>
+            </FormItem>
+            <FormItem v-if="formData.inputType === 'diffVariable'" class="form-item-content">
+              <span v-if="nodeData[formData.propertyName] && nodeData[formData.propertyName].length > 0">
+                <Icon
+                  size="16"
+                  type="ios-apps-outline"
+                  color="#2d8cf0"
+                  style="cursor: pointer;"
+                  @click="getDiffVariable(nodeData, formData.propertyName)"
+                />
+                {{ nodeData[formData.propertyName].slice(0, 18) + '...' }}
+              </span>
+            </FormItem>
+            <FormItem v-if="formData.inputType === 'select'" class="form-item-content">
+              <Select
+                v-model="nodeData[formData.propertyName]"
+                filterable
+                clearable
+                :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
               >
-            </Select>
-          </FormItem>
-          <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
-            <Select
-              v-model="nodeData[formData.propertyName]"
-              filterable
-              clearable
-              multiple
-              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
-            >
-              <Option
-                v-for="choice in getEnumCode(nodeData[formData.propertyName], formData.selectList)"
-                :value="choice.code"
-                :key="choice.code"
-                >{{ choice.value }}</Option
+                <Option
+                  v-for="choice in getEnumCode(nodeData[formData.propertyName], formData.selectList)"
+                  :value="choice.code"
+                  :key="choice.code"
+                  >{{ choice.value }}</Option
+                >
+              </Select>
+            </FormItem>
+            <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
+              <Select
+                v-model="nodeData[formData.propertyName]"
+                filterable
+                clearable
+                multiple
+                :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
               >
-            </Select>
-          </FormItem>
-          <FormItem v-if="['multiObject', 'object'].includes(formData.inputType)" class="form-item-content">
-            <CMDBJSONConfig
-              :inputKey="formData['propertyName']"
-              :jsonData="JSON.parse(JSON.stringify(nodeData[formData['propertyName']]) || '{}')"
-              :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
-              @input="onFormJSONInput"
-            ></CMDBJSONConfig>
-          </FormItem>
-        </div>
-        <FormItem v-if="editable && nodeEditable">
-          <div class="opetation-btn-zone">
-            <!-- <Button v-if="!isEdit && nodeGuid && nodeEditable" @click="editMode(true)" type="info">{{ $t('enter_edit') }}</Button>
-            <Button v-if="isEdit && nodeGuid && nodeEditable" @click="editMode(false)" type="info">{{ $t('cancel_edit') }}</Button> -->
-            <ButtonGroup>
-              <Button
-                v-show="isEdit"
-                v-for="operation in nodeNextOperations"
-                :key="operation.value"
-                @click="nodeOperation(operation.value, operation.formType)"
-                >{{ operation.name }}</Button
-              >
-            </ButtonGroup>
+                <Option
+                  v-for="choice in getEnumCode(nodeData[formData.propertyName], formData.selectList)"
+                  :value="choice.code"
+                  :key="choice.code"
+                  >{{ choice.value }}</Option
+                >
+              </Select>
+            </FormItem>
+            <FormItem v-if="['multiObject', 'object'].includes(formData.inputType)" class="form-item-content">
+              <CMDBJSONConfig
+                :inputKey="formData['propertyName']"
+                :jsonData="JSON.parse(JSON.stringify(nodeData[formData['propertyName']]) || '{}')"
+                :disabled="isNodeDataDisabled(nodeCiAttrs, formData, nodeData)"
+                @input="onFormJSONInput"
+              ></CMDBJSONConfig>
+            </FormItem>
           </div>
-        </FormItem>
-      </Form>
+        </Form>
+      </div>
+      <div v-if="editable && nodeEditable">
+        <Button
+          v-show="isEdit"
+          type="primary"
+          style="margin: 0 4px"
+          v-for="operation in nodeNextOperations"
+          :key="operation.value"
+          @click="nodeOperation(operation.value, operation.formType)"
+          >{{ operation.name }}</Button
+        >
+      </div>
     </div>
     <Modal v-model="showChildNodeModal" :title="childNodeCiName" height="500">
       <Form class="addNodeForm">
@@ -157,10 +167,20 @@
             ></Input>
           </FormItem>
           <FormItem v-if="formData.inputType === 'text'" class="form-item-content">
-            <Input
-              v-model="childNodeData[formData.propertyName]"
-              :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"
-            ></Input>
+            <template v-if="formData.autofillable === 'yes' && formData.autoFillType === 'suggest'">
+              <Input
+                style="width:89%"
+                v-model="childNodeData[formData.propertyName]"
+                :disabled="isNodeDataDisabled(nodeCiAttrs, formData, childNodeData)"
+              ></Input>
+              <Button icon="md-checkmark" @click="setSuggest(formData)"></Button>
+            </template>
+            <template v-else>
+              <Input
+                v-model="childNodeData[formData.propertyName]"
+                :disabled="isNodeDataDisabled(nodeCiAttrs, formData, childNodeData)"
+              ></Input>
+            </template>
           </FormItem>
           <FormItem v-if="formData.inputType === 'longText'" class="form-item-content">
             <textarea
@@ -171,9 +191,9 @@
           </FormItem>
           <FormItem v-if="formData.inputType === 'datetime'" class="form-item-content">
             <DatePicker
-              v-model="childNodeData[formData.propertyName]"
+              @on-change="val => setDateTime(val, 'childNodeData', formData.propertyName)"
               :disabled="isNewNodeDisabled(childNodeCiAttrs, formData, childNodeData)"
-              type="date"
+              type="datetime"
               placeholder="Select date"
             ></DatePicker>
           </FormItem>
@@ -274,6 +294,34 @@
         {{ $t('confirm_operation') }}
       </div>
     </Modal>
+    <Modal v-model="tableDetailInfo.isShow" footer-hide :title="tableDetailInfo.title" :width="1100">
+      <div style="text-align: justify;word-break: break-word;overflow-y:auto;max-height:500px">
+        <div style="text-align: left;">
+          <Alert type="warning">如出现页面值未显示，请点击刷新按钮</Alert>
+        </div>
+        <div
+          v-for="(val, valIndex) in tableDetailInfo.info"
+          :key="valIndex"
+          @click="choiceKey(val)"
+          :style="remarkedKeys.includes(val.key) ? 'background:#d9d9d9' : ''"
+        >
+          <div
+            style="width: 300px;display:inline-block;word-break: break-all;margin:4px 0;vertical-align: top;text-align:right;cursor:pointer"
+          >
+            <span :style="!['', 'NULL'].includes(val.value) ? '' : 'color:red'">{{ val.key }}</span>
+          </div>
+          <div style="width: 740px;display:inline-block;word-break: break-all;margin:4px 0;">：{{ val.value }}</div>
+        </div>
+      </div>
+      <div style="margin-top:20px;height: 30px">
+        <Button style="float: right;margin-right: 20px" @click="closeModal()">
+          {{ $t('close') }}
+        </Button>
+        <Button style="float: right;margin-right: 20px" type="primary" @click="refreshDiffVariable()">
+          {{ $t('refresh') }}
+        </Button>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -311,13 +359,30 @@ export default {
       historyColumns: [], // 回退操作的列定义
       historyBtnLoading: false,
       tmpHistorySelected: [], // 临时勾选的历史记录
-      showDoubleCheckModal: false
+      showDoubleCheckModal: false,
+      tableDetailInfo: {
+        isShow: false,
+        type: '',
+        title: '',
+        info: []
+      },
+      diffVariableKeyName: '', // 所选差异化值所在行唯一名称
+      diffVariableColKey: '', // 差异化值对应的key
+      remarkedKeys: [] // 差异化值中标记出的值
     }
   },
   props: ['editable', 'ciTypeMapping', 'isEdit', 'suportVersion'],
   mounted () {},
   watch: {},
   methods: {
+    setDateTime (val, obj, key) {
+      this[obj][key] = val
+    },
+    setSuggest (formData) {
+      this.$nextTick(() => {
+        this.$set(this.childNodeData, formData.propertyName, 'suggest#')
+      })
+    },
     isGroupEditDisabled (allAttrs, attr, item) {
       let attrGroupEditDisabled = false
       if (attr.editGroupControl === 'yes') {
@@ -510,7 +575,7 @@ export default {
       this.tmpHistorySelected = selected
     },
     async onDoubleCheckConfirm () {
-      const resp = await graphCiDataOperation(this.ciType, this.tmpNodeOperation, [normalizeFormData(this.nodeData)])
+      const resp = await graphCiDataOperation(this.ciType, this.tmpNodeOperation, [{ guid: this.nodeData.guid }])
       if (resp.statusCode === 'OK') {
         await this.initNodeData(this.nodeGuid)
         this.showDoubleCheckModal = false
@@ -617,6 +682,72 @@ export default {
     cancelChildNode () {
       this.childBtnLoading = false
       this.showChildNodeModal = false
+    },
+    async getDiffVariable (row, key) {
+      this.remarkedKeys = []
+      this.diffVariableKeyName = row.guid
+      this.diffVariableColKey = key
+      this.tableDetailInfo.isShow = false
+      const res = await this.formatData(row, key)
+      this.tableDetailInfo.title = this.$t('variable_format')
+      this.tableDetailInfo.type = 'diffVariable'
+      this.tableDetailInfo.info = res
+      this.$nextTick(() => {
+        this.tableDetailInfo.isShow = true
+      })
+    },
+    formatData (row, key) {
+      const vari = row[key].split('\u0001=\u0001')
+      const keys = vari[0].split(',\u0001')
+      const values = vari[1].split(',\u0001')
+      let res = []
+      for (let i = 0; i < keys.length; i++) {
+        res.push({
+          key: (keys[i] || '').replace('\u0001', ''),
+          value: (values[i] || '').replace('\u0001', '')
+        })
+      }
+      res = res.sort((first, second) => {
+        const firstKey = first.key.toLocaleUpperCase()
+        const secondKey = second.key.toLocaleUpperCase()
+        if (firstKey < secondKey) {
+          return -1
+        } else if (firstKey > secondKey) {
+          return 1
+        } else {
+          return 0
+        }
+      })
+      return res
+    },
+    choiceKey (chioceObj) {
+      const key = chioceObj.key
+      if (this.remarkedKeys.includes(key)) {
+        // 元素存在于数组中，移除它
+        const index = this.remarkedKeys.indexOf(key)
+        this.remarkedKeys.splice(index, 1)
+      } else {
+        // 元素不存在于数组中，添加它
+        this.remarkedKeys.push(key)
+      }
+    },
+    closeModal () {
+      this.tableDetailInfo.isShow = false
+    },
+    async refreshDiffVariable () {
+      const { data } = await queryCiData({
+        id: this.ciType,
+        queryObject: {
+          dialect: { queryMode: 'new' },
+          filters: [{ name: 'guid', operator: 'eq', value: this.diffVariableKeyName }],
+          paging: false
+        }
+      })
+      const res = await this.formatData(data.contents[0], this.diffVariableColKey)
+      this.$nextTick(() => {
+        this.tableDetailInfo.info = res
+        this.tableDetailInfo.isShow = true
+      })
     }
   },
   filters: {},
@@ -629,8 +760,16 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.operation {
+.operation-hasBtn {
   overflow: auto;
+  height: calc(100vh - 353px);
+  margin: 8px 0;
+}
+
+.operation-noBtn {
+  overflow: auto;
+  height: calc(100vh - 300px);
+  margin-top: 16px;
 }
 
 .addNodeForm {

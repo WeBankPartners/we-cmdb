@@ -9,6 +9,7 @@ type SysRoleCiTypeTable struct {
 	Update    string `json:"update" xorm:"update"`
 	Query     string `json:"query" xorm:"query"`
 	Execution string `json:"execute" xorm:"execute"`
+	Confirm   string `json:"confirm" xorm:"confirm"`
 }
 
 type CiTypePermissionObj struct {
@@ -21,6 +22,7 @@ type CiTypePermissionObj struct {
 	Update     string `json:"update" xorm:"update"`
 	Query      string `json:"query" xorm:"query"`
 	Execution  string `json:"execute" xorm:"execute"`
+	Confirm    string `json:"confirm" xorm:"confirm"`
 }
 
 type SysRoleCiTypeConditionTable struct {
@@ -31,6 +33,7 @@ type SysRoleCiTypeConditionTable struct {
 	Update     string `json:"update" xorm:"update"`
 	Query      string `json:"query" xorm:"query"`
 	Execution  string `json:"execute" xorm:"execute"`
+	Confirm    string `json:"confirm" xorm:"confirm"`
 }
 
 type SysRoleCiTypeConditionFilterTable struct {
@@ -55,6 +58,7 @@ type SysRoleCiTypeListTable struct {
 	Update     string `json:"update" xorm:"update"`
 	Query      string `json:"query" xorm:"query"`
 	Execution  string `json:"execute" xorm:"execute"`
+	Confirm    string `json:"confirm" xorm:"confirm"`
 }
 
 type RolePermissionQuery struct {
@@ -72,6 +76,7 @@ type RoleAttrConditionObj struct {
 	Update       string                               `json:"update" xorm:"update"`
 	Query        string                               `json:"query" xorm:"query"`
 	Execution    string                               `json:"execute" xorm:"execute"`
+	Confirm      string                               `json:"confirm" xorm:"confirm"`
 	Filters      []*SysRoleCiTypeConditionFilterTable `json:"filters" xorm:"filters"`
 }
 
@@ -98,6 +103,7 @@ type CiDataPermission struct {
 	Update    bool
 	Query     bool
 	Execute   bool
+	Confirm   bool
 }
 
 type CiDataLegalGuidList struct {
@@ -117,6 +123,7 @@ type ConditionListQueryObj struct {
 	Update              string `json:"update" xorm:"update"`
 	Query               string `json:"query" xorm:"query"`
 	Execution           string `json:"execute" xorm:"execute"`
+	Confirm             string `json:"confirm" xorm:"confirm"`
 	FilterType          string `json:"filterType" xorm:"filter_type"`
 	SelectList          string `json:"selectList" xorm:"select_list"`
 }

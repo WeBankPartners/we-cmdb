@@ -111,6 +111,7 @@ type BuildAttrValueParam struct {
 	Action          string
 	FromCore        bool
 	NowData         CiDataMapObj
+	MultiCiData     *MultiCiDataObj
 }
 
 type ActionFuncParam struct {
@@ -129,6 +130,7 @@ type ActionFuncParam struct {
 	DeleteList          []string
 	FromCore            bool
 	MultiColumnDelMap   map[string][]string
+	MultiCiData         *MultiCiDataObj
 }
 
 type MultiCiDataObj struct {

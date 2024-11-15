@@ -35,6 +35,8 @@ type SysCiTypeAttrTable struct {
 	AutofillType            string `json:"autoFillType" xorm:"autofill_type"`
 	EditGroupControl        string `json:"editGroupControl" xorm:"edit_group_control"`
 	EditGroupValues         string `json:"editGroupValues" xorm:"edit_group_value"`
+	ExtRefEntity            string `json:"extRefEntity" xorm:"ext_ref_entity"`
+	ConfirmNullable         string `json:"confirmNullable" xorm:"confirm_nullable"`
 }
 
 type CiAttrSwapPositionParam struct {
@@ -76,6 +78,8 @@ type SysCiTemplateAttrTable struct {
 	AutofillType            string `json:"-" xorm:"autofill_type"`
 	EditGroupControl        string `json:"-" xorm:"edit_group_control"`
 	EditGroupValues         string `json:"-" xorm:"edit_group_value"`
+	ExtRefEntity            string `json:"-" xorm:"ext_ref_entity"`
+	ConfirmNullable         string `json:"confirmNullable" xorm:"confirm_nullable"`
 }
 
 type CiTypeReferenceObj struct {

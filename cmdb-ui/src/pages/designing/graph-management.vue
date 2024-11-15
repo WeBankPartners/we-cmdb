@@ -2,7 +2,7 @@
   <Row>
     <Col span="24">
       <Row>
-        <Col span="12">
+        <Col span="18">
           <template>
             <!-- select view -->
             <Select
@@ -13,7 +13,7 @@
               clearable
               filterable
               label-in-name
-              style="width: 35%; z-index: auto"
+              style="width: 30%; z-index: auto"
             >
               <Option
                 v-for="item in viewOptions"
@@ -37,10 +37,10 @@
               filterable
               :multiple="viewSetting.multiple == 'yes'"
               label-in-name
-              style="width: 35%; z-index: auto"
+              style="width: 45%; z-index: auto"
               ref="rootSelect"
             >
-              <Option
+              <!-- <Option
                 v-if="currentView && viewSetting.editable === 'yes'"
                 :value="-1"
                 :key="-1"
@@ -49,15 +49,28 @@
                 <span style="width: 95%">
                   <Button @click.stop.prevent="onAddRoot()" icon="md-add" type="success" long></Button>
                 </span>
-              </Option>
+              </Option> -->
               <Option
-                v-for="item in rootOptions"
+                v-for="(item, itemIndex) in rootOptions"
                 :value="item._id"
-                :key="item._id"
-                :label="item.name || item.key_name"
+                :key="item._id + itemIndex"
+                :label="
+                  `${item.key_name}${item.name ? '(' + item.name + ')' : ''}${
+                    item.confirm_time ? ' ' + item.confirm_time : ''
+                  }${item.update_user ? ' ' + item.update_user : ''}`
+                "
                 style="display: flex; flex-flow: row nowrap; justify-content: space-between; align-items: center"
               >
-                {{ item.name || item.key_name }}
+                <Tag :color="item.confirm_time === '' ? 'default' : 'primary'">{{
+                  item.confirm_time === '' ? $t('db_draft') : $t('db_final')
+                }}</Tag>
+                <div>{{ item.key_name }}{{ item.name ? '(' + item.name + ')' : '' }}</div>
+                <div style="color: #ccc; flex-shrink: 1; margin-right: auto; margin-left: 4px;">
+                  {{ item.confirm_time || item.update_time }}
+                </div>
+                <div v-if="item.update_user" style="color: blue; flex-shrink: 1; margin-left: 10px">
+                  {{ item.update_user || '' }}
+                </div>
               </Option>
             </Select>
             <!-- group select -->
@@ -72,10 +85,10 @@
               filterable
               :multiple="viewSetting.multiple == 'yes'"
               label-in-name
-              style="width: 35%; z-index: auto"
+              style="width: 45%; z-index: auto"
               ref="rootSelect"
             >
-              <Option
+              <!-- <Option
                 v-if="currentView && viewSetting.editable === 'yes'"
                 :value="-1"
                 :key="-1"
@@ -84,18 +97,32 @@
                 <span style="width: 95%">
                   <Button @click.stop.prevent="onAddRoot()" icon="md-add" type="success" long></Button>
                 </span>
-              </Option>
-              <OptionGroup v-for="data in rootGroupOptions" :key="data.key_name" :label="data.name || data.key_name">
+              </Option> -->
+              <OptionGroup
+                v-for="(data, dataIndex) in rootGroupOptions"
+                :key="data.key_name + dataIndex"
+                :label="data.name || data.key_name"
+              >
                 <Option
-                  v-for="item in data.options"
+                  v-for="(item, itemIndex) in data.options"
                   :value="item._id"
-                  :key="item._id"
-                  :label="`${item.name || item.key_name}${item.confirm_time ? ' ' + item.confirm_time : ''}`"
-                  style="display: flex; flex-flow: row nowrap; justify-content: space-between; align-items: center"
+                  :key="item._id + itemIndex"
+                  :label="
+                    `${item.key_name}${item.name ? '(' + item.name + ')' : ''}${
+                      item.confirm_time ? ' ' + item.confirm_time : ''
+                    }${item.update_user ? ' ' + item.update_user : ''}`
+                  "
+                  style="display: flex; flex-flow: row nowrap;  align-items: center"
                 >
-                  <div>{{ item.name || item.key_name }}</div>
-                  <div v-if="item.confirm_time" style="color: #ccc; flex-shrink: 1; margin-left: 10px">
-                    {{ item.confirm_time }}
+                  <Tag :color="item.confirm_time === '' ? 'default' : 'primary'">{{
+                    `${item.confirm_time === '' ? $t('db_draft') : $t('db_final')} ${item.version}`
+                  }}</Tag>
+                  <div>{{ item.key_name }}</div>
+                  <div style="color: #ccc; flex-shrink: 1; margin-right: auto; margin-left: 4px;">
+                    {{ item.confirm_time || item.update_time }}
+                  </div>
+                  <div v-if="item.update_user" style="color: blue; flex-shrink: 1; margin-left: 10px">
+                    {{ item.update_user || '' }}
                   </div>
                 </Option>
               </OptionGroup>
@@ -115,10 +142,14 @@
             @click="onConfirmVersion()"
             >{{ $t('fix_version') }}</Button
           >
-
-          <!-- <Button :disabled="!(currentView && viewSetting.editable === 'yes')" @click="onAddRoot()">{{
-            $t('new_root')
-          }}</Button> -->
+        </Col>
+        <Col span="1" offset="5">
+          <Button
+            v-if="currentView && viewSetting.editable === 'yes'"
+            @click.stop.prevent="onAddRoot()"
+            type="success"
+            >{{ $t('new') }}</Button
+          >
         </Col>
       </Row>
       <Row>
@@ -131,7 +162,7 @@
               </Spin>
               <TabPane
                 v-for="(graph, graphIndex) in viewSetting.graphs"
-                :label="graph.name"
+                :label="() => renderLabel(graph.name, 0)"
                 :key="graph.name + graphIndex"
                 :name="'tabgraph' + graphIndex"
               >
@@ -151,9 +182,16 @@
                   ></Graph>
                 </div>
               </TabPane>
-              <TabPane v-for="citype in ciTypeTables" :label="citype.name" :key="citype.id" :name="'tabci' + citype.id">
+              <TabPane
+                v-for="citype in ciTypeTables"
+                :label="() => renderLabel(citype.name, 1)"
+                :key="citype.id"
+                :name="'tabci' + citype.id"
+              >
                 <CITable
                   v-if="citype.isInit"
+                  :isDialectAll="isSuportVersion === 'yes'"
+                  :confirmTime="confirmTime"
                   :ci="citype.id"
                   :ciTypeName="citype.name"
                   :tableFilters="ciTypeTableFilters"
@@ -171,8 +209,8 @@
         </Card>
       </Row>
     </Col>
-    <Modal v-model="showChildNodeModel" :title="childNodeCiName" footer-hide>
-      <Form class="addNodeForm">
+    <Modal v-model="showChildNodeModel" :title="childNodeCiName" footer-hide :width="800">
+      <Form class="addNodeForm" v-if="showChildNodeModel">
         <div v-for="(formData, formDataIndex) in childNodeCiAttrs" :key="formDataIndex + 'childform'">
           <Tooltip :delay="500" placement="left-start">
             <span class="form-item-title">
@@ -183,6 +221,12 @@
               {{ formData.description }}
             </div>
           </Tooltip>
+          <CIAttrTooltip
+            style="display:inline-block;"
+            :attr="formData"
+            :allCiTypesWithAttr="allCiTypesWithAttr"
+            :allCiTypesFormatByCiTypeId="allCiTypesFormatByCiTypeId"
+          />
           <FormItem v-if="formData.inputType === 'text' && formData.editable == 'yes'" class="form-item-content">
             <Input v-model="childNodeData[formData.propertyName]" :disabled="formData.editable == 'no'"></Input>
           </FormItem>
@@ -195,9 +239,10 @@
           </FormItem>
           <FormItem v-if="formData.inputType === 'datetime' && formData.editable == 'yes'" class="form-item-content">
             <DatePicker
-              v-model="childNodeData[formData.propertyName]"
               :disabled="formData.editable == 'no'"
-              type="date"
+              type="datetime"
+              @on-change="val => setDateTime(val, 'childNodeData', formData.propertyName)"
+              format="yyyy-MM-dd HH:mm:ss"
               placeholder="Select date"
             ></DatePicker>
           </FormItem>
@@ -279,19 +324,22 @@ import {
   graphCiDataOperation,
   graphCiConfirm,
   graphQueryStateTransition,
-  getAllCITypesWithAttr
+  getAllCITypesWithAttr,
+  getAllCITypesByLayerWithAttr
 } from '@/api/server'
 import { normalizeFormData } from '@/pages/util/format'
 import Graph from './graph-view-component'
 import CITable from './ci-data-component'
 import Ref from './ref'
 import MutiRef from './muti-ref'
+import CIAttrTooltip from '@/pages/components/attr-table-header-tooltip.vue'
 export default {
   components: {
     Graph,
     Ref,
     MutiRef,
-    CITable
+    CITable,
+    CIAttrTooltip
   },
   data () {
     return {
@@ -299,6 +347,7 @@ export default {
       currentView: '',
       viewOptions: [],
       currentRoot: '',
+      currentRootDisplayName: '',
       rootOptions: [],
       rootGroupOptions: [],
       viewSetting: {},
@@ -316,7 +365,10 @@ export default {
       childNodeAddOperation: '',
       childNodeData: {},
       childBtnLoading: false,
-      baseKeyCatMapping: {}
+      baseKeyCatMapping: {},
+      confirmTime: '', // 控制table获取数据
+      allCiTypesWithAttr: [],
+      allCiTypesFormatByCiTypeId: {}
     }
   },
   computed: {
@@ -331,6 +383,21 @@ export default {
   },
   watch: {},
   methods: {
+    setDateTime (val, obj, key) {
+      this[obj][key] = val
+    },
+    renderLabel (name, type) {
+      return (
+        <div>
+          <Icon
+            size="20"
+            type={type === 0 ? 'md-analytics' : 'ios-list-box-outline'}
+            style="vertical-align: top;margin-right: 8px;"
+          />
+          <strong>{name}</strong>
+        </div>
+      )
+    },
     onCiRowDataChange (ci, items) {
       // ciTypeTableFilters already changed, do graph data reload only
       this.graphReload(ci, items, 'graph')
@@ -342,7 +409,28 @@ export default {
         if (ciType) {
           ciType.isInit = true
         }
+      } else if (name.startsWith('tabgraph')) {
+        this.$nextTick(() => {
+          const num = name.slice(-1)
+          this.renderGraph(Number(num))
+        })
       }
+    },
+    renderGraph (num) {
+      this.$nextTick(() => {
+        let currentRoots = [this.currentRoot]
+        if (Array.isArray(this.currentRoot)) {
+          currentRoots = this.currentRoot
+        }
+        let rootDetails = currentRoots.map(currentRoot => {
+          let rootDetail = this.rootOptions.find(el => {
+            return el._id === currentRoot
+          })
+          return rootDetail
+        })
+        this.$refs['graphView' + num][0].initGraph(rootDetails[0]['confirm_time'], num)
+        this.$refs['graphView' + num][0].cachedIdInfo = { id: '', type: '', graph: '', color: '', pathColor: '' }
+      })
     },
     onChildFormJSONInput (jsonData, key) {
       let copyData = JSON.parse(JSON.stringify(jsonData))
@@ -376,10 +464,12 @@ export default {
       return false
     },
     async onViewSelect (key) {
+      this.confirmTime = ''
       if (key) {
         this.onClearViewSelect()
         const { data } = await graphViewDetail(key)
         this.viewSetting = data
+        this.viewSetting.viewId = key
       }
     },
     onClearViewSelect () {
@@ -402,8 +492,15 @@ export default {
       }
     },
     onRootSelect (key) {
+      this.confirmTime = ''
       if (key) {
         this.onClearRootSelect()
+        const find = this.rootOptions.find(item => item._id === key)
+        if (find) {
+          this.currentRootDisplayName = `${find.key_name}${find.name ? '(' + find.name + ')' : ''}`
+          this.confirmTime = find.confirm_time
+        }
+        this.onQuery()
       }
     },
     onClearRootSelect () {
@@ -480,6 +577,33 @@ export default {
             })
             rootOptions = rootOptions.concat(extendRootOptions)
             this.rootGroupOptions = groupOptions
+            // 给数据添加版本号
+            this.rootGroupOptions.forEach(item => {
+              if (item.options && item.options.length > 0) {
+                // 草稿数据根据时间排序给出版本号
+                const draftArr = item.options.filter(_ => !_.confirm_time) || []
+                draftArr.reverse().forEach((_, index) => {
+                  _.version = `v${index + 1}`
+                })
+                // 定版数据据根据时间排序给出版本号
+                const confirmArr = item.options.filter(_ => _.confirm_time) || []
+                confirmArr.reverse().forEach((_, index) => {
+                  _.version = `v${index + 1}`
+                })
+                item.options.forEach(_ => {
+                  draftArr.forEach(i => {
+                    if (i.id === _.id) {
+                      _.version = i.version
+                    }
+                  })
+                  confirmArr.forEach(i => {
+                    if (i.id === _.id) {
+                      _.version = i.version
+                    }
+                  })
+                })
+              }
+            })
           }
           this.rootOptions = rootOptions
         }
@@ -598,6 +722,11 @@ export default {
         this.generateCiTypeTab()
         if (this.viewSetting.graphs.length > 0) {
           this.$refs.tab.activeKey = 'tabgraph0'
+          for (let i = 0; i < this.viewSetting.graphs.length; i++) {
+            let name = this.viewSetting.graphs[i].name
+            this.viewSetting.graphs[i].graphExportName = `${this.currentRootDisplayName}_[${name}]`
+            this.renderGraph(i)
+          }
         }
       })
     },
@@ -715,6 +844,24 @@ export default {
         })
       }
     },
+    // 获取所有CI数据，回显过滤规则、填充规则用到
+    async getAllCITypesForToolTips () {
+      const { statusCode, data } = await getAllCITypesByLayerWithAttr(['notCreated', 'created', 'dirty'])
+      if (statusCode === 'OK') {
+        // 初始化自动填充数据
+        let allCiTypesWithAttr = []
+        let allCiTypesFormatByCiTypeId = {}
+        data.forEach(layer => {
+          layer.ciTypes &&
+            layer.ciTypes.forEach(_ => {
+              allCiTypesWithAttr.push(_)
+              allCiTypesFormatByCiTypeId[_.ciTypeId] = _
+            })
+        })
+        this.allCiTypesWithAttr = allCiTypesWithAttr
+        this.allCiTypesFormatByCiTypeId = allCiTypesFormatByCiTypeId
+      }
+    },
     async generateCiTypeTab () {
       this.ciTypeTables = []
       let tabs = new Set()
@@ -739,37 +886,38 @@ export default {
         this.ciTypeTableFilters = {}
         let ciFilters = {}
         this.viewSetting.graphs.forEach((graph, graphIndex) => {
-          // refs -> graphView + index -> index=0 -> plainDatas
-          let plainDatas = this.$refs['graphView' + graphIndex][0].plainDatas
-          plainDatas.forEach(node => {
-            if (node.metadata.setting.editable !== 'no') {
-              if (!(node.metadata.setting.ciType in ciFilters)) {
-                ciFilters[node.metadata.setting.ciType] = new Set()
-                ciFilters[node.metadata.setting.ciType].add(node.guid)
-              } else {
-                ciFilters[node.metadata.setting.ciType].add(node.guid)
-              }
-            }
-          })
-          plainDatas.forEach(el => {
-            ;(el.metadata.setting.children || []).forEach(gEl => {
-              if (gEl.editRefAttr) {
-                if (!(gEl.ciType in this.ciTypeTableEditRef)) {
-                  this.ciTypeTableEditRef[gEl.ciType] = [gEl.editRefAttr]
-                } else if (this.ciTypeTableEditRef[gEl.ciType].indexOf(gEl.editRefAttr) === -1) {
-                  this.ciTypeTableEditRef[gEl.ciType].push(gEl.editRefAttr)
+          this.$nextTick(() => {
+            let plainDatas = this.$refs['graphView' + graphIndex][0].plainDatas
+            plainDatas.forEach(node => {
+              if (node.metadata.setting.editable !== 'no') {
+                if (!(node.metadata.setting.ciType in ciFilters)) {
+                  ciFilters[node.metadata.setting.ciType] = new Set()
+                  ciFilters[node.metadata.setting.ciType].add(node.guid)
+                } else {
+                  ciFilters[node.metadata.setting.ciType].add(node.guid)
                 }
               }
             })
+            plainDatas.forEach(el => {
+              ;(el.metadata.setting.children || []).forEach(gEl => {
+                if (gEl.editRefAttr) {
+                  if (!(gEl.ciType in this.ciTypeTableEditRef)) {
+                    this.ciTypeTableEditRef[gEl.ciType] = [gEl.editRefAttr]
+                  } else if (this.ciTypeTableEditRef[gEl.ciType].indexOf(gEl.editRefAttr) === -1) {
+                    this.ciTypeTableEditRef[gEl.ciType].push(gEl.editRefAttr)
+                  }
+                }
+              })
+            })
+            Object.keys(ciFilters).forEach(ci => {
+              this.ciTypeTableFilters[ci] = Array.from(ciFilters[ci])
+            })
+            this.ciTypeTables.forEach(ci => {
+              if (!(ci.id in this.ciTypeTableFilters)) {
+                this.ciTypeTableFilters[ci.id] = []
+              }
+            })
           })
-        })
-        Object.keys(ciFilters).forEach(ci => {
-          this.ciTypeTableFilters[ci] = Array.from(ciFilters[ci])
-        })
-        this.ciTypeTables.forEach(ci => {
-          if (!(ci.id in this.ciTypeTableFilters)) {
-            this.ciTypeTableFilters[ci.id] = []
-          }
         })
       })
     },
@@ -811,7 +959,7 @@ export default {
         let transform = this.$refs['graphView' + graphIndex][0].getGraphTransform()
         graph._initTransform = transform
       })
-      this.viewData = []
+      // this.viewData = []
       this.$nextTick(function () {
         this.viewData = data
         if (type === 'add') {
@@ -843,14 +991,27 @@ export default {
         } else {
           this.generateCiTypeTab()
         }
+        if (this.viewSetting.suportVersion === 'yes') {
+        }
+        this.$nextTick(() => {
+          const activeKey = this.$refs.tab.activeKey
+          if (activeKey.startsWith('tabgraph')) {
+            const num = activeKey.slice(-1)
+            this.renderGraph(Number(num))
+          }
+        })
       })
     }
   },
-
   async mounted () {
-    await this.getAllCITypes()
-  },
-  created () {}
+    this.getAllCITypes()
+    this.getAllCITypesForToolTips()
+    if (this.$route.query.viewId) {
+      await this.onViewOptions(true)
+      this.currentView = this.$route.query.viewId
+      this.onViewSelect(this.currentView)
+    }
+  }
 }
 </script>
 <style lang="scss" scoped>
@@ -867,7 +1028,7 @@ export default {
 }
 
 .view-card {
-  height: calc(100vh - 180px);
+  height: calc(100vh - 160px);
   width: 100%;
 }
 .require-tag {

@@ -13,7 +13,8 @@ export default {
     rootCiTypeId: { required: false },
     leftRootCi: { type: String, required: true },
     rightRootCi: { type: String, required: true },
-    isReadOnly: { default: false, type: Boolean, required: false }
+    isReadOnly: { default: false, type: Boolean, required: false },
+    disabled: { default: false, type: Boolean, required: false }
   },
   data () {
     return {
@@ -265,6 +266,7 @@ export default {
       }
     },
     renderEditIcon () {
+      if (this.disabled) return
       return (
         <span class="filter-rule-edit-icon" onClick={() => this.toggleEditModal(true)}>
           <Icon type="md-add-circle" />

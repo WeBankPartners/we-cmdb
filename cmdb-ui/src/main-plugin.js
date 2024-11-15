@@ -15,6 +15,7 @@ import WeCMDBOrchestration from '../src/pages/components/orchestration.vue'
 import WeCMDBCIPassword from '../src/pages/components/ci-password.vue'
 import CMDBPermissionFilters from '../src/pages/components/permission-filters'
 import CMDBJSONConfig from '../src/pages/components/cmdb-table/json-config.vue'
+import JsonViewer from 'vue-json-viewer'
 
 window.component('WeCMDBSelect', WeCMDBSelect)
 window.component('WeCMDBRefSelect', WeCMDBRefSelect)
@@ -27,8 +28,24 @@ window.component('WeCMDBOrchestration', WeCMDBOrchestration)
 window.component('WeCMDBCIPassword', WeCMDBCIPassword)
 window.component('CMDBPermissionFilters', CMDBPermissionFilters)
 window.component('CMDBJSONConfig', CMDBJSONConfig)
+window.component('JsonViewer', JsonViewer)
 
 window.locale('zh-CN', zhCN)
 window.locale('en-US', enUS)
 
+const implicitRoute = {
+  'wecmdb/designing/data-import-detail': {
+    childBreadcrumb: {
+      'en-US': 'Data Management (Import)',
+      'zh-CN': '数据管理(导入)'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Cube Back',
+      'zh-CN': '设计'
+    }
+  }
+}
+
 window.addRoutes && window.addRoutes(router, 'cmdb')
+window.addImplicitRoute && window.addImplicitRoute(implicitRoute)
+window.addRoutersWithoutPermission && window.addRoutersWithoutPermission(router, 'cmdb')
