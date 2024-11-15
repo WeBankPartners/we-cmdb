@@ -15,7 +15,7 @@
               :fade="false"
               @on-change="handleRoleClick"
             >
-              <span :title="item.description">{{ item.description }}</span>
+              <span :title="item.description">{{ item.rolename + '(' + item.description + ')' }}</span>
             </Tag>
           </div>
         </div>
@@ -357,6 +357,11 @@ export default {
           actionCode: 'execute',
           type: 'EXECUTION',
           actionName: this.$t('permission_management_data_execution')
+        },
+        {
+          actionCode: 'confirm',
+          type: 'CONFIRM',
+          actionName: this.$t('permission_management_data_confirm')
         }
       ],
       users: [],
@@ -411,6 +416,12 @@ export default {
           allSelect: false,
           emptySelect: false,
           key: 'execute'
+        },
+        {
+          name: this.$t('permission_management_data_confirm'),
+          allSelect: false,
+          emptySelect: false,
+          key: 'confirm'
         }
       ],
       cacheOriginCiTypePermission: [], // 便于撤销还原
@@ -448,17 +459,17 @@ export default {
     defaultColumns () {
       return [
         {
-          title: this.$t('query'),
-          key: 'query',
-          inputKey: 'query',
+          title: this.$t('new'),
+          key: 'insert',
+          inputKey: 'insert',
           uiFormOrder: 1,
           ...this.defaultOptionAttrs,
           displayByDefault: 'yes'
         },
         {
-          title: this.$t('new'),
-          key: 'insert',
-          inputKey: 'insert',
+          title: this.$t('delete'),
+          key: 'delete',
+          inputKey: 'delete',
           uiFormOrder: 2,
           ...this.defaultOptionAttrs,
           displayByDefault: 'yes'
@@ -472,18 +483,26 @@ export default {
           displayByDefault: 'yes'
         },
         {
-          title: this.$t('execute'),
-          key: 'execute',
-          inputKey: 'execute',
+          title: this.$t('query'),
+          key: 'query',
+          inputKey: 'query',
           uiFormOrder: 4,
           ...this.defaultOptionAttrs,
           displayByDefault: 'yes'
         },
         {
-          title: this.$t('delete'),
-          key: 'delete',
-          inputKey: 'delete',
+          title: this.$t('execute'),
+          key: 'execute',
+          inputKey: 'execute',
           uiFormOrder: 5,
+          ...this.defaultOptionAttrs,
+          displayByDefault: 'yes'
+        },
+        {
+          title: this.$t('permission_management_data_confirm'),
+          key: 'confirm',
+          inputKey: 'confirm',
+          uiFormOrder: 6,
           ...this.defaultOptionAttrs,
           displayByDefault: 'yes'
         }
@@ -670,6 +689,9 @@ export default {
       this.$refs.table.showCopyModal()
     },
     formatConditionValue (value) {
+      if (Array.isArray(value)) {
+        value = value.toString()
+      }
       for (let i = 0; i < 5; i++) {
         value = value.replace(',,', ',')
       }
@@ -681,6 +703,9 @@ export default {
         value = value.substring(0, lastIndexOf)
       }
       let arr = value.split(/[.~]/)
+      if (arr[0] === '') {
+        return value
+      }
       return value.replace(arr[0], arr[0] + ':[guid]')
       // return value.map(_ => {
       //   let arr = _.split(/[.~]/)
@@ -869,7 +894,8 @@ export default {
           query: permission.query,
           execute: permission.execute,
           update: permission.update,
-          delete: permission.delete
+          delete: permission.delete,
+          confirm: permission.confirm
         }
       })
       let { statusCode, message } = await assignCiTypePermissionForRoleInBatch(ciTypePermissions, this.currentRoleName)
@@ -883,6 +909,7 @@ export default {
     },
     cancelPermissionsOperation () {
       this.ciTypePermissions = JSON.parse(JSON.stringify(this.cacheOriginCiTypePermission))
+      this.$emit('hideModal')
     },
     async handleUserTransferChange (newTargetKeys, direction, moveKeys) {
       const params = [
@@ -1103,7 +1130,7 @@ export default {
 .role-item {
   .ivu-tag {
     display: inline-block;
-    width: 65%;
+    width: 80%;
   }
 }
 .data-permissions {
