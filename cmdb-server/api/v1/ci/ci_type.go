@@ -12,8 +12,8 @@ import (
 	"strings"
 )
 
-//查询CI
-//GET /ci-types
+// 查询CI
+// GET /ci-types
 func CiTypesQuery(c *gin.Context) {
 	param := models.CiTypeQuery{CiTypeId: c.Query("id")}
 	if c.Query("status") != "" {
@@ -45,8 +45,8 @@ func CiTypesQuery(c *gin.Context) {
 	}
 }
 
-//新增CI
-//POST /ci-types
+// 新增CI
+// POST /ci-types
 func CiTypesCreate(c *gin.Context) {
 	//Param validate
 	var param models.SysCiTypeTable
@@ -89,8 +89,8 @@ func CiTypesCreate(c *gin.Context) {
 	middleware.ReturnData(c, models.SysCiTypeTable{Id: param.Id, FileName: imageFileName})
 }
 
-//修改CI
-//PUT /ci-types/{{ciType}}
+// 修改CI
+// PUT /ci-types/{{ciType}}
 func CiTypesUpdate(c *gin.Context) {
 	var param models.SysCiTypeTable
 	if err := c.ShouldBindJSON(&param); err != nil {
@@ -278,4 +278,31 @@ func checkCiStatusIllegal(status string) bool {
 		}
 	}
 	return statusIllegal
+}
+
+func GetExtendModelList(c *gin.Context) {
+	result, err := db.GetExtendModelList(c.GetHeader(models.HeaderAuthorization))
+	if err != nil {
+		log.Logger.Warn("Try to get extendModel list fail", log.Error(err))
+		result = []*models.OptionItemObj{}
+		middleware.ReturnData(c, result)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func QueryIdAndName(c *gin.Context) {
+	ciTypeTable, err := db.QueryIdAndName()
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	}
+	//
+	var result map[string]string
+	if ciTypeTable != nil {
+		result = make(map[string]string)
+		for _, row := range ciTypeTable {
+			result[row.Id] = row.DisplayName
+		}
+	}
+	middleware.ReturnData(c, result)
 }

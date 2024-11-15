@@ -19,7 +19,7 @@ func init() {
 	ciRefAttrInsertSql = getDefaultInsertSqlByStruct(models.SysCiTypeAttrTable{}, "sys_ci_type_attr", []string{})
 }
 
-func getCiAttrById(ciAttrId string) (rowData *models.SysCiTypeAttrTable, err error) {
+func GetCiAttrById(ciAttrId string) (rowData *models.SysCiTypeAttrTable, err error) {
 	var ciAttrTable []*models.SysCiTypeAttrTable
 	err = x.SQL("SELECT * FROM sys_ci_type_attr WHERE id=?", ciAttrId).Find(&ciAttrTable)
 	if err != nil {
@@ -75,7 +75,7 @@ func CiAttrCreate(param *models.SysCiTypeAttrTable) error {
 	execParams := []interface{}{param.Id, param.CiType, param.Name, param.DisplayName, param.Description, param.Status, param.InputType, param.DataType,
 		param.DataLength, param.TextValidate, param.RefName, param.RefFilter, param.RefUpdateStateValidate, param.RefConfirmStateValidate, param.UiSearchOrder,
 		param.UiFormOrder, param.UniqueConstraint, param.UiNullable, param.Nullable, param.Editable, param.DisplayByDefault, param.PermissionUsage, param.ResetOnEdit,
-		param.Source, param.Customizable, param.AutofillAble, param.AutofillRule, param.AutofillType, param.EditGroupControl, param.EditGroupValues}
+		param.Source, param.Customizable, param.AutofillAble, param.AutofillRule, param.AutofillType, param.EditGroupControl, param.EditGroupValues, param.ExtRefEntity, param.ConfirmNullable}
 	if param.RefType != "" && param.RefCiType != "" {
 		execSql = strings.ReplaceAll(execSql, ") VALUE", ",ref_type,ref_ci_type) VALUE")
 		execSql = execSql[:len(execSql)-1] + ",?,?)"
@@ -110,7 +110,7 @@ func CiAttrCreateByTemplate(ciTypeId, ciTemplateId string) error {
 		execParams := []interface{}{ciTypeId + models.SysTableIdConnector + row.Name, ciTypeId, row.Name, row.DisplayName, row.Description, row.Status, row.InputType, row.DataType,
 			row.DataLength, row.TextValidate, row.RefName, row.RefFilter, row.RefUpdateStateValidate, row.RefConfirmStateValidate, row.UiSearchOrder,
 			row.UiFormOrder, row.UniqueConstraint, row.UiNullable, row.Nullable, row.Editable, row.DisplayByDefault, row.PermissionUsage, row.ResetOnEdit,
-			row.Source, row.Customizable, row.AutofillAble, row.AutofillRule, row.AutofillType, row.EditGroupControl, row.EditGroupValues}
+			row.Source, row.Customizable, row.AutofillAble, row.AutofillRule, row.AutofillType, row.EditGroupControl, row.EditGroupValues, row.ExtRefEntity, row.ConfirmNullable}
 		if row.RefType != "" && row.RefCiType != "" {
 			execSql = strings.ReplaceAll(execSql, ") VALUE", ",ref_type,ref_ci_type) VALUE")
 			execSql = execSql[:len(execSql)-1] + ",?,?)"
@@ -128,7 +128,7 @@ func CiAttrCreateByTemplate(ciTypeId, ciTemplateId string) error {
 
 func CiAttrUpdate(param *models.SysCiTypeAttrTable) (updateAutoFill bool, err error) {
 	updateAutoFill = false
-	ciAttrData, err := getCiAttrById(param.Id)
+	ciAttrData, err := GetCiAttrById(param.Id)
 	if err != nil {
 		return updateAutoFill, err
 	}
@@ -140,7 +140,7 @@ func CiAttrUpdate(param *models.SysCiTypeAttrTable) (updateAutoFill bool, err er
 	}
 	var actions []*execAction
 	execParams := []interface{}{"", param.DisplayName, param.Description, param.UiSearchOrder, param.TextValidate, param.ResetOnEdit, param.DisplayByDefault, param.UiNullable, param.Nullable, param.Editable,
-		param.UniqueConstraint, param.AutofillAble, param.AutofillRule, param.AutofillType, param.EditGroupControl, param.EditGroupValues, param.RefName, param.RefFilter, param.RefUpdateStateValidate, param.RefConfirmStateValidate, param.PermissionUsage}
+		param.UniqueConstraint, param.AutofillAble, param.AutofillRule, param.AutofillType, param.EditGroupControl, param.EditGroupValues, param.RefName, param.RefFilter, param.RefUpdateStateValidate, param.RefConfirmStateValidate, param.PermissionUsage, param.ExtRefEntity, param.ConfirmNullable}
 	extendUpdateColumn := ""
 	if ciAttrData.Status == "notCreated" || ciAttrData.Status == "dirty" {
 		if strings.Contains(param.DataType, "(") {
@@ -199,7 +199,7 @@ func CiAttrUpdate(param *models.SysCiTypeAttrTable) (updateAutoFill bool, err er
 		execParams = append(execParams, param.SelectList)
 	}
 	execParams = append(execParams, param.Id)
-	execParams[0] = "UPDATE sys_ci_type_attr SET display_name=?,description=?,ui_search_order=?,text_validate=?,reset_on_edit=?,display_by_default=?,ui_nullable=?,nullable=?,editable=?,unique_constraint=?,autofillable=?,autofill_rule=?,autofill_type=?,edit_group_control=?,edit_group_value=?,ref_name=?,ref_filter=?,ref_update_state_validate=?,ref_confirm_state_validate=?,permission_usage=?" + extendUpdateColumn + "  WHERE id=?"
+	execParams[0] = "UPDATE sys_ci_type_attr SET display_name=?,description=?,ui_search_order=?,text_validate=?,reset_on_edit=?,display_by_default=?,ui_nullable=?,nullable=?,editable=?,unique_constraint=?,autofillable=?,autofill_rule=?,autofill_type=?,edit_group_control=?,edit_group_value=?,ref_name=?,ref_filter=?,ref_update_state_validate=?,ref_confirm_state_validate=?,permission_usage=?,ext_ref_entity=?,confirm_nullable=?" + extendUpdateColumn + "  WHERE id=?"
 	_, err = x.Exec(execParams...)
 	if err != nil {
 		log.Logger.Error("Update ci attr data fail", log.Error(err))
@@ -212,7 +212,7 @@ func CiAttrUpdate(param *models.SysCiTypeAttrTable) (updateAutoFill bool, err er
 }
 
 func CiAttrDelete(ciAttrId string) error {
-	ciAttrData, err := getCiAttrById(ciAttrId)
+	ciAttrData, err := GetCiAttrById(ciAttrId)
 	if err != nil {
 		return err
 	}
@@ -233,7 +233,7 @@ func CiAttrDelete(ciAttrId string) error {
 }
 
 func CiAttrRollback(ciAttrId string) error {
-	ciAttrData, err := getCiAttrById(ciAttrId)
+	ciAttrData, err := GetCiAttrById(ciAttrId)
 	if err != nil {
 		return err
 	}
@@ -316,7 +316,7 @@ func CiAttrApply(ciTypeId, ciAttrId string, updateAutofill bool) error {
 	if ciTypeData.Status != "created" {
 		return fmt.Errorf("Ci type %s is not created ", ciTypeId)
 	}
-	ciAttrData, err := getCiAttrById(ciAttrId)
+	ciAttrData, err := GetCiAttrById(ciAttrId)
 	if err != nil {
 		return err
 	}

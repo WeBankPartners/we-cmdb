@@ -103,8 +103,13 @@
       </div>
     </Tabs>
     <!-- 对比 -->
-    <Modal footer-hide v-model="compareVisible" width="90" class-name="compare-modal">
-      <Table :columns="compareColumns" :max-height="MODALHEIGHT" :data="compareData" border />
+    <Modal footer-hide v-model="compareVisible" width="90" :fullscreen="fullscreen" class-name="compare-modal">
+      <p slot="header">
+        <span>{{ $t('compare') }}</span>
+        <Icon v-if="!fullscreen" @click="zoomModalMax" class="header-icon" type="ios-expand" />
+        <Icon v-else @click="zoomModalMin" class="header-icon" type="ios-contract" />
+      </p>
+      <Table :columns="compareColumns" :data="compareData" :max-height="fileContentHeight.slice(0, -2)" border />
     </Modal>
     <SelectFormOperation ref="selectForm" @callback="callback"></SelectFormOperation>
   </div>
@@ -113,6 +118,7 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line
 import * as d3Graphviz from 'd3-graphviz'
+import { isEmpty } from 'lodash'
 import moment from 'moment'
 import { addEvent } from '../util/event.js'
 import {
@@ -142,6 +148,8 @@ export default {
   },
   data () {
     return {
+      fullscreen: false,
+      fileContentHeight: window.screen.availHeight * 0.5 + 'px',
       spinShow: false,
       baseURL,
       searchString: '',
@@ -220,6 +228,14 @@ export default {
     }
   },
   methods: {
+    zoomModalMax () {
+      this.fileContentHeight = window.screen.availHeight - 210 + 'px'
+      this.fullscreen = true
+    },
+    zoomModalMin () {
+      this.fileContentHeight = window.screen.availHeight * 0.5 + 'px'
+      this.fullscreen = false
+    },
     callback () {
       this.queryCiData()
     },
@@ -372,7 +388,7 @@ export default {
             operation: this.$t('export'),
             operationFormType: 'export_form',
             operationMultiple: 'yes',
-            class: 'xxx',
+            class: 'xxx2',
             operation_en: 'Export',
             props: {
               type: 'primary',
@@ -391,17 +407,17 @@ export default {
             }
           })
 
-          stateBtn.push({
-            operation: this.$t('view_data_import'),
-            operationFormType: 'import_form',
-            // operationMultiple: 'yes',
-            class: 'xxx',
-            operation_en: 'Import',
-            props: {
-              type: 'primary',
-              disabled: false
-            }
-          })
+          // stateBtn.push({
+          //   operation: this.$t('view_data_import'),
+          //   operationFormType: 'import_form',
+          //   // operationMultiple: 'yes',
+          //   class: 'xxx4',
+          //   operation_en: 'Import',
+          //   props: {
+          //     type: 'primary',
+          //     disabled: false
+          //   }
+          // })
         }
       }
       return stateBtn
@@ -422,7 +438,6 @@ export default {
       e.preventDefault()
       e.stopPropagation()
       const { ciTypeId, name } = attr
-
       this.commonNodeClickHandler({ id: ciTypeId, name })
     },
     async commonNodeClickHandler ({ id, name }) {
@@ -454,6 +469,10 @@ export default {
           id: id,
           queryObject: this.payload
         }
+        !isEmpty(ci.tableColumns) &&
+          ci.tableColumns.forEach(item => {
+            item.uiFormLabelShow = false
+          })
         this.tabList.push(ci)
         this.currentTab = id
         this.$nextTick(() => {
@@ -516,6 +535,7 @@ export default {
       this.$refs[this.tableRef][0].showCopyModal()
     },
     async compareHandler (row) {
+      this.fullscreen = false
       // this.$set(row.weTableForm, 'compareLoading', true)
       const found = this.tabList.find(_ => _.id === this.currentTab)
       if (found) {
@@ -534,32 +554,30 @@ export default {
               operator: 'in',
               value: [row.weTableForm.guid]
             }
-          ]
+          ],
+          sorting: { asc: false, field: 'update_time' }
         }
       }
       const { statusCode, data } = await queryCiData(query)
       this.$set(row.weTableForm, 'compareLoading', false)
       if (statusCode === 'OK') {
         this.compareData = data && data.contents
-        this.compareData = this.compareData
-          .map(x => {
-            for (let k in x) {
-              if (typeof x[k] === 'object' && x[k] !== null) x[k] = x[k].value || x[k].key_name
+        this.compareData = this.compareData.map(x => {
+          for (let k in x) {
+            if (typeof x[k] === 'object' && x[k] !== null) x[k] = x[k].value || x[k].key_name
+          }
+          return x
+        })
+        for (let i = 0; i < this.compareData.length - 1; i++) {
+          const pre = this.compareData[i]
+          const cur = this.compareData[i + 1]
+          for (let key in cur) {
+            cur.cellClassName = cur.cellClassName || {}
+            if (cur[key] !== pre[key]) {
+              cur.cellClassName[key] = 'highlightTableCell'
             }
-            return x
-          })
-          .map((x, idx) => {
-            const len = this.compareData.length
-            // if (x.guid === row.weTableForm.guid) {
-            x.cellClassName = {}
-            for (let k in x) {
-              if (this.compareData[len - idx] && x[k] !== this.compareData[len - idx][k]) {
-                x.cellClassName[k] = 'highlight'
-              }
-            }
-            // }
-            return x
-          })
+          }
+        }
       }
       this.compareVisible = true
     },
@@ -875,6 +893,16 @@ export default {
       if (statusCode === 'OK') {
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
+            // 将WeCMDBSelect枚举类型的数据值从value转换成label以便与编辑态对应
+            const filterSelect = ci.tableColumns.filter(item => item.component === 'WeCMDBSelect')
+            filterSelect.forEach(item => {
+              data.contents.forEach(d => {
+                const find = item.options.find(o => o.value === d[item.key])
+                if (find) {
+                  d[item.key] = find.label
+                }
+              })
+            })
             ci.tableData = data.contents.map(_ => {
               return {
                 ..._
@@ -899,13 +927,14 @@ export default {
               if (res.statusCode === 'OK') {
                 data[index].options = res.data.map(item => {
                   return {
-                    label: item.value,
-                    value: item.code
+                    label: item.code,
+                    value: item.value,
+                    codeDescription: item.codeDescription
                   }
                 })
               }
             }
-            columns.push({
+            const columnItem = {
               ...data[index],
               tooltip: true,
               title: data[index].name,
@@ -930,13 +959,36 @@ export default {
               disAdded: !data[index].isEditable,
               placeholder: data[index].name,
               component: 'Input',
-              referenceFilter: !!data[index].referenceFilter,
+              referenceFilter: data[index].referenceFilter,
               ciType: { id: data[index].referenceId, name: data[index].name },
               type: 'text',
               isMultiple: data[index].inputType === 'multiSelect',
               ...components[data[index].inputType],
               options: data[index].options
-            })
+            }
+            if (columnItem.propertyName === 'check_result') {
+              Object.assign(columnItem, {
+                colWidth: 250,
+                tagOptions: [
+                  {
+                    color: '#bfeb79',
+                    value: '11',
+                    label: '通过'
+                  },
+                  {
+                    color: '#f4cc45',
+                    value: '10',
+                    label: '必填项未填'
+                  },
+                  {
+                    color: '#cb5a38',
+                    value: '01',
+                    label: '唯一性校验不通过'
+                  }
+                ]
+              })
+            }
+            columns.push(columnItem)
           }
         }
         return columns
@@ -1149,6 +1201,7 @@ export default {
     }
   },
   async mounted () {
+    this.fileContentHeight = window.screen.availHeight * 0.5 + 'px'
     this.MODALHEIGHT = window.MODALHEIGHT
 
     const [ciLayerList, ciGroupList] = await this.getEnumCodes()
@@ -1167,19 +1220,31 @@ export default {
     this.$nextTick(() => {
       this.getInitGraphData()
     })
+    // 自动打开对应ci tab页
+    if (this.$route.query.ciTypeId && this.$route.query.name) {
+      this.commonNodeClickHandler({
+        id: this.$route.query.ciTypeId,
+        name: this.$route.query.name
+      })
+    }
   },
   components: {
     SelectFormOperation
   }
 }
 </script>
-
+<style lang="scss">
+.highlightTableCell {
+  color: rgba(#ff6600, 0.9) !important;
+}
+</style>
 <style lang="scss" scoped>
+.header-icon {
+  float: right;
+  margin: 3px 20px 0 0 !important;
+}
 ::deep .compare-modal .ivu-modal-body {
   padding-top: 40px;
-}
-::deep .ivu-table td.highlight {
-  color: rgba(#ff6600, 0.9);
 }
 
 ::deep .copy-modal {

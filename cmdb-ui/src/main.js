@@ -20,6 +20,7 @@ import WeCMDBOrchestration from '../src/pages/components/orchestration.vue'
 import WeCMDBCIPassword from '../src/pages/components/ci-password.vue'
 import CMDBPermissionFilters from '../src/pages/components/permission-filters'
 import CMDBJSONConfig from '../src/pages/components/cmdb-table/json-config.vue'
+import JsonViewer from 'vue-json-viewer'
 
 Vue.component('WeCMDBSelect', WeCMDBSelect)
 Vue.component('WeCMDBRefSelect', WeCMDBRefSelect)
@@ -32,6 +33,7 @@ Vue.component('WeCMDBOrchestration', WeCMDBOrchestration)
 Vue.component('WeCMDBCIPassword', WeCMDBCIPassword)
 Vue.component('CMDBPermissionFilters', CMDBPermissionFilters)
 Vue.component('CMDBJSONConfig', CMDBJSONConfig)
+Vue.component('JsonViewer', JsonViewer)
 Vue.config.productionTip = false
 
 Vue.use(ViewUI, {
@@ -48,8 +50,9 @@ router.beforeEach((to, from, next) => {
       /* has permission */
       next()
     } else {
+      next()
       /* has no permission */
-      next('/wecmdb/home')
+      // next('/wecmdb/home')
     }
   } else {
     next()

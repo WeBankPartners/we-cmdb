@@ -297,3 +297,21 @@ export const importReport = data => req.post(`/ci-data/import/${data.ciType}`, d
 export const importCiData = data => req.post(`/ci-data/simple/import/${data.ciType}`, data.data)
 
 export const getEncryptKey = () => req.get(`/ci-data/password/encrypt-key`)
+
+export const getExtRefOptions = () => req.get('/extend/ci-types/model/list')
+export const getExtRefDetails = id => req.get(`/extend/ci-data/model/query/${id}`)
+
+// 获取视图dot
+export const viewGraphDot = data => req.post(`/view-graph-data`, data)
+// 报表导入导出
+export const searchHistoryRecord = data => req.post('/report-import-history/list', data)
+export const withdrawSingleImportData = data => req.post('/report-import-history/cancel-ci-data', data)
+export const confirmSingleImportData = data => req.post('/report-import-history/confirm-ci-data', data)
+export const getAllCreateUser = () => req.get('/report-import-history/user')
+export const getSingleImportRecordInfo = guid => req.get(`/report-import-history/query?guid=${guid}`)
+export const getReportImportAttributes = guid => req.get(`/report-import-history/ci-types-attr/${guid}/attributes`)
+export const queryImportData = data => req.post(`/report-import-history/ci-data/query/${data.id}`, data.queryObject)
+export const refreshImportList = () => req.get('/report-import-history/refresh-check-result/list')
+export const refreshImportSingleItem = guid => req.get(`/report-import-history/refresh-check-result/query?guid=${guid}`)
+export const getCiTypeNameMap = () => req.get('/ci-types/query/id-and-name')
+export const reportCopyQuick = data => req.post('/report/copy', data)
