@@ -27,7 +27,7 @@ export default {
     return {
       isShowBreadcrum: true,
       allMenusAry: [],
-      parentBreadcrumb: '',
+      parentBreadcrumb: '-',
       childBreadcrumb: '',
       isSetting: this.$route.path.startsWith('/setting')
     }
@@ -86,7 +86,7 @@ export default {
 }
 .content-container {
   height: calc(100% - 50px);
-  padding: 5px 30px;
+  padding: 5px 20px;
 }
 
 .ivu-breadcrumb {

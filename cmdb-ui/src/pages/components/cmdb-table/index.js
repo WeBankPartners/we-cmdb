@@ -4,7 +4,7 @@ import lodash from 'lodash'
 import EditModal from './edit-modal.js'
 import { dataToCsv, download } from './export-csv.js'
 import { createPopper } from '@popperjs/core'
-import { queryCiData, getCiTypeAttributes, queryPassword } from '@/api/server'
+import { queryCiData, getCiTypeAttributes, queryPassword, getExtRefDetails, getCiTypeNameMap } from '@/api/server'
 const DEFAULT_FILTER_NUMBER = 5
 const MIN_WIDTH = 200
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
@@ -67,15 +67,19 @@ export default {
       isShowFilter: false, // 控制列过滤功能
       diffVariableKeyName: '', // 所选差异化值所在行唯一名称
       diffVariableColKey: '', // 差异化值对应的key
-      remarkedKeys: [] // 差异化值中标记出的值
+      remarkedKeys: [], // 差异化值中标记出的值
+      oriDataMap: {}
     }
   },
   component: {
     EditModal
   },
-  mounted () {
+  async mounted () {
+    const { data, statusCode } = await getCiTypeNameMap()
+    if (statusCode === 'OK') {
+      this.oriDataMap = data
+    }
     this.formatTableData()
-
     let len = 32
     let chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz'
     let maxPos = chars.length
@@ -197,10 +201,10 @@ export default {
               _['weTableForm'][i] = JSON.stringify(_['weTableForm'][i], null, 4)
             }
           } else if (
-              typeof _['weTableForm'][i] === 'object' &&
-              _['weTableForm'][i] !== null &&
-              !Array.isArray(_['weTableForm'][i]) &&
-              i !== 'weTableForm'
+            typeof _['weTableForm'][i] === 'object' &&
+            _['weTableForm'][i] !== null &&
+            !Array.isArray(_['weTableForm'][i]) &&
+            i !== 'weTableForm'
           ) {
             _[i] = _['weTableForm'][i].codeId || _['weTableForm'][i].guid
             _['weTableForm'][i] = _['weTableForm'][i].value || _['weTableForm'][i].key_name
@@ -253,96 +257,181 @@ export default {
         }
       }
     },
-    handleSubmit: lodash.debounce(
-        function (ref) {
-          const generateFilters = (type, i) => {
-            switch (type) {
-              case 'text':
-              case 'textArea':
-                filters.push({
-                  name: i,
-                  operator: 'contains',
-                  value: this.form[i]
-                })
-                break
-              case 'select':
-              case 'ref':
-                filters.push({
-                  name: i,
-                  operator: 'eq',
-                  value: this.form[i]
-                })
-                break
-              case 'date':
-                if (this.form[i][0] !== '' && this.form[i][1] !== '') {
-                  filters.push({
-                    name: i,
-                    operator: 'gt',
-                    value: moment(this.form[i][0]).format(DATE_FORMAT)
-                  })
-                  filters.push({
-                    name: i,
-                    operator: 'lt',
-                    value: moment(this.form[i][1]).format(DATE_FORMAT)
-                  })
-                }
-                break
-
-              case 'multiSelect':
-              case 'multiRef':
-                if (Array.isArray(this.form[i]) && this.form[i].length) {
-                  filters.push({
-                    name: i,
-                    operator: 'in',
-                    value: this.form[i]
-                  })
-                }
-                break
-              case 'number':
-                filters.push({
-                  name: i,
-                  operator: 'eq',
-                  value: +this.form[i]
-                })
-                break
-
-              default:
-                filters.push({
-                  name: i,
-                  operator: 'contains',
-                  value: this.form[i]
-                })
-                break
+    filterMgmt () {
+      const generateFilters = (type, i) => {
+        switch (type) {
+          case 'text':
+          case 'textArea':
+            filters.push({
+              name: i,
+              operator: 'contains',
+              value: this.form[i]
+            })
+            break
+          case 'select':
+          case 'ref':
+            filters.push({
+              name: i,
+              operator: 'eq',
+              value: this.form[i]
+            })
+            break
+          case 'datetime':
+            if (this.form[i][0] !== '' && this.form[i][1] !== '') {
+              filters.push({
+                name: i,
+                operator: 'gt',
+                value: moment(this.form[i][0]).format(DATE_FORMAT)
+              })
+              filters.push({
+                name: i,
+                operator: 'lt',
+                value: moment(this.form[i][1]).format(DATE_FORMAT)
+              })
             }
-          }
+            break
 
-          let filters = []
-          for (let i in this.form) {
-            if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
-              this.tableColumns
-                  .filter(_ => _.uiSearchOrder || _.children)
-                  .forEach(_ => {
-                    if (_.children) {
-                      _.children.forEach(j => {
-                        if (i === j.inputKey) {
-                          generateFilters(j.inputType, i)
-                        }
-                      })
-                    } else {
-                      if (i === _.inputKey) {
-                        generateFilters(_.inputType, i)
-                      }
-                    }
-                  })
+          case 'multiSelect':
+          case 'multiRef':
+            if (Array.isArray(this.form[i]) && this.form[i].length) {
+              filters.push({
+                name: i,
+                operator: 'in',
+                value: this.form[i]
+              })
             }
-          }
-          this.$emit('handleSubmit', filters)
-        },
-        2000,
-        {
-          leading: true,
-          trailing: false
+            break
+          case 'number':
+            filters.push({
+              name: i,
+              operator: 'eq',
+              value: +this.form[i]
+            })
+            break
+
+          default:
+            filters.push({
+              name: i,
+              operator: 'contains',
+              value: this.form[i]
+            })
+            break
         }
+      }
+
+      let filters = []
+      for (let i in this.form) {
+        if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
+          this.tableColumns
+            .filter(_ => _.uiSearchOrder || _.children)
+            .forEach(_ => {
+              if (_.children) {
+                _.children.forEach(j => {
+                  if (i === j.inputKey) {
+                    generateFilters(j.inputType, i)
+                  }
+                })
+              } else {
+                if (i === _.inputKey) {
+                  generateFilters(_.inputType, i)
+                }
+              }
+            })
+        }
+      }
+      return filters
+    },
+    handleSubmit: lodash.debounce(
+      function (ref) {
+        // const generateFilters = (type, i) => {
+        //   switch (type) {
+        //     case 'text':
+        //     case 'textArea':
+        //       filters.push({
+        //         name: i,
+        //         operator: 'contains',
+        //         value: this.form[i]
+        //       })
+        //       break
+        //     case 'select':
+        //     case 'ref':
+        //       filters.push({
+        //         name: i,
+        //         operator: 'eq',
+        //         value: this.form[i]
+        //       })
+        //       break
+        //     case 'datetime':
+        //       if (this.form[i][0] !== '' && this.form[i][1] !== '') {
+        //         filters.push({
+        //           name: i,
+        //           operator: 'gt',
+        //           value: moment(this.form[i][0]).format(DATE_FORMAT)
+        //         })
+        //         filters.push({
+        //           name: i,
+        //           operator: 'lt',
+        //           value: moment(this.form[i][1]).format(DATE_FORMAT)
+        //         })
+        //       }
+        //       break
+
+        //     case 'multiSelect':
+        //     case 'multiRef':
+        //       if (Array.isArray(this.form[i]) && this.form[i].length) {
+        //         filters.push({
+        //           name: i,
+        //           operator: 'in',
+        //           value: this.form[i]
+        //         })
+        //       }
+        //       break
+        //     case 'number':
+        //       filters.push({
+        //         name: i,
+        //         operator: 'eq',
+        //         value: +this.form[i]
+        //       })
+        //       break
+
+        //     default:
+        //       filters.push({
+        //         name: i,
+        //         operator: 'contains',
+        //         value: this.form[i]
+        //       })
+        //       break
+        //   }
+        // }
+
+        // let filters = []
+        // for (let i in this.form) {
+        //   if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
+        //     this.tableColumns
+        //       .filter(_ => _.uiSearchOrder || _.children)
+        //       .forEach(_ => {
+        //         if (_.children) {
+        //           _.children.forEach(j => {
+        //             if (i === j.inputKey) {
+        //               generateFilters(j.inputType, i)
+        //             }
+        //           })
+        //         } else {
+        //           if (i === _.inputKey) {
+        //             generateFilters(_.inputType, i)
+        //           }
+        //         }
+        //       })
+        //   }
+        // }
+        const filters = this.filterMgmt()
+        this.$emit('handleSubmit', filters)
+      },
+      1000,
+      {
+        leading: true,
+        trailing: false
+      }
     ),
     reset (ref) {
       this.tableColumns.forEach(_ => {
@@ -358,6 +447,7 @@ export default {
           }
         }
       })
+      this.$emit('resetSearchForm')
     },
     getTableOuterActions () {
       if (this.tableOuterActions) {
@@ -365,55 +455,126 @@ export default {
         return this.tableOuterActions.map(_ => {
           if (_.operationFormType === 'import_form') {
             return (
-                <div style="margin-left:100px; width:200px;display:inline-block;">
-                  <Upload
-                      action=""
-                      beforeUpload={file => {
-                        this.$emit('actionFun', _, this.selectedRows, this.ciTypeId, file)
-                      }}
-                  >
-                    <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button>
-                  </Upload>
-                </div>
+              <div style="margin-left:100px; width:200px;display:inline-block;">
+                <Upload
+                  action=""
+                  beforeUpload={file => {
+                    this.$emit('actionFun', _, this.selectedRows, this.ciTypeId, file)
+                  }}
+                >
+                  <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button>
+                </Upload>
+              </div>
             )
           }
           if (_.operationFormType === 'import_ci_form') {
             return (
-                <div style="margin-left:8px; width:200px;display:inline-block;">
-                  <Upload
-                      action=""
-                      accept=".csv"
-                      beforeUpload={file => {
-                        this.$emit('actionFun', _, this.selectedRows, this.ciTypeId, file)
-                      }}
-                  >
-                    <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button>
-                  </Upload>
-                </div>
+              <div style="margin-left:8px; width:200px;display:inline-block;">
+                <Upload
+                  action=""
+                  accept=".csv"
+                  beforeUpload={file => {
+                    this.$emit('actionFun', _, this.selectedRows, this.ciTypeId, file)
+                  }}
+                >
+                  <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button>
+                </Upload>
+              </div>
             )
           }
           return (
-              <Button
-                  style="margin-right: 10px"
-                  {..._}
-                  onClick={() => {
-                    this.currentOperateType = _.operation_en
-                    const keys = Object.keys(this.form)
-                    let filters = []
-                    keys.forEach(key => {
-                      if (this.form[key] !== '') {
-                        filters.push({
-                          name: key,
-                          operator: 'contains',
-                          value: this.form[key]
-                        })
-                      }
-                    })
-                    this.$emit('actionFun', _, this.selectedRows, this.columns, filters)
-                  }}
-              >
-                {lang === 'en-US' ? _.operation_en : _.operation}
-              </Button>
+            <Button
+              style="margin-right: 10px"
+              {..._}
+              onClick={() => {
+                // const generateFilters = (type, i) => {
+                //   switch (type) {
+                //     case 'text':
+                //     case 'textArea':
+                //       filters.push({
+                //         name: i,
+                //         operator: 'contains',
+                //         value: this.form[i]
+                //       })
+                //       break
+                //     case 'select':
+                //     case 'ref':
+                //       filters.push({
+                //         name: i,
+                //         operator: 'eq',
+                //         value: this.form[i]
+                //       })
+                //       break
+                //     case 'datetime':
+                //       if (this.form[i][0] !== '' && this.form[i][1] !== '') {
+                //         filters.push({
+                //           name: i,
+                //           operator: 'gt',
+                //           value: moment(this.form[i][0]).format(DATE_FORMAT)
+                //         })
+                //         filters.push({
+                //           name: i,
+                //           operator: 'lt',
+                //           value: moment(this.form[i][1]).format(DATE_FORMAT)
+                //         })
+                //       }
+                //       break
+
+                //     case 'multiSelect':
+                //     case 'multiRef':
+                //       if (Array.isArray(this.form[i]) && this.form[i].length) {
+                //         filters.push({
+                //           name: i,
+                //           operator: 'in',
+                //           value: this.form[i]
+                //         })
+                //       }
+                //       break
+                //     case 'number':
+                //       filters.push({
+                //         name: i,
+                //         operator: 'eq',
+                //         value: +this.form[i]
+                //       })
+                //       break
+
+                //     default:
+                //       filters.push({
+                //         name: i,
+                //         operator: 'contains',
+                //         value: this.form[i]
+                //       })
+                //       break
+                //   }
+                // }
+                // let filters = []
+                // for (let i in this.form) {
+                //   if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
+                //     this.tableColumns
+                //       .filter(_ => _.uiSearchOrder || _.children)
+                //       .forEach(_ => {
+                //         if (_.children) {
+                //           _.children.forEach(j => {
+                //             if (i === j.inputKey) {
+                //               generateFilters(j.inputType, i)
+                //             }
+                //           })
+                //         } else {
+                //           if (i === _.inputKey) {
+                //             generateFilters(_.inputType, i)
+                //           }
+                //         }
+                //       })
+                //   }
+                // }
+                const filters = this.filterMgmt()
+                this.currentOperateType = _.operation_en
+
+                this.$emit('actionFun', _, this.selectedRows, this.columns, filters)
+              }}
+            >
+              {lang === 'en-US' ? _.operation_en : _.operation}
+            </Button>
           )
         })
       }
@@ -422,87 +583,88 @@ export default {
       if (item.isNotFilterable) return
 
       const filterParamsForRefSelect = item => {
-        const generateFilters = (type, i) => {
-          switch (type) {
-            case 'text':
-            case 'textArea':
-              filters.push({
-                name: i,
-                operator: 'contains',
-                value: this.form[i]
-              })
-              break
-            case 'select':
-            case 'ref':
-              filters.push({
-                name: i,
-                operator: 'eq',
-                value: this.form[i]
-              })
-              break
-            case 'date':
-              if (this.form[i][0] !== '' && this.form[i][1] !== '') {
-                filters.push({
-                  name: i,
-                  operator: 'gt',
-                  value: moment(this.form[i][0]).format(DATE_FORMAT)
-                })
-                filters.push({
-                  name: i,
-                  operator: 'lt',
-                  value: moment(this.form[i][1]).format(DATE_FORMAT)
-                })
-              }
-              break
+        // const generateFilters = (type, i) => {
+        //   switch (type) {
+        //     case 'text':
+        //     case 'textArea':
+        //       filters.push({
+        //         name: i,
+        //         operator: 'contains',
+        //         value: this.form[i]
+        //       })
+        //       break
+        //     case 'select':
+        //     case 'ref':
+        //       filters.push({
+        //         name: i,
+        //         operator: 'eq',
+        //         value: this.form[i]
+        //       })
+        //       break
+        //     case 'datetime':
+        //       if (this.form[i][0] !== '' && this.form[i][1] !== '') {
+        //         filters.push({
+        //           name: i,
+        //           operator: 'gt',
+        //           value: moment(this.form[i][0]).format(DATE_FORMAT)
+        //         })
+        //         filters.push({
+        //           name: i,
+        //           operator: 'lt',
+        //           value: moment(this.form[i][1]).format(DATE_FORMAT)
+        //         })
+        //       }
+        //       break
 
-            case 'multiSelect':
-            case 'multiRef':
-              if (Array.isArray(this.form[i]) && this.form[i].length) {
-                filters.push({
-                  name: i,
-                  operator: 'in',
-                  value: this.form[i]
-                })
-              }
-              break
-            case 'number':
-              filters.push({
-                name: i,
-                operator: 'eq',
-                value: +this.form[i]
-              })
-              break
+        //     case 'multiSelect':
+        //     case 'multiRef':
+        //       if (Array.isArray(this.form[i]) && this.form[i].length) {
+        //         filters.push({
+        //           name: i,
+        //           operator: 'in',
+        //           value: this.form[i]
+        //         })
+        //       }
+        //       break
+        //     case 'number':
+        //       filters.push({
+        //         name: i,
+        //         operator: 'eq',
+        //         value: +this.form[i]
+        //       })
+        //       break
 
-            default:
-              filters.push({
-                name: i,
-                operator: 'contains',
-                value: this.form[i]
-              })
-              break
-          }
-        }
+        //     default:
+        //       filters.push({
+        //         name: i,
+        //         operator: 'contains',
+        //         value: this.form[i]
+        //       })
+        //       break
+        //   }
+        // }
 
-        let filters = []
-        for (let i in this.form) {
-          if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
-            this.tableColumns
-                .filter(_ => _.uiSearchOrder || _.children)
-                .forEach(_ => {
-                  if (_.children) {
-                    _.children.forEach(j => {
-                      if (i === j.inputKey) {
-                        generateFilters(j.inputType, i)
-                      }
-                    })
-                  } else {
-                    if (i === _.inputKey) {
-                      generateFilters(_.inputType, i)
-                    }
-                  }
-                })
-          }
-        }
+        // let filters = []
+        // for (let i in this.form) {
+        //   if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
+        //     this.tableColumns
+        //       .filter(_ => _.uiSearchOrder || _.children)
+        //       .forEach(_ => {
+        //         if (_.children) {
+        //           _.children.forEach(j => {
+        //             if (i === j.inputKey) {
+        //               generateFilters(j.inputType, i)
+        //             }
+        //           })
+        //         } else {
+        //           if (i === _.inputKey) {
+        //             generateFilters(_.inputType, i)
+        //           }
+        //         }
+        //       })
+        //   }
+        // }
+        const filters = this.filterMgmt()
         let params = {}
         filters.forEach(f => {
           params[f.name] = f.value
@@ -512,9 +674,10 @@ export default {
       const data = {
         props: {
           ...item,
+          editable: item.editable === 'yes',
           enumId: item.referenceId ? item.referenceId : null,
           filterParams: {
-            attrId: '', // 搜索处赋值
+            attrId: item.ciTypeAttrId || '', // 搜索处赋值
             params: filterParamsForRefSelect()
           }
         },
@@ -527,49 +690,55 @@ export default {
         switch (item.component) {
           case 'WeCMDBSelect':
             return (
-                <item.component
-                    on-on-enter={() => this.handleSubmit('form')}
-                    onInput={v => (this.form[item.inputKey] = v)}
-                    onChange={v => item.onChange && this.$emit(item.onChange, v)}
-                    value={this.form[item.inputKey]}
-                    filterable
-                    clearable
-                    {...data}
-                    options={item.optionKey ? this.ascOptions[item.optionKey] : item.options}
-                />
+              <item.component
+                on-on-enter={() => this.handleSubmit('form')}
+                onInput={v => (this.form[item.inputKey] = v)}
+                onChange={v => item.onChange && this.$emit(item.onChange, v)}
+                value={this.form[item.inputKey]}
+                filterable
+                clearable
+                {...data}
+                options={item.optionKey ? this.ascOptions[item.optionKey] : item.options}
+              />
             )
           case 'WeCMDBRefSelect':
             return (
-                <item.component
-                    on-on-enter={() => this.handleSubmit('form')}
-                    onInput={v => (this.form[item.inputKey] = v)}
-                    value={this.form[item.inputKey]}
-                    {...data}
-                />
+              <item.component
+                on-on-enter={() => this.handleSubmit('form')}
+                onInput={v => (this.form[item.inputKey] = v)}
+                value={this.form[item.inputKey]}
+                {...data}
+              />
             )
           default:
             return (
-                <item.component
-                    on-on-enter={() => this.handleSubmit('form')}
-                    value={this.form[item.inputKey]}
-                    onInput={v => (this.form[item.inputKey] = v)}
-                    isReadOnly={item.component === 'CMDBPermissionFilters'}
-                    {...data}
-                />
+              <item.component
+                on-on-enter={() => this.handleSubmit('form')}
+                value={this.form[item.inputKey]}
+                clearable={true}
+                onInput={v => (this.form[item.inputKey] = v)}
+                isReadOnly={item.component === 'CMDBPermissionFilters'}
+                {...data}
+              />
             )
         }
       }
       return (
-          <Col
-              span={item.span || 3}
-              class={
-                index < DEFAULT_FILTER_NUMBER ? '' : this.isShowHiddenFilters ? 'hidden-filters-show' : 'hidden-filters'
-              }
+        <Col
+          span={item.span || 3}
+          class={
+            index < DEFAULT_FILTER_NUMBER ? '' : this.isShowHiddenFilters ? 'hidden-filters-show' : 'hidden-filters'
+          }
+        >
+          <FormItem
+            // label={lodash.hasIn(item, 'uiFormLabelShow') && item.uiFormLabelShow === false || true ? '' : item.title}
+            label=""
+            prop={item.inputKey}
+            key={item.inputKey}
           >
-            <FormItem label={item.title} prop={item.inputKey} key={item.inputKey}>
-              {renders(item)}
-            </FormItem>
-          </Col>
+            {renders(item)}
+          </FormItem>
+        </Col>
       )
     },
     getFormFilters () {
@@ -583,109 +752,114 @@ export default {
         return 0
       }
       return (
-          <Form ref="form" label-position="top" inline>
-            <Row>
-              {this.tableColumns
-                  .filter(_ => !!_.children || !!_.uiSearchOrder)
-                  .sort(compare)
-                  .map((_, index) => {
-                    if (_.children) {
-                      return (
-                          <Row>
-                            <Col span={3}>
-                              <strong>{_.title}</strong>
-                            </Col>
-                            <Col span={21}>
-                              {_.children
-                                  .filter(_ => !!_.uiSearchOrder)
-                                  .sort(compare)
-                                  .map(j => {
-                                    let o = { ...j }
-                                    if (j.optionKey) {
-                                      o = {
-                                        ...j,
-                                        optionKey: null,
-                                        options: this.ascOptions[j.optionKey]
-                                      }
-                                    }
-                                    return this.renderFormItem(o)
-                                  })}
-                            </Col>
-                          </Row>
-                      )
-                    }
-                    let obj = { ..._ }
-                    if (_.optionKey) {
-                      obj = {
-                        ..._,
-                        optionKey: null,
-                        options: this.ascOptions[_.optionKey]
-                      }
-                    }
-                    return this.renderFormItem(obj, index)
-                  })}
-              <Col span={6}>
-                <div style="display: flex;">
-                  {this.tableColumns.filter(_ => !!_.uiSearchOrder).sort(compare).length > DEFAULT_FILTER_NUMBER &&
-                      (!this.isShowHiddenFilters ? (
-                          <FormItem>
-                            <div slot="label" style="visibility: hidden;">
-                              <span>Placeholder</span>
-                            </div>
-                            <Button
-                                type="info"
-                                ghost
-                                shape="circle"
-                                icon="ios-arrow-down"
-                                onClick={() => {
-                                  this.isShowHiddenFilters = true
-                                }}
-                            >
-                              {this.$t('more_filter')}
-                            </Button>
-                          </FormItem>
-                      ) : (
-                          <FormItem>
-                            <div slot="label" style="visibility: hidden;">
-                              <span>Placeholder</span>
-                            </div>
-                            <Button
-                                type="info"
-                                ghost
-                                shape="circle"
-                                icon="ios-arrow-up"
-                                onClick={() => {
-                                  this.isShowHiddenFilters = false
-                                }}
-                            >
-                              {this.$t('less_filter')}
-                            </Button>
-                          </FormItem>
-                      ))}
+        <Form ref="form" label-position="top" inline>
+          <Row>
+            {this.tableColumns
+              .filter(_ => !!_.children || !!_.uiSearchOrder)
+              .sort(compare)
+              .map((_, index) => {
+                if (_.children) {
+                  return (
+                    <Row>
+                      <Col span={3}>
+                        <strong>{_.title}</strong>
+                      </Col>
+                      <Col span={21}>
+                        {_.children
+                          .filter(_ => !!_.uiSearchOrder)
+                          .sort(compare)
+                          .map(j => {
+                            let o = { ...j }
+                            if (j.optionKey) {
+                              o = {
+                                ...j,
+                                optionKey: null,
+                                options: this.ascOptions[j.optionKey]
+                              }
+                            }
+                            return this.renderFormItem(o)
+                          })}
+                      </Col>
+                    </Row>
+                  )
+                }
+                let obj = { ..._ }
+                if (_.optionKey) {
+                  obj = {
+                    ..._,
+                    optionKey: null,
+                    options: this.ascOptions[_.optionKey]
+                  }
+                }
+                return this.renderFormItem(obj, index)
+              })}
+            <Col span={6}>
+              <div style="display: flex;">
+                {this.tableColumns.filter(_ => !!_.uiSearchOrder).sort(compare).length > DEFAULT_FILTER_NUMBER &&
+                  (!this.isShowHiddenFilters ? (
+                    <FormItem>
+                      {/* {this.tableColumns.every(
+                        item => lodash.hasIn(item, 'uiFormLabelShow') && item.uiFormLabelShow === false
+                      ) ? null : (
+                          <div slot="label" style="visibility: hidden;">
+                            <span>Placeholder</span>
+                          </div>
+                        )} */}
+                      <Button
+                        type="info"
+                        ghost
+                        shape="circle"
+                        icon="ios-arrow-down"
+                        onClick={() => {
+                          this.isShowHiddenFilters = true
+                        }}
+                      >
+                        {this.$t('more_filter')}
+                      </Button>
+                    </FormItem>
+                  ) : (
+                    <FormItem>
+                      <Button
+                        type="info"
+                        ghost
+                        shape="circle"
+                        icon="ios-arrow-up"
+                        onClick={() => {
+                          this.isShowHiddenFilters = false
+                        }}
+                      >
+                        {this.$t('less_filter')}
+                      </Button>
+                    </FormItem>
+                  ))}
 
-                  <FormItem>
-                    <div slot="label" style="visibility: hidden;">
-                      <span>Placeholder</span>
-                    </div>
-                    <Button type="primary" icon="ios-search" onClick={() => this.handleSubmit('form')}>
-                      {this.$t('search')}
-                    </Button>
-                  </FormItem>
-                  <FormItem>
-                    <div slot="label" style="visibility: hidden;">
-                      <span>Placeholder</span>
-                    </div>
-                    <Button icon="md-refresh" onClick={() => this.reset('form')}>
-                      {this.$t('reset')}
-                    </Button>
-                  </FormItem>
-                </div>
-              </Col>
-            </Row>
-          </Form>
+                <FormItem>
+                  <Button type="primary" icon="ios-search" onClick={() => this.handleSubmit('form')}>
+                    {this.$t('search')}
+                  </Button>
+                </FormItem>
+                <FormItem>
+                  <Button icon="md-refresh" onClick={() => this.reset('form')}>
+                    {this.$t('reset')}
+                  </Button>
+                </FormItem>
+              </div>
+            </Col>
+          </Row>
+        </Form>
       )
     },
     onCheckboxSelect (selection) {
+      // 将WeCMDBSelect枚举类型的数据值从label转换成value以便选择框正确回显
+      const filterSelect = this.tableColumns.filter(item => item.component === 'WeCMDBSelect')
+      filterSelect.forEach(item => {
+        selection.forEach(d => {
+          const find = item.options.find(o => o.label === d[item.key])
+          if (find) {
+            d[item.key] = find.value
+          }
+        })
+      })
       this.selectedRows = selection
       this.$emit('getSelectedRows', selection, false)
     },
@@ -747,8 +921,8 @@ export default {
         return 0
       }
       const columns = this.tableColumns
-          .filter(_ => (_.displayByDefault === 'yes' && _.uiFormOrder > 0) || _.children)
-          .sort(compare)
+        .filter(_ => (_.displayByDefault === 'yes' && _.uiFormOrder > 0) || _.children)
+        .sort(compare)
       const tableWidth = this.$refs.table ? this.$refs.table.$el.clientWidth : 1000 // 获取table宽度，默认值1000
       const colLength = columns.length // 获取传入展示的column长度
       this.colWidth = Math.floor(tableWidth / colLength)
@@ -779,34 +953,34 @@ export default {
         }
       }
       this.tableInnerActions &&
-      this.columns.push({
-        title: this.$t('actions'),
-        fixed: 'right',
-        key: 'actions',
-        maxWidth: 500,
-        minWidth: 200,
-        render: (h, params) => {
-          return (
+        this.columns.push({
+          title: this.$t('actions'),
+          fixed: 'right',
+          key: 'actions',
+          maxWidth: 500,
+          minWidth: 200,
+          render: (h, params) => {
+            return (
               <div>
                 {this.tableInnerActions.map(_ => {
                   return (
-                      <Button
-                          style="margin-right: 10px"
-                          {..._}
-                          size="small"
-                          onClick={() => {
-                            this.currentOperateType = _.operation_en
-                            this.$emit('actionFun', _, params.row, this.columns)
-                          }}
-                      >
-                        {_.operation}
-                      </Button>
+                    <Button
+                      style="margin-right: 10px"
+                      {..._}
+                      size="small"
+                      onClick={() => {
+                        this.currentOperateType = _.operation_en
+                        this.$emit('actionFun', _, params.row, this.columns)
+                      }}
+                    >
+                      {_.operation}
+                    </Button>
                   )
                 })}
               </div>
-          )
-        }
-      })
+            )
+          }
+        })
     },
     isJSON (jsons) {
       try {
@@ -833,13 +1007,13 @@ export default {
       })
       const attrRes = await getCiTypeAttributes(ci)
       const showAttr = attrRes.data
-          .filter(item => item.displayByDefault === 'yes')
-          .map(attr => {
-            return {
-              attr: attr.ciTypeAttrId.split('__')[1],
-              displayName: attr.displayName
-            }
-          })
+        .filter(item => item.displayByDefault === 'yes')
+        .map(attr => {
+          return {
+            attr: attr.ciTypeAttrId.split('__')[1],
+            displayName: attr.displayName
+          }
+        })
       const res = showAttr.map(sa => {
         let tmp = {
           key: sa.displayName,
@@ -848,10 +1022,10 @@ export default {
         const attrValue = data.contents[0][sa.attr]
         if (Array.isArray(attrValue)) {
           tmp.value = attrValue
-              .map(item => {
-                return item.key_name
-              })
-              .join(',')
+            .map(item => {
+              return item.key_name
+            })
+            .join(',')
         } else if (this.isJSON(attrValue)) {
           tmp.value = attrValue.key_name
         } else {
@@ -863,6 +1037,14 @@ export default {
     },
     // 自定义渲染表格内容
     renderCol (col, isLastCol = false) {
+      // 弹框展示JSON数据
+      const getObjectdata = async val => {
+        this.tableDetailInfo.isShow = false
+        this.tableDetailInfo.title = col.title
+        this.tableDetailInfo.type = 'object'
+        this.tableDetailInfo.info = val
+        this.tableDetailInfo.isShow = true
+      }
       const getRefdata = async val => {
         this.tableDetailInfo.isShow = false
         const refData = this.tableData.find(item => {
@@ -876,6 +1058,24 @@ export default {
           {
             title: val,
             value: await this.managementRefData(refData.guid)
+          }
+        ]
+        this.tableDetailInfo.isShow = true
+      }
+      const getExtRefData = async val => {
+        this.tableDetailInfo.isShow = false
+        const refData = this.tableData.find(item => {
+          if (item[col.key].key_name === val) {
+            return item
+          }
+        })[col.key]
+        this.tableDetailInfo.title = this.$t('details')
+        this.tableDetailInfo.type = 'array'
+        const { data } = await getExtRefDetails(refData.guid)
+        this.tableDetailInfo.info = [
+          {
+            title: val,
+            value: data
           }
         ]
         this.tableDetailInfo.isShow = true
@@ -930,110 +1130,187 @@ export default {
       }
       if (col.inputType === 'text') {
         generalParams.render = (h, params) => {
-          return <span style={{ whiteSpace: 'pre' }}>{params.row.weTableForm[col.key]}</span>
+          return (
+            <Tooltip max-width="300" placement="top-start">
+              <div style="width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {params.row.weTableForm[col.key]}
+              </div>
+              <div slot="content">
+                <p>{params.row.weTableForm[col.key]}</p>
+              </div>
+            </Tooltip>
+          )
         }
         return generalParams
-      }
-      if (col.inputType === 'ref') {
+      } else if (col.inputType === 'object') {
         generalParams.render = (h, params) => {
           return (
-              <span>
+            <span>
               {params.row.weTableForm[col.key] && (
-                  <Icon
-                      size="16"
-                      type="ios-apps-outline"
-                      color="#2d8cf0"
-                      onClick={() => getRefdata(params.row.weTableForm[col.key])}
-                  />
+                <Icon
+                  size="16"
+                  type="ios-apps-outline"
+                  color="#2d8cf0"
+                  style="cursor:pointer"
+                  onClick={() => getObjectdata(params.row.weTableForm[col.key])}
+                />
               )}
-                {params.row.weTableForm[col.key]}
+              {params.row.weTableForm[col.key]}
+            </span>
+          )
+        }
+      } else if (col.inputType === 'ref') {
+        generalParams.render = (h, params) => {
+          return (
+            <span>
+              {params.row.weTableForm[col.key] && (
+                <Icon
+                  size="16"
+                  type="ios-apps-outline"
+                  color="#2d8cf0"
+                  style="cursor:pointer"
+                  onClick={() => getRefdata(params.row.weTableForm[col.key])}
+                />
+              )}
+              {params.row.weTableForm[col.key]}
             </span>
           )
         }
         return generalParams
-      }
-      if (col.inputType === 'multiRef') {
+      } else if (col.inputType === 'multiRef') {
         const find = this.columns.find(column => column.ciTypeAttrId === col.ciTypeAttrId)
         let style = ''
         if (find !== undefined) {
           style = `width:${find.width - 20}px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;`
         }
         generalParams.render = (h, params) => {
+          let res = ''
+          if (col.component === 'CMDBPermissionFilters') {
+            // 兼容模型配置中数据权限对multiRef类型数据回显支持
+            res = params.row.weTableForm[col.key]
+          } else {
+            res = JSON.parse(params.row.weTableForm[col.key])
+              .map(item => item.key_name)
+              .join(', ')
+          }
           return (
-              <Tooltip
-                  max-width="300"
-                  content={JSON.parse(params.row.weTableForm[col.key])
-                      .map(item => item.key_name)
-                      .join(', ')}
-                  placement="top-start"
-              >
-                <div style={style}>
-                  {params.row.weTableForm[col.key] && (
-                      <Icon
-                          size="16"
-                          type="ios-apps-outline"
-                          color="#2d8cf0"
-                          onClick={() => getMutiRefdata(params.row.weTableForm[col.key])}
-                      />
-                  )}
-
+            <Tooltip
+              max-width="300"
+              content={JSON.parse(params.row.weTableForm[col.key])
+                .map(item => item.key_name)
+                .join(', ')}
+              placement="top-start"
+            >
+              <div style={style}>
+                {params.row.weTableForm[col.key] && (
+                  <Icon
+                    size="16"
+                    type="ios-apps-outline"
+                    color="#2d8cf0"
+                    style="cursor:pointer"
+                    onClick={() => getMutiRefdata(params.row.weTableForm[col.key])}
+                  />
+                )}
+                {res}
+              </div>
+              <div slot="content" style="white-space: normal;">
+                <p>
                   {JSON.parse(params.row.weTableForm[col.key])
-                      .map(item => item.key_name)
-                      .join(', ')}
-                </div>
-                <div slot="content" style="white-space: normal;">
-                  <p>
-                    {JSON.parse(params.row.weTableForm[col.key])
-                        .map(item => item.key_name)
-                        .join(', ')}
-                  </p>
-                </div>
-              </Tooltip>
+                    .map(item => item.key_name)
+                    .join(', ')}
+                </p>
+              </div>
+            </Tooltip>
           )
         }
         return generalParams
-      }
-      if (col.inputType === 'password') {
+      } else if (col.inputType === 'extRef') {
         generalParams.render = (h, params) => {
           return (
-              <span>
-              <Icon
+            <span>
+              {params.row.weTableForm[col.key] && (
+                <Icon
                   size="16"
                   type="ios-apps-outline"
                   color="#2d8cf0"
-                  onClick={() => getPassword(params.row, col.key)}
-              />
-                {params.row.weTableForm[col.key]}
+                  style="cursor:pointer"
+                  onClick={() => getExtRefData(params.row.weTableForm[col.key])}
+                />
+              )}
+              {params.row.weTableForm[col.key]}
             </span>
           )
         }
         return generalParams
-      }
-      // if (col.ciTypeAttrId === 'app_instance__variable_values') {
-      if (col.inputType === 'diffVariable') {
+      } else if (col.inputType === 'password') {
+        generalParams.render = (h, params) => {
+          return (
+            <span>
+              <Icon
+                size="16"
+                type="ios-apps-outline"
+                color="#2d8cf0"
+                onClick={() => getPassword(params.row, col.key)}
+              />
+              {params.row.weTableForm[col.key]}
+            </span>
+          )
+        }
+        return generalParams
+      } else if (col.inputType === 'diffVariable') {
         generalParams.render = (h, params) => {
           const val = params.row.weTableForm[col.key]
           if (val) {
             return (
-                <span>
+              <span>
                 <Icon
-                    size="16"
-                    type="ios-apps-outline"
-                    color="#2d8cf0"
-                    onClick={() => getDiffVariable(params.row, col.key)}
+                  size="16"
+                  type="ios-apps-outline"
+                  color="#2d8cf0"
+                  style="cursor:pointer"
+                  onClick={() => getDiffVariable(params.row, col.key)}
                 />
-                  {params.row.weTableForm[col.key].slice(0, 18) + '...'}
+                {params.row.weTableForm[col.key].slice(0, 18) + '...'}
               </span>
             )
           }
         }
         return generalParams
-      }
-      generalParams.render = (h, params) => {
-        let content = ''
-        if (Array.isArray(params.row.weTableForm[col.key])) {
-          if (['select', 'multiSelect'].indexOf(params.column.inputType) >= 0) {
-            content = params.row.weTableForm[col.key]
+      } else if (col.inputType === 'tagShow') {
+        generalParams.width = generalParams.colWidth ? generalParams.colWidth : generalParams.width
+        generalParams.render = (h, params) => {
+          const val = params.row.weTableForm[col.key]
+          if (!col.tagOptions) {
+            return <div>-</div>
+          }
+          if (!val) {
+            return <div>-</div>
+          }
+          const realVal = JSON.parse(val)
+          if (Array.isArray(realVal) && !lodash.isEmpty(realVal)) {
+            return (
+              <div class="tag-column" style="display: flex; flex-wrap: wrap">
+                {realVal.map(single => {
+                  const item = lodash.find(col.tagOptions, {
+                    value: single
+                  })
+                  return (
+                    <Tag style={{ 'min-width': item.width }} color={item.color}>
+                      {item.label}
+                    </Tag>
+                  )
+                })}
+              </div>
+            )
+          }
+        }
+        return generalParams
+      } else {
+        generalParams.render = (h, params) => {
+          let content = ''
+          if (Array.isArray(params.row.weTableForm[col.key])) {
+            if (['select', 'multiSelect'].indexOf(params.column.inputType) >= 0) {
+              content = params.row.weTableForm[col.key]
                 .map(_ => {
                   if (typeof _ === 'object' && _ !== null) {
                     return _.value
@@ -1042,40 +1319,40 @@ export default {
                   }
                 })
                 .toString()
-          } else if (params.column.inputType === 'multiRef') {
-            content = params.row.weTableForm[col.key].map(_ => _.key_name).toString()
+            } else if (params.column.inputType === 'multiRef') {
+              content = params.row.weTableForm[col.key].map(_ => _.key_name).toString()
+            }
+            if (params.column.component === 'CMDBPermissionFilters') {
+              content = params.row.weTableForm[col.key].join(' | ')
+            }
+          } else {
+            content = params.row.weTableForm[col.key]
           }
-          if (params.column.component === 'CMDBPermissionFilters') {
-            content = params.row.weTableForm[col.key].join(' | ')
-          }
-        } else {
-          content = params.row.weTableForm[col.key]
-        }
-        const containerId = 'ref' + Math.ceil(Math.random() * 1000000)
+          const containerId = 'ref' + Math.ceil(Math.random() * 1000000)
 
-        return h(
+          return h(
             'span',
             {
               class: 'ivu-table-cell-tooltip-content',
               on: {
                 mouseenter: event => {
                   if (
-                      document.getElementById(containerId).scrollWidth > document.getElementById(containerId).clientWidth
+                    document.getElementById(containerId).scrollWidth > document.getElementById(containerId).clientWidth
                   ) {
                     this.timer = setTimeout(
-                        params => {
-                          this.tipContent = content
-                          const popcorn = document.querySelector('#' + containerId)
-                          const tooltip = document.querySelector('#' + params.randomId)
-                          createPopper(popcorn, tooltip, {
-                            placement: 'bottom'
-                          })
-                        },
-                        800,
-                        {
-                          randomId: this.randomId,
-                          content
-                        }
+                      params => {
+                        this.tipContent = content
+                        const popcorn = document.querySelector('#' + containerId)
+                        const tooltip = document.querySelector('#' + params.randomId)
+                        createPopper(popcorn, tooltip, {
+                          placement: 'bottom'
+                        })
+                      },
+                      800,
+                      {
+                        randomId: this.randomId,
+                        content
+                      }
                     )
                   }
                 },
@@ -1089,7 +1366,8 @@ export default {
               }
             },
             content
-        )
+          )
+        }
       }
       return generalParams
     },
@@ -1214,148 +1492,151 @@ export default {
       })
     }
     return (
-        <div>
-          {!filtersHidden && <div>{this.getFormFilters()}</div>}
-          <Row style="margin-bottom:10px">{this.getTableOuterActions()}</Row>
-          {this.isShowFilter && (
-              <div style="position: relative;top: -40px;right: 30px;float: right;">
-                <Poptip placement="bottom">
-                  <Button type="primary" shape="circle" icon="ios-funnel-outline"></Button>
-                  <div slot="content" style="max-height: 400px;">
-                    {this.tableColumns.map(t => {
-                      const ciTypeAttrId = t.ciTypeAttrId
-                      if (selectAttrs.includes(ciTypeAttrId)) {
-                        return (
-                            <div
-                                onClick={() => changeColDisplay(ciTypeAttrId)}
-                                style="cursor:pointer;height: 22px;line-height: 22px;margin: 2px 4px 2px 0;padding: 0 2px;border: 1px solid #2d8cf0;color:#2d8cf0;font-size: 12px;vertical-align: middle;opacity: 1;overflow: hidden;border-radius: 3px;"
-                            >
-                              {t.displayName}
-                            </div>
-                        )
-                      } else {
-                        return (
-                            <div
-                                onClick={() => changeColDisplay(ciTypeAttrId)}
-                                style="cursor:pointer;height: 22px;line-height: 22px;margin: 2px 4px 2px 0;padding: 0 2px;border: 1px solid #e8eaec;font-size: 12px;vertical-align: middle;opacity: 1;overflow: hidden;border-radius: 3px;"
-                            >
-                              {t.displayName}
-                            </div>
-                        )
-                      }
-                    })}
-                  </div>
-                </Poptip>
-              </div>
-          )}
-          <Table
-              loading={tableLoading}
-              ref="table"
-              border
-              data={data}
-              columns={columns}
-              highlight-row={highlightRow}
-              on-on-selection-change={this.onCheckboxSelect}
-              on-on-current-change={this.onRadioSelect}
-              on-on-sort-change={this.sortHandler}
-              on-on-column-width-resize={this.onColResize}
-              size="small"
-          />
-          {pagination && (
-              <Page
-                  total={pagination.total}
-                  page-size={pagination.pageSize}
-                  current={pagination.currentPage}
-                  on-on-change={v => this.$emit('pageChange', v)}
-                  on-on-page-size-change={v => this.$emit('pageSizeChange', v)}
-                  show-elevator
-                  show-sizer
-                  show-total
-                  style="float: right; margin: 10px 0;"
-              />
-          )}
-          <EditModal
-              isEdit={this.modalTitle === this.titles.edit}
-              title={this.modalTitle}
-              columns={filterColums(columns)}
-              tableColumns={this.tableColumns}
-              guidFilters={this.guidFilters}
-              guidFilterEffects={this.guidFilterEffects[this.ciTypeId] || []}
-              data={selectedRows}
-              ascOptions={ascOptions}
-              on-closeEditModal={this.closeEditModal}
-              on-editModalOkHandler={this.editModalOkHandler}
-              modalVisible={modalVisible}
-              modalLoading={modalLoading}
-              onGetGroupList={v => this.$emit('getGroupList', v)}
-          ></EditModal>
-          <div id={this.randomId} style="z-index: 100;">
-            {this.tipContent && (
-                <div style="word-break: break-word;background-color: rgba(70,76,91,.9);padding: 8px 12px;color: #fff;text-align: left;border-radius: 4px;border-radius: 4px;box-shadow: 0 1px 6px rgba(0,0,0,.2);width: 400px;">
-                  <p style="white-space: pre-wrap;">{this.tipContent}</p>
-                </div>
-            )}
-          </div>
-          <Modal value={this.tableDetailInfo.isShow} footer-hide={true} title={this.tableDetailInfo.title} width={1100}>
-            {this.tableDetailInfo.type === 'string' && (
-                <div style="text-align: justify;word-break: break-word;">{this.tableDetailInfo.info}</div>
-            )}
-            {this.tableDetailInfo.type === 'array' && (
-                <div style="overflow: auto;max-height:500px;overflow:auto">
-                  <Collapse>
-                    {this.tableDetailInfo.info.map(column => {
-                      return (
-                          <Panel name={column.title}>
-                            {column.title}
-                            <p slot="content">
-                              <Form label-width={200}>
-                                {column.value.map(val => {
-                                  return (
-                                      <FormItem label={val.key}>
-                                        <Input value={val.value} disabled />
-                                      </FormItem>
-                                  )
-                                })}
-                              </Form>
-                            </p>
-                          </Panel>
-                      )
-                    })}
-                  </Collapse>
-                </div>
-            )}
-            {this.tableDetailInfo.type === 'diffVariable' && (
-                <div style="text-align: justify;word-break: break-word;overflow-y:auto;max-height:500px">
-                  <div style="text-align: left;">
-                    <Alert type="warning">如出现页面值未显示，请点击刷新按钮</Alert>
-                  </div>
-                  {this.tableDetailInfo.info.map(val => {
+      <div>
+        {!filtersHidden && <div class="form-filter">{this.getFormFilters()}</div>}
+        <Row style="margin-bottom:10px">{this.getTableOuterActions()}</Row>
+        {this.isShowFilter && (
+          <div style="position: relative;top: -40px;right: 30px;float: right;">
+            <Poptip placement="bottom">
+              <Button type="primary" shape="circle" icon="ios-funnel-outline"></Button>
+              <div slot="content" style="max-height: 400px;">
+                {this.tableColumns.map(t => {
+                  const ciTypeAttrId = t.ciTypeAttrId
+                  if (selectAttrs.includes(ciTypeAttrId)) {
                     return (
-                        <div
-                            onClick={() => choiceKey(val)}
-                            style={this.remarkedKeys.includes(val.key) ? 'background:#d9d9d9' : ''}
-                        >
-                          <div style="width: 300px;display:inline-block;word-break: break-all;margin:4px 0;vertical-align: top;text-align:right;cursor:pointer">
-                            <span style={!['', 'NULL'].includes(val.value) ? '' : 'color:red'}>{val.key}</span>
-                          </div>
-                          <div style="width: 740px;display:inline-block;word-break: break-all;margin:4px 0;">
-                            ：{val.value}
-                          </div>
-                        </div>
+                      <div
+                        onClick={() => changeColDisplay(ciTypeAttrId)}
+                        style="cursor:pointer;height: 22px;line-height: 22px;margin: 2px 4px 2px 0;padding: 0 2px;border: 1px solid #2d8cf0;color:#2d8cf0;font-size: 12px;vertical-align: middle;opacity: 1;overflow: hidden;border-radius: 3px;"
+                      >
+                        {t.displayName}
+                      </div>
                     )
-                  })}
-                </div>
-            )}
-            <div style="margin-top:20px;height: 30px">
-              <Button style="float: right;margin-right: 20px" onClick={() => closeModal()}>
-                {this.$t('close')}
-              </Button>
-              <Button style="float: right;margin-right: 20px" type="primary" onClick={() => refreshDiffVariable()}>
-                {this.$t('refresh')}
-              </Button>
+                  } else {
+                    return (
+                      <div
+                        onClick={() => changeColDisplay(ciTypeAttrId)}
+                        style="cursor:pointer;height: 22px;line-height: 22px;margin: 2px 4px 2px 0;padding: 0 2px;border: 1px solid #e8eaec;font-size: 12px;vertical-align: middle;opacity: 1;overflow: hidden;border-radius: 3px;"
+                      >
+                        {t.displayName}
+                      </div>
+                    )
+                  }
+                })}
+              </div>
+            </Poptip>
+          </div>
+        )}
+        <Table
+          loading={tableLoading}
+          ref="table"
+          border
+          data={data}
+          columns={columns}
+          highlight-row={highlightRow}
+          on-on-selection-change={this.onCheckboxSelect}
+          on-on-current-change={this.onRadioSelect}
+          on-on-sort-change={this.sortHandler}
+          on-on-column-width-resize={this.onColResize}
+          size="small"
+        />
+        {pagination && (
+          <Page
+            total={pagination.total}
+            page-size={pagination.pageSize}
+            current={pagination.currentPage}
+            on-on-change={v => this.$emit('pageChange', v)}
+            on-on-page-size-change={v => this.$emit('pageSizeChange', v)}
+            show-elevator
+            show-sizer
+            show-total
+            style="float: right; margin: 10px 0;"
+          />
+        )}
+        <EditModal
+          isEdit={this.modalTitle === this.titles.edit}
+          title={(this.oriDataMap[this.ciTypeId] ? this.oriDataMap[this.ciTypeId] + ' / ' : '') + this.modalTitle}
+          columns={filterColums(columns)}
+          tableColumns={this.tableColumns}
+          guidFilters={this.guidFilters}
+          guidFilterEffects={this.guidFilterEffects[this.ciTypeId] || []}
+          data={selectedRows}
+          ascOptions={ascOptions}
+          on-closeEditModal={this.closeEditModal}
+          on-editModalOkHandler={this.editModalOkHandler}
+          modalVisible={modalVisible}
+          modalLoading={modalLoading}
+          onGetGroupList={v => this.$emit('getGroupList', v)}
+        ></EditModal>
+        <div id={this.randomId} style="z-index: 100;">
+          {this.tipContent && (
+            <div style="word-break: break-word;background-color: rgba(70,76,91,.9);padding: 8px 12px;color: #fff;text-align: left;border-radius: 4px;border-radius: 4px;box-shadow: 0 1px 6px rgba(0,0,0,.2);width: 400px;">
+              <p style="white-space: pre-wrap;">{this.tipContent}</p>
             </div>
-          </Modal>
+          )}
         </div>
+        <Modal value={this.tableDetailInfo.isShow} footer-hide={true} title={this.tableDetailInfo.title} width={1100}>
+          {this.tableDetailInfo.type === 'string' && (
+            <div style="text-align: justify;word-break: break-word;">{this.tableDetailInfo.info}</div>
+          )}
+          {this.tableDetailInfo.type === 'array' && (
+            <div style="overflow: auto;max-height:500px;overflow:auto">
+              <Collapse>
+                {this.tableDetailInfo.info.map(column => {
+                  return (
+                    <Panel name={column.title}>
+                      {column.title}
+                      <p slot="content">
+                        <Form label-width={200}>
+                          {column.value.map(val => {
+                            return (
+                              <FormItem label={val.key}>
+                                <Input value={val.value} disabled />
+                              </FormItem>
+                            )
+                          })}
+                        </Form>
+                      </p>
+                    </Panel>
+                  )
+                })}
+              </Collapse>
+            </div>
+          )}
+          {this.tableDetailInfo.type === 'diffVariable' && (
+            <div style="text-align: justify;word-break: break-word;overflow-y:auto;max-height:500px">
+              <div style="text-align: left;">
+                <Alert type="warning">如出现页面值未显示，请点击刷新按钮</Alert>
+              </div>
+              {this.tableDetailInfo.info.map(val => {
+                return (
+                  <div
+                    onClick={() => choiceKey(val)}
+                    style={this.remarkedKeys.includes(val.key) ? 'background:#d9d9d9' : ''}
+                  >
+                    <div style="width: 300px;display:inline-block;word-break: break-all;margin:4px 0;vertical-align: top;text-align:right;cursor:pointer">
+                      <span style={!['', 'NULL'].includes(val.value) ? '' : 'color:red'}>{val.key}</span>
+                    </div>
+                    <div style="width: 740px;display:inline-block;word-break: break-all;margin:4px 0;">
+                      ：{val.value}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          {this.tableDetailInfo.type === 'object' && (
+            <json-viewer value={JSON.parse(this.tableDetailInfo.info)} expand-depth={5}></json-viewer>
+          )}
+          <div style="margin-top:20px;height: 30px">
+            <Button style="float: right;margin-right: 20px" onClick={() => closeModal()}>
+              {this.$t('close')}
+            </Button>
+            <Button style="float: right;margin-right: 20px" type="primary" onClick={() => refreshDiffVariable()}>
+              {this.$t('refresh')}
+            </Button>
+          </div>
+        </Modal>
+      </div>
     )
   }
 }

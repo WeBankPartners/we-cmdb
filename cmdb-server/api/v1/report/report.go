@@ -230,3 +230,23 @@ func ExportReportData(c *gin.Context) {
 	}
 	middleware.ReturnData(c, result)
 }
+
+func CopyReportData(c *gin.Context) {
+	// 导出报表数据
+	var param models.ExportReportParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	result, err := db.ExportReportData(&param)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+	// 导入报表数据
+	if err = db.ImportCiData(result, middleware.GetRequestUser(c)); err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}

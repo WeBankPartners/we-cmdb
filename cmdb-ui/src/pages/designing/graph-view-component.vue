@@ -3,11 +3,12 @@
     <Row>
       <Col span="24">
         <Card>
-          <div class="container-height" :id="'graphMgmt' + graphIndex">
-            <span class="buttons">
-              <Button @click="resetZoom">{{ $t('reset_zoom') }}</Button>
-            </span>
-          </div>
+          <div class="container-height" :id="'graphMgmt' + graphIndex"></div>
+          <span class="buttons">
+            <Button @click="resetZoom">{{ $t('reset_zoom') }}</Button>
+            <Button @click="graphToImg">{{ $t('cmdb_export_img') }}</Button>
+            <Button @click="graphToSvg">{{ $t('cmdb_export_svg') }}</Button>
+          </span>
         </Card>
         <div class="operation-area">
           <Button style="float: right" type="primary" @click="openDrawer = !openDrawer">
@@ -50,11 +51,11 @@
 <script>
 import * as d3 from 'd3-selection'
 import * as d3Zoom from 'd3-zoom'
+import { Canvg } from 'canvg'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import { queryReferenceCiData } from '@/api/server'
+import { queryReferenceCiData, viewGraphDot } from '@/api/server'
 import { addEvent } from '../util/event.js'
-import { renderGraph } from '../util/render-graph.js'
 import Operation from './graph-operation-component'
 import SeqOperation from './graph-sequence-component'
 import mermaid from 'mermaid'
@@ -73,7 +74,9 @@ export default {
       ignoreOperations: [], // 忽略操作，默认忽略action=Confirm的操作
       loading: false, // 是否显示loading动画
       operationLoading: false,
-      dotString: ''
+      dotString: '',
+      confirmTime: '', // 确认时间，获取视图dot有值需传
+      graphNum: null // 视图顺序，通过此获取视图参数
     }
   },
   props: [
@@ -94,7 +97,8 @@ export default {
         if (dom.attr('class') === 'edge') {
           dom.select('path').attr('stroke', this.cachedIdInfo.pathColor)
           dom.select('polygon').attr('fill', this.cachedIdInfo.color)
-          dom.select('polygon').attr('stroke', this.cachedIdInfo.color)
+          dom.select('polygon').attr('stroke', this.cachedIdInfo.pathColor)
+          dom.select('text').attr('fill', this.cachedIdInfo.pathColor)
         } else {
           dom.select(this.cachedIdInfo.graph).attr('fill', this.cachedIdInfo.color)
         }
@@ -107,10 +111,14 @@ export default {
         if (dom.attr('class') === 'edge') {
           this.cachedIdInfo.pathColor = 'edge'
           this.cachedIdInfo.pathColor = dom.select('path').attr('stroke')
-          this.cachedIdInfo.color = dom.select('polygon').attr('fill')
+          const polygon = dom.select('polygon')
+          if (!polygon.empty()) {
+            this.cachedIdInfo.color = dom.select('polygon').attr('fill')
+          }
           dom.select('path').attr('stroke', '#ff9900')
           dom.select('polygon').attr('fill', '#ff9900')
           dom.select('polygon').attr('stroke', '#ff9900')
+          dom.select('text').attr('fill', '#ff9900')
         } else {
           this.cachedIdInfo.type = 'node'
           this.cachedIdInfo.graph = dom.select('polygon')._groups[0][0]
@@ -123,9 +131,53 @@ export default {
           dom.select(this.cachedIdInfo.graph).attr('fill', '#ff9900')
         }
       }
+    },
+    openDrawer: function (val) {
+      const el = document.querySelectorAll('.operation-area')
+      for (let i = 0; i < el.length; i++) {
+        if (val) {
+          el[i].style.width = '450px'
+          el[i].style.height = '100%'
+        } else {
+          el[i].style.width = '200px'
+          el[i].style.height = '32px'
+        }
+      }
     }
   },
   methods: {
+    async graphToImg () {
+      const graphId = 'graphMgmt' + this.graphIndex
+      const graphElement = document.getElementById(graphId)
+      let svgElements = document.body.querySelectorAll(`#${graphId} svg`)
+      const canvas = document.createElement('canvas')
+      canvas.width = graphElement.getBoundingClientRect().width
+      canvas.height = graphElement.getBoundingClientRect().height
+      const context = canvas.getContext('2d')
+      const canvgInstance = await Canvg.from(context, svgElements[0].outerHTML)
+      canvgInstance.resize(
+        graphElement.getBoundingClientRect().width * 3,
+        graphElement.getBoundingClientRect().height * 3
+      )
+      await canvgInstance.render()
+      let pngDataUrl = canvas.toDataURL('image/png')
+      const link = document.createElement('a')
+      link.href = pngDataUrl
+      link.download = this.graphSetting.graphs[this.graphIndex].graphExportName + '.png'
+      link.click()
+    },
+    graphToSvg () {
+      const svgElement = document.getElementById('graphMgmt' + this.graphIndex).querySelector('svg')
+      const serializer = new XMLSerializer()
+      const svgData = serializer.serializeToString(svgElement)
+      const utf8EncodedSvgData = unescape(encodeURIComponent(svgData))
+      const base64SvgData = btoa(utf8EncodedSvgData)
+      const imgData = 'data:image/svg+xml;base64,' + base64SvgData
+      const link = document.createElement('a')
+      link.href = imgData
+      link.download = this.graphSetting.graphs[this.graphIndex].graphExportName + '.svg'
+      link.click()
+    },
     resetZoom () {
       this.graph.graphviz.resetZoom()
     },
@@ -140,7 +192,11 @@ export default {
     setGraphTransform (transform) {
       this.graph.graphviz.zoomSelection().call(this.graph.graphviz.zoomBehavior().transform, transform)
     },
-    async initGraph () {
+    async initGraph (confirmTime, graphNum) {
+      this.openDrawer = false
+      this.confirmTime = confirmTime
+      this.graphNum = graphNum
+      this.graphIndex = graphNum
       this.loading = true
       const initEvent = id => {
         let graph
@@ -209,16 +265,33 @@ export default {
       let graphData = this.graphData
       this.plainDatas = []
       this.buildPlainDatas(graphSetting, graphData, graphIndex)
-      let dotString = renderGraph(
-        graphSetting,
-        graphData,
-        ci => {
-          return '/wecmdb/fonts/' + this.ciTypeMapping[ci].imageFile
-        },
-        [graphIndex]
-      )[0]
+      let params = {
+        viewId: this.graphSetting.viewId,
+        rootCi: this.graphData[0].guid,
+        graphId: this.graphSetting.graphs[this.graphNum].rootData.graph
+      }
+      if (this.confirmTime) {
+        params.confirmTime = this.confirmTime
+      }
+      // let params = {
+      //   viewId: 'app_arc',
+      //   rootCi: 'app_system_design_60b9e3479afe1d2c',
+      //   graphId: 'app_arc__service',
+      // }
+      const { data, statusCode } = await viewGraphDot(params)
+      let dotString = ''
+      if (statusCode === 'OK') {
+        dotString = data
+      }
+      // let dotString = renderGraph(
+      //   graphSetting,
+      //   graphData,
+      //   ci => {
+      //     return '/wecmdb/fonts/' + this.ciTypeMapping[ci].imageFile
+      //   },
+      //   [graphIndex]
+      // )[0]
       this.dotString = dotString
-      // console.log(dotString)
       let graph = d3.select(id)
       if (dotString.startsWith('sequenceDiagram')) {
         const element = document.querySelector(id)
@@ -274,7 +347,6 @@ export default {
           .selectAll(' .loopText')
           .nodes()
           .forEach(node => {
-            // console.log(node)
             let rets = idFinder.exec(node.innerHTML)
             if (rets) {
               node.innerHTML = node.innerHTML.replace(idFinder, '')
@@ -380,6 +452,9 @@ export default {
       })
     },
     buildChildPlainDatas (setting, parent, datas, metadata) {
+      if (!Array.isArray(datas)) {
+        return
+      }
       datas.forEach(data => {
         let node = {
           guid: data.guid,
@@ -488,24 +563,24 @@ export default {
     }
   },
   mounted () {
-    this.initGraph()
+    // this.initGraph()
   }
 }
 </script>
 
 <style lang="scss" scoped>
 .container-height {
-  height: calc(100vh - 290px);
+  height: calc(100vh - 275px);
 }
 .operation-area {
   position: absolute;
-  width: 450px;
-  height: 100%;
+  width: 200px;
+  height: 32px;
   top: 0;
   right: 0;
 }
 .operation-container {
-  height: calc(100vh - 300px);
+  // height: calc(100vh - 300px);
 }
 .buttons {
   position: absolute;

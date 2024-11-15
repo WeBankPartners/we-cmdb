@@ -18,9 +18,9 @@
         </FormItem>
         <FormItem v-if="formData.inputType === 'datetime'" class="form-item-content">
           <DatePicker
-            v-model="ciData[formData.propertyName]"
+            @on-change="val => setDateTime(val, 'ciData', formData.propertyName)"
             disabled
-            type="date"
+            type="datetime"
             placeholder="Select date"
           ></DatePicker>
         </FormItem>
@@ -83,6 +83,9 @@ export default {
     }
   },
   methods: {
+    setDateTime (val, obj, key) {
+      this[obj][key] = val
+    },
     initData (ciAttrs, ciData) {
       this.ciData = ciData[0]
       this.ciAttrs = ciAttrs.map(item => {
