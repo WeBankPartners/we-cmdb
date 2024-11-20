@@ -12,4 +12,7 @@ ADD cmdb-server/cmdb-server $BASE_HOME/
 ADD cmdb-ui/dist $BASE_HOME/public
 
 WORKDIR $BASE_HOME
+RUN addgroup -S apps -g 6000 && adduser -S app -u 6001 -G apps
+RUN chown -R app:apps $BASE_HOME && chmod -R 755 $BASE_HOME
+USER app
 ENTRYPOINT ["/bin/sh", "start.sh"]
