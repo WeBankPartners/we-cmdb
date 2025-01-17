@@ -403,7 +403,7 @@ func DataQueryWithCheckResult(c *gin.Context) {
 		return
 	}
 	// Permissions
-	permissions, tmpErr := db.GetRoleCiDataPermission(middleware.GetRequestRoles(c), c.Param("ciType"))
+	permissions, tmpErr := db.GetRoleCiDataPermission(middleware.GetRequestRoles(c), c.Param("ciType"), "")
 	if tmpErr != nil {
 		log.Logger.Error(fmt.Sprintf("Get role ci data permission failed, err:%s", tmpErr.Error()))
 		middleware.ReturnDataPermissionError(c, tmpErr)
@@ -415,7 +415,7 @@ func DataQueryWithCheckResult(c *gin.Context) {
 		middleware.ReturnDataPermissionError(c, tmpErr)
 		return
 	}
-	if !legalGuidList.Disable && len(legalGuidList.GuidList) == 0 {
+	if !legalGuidList.Legal && len(legalGuidList.GuidList) == 0 {
 		middleware.ReturnDataPermissionDenyError(c)
 		return
 	}

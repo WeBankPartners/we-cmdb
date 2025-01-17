@@ -436,7 +436,7 @@ func checkTableIfExists(tableName string) error {
 
 func buildColumnSqlFromCiAttr(ciAttr *models.SysCiTypeAttrTable) (nowTable, historyTable string) {
 	nowTable = fmt.Sprintf("`%s` %s", ciAttr.Name, ciAttr.DataType)
-	if ciAttr.DataType != "datetime" {
+	if ciAttr.DataType != "datetime" && ciAttr.DataType != "float" {
 		nowTable += fmt.Sprintf("(%d)", ciAttr.DataLength)
 	}
 	if ciAttr.Nullable == "no" {

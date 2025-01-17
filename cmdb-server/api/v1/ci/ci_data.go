@@ -24,7 +24,7 @@ func DataQuery(c *gin.Context) {
 		return
 	}
 	// Permissions
-	permissions, tmpErr := db.GetRoleCiDataPermission(middleware.GetRequestRoles(c), c.Param("ciType"))
+	permissions, tmpErr := db.GetRoleCiDataPermission(middleware.GetRequestRoles(c), c.Param("ciType"), "")
 	if tmpErr != nil {
 		middleware.ReturnDataPermissionError(c, tmpErr)
 		return
@@ -34,7 +34,7 @@ func DataQuery(c *gin.Context) {
 		middleware.ReturnDataPermissionError(c, tmpErr)
 		return
 	}
-	if !legalGuidList.Disable && len(legalGuidList.GuidList) == 0 {
+	if !legalGuidList.Legal && len(legalGuidList.GuidList) == 0 {
 		middleware.ReturnDataPermissionDenyError(c)
 		return
 	}
@@ -90,13 +90,23 @@ func DataOperation(c *gin.Context) {
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
-	handleParam := models.HandleCiDataParam{InputData: param, CiTypeId: c.Param("ciType"), Operation: c.Param("operation"), Operator: middleware.GetRequestUser(c), Roles: middleware.GetRequestRoles(c), Permission: true}
+	//
+	onlyQueryStr := c.Query("onlyQuery")
+	var onlyQuery bool
+	if onlyQueryStr != "" {
+		onlyQuery, _ = strconv.ParseBool(onlyQueryStr)
+	}
+	handleParam := models.HandleCiDataParam{InputData: param, CiTypeId: c.Param("ciType"), Operation: c.Param("operation"), Operator: middleware.GetRequestUser(c), Roles: middleware.GetRequestRoles(c), Permission: true, OnlyQuery: onlyQuery}
 	handleParam.UserToken = c.GetHeader("Authorization")
 	//resultData, err := db.HandleCiDataOperation(param, c.Param("ciType"), c.Param("operation"), middleware.GetRequestUser(c), "", middleware.GetRequestRoles(c), true, false)
-	resultData, newInputData, err := db.HandleCiDataOperation(handleParam)
+	resultData, newInputData, handleErr := db.HandleCiDataOperation(handleParam)
 	c.Set("requestBody", newInputData)
-	if err != nil {
-		middleware.ReturnServerHandleError(c, err)
+	if handleErr != nil {
+		if strings.Contains(handleErr.Error(), "permission deny") {
+			middleware.ReturnDataPermissionDenyWithError(c, handleErr)
+		} else {
+			middleware.ReturnServerHandleError(c, handleErr)
+		}
 	} else {
 		middleware.ReturnData(c, resultData)
 	}
@@ -152,11 +162,15 @@ func DataPasswordQuery(c *gin.Context) {
 	if c.Query("history_id") != "" {
 		id, _ = strconv.Atoi(c.Query("history_id"))
 	}
-	password, err := db.DataPasswordQuery(ciTypeId, guid, field, id)
+	result, err := db.DataColumnQuery(ciTypeId, guid, field, id, middleware.GetRequestRoles(c), true)
 	if err != nil {
-		middleware.ReturnServerHandleError(c, err)
+		if strings.Contains(err.Error(), "permission deny") {
+			middleware.ReturnDataPermissionDenyWithError(c, err)
+		} else {
+			middleware.ReturnServerHandleError(c, err)
+		}
 	} else {
-		middleware.ReturnData(c, password)
+		middleware.ReturnData(c, result)
 	}
 }
 
@@ -187,7 +201,7 @@ func DataImport(c *gin.Context) {
 	//middleware.ReturnParamValidateError(c, fmt.Errorf("rootCiType is %s,not %s", param.RootCiType, ciTypeId))
 	//return
 	//}
-	if err = db.ImportCiData(&param, middleware.GetRequestUser(c)); err != nil {
+	if err = db.ImportCiData(&param, middleware.GetRequestUser(c), false); err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
 		middleware.ReturnSuccess(c)
@@ -332,4 +346,80 @@ func GetExtendModelData(c *gin.Context) {
 		return
 	}
 	middleware.ReturnPageData(c, models.PageInfo{}, result)
+}
+
+func AttrSensitiveDataQuery(c *gin.Context) {
+	var err error
+	var paramList []*models.AttrPermissionQueryObj
+	if err = c.ShouldBindJSON(&paramList); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	userRoles := middleware.GetRequestRoles(c)
+	queryAttrPermissionMap := make(map[string]*models.CiDataLegalGuidList)
+	updateAttrPermissionMap := make(map[string]*models.CiDataLegalGuidList)
+	for _, param := range paramList {
+		attrId := param.CiType + models.SysTableIdConnector + param.AttrName
+		if _, ok := queryAttrPermissionMap[attrId]; !ok {
+			permissions, tmpGetPermissionConfigErr := db.GetRoleCiDataPermission(userRoles, param.CiType, attrId)
+			if tmpGetPermissionConfigErr != nil {
+				err = tmpGetPermissionConfigErr
+				break
+			}
+			tmpLegalConfig, tmpGetPermissionGuidListErr := db.GetCiDataPermissionGuidList(&permissions, "query")
+			if tmpGetPermissionGuidListErr != nil {
+				err = tmpGetPermissionGuidListErr
+				break
+			}
+			queryAttrPermissionMap[attrId] = &tmpLegalConfig
+		}
+		queryConfig := queryAttrPermissionMap[attrId]
+		if queryConfig.Legal {
+			param.QueryPermission = true
+		} else {
+			for _, legalGuid := range queryConfig.GuidList {
+				if legalGuid == param.Guid {
+					param.QueryPermission = true
+					break
+				}
+			}
+		}
+		if param.QueryPermission {
+			result, queryDataErr := db.DataColumnQuery(param.CiType, param.Guid, param.AttrName, param.HistoryId, userRoles, false)
+			if queryDataErr != nil {
+				err = fmt.Errorf("query column value from ci:%s attr:%s guid:%s fail,%s ", param.CiType, param.AttrName, param.Guid, queryDataErr.Error())
+				break
+			}
+			param.Value = result
+		}
+		if _, ok := updateAttrPermissionMap[attrId]; !ok {
+			permissions, tmpGetPermissionConfigErr := db.GetRoleCiDataPermission(userRoles, param.CiType, attrId)
+			if tmpGetPermissionConfigErr != nil {
+				err = tmpGetPermissionConfigErr
+				break
+			}
+			tmpLegalConfig, tmpGetPermissionGuidListErr := db.GetCiDataPermissionGuidList(&permissions, "update")
+			if tmpGetPermissionGuidListErr != nil {
+				err = tmpGetPermissionGuidListErr
+				break
+			}
+			updateAttrPermissionMap[attrId] = &tmpLegalConfig
+		}
+		updateConfig := updateAttrPermissionMap[attrId]
+		if updateConfig.Legal {
+			param.UpdatePermission = true
+		} else {
+			for _, legalGuid := range updateConfig.GuidList {
+				if legalGuid == param.Guid {
+					param.UpdatePermission = true
+					break
+				}
+			}
+		}
+	}
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnData(c, paramList)
+	}
 }

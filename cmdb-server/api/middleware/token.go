@@ -8,6 +8,16 @@ import (
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"regexp"
+	"strings"
+)
+
+var (
+	whitePathMap = map[string]string{
+		"/wecmdb/entities/${ciType}/query": "POST",
+		"/wecmdb/data-model":               "GET",
+	}
+	ApiMenuMap = make(map[string][]string) // key -> apiCode  value -> menuList
 )
 
 func GetRequestUser(c *gin.Context) string {
@@ -25,18 +35,39 @@ func AuthToken() gin.HandlerFunc {
 			ReturnTokenValidateError(c, err)
 			c.Abort()
 		} else {
-			if models.Config.MenuApiMap.Enable {
-				legal, validateErr := db.ValidateMenuApi(GetRequestRoles(c), c.Request.RequestURI, c.Request.Method)
-				if validateErr != nil {
-					ReturnTokenValidateError(c, validateErr)
-					c.Abort()
+			// 白名单URL直接放行
+			for path, method := range whitePathMap {
+				if strings.ToLower(method) != strings.ToLower(c.Request.Method) {
+					continue
+				}
+				re := regexp.MustCompile(db.BuildRegexPattern(path))
+				if re.MatchString(c.Request.URL.Path) {
+					c.Next()
+					return
+				}
+			}
+
+			if _, ok := whitePathMap[c.Request.URL.Path]; ok {
+				c.Next()
+				return
+			}
+			// 子系统直接放行
+			if strings.Contains(strings.Join(GetRequestRoles(c), ","), "SUB_SYSTEM") {
+				c.Next()
+				return
+			}
+			if models.Config.MenuApiMap.Enable == "true" || strings.TrimSpace(models.Config.MenuApiMap.Enable) == "" || strings.ToUpper(models.Config.MenuApiMap.Enable) == "Y" {
+				legal := false
+				if allowMenuList, ok := ApiMenuMap[c.GetString(models.ContextApiCode)]; ok {
+					legal = compareStringList(GetRequestRoles(c), allowMenuList)
 				} else {
-					if !legal {
-						ReturnApiPermissionError(c)
-						c.Abort()
-					} else {
-						c.Next()
-					}
+					legal = db.ValidateMenuApi(GetRequestRoles(c), c.Request.URL.Path, c.Request.Method)
+				}
+				if legal {
+					c.Next()
+				} else {
+					ReturnApiPermissionError(c)
+					c.Abort()
 				}
 			} else {
 				c.Next()
@@ -46,9 +77,6 @@ func AuthToken() gin.HandlerFunc {
 }
 
 func authRequest(c *gin.Context) error {
-	//if !models.Config.Auth.Enable {
-	//	return nil
-	//}
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		return fmt.Errorf("Can not find Request Header Authorization ")
@@ -76,6 +104,45 @@ func AuthCoreRequestToken() gin.HandlerFunc {
 			c.Next()
 		}
 	}
+}
+
+func InitApiMenuMap(apiMenuCodeMap map[string]string) {
+	var exist bool
+	matchUrlMap := make(map[string]int)
+	for k, code := range apiMenuCodeMap {
+		exist = false
+		re := regexp.MustCompile("^" + regexp.MustCompile(":[\\w\\-]+").ReplaceAllString(strings.ToLower(k), "([\\w\\.\\-\\$\\{\\}:\\[\\]]+)") + "$")
+		for _, menuApi := range models.MenuApiGlobalList {
+			for _, item := range menuApi.Urls {
+				key := strings.ToLower(item.Method + "_" + item.Url)
+				if re.MatchString(key) {
+					exist = true
+					if existList, existFlag := ApiMenuMap[code]; existFlag {
+						ApiMenuMap[code] = append(existList, menuApi.Menu)
+					} else {
+						ApiMenuMap[code] = []string{menuApi.Menu}
+					}
+					matchUrlMap[item.Method+"_"+item.Url] = 1
+				}
+			}
+		}
+		if !exist {
+			log.Logger.Info("InitApiMenuMap menu-api-json lack url", log.String("path", k))
+		}
+	}
+	for _, menuApi := range models.MenuApiGlobalList {
+		for _, item := range menuApi.Urls {
+			if _, ok := matchUrlMap[item.Method+"_"+item.Url]; !ok {
+				log.Logger.Info("InitApiMenuMap can not match menuUrl", log.String("menu", menuApi.Menu), log.String("method", item.Method), log.String("url", item.Url))
+			}
+		}
+	}
+	for k, v := range ApiMenuMap {
+		if len(v) > 1 {
+			ApiMenuMap[k] = DistinctStringList(v, []string{})
+		}
+	}
+	log.Logger.Debug("InitApiMenuMap done", log.JsonObj("ApiMenuMap", ApiMenuMap))
 }
 
 func AuthCorePluginToken() gin.HandlerFunc {
@@ -119,4 +186,37 @@ func authCoreRequest(c *gin.Context) error {
 	c.Set("user", authToken.User)
 	c.Set("roles", authToken.Roles)
 	return nil
+}
+
+func DistinctStringList(input, excludeList []string) (output []string) {
+	if len(input) == 0 {
+		return
+	}
+	existMap := make(map[string]int)
+	for _, v := range excludeList {
+		existMap[v] = 1
+	}
+	for _, v := range input {
+		if _, ok := existMap[v]; !ok {
+			output = append(output, v)
+			existMap[v] = 1
+		}
+	}
+	return
+}
+
+func compareStringList(from, target []string) bool {
+	match := false
+	for _, f := range from {
+		for _, t := range target {
+			if f == t {
+				match = true
+				break
+			}
+		}
+		if match {
+			break
+		}
+	}
+	return match
 }

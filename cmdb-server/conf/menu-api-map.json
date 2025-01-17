@@ -1,17 +1,1356 @@
-[{
-  "menu": "configuration_model",
-  "urls": [
-    {
-      "url": "/api/v1/ci-types",
-      "method": "GET"
-    },
-    {
-      "url": "/api/v1/base-key/categories/ci_layer",
-      "method": "GET"
-    },
-    {
-      "url": "/api/v1/base-key/categories/ci_group",
-      "method": "GET"
-    }
-  ]
-}]
+[
+  {
+    "menu": "data_query_ci",
+    "content": "数据查询(CI)",
+    "path": "/wecmdb/data-query-ci",
+    "urls": [
+      {
+        "url": "/wecmdb/api/v1/referenceEnumCodes/${this.attrId}/query",
+        "method": "post"
+      },
+      {
+        "key": "queryReferenceCiData",
+        "url": "/wecmdb/api/v1/ci-data/reference-data/query/${data.attrId}",
+        "method": "post"
+      },
+      {
+        "key": "searchSensitiveData",
+        "url": "/wecmdb/api/v1/ci-data/sensitive-attr/query",
+        "method": "post"
+      },
+      {
+        "key": "getAllCITypesByLayers",
+        "url": "/wecmdb/api/v1/ci-types",
+        "method": "get"
+      },
+      {
+        "key": "getEnumCodesByCategoryId",
+        "url": "/wecmdb/api/v1/base-key/categories/${catId}",
+        "method": "get"
+      },
+      {
+        "key": "tableOptionExcute",
+        "url": "/wecmdb/api/v1/ci-data/do/${type}/${ciTypeId}",
+        "method": "post"
+      },
+      {
+        "key": "operateCiState",
+        "url": "/wecmdb/api/v1/ci/state/operate?operation=${op}",
+        "method": "post"
+      },
+      {
+        "key": "getEnumCategoriesById",
+        "url": "/wecmdb/api/v1/base-key/categories/${id}",
+        "method": "get"
+      },
+      {
+        "key": "getStateTransition",
+        "url": "/wecmdb/api/v1/state-transition/${ciTypeId}",
+        "method": "get"
+      },
+      {
+        "key": "importReport",
+        "url": "/wecmdb/api/v1/ci-data/import/${data.ciType}",
+        "method": "post"
+      },
+      {
+        "key": "importCiData",
+        "url": "/wecmdb/api/v1/ci-data/simple/import/${data.ciType}",
+        "method": "post"
+      },
+      {
+        "key": "getSelectFormData",
+        "url": "/wecmdb/api/v1/ci-data/action-query/${params.operation}/${params.ciType}/${params.guid}",
+        "method": "get"
+      },
+      {
+        "key": "getCiTypeAttributes",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "queryPassword",
+        "url": "/wecmdb/api/v1/ci-data/query-password/${ciTypeId}/${guid}/${field}",
+        "method": "get"
+      },
+      {
+        "key": "getExtRefDetails",
+        "url": "/wecmdb/api/v1/extend/ci-data/model/query/${id}",
+        "method": "post"
+      },
+      {
+        "key": "getCiTypeNameMap",
+        "url": "/wecmdb/api/v1/ci-types/query/id-and-name",
+        "method": "get"
+      },
+      {
+        "key": "getAllCITypesByLayerWithAttr",
+        "url": "/wecmdb/api/v1/ci-types",
+        "method": "get"
+      },
+      {
+        "key": "getEncryptKey",
+        "url": "/wecmdb/api/v1/ci-data/password/encrypt-key",
+        "method": "get"
+      },
+      {
+        "key": "getRefCiTypeFrom",
+        "url": "/wecmdb/api/v1/ci-types/references/${id}",
+        "method": "get"
+      },
+      {
+        "key": "getCiTypeAttr",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "queryCiData",
+        "url": "/wecmdb/api/v1/ci-data/query/${data.id}",
+        "method": "post"
+      }
+    ]
+  },
+  {
+    "menu": "data_query_report",
+    "content": "数据查询(报表)",
+    "path": "/wecmdb/report-query",
+    "urls": [
+      {
+        "url": "/wecmdb/api/v1/report-import-history/refresh-check-result/query",
+        "method": "GET"
+      },
+      {
+        "url": "/wecmdb/api/v1/referenceEnumCodes/${this.attrId}/query",
+        "method": "post"
+      },
+      {
+        "key": "导入",
+        "url": "/wecmdb/api/v1/ci-data/import/app_system_design",
+        "method": "post"
+      },
+      {
+        "key": "searchSensitiveData",
+        "url": "/wecmdb/api/v1/ci-data/sensitive-attr/query",
+        "method": "post"
+      },
+      {
+        "key": "getReportListByPermission",
+        "url": "/wecmdb/api/v1/reports",
+        "method": "get"
+      },
+      {
+        "key": "getReportData",
+        "url": "/wecmdb/api/v1/report-data/${reportId}",
+        "method": "post"
+      },
+      {
+        "key": "exportReport",
+        "url": "/wecmdb/api/v1/report/export",
+        "method": "post"
+      },
+      {
+        "key": "getReportFilterData",
+        "url": "/wecmdb/api/v1/report-flat-struct/${reportId}",
+        "method": "get"
+      },
+      {
+        "key": "getCiTypeAttr",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "graphQueryRootCI",
+        "url": "/wecmdb/api/v1/view-data",
+        "method": "post"
+      },
+      {
+        "key": "getReportStruct",
+        "url": "/wecmdb/api/v1/report-struct/${reportId}",
+        "method": "get"
+      },
+      {
+        "key": "getCiTypeNameMap",
+        "url": "/wecmdb/api/v1/ci-types/query/id-and-name",
+        "method": "get"
+      },
+      {
+        "key": "queryReferenceCiData",
+        "url": "/wecmdb/api/v1/ci-data/reference-data/query/${data.attrId}",
+        "method": "post"
+      },
+      {
+        "key": "reportCopyQuick",
+        "url": "/wecmdb/api/v1/report/copy",
+        "method": "post"
+      },
+      {
+        "key": "getEnumCategoriesById",
+        "url": "/wecmdb/api/v1/base-key/categories/${id}",
+        "method": "get"
+      },
+      {
+        "key": "queryCiData",
+        "url": "/wecmdb/api/v1/ci-data/query/${data.id}",
+        "method": "post"
+      },
+      {
+        "key": "queryPassword",
+        "url": "/wecmdb/api/v1/ci-data/query-password/${ciTypeId}/${guid}/${field}",
+        "method": "get"
+      },
+      {
+        "key": "getRefCiTypeFrom",
+        "url": "/wecmdb/api/v1/ci-types/references/${id}",
+        "method": "get"
+      },
+      {
+        "key": "configReport",
+        "url": "/wecmdb/api/v1/report-objects",
+        "method": "post"
+      }
+    ]
+  },
+  {
+    "menu": "data_query_view",
+    "content": "数据查询(视图)",
+    "path": "/wecmdb/data-query-view",
+    "urls": [
+      {
+        "url": "/wecmdb/api/v1/referenceEnumCodes/${this.attrId}/query",
+        "method": "post"
+      },
+      {
+        "key": "searchSensitiveData",
+        "url": "/wecmdb/api/v1/ci-data/sensitive-attr/query",
+        "method": "post"
+      },
+      {
+        "key": "queryCiData",
+        "url": "/wecmdb/api/v1/ci-data/query/${data.id}",
+        "method": "post"
+      },
+      {
+        "key": "getCiTypeAttributes",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "queryPassword",
+        "url": "/wecmdb/api/v1/ci-data/query-password/${ciTypeId}/${guid}/${field}",
+        "method": "get"
+      },
+      {
+        "key": "getExtRefDetails",
+        "url": "/wecmdb/api/v1/extend/ci-data/model/query/${id}",
+        "method": "post"
+      },
+      {
+        "key": "getCiTypeNameMap",
+        "url": "/wecmdb/api/v1/ci-types/query/id-and-name",
+        "method": "get"
+      },
+      {
+        "key": "getAllCITypesByLayerWithAttr",
+        "url": "/wecmdb/api/v1/ci-types",
+        "method": "get"
+      },
+      {
+        "key": "getEncryptKey",
+        "url": "/wecmdb/api/v1/ci-data/password/encrypt-key",
+        "method": "get"
+      },
+      {
+        "key": "getRefCiTypeFrom",
+        "url": "/wecmdb/api/v1/ci-types/references/${id}",
+        "method": "get"
+      },
+      {
+        "key": "getCiTypeAttr",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "getEnumCodesByCategoryId",
+        "url": "/wecmdb/api/v1/base-key/categories/${catId}",
+        "method": "get"
+      },
+      {
+        "key": "getSelectFormData",
+        "url": "/wecmdb/api/v1/ci-data/action-query/${params.operation}/${params.ciType}/${params.guid}",
+        "method": "get"
+      },
+      {
+        "key": "tableOptionExcute",
+        "url": "/wecmdb/api/v1/ci-data/do/${type}/${ciTypeId}",
+        "method": "post"
+      },
+      {
+        "key": "queryReferenceCiData",
+        "url": "/wecmdb/api/v1/ci-data/reference-data/query/${data.attrId}",
+        "method": "post"
+      },
+      {
+        "key": "viewGraphDot",
+        "url": "/wecmdb/api/v1/view-graph-data",
+        "method": "post"
+      },
+      {
+        "key": "graphViews",
+        "url": "/wecmdb/api/v1/views",
+        "method": "get"
+      },
+      {
+        "key": "graphViewDetail",
+        "url": "/wecmdb/api/v1/view/${id}",
+        "method": "get"
+      },
+      {
+        "key": "graphQueryRootCI",
+        "url": "/wecmdb/api/v1/view-data",
+        "method": "post"
+      },
+      {
+        "key": "graphCiDataOperation",
+        "url": "/wecmdb/api/v1/ci-data/do/${op}/${ciType}",
+        "method": "post"
+      },
+      {
+        "key": "graphQueryStateTransition",
+        "url": "/wecmdb/api/v1/state-transition/${ciType}",
+        "method": "get"
+      },
+      {
+        "key": "getAllCITypesWithAttr",
+        "url": "/wecmdb/api/v1/ci-types",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "data_mgmt_ci",
+    "content": "数据管理(CI)",
+    "path": "/wecmdb/data-mgmt-ci",
+    "urls": [
+      {
+        "url": "/wecmdb/api/v1/referenceEnumCodes/${this.attrId}/query",
+        "method": "post"
+      },
+      {
+        "key": "queryReferenceCiData",
+        "url": "/wecmdb/api/v1/ci-data/reference-data/query/${data.attrId}",
+        "method": "post"
+      },
+      {
+        "key": "searchSensitiveData",
+        "url": "/wecmdb/api/v1/ci-data/sensitive-attr/query",
+        "method": "post"
+      },
+      {
+        "key": "getAllCITypesByLayers",
+        "url": "/wecmdb/api/v1/ci-types",
+        "method": "get"
+      },
+      {
+        "key": "getAllCITypesByLayerWithAttr",
+        "url": "/wecmdb/api/v1/ci-types",
+        "method": "get"
+      },
+      {
+        "key": "getEnumCodesByCategoryId",
+        "url": "/wecmdb/api/v1/base-key/categories/${catId}",
+        "method": "get"
+      },
+      {
+        "key": "getCiTypeAttributes",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "queryCiData",
+        "url": "/wecmdb/api/v1/ci-data/query/${data.id}",
+        "method": "post"
+      },
+      {
+        "key": "tableOptionExcute",
+        "url": "/wecmdb/api/v1/ci-data/do/${type}/${ciTypeId}",
+        "method": "post"
+      },
+      {
+        "key": "operateCiState",
+        "url": "/wecmdb/api/v1/ci/state/operate?operation=${op}",
+        "method": "post"
+      },
+      {
+        "key": "getEnumCategoriesById",
+        "url": "/wecmdb/api/v1/base-key/categories/${id}",
+        "method": "get"
+      },
+      {
+        "key": "getStateTransition",
+        "url": "/wecmdb/api/v1/state-transition/${ciTypeId}",
+        "method": "get"
+      },
+      {
+        "key": "importReport",
+        "url": "/wecmdb/api/v1/ci-data/import/${data.ciType}",
+        "method": "post"
+      },
+      {
+        "key": "importCiData",
+        "url": "/wecmdb/api/v1/ci-data/simple/import/${data.ciType}",
+        "method": "post"
+      },
+      {
+        "key": "getSelectFormData",
+        "url": "/wecmdb/api/v1/ci-data/action-query/${params.operation}/${params.ciType}/${params.guid}",
+        "method": "get"
+      },
+      {
+        "key": "queryPassword",
+        "url": "/wecmdb/api/v1/ci-data/query-password/${ciTypeId}/${guid}/${field}",
+        "method": "get"
+      },
+      {
+        "key": "getExtRefDetails",
+        "url": "/wecmdb/api/v1/extend/ci-data/model/query/${id}",
+        "method": "post"
+      },
+      {
+        "key": "getCiTypeNameMap",
+        "url": "/wecmdb/api/v1/ci-types/query/id-and-name",
+        "method": "get"
+      },
+      {
+        "key": "getEncryptKey",
+        "url": "/wecmdb/api/v1/ci-data/password/encrypt-key",
+        "method": "get"
+      },
+      {
+        "key": "getRefCiTypeFrom",
+        "url": "/wecmdb/api/v1/ci-types/references/${id}",
+        "method": "get"
+      },
+      {
+        "key": "getCiTypeAttr",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "data_mgmt_view",
+    "content": "数据管理(视图)",
+    "path": "/wecmdb/data-mgmt-view",
+    "urls": [
+      {
+        "url": "/wecmdb/api/v1/referenceEnumCodes/${this.attrId}/query",
+        "method": "post"
+      },
+      {
+        "key": "searchSensitiveData",
+        "url": "/wecmdb/api/v1/ci-data/sensitive-attr/query",
+        "method": "post"
+      },
+      {
+        "key": "queryCiData",
+        "url": "/wecmdb/api/v1/ci-data/query/${data.id}",
+        "method": "post"
+      },
+      {
+        "key": "getCiTypeAttributes",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "queryPassword",
+        "url": "/wecmdb/api/v1/ci-data/query-password/${ciTypeId}/${guid}/${field}",
+        "method": "get"
+      },
+      {
+        "key": "getExtRefDetails",
+        "url": "/wecmdb/api/v1/extend/ci-data/model/query/${id}",
+        "method": "post"
+      },
+      {
+        "key": "getCiTypeNameMap",
+        "url": "/wecmdb/api/v1/ci-types/query/id-and-name",
+        "method": "get"
+      },
+      {
+        "key": "getAllCITypesByLayerWithAttr",
+        "url": "/wecmdb/api/v1/ci-types",
+        "method": "get"
+      },
+      {
+        "key": "getEncryptKey",
+        "url": "/wecmdb/api/v1/ci-data/password/encrypt-key",
+        "method": "get"
+      },
+      {
+        "key": "getRefCiTypeFrom",
+        "url": "/wecmdb/api/v1/ci-types/references/${id}",
+        "method": "get"
+      },
+      {
+        "key": "getCiTypeAttr",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "getEnumCodesByCategoryId",
+        "url": "/wecmdb/api/v1/base-key/categories/${catId}",
+        "method": "get"
+      },
+      {
+        "key": "getSelectFormData",
+        "url": "/wecmdb/api/v1/ci-data/action-query/${params.operation}/${params.ciType}/${params.guid}",
+        "method": "get"
+      },
+      {
+        "key": "tableOptionExcute",
+        "url": "/wecmdb/api/v1/ci-data/do/${type}/${ciTypeId}",
+        "method": "post"
+      },
+      {
+        "key": "operateCiState",
+        "url": "/wecmdb/api/v1/ci/state/operate?operation=${op}",
+        "method": "post"
+      },
+      {
+        "key": "getEnumCategoriesById",
+        "url": "/wecmdb/api/v1/base-key/categories/${id}",
+        "method": "get"
+      },
+      {
+        "key": "getStateTransition",
+        "url": "/wecmdb/api/v1/state-transition/${ciTypeId}",
+        "method": "get"
+      },
+      {
+        "key": "graphCiDataOperation",
+        "url": "/wecmdb/api/v1/ci-data/do/${op}/${ciType}",
+        "method": "post"
+      },
+      {
+        "key": "graphQueryStateTransition",
+        "url": "/wecmdb/api/v1/state-transition/${ciType}",
+        "method": "get"
+      },
+      {
+        "key": "queryReferenceCiData",
+        "url": "/wecmdb/api/v1/ci-data/reference-data/query/${data.attrId}",
+        "method": "post"
+      },
+      {
+        "key": "viewGraphDot",
+        "url": "/wecmdb/api/v1/view-graph-data",
+        "method": "post"
+      },
+      {
+        "key": "graphViews",
+        "url": "/wecmdb/api/v1/views",
+        "method": "get"
+      },
+      {
+        "key": "graphViewDetail",
+        "url": "/wecmdb/api/v1/view/${id}",
+        "method": "get"
+      },
+      {
+        "key": "graphQueryRootCI",
+        "url": "/wecmdb/api/v1/view-data",
+        "method": "post"
+      },
+      {
+        "key": "graphCiConfirm",
+        "url": "/wecmdb/api/v1/view-confirm",
+        "method": "post"
+      },
+      {
+        "key": "getAllCITypesWithAttr",
+        "url": "/wecmdb/api/v1/ci-types",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "data_management_import",
+    "content": "数据管理(导入)",
+    "path": "/wecmdb/designing/data-management-import",
+    "urls": [
+      {
+        "url": "/wecmdb/api/v1/report-import-history/ci-data/query/${this.id}",
+        "method": "POST"
+      },
+      {
+        "url": "/wecmdb/api/v1/report-import-history/refresh-check-result/query",
+        "method": "GET"
+      },
+      {
+        "url": "/wecmdb/api/v1/referenceEnumCodes/${this.attrId}/query",
+        "method": "post"
+      },
+      {
+        "url": "/wecmdb/api/v1/report-import-history/ci-types-attr/${guid}/attributes",
+        "method": "GET"
+      },
+      {
+        "url": "/wecmdb/api/v1/report-import-history/query",
+        "method": "GET"
+      },
+      {
+        "key": "searchSensitiveData",
+        "url": "/wecmdb/api/v1/ci-data/sensitive-attr/query",
+        "method": "post"
+      },
+      {
+        "key": "导入",
+        "url": "/wecmdb/api/v1/ci-data/import/app_system_design",
+        "method": "post"
+      },
+      {
+        "key": "withdrawSingleImportData",
+        "url": "/wecmdb/api/v1/report-import-history/cancel-ci-data",
+        "method": "post"
+      },
+      {
+        "key": "confirmSingleImportData",
+        "url": "/wecmdb/api/v1/report-import-history/confirm-ci-data",
+        "method": "post"
+      },
+      {
+        "key": "getReportListByPermission",
+        "url": "/wecmdb/api/v1/reports",
+        "method": "get"
+      },
+      {
+        "key": "graphQueryRootCI",
+        "url": "/wecmdb/api/v1/view-data",
+        "method": "post"
+      },
+      {
+        "key": "searchHistoryRecord",
+        "url": "/wecmdb/api/v1/report-import-history/list",
+        "method": "post"
+      },
+      {
+        "key": "getAllCreateUser",
+        "url": "/wecmdb/api/v1/report-import-history/user",
+        "method": "get"
+      },
+      {
+        "key": "refreshImportList",
+        "url": "/wecmdb/api/v1/report-import-history/refresh-check-result/list",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "model_configuration",
+    "content": "模型配置",
+    "path": "/wecmdb/model-configuration",
+    "urls": [
+      {
+        "url": "/wecmdb/api/v1/base-key/codes/swap-position",
+        "method": "post"
+      },
+      {
+        "url": "/wecmdb/api/v1/referenceEnumCodes/${this.attrId}/query",
+        "method": "post"
+      },
+      {
+        "url": "/wecmdb/api/v1/extend/ci-types/model/list",
+        "method": "GET"
+      },
+      {
+        "key": "queryCiData",
+        "url": "/wecmdb/api/v1/ci-data/query/${data.id}",
+        "method": "post"
+      },
+      {
+        "key": "getCiTypeAttributes",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "queryPassword",
+        "url": "/wecmdb/api/v1/ci-data/query-password/${ciTypeId}/${guid}/${field}",
+        "method": "get"
+      },
+      {
+        "key": "getExtRefDetails",
+        "url": "/wecmdb/api/v1/extend/ci-data/model/query/${id}",
+        "method": "post"
+      },
+      {
+        "key": "getCiTypeNameMap",
+        "url": "/wecmdb/api/v1/ci-types/query/id-and-name",
+        "method": "get"
+      },
+      {
+        "key": "getAllCITypesByLayerWithAttr",
+        "url": "/wecmdb/api/v1/ci-types",
+        "method": "get"
+      },
+      {
+        "key": "getEncryptKey",
+        "url": "/wecmdb/api/v1/ci-data/password/encrypt-key",
+        "method": "get"
+      },
+      {
+        "key": "getRefCiTypeFrom",
+        "url": "/wecmdb/api/v1/ci-types/references/${id}",
+        "method": "get"
+      },
+      {
+        "key": "getCiTypeAttr",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "getEnumCodesByCategoryId",
+        "url": "/wecmdb/api/v1/base-key/categories/${catId}",
+        "method": "get"
+      },
+      {
+        "key": "getPermissionList",
+        "url": "/wecmdb/api/v1/permissions/list/${roleCiType}",
+        "method": "get"
+      },
+      {
+        "key": "addPermissionList",
+        "url": "/wecmdb/api/v1/permissions/list/${roleCiType}",
+        "method": "post"
+      },
+      {
+        "key": "editPermissionList",
+        "url": "/wecmdb/api/v1/permissions/list/${roleCiType}",
+        "method": "put"
+      },
+      {
+        "key": "deletePermissionList",
+        "url": "/wecmdb/api/v1/permissions/list/${roleCiType}",
+        "method": "delete"
+      },
+      {
+        "key": "getAllUsers",
+        "url": "/wecmdb/api/v1/user",
+        "method": "get"
+      },
+      {
+        "key": "getAllRoles",
+        "url": "/wecmdb/api/v1/roles",
+        "method": "get"
+      },
+      {
+        "key": "addRole",
+        "url": "/wecmdb/api/v1/roles",
+        "method": "post"
+      },
+      {
+        "key": "addUser",
+        "url": "/wecmdb/api/v1/user",
+        "method": "post"
+      },
+      {
+        "key": "addUsersToRole",
+        "url": "/wecmdb/api/v1/roles/user",
+        "method": "post"
+      },
+      {
+        "key": "getoperationPermissionsByRole",
+        "url": "/wecmdb/api/v1/permissions/ci/${roleId}",
+        "method": "get"
+      },
+      {
+        "key": "addDataPermissionAction",
+        "url": "/wecmdb/api/v1/roles/${roleName}/citypes/${ciTypeId}/actions/${actionCode}",
+        "method": "post"
+      },
+      {
+        "key": "removeDataPermissionAction",
+        "url": "/wecmdb/api/v1/roles/${roleName}/citypes/${ciTypeId}/actions/${actionCode}",
+        "method": "delete"
+      },
+      {
+        "key": "getRoleCiTypeCtrlAttributesByRoleCiTypeId",
+        "url": "/wecmdb/api/v1/permissions/condition/${roleCiType}",
+        "method": "get"
+      },
+      {
+        "key": "deleteRoleCiTypeCtrlAttributes",
+        "url": "/wecmdb/api/v1/permissions/condition/${roleCitypeId}",
+        "method": "delete"
+      },
+      {
+        "key": "assignCiTypePermissionForRoleInBatch",
+        "url": "/wecmdb/api/v1/permissions/ci/${roleId}",
+        "method": "post"
+      },
+      {
+        "key": "updateRoleCiTypeCtrlAttributes",
+        "url": "/wecmdb/api/v1/permissions/condition/${roleCitypeId}",
+        "method": "put"
+      },
+      {
+        "key": "createRoleCiTypeCtrlAttributes",
+        "url": "/wecmdb/api/v1/permissions/condition/${roleCitypeId}",
+        "method": "post"
+      },
+      {
+        "key": "getAllSystemEnumCodesWithPayload",
+        "url": "/wecmdb/api/v1/base-key/codes/query",
+        "method": "post"
+      },  
+      {
+        "key": "createCat",
+        "url": "/wecmdb/api/v1/base-key/categories/create",
+        "method": "post"
+      },
+      {
+        "key": "getGroupByOptions",
+        "url": "/wecmdb/api/v1/ci-types",
+        "method": "get"
+      },
+      {
+        "key": "getCiByOptions",
+        "url": "/wecmdb/api/v1/ci-types",
+        "method": "get"
+      },
+      {
+        "key": "createLayer",
+        "url": "/wecmdb/api/v1/base-key/codes",
+        "method": "post"
+      },
+      {
+        "key": "getStateMachine",
+        "url": "/wecmdb/api/v1/state-machine",
+        "method": "get"
+      },
+      {
+        "key": "deleteCITypeByID",
+        "url": "/wecmdb/api/v1/ci-types/${id}",
+        "method": "delete"
+      },
+      {
+        "key": "deleteAttr",
+        "url": "/wecmdb/api/v1/ci-types-attr/${ciTypeId}/attributes/${attrId}",
+        "method": "delete"
+      },
+      {
+        "key": "updateCIAttrOrder",
+        "url": "/wecmdb/api/v1/ci-types-attr/${ciType}/attributes/swap-position",
+        "method": "post"
+      },
+      {
+        "key": "updateCIType",
+        "url": "/wecmdb/api/v1/ci-types/${id}",
+        "method": "put"
+      },
+      {
+        "key": "applyCiTypes",
+        "url": "/wecmdb/api/v1/ci-types/apply/${data.ciTypeId}",
+        "method": "post"
+      },
+      {
+        "key": "restoreCIAttr",
+        "url": "/wecmdb/api/v1/ci-types-attr/${ciTypeId}/attributes/rollback/${attrIds}",
+        "method": "post"
+      },
+      {
+        "key": "restoreCiTypes",
+        "url": "/wecmdb/api/v1/ci-types/rollback/${ciTypeId}",
+        "method": "post"
+      },
+      {
+        "key": "createNewCIType",
+        "url": "/wecmdb/api/v1/ci-types",
+        "method": "post"
+      },
+      {
+        "key": "updateLayer",
+        "url": "/wecmdb/api/v1/base-key/codes/${data[0].codeId}",
+        "method": "put"
+      },
+      {
+        "key": "createNewCIAttr",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "post"
+      },
+      {
+        "key": "updateCIAttr",
+        "url": "/wecmdb/api/v1/ci-types-attr/${ciTypeId}/attributes/${attrId}",
+        "method": "put"
+      },
+      {
+        "key": "getSystemEnumCodesBy",
+        "url": "/wecmdb/api/v1/base-key/categories/ref_type",
+        "method": "get"
+      },
+      {
+        "key": "applyCIAttr",
+        "url": "/wecmdb/api/v1/ci-types-attr/${ciTypeId}/attributes/apply/${attrIds}",
+        "method": "post"
+      },
+      {
+        "key": "createEnumCode",
+        "url": "/wecmdb/api/v1/base-key/codes",
+        "method": "post"
+      },
+      {
+        "key": "getCiTemplate",
+        "url": "/wecmdb/api/v1/ci-template",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "report_configuration",
+    "content": "报表配置",
+    "path": "/wecmdb/report-configuration",
+    "urls": [
+      {
+        "url": "/wecmdb/api/v1/report-import-history/refresh-check-result/query",
+        "method": "GET"
+      },
+      {
+        "url": "/wecmdb/api/v1/referenceEnumCodes/${this.attrId}/query",
+        "method": "post"
+      },
+      {
+        "url": "/wecmdb/api/v1/reports",
+        "method": "PUT"
+      },
+      {
+        "url": "/wecmdb/api/v1/report/wanghao_test",
+        "method": "DELETE"
+      },
+      {
+        "url": "/wecmdb/api/v1/report-message/${this.id}",
+        "method": "GET"
+      },
+      {
+        "url": "/wecmdb/api/v1/reports",
+        "method": "POST"
+      },
+      {
+        "key": "getReportListByPermission",
+        "url": "/wecmdb/api/v1/reports",
+        "method": "get"
+      },
+      {
+        "key": "getReportStruct",
+        "url": "/wecmdb/api/v1/report-struct/${reportId}",
+        "method": "get"
+      },
+      {
+        "key": "getRolesByCurrentUser",
+        "url": "/wecmdb/api/v1/user/roles",
+        "method": "get"
+      },
+      {
+        "key": "getAllRoles",
+        "url": "/wecmdb/api/v1/roles",
+        "method": "get"
+      },
+      {
+        "key": "getCiTypeNameMap",
+        "url": "/wecmdb/api/v1/ci-types/query/id-and-name",
+        "method": "get"
+      },
+      {
+        "key": "getRefCiTypeFrom",
+        "url": "/wecmdb/api/v1/ci-types/references/${id}",
+        "method": "get"
+      },
+      {
+        "key": "getCiTypeAttr",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "configReport",
+        "url": "/wecmdb/api/v1/report-objects",
+        "method": "post"
+      }
+    ]
+  },
+  {
+    "menu": "basekey_configuration",
+    "content": "基础数据配置",
+    "path": "/wecmdb/basekey-configuration",
+    "urls": [
+      {
+        "url": "/wecmdb/api/v1/referenceEnumCodes/${this.attrId}/query",
+        "method": "post"
+      },
+      {
+        "url": "/wecmdb/api/v1/base-key/codes/${type}",
+        "method": "PUT"
+      },
+      {
+        "url": "/wecmdb/api/v1/base-key/categories",
+        "method": "GET"
+      },
+      {
+        "key": "searchSensitiveData",
+        "url": "/wecmdb/api/v1/ci-data/sensitive-attr/query",
+        "method": "post"
+      },
+      {
+        "key": "getAllSystemEnumCodesWithPayload",
+        "url": "/wecmdb/api/v1/base-key/codes/query",
+        "method": "post"
+      },
+      {
+        "key": "createEnumCode",
+        "url": "/wecmdb/api/v1/base-key/codes",
+        "method": "post"
+      },
+      {
+        "key": "updateEnumCode",
+        "url": "/wecmdb/api/v1/base-key/codes/${data[0].codeId}",
+        "method": "put"
+      },
+      {
+        "key": "deleteEnumCodes",
+        "url": "/wecmdb/api/v1/base-key/codes",
+        "method": "delete"
+      },
+      {
+        "key": "getAllNonSystemEnumCodes",
+        "url": "/wecmdb/api/v1/enum/non-system/codes",
+        "method": "post"
+      },
+      {
+        "key": "queryCiData",
+        "url": "/wecmdb/api/v1/ci-data/query/${data.id}",
+        "method": "post"
+      },
+      {
+        "key": "getCiTypeAttributes",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "queryPassword",
+        "url": "/wecmdb/api/v1/ci-data/query-password/${ciTypeId}/${guid}/${field}",
+        "method": "get"
+      },
+      {
+        "key": "getExtRefDetails",
+        "url": "/wecmdb/api/v1/extend/ci-data/model/query/${id}",
+        "method": "post"
+      },
+      {
+        "key": "getCiTypeNameMap",
+        "url": "/wecmdb/api/v1/ci-types/query/id-and-name",
+        "method": "get"
+      },
+      {
+        "key": "getAllCITypesByLayerWithAttr",
+        "url": "/wecmdb/api/v1/ci-types",
+        "method": "get"
+      },
+      {
+        "key": "getEncryptKey",
+        "url": "/wecmdb/api/v1/ci-data/password/encrypt-key",
+        "method": "get"
+      },
+      {
+        "key": "getRefCiTypeFrom",
+        "url": "/wecmdb/api/v1/ci-types/references/${id}",
+        "method": "get"
+      },
+      {
+        "key": "getCiTypeAttr",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "getEnumCodesByCategoryId",
+        "url": "/wecmdb/api/v1/base-key/categories/${catId}",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "system_operation_log",
+    "content": "WeCMDB操作日志",
+    "path": "/wecmdb/system-operation-log",
+    "urls": [
+      {
+        "url": "/wecmdb/api/v1/referenceEnumCodes/${this.attrId}/query",
+        "method": "post"
+      },
+      {
+        "key": "queryLog",
+        "url": "/wecmdb/api/v1/log/query",
+        "method": "post"
+      },
+      {
+        "key": "queryLogOperation",
+        "url": "/wecmdb/api/v1/log/operation",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "state_machine_configuration",
+    "content": "状态机配置",
+    "path": "/wecmdb/state-machine",
+    "urls": [
+      {
+        "url": "/wecmdb/api/v1/referenceEnumCodes/${this.attrId}/query",
+        "method": "post"
+      },
+      {
+        "key": "stateMachineImport",
+        "url": "/wecmdb/api/v1/state-config/state-machine/import",
+        "method": "post"
+      },
+      {
+        "key": "exportStateMachine",
+        "url": "/wecmdb/api/v1/state-config/state-machine/query",
+        "method": "get"
+      },
+      {
+        "key": "getStateMachineList",
+        "url": "/wecmdb/api/v1/state-config/state-machine/list",
+        "method": "post"
+      },
+      {
+        "key": "getStateMachineFullInfo",
+        "url": "/wecmdb/api/v1/state-config/state-machine/query",
+        "method": "get"
+      },
+      {
+        "key": "confirmImportStateMachine",
+        "url": "/wecmdb/api/v1/state-config/state-machine/confirm",
+        "method": "post"
+      },
+      {
+        "key": "editState",
+        "url": "/wecmdb/api/v1/state-config/state",
+        "method": "put"
+      },
+      {
+        "key": "addStateMachine",
+        "url": "/wecmdb/api/v1/state-config/state-machine",
+        "method": "post"
+      },
+      {
+        "key": "editStateMachine",
+        "url": "/wecmdb/api/v1/state-config/state-machine",
+        "method": "put"
+      },
+      {
+        "key": "deleteStateMachine",
+        "url": "/wecmdb/api/v1/state-config/state-machine",
+        "method": "delete"
+      },
+      {
+        "key": "addState",
+        "url": "/wecmdb/api/v1/state-config/state",
+        "method": "post"
+      },
+      {
+        "key": "getState",
+        "url": "/wecmdb/api/v1/state-config/state/list",
+        "method": "post"
+      },
+      {
+        "key": "deleteState",
+        "url": "/wecmdb/api/v1/state-config/state",
+        "method": "delete"
+      },
+      {
+        "key": "getStateTran",
+        "url": "/wecmdb/api/v1/state-config/transition/list",
+        "method": "post"
+      },
+      {
+        "key": "editStateTran",
+        "url": "/wecmdb/api/v1/state-config/transition",
+        "method": "put"
+      },
+      {
+        "key": "addStateTran",
+        "url": "/wecmdb/api/v1/state-config/transition",
+        "method": "post"
+      },
+      {
+        "key": "deleteStateTran",
+        "url": "/wecmdb/api/v1/state-config/transition",
+        "method": "delete"
+      }
+    ]
+  },
+  {
+    "menu": "ci_template_configuration",
+    "content": "CI模板配置",
+    "path": "/wecmdb/ci-template-configuration",
+    "urls": [
+      {
+        "url": "/wecmdb/api/v1/referenceEnumCodes/${this.attrId}/query",
+        "method": "post"
+      },
+      {
+        "key": "getCiTemplate",
+        "url": "/wecmdb/api/v1/ci-template",
+        "method": "get"
+      },
+      {
+        "key": "editCiTemplate",
+        "url": "/wecmdb/api/v1/ci-template",
+        "method": "put"
+      },
+      {
+        "key": "addCiTemplate",
+        "url": "/wecmdb/api/v1/ci-template",
+        "method": "post"
+      },
+      {
+        "key": "deleteCiTemplate",
+        "url": "/wecmdb/api/v1/ci-template",
+        "method": "delete"
+      },
+      {
+        "key": "getStateMachineList",
+        "url": "/wecmdb/api/v1/state-config/state-machine/list",
+        "method": "post"
+      },
+      {
+        "key": "getCiTemplateAttr",
+        "url": "/wecmdb/api/v1/ci-template-attr/list",
+        "method": "post"
+      },
+      {
+        "key": "editCiTemplateAttr",
+        "url": "/wecmdb/api/v1/ci-template-attr",
+        "method": "put"
+      },
+      {
+        "key": "addCiTemplateAttr",
+        "url": "/wecmdb/api/v1/ci-template-attr",
+        "method": "post"
+      },
+      {
+        "key": "deleteCiTemplateAttr",
+        "url": "/wecmdb/api/v1/ci-template-attr",
+        "method": "delete"
+      }
+    ]
+  },
+  {
+    "menu": "graph_config",
+    "content": "视图配置",
+    "path": "/wecmdb/graph-config",
+    "urls": [
+      {
+        "url": "/wecmdb/api/v1/referenceEnumCodes/${this.attrId}/query",
+        "method": "post"
+      },
+      {
+        "key": "addElementForGraph",
+        "url": "/wecmdb/api/v1/view-elements",
+        "method": "post"
+      },
+      {
+        "key": "editElementForGraph",
+        "url": "/wecmdb/api/v1/view-elements",
+        "method": "put"
+      },
+      {
+        "key": "deleteGraph",
+        "url": "/wecmdb/api/v1/view-graphs",
+        "method": "delete"
+      },
+      {
+        "key": "editGraph",
+        "url": "/wecmdb/api/v1/view-graphs",
+        "method": "put"
+      },
+      {
+        "key": "getAttrByReportObject",
+        "url": "/wecmdb/api/v1/report-objects-attr/query",
+        "method": "post"
+      },
+      {
+        "key": "getCiTypeAttributes",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "deleteElementForGraph",
+        "url": "/wecmdb/api/v1/view-elements",
+        "method": "delete"
+      },
+      {
+        "key": "getReportObject",
+        "url": "/wecmdb/api/v1/report-objects/query",
+        "method": "post"
+      },
+      {
+        "key": "getRolesByCurrentUser",
+        "url": "/wecmdb/api/v1/user/roles",
+        "method": "get"
+      },
+      {
+        "key": "getAllRoles",
+        "url": "/wecmdb/api/v1/roles",
+        "method": "get"
+      },
+      {
+        "key": "graphViews",
+        "url": "/wecmdb/api/v1/views",
+        "method": "get"
+      },
+      {
+        "key": "getGraphByView",
+        "url": "/wecmdb/api/v1/view-graphs-query",
+        "method": "post"
+      },
+      {
+        "key": "editView",
+        "url": "/wecmdb/api/v1/views",
+        "method": "put"
+      },
+      {
+        "key": "getViewById",
+        "url": "/wecmdb/api/v1/view-message/${viewId}",
+        "method": "get"
+      },
+      {
+        "key": "getElementByGraph",
+        "url": "/wecmdb/api/v1/view-elements-query",
+        "method": "post"
+      },
+      {
+        "key": "addView",
+        "url": "/wecmdb/api/v1/views",
+        "method": "post"
+      },
+      {
+        "key": "getCiTypeAttr",
+        "url": "/wecmdb/api/v1/ci-types-attr/${id}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "addGraph",
+        "url": "/wecmdb/api/v1/view-graphs",
+        "method": "post"
+      },
+      {
+        "key": "deleteView",
+        "url": "/wecmdb/api/v1/views",
+        "method": "delete"
+      },
+      {
+        "key": "getReportListByPermission",
+        "url": "/wecmdb/api/v1/reports",
+        "method": "get"
+      }
+    ]
+  }
+]
