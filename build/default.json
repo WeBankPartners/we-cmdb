@@ -71,7 +71,7 @@
       "querialbe": "no"
     }],
   "menu_api_map": {
-    "enable": false,
-    "file": "menu-api-map.json"
+    "enable": "{{WECMDB_MENU_API_ENABLE}}",
+    "file": "conf/menu-api-map.json"
   }
 }

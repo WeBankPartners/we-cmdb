@@ -20,13 +20,41 @@ func GetRoleCiPermission(query *models.RolePermissionQuery) error {
 		query.MenuPermissions = append(query.MenuPermissions, menu.MenuGuid)
 	}
 	var ciTypePermissionTable []*models.CiTypePermissionObj
-	err = x.SQL("select t1.*,t2.display_name as 'ci_type_name' from sys_role_ci_type t1 left join sys_ci_type t2 on t1.ci_type=t2.id where t1.role_id=?", query.Role).Find(&ciTypePermissionTable)
+	err = x.SQL("select t1.*,t2.display_name as 'ci_type_name' from sys_role_ci_type t1 left join sys_ci_type t2 on t1.ci_type=t2.id where t1.role_id=? and t1.ci_type_attr is null", query.Role).Find(&ciTypePermissionTable)
 	if err != nil {
 		return fmt.Errorf("Try to get role ci type data fail,%s ", err.Error())
 	}
 	if len(ciTypePermissionTable) == 0 {
 		ciTypePermissionTable = []*models.CiTypePermissionObj{}
 	} else {
+		var ciAttrPermissionRows []*models.CiAttrPermissionObj
+		err = x.SQL("select t1.*,t2.display_name as 'ci_attr_name' from sys_role_ci_type t1 left join sys_ci_type_attr t2 on t1.ci_type_attr=t2.id  where t1.role_id=? and t1.ci_type_attr<>''", query.Role).Find(&ciAttrPermissionRows)
+		if err != nil {
+			return fmt.Errorf("Try to get role ci attr data fail,%s ", err.Error())
+		}
+		var permissionAttrRows []*models.SysCiTypeAttrTable
+		err = x.SQL("select id,ci_type,name from sys_ci_type_attr where `sensitive`='yes'").Find(&permissionAttrRows)
+		if err != nil {
+			return fmt.Errorf("Try to get sys ci sensitive attr rows fail,%s ", err.Error())
+		}
+		ciTypeAttrMap := make(map[string][]*models.CiAttrPermissionObj)
+		for _, row := range ciAttrPermissionRows {
+			matchFlag := false
+			for _, attrRow := range permissionAttrRows {
+				if attrRow.Id == row.CiTypeAttr {
+					matchFlag = true
+					break
+				}
+			}
+			if !matchFlag {
+				continue
+			}
+			if existList, ok := ciTypeAttrMap[row.CiType]; ok {
+				ciTypeAttrMap[row.CiType] = append(existList, row)
+			} else {
+				ciTypeAttrMap[row.CiType] = []*models.CiAttrPermissionObj{row}
+			}
+		}
 		var ciTypeConditionRows []*models.SysRoleCiTypeConditionTable
 		err = x.SQL("select * from sys_role_ci_type_condition").Find(&ciTypeConditionRows)
 		if err != nil {
@@ -58,6 +86,11 @@ func GetRoleCiPermission(query *models.RolePermissionQuery) error {
 			}
 		}
 		for _, row := range ciTypePermissionTable {
+			if attrList, ok := ciTypeAttrMap[row.CiType]; ok {
+				row.Attrs = attrList
+			} else {
+				row.Attrs = []*models.CiAttrPermissionObj{}
+			}
 			if conditionObj, ok := conditionMap[row.Guid]; ok {
 				if row.Query != "Y" && conditionObj.Query == "Y" {
 					row.Query = "P"
@@ -78,6 +111,28 @@ func GetRoleCiPermission(query *models.RolePermissionQuery) error {
 					row.Confirm = "P"
 				}
 			}
+			for _, rowAttr := range row.Attrs {
+				if conditionObj, ok := conditionMap[rowAttr.Guid]; ok {
+					if rowAttr.Query != "Y" && conditionObj.Query == "Y" {
+						rowAttr.Query = "P"
+					}
+					if rowAttr.Insert != "Y" && conditionObj.Insert == "Y" {
+						rowAttr.Insert = "P"
+					}
+					if rowAttr.Update != "Y" && conditionObj.Update == "Y" {
+						rowAttr.Update = "P"
+					}
+					if rowAttr.Delete != "Y" && conditionObj.Delete == "Y" {
+						rowAttr.Delete = "P"
+					}
+					if rowAttr.Execution != "Y" && conditionObj.Execution == "Y" {
+						rowAttr.Execution = "P"
+					}
+					if rowAttr.Confirm != "Y" && conditionObj.Confirm == "Y" {
+						rowAttr.Confirm = "P"
+					}
+				}
+			}
 		}
 	}
 	query.CiTypePermissions = ciTypePermissionTable
@@ -87,8 +142,12 @@ func GetRoleCiPermission(query *models.RolePermissionQuery) error {
 func UpdateRoleCiPermission(role string, params []*models.CiTypePermissionObj) error {
 	var actions []*execAction
 	for _, param := range params {
-		actions = append(actions, &execAction{Sql: "update sys_role_ci_type set `insert`=?,`delete`=?,`update`=?,`query`=?,`execute`=?,`Confirm`=? where role_id=? and ci_type=?",
+		actions = append(actions, &execAction{Sql: "update sys_role_ci_type set `insert`=?,`delete`=?,`update`=?,`query`=?,`execute`=?,`confirm`=? where role_id=? and ci_type=? and ci_type_attr is null",
 			Param: []interface{}{param.Insert, param.Delete, param.Update, param.Query, param.Execution, param.Confirm, role, param.CiType}})
+		for _, attrParam := range param.Attrs {
+			actions = append(actions, &execAction{Sql: "update sys_role_ci_type set `insert`=?,`delete`=?,`update`=?,`query`=?,`execute`=?,`confirm`=? where role_id=? and ci_type=? and ci_type_attr=?",
+				Param: []interface{}{attrParam.Insert, attrParam.Delete, attrParam.Update, attrParam.Query, attrParam.Execution, attrParam.Confirm, role, attrParam.CiType, attrParam.CiTypeAttr}})
+		}
 	}
 	return transaction(actions)
 }
@@ -386,9 +445,59 @@ func AutoCreateRoleCiTypeDataByCiType(ciTypeId string) {
 	}
 }
 
+func AutoCreateRoleCiTypeAttrPermission(ciTypeId string) {
+	var ciAttrRows []*models.SysCiTypeAttrTable
+	err := x.SQL("select id,ci_type,name,display_name from sys_ci_type_attr where ci_type=? and status='created' and `sensitive`='yes'", ciTypeId).Find(&ciAttrRows)
+	if err != nil {
+		log.Logger.Error("Try to auto create role ci attr permission fail,query ci type attr error", log.Error(err))
+		return
+	}
+	if len(ciAttrRows) == 0 {
+		return
+	}
+	var roleCiTypeTable []*models.SysRoleCiTypeTable
+	err = x.SQL("select guid,ci_type,ci_type_attr from sys_role_ci_type where ci_type=? and ci_type_attr<>''", ciTypeId).Find(&roleCiTypeTable)
+	if err != nil {
+		log.Logger.Error("Try to auto update roleCiType attr data fail,query roleCiType data error", log.String("ciType", ciTypeId), log.Error(err))
+		return
+	}
+	var roles []*models.SysRoleTable
+	err = x.SQL("select * from sys_role").Find(&roles)
+	if err != nil {
+		log.Logger.Error("Try to auto update roleCiType attr data fail,query roles data error", log.String("ciType", ciTypeId), log.Error(err))
+		return
+	}
+	if len(roles) == 0 {
+		return
+	}
+	var actions []*execAction
+	for _, attrRow := range ciAttrRows {
+		existFlag := false
+		for _, roleCiRow := range roleCiTypeTable {
+			if roleCiRow.CiTypeAttr == attrRow.Id {
+				existFlag = true
+				break
+			}
+		}
+		if !existFlag {
+			guidList := guid.CreateGuidList(len(roles))
+			for i, role := range roles {
+				if strings.ToLower(role.Id) == strings.ToLower(models.AdminUser) {
+					actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type(guid,role_id,ci_type,`insert`,`delete`,`update`,query,`execute`,`Confirm`,`ci_type_attr`) values (?,?,?,'Y','Y','Y','Y','Y','Y',?)", Param: []interface{}{"role_ci_" + guidList[i], role.Id, ciTypeId, attrRow.Id}})
+				} else {
+					actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type(guid,role_id,ci_type,`ci_type_attr`) value (?,?,?,?)", Param: []interface{}{"role_ci_" + guidList[i], role.Id, ciTypeId, attrRow.Id}})
+				}
+			}
+		}
+	}
+	if err = transaction(actions); err != nil {
+		log.Logger.Error("Try to update roleCiType attr data fail", log.String("ciType", ciTypeId), log.Error(err))
+	}
+}
+
 func AutoCreateRoleCiTypeDataByRole(roleId string) {
 	var ciTypeTable []*models.SysCiTypeTable
-	err := x.SQL("select id from sys_ci_type where status<>'notCreated' and id not in (select ci_type from sys_role_ci_type where role_id=?)", roleId).Find(&ciTypeTable)
+	err := x.SQL("select id from sys_ci_type where status<>'notCreated' and id not in (select ci_type from sys_role_ci_type where role_id=? and ci_type_attr is null)", roleId).Find(&ciTypeTable)
 	if err != nil {
 		log.Logger.Error("Try to auto update roleCiType data by roleId fail,query ci_type data error", log.String("roleId", roleId), log.Error(err))
 		return
@@ -410,12 +519,16 @@ func AutoCreateRoleCiTypeDataByRole(roleId string) {
 	}
 }
 
-func GetRoleCiDataPermission(roles []string, ciType string) (result models.CiDataPermission, err error) {
+func GetRoleCiDataPermission(roles []string, ciType, ciTypeAttr string) (result models.CiDataPermission, err error) {
 	if len(roles) == 0 {
 		return
 	}
 	var roleCiTable []*models.SysRoleCiTypeTable
-	err = x.SQL("select * from sys_role_ci_type where ci_type=? and role_id in ('"+strings.Join(roles, "','")+"')", ciType).Find(&roleCiTable)
+	if ciTypeAttr == "" {
+		err = x.SQL("select * from sys_role_ci_type where ci_type=? and ci_type_attr is null and role_id in ('"+strings.Join(roles, "','")+"')", ciType).Find(&roleCiTable)
+	} else {
+		err = x.SQL("select * from sys_role_ci_type where ci_type=? and ci_type_attr=? and role_id in ('"+strings.Join(roles, "','")+"')", ciType, ciTypeAttr).Find(&roleCiTable)
+	}
 	if err != nil {
 		err = fmt.Errorf("Get role ciData permission fail,%s ", err.Error())
 	}
@@ -457,7 +570,7 @@ func GetRoleCiDataPermission(roles []string, ciType string) (result models.CiDat
 	}
 	var roleCiTypeMap = make(map[string]*models.RoleCiTypePermissionObj)
 	var conditionQuery []*models.ConditionListQueryObj
-	err = x.SQL("select t2.*,t1.role_ci_type,t1.`insert`,t1.`delete`,t1.`update`,t1.`query`,t1.`execute`,t1.`Confirm` from sys_role_ci_type_condition t1 left join sys_role_ci_type_condition_filter t2 on t1.guid=t2.role_ci_type_condition where role_ci_type in ('" + strings.Join(roleCiTypeGuidList, "','") + "')").Find(&conditionQuery)
+	err = x.SQL("select t2.*,t1.role_ci_type,t1.`insert`,t1.`delete`,t1.`update`,t1.`query`,t1.`execute`,t1.`Confirm` from sys_role_ci_type_condition t1 left join sys_role_ci_type_condition_filter t2 on t1.guid=t2.role_ci_type_condition where t1.role_ci_type in ('" + strings.Join(roleCiTypeGuidList, "','") + "')").Find(&conditionQuery)
 	if err != nil {
 		err = fmt.Errorf("Get role condition data fail,%s ", err.Error())
 		return
@@ -505,19 +618,19 @@ func GetCiDataPermissionGuidList(config *models.CiDataPermission, action string)
 	result = models.CiDataLegalGuidList{}
 	switch action {
 	case "insert":
-		result.Disable = config.Insert
+		result.Legal = config.Insert
 	case "delete":
-		result.Disable = config.Delete
+		result.Legal = config.Delete
 	case "update":
-		result.Disable = config.Update
+		result.Legal = config.Update
 	case "query":
-		result.Disable = config.Query
+		result.Legal = config.Query
 	case "execute":
-		result.Disable = config.Execute
+		result.Legal = config.Execute
 	case "confirm":
-		result.Disable = config.Confirm
+		result.Legal = config.Confirm
 	}
-	if result.Disable {
+	if result.Legal {
 		return
 	}
 	guidMap := make(map[string]bool)
@@ -629,7 +742,7 @@ func ValidateInsertPermission(param map[string]*InsertPermissionObj, roles []str
 }
 
 func ciTypeInsertPermissionValidate(ciType string, param *InsertPermissionObj, roles []string) error {
-	ciTypePermissionConfig, err := GetRoleCiDataPermission(roles, ciType)
+	ciTypePermissionConfig, err := GetRoleCiDataPermission(roles, ciType, "")
 	if err != nil {
 		return err
 	}
@@ -780,4 +893,65 @@ func isConditionActionEnable(action string, condition *models.RoleAttrConditionO
 		return true
 	}
 	return false
+}
+
+func ValidateAttrUpdatePermission(multiCiData []*models.MultiCiDataObj, userRoles []string) (err error) {
+	for _, ciDataObj := range multiCiData {
+		// key -> attrName, value -> guidList
+		tmpSensitiveAttrMap := make(map[string][]string)
+		tmpSensitiveAttrNameIdMap := make(map[string]string)
+		for _, attr := range ciDataObj.Attributes {
+			if attr.Sensitive == "yes" {
+				tmpSensitiveAttrMap[attr.Name] = []string{}
+				tmpSensitiveAttrNameIdMap[attr.Name] = attr.Id
+			}
+		}
+		if len(tmpSensitiveAttrMap) == 0 {
+			continue
+		}
+		for _, rowData := range ciDataObj.InputData {
+			tmpRowGuid := rowData["guid"]
+			if tmpRowGuid == "" {
+				continue
+			}
+			for k, v := range rowData {
+				if existGuidList, ok := tmpSensitiveAttrMap[k]; ok {
+					if v != "" && v != models.PasswordDisplay {
+						tmpSensitiveAttrMap[k] = append(existGuidList, tmpRowGuid)
+					}
+				}
+			}
+		}
+		for attrName, guidList := range tmpSensitiveAttrMap {
+			if len(guidList) == 0 {
+				continue
+			}
+			permissions, tmpGetPermissionConfigErr := GetRoleCiDataPermission(userRoles, ciDataObj.CiTypeId, tmpSensitiveAttrNameIdMap[attrName])
+			if tmpGetPermissionConfigErr != nil {
+				err = fmt.Errorf("validate attr permission fail, attr:%s get permission config error:%s ", attrName, tmpGetPermissionConfigErr.Error())
+				return
+			}
+			tmpLegalGuidList, tmpGetPermissionGuidListErr := GetCiDataPermissionGuidList(&permissions, "update")
+			if tmpGetPermissionGuidListErr != nil {
+				err = fmt.Errorf("validate attr permission fail, attr:%s get legal guid list error:%s", attrName, tmpGetPermissionGuidListErr.Error())
+				return
+			}
+			if !tmpLegalGuidList.Legal {
+				for _, inputRowGuid := range guidList {
+					matchGuidFlag := false
+					for _, tmpGuid := range tmpLegalGuidList.GuidList {
+						if inputRowGuid == tmpGuid {
+							matchGuidFlag = true
+							break
+						}
+					}
+					if !matchGuidFlag {
+						err = fmt.Errorf("Row:%s attr:%s permission deny ", inputRowGuid, attrName)
+						return
+					}
+				}
+			}
+		}
+	}
+	return
 }
