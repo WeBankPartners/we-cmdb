@@ -36,9 +36,11 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 			err = fmt.Errorf("Url param ciType can not empty ")
 			return
 		} else {
-			newGuidList := guid.CreateGuidList(len(param.InputData))
-			for i, inputDataObj := range param.InputData {
-				inputDataObj["guid"] = fmt.Sprintf("%s_%s", param.CiTypeId, newGuidList[i])
+			if !param.OnlyQuery {
+				newGuidList := guid.CreateGuidList(len(param.InputData))
+				for i, inputDataObj := range param.InputData {
+					inputDataObj["guid"] = fmt.Sprintf("%s_%s", param.CiTypeId, newGuidList[i])
+				}
 			}
 			multiCiData = []*models.MultiCiDataObj{&models.MultiCiDataObj{CiTypeId: param.CiTypeId, InputData: param.InputData}}
 		}
@@ -51,7 +53,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 			permissionAction := firstAction
 			permissionCiTypeList := getDataHandleCiTypeList(&param)
 			for _, permissionCiType := range permissionCiTypeList {
-				permissions, tmpGetPermissionConfigErr := GetRoleCiDataPermission(param.Roles, permissionCiType)
+				permissions, tmpGetPermissionConfigErr := GetRoleCiDataPermission(param.Roles, permissionCiType, "")
 				if tmpGetPermissionConfigErr != nil {
 					err = tmpGetPermissionConfigErr
 					return
@@ -61,7 +63,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 					err = tmpGetPermissionGuidListErr
 					return
 				}
-				if !tmpLegalGuidList.Disable {
+				if !tmpLegalGuidList.Legal {
 					for _, tmpGuid := range tmpLegalGuidList.GuidList {
 						legalGuidMap[tmpGuid] = true
 					}
@@ -122,6 +124,11 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 	// 获取属性字段
 	if err = GetMultiCiAttributes(multiCiData); err != nil {
 		return
+	}
+	if param.Permission && firstAction == "update" {
+		if err = ValidateAttrUpdatePermission(multiCiData, param.Roles); err != nil {
+			return
+		}
 	}
 	outputData, newInputBody = buildRequestBodyWithoutPwd(multiCiData, param.BareAction, tNow, param.Operation)
 	// 获取状态机
@@ -237,7 +244,10 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 				err = fmt.Errorf("CiType:%s Row:%s do action:%s fail,%s ", ciObj.CiTypeId, tmpRowKeyName, actionParam.Transition.Action, tmpErr.Error())
 				break
 			}
-			//outputData = append(outputData, actionParam.InputData)
+			// 试算用到，需要返回outputData所有内容
+			if param.OnlyQuery {
+				outputData = mergeCiData(outputData, ciObj)
+			}
 			actions = append(actions, tmpAction...)
 			if actionParam.Transition.Action == "insert" && param.Permission {
 				if _, b := insertPermissionMap[ciObj.CiTypeId]; b {
@@ -306,9 +316,11 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 				return
 			}
 		}
-		err = transaction(actions)
+		if !param.OnlyQuery {
+			err = transaction(actions)
+		}
 	}
-	if err == nil {
+	if err == nil && !param.OnlyQuery {
 		if len(autofillChainMap) > 0 {
 			affectGuidListChan <- autofillChainMap
 		}
@@ -323,6 +335,21 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 		}
 	}
 	return
+}
+
+func mergeCiData(outputData []models.CiDataMapObj, ciObj *models.MultiCiDataObj) []models.CiDataMapObj {
+	for _, inputRowData := range ciObj.InputData {
+		for i, e := range outputData {
+			if e["guid"] == inputRowData["guid"] {
+				for key, value := range inputRowData {
+					if key != "guid" {
+						outputData[i][key] = value
+					}
+				}
+			}
+		}
+	}
+	return outputData
 }
 
 func doActionFunc(param *models.ActionFuncParam) (result []*execAction, err error) {
@@ -837,7 +864,7 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 		needValidateText = true
 	}
 	if param.AttributeConfig.Nullable == "yes" && inputValue == "" {
-		if param.AttributeConfig.DataType == "int" {
+		if param.AttributeConfig.DataType == "int" || param.AttributeConfig.DataType == "float" {
 			inputValue = "0"
 		}
 		needValidateText = false
@@ -875,10 +902,15 @@ func buildAttrValue(param *models.BuildAttrValueParam) (result *models.CiDataCol
 		return
 	}
 	if param.AttributeConfig.InputType == models.PasswordInputType && inputValue != "" {
+		var tmpPwdIV string
+		if splitCharList := strings.Split(inputValue, specialAndChar); len(splitCharList) > 1 {
+			inputValue = splitCharList[0]
+			tmpPwdIV = splitCharList[1]
+		}
 		if pwdBytes, pwdErr := base64.StdEncoding.DecodeString(inputValue); pwdErr == nil {
 			inputValue = hex.EncodeToString(pwdBytes)
 		}
-		if decodePwd, decodeErr := decodeAesPassword(models.Config.Wecube.EncryptSeed, inputValue); decodeErr == nil {
+		if decodePwd, decodeErr := decodeAesPassword(models.Config.Wecube.EncryptSeed, inputValue, tmpPwdIV); decodeErr == nil {
 			inputValue = decodePwd
 		}
 		matchPrefix := false
@@ -1948,7 +1980,7 @@ func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title
 	queryParam.Filters = []*models.QueryRequestFilterObj{{Name: "guid", Operator: "eq", Value: inputGuid}}
 	queryParam.Paging = false
 	queryParam.Sorting = &models.QueryRequestSorting{Asc: true, Field: "history_time"}
-	_, rowData, err = CiDataQuery(ciTypeId, &queryParam, &models.CiDataLegalGuidList{Disable: true}, false, false)
+	_, rowData, err = CiDataQuery(ciTypeId, &queryParam, &models.CiDataLegalGuidList{Legal: true}, false, false)
 	if err != nil {
 		return
 	}
@@ -2004,21 +2036,68 @@ func getUniquePathNextOperation(stateId string) (result []*models.SysStateTransi
 	return
 }
 
-func DataPasswordQuery(ciType, guid, field string, id int) (password string, err error) {
+func DataColumnQuery(ciType, guid, field string, id int, userRoles []string, withPermission bool) (result string, err error) {
+	if withPermission {
+		var attrRows []*models.SysCiTypeAttrTable
+		err = x.SQL("SELECT id,ci_type,name,input_type,`sensitive` FROM sys_ci_type_attr WHERE ci_type=? and name=?", ciType, field).Find(&attrRows)
+		if err != nil {
+			err = fmt.Errorf("Query ci type attr table fail,%s ", err.Error())
+			return
+		}
+		if len(attrRows) != 1 {
+			err = fmt.Errorf("ci:%s attrName:%s illegal", ciType, field)
+			return
+		}
+		if attrRows[0].Sensitive == "yes" {
+			// validate permission
+			permissions, tmpGetPermissionConfigErr := GetRoleCiDataPermission(userRoles, ciType, attrRows[0].Id)
+			if tmpGetPermissionConfigErr != nil {
+				err = fmt.Errorf("validate attr permission fail, attr:%s get permission config error:%s ", field, tmpGetPermissionConfigErr.Error())
+				return
+			}
+			tmpLegalGuidList, tmpGetPermissionGuidListErr := GetCiDataPermissionGuidList(&permissions, "query")
+			if tmpGetPermissionGuidListErr != nil {
+				err = fmt.Errorf("validate attr permission fail, attr:%s get legal guid list error:%s", field, tmpGetPermissionGuidListErr.Error())
+				return
+			}
+			if !tmpLegalGuidList.Legal {
+				matchGuidFlag := false
+				for _, tmpGuid := range tmpLegalGuidList.GuidList {
+					if tmpGuid == guid {
+						matchGuidFlag = true
+						break
+					}
+				}
+				if !matchGuidFlag {
+					err = fmt.Errorf("Row:%s attr:%s permission deny ", guid, field)
+					return
+				}
+			}
+		}
+	}
 	baseSql := fmt.Sprintf("select %s from %s where guid='%s'", field, ciType, guid)
 	if id > 0 {
 		baseSql = fmt.Sprintf("select %s from %s%s where id=%d", field, HistoryTablePrefix, ciType, id)
 	}
-	queryData, err := x.QueryString(baseSql)
-	if err != nil {
-		err = fmt.Errorf("Query database fail,%s ", err.Error())
+	queryData, queryErr := x.QueryString(baseSql)
+	if queryErr != nil {
+		err = fmt.Errorf("Query database fail,%s ", queryErr.Error())
 		return
 	}
 	if len(queryData) == 0 {
 		err = fmt.Errorf("Can not fetch any data ")
 		return
 	}
-	password = queryData[0][field]
+	result = queryData[0][field]
+	//result = &models.SensitiveDataQueryResult{}
+	//result.Text = queryData[0][field]
+	//if attrRows[0].InputType == "password" {
+	//	if decodePassword, decodeErr := cipher.AesDePasswordByGuid(guid, models.Config.Wecube.EncryptSeed, result.Text); decodeErr != nil {
+	//		result.Password = fmt.Sprintf("decode password fail:%s ", decodeErr.Error())
+	//	} else {
+	//		result.Password = decodePassword
+	//	}
+	//}
 	return
 }
 
@@ -2109,9 +2188,13 @@ func GetRollbackLastConfirmData(ciDataGuid string) (targetData models.CiDataMapO
 	return
 }
 
-func decodeAesPassword(seed, password string) (decodePwd string, err error) {
+func decodeAesPassword(seed, password, ivValue string) (decodePwd string, err error) {
+	if ivValue != "" {
+		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, ivValue)
+		return
+	}
 	unixTime := time.Now().Unix() / 100
-	ivValue := fmt.Sprintf("%d", unixTime*100000000)
+	ivValue = fmt.Sprintf("%d", unixTime*100000000)
 	decodePwd, err = cipher.AesDePasswordWithIV(seed, password, ivValue)
 	if err != nil {
 		unixTime = unixTime - 1
