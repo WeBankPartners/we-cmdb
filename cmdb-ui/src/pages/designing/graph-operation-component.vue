@@ -147,7 +147,7 @@
         >
       </div>
     </div>
-    <Modal v-model="showChildNodeModal" :title="childNodeCiName" height="500">
+    <Modal v-model="showChildNodeModal" :title="childNodeCiName" height="600">
       <Form class="addNodeForm">
         <div v-for="(formData, formDataIndex) in childNodeCiAttrs" :key="'childform' + nodeGuid + formDataIndex">
           <Tooltip :delay="500" placement="left-start">
@@ -787,7 +787,7 @@ export default {
   box-shadow: 0 0 0 2px rgba(45, 140, 240, 0.2);
 }
 .form-item-title {
-  width: 80px;
+  width: 140px;
   text-align: right;
   vertical-align: middle;
   float: left;
@@ -801,7 +801,7 @@ export default {
 }
 .form-item-content {
   margin-bottom: 0px;
-  margin-left: 80px;
+  margin-left: 140px;
 }
 .opetation-btn-zone {
   margin-top: 20px;

@@ -1,3 +1,9 @@
+<!--
+ * @Author: wanghao7717 792974788@qq.com
+ * @Date: 2023-10-25 15:36:01
+ * @LastEditors: wanghao7717 792974788@qq.com
+ * @LastEditTime: 2024-12-26 11:55:41
+-->
 <template>
   <div class="json-config">
     <Tooltip v-if="disabled" max-width="350" style="width: 100%" placement="bottom-start" :content="jsonDataString">
@@ -31,18 +37,23 @@ export default {
   },
   props: ['inputKey', 'jsonData', 'disabled'],
   mounted () {
-    this.isArray = Array.isArray(this.jsonData)
-    if (this.isArray) {
-      this.originData = this.jsonData
-    } else {
-      this.originData.push(this.jsonData || {})
-    }
-    const jsonDataString = JSON.stringify(this.jsonData)
-    this.jsonDataString = jsonDataString === '""' ? '' : jsonDataString
+    this.initData()
   },
   methods: {
+    initData () {
+      const jsonData = JSON.parse(JSON.stringify(this.jsonData))
+      this.isArray = Array.isArray(jsonData)
+      if (this.isArray) {
+        this.originData = jsonData
+      } else {
+        this.originData.push(jsonData || {})
+      }
+      const jsonDataString = JSON.stringify(jsonData)
+      this.jsonDataString = jsonDataString === '""' ? '' : jsonDataString
+    },
     showTreeConfig () {
       this.showEdit = true
+      this.initData()
     },
     confirmJsonData () {
       if (this.isArray) {

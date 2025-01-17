@@ -60,8 +60,14 @@ export default {
     }
   },
   props: ['jsonData'],
-  mounted () {
-    this.initJSON(this.jsonData)
+  watch: {
+    jsonData: {
+      handler (val) {
+        this.initJSON(this.jsonData)
+      },
+      deep: true,
+      immediate: true
+    }
   },
   methods: {
     renderContent (h, { root, node, data }) {

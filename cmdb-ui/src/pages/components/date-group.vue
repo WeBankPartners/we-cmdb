@@ -70,7 +70,7 @@ export default {
     handleDateTypeChange () {
       this.dateTime = []
       if (this.dateType === 4) {
-        this.dateTime = ['', '']
+        this.dateTime = this.initialDateTime
       } else {
         const { type, value } = this.typeList.find(i => i.dateType === this.dateType)
         const cur = dayjs().format('YYYY-MM-DD')

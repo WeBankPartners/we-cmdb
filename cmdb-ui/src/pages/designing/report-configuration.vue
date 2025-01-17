@@ -84,28 +84,41 @@
           <FormItem :label="$t('data_title_name')" prop="dataTitleName">
             <Input v-model="newReport.params.dataTitleName"></Input>
           </FormItem>
+          <!--使用场景-->
+          <FormItem :label="$t('db_use_scene')">
+            <Checkbox v-model="newReport.params.usedByExport" true-value="yes" false-value="no">{{
+              $t('db_export_data')
+            }}</Checkbox>
+            <Checkbox v-model="newReport.params.usedByView" true-value="yes" false-value="no">{{
+              $t('db_association_view')
+            }}</Checkbox>
+          </FormItem>
         </Form>
-        <div>
-          <div class="role-transfer-title"><span style="color: red">*</span> {{ $t('mgmt_role') }}</div>
-          <Transfer
-            :titles="transferTitles"
-            :list-style="transferStyle"
-            :data="allRoles"
-            :target-keys="MGMT"
-            @on-change="handleMgmtRoleTransferChange"
-            filterable
-          ></Transfer>
-        </div>
-        <div style="margin-top: 30px">
-          <div class="role-transfer-title"><span style="color: red">*</span> {{ $t('use_role') }}</div>
-          <Transfer
-            :titles="transferTitles"
-            :list-style="transferStyle"
-            :data="allRolesBackUp"
-            :target-keys="USE"
-            @on-change="handleUseRoleTransferChange"
-            filterable
-          ></Transfer>
+        <div style="width: 100%; overflow-x: auto">
+          <div style="min-width: 670px;">
+            <div>
+              <div class="role-transfer-title"><span style="color: red">*</span> {{ $t('mgmt_role') }}</div>
+              <Transfer
+                :titles="transferTitles"
+                :list-style="transferStyle"
+                :data="allRoles"
+                :target-keys="MGMT"
+                @on-change="handleMgmtRoleTransferChange"
+                filterable
+              ></Transfer>
+            </div>
+            <div style="margin-top: 30px">
+              <div class="role-transfer-title"><span style="color: red">*</span> {{ $t('use_role') }}</div>
+              <Transfer
+                :titles="transferTitles"
+                :list-style="transferStyle"
+                :data="allRolesBackUp"
+                :target-keys="USE"
+                @on-change="handleUseRoleTransferChange"
+                filterable
+              ></Transfer>
+            </div>
+          </div>
         </div>
       </div>
       <div slot="footer">
@@ -145,7 +158,9 @@ export default {
           name: '',
           ciType: '',
           dataName: '',
-          dataTitleName: ''
+          dataTitleName: '',
+          usedByView: 'yes',
+          usedByExport: 'yes'
         },
         allCiTypes: []
       },
@@ -230,6 +245,8 @@ export default {
         this.newReport.params.name = data.name
         this.newReport.params.ciType = data.ciType
         this.newReport.params.dataName = data.dataName
+        this.newReport.params.usedByView = data.usedByView
+        this.newReport.params.usedByExport = data.usedByExport
         this.newReport.params.dataTitleName = data.dataTitleName
         this.MGMT = data.mgmtRoleList
         this.USE = data.useRoleList
@@ -343,6 +360,8 @@ export default {
       this.newReport.params.ciType = ''
       this.newReport.params.dataName = this.allStructData.ciType
       this.newReport.params.dataTitleName = this.oriDataMap[this.allStructData.ciType]
+      this.newReport.params.usedByView = 'yes'
+      this.newReport.params.usedByExport = 'yes'
       this.USE = []
       this.MGMT = []
       this.$refs.reportSelect.visible = false

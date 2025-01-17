@@ -1,5 +1,4 @@
 const CompressionPlugin = require('compression-webpack-plugin')
-const baseUrl = 'http://127.0.0.1:19090/'
 module.exports = {
   devServer: {
     // hot: true,
@@ -8,25 +7,25 @@ module.exports = {
     port: 3000,
     proxy: {
       '/process': {
-        target: baseUrl
+        target: process.env.BASE_URL
       },
       '/admin': {
-        target: baseUrl
+        target: process.env.BASE_URL
       },
       '/wecmdb': {
-        target: baseUrl
+        target: process.env.BASE_URL
       },
       '/logout': {
-        target: baseUrl
+        target: process.env.BASE_URL
       },
       '/plugin': {
-        target: baseUrl
+        target: process.env.BASE_URL
       },
       '/artifact': {
-        target: baseUrl
+        target: process.env.BASE_URL
       },
       '/batch-job': {
-        target: baseUrl
+        target: process.env.BASE_URL
       }
     }
   },
@@ -62,7 +61,27 @@ module.exports = {
   productionSourceMap: process.env.PLUGIN !== 'plugin',
   configureWebpack: config => {
     if (process.env.PLUGIN === 'plugin') {
-      config.optimization.splitChunks = {}
+      config.optimization = {}
+      // config.optimization = {
+      //   runtimeChunk: 'single',
+      //   splitChunks: {
+      //     chunks: 'all',
+      //     minSize: 20000, // 允许新拆出 chunk 的最小体积
+      //     maxSize: 500000, // 设置chunk的最大体积为500KB
+      //     automaticNameDelimiter: '-',
+      //     cacheGroups: {
+      //       defaultVendors: {
+      //         test: /[\\/]node_modules[\\/]/,
+      //         priority: -10
+      //       },
+      //       default: {
+      //         minChunks: 2,
+      //         priority: -20,
+      //         reuseExistingChunk: true
+      //       }
+      //     }
+      //   }
+      // }
       return
     }
     if (process.env.NODE_ENV === 'production') {
