@@ -69,6 +69,11 @@ export const INPUT_TYPE_CONFIG = [
     length: 64
   },
   {
+    code: 'float',
+    value: 'float',
+    length: 64
+  },
+  {
     code: 'datetime',
     value: 'datetime',
     length: 0
@@ -108,7 +113,7 @@ export const INPUT_TYPE_CONFIG = [
   },
   {
     code: 'password',
-    value: 'varchar(1024)',
+    value: 'varchar(4096)',
     length: 64
   },
   {

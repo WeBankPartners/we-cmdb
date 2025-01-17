@@ -223,8 +223,8 @@ export const getWecubeRoles = () => window.request.get('platform/v1/roles/retrie
 
 export const graphViews = params => req.get(`/views`, { params: params })
 export const graphViewDetail = id => req.get(`/view/${id}`)
-export const graphCiDataOperation = (ciType, op, payload) => {
-  return req.post(`/ci-data/do/${op}/${ciType}`, payload)
+export const graphCiDataOperation = (ciType, op, payload, onlyQuery) => {
+  return req.post(`/ci-data/do/${op}/${ciType}?onlyQuery=${onlyQuery}`, payload)
 }
 export const graphCiConfirm = payload => {
   return req.post(`/view-confirm`, payload)
@@ -235,7 +235,8 @@ export const graphQueryStateTransition = (ciType, payload) => req.get(`/state-tr
 export const graphQueryCIHistory = id => req.get(`/ci-data/rollback/query/${id}`)
 export const graphQueryRootCI = data => req.post(`/view-data`, data)
 
-export const getReportListByPermission = permission => req.get(`/reports?permission=${permission}`)
+export const getReportListByPermission = (permission, scene = '') =>
+  req.get(`/reports?permission=${permission}&scene=${scene}`)
 export const getReportStruct = reportId => req.get(`/report-struct/${reportId}`)
 export const deleteReport = reportId => req.delete(`/report/${reportId}`)
 export const addReport = data => req.post(`/reports`, data)
@@ -298,8 +299,11 @@ export const importCiData = data => req.post(`/ci-data/simple/import/${data.ciTy
 
 export const getEncryptKey = () => req.get(`/ci-data/password/encrypt-key`)
 
+// 获取隐私数据
+export const searchSensitiveData = data => req.post(`/ci-data/sensitive-attr/query`, data)
+
 export const getExtRefOptions = () => req.get('/extend/ci-types/model/list')
-export const getExtRefDetails = id => req.get(`/extend/ci-data/model/query/${id}`)
+export const getExtRefDetails = (id, data) => req.post(`/extend/ci-data/model/query/${id}`, data)
 
 // 获取视图dot
 export const viewGraphDot = data => req.post(`/view-graph-data`, data)

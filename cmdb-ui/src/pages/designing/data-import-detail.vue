@@ -692,7 +692,12 @@ export default {
       this.initPageInfo()
     },
     returnPreviousPage () {
-      window.history.back()
+      this.$router.push({
+        name: 'dataManagementImport',
+        query: {
+          needCache: 'yes'
+        }
+      })
     },
     async refreshVerificationResults () {
       this.isRefreshTipsShow = true
