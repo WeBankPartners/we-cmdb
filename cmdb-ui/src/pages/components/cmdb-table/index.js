@@ -1,10 +1,18 @@
 import '../table.scss'
 import moment from 'moment'
-import lodash from 'lodash'
+import lodash, { cloneDeep, hasIn, isEmpty, filter, map } from 'lodash'
+import { debounce } from '@/const/util.js'
 import EditModal from './edit-modal.js'
 import { dataToCsv, download } from './export-csv.js'
 import { createPopper } from '@popperjs/core'
-import { queryCiData, getCiTypeAttributes, queryPassword, getExtRefDetails, getCiTypeNameMap } from '@/api/server'
+import {
+  queryCiData,
+  getCiTypeAttributes,
+  queryPassword,
+  getExtRefDetails,
+  getCiTypeNameMap,
+  searchSensitiveData
+} from '@/api/server'
 const DEFAULT_FILTER_NUMBER = 5
 const MIN_WIDTH = 200
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
@@ -68,7 +76,8 @@ export default {
       diffVariableKeyName: '', // 所选差异化值所在行唯一名称
       diffVariableColKey: '', // 差异化值对应的key
       remarkedKeys: [], // 差异化值中标记出的值
-      oriDataMap: {}
+      oriDataMap: {},
+      loadFilters: true // 解决重置未清空数据问题
     }
   },
   component: {
@@ -92,23 +101,24 @@ export default {
   watch: {
     tableData (val) {
       this.formatTableData()
-      this.selectedRows = []
     },
     tableColumns: {
       handler (val, oldval) {
-        this.tableColumns.forEach(_ => {
-          if (_.children) {
-            _.children.forEach(j => {
-              if (!j.isNotFilterable) {
-                this.$set(this.form, j.inputKey, '')
-              }
-            })
-          } else {
-            if (!_.isNotFilterable) {
-              this.$set(this.form, _.inputKey, '')
-            }
-          }
-        })
+        // 勿删！！
+        // 编辑列显示时会触发清空搜索条件，未想到用处，此处暂时屏蔽
+        // this.tableColumns.forEach(_ => {
+        //   if (_.children) {
+        //     _.children.forEach(j => {
+        //       if (!j.isNotFilterable) {
+        //         this.$set(this.form, j.inputKey, '')
+        //       }
+        //     })
+        //   } else {
+        //     if (!_.isNotFilterable) {
+        //       this.$set(this.form, _.inputKey, '')
+        //     }
+        //   }
+        // })
         this.calColumn()
       },
       immediate: true,
@@ -174,6 +184,7 @@ export default {
       }
     },
     formatTableData () {
+      this.selectedRows = []
       this.data = this.tableData.map((_, index) => {
         const keys = Object.keys(_)
         keys.forEach(key => {
@@ -237,6 +248,14 @@ export default {
             }
           }
         }
+        if (hasIn(_, '_checked')) {
+          // 这里用于每次都记录已经点击的列，用于下次刷新时不丢失状态
+          const selectItem = cloneDeep(_)
+          if (_['_checked'] === true) {
+            this.selectedRows.push(selectItem)
+          }
+          delete selectItem._checked
+        }
       })
 
       function isArrayString (str) {
@@ -255,6 +274,10 @@ export default {
             return false
           }
         }
+      }
+      if (!isEmpty(this.selectedRows)) {
+        // 用于非第一次刷新时，更新选中列
+        this.$emit('getSelectedRows', this.selectedRows, false)
       }
     },
     filterMgmt () {
@@ -341,99 +364,16 @@ export default {
       }
       return filters
     },
-    handleSubmit: lodash.debounce(
-      function (ref) {
-        // const generateFilters = (type, i) => {
-        //   switch (type) {
-        //     case 'text':
-        //     case 'textArea':
-        //       filters.push({
-        //         name: i,
-        //         operator: 'contains',
-        //         value: this.form[i]
-        //       })
-        //       break
-        //     case 'select':
-        //     case 'ref':
-        //       filters.push({
-        //         name: i,
-        //         operator: 'eq',
-        //         value: this.form[i]
-        //       })
-        //       break
-        //     case 'datetime':
-        //       if (this.form[i][0] !== '' && this.form[i][1] !== '') {
-        //         filters.push({
-        //           name: i,
-        //           operator: 'gt',
-        //           value: moment(this.form[i][0]).format(DATE_FORMAT)
-        //         })
-        //         filters.push({
-        //           name: i,
-        //           operator: 'lt',
-        //           value: moment(this.form[i][1]).format(DATE_FORMAT)
-        //         })
-        //       }
-        //       break
-
-        //     case 'multiSelect':
-        //     case 'multiRef':
-        //       if (Array.isArray(this.form[i]) && this.form[i].length) {
-        //         filters.push({
-        //           name: i,
-        //           operator: 'in',
-        //           value: this.form[i]
-        //         })
-        //       }
-        //       break
-        //     case 'number':
-        //       filters.push({
-        //         name: i,
-        //         operator: 'eq',
-        //         value: +this.form[i]
-        //       })
-        //       break
-
-        //     default:
-        //       filters.push({
-        //         name: i,
-        //         operator: 'contains',
-        //         value: this.form[i]
-        //       })
-        //       break
-        //   }
-        // }
-
-        // let filters = []
-        // for (let i in this.form) {
-        //   if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
-        //     this.tableColumns
-        //       .filter(_ => _.uiSearchOrder || _.children)
-        //       .forEach(_ => {
-        //         if (_.children) {
-        //           _.children.forEach(j => {
-        //             if (i === j.inputKey) {
-        //               generateFilters(j.inputType, i)
-        //             }
-        //           })
-        //         } else {
-        //           if (i === _.inputKey) {
-        //             generateFilters(_.inputType, i)
-        //           }
-        //         }
-        //       })
-        //   }
-        // }
-        const filters = this.filterMgmt()
-        this.$emit('handleSubmit', filters)
-      },
-      1000,
-      {
-        leading: true,
-        trailing: false
-      }
-    ),
+    handleSubmit: debounce(function (ref) {
+      const filters = this.filterMgmt()
+      this.$emit('handleSubmit', filters)
+    }, 1000),
+    searchHandler () {
+      this.pagination.currentPage = 1
+      this.handleSubmit('form')
+    },
     reset (ref) {
+      this.loadFilters = false
       this.tableColumns.forEach(_ => {
         if (_.children) {
           _.children.forEach(j => {
@@ -447,7 +387,12 @@ export default {
           }
         }
       })
-      this.$emit('resetSearchForm')
+      this.$nextTick(() => {
+        this.calColumn()
+        this.handleSubmit('form')
+        this.$emit('resetSearchForm')
+        this.loadFilters = true
+      })
     },
     getTableOuterActions () {
       if (this.tableOuterActions) {
@@ -487,86 +432,6 @@ export default {
               style="margin-right: 10px"
               {..._}
               onClick={() => {
-                // const generateFilters = (type, i) => {
-                //   switch (type) {
-                //     case 'text':
-                //     case 'textArea':
-                //       filters.push({
-                //         name: i,
-                //         operator: 'contains',
-                //         value: this.form[i]
-                //       })
-                //       break
-                //     case 'select':
-                //     case 'ref':
-                //       filters.push({
-                //         name: i,
-                //         operator: 'eq',
-                //         value: this.form[i]
-                //       })
-                //       break
-                //     case 'datetime':
-                //       if (this.form[i][0] !== '' && this.form[i][1] !== '') {
-                //         filters.push({
-                //           name: i,
-                //           operator: 'gt',
-                //           value: moment(this.form[i][0]).format(DATE_FORMAT)
-                //         })
-                //         filters.push({
-                //           name: i,
-                //           operator: 'lt',
-                //           value: moment(this.form[i][1]).format(DATE_FORMAT)
-                //         })
-                //       }
-                //       break
-
-                //     case 'multiSelect':
-                //     case 'multiRef':
-                //       if (Array.isArray(this.form[i]) && this.form[i].length) {
-                //         filters.push({
-                //           name: i,
-                //           operator: 'in',
-                //           value: this.form[i]
-                //         })
-                //       }
-                //       break
-                //     case 'number':
-                //       filters.push({
-                //         name: i,
-                //         operator: 'eq',
-                //         value: +this.form[i]
-                //       })
-                //       break
-
-                //     default:
-                //       filters.push({
-                //         name: i,
-                //         operator: 'contains',
-                //         value: this.form[i]
-                //       })
-                //       break
-                //   }
-                // }
-                // let filters = []
-                // for (let i in this.form) {
-                //   if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
-                //     this.tableColumns
-                //       .filter(_ => _.uiSearchOrder || _.children)
-                //       .forEach(_ => {
-                //         if (_.children) {
-                //           _.children.forEach(j => {
-                //             if (i === j.inputKey) {
-                //               generateFilters(j.inputType, i)
-                //             }
-                //           })
-                //         } else {
-                //           if (i === _.inputKey) {
-                //             generateFilters(_.inputType, i)
-                //           }
-                //         }
-                //       })
-                //   }
-                // }
                 const filters = this.filterMgmt()
                 this.currentOperateType = _.operation_en
 
@@ -583,87 +448,6 @@ export default {
       if (item.isNotFilterable) return
 
       const filterParamsForRefSelect = item => {
-        // const generateFilters = (type, i) => {
-        //   switch (type) {
-        //     case 'text':
-        //     case 'textArea':
-        //       filters.push({
-        //         name: i,
-        //         operator: 'contains',
-        //         value: this.form[i]
-        //       })
-        //       break
-        //     case 'select':
-        //     case 'ref':
-        //       filters.push({
-        //         name: i,
-        //         operator: 'eq',
-        //         value: this.form[i]
-        //       })
-        //       break
-        //     case 'datetime':
-        //       if (this.form[i][0] !== '' && this.form[i][1] !== '') {
-        //         filters.push({
-        //           name: i,
-        //           operator: 'gt',
-        //           value: moment(this.form[i][0]).format(DATE_FORMAT)
-        //         })
-        //         filters.push({
-        //           name: i,
-        //           operator: 'lt',
-        //           value: moment(this.form[i][1]).format(DATE_FORMAT)
-        //         })
-        //       }
-        //       break
-
-        //     case 'multiSelect':
-        //     case 'multiRef':
-        //       if (Array.isArray(this.form[i]) && this.form[i].length) {
-        //         filters.push({
-        //           name: i,
-        //           operator: 'in',
-        //           value: this.form[i]
-        //         })
-        //       }
-        //       break
-        //     case 'number':
-        //       filters.push({
-        //         name: i,
-        //         operator: 'eq',
-        //         value: +this.form[i]
-        //       })
-        //       break
-
-        //     default:
-        //       filters.push({
-        //         name: i,
-        //         operator: 'contains',
-        //         value: this.form[i]
-        //       })
-        //       break
-        //   }
-        // }
-
-        // let filters = []
-        // for (let i in this.form) {
-        //   if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
-        //     this.tableColumns
-        //       .filter(_ => _.uiSearchOrder || _.children)
-        //       .forEach(_ => {
-        //         if (_.children) {
-        //           _.children.forEach(j => {
-        //             if (i === j.inputKey) {
-        //               generateFilters(j.inputType, i)
-        //             }
-        //           })
-        //         } else {
-        //           if (i === _.inputKey) {
-        //             generateFilters(_.inputType, i)
-        //           }
-        //         }
-        //       })
-        //   }
-        // }
         const filters = this.filterMgmt()
         let params = {}
         filters.forEach(f => {
@@ -692,7 +476,10 @@ export default {
             return (
               <item.component
                 on-on-enter={() => this.handleSubmit('form')}
-                onInput={v => (this.form[item.inputKey] = v)}
+                onInput={v => {
+                  this.form[item.inputKey] = v
+                  this.handleSubmit('form')
+                }}
                 onChange={v => item.onChange && this.$emit(item.onChange, v)}
                 value={this.form[item.inputKey]}
                 filterable
@@ -705,7 +492,10 @@ export default {
             return (
               <item.component
                 on-on-enter={() => this.handleSubmit('form')}
-                onInput={v => (this.form[item.inputKey] = v)}
+                onInput={v => {
+                  this.form[item.inputKey] = v
+                  this.handleSubmit('form')
+                }}
                 value={this.form[item.inputKey]}
                 {...data}
               />
@@ -716,7 +506,10 @@ export default {
                 on-on-enter={() => this.handleSubmit('form')}
                 value={this.form[item.inputKey]}
                 clearable={true}
-                onInput={v => (this.form[item.inputKey] = v)}
+                onInput={v => {
+                  this.form[item.inputKey] = v
+                  this.handleSubmit('form')
+                }}
                 isReadOnly={item.component === 'CMDBPermissionFilters'}
                 {...data}
               />
@@ -755,7 +548,7 @@ export default {
         <Form ref="form" label-position="top" inline>
           <Row>
             {this.tableColumns
-              .filter(_ => !!_.children || !!_.uiSearchOrder)
+              .filter(_ => (!!_.children || !!_.uiSearchOrder) && _.inputType !== 'password' && _.sensitive !== 'yes')
               .sort(compare)
               .map((_, index) => {
                 if (_.children) {
@@ -834,7 +627,7 @@ export default {
                   ))}
 
                 <FormItem>
-                  <Button type="primary" icon="ios-search" onClick={() => this.handleSubmit('form')}>
+                  <Button type="primary" icon="ios-search" onClick={() => this.searchHandler()}>
                     {this.$t('search')}
                   </Button>
                 </FormItem>
@@ -1062,23 +855,30 @@ export default {
         ]
         this.tableDetailInfo.isShow = true
       }
-      const getExtRefData = async val => {
+      const getExtRefData = async (key, val) => {
         this.tableDetailInfo.isShow = false
-        const refData = this.tableData.find(item => {
-          if (item[col.key].key_name === val) {
-            return item
-          }
-        })[col.key]
+        const refData =
+          this.tableData.find(item => {
+            if (item[col.key] && item[col.key].key_name === val) {
+              return true
+            }
+          })[col.key] || {}
         this.tableDetailInfo.title = this.$t('details')
-        this.tableDetailInfo.type = 'array'
-        const { data } = await getExtRefDetails(refData.guid)
-        this.tableDetailInfo.info = [
-          {
-            title: val,
-            value: data
-          }
-        ]
-        this.tableDetailInfo.isShow = true
+        const params = {
+          filters: [
+            {
+              name: 'guid',
+              operator: 'eq',
+              value: refData.guid || ''
+            }
+          ]
+        }
+        const { statusCode, data } = await getExtRefDetails(key, params)
+        if (statusCode === 'OK') {
+          this.tableDetailInfo.type = 'object'
+          this.tableDetailInfo.info = JSON.stringify(data.contents)
+          this.tableDetailInfo.isShow = true
+        }
       }
       const getMutiRefdata = async val => {
         val = JSON.parse(val)
@@ -1106,6 +906,28 @@ export default {
         }
       }
 
+      const getSensitiveInfo = async (row, col) => {
+        if (col.sensitive !== 'yes') {
+          return
+        }
+        this.tableDetailInfo.isShow = false
+        const params = [
+          {
+            ciType: col.ciTypeId,
+            attrName: col.inputKey,
+            guid: row.weTableForm.guid
+          }
+        ]
+        const { statusCode, data } = await searchSensitiveData(params)
+        if (statusCode === 'OK') {
+          this.tableDetailInfo.title = col.displayName
+          this.tableDetailInfo.type = 'string'
+          const detailInfo = data[0]
+          this.tableDetailInfo.info = detailInfo.queryPermission ? data[0].value : this.$t('db_no_viewing_permission')
+          this.tableDetailInfo.isShow = true
+        }
+      }
+
       const getDiffVariable = async (row, key) => {
         this.remarkedKeys = []
         this.diffVariableKeyName = row.guid
@@ -1128,17 +950,28 @@ export default {
         resizable: !isLastCol, // 除最后一列，该属性都为true
         sortable: this.isSortable ? 'custom' : false
       }
-      if (col.inputType === 'text') {
+      if (col.inputType === 'text' || (col.inputType === 'password' && col.sensitive === 'yes')) {
         generalParams.render = (h, params) => {
           return (
-            <Tooltip max-width="300" placement="top-start">
-              <div style="width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                {params.row.weTableForm[col.key]}
-              </div>
-              <div slot="content">
-                <p>{params.row.weTableForm[col.key]}</p>
-              </div>
-            </Tooltip>
+            <span style="display: flex">
+              {col.sensitive === 'yes' && (
+                <Icon
+                  size="16"
+                  type="ios-apps-outline"
+                  color="#2d8cf0"
+                  style="cursor:pointer"
+                  onClick={() => getSensitiveInfo(params.row, col)}
+                />
+              )}
+              <Tooltip max-width="300" placement="top-start">
+                <div style="width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  {params.row.weTableForm[col.key]}
+                </div>
+                <div slot="content">
+                  <p>{params.row.weTableForm[col.key]} </p>
+                </div>
+              </Tooltip>
+            </span>
           )
         }
         return generalParams
@@ -1226,6 +1059,22 @@ export default {
         return generalParams
       } else if (col.inputType === 'extRef') {
         generalParams.render = (h, params) => {
+          const isJumpMonitor = ['monitor:endpoint', 'monitor:service_group'].includes(col.extRefEntity)
+          const jumpToMonitor = () => {
+            if (col.extRefEntity === 'monitor:endpoint') {
+              window.sessionStorage.currentPath = ''
+              const path = `${window.location.origin}/#/monitorConfigIndex/endpointManagement?name=${
+                params.row.weTableForm[col.key]
+              }`
+              window.open(path, '_blank')
+            } else if (col.extRefEntity === 'monitor:service_group') {
+              window.sessionStorage.currentPath = ''
+              const path = `${window.location.origin}/#/monitorConfigIndex/resourceLevel?name=${
+                params.row.weTableForm[col.key]
+              }`
+              window.open(path, '_blank')
+            }
+          }
           return (
             <span>
               {params.row.weTableForm[col.key] && (
@@ -1234,10 +1083,15 @@ export default {
                   type="ios-apps-outline"
                   color="#2d8cf0"
                   style="cursor:pointer"
-                  onClick={() => getExtRefData(params.row.weTableForm[col.key])}
+                  onClick={() => getExtRefData(col.ciTypeAttrId, params.row.weTableForm[col.key])}
                 />
               )}
-              {params.row.weTableForm[col.key]}
+              {isJumpMonitor && (
+                <span style="color:#2d8cf0;cursor:pointer;" onClick={() => jumpToMonitor()}>
+                  {params.row.weTableForm[col.key]}
+                </span>
+              )}
+              {!isJumpMonitor && <span>{params.row.weTableForm[col.key]}</span>}
             </span>
           )
         }
@@ -1377,6 +1231,17 @@ export default {
     },
     showAddModal () {
       this.modalTitle = this.titles.add
+
+      const allFilterColumns =
+        filter(this.columns, item => item.sensitive === 'yes' || item.component === 'WeCMDBCIPassword') || []
+      const allFilterAttr = map(allFilterColumns, 'inputKey') || []
+
+      this.selectedRows.forEach(row => {
+        delete row.guid
+        allFilterAttr.forEach(attr => {
+          row[attr] = ''
+        })
+      })
       this.modalVisible = true
     },
     showCopyModal () {
@@ -1419,7 +1284,8 @@ export default {
       selectedRows,
       modalLoading,
       tableLoading,
-      ascOptions
+      ascOptions,
+      loadFilters
     } = this
     // TODO 逻辑待优化
     const isDisplay = col => {
@@ -1493,7 +1359,7 @@ export default {
     }
     return (
       <div>
-        {!filtersHidden && <div class="form-filter">{this.getFormFilters()}</div>}
+        {!filtersHidden && loadFilters && <div class="form-filter">{this.getFormFilters()}</div>}
         <Row style="margin-bottom:10px">{this.getTableOuterActions()}</Row>
         {this.isShowFilter && (
           <div style="position: relative;top: -40px;right: 30px;float: right;">
@@ -1631,9 +1497,11 @@ export default {
             <Button style="float: right;margin-right: 20px" onClick={() => closeModal()}>
               {this.$t('close')}
             </Button>
-            <Button style="float: right;margin-right: 20px" type="primary" onClick={() => refreshDiffVariable()}>
-              {this.$t('refresh')}
-            </Button>
+            {this.tableDetailInfo.type === 'diffVariable' && (
+              <Button style="float: right;margin-right: 20px" type="primary" onClick={() => refreshDiffVariable()}>
+                {this.$t('refresh')}
+              </Button>
+            )}
           </div>
         </Modal>
       </div>

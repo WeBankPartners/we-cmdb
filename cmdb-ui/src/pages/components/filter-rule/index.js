@@ -186,8 +186,10 @@ export default {
         return <Input class={className} disabled />
       }
       let types = []
-      if (obj.operator === 'in') {
+      if (['in', 'notIn'].includes(obj.operator)) {
         types = ['expression', 'array']
+      } else if (['ne', 'eq', '>=', '<='].includes(obj.operator)) {
+        types = ['expression', 'value']
       } else {
         types = ['value']
       }

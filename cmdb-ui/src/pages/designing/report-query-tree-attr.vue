@@ -46,7 +46,6 @@
           </template>
         </FormItem>
         <FormItem v-if="formData.inputType === 'multiSelect'" class="form-item-content">
-          111
           <Select v-model="ciData[formData.propertyName]" filterable clearable multiple disabled>
             <Option
               v-for="choice in getEnumCode(ciData[formData.propertyName], formData.selectList)"

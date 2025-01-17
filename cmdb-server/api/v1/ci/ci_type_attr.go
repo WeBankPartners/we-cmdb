@@ -72,6 +72,12 @@ func validateAttrParam(param models.SysCiTypeAttrTable) error {
 	if param.DataType == "" {
 		return fmt.Errorf("Param dataType can not empty ")
 	}
+	if param.AutofillAble == "yes" && param.AutofillRule != "" {
+		return db.ValidateAutoFillRuleList(param.AutofillRule)
+	}
+	if param.RefFilter != "" && param.RefFilter != "[]" {
+		return db.ValidateAttrRefFilter(param.RefFilter)
+	}
 	return nil
 }
 
@@ -89,6 +95,10 @@ func AttrUpdate(c *gin.Context) {
 	}
 	var param models.SysCiTypeAttrTable
 	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	if err := validateAttrParam(param); err != nil {
 		middleware.ReturnParamValidateError(c, err)
 		return
 	}
@@ -136,6 +146,10 @@ func AttrApply(c *gin.Context) {
 		middleware.ReturnParamValidateError(c, err)
 		return
 	}
+	if err := validateAttrParam(param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
 	param.Id = ciAttrId
 	param.CiType = ciTypeGuid
 	//Update database
@@ -149,6 +163,7 @@ func AttrApply(c *gin.Context) {
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
+		db.AutoCreateRoleCiTypeAttrPermission(ciTypeGuid)
 		middleware.ReturnData(c, []string{})
 	}
 }

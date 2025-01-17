@@ -3,6 +3,7 @@ import 'regenerator-runtime/runtime'
 import router from './project-config/router-plugin'
 import zhCN from './locale/i18n/zh-CN.json'
 import enUS from './locale/i18n/en-US.json'
+// import 'view-design/dist/styles/iview.css'
 
 import WeCMDBSelect from '../src/pages/components/select.vue'
 import WeCMDBRefSelect from './pages/components/ref-select.js'
@@ -40,7 +41,7 @@ const implicitRoute = {
       'zh-CN': '数据管理(导入)'
     },
     parentBreadcrumb: {
-      'en-US': 'Cube Back',
+      'en-US': 'Design',
       'zh-CN': '设计'
     }
   }

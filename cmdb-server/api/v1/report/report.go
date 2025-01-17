@@ -16,11 +16,14 @@ func QueryReport(c *gin.Context) {
 		middleware.ReturnParamValidateError(c, fmt.Errorf("Url param permission can not empty "))
 		return
 	}
-
 	//Param validate
 	paramsMap := make(map[string]interface{})
 	if val, ok := c.GetQuery("ciType"); ok {
 		paramsMap["ci_type"] = val
+	}
+	scene := c.Query("scene")
+	if scene == "view" {
+		paramsMap["used_by_view"] = "yes"
 	}
 
 	permissions := strings.Split(c.Query(permissionName), ",")
@@ -244,7 +247,7 @@ func CopyReportData(c *gin.Context) {
 		return
 	}
 	// 导入报表数据
-	if err = db.ImportCiData(result, middleware.GetRequestUser(c)); err != nil {
+	if err = db.ImportCiData(result, middleware.GetRequestUser(c), true); err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
 		middleware.ReturnSuccess(c)
