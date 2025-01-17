@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -33,6 +34,27 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 	}
 	if len(ruleList) == 0 {
 		err = fmt.Errorf("Analyze buil autofill value rule list fail,rule is empty ")
+		return
+	}
+	calcFillFlag := false
+	for _, ruleObj := range ruleList {
+		if ruleObj.Type == "calcSymbol" || ruleObj.Type == "calcFunc" {
+			calcFillFlag = true
+			break
+		}
+	}
+	if calcFillFlag {
+		calcResult, calcErr := buildCalcFillValue(columnMap, ruleList)
+		if calcErr != nil {
+			err = fmt.Errorf("buildCalcFillValue fail,%s ", calcErr.Error())
+			return
+		}
+		if calcResult < 0 {
+			err = fmt.Errorf("buildCalcFillValue fail,value:%3.f < 0", calcResult)
+			return
+		}
+		newValueList = append(newValueList, transFloatValueToString(fmt.Sprintf("%.3f", calcResult)))
+		log.Logger.Debug("-----end buildAutofillValue with calcFillFlag", log.StringList("result", newValueList))
 		return
 	}
 	var ruleObjValueList [][]string
@@ -452,7 +474,7 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam mod
 		err = fmt.Errorf("Get ci reference data fail,attr:%s is not reference type ", attrId)
 		return
 	}
-	filterGuidParam := models.CiDataLegalGuidList{Disable: false, GuidList: []string{}}
+	filterGuidParam := models.CiDataLegalGuidList{Legal: false, GuidList: []string{}}
 	if attrTable[0].RefFilter == "" {
 		var queryResults []*models.CiDataRefDataObj
 		err = x.SQL(fmt.Sprintf("select guid,key_name from %s order by update_time desc", attrTable[0].RefCiType)).Find(&queryResults)
@@ -730,6 +752,7 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 		}
 		expressionSqlList = append(expressionSqlList, &eso)
 	}
+	log.Logger.Debug("getExpressResultList expressionSqlList", log.JsonObj("expressionSqlList", expressionSqlList))
 	eLen := len(expressionSqlList)
 	if eLen == 0 {
 		return
@@ -759,6 +782,15 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 			whereSql += v.WhereSql
 		}
 		if i == 0 {
+			//if len(ciList) == 1 {
+			//	// 新增的场景下guid是空的，但其它字段有填，尝试拿其它字段去做条件过滤
+			//	if filterMap["guid"] == "" && filterMap[v.ResultColumn] != "" {
+			//		log.Logger.Debug("getExpressResultList return with empty guid", log.String("resultColumn", v.ResultColumn), log.String("value", filterMap[v.ResultColumn]))
+			//		result = append(result, filterMap[v.ResultColumn])
+			//		return
+			//	}
+			//	whereSql += fmt.Sprintf(" and %s.guid in ('%s') ", v.IndexTableName, filterMap["guid"])
+			//} else {
 			if filterValueString, b := filterMap[v.Table]; b {
 				whereSql += fmt.Sprintf(" and %s.guid in ('%s') ", v.IndexTableName, strings.Join(transStringToList(filterValueString), "','"))
 				//if strings.Contains(filterMap[v.Table], ",") {
@@ -782,6 +814,7 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 					//}
 				}
 			}
+			//}
 		}
 	}
 	if whereSql != "" {
@@ -836,6 +869,23 @@ func buildConditionSql(column, operator, value string, valueList []string) strin
 		break
 	case "like":
 		sql = fmt.Sprintf("%s LIKE '%%%s%%'", column, value)
+		break
+	case ">=":
+		targetValue := "0"
+		if len(valueList) > 0 {
+			targetValue = transFloatValueToString(valueList[0])
+		}
+		sql = fmt.Sprintf("%s>='%s'", column, targetValue)
+		break
+	case "<=":
+		targetValue := "0"
+		if len(valueList) > 0 {
+			targetValue = transFloatValueToString(valueList[0])
+		}
+		sql = fmt.Sprintf("%s<='%s'", column, targetValue)
+		break
+	case "notIn":
+		sql = fmt.Sprintf("%s not in ('%s')", column, strings.Join(valueList, "','"))
 		break
 	}
 	return sql
@@ -1241,6 +1291,176 @@ func transStringToList(input string) (output []string) {
 		output = strings.Split(input, ",")
 	} else {
 		output = []string{input}
+	}
+	return
+}
+
+func buildCalcFillValue(columnMap map[string]string, ruleList []*models.AutofillObj) (result float64, err error) {
+	log.Logger.Debug("-----start buildCalcFillValue columnMap", log.JsonObj("map", columnMap), log.JsonObj("ruleList", ruleList))
+	var lastCalcSymbol, lastCalcFunc string
+	var calcValue float64
+	for i, ruleObj := range ruleList {
+		// json结构表达式
+		tmpCalcValue := float64(0)
+		if ruleObj.Type == "rule" {
+			tmpValueList, _, tmpErr := getRuleValue(columnMap, ruleObj.Value)
+			if tmpErr != nil {
+				err = fmt.Errorf("Try to get autofill reference data with rule value:%s fail,%s ", ruleObj.Value, tmpErr.Error())
+				break
+			}
+			if lastCalcFunc == "sum" {
+				for _, tmpValue := range tmpValueList {
+					tmpFloatValue, _ := strconv.ParseFloat(tmpValue, 64)
+					tmpCalcValue += tmpFloatValue
+				}
+			} else if lastCalcFunc == "count" {
+				tmpCalcValue = float64(len(tmpValueList))
+			} else {
+				err = fmt.Errorf("can not find calcFunction before expr:%s ", ruleObj.Value)
+				break
+			}
+		} else if ruleObj.Type == "delimiter" {
+			// 连接符
+			tmpFloatValue, tmpParseFloatErr := strconv.ParseFloat(ruleObj.Value, 64)
+			if tmpParseFloatErr != nil {
+				err = fmt.Errorf("delimiter char %s is not number", ruleObj.Value)
+				break
+			}
+			tmpCalcValue = tmpFloatValue
+		} else if ruleObj.Type == "specialDelimiter" {
+			err = fmt.Errorf("calcFill can not handle with specialDelimiter")
+			break
+		}
+		if lastCalcSymbol == "+" || lastCalcSymbol == "" {
+			calcValue = calcValue + tmpCalcValue
+		} else if lastCalcSymbol == "-" {
+			calcValue = calcValue - tmpCalcValue
+		}
+		//else {
+		//	if i == 0 {
+		//		calcValue = tmpCalcValue
+		//	} else {
+		//		err = fmt.Errorf("can not find calcSymbol before expr:%s ", ruleObj.Value)
+		//		break
+		//	}
+		//}
+		//lastCalcSymbol, lastCalcFunc = "", ""
+		if ruleObj.Type == "calcSymbol" {
+			lastCalcSymbol = ruleObj.Value
+		}
+		if ruleObj.Type == "calcFunc" {
+			lastCalcFunc = ruleObj.Value
+		}
+		log.Logger.Debug("buildCalcFillValue", log.Int("index", i), log.Float64("tmpCalcValue", tmpCalcValue), log.Float64("calcValue", calcValue), log.String("symbol", lastCalcSymbol), log.String("func", lastCalcFunc))
+	}
+	if err != nil {
+		log.Logger.Error("-----end buildCalcFillValue", log.Error(err))
+		return
+	}
+	result = calcValue
+	log.Logger.Debug("-----end buildCalcFillValue", log.Float64("result", result))
+	return
+}
+
+func ValidateAutoFillRuleList(rule string) (err error) {
+	if rule == "" {
+		return
+	}
+	var ruleList []*models.AutofillObj
+	err = json.Unmarshal([]byte(rule), &ruleList)
+	if err != nil {
+		err = fmt.Errorf("json unmarhsal rule string error:%s ", err.Error())
+		return
+	}
+	if len(ruleList) == 0 {
+		err = fmt.Errorf("Analyze autofill rule list fail,rule is empty ")
+		return
+	}
+	calcFillFlag := false
+	for _, ruleObj := range ruleList {
+		if ruleObj.Type == "calcSymbol" || ruleObj.Type == "calcFunc" {
+			calcFillFlag = true
+			break
+		}
+	}
+	if !calcFillFlag {
+		return
+	}
+	lastIndex := len(ruleList) - 1
+	for i, ruleObj := range ruleList {
+		if ruleObj.Type == "rule" {
+			if i == 0 || ruleList[i-1].Type != "calcFunc" {
+				err = fmt.Errorf("can not find calcFunction before expr:%s ", ruleObj.Value)
+				break
+			}
+			var ruleExprList []*models.AutofillValueObj
+			err = json.Unmarshal([]byte(ruleObj.Value), &ruleExprList)
+			if err != nil {
+				err = fmt.Errorf("Json unmarshal rule expression:%s error,%s ", ruleObj.Value, err.Error())
+				break
+			}
+			if len(ruleExprList) == 0 {
+				err = fmt.Errorf("ruleList:%s is empty ", ruleObj.Value)
+				break
+			}
+			lastRuleObj := ruleExprList[len(ruleExprList)-1]
+			tmpAttrSplit := strings.Split(lastRuleObj.ParentRs.AttrId, "#")
+			if len(tmpAttrSplit) < 2 {
+				err = fmt.Errorf("expr:%s is not end with ciAttr", ruleObj.Value)
+				break
+			}
+			tmpAttrInputType := getAttributeInputType(tmpAttrSplit[0], tmpAttrSplit[1], "")
+			if tmpAttrInputType != "int" && tmpAttrInputType != "float" {
+				err = fmt.Errorf("expr:%s last attr is not a number type", ruleObj.Value)
+				break
+			}
+		}
+		if ruleObj.Type == "calcFunc" {
+			if i == lastIndex || ruleList[i+1].Type != "rule" {
+				err = fmt.Errorf("can not find expr after calcFunction:%s ", ruleObj.Value)
+				break
+			}
+		}
+		if ruleObj.Type == "calcSymbol" {
+			if i == lastIndex {
+				err = fmt.Errorf("can not end with calcSymbol:%s ", ruleObj.Value)
+				break
+			}
+		}
+	}
+	return
+}
+
+func transFloatValueToString(input string) (output string) {
+	output = input
+	floatValue, err := strconv.ParseFloat(input, 64)
+	if err != nil {
+		return
+	}
+	output = fmt.Sprintf("%.3f", math.Round(floatValue*1000)/1000)
+	valueList := strings.Split(output, ".")
+	if len(valueList) == 2 {
+		rightValue := strings.TrimRight(valueList[1], "0")
+		if rightValue != "" {
+			output = valueList[0] + "." + rightValue
+		} else {
+			output = valueList[0]
+		}
+	}
+	return
+}
+
+func ValidateAttrRefFilter(refFilterString string) (err error) {
+	var filters []map[string]models.CiDataRefFilterObj
+	err = json.Unmarshal([]byte(refFilterString), &filters)
+	if err != nil {
+		err = fmt.Errorf("Json unmarshal filters string fail,%s ", err.Error())
+		return
+	}
+	for _, filter := range filters[0] {
+		if filter.Right.Type == "expression" {
+
+		}
 	}
 	return
 }

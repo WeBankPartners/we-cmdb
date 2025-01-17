@@ -123,9 +123,9 @@ func ciModelQuery(ciType string, bodyBytes []byte, user string, roles []string) 
 		queryParam.Filters = append(queryParam.Filters, &models.QueryRequestFilterObj{Name: filter.AttrName, Operator: filter.Op, Value: filter.Condition})
 	}
 	queryParam.Paging = false
-	legalGuidList := models.CiDataLegalGuidList{Disable: true}
+	legalGuidList := models.CiDataLegalGuidList{Legal: true}
 	if user != models.PlatformUser {
-		permissions, tmpErr := db.GetRoleCiDataPermission(roles, ciType)
+		permissions, tmpErr := db.GetRoleCiDataPermission(roles, ciType, "")
 		if tmpErr != nil {
 			err = tmpErr
 			return

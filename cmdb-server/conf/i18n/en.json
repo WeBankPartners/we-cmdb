@@ -1,0 +1,51 @@
+{
+  "success": "Success",
+  "request_param_validate_error": {
+    "code": 10200001,
+    "message": "System error [Parameter validate fail]"
+  },
+  "request_read_body_error": {
+    "code": 10200002,
+    "message": "System error [Failed to read request body data]"
+  },
+  "request_json_unmarshal_error": {
+    "code": 10200003,
+    "message": "System error [Failed unmarshal request body in json]"
+  },
+  "request_token_validate_error": {
+    "code": 10200004,
+    "message": "System error [Failed validate request token]"
+  },
+  "request_token_expire_error": {
+    "code": 10200005,
+    "message": "System error [token expired]"
+  },
+  "database_query_error": {
+    "code": 10200021,
+    "message": "System error [Failed to Query database fail]"
+  },
+  "database_query_empty_error": {
+    "code": 10200022,
+    "message": "System error [Failed to get any rows with database query]"
+  },
+  "database_execute_error": {
+    "code": 10200023,
+    "message": "System error [Failed to execute database sql]"
+  },
+  "server_handle_error": {
+    "code": 10200031,
+    "message": "System error [Failed to handle request]"
+  },
+  "license_illegal_error": {
+    "code": 10200032,
+    "message": "License illegal"
+  },
+  "data_permission_deny": {
+    "code": 20200001,
+    "message": "Data Permission Deny"
+  },
+  "api_permission_deny": {
+    "code": 20200002,
+    "message": "Api Permission Deny"
+  }
+}
