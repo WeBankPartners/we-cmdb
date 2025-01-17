@@ -12,6 +12,7 @@ sed -i "s~{{SUB_SYSTEM_CODE}}~$SUB_SYSTEM_CODE~g" /app/cmdb/conf/default.json
 sed -i "s~{{SUB_SYSTEM_KEY}}~$SUB_SYSTEM_KEY~g" /app/cmdb/conf/default.json
 sed -i "s~{{HTTP_SERVER_PORT}}~$HTTP_SERVER_PORT~g" /app/cmdb/conf/default.json
 sed -i "s~{{ENCRYPT_SEED}}~$ENCRYPT_SEED~g" /app/cmdb/conf/default.json
+sed -i "s~{{WECMDB_MENU_API_ENABLE}}~$WECMDB_MENU_API_ENABLE~g" /app/cmdb/conf/default.json
 if [ $PLUGIN_MODE ]
 then
 sed -i "s~{{PLUGIN_MODE}}~yes~g" /app/cmdb/conf/default.json

@@ -14,7 +14,7 @@
           <Button style="float: right" type="primary" @click="openDrawer = !openDrawer">
             {{ $t('operating_area') }}
           </Button>
-          <Drawer :closable="true" :width="400" :mask="false" :transfer="false" inner v-model="openDrawer">
+          <Drawer :closable="true" :width="450" :mask="false" :transfer="false" inner v-model="openDrawer">
             <Spin fix v-if="operationLoading">
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
               <div>{{ $t('loading') }}</div>
@@ -120,12 +120,14 @@ export default {
           dom.select('polygon').attr('stroke', '#ff9900')
           dom.select('text').attr('fill', '#ff9900')
         } else {
+          this.cachedIdInfo.graph = ''
+          let typeArray = ['path', 'polygon', 'ellipse', 'rect']
+          typeArray.forEach(type => {
+            if (dom.select(type)._groups[0][0]) {
+              this.cachedIdInfo.graph = type
+            }
+          })
           this.cachedIdInfo.type = 'node'
-          this.cachedIdInfo.graph = dom.select('polygon')._groups[0][0]
-            ? 'polygon'
-            : dom.select('ellipse')._groups[0][0]
-              ? 'ellipse'
-              : 'rect'
           this.cachedIdInfo.color = dom.select(this.cachedIdInfo.graph).attr('fill')
           // 设置高亮颜色
           dom.select(this.cachedIdInfo.graph).attr('fill', '#ff9900')
@@ -136,7 +138,7 @@ export default {
       const el = document.querySelectorAll('.operation-area')
       for (let i = 0; i < el.length; i++) {
         if (val) {
-          el[i].style.width = '450px'
+          el[i].style.width = '460px'
           el[i].style.height = '100%'
         } else {
           el[i].style.width = '200px'
@@ -154,7 +156,9 @@ export default {
       canvas.width = graphElement.getBoundingClientRect().width
       canvas.height = graphElement.getBoundingClientRect().height
       const context = canvas.getContext('2d')
-      const canvgInstance = await Canvg.from(context, svgElements[0].outerHTML)
+      // replace &nbsp; with space or canvg will throw error
+      const replaceNbsp = svgElements[0].outerHTML.replaceAll('&nbsp;', ' ')
+      const canvgInstance = await Canvg.from(context, replaceNbsp)
       canvgInstance.resize(
         graphElement.getBoundingClientRect().width * 3,
         graphElement.getBoundingClientRect().height * 3
@@ -323,11 +327,6 @@ export default {
           .attr('width', winWidth)
           .attr('height', winHeight)
           .attr('style', '')
-        // g.selectAll('.sequenceNumber').on('click', () => {console.log('click ', d3.event.target.innerHTML)})
-        // let svgWidth = parseInt(svg.attr("viewBox").split(' ')[2])
-        // svg.attr('viewBox', '0 0 ' + winWidth + ' ' + winHeight)
-        // svg.select("g").attr("transform", `translate(${winWidth/2 - svgWidth/2}, 200) scale(1)`)
-
         let idFinder = /\$\{([a-z0-9]+(?:_[a-z0-9]+)+)\}/g
         // note
         svg

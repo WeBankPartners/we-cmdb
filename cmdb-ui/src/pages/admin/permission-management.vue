@@ -83,16 +83,20 @@
         </FormItem>
       </Form>
     </Modal>
-    <Modal v-model="userManageModal" width="700" :title="$t('edit_user')" @on-ok="confirmUser" @on-cancel="confirmUser">
-      <Transfer
-        :titles="transferTitles"
-        :list-style="transferStyle"
-        :data="allUsersForTransfer"
-        :target-keys="usersKeyBySelectedRole"
-        :render-format="renderUserNameForTransfer"
-        @on-change="handleUserTransferChange"
-        filterable
-      ></Transfer>
+    <Modal v-model="userManageModal" width="800" :title="$t('edit_user')" @on-ok="confirmUser" @on-cancel="confirmUser">
+      <div style="width: 100%; overflow-x: auto">
+        <div style="min-width: 760px; display: flex; justify-content: center">
+          <Transfer
+            :titles="transferTitles"
+            :list-style="transferStyle"
+            :data="allUsersForTransfer"
+            :target-keys="usersKeyBySelectedRole"
+            :render-format="renderUserNameForTransfer"
+            @on-change="handleUserTransferChange"
+            filterable
+          ></Transfer>
+        </div>
+      </div>
     </Modal>
     <Modal
       v-model="showPassword"

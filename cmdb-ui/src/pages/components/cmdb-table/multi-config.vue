@@ -1,13 +1,25 @@
 <template>
   <div class=" ">
     <Button type="primary" @click="showConfig" :disabled="disabled">{{ $t('configuration') }}</Button>
-    <Modal v-model="showModal" :title="$t('configuration')" @on-ok="confirmData" @on-cancel="cancel">
+    <Modal v-model="showModal" :title="$t('configuration')">
       <template v-for="(item, itemIndex) in multiData">
         <div :key="itemIndex" style="margin:4px">
-          <Input v-model="item.value" :type="type" v-if="type !== 'json'" style="width:360px"></Input>
+          <InputNumber
+            v-if="type === 'number'"
+            :max="99999999"
+            :min="-99999999"
+            style="width:360px"
+            :precision="0"
+            v-model="item.value"
+          />
+          <Input v-else v-model="item.value" :maxlength="255" show-word-limit style="width:360px"></Input>
           <Button @click="addItem" type="primary" icon="md-add"></Button>
           <Button @click="deleteItem(itemIndex)" v-if="multiData.length !== 1" type="error" icon="ios-trash"></Button>
         </div>
+      </template>
+      <template #footer>
+        <Button @click="showModal = false">{{ $t('cancel') }}</Button>
+        <Button @click="confirmData" type="primary">{{ $t('confirm') }}</Button>
       </template>
     </Modal>
     <Modal :z-index="2000" v-model="showJsonModal" :title="$t('json_edit')" @on-ok="confirmJsonData" width="700">
@@ -40,27 +52,34 @@ export default {
   },
   props: ['inputKey', 'data', 'type', 'disabled'],
   mounted () {
-    let tmp = this.data ? this.data : []
-    if (this.type === 'json') {
-      this.originData = tmp || []
-    } else {
-      this.multiData =
-        tmp &&
-        tmp.map(d => {
-          return {
-            value: d
-          }
-        })
-      if (this.multiData.length === 0) {
-        this.multiData = [
-          {
-            value: ''
-          }
-        ]
-      }
-    }
+    this.initData()
   },
   methods: {
+    initData () {
+      const data = JSON.parse(JSON.stringify(this.data))
+      let tmp = data || []
+      if (typeof tmp === 'string') {
+        tmp = JSON.parse(tmp)
+      }
+      if (this.type === 'json') {
+        this.originData = tmp || []
+      } else {
+        this.multiData =
+          tmp &&
+          tmp.map(d => {
+            return {
+              value: d
+            }
+          })
+        if (this.multiData.length === 0) {
+          this.multiData = [
+            {
+              value: ''
+            }
+          ]
+        }
+      }
+    },
     confirmJsonData () {
       this.$emit('input', this.originData, this.inputKey)
       this.showJsonModal = false
@@ -72,8 +91,10 @@ export default {
     showConfig () {
       if (this.type === 'json') {
         this.showJsonModal = true
+      } else {
+        this.showModal = true
       }
-      this.showModal = true
+      this.initData()
     },
     addItem () {
       this.multiData.push({
@@ -84,15 +105,20 @@ export default {
       this.multiData.splice(index, 1)
     },
     confirmData () {
-      const res = this.multiData.map(item => {
-        if (this.type === 'number') {
-          return Number(item.value)
-        }
-        return item.value
-      })
-      this.showJsonModal = false
-      this.showModal = false
-      this.$emit('input', res, this.inputKey)
+      const emptyFlag = this.multiData.some(item => item.value === '')
+      if (emptyFlag) {
+        this.$Message.warning(this.$t('data_cannot_empty'))
+      } else {
+        const res = this.multiData.map(item => {
+          if (this.type === 'number') {
+            return Number(item.value)
+          }
+          return item.value
+        })
+        this.showJsonModal = false
+        this.showModal = false
+        this.$emit('input', res, this.inputKey)
+      }
     },
     cancel () {}
   },

@@ -10,11 +10,39 @@
         <div class="password-wrapper">{{ isShowPassword ? realPassword : '******' }}</div>
       </Tooltip>
       <div style="float: right; margin-right: 12px;">
-        <Icon :type="isShowPassword ? 'md-eye-off' : 'md-eye'" @click="showPassword" class="operation-icon-confirm" />
-        <Icon type="ios-build-outline" v-if="!disabled" @click="resetPassword" class="operation-icon-confirm" />
+        <Button
+          size="small"
+          type="primary"
+          :disabled="isSensitive && sensitiveInfo.queryPermission === false"
+          ghost
+          @click="
+            () => {
+              isShowPassword = !isShowPassword
+              formData.isShowPassword = isShowPassword
+              showPassword()
+            }
+          "
+        >
+          <Icon :type="isShowPassword ? 'md-eye-off' : 'md-eye'" size="16" />
+        </Button>
+        <Button
+          size="small"
+          type="primary"
+          :disabled="disabled || (isSensitive && sensitiveInfo.updatePermission === false)"
+          ghost
+          @click="resetPassword"
+        >
+          <Icon type="ios-build-outline" size="16" />
+        </Button>
+        <!-- <Icon :type="isShowPassword ? 'md-eye-off' : 'md-eye'" @click="showPassword" class="operation-icon-confirm" /> -->
+        <!-- <Icon type="ios-build-outline" v-if="!disabled" @click="resetPassword" class="operation-icon-confirm" /> -->
       </div>
     </div>
-    <Modal v-model="isShowEditModal" :title="useLocalValue ? $t('enter_password') : $t('password_edit')">
+    <Modal
+      v-model="isShowEditModal"
+      :title="useLocalValue ? $t('enter_password') : $t('password_edit')"
+      class-name="cmdb-password-modal"
+    >
       <Form ref="form" :model="editFormData" :rules="rules" label-position="right" :label-width="120">
         <FormItem :label="useLocalValue ? $t('password') : $t('new_password')" prop="newPassword">
           <Input
@@ -48,17 +76,15 @@
 </template>
 
 <script>
-import { queryPassword, getEncryptKey } from '@/api/server'
-import CryptoJS from 'crypto-js'
+import { find, hasIn } from 'lodash'
+import { queryPassword } from '@/api/server'
 export default {
   name: '',
   data () {
     return {
-      encryptKey: '',
       realPassword: '',
       useLocalValue: false,
       isShowPassword: false,
-
       isShowEditModal: false,
       editFormData: {
         newPassword: '',
@@ -66,16 +92,51 @@ export default {
       },
       modalLoading: false,
       rules: {
+        newPassword: [
+          {
+            required: true,
+            message: this.$t('new_password_input_placeholder'),
+            validator: () => !!this.editFormData.newPassword
+          }
+        ],
         comparedPassword: [
           {
+            required: true,
+            message: this.$t('new_password_input_placeholder'),
+            validator: () => !!this.editFormData.comparedPassword
+          },
+          {
+            required: true,
             message: this.$t('please_input_right_new_password'),
             validator: () => this.editFormData.newPassword === this.editFormData.comparedPassword
           }
         ]
+      },
+      sensitiveInfo: {}
+    }
+  },
+  props: ['formData', 'panalData', 'disabled', 'index', 'allSensitiveData'],
+  computed: {
+    isSensitive () {
+      return this.formData.sensitive === 'yes'
+    }
+  },
+  mounted () {
+    this.sensitiveInfo =
+      find(this.allSensitiveData, {
+        guid: this.panalData.guid,
+        ciType: this.formData.ciTypeId,
+        attrName: this.formData.inputKey
+      }) || {}
+    this.isShowPassword = false
+    if (hasIn(this.formData, 'isShowPassword')) {
+      this.isShowPassword = this.formData.isShowPassword
+      if (this.isShowPassword === true) {
+        this.useLocalValue = true
+        this.showPassword()
       }
     }
   },
-  props: ['formData', 'panalData', 'disabled'],
   methods: {
     resetPassword () {
       this.isShowEditModal = true
@@ -89,16 +150,6 @@ export default {
       })
     },
     async handleInput () {
-      if (this.editFormData.newPassword) {
-        await this.getEncryptKey()
-        const key = CryptoJS.enc.Utf8.parse(this.encryptKey)
-        const config = {
-          iv: CryptoJS.enc.Utf8.parse(Math.trunc(new Date() / 100000) * 100000000),
-          mode: CryptoJS.mode.CBC
-          // padding: CryptoJS.pad.PKcs7
-        }
-        this.editFormData.newPassword = CryptoJS.AES.encrypt(this.editFormData.newPassword, key, config).toString()
-      }
       this.panalData[this.formData.propertyName] = this.editFormData.newPassword
       this.realPassword = this.editFormData.newPassword
       this.editFormData = {
@@ -106,6 +157,12 @@ export default {
         comparedPassword: ''
       }
       this.isShowEditModal = false
+      // 修改过的密码，需要加密处理
+      this.$emit('encryptPassword', {
+        key: this.formData.propertyName,
+        value: this.panalData[this.formData.propertyName],
+        index: this.index
+      })
     },
     closeEditModal () {
       this.isShowEditModal = false
@@ -128,16 +185,8 @@ export default {
           this.realPassword = data
         }
       }
-      this.isShowPassword = !this.isShowPassword
-    },
-    async getEncryptKey () {
-      const { statusCode, data } = await getEncryptKey()
-      if (statusCode === 'OK') {
-        this.encryptKey = data
-      }
     }
-  },
-  mounted () {}
+  }
 }
 </script>
 
@@ -162,5 +211,8 @@ export default {
 <style>
 .encrypt-password .ivu-input-suffix {
   display: none;
+}
+.cmdb-password-modal .ivu-form-item {
+  margin-bottom: 20px;
 }
 </style>

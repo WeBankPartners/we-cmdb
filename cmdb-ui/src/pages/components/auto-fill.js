@@ -35,7 +35,15 @@ export default {
         { code: 'notNull', value: 'NotNull' },
         { code: 'null', value: 'Null' }
       ],
-      spinShow: false
+      spinShow: false,
+      calcDelimiters: [
+        { code: '+', value: '+' },
+        { code: '-', value: '-' }
+      ],
+      calcFuncs: [
+        { code: 'sum', value: 'sum' },
+        { code: 'count', value: 'count' }
+      ]
     }
   },
   computed: {
@@ -91,6 +99,10 @@ export default {
               return this.renderDelimiter(_.value, i)
             case 'specialDelimiter':
               return this.renderSpecialDelimiter(_.value, i)
+            case 'calcSymbol':
+              return this.renderCalcDelimiter(_.value, i)
+            case 'calcFunc':
+              return this.renderCalcFunc(_.value, i)
             default:
               break
           }
@@ -114,6 +126,22 @@ export default {
             const found = this.specialDelimiters.find(item => item.code === _.value)
             if (found) {
               result.push(this.renderSpan(found.value, props))
+            } else {
+              result.push(this.renderSpan(_.value, props))
+            }
+            break
+          case 'calcSymbol':
+            const foundCalcDelimiter = this.getCalcConnector.find(item => item.code === _.value)
+            if (foundCalcDelimiter) {
+              result.push(this.renderSpan(foundCalcDelimiter.value, props))
+            } else {
+              result.push(this.renderSpan(_.value, props))
+            }
+            break
+          case 'calcFunc':
+            const foundCalcDelimiterss = this.getCalcFunc.find(item => item.code === _.value)
+            if (foundCalcDelimiterss) {
+              result.push(this.renderSpan(foundCalcDelimiterss.value, props))
             } else {
               result.push(this.renderSpan(_.value, props))
             }
@@ -160,7 +188,20 @@ export default {
       if (e.target.className.indexOf('auto-fill-span') >= 0) {
         const ruleIndex = e.target.getAttribute('index')
         if (e.target.className.indexOf('auto-fill-special-delimiter') >= 0) {
-          this.showSpecialOptions(ruleIndex)
+          this.showSymbolOptions(
+            this.$t('auto_fill_change_special_delimiter'),
+            ruleIndex,
+            'specialDelimiters',
+            'specialDelimiter'
+          )
+          return
+        }
+        if (e.target.className.indexOf('auto-fill-calc-delimiter') >= 0) {
+          this.showSymbolOptions(this.$t('auto_fill_change_calc_delimiter'), ruleIndex, 'calcDelimiters', 'calcSymbol')
+          return
+        }
+        if (e.target.className.indexOf('auto-fill-calc-func') >= 0) {
+          this.showSymbolOptions(this.$t('auto_fill_change_calc_function'), ruleIndex, 'calcFuncs', 'calcFunc')
           return
         }
         let attrIndex = null
@@ -195,6 +236,18 @@ export default {
           class: 'auto-fill-li',
           nodeName: this.$t('auto_fill_special_delimiter'),
           fn: () => this.addRule('specialDelimiter')
+        },
+        {
+          type: 'option',
+          class: 'auto-fill-li',
+          nodeName: this.$t('auto_fill_calc_delimiter'),
+          fn: () => this.addRule('calcSymbol')
+        },
+        {
+          type: 'option',
+          class: 'auto-fill-li',
+          nodeName: this.$t('auto_fill_calc_function'),
+          fn: () => this.addRule('calcFunc')
         }
       )
     },
@@ -219,6 +272,12 @@ export default {
         case 'specialDelimiter':
           this.getSpecialConnector()
           break
+        case 'calcSymbol':
+          this.getCalcConnector()
+          break
+        case 'calcFunc':
+          this.getCalcFunc()
+          break
         default:
           break
       }
@@ -233,6 +292,44 @@ export default {
           fn: () => {
             this.autoFillArray.push({
               type: 'specialDelimiter',
+              value: _.code
+            })
+            this.options = []
+            this.optionsDisplay = false
+            this.handleInput()
+          }
+        })
+      })
+    },
+    // 特殊连接符
+    getCalcConnector () {
+      this.calcDelimiters.forEach(_ => {
+        this.options.push({
+          type: 'option',
+          class: 'auto-fill-li auto-fill-li-special-delimiter',
+          nodeName: _.value,
+          fn: () => {
+            this.autoFillArray.push({
+              type: 'calcSymbol',
+              value: _.code
+            })
+            this.options = []
+            this.optionsDisplay = false
+            this.handleInput()
+          }
+        })
+      })
+    },
+    // 特殊连接符
+    getCalcFunc () {
+      this.calcFuncs.forEach(_ => {
+        this.options.push({
+          type: 'option',
+          class: 'auto-fill-li auto-fill-li-special-delimiter',
+          nodeName: _.value,
+          fn: () => {
+            this.autoFillArray.push({
+              type: 'calcFunc',
               value: _.code
             })
             this.options = []
@@ -288,7 +385,8 @@ export default {
         this.getRefData(ruleIndex, attrIndex, ciTypeId)
       }
     },
-    showSpecialOptions (ruleIndex) {
+    // 显示运算符
+    showSymbolOptions (nodeName, ruleIndex, symbolOptions, type) {
       this.options = [
         {
           type: 'option',
@@ -299,8 +397,8 @@ export default {
         {
           type: 'option',
           class: 'auto-fill-li auto-fill-li-change-special-delimiter',
-          nodeName: this.$t('auto_fill_change_special_delimiter'),
-          fn: () => this.changeSpecialDelimiterNode(ruleIndex)
+          nodeName: nodeName,
+          fn: () => this.changeSymbolNode(ruleIndex, symbolOptions, type)
         }
       ]
       this.optionsDisplay = true
@@ -354,8 +452,15 @@ export default {
           this.options.push({
             type: 'line'
           })
+        // 运算符中控制只能选择引用及数字类型的属性
+        const previousValue = this.autoFillArray[ruleIndex - 1]
+        let previousValueType = previousValue ? previousValue.type : ''
+        const needToFilterAttr = ['calcFunc', 'calcSymbol'].includes(previousValueType)
+        const attr = needToFilterAttr
+          ? ciAttrs.data.filter(attr => ['int', 'float', 'ref', 'multiRef', 'extRef'].includes(attr.inputType))
+          : ciAttrs.data
         this.options = this.options.concat(
-          ciAttrs.data.map(_ => {
+          attr.map(_ => {
             const isRef = _.inputType === 'ref' || _.inputType === 'multiRef'
             const ciTypeName = isRef ? this.ciTypesObj[_.referenceId].ciTypeId : this.ciTypesObj[_.ciTypeId].ciTypeId
             const attrName = this.ciTypeAttrsObj[_.ciTypeAttrId].propertyName
@@ -415,17 +520,17 @@ export default {
       }
       this.optionsDisplay = false
     },
-    // 点击更换特殊连接符节点
-    changeSpecialDelimiterNode (ruleIndex) {
+    // 点击更换连接符节点
+    changeSymbolNode (ruleIndex, symbolOptions, type) {
       this.options = []
-      this.specialDelimiters.forEach(_ => {
+      this[symbolOptions].forEach(_ => {
         this.options.push({
           type: 'option',
           class: 'auto-fill-li auto-fill-li-special-delimiter',
           nodeName: _.value,
           fn: () => {
             this.autoFillArray.splice(+ruleIndex, 1, {
-              type: 'specialDelimiter',
+              type,
               value: _.code
             })
             this.options = []
@@ -649,6 +754,38 @@ export default {
         }
       }
       return this.renderSpan(specialDelimiter, _props)
+    },
+    renderCalcDelimiter (value, i) {
+      const found = this.calcDelimiters.find(item => item.code === value)
+      const calcDelimiter = found ? found.value : ''
+      const classList = {
+        'auto-fill-span': true,
+        'auto-fill-calc-delimiter': true,
+        hover: this.hoverSpan === i + ''
+      }
+      const _props = {
+        class: this.formatClassName(classList),
+        attrs: {
+          index: i
+        }
+      }
+      return this.renderSpan(calcDelimiter, _props)
+    },
+    renderCalcFunc (value, i) {
+      const found = this.calcFuncs.find(item => item.code === value)
+      const calcDelimiter1 = found ? found.value : ''
+      const classList = {
+        'auto-fill-span': true,
+        'auto-fill-calc-func': true,
+        hover: this.hoverSpan === i + ''
+      }
+      const _props = {
+        class: this.formatClassName(classList),
+        attrs: {
+          index: i
+        }
+      }
+      return this.renderSpan(calcDelimiter1, _props)
     },
     // 连接符输入框失焦或按回车时，需要更新 this.autoFillArray
     confirmDelimiter (i) {

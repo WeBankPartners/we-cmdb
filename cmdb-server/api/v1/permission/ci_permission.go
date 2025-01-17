@@ -2,6 +2,7 @@ package permission
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
@@ -95,6 +96,17 @@ func DeleteRoleCiTypeCondition(c *gin.Context) {
 	}
 }
 
+func getPermissionValue(permissionMap map[string]interface{}, key string) string {
+	if permissionMap != nil {
+		if v, b := permissionMap[key]; b {
+			if fmt.Sprintf("%s", v) == "Y" {
+				return "Y"
+			}
+		}
+	}
+	return "N"
+}
+
 func bindRoleCiTypeConditionParam(c *gin.Context) (conditions []*models.RoleAttrConditionObj, err error) {
 	var params []map[string]interface{}
 	if bindErr := c.ShouldBindJSON(&params); bindErr != nil {
@@ -102,7 +114,7 @@ func bindRoleCiTypeConditionParam(c *gin.Context) (conditions []*models.RoleAttr
 		return
 	}
 	for _, tmpMap := range params {
-		tmpCondition := models.RoleAttrConditionObj{Insert: tmpMap["insert"].(string), Update: tmpMap["update"].(string), Delete: tmpMap["delete"].(string), Query: tmpMap["query"].(string), Execution: tmpMap["execute"].(string)}
+		tmpCondition := models.RoleAttrConditionObj{Insert: getPermissionValue(tmpMap, "insert"), Update: getPermissionValue(tmpMap, "update"), Delete: getPermissionValue(tmpMap, "delete"), Query: getPermissionValue(tmpMap, "query"), Execution: getPermissionValue(tmpMap, "execute")}
 		if confirmInputValue, ok := tmpMap["confirm"]; ok {
 			tmpCondition.Confirm = confirmInputValue.(string)
 		} else {

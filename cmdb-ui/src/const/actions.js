@@ -36,6 +36,10 @@ export const components = {
     component: 'Input',
     type: 'text'
   },
+  float: {
+    component: 'Input',
+    type: 'text'
+  },
   password: {
     component: 'WeCMDBCIPassword'
   }

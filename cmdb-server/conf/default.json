@@ -70,7 +70,7 @@
       "querialbe": "no"
     }],
   "menu_api_map": {
-    "enable": false,
-    "file": "menu-api-map.json"
+    "enable": "Y",
+    "file": "conf/menu-api-map.json"
   }
 }

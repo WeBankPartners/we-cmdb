@@ -306,7 +306,15 @@ func distinctViewCiData(input []map[string]string) []map[string]string {
 		return result
 	}
 	guidMap := make(map[string][]string)
+	idCompareFlag := false
+	idMap := make(map[string]int)
 	for _, v := range input {
+		if _, containUpdateTimeFlag := v["update_time"]; !containUpdateTimeFlag {
+			if _, containIdFlag := v["id"]; containIdFlag {
+				idCompareFlag = true
+				break
+			}
+		}
 		tmpTime := v["update_time"]
 		if v["confirm_time"] != "" {
 			tmpTime = v["confirm_time"]
@@ -319,9 +327,25 @@ func distinctViewCiData(input []map[string]string) []map[string]string {
 			guidMap[v["guid"]] = []string{tmpTime, v["id"]}
 		}
 	}
-	idMap := make(map[string]int)
-	for _, v := range guidMap {
-		idMap[v[1]] = 1
+	if idCompareFlag {
+		guidMaxIdMap := make(map[string]int)
+		for _, v := range input {
+			tmpId, _ := strconv.Atoi(v["id"])
+			if tmpV, b := guidMaxIdMap[v["guid"]]; b {
+				if tmpId > tmpV {
+					guidMaxIdMap[v["guid"]] = tmpId
+				}
+			} else {
+				guidMaxIdMap[v["guid"]] = tmpId
+			}
+		}
+		for _, v := range guidMaxIdMap {
+			idMap[fmt.Sprintf("%d", v)] = 1
+		}
+	} else {
+		for _, v := range guidMap {
+			idMap[v[1]] = 1
+		}
 	}
 	for _, v := range input {
 		if _, b := idMap[v["id"]]; b {
@@ -655,6 +679,8 @@ func GetReport(reportId string) (result models.ModifyReport, err error) {
 	}
 	result.Name = reportTable[0].Name
 	result.CiType = reportTable[0].CiType
+	result.UsedByView = reportTable[0].UsedByView
+	result.UsedByExport = reportTable[0].UsedByExport
 	var reportObjTable []*models.SysReportObjectTable
 	x.SQL("select * from sys_report_object where report=? and parent_object is null", reportId).Find(&reportObjTable)
 	if len(reportObjTable) > 0 {
@@ -681,12 +707,12 @@ func CreateReport(param models.ModifyReport) (rowData *models.SysReportTable, er
 	createTime := time.Now().Format(models.DateTimeFormat)
 	//_, err = x.Exec("INSERT INTO sys_report(id,name,ci_type,create_time,create_user) VALUE (?,?,?,?,?)",
 	//	param.Id, param.Name, param.CiType, createTime, param.CreateUser)
-	execSqlCmd := "INSERT INTO sys_report(id,name,ci_type,create_time,create_user) VALUE (?,?,?,?,?)"
-	execParams := []interface{}{param.Id, param.Name, param.CiType, createTime, param.CreateUser}
+	execSqlCmd := "INSERT INTO sys_report(id,name,ci_type,create_time,create_user,used_by_view,used_by_export) VALUE (?,?,?,?,?,?,?)"
+	execParams := []interface{}{param.Id, param.Name, param.CiType, createTime, param.CreateUser, param.UsedByView, param.UsedByExport}
 	action := &execAction{Sql: execSqlCmd, Param: execParams}
 	actions = append(actions, action)
 
-	rowData = &models.SysReportTable{Id: param.Id, Name: param.Name, CiType: param.CiType, CreateTime: createTime, CreateUser: param.CreateUser}
+	rowData = &models.SysReportTable{Id: param.Id, Name: param.Name, CiType: param.CiType, CreateTime: createTime, CreateUser: param.CreateUser, UsedByView: param.UsedByView, UsedByExport: param.UsedByExport}
 
 	// 添加 report 对应的权限到 sys_role_report
 	var useRoleSlice, mgmtRoleSlice []string
@@ -745,7 +771,7 @@ func UpdateReport(param models.ModifyReport) (rowData *models.SysReportTable, er
 	rowData.Name = param.Name
 	rowData.UpdateTime = updateTime
 	rowData.UpdateUser = param.UpdateUser
-	actions = append(actions, &execAction{Sql: "update sys_report set name=?,update_user=?,update_time=? where id=?", Param: []interface{}{param.Name, param.UpdateUser, updateTime, param.Id}})
+	actions = append(actions, &execAction{Sql: "update sys_report set name=?,update_user=?,update_time=?,used_by_view=?,used_by_export=? where id=?", Param: []interface{}{param.Name, param.UpdateUser, updateTime, param.UsedByView, param.UsedByExport, param.Id}})
 	var reportObjTable []*models.SysReportObjectTable
 	x.SQL("select id from sys_report_object where report=? and parent_object is null", param.Id).Find(&reportObjTable)
 	if len(reportObjTable) > 0 {
@@ -1509,7 +1535,7 @@ func getExportReportCiData(reportObject *models.SysReportObjectTable, guids []st
 			}
 		}
 	}
-	_, rowData, queryErr := CiDataQuery(reportObject.CiType, &queryParam, &models.CiDataLegalGuidList{Disable: true}, true, false)
+	_, rowData, queryErr := CiDataQuery(reportObject.CiType, &queryParam, &models.CiDataLegalGuidList{Legal: true}, true, false)
 	if queryErr != nil {
 		err = fmt.Errorf("query ciType:%s data fail,%s ", reportObject.CiType, queryErr.Error())
 		return
@@ -1554,7 +1580,7 @@ func getRefGuidStringList(input interface{}) (guidList []string) {
 	return
 }
 
-func ImportCiData(param *models.ExportReportResult, operator string) (err error) {
+func ImportCiData(param *models.ExportReportResult, operator string, useNewGuid bool) (err error) {
 	// 判断reportId是否存在
 	if param.ReportId != "" {
 		var rows []map[string]string
@@ -1577,8 +1603,7 @@ func ImportCiData(param *models.ExportReportResult, operator string) (err error)
 	if newGuidMap, err = getCiImportGuidMap(); err != nil {
 		return
 	}
-	var checkFlag = false
-	var useNewGuid = false
+	var duplicatedGuid []string
 	ciTypeRefColumn := make(map[string]map[string]int)
 	importedCiGuidMap := make(map[string]int)
 	for _, ciDataObj := range param.CiData {
@@ -1606,30 +1631,31 @@ func ImportCiData(param *models.ExportReportResult, operator string) (err error)
 			if _, exists := importedCiGuidMap[guidStr]; exists {
 				continue
 			}
-			// 判断是否跨环境导入，使用新的guid
-			if !checkFlag {
-				var nowDataList []map[string]string
-				nowDataList, err = x.QueryString(fmt.Sprintf("select * from %s where guid='%s'", ciDataObj.CiType, guidStr))
-				if err != nil {
-					return
-				}
-				if nowDataList != nil {
-					useNewGuid = true
-				}
-				checkFlag = true
+			// 校验是否重复，如果有重复，记录guid，最后在multiCiData中删掉
+			var nowDataList []map[string]string
+			nowDataList, err = x.QueryString(fmt.Sprintf("select * from %s where guid='%s'", ciDataObj.CiType, guidStr))
+			if err != nil {
+				return
 			}
-
+			if nowDataList != nil {
+				duplicatedGuid = append(duplicatedGuid, guidStr)
+			}
+			//
 			importedCiGuidMap[guidStr] = 1
 			oldGuid := guidStr
 			if lastIndex := strings.LastIndex(oldGuid, "_"); lastIndex > 0 {
 				var newGuid string
+				// 判断是否跨环境导入，使用新的guid
 				if useNewGuid {
 					newGuid = oldGuid[:lastIndex] + "_" + guid.CreateGuid()
 				} else {
 					newGuid = oldGuid
 				}
-				newGuidMap[oldGuid] = newGuid
-				importGuidMapTable = append(importGuidMapTable, &models.SysCiImportGuidMapTable{Source: oldGuid, Target: newGuid, CiType: ciDataObj.CiType})
+				// 如果duplicatedGuid不包含newGuid，就跳过
+				if isDuplicated, exists := inArray(newGuid, duplicatedGuid); !(exists && isDuplicated) {
+					newGuidMap[oldGuid] = newGuid
+					importGuidMapTable = append(importGuidMapTable, &models.SysCiImportGuidMapTable{Source: oldGuid, Target: newGuid, CiType: ciDataObj.CiType})
+				}
 			}
 		}
 	}
@@ -1669,6 +1695,11 @@ func ImportCiData(param *models.ExportReportResult, operator string) (err error)
 					}
 					newRowData[k] = newValue
 				}
+			}
+
+			// 如果duplicatedGuid包含newRowData["guid"]，就跳过
+			if isDuplicated, exists := inArray(newRowData["guid"], duplicatedGuid); exists && isDuplicated {
+				continue
 			}
 
 			if _, b := importedCiGuidMap[newRowData["guid"]]; b {
@@ -1723,7 +1754,7 @@ func ImportCiData(param *models.ExportReportResult, operator string) (err error)
 
 	importHistoryGuid := param.ReportId + "_" + guid.CreateGuid()
 	// 插入导入记录表 sys_report_import_history_table
-	importHistory := addReportImportHistoryTable(importHistoryGuid, param, multiCiData)
+	importHistory := addReportImportHistoryTable(importHistoryGuid, param, len(importGuidMapTable))
 	addReportImportHistoryAction := &execAction{Sql: "insert into sys_report_import_history values (?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 		importHistory.Guid, importHistory.Report, importHistory.RootCiType, importHistory.KeyNames, importHistory.TotalCount, importHistory.Status, nil, operator, tNow, operator, tNow}}
 	// 插入导入映射表 sys_ci_import_guid_map
@@ -1733,7 +1764,9 @@ func ImportCiData(param *models.ExportReportResult, operator string) (err error)
 	newGuidActions = append(newGuidActions, addReportImportHistoryAction)
 
 	//
-	err = transaction(actions)
+	if actions != nil {
+		err = transaction(actions)
+	}
 	if err == nil {
 		// record guid map
 		if len(newGuidActions) > 0 {
@@ -1753,7 +1786,16 @@ func ImportCiData(param *models.ExportReportResult, operator string) (err error)
 	return
 }
 
-func addReportImportHistoryTable(historyGuid string, param *models.ExportReportResult, multiCiData []*models.MultiCiDataObj) (importHistory *models.SysReportImportHistoryTable) {
+func inArray(guid string, guidList []string) (bool, bool) {
+	for _, item := range guidList {
+		if item == guid {
+			return true, true
+		}
+	}
+	return false, true
+}
+
+func addReportImportHistoryTable(historyGuid string, param *models.ExportReportResult, totalCount int) (importHistory *models.SysReportImportHistoryTable) {
 	// importHistory初始化
 	importHistory = &models.SysReportImportHistoryTable{}
 	importHistory.Report = param.ReportId
@@ -1761,16 +1803,11 @@ func addReportImportHistoryTable(historyGuid string, param *models.ExportReportR
 	importHistory.RootCiType = param.RootCiType
 	// 收集keyName
 	var keyNames []string
-	for _, ciDataObj := range multiCiData[0].InputData {
-		keyNames = append(keyNames, ciDataObj["key_name"])
+	for _, e := range param.CiData[0].Data {
+		keyNames = append(keyNames, e["key_name"].(string))
 	}
 	importHistory.KeyNames = strings.Join(keyNames, ",")
 	importHistory.Status = "created"
-	//
-	var totalCount int
-	for _, ciDataObj := range multiCiData {
-		totalCount += len(ciDataObj.InputData)
-	}
 	importHistory.TotalCount = totalCount
 	return
 }

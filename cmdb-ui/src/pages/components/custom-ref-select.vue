@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2024-10-14 15:05:46
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2024-11-15 16:37:36
+ * @LastEditTime: 2024-12-25 15:57:56
 -->
 <template>
   <div>
@@ -26,6 +26,7 @@
               closable
               @on-close="handleRemoveItem($event, i)"
               :key="i.guid"
+              style="max-width:calc(100% - 50px)"
               >{{ i.key_name }}</Tag
             >
             <Tag v-if="selected && selected.length > 1" @click.native="visible = !visible">
@@ -48,12 +49,19 @@
         :style="{ minWidth: width + 'px', width: 'fit-content', maxWidth: '500px' }"
       >
         <div class="dropdown-selected">
-          <span class="dropdown-selected-title">选中结果:</span>
+          <!--选中结果-->
+          <span class="dropdown-selected-title">{{ $t('cmdb_select_result') }}:</span>
           <Tag v-for="i in getSelectedOptions" :key="i.guid" closable @on-close="handleRemoveItem($event, i)">{{
             i.key_name
           }}</Tag>
         </div>
-        <Input v-model="keyword" @input="handleFilterOptions" placeholder="关键字搜索" style="width:100%;"></Input>
+        <!--关键字搜索-->
+        <Input
+          v-model="keyword"
+          @input="handleFilterOptions"
+          :placeholder="$t('cmdb_keyword_search')"
+          style="width:100%;"
+        ></Input>
         <div v-if="getFilterOptions.length > 0" class="dropdown-wrap">
           <div
             v-for="i in getFilterOptions"
@@ -65,7 +73,7 @@
             <Icon v-if="i.checked" type="ios-checkmark" size="24" color="#2d8cf0e6" />
           </div>
         </div>
-        <div v-else class="no-data">暂无数据</div>
+        <div v-else class="no-data">{{ $t('no_data') }}</div>
       </div>
     </Poptip>
   </div>
@@ -214,6 +222,7 @@ export default {
     },
     // 下拉展开回调
     handleOpenChange () {
+      this.keyword = ''
       this.$emit('openChange', true)
     }
   }
@@ -224,8 +233,7 @@ export default {
   width: 100%;
   &-input {
     width: 100%;
-    min-height: 32px;
-    max-height: 60px;
+    height: 32px;
     padding: 0 3px;
     overflow: hidden;
     cursor: pointer;
@@ -243,9 +251,7 @@ export default {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      overflow-y: auto;
-      min-height: 32px;
-      max-height: 60px;
+      height: 32px;
     }
     .icon {
       width: 20px;
@@ -311,7 +317,6 @@ export default {
   }
   .ivu-tag-text {
     display: inline-block;
-    max-width: 120px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

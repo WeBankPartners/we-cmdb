@@ -126,7 +126,6 @@
 
 <script>
 import { cloneDeep, isEmpty } from 'lodash'
-import Vue from 'vue'
 import { getCookie } from '@/pages/util/cookie'
 import DateGroup from '@/pages/components/date-group'
 import {
@@ -302,7 +301,7 @@ export default {
             <div class="table-action">
               <Tooltip max-width={400} placement="top" transfer content={this.$t('view')}>
                 <Button
-                  disabled={params.row.status === 'canceled'}
+                  disabled={params.row.status === 'canceled' || params.row.totalCount === 0}
                   size="small"
                   type="info"
                   on-click={() => this.showSingleDataDetail(params.row)}
@@ -326,7 +325,9 @@ export default {
                   content={this.processConfirmTooltip(params.row)}
                 >
                   <Button
-                    disabled={params.row.status !== 'created' || params.row.notPassCount > 0}
+                    disabled={
+                      params.row.status !== 'created' || params.row.notPassCount > 0 || params.row.totalCount === 0
+                    }
                     size="small"
                     class="mr-1"
                     type="success"
@@ -345,7 +346,11 @@ export default {
                 }}
               >
                 <Tooltip max-width={400} placement="top" transfer content={this.$t('db_withdraw')}>
-                  <Button disabled={params.row.status !== 'created'} size="small" type="error">
+                  <Button
+                    disabled={params.row.status !== 'created' || params.row.totalCount === 0}
+                    size="small"
+                    type="error"
+                  >
                     <Icon type="ios-redo" size="16" />
                   </Button>
                 </Tooltip>
@@ -385,16 +390,20 @@ export default {
     DateGroup
   },
   beforeMount () {
-    const filterForm = window.sessionStorage.getItem('data-import-filter-form') || ''
-    if (filterForm) {
-      this.searchForm = JSON.parse(filterForm)
-      Vue.set(this.searchForm, 'updateTime', JSON.parse(filterForm).updateTime)
-      this.getReportList(true)
-      this.getKeyNameOptions()
-      this.getCreateUserList(true)
-      window.sessionStorage.removeItem('data-import-filter-form')
+    if (this.$route.query.needCache === 'yes') {
+      const allFilterForm = window.sessionStorage.getItem('cmdb-data-import-filter-form') || ''
+      if (allFilterForm) {
+        const { searchForm, pagination } = JSON.parse(allFilterForm)
+        this.searchForm = searchForm
+        this.pagination = pagination
+        this.searchForm.updateTime = searchForm.updateTime
+        this.getReportList(true)
+        this.getKeyNameOptions()
+        this.getCreateUserList(true)
+        window.sessionStorage.removeItem('cmdb-data-import-filter-form')
+      }
+      this.tableMaxHeight = window.innerHeight - 200
     }
-    this.tableMaxHeight = window.innerHeight - 200
   },
   mounted () {
     this.token = getCookie('accessToken')
@@ -451,7 +460,11 @@ export default {
       }
     },
     showSingleDataDetail (rowData) {
-      window.sessionStorage.setItem('data-import-filter-form', JSON.stringify(this.searchForm))
+      const params = {
+        searchForm: this.searchForm,
+        pagination: this.pagination
+      }
+      window.sessionStorage.setItem('cmdb-data-import-filter-form', JSON.stringify(params))
       this.$router.push({ path: '/wecmdb/designing/data-import-detail', query: { guid: rowData.guid } })
     },
     // 撤回某条数据
@@ -476,9 +489,13 @@ export default {
         return this.$t('db_withdraw_tips').replace('xx', rowData.totalCount)
       }
     },
-    uploadSucess () {
-      this.$Message.success(this.$t('db_import_tips_success'))
-      this.getTableData()
+    uploadSucess (res) {
+      if (res.statusCode === 'OK') {
+        this.$Message.success(this.$t('db_import_tips_success'))
+        this.getTableData()
+      } else {
+        this.$Message.error(res.statusMessage)
+      }
     },
     uploadFailed () {
       this.$Message.error(this.$t('db_import_tips_failed'))

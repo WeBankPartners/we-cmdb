@@ -162,18 +162,31 @@
       @on-visible-change="addAttrModalToggle"
       v-auto-height
     >
-      <Form class="validation-form" ref="ciAttrForm" :model="addNewAttrForm" label-position="right" :label-width="150">
+      <Form
+        class="validation-form"
+        :rules="ciAttrFormRuleValidate"
+        ref="addNewAttrForm"
+        :model="addNewAttrForm"
+        label-position="right"
+        :label-width="150"
+      >
         <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
-          <Input v-model="addNewAttrForm.propertyName"></Input>
+          <Input v-model.trim="addNewAttrForm.propertyName" :placeholder="$t('db_citype_id_rule_placeholder')" />
         </FormItem>
         <FormItem :label="$t('ci_attribute_name')" prop="name">
-          <Input v-model="addNewAttrForm.name"></Input>
+          <Input v-model.trim="addNewAttrForm.name" :placeholder="$t('input_placeholder')" />
         </FormItem>
         <FormItem class="no-need-validation" :label="$t('description')" prop="description">
-          <Input v-model="addNewAttrForm.description" type="textarea" :rows="2" :autosize="true" />
+          <Input
+            v-model.trim="addNewAttrForm.description"
+            type="textarea"
+            :rows="2"
+            :autosize="true"
+            :placeholder="$t('input_placeholder')"
+          />
         </FormItem>
         <FormItem v-if="addNewAttrForm.inputType !== 'password'" :label="$t('search_filter_number')">
-          <InputNumber :min="0" v-model="addNewAttrForm.uiSearchOrder"></InputNumber>
+          <InputNumber :min="0" v-model.trim="addNewAttrForm.uiSearchOrder" :placeholder="$t('input_placeholder')" />
         </FormItem>
         <FormItem prop="inputType" :label="$t('data_type')">
           <Select
@@ -191,10 +204,10 @@
           prop="regularExpressionRule"
           :label="$t('regular_rule')"
         >
-          <Input v-model="addNewAttrForm.regularExpressionRule"></Input>
+          <Input v-model.trim="addNewAttrForm.regularExpressionRule" :placeholder="$t('input_placeholder')" />
         </FormItem>
         <FormItem prop="propertyType" :label="$t('real_type')">
-          <Input v-model="addNewAttrForm.propertyType" disabled></Input>
+          <Input v-model.trim="addNewAttrForm.propertyType" disabled></Input>
         </FormItem>
         <FormItem
           prop="length"
@@ -203,7 +216,7 @@
             ['text', 'ref', 'extRef', 'textArea', 'number', 'password', 'multiText'].includes(addNewAttrForm.inputType)
           "
         >
-          <InputNumber :min="1" v-model="addNewAttrForm.length"></InputNumber>
+          <InputNumber :min="1" v-model.trim="addNewAttrForm.length"></InputNumber>
         </FormItem>
         <FormItem
           prop="referenceId"
@@ -216,7 +229,8 @@
             }}</Option>
           </Select>
         </FormItem>
-        <FormItem prop="extRefEntity" v-if="['extRef'].includes(addNewAttrForm.inputType)" label="外部引用选择">
+        <!--外部引用选择-->
+        <FormItem prop="extRefEntity" v-if="['extRef'].includes(addNewAttrForm.inputType)" :label="$t('cmdb_extRef')">
           <Select v-model="addNewAttrForm.extRefEntity" filterable>
             <Option v-for="item in extRefOptions" :value="item.value" :key="item.value">{{ item.label }}</Option>
           </Select>
@@ -226,7 +240,7 @@
           v-if="['ref', 'multiRef'].includes(addNewAttrForm.inputType)"
           :label="$t('reference_name')"
         >
-          <Input v-model="addNewAttrForm.referenceName"></Input>
+          <Input v-model.trim="addNewAttrForm.referenceName" :placeholder="$t('input_placeholder')" />
         </FormItem>
         <FormItem
           prop="referenceType"
@@ -322,6 +336,16 @@
             <Radio label="no">No</Radio>
           </RadioGroup>
         </FormItem>
+        <FormItem
+          v-if="['text', 'longText', 'int', 'float', 'richText', 'password'].includes(addNewAttrForm.inputType)"
+          prop="sensitive"
+          :label="$t('db_is_independent_permission_control')"
+        >
+          <RadioGroup v-model="addNewAttrForm.sensitive">
+            <Radio label="yes">Yes</Radio>
+            <Radio label="no">No</Radio>
+          </RadioGroup>
+        </FormItem>
         <FormItem prop="confirmNullable" :label="$t('confirmed_empty')">
           <RadioGroup v-model="addNewAttrForm.confirmNullable">
             <Radio label="yes">Yes</Radio>
@@ -349,6 +373,7 @@
           :label="$t('auto_fill_rule')"
         >
           <AutoFill
+            ref="autoFillRef"
             :allCiTypes="allCiTypesWithAttr"
             :rootCiTypeId="currentSelectData.id"
             :specialDelimiters="specialDelimiters"
@@ -390,16 +415,17 @@
     >
       <Form
         ref="addNewCITypeForm"
+        class="add_new_ci_type_form"
         :rules="ruleValidate"
         :model="addNewCITypeForm"
         label-position="left"
         :label-width="100"
       >
-        <FormItem :label="$t('table_name')" prop="name">
-          <Input v-model="addNewCITypeForm.name"></Input>
-        </FormItem>
         <FormItem :label="$t('ci_type_id')" prop="ciTypeId">
-          <Input v-model="addNewCITypeForm.ciTypeId"></Input>
+          <Input v-model.trim="addNewCITypeForm.ciTypeId" :placeholder="$t('db_citype_id_rule_placeholder')"></Input>
+        </FormItem>
+        <FormItem :label="$t('table_name')" prop="name">
+          <Input v-model.trim="addNewCITypeForm.name" :placeholder="$t('input_placeholder')"></Input>
         </FormItem>
         <FormItem :label="$t('zoom_level')" prop="ciLayer">
           <Select :max-tag-count="3" v-model="addNewCITypeForm.ciLayer" filterable>
@@ -421,7 +447,7 @@
           </Select>
         </FormItem>
         <FormItem class="no-need-validation" :label="$t('description')" prop="description">
-          <Input v-model="addNewCITypeForm.description"></Input>
+          <Input v-model.trim="addNewCITypeForm.description"></Input>
         </FormItem>
         <FormItem prop="imageFileId" :label="$t('icon')">
           <Upload :before-upload="handleUpload" action="">
@@ -474,7 +500,7 @@
       <div style="margin-top: 8px;padding: 6px;width: 100%;">
         <template v-if="currentSelectData.type === 'CI'">
           <div class="attr-detail">
-            <Form class="validation-form" ref="ciAttrForm" label-position="right" :label-width="100">
+            <Form class="validation-form" ref="ciAttrForm" label-position="right" :label-width="110">
               <FormItem prop="propertyName" :label="$t('ci_attribute_id')">
                 <Input v-model="editCiAttr.propertyName" disabled></Input>
               </FormItem>
@@ -552,7 +578,9 @@
               >
                 <Select
                   v-model="editCiAttr.referenceId"
-                  :disabled="editCiAttr.status === 'deleted' || editCiAttr.customizable !== 'yes'"
+                  :disabled="
+                    !['deleted', 'notCreated'].includes(editCiAttr.status) || editCiAttr.customizable !== 'yes'
+                  "
                   filterable
                 >
                   <Option v-for="item in allCiTypesWithAttr" :value="item.ciTypeId" :key="item.ciTypeId">{{
@@ -560,7 +588,8 @@
                   }}</Option>
                 </Select>
               </FormItem>
-              <FormItem prop="extRefEntity" v-if="['extRef'].includes(editCiAttr.inputType)" label="外部引用选择">
+              <!--外部引用选择-->
+              <FormItem prop="extRefEntity" v-if="['extRef'].includes(editCiAttr.inputType)" :label="$t('cmdb_extRef')">
                 <Select
                   v-model="editCiAttr.extRefEntity"
                   :disabled="editCiAttr.status === 'deleted' || editCiAttr.customizable !== 'yes'"
@@ -724,6 +753,20 @@
                   >
                 </RadioGroup>
               </FormItem>
+              <FormItem
+                v-if="['text', 'longText', 'int', 'float', 'richText', 'password'].includes(editCiAttr.inputType)"
+                prop="sensitive"
+                :label="$t('db_is_independent_permission_control')"
+              >
+                <RadioGroup v-model="editCiAttr.sensitive">
+                  <Radio :disabled="editCiAttr.status === 'deleted' || editCiAttr.customizable !== 'yes'" label="yes"
+                    >Yes</Radio
+                  >
+                  <Radio :disabled="editCiAttr.status === 'deleted' || editCiAttr.customizable !== 'yes'" label="no"
+                    >No</Radio
+                  >
+                </RadioGroup>
+              </FormItem>
               <FormItem prop="confirmNullable" :label="$t('confirmed_empty')">
                 <RadioGroup v-model="editCiAttr.confirmNullable">
                   <Radio :disabled="editCiAttr.status === 'deleted' || editCiAttr.customizable !== 'yes'" label="yes"
@@ -734,6 +777,7 @@
                   >
                 </RadioGroup>
               </FormItem>
+              <!--自动填充-->
               <FormItem prop="autofillable" v-if="editCiAttr.inputType !== 'password'" :label="$t('is_auto')">
                 <RadioGroup v-model="editCiAttr.autofillable">
                   <Radio :disabled="editCiAttr.status === 'deleted' || editCiAttr.customizable !== 'yes'" label="yes"
@@ -744,6 +788,7 @@
                   >
                 </RadioGroup>
               </FormItem>
+              <!--填充类型-->
               <FormItem
                 prop="autoFillType"
                 v-if="editCiAttr.autofillable === 'yes' && editCiAttr.inputType !== 'password'"
@@ -757,14 +802,14 @@
                   <Option v-for="item in autoFillTypes" :value="item.value" :key="item.value">{{ item.label }}</Option>
                 </Select>
               </FormItem>
-
+              <!--填充规则-->
               <FormItem
                 prop="autoFillRule"
                 v-if="editCiAttr.autofillable === 'yes' && editCiAttr.inputType !== 'password'"
                 :label="$t('auto_fill_rule')"
               >
                 <AutoFill
-                  ref="editAutoFill"
+                  ref="autoFillRef"
                   :allCiTypes="allCiTypesWithAttr"
                   :rootCiTypeId="editCiAttr.ciTypeId"
                   :specialDelimiters="specialDelimiters"
@@ -772,6 +817,7 @@
                   :disabled="editCiAttr.status === 'deleted' || editCiAttr.customizable !== 'yes'"
                 ></AutoFill>
               </FormItem>
+              <!-- 过滤规则 -->
               <FormItem
                 class="no-need-validation"
                 v-if="['ref', 'multiRef'].includes(editCiAttr.inputType) && editCiAttr.referenceId !== ''"
@@ -909,15 +955,19 @@
     >
       <EditGroupControlConfig ref="editGroupControlConfig"></EditGroupControlConfig>
     </Modal>
-
     <!-- 数据权限 配置 -->
     <Modal
       v-model="showDataPermissionModal"
       :title="$t('data_management')"
       footer-hide
       @on-ok="confirmSelectListData"
+      :fullscreen="isfullscreen"
       width="1200"
     >
+      <!-- <div slot="header" class="custom-modal-header">
+        <Icon size="16" v-if="isfullscreen" @click="isfullscreen = !isfullscreen" type="ios-contract" />
+        <Icon size="16" v-else @click="isfullscreen = !isfullscreen" type="ios-expand" />
+      </div> -->
       <DataAuthorization ref="DataAuthorization" @hideModal="showDataPermissionModal = false"></DataAuthorization>
     </Modal>
 
@@ -1058,13 +1108,31 @@ export default {
       },
       ciTemplateOptions: [],
       ruleValidate: {
-        name: [{ required: true, trigger: 'blur', message: `${this.$t('table_name_is_require')}` }],
-        ciTypeId: [{ required: true, trigger: 'blur', message: `${this.$t('ci_type_id_is_require')}` }],
+        ciTypeId: [
+          {
+            type: 'string',
+            required: true,
+            trigger: 'blur',
+            pattern: /^[a-z][a-z0-9_]{0,48}[a-z0-9_]$/,
+            message: `【${this.$t('db_citype_id_rule_placeholder')}】`
+          }
+        ],
+        name: [{ type: 'string', required: true, trigger: 'blur', message: `${this.$t('table_name_is_require')}` }],
         // ciLayer: [
         //   { required: true, type: 'number', trigger: 'change', message: `${this.$t('zoom_level_is_require')}` }
         // ],
         ciGroup: [{ required: true, trigger: 'change', message: `${this.$t('refrence_layer')}` }]
         // imageFileId: [{ required: true, message: `${this.$t('icon_is_require')}` }]
+      },
+      ciAttrFormRuleValidate: {
+        // propertyName: [{ type: 'string', required: true, trigger: 'blur', message: `${this.$t('table_name_is_require')}` }],
+        // name,
+        // description,
+        // uiSearchOrder,
+        // inputType,
+        // regularExpressionRule,
+        // propertyType,
+        // length
       },
       addNewAttrForm: {
         inputType: 'text',
@@ -1084,7 +1152,8 @@ export default {
         autoFillType: 'suggest',
         uniqueConstraint: 'no',
         confirmNullable: 'yes',
-        extRefEntity: ''
+        extRefEntity: '',
+        sensitive: 'no'
       },
       allCiTypesWithAttr: [],
       allCiTypesFormatByCiTypeId: {},
@@ -1152,7 +1221,8 @@ export default {
         isShow: false,
         attrAndSelect: [],
         type: ''
-      }
+      },
+      isfullscreen: true
     }
   },
   methods: {
@@ -1333,6 +1403,11 @@ export default {
     async applyAttr (ciTypeAttrId) {
       if (!this.checkFillRule(this.editCiAttr)) {
         return
+      }
+      // 校验填充规则
+      if (this.editCiAttr.autofillable === 'yes' && this.editCiAttr.inputType !== 'password') {
+        const isAutoFillRuleCorrect = this.autoFillRuleValidate()
+        if (!isAutoFillRuleCorrect) return
       }
       const isSelectOrRef = ['select', 'ref', 'multiSelect', 'multiRef'].includes(this.editCiAttr.inputType)
       this.buttonLoading.applyAttr = true
@@ -1548,6 +1623,21 @@ export default {
       if (!this.checkFillRule(this.addNewAttrForm)) {
         return
       }
+      if (
+        !this.addNewAttrForm.propertyName ||
+        !/^[a-z][a-z0-9_]{0,48}[a-z0-9]$/.test(this.addNewAttrForm.propertyName)
+      ) {
+        this.$Notice.error({
+          title: 'Error',
+          desc: `${this.$t('ci_attribute_id') + this.$t('db_citype_id_rule_placeholder')}`
+        })
+        return
+      }
+      // 填充规则校验
+      if (this.addNewAttrForm.autofillable === 'yes' && this.addNewAttrForm.inputType !== 'password') {
+        const isAutoFillRuleCorrect = this.autoFillRuleValidate()
+        if (!isAutoFillRuleCorrect) return
+      }
       this.buttonLoading.addNewAttr = true
       const payload = {
         ...this.addNewAttrForm,
@@ -1569,6 +1659,22 @@ export default {
         await this.getInitGraphData()
         this.getCiByOptions()
       }
+    },
+    autoFillRuleValidate (val) {
+      let res = true
+      const ruleList = this.$refs.autoFillRef.autoFillArray
+      if (ruleList.length === 0) {
+        this.$Message.warning(this.$t('auto_fill_rule') + this.$t('is_required'))
+        res = false
+      }
+      if (ruleList.length > 0) {
+        const lastRule = ruleList[ruleList.length - 1]
+        if (['specialDelimiter', 'calcSymbol', 'calcFunc'].includes(lastRule.type)) {
+          this.$Message.warning(this.$t('auto_fill_rule') + this.$t('end_with_symbol'))
+          res = false
+        }
+      }
+      return res
     },
     addAttrModalToggle (isShow) {
       if (!isShow) {
@@ -1611,6 +1717,7 @@ export default {
         this.ciTemplateOptions = ciTemplate.data
       }
       this.isAddNewCITypeModalVisible = true
+      this.$refs.addNewCITypeForm.resetFields()
     },
     addCiTypeModalToggle (isShow) {
       if (!isShow) {
@@ -1619,6 +1726,7 @@ export default {
           ciGroup: this.addNewCITypeForm.ciGroup,
           imageFileId: undefined
         }
+        this.$refs['addNewCITypeForm'].resetFields()
       } else {
         this.addNewCITypeForm.ciGroup = this.currentSelectData.id
       }
@@ -1955,12 +2063,6 @@ export default {
             delete item.isActive
           })
           this.currentCiTypeAttr[index].isActive = true
-          const xx = this.oriCurrentCiTypeAttr.filter((item, i) => {
-            if (i < index && item.editGroupControl === 'yes') {
-              return item
-            }
-          })
-          console.log(xx)
           this.editCiAttr = JSON.parse(JSON.stringify(element))
           // this.getCatOptions()
         }
@@ -1982,6 +2084,11 @@ export default {
     async saveAttr (ciTypeAttrId) {
       if (!this.checkFillRule(this.editCiAttr)) {
         return
+      }
+      // 校验填充规则
+      if (this.editCiAttr.autofillable === 'yes' && this.editCiAttr.inputType !== 'password') {
+        const isAutoFillRuleCorrect = this.autoFillRuleValidate()
+        if (!isAutoFillRuleCorrect) return
       }
       this.buttonLoading.saveAttr = true
       const isSelectOrRef = ['select', 'ref', 'multiSelect', 'multiRef'].includes(this.editCiAttr.inputType)
@@ -2027,6 +2134,9 @@ export default {
       this[type].propertyType = inputType.value || ''
       if (inputType.length) {
         this[type].length = inputType.length
+      }
+      if (type === 'addNewAttrForm') {
+        this[type].sensitive = 'no'
       }
     },
     loadImage (nodesString) {
@@ -2190,8 +2300,11 @@ export default {
 .cmdb-model-management-left-card .ivu-card-body {
   padding: 0;
 }
-.validation-form .ivu-form-item {
-  margin-bottom: 10px !important;
+.add_new_ci_type_form,
+.validation-form {
+  .ivu-form-item {
+    margin-bottom: 20px;
+  }
 }
 .validation-form {
   .no-need-validation {
@@ -2213,6 +2326,13 @@ export default {
 }
 </style>
 <style lang="scss" scoped>
+.custom-modal-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 3px;
+  margin-right: 30px;
+  cursor: pointer;
+}
 .search-item {
   width: 260px;
 }
