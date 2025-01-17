@@ -35,6 +35,10 @@ func AuthToken() gin.HandlerFunc {
 			ReturnTokenValidateError(c, err)
 			c.Abort()
 		} else {
+			if !models.PluginRunningMode {
+				c.Next()
+				return
+			}
 			// 白名单URL直接放行
 			for path, method := range whitePathMap {
 				if strings.ToLower(method) != strings.ToLower(c.Request.Method) {
