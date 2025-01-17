@@ -11,6 +11,7 @@
     @pageChange="pageChange"
     @pageSizeChange="pageSizeChange"
     @handleSubmit="handleSubmit"
+    @resetSearchForm="fetchTableData"
     ref="table"
   ></CMDBTable>
 </template>
@@ -21,23 +22,25 @@ export default {
   data () {
     return {
       columns: [
+        // {
+        //   component: 'Input',
+        //   type: 'text',
+        //   inputType: 'text',
+        //   title: 'Guid',
+        //   placeholder: 'Guid',
+        //   key: 'dataGuid',
+        //   inputKey: 'dataGuid',
+        //   editable: 'no',
+        //   uiFormOrder: 1,
+        //   uiSearchOrder: 1,
+        //   displayByDefault: 'yes'
+        // },
         {
           component: 'Input',
           type: 'text',
           inputType: 'text',
-          title: 'Guid',
-          key: 'dataGuid',
-          inputKey: 'dataGuid',
-          editable: 'no',
-          uiFormOrder: 1,
-          uiSearchOrder: 1,
-          displayByDefault: 'yes'
-        },
-        {
-          component: 'Input',
-          type: 'text',
-          inputType: 'text',
-          title: 'Key Name',
+          title: 'CI',
+          placeholder: 'CI',
           key: 'dataCiType',
           inputKey: 'dataCiType',
           editable: 'no',
@@ -46,34 +49,11 @@ export default {
           displayByDefault: 'yes'
         },
         {
-          component: 'DatePicker',
-          type: 'datetimerange',
-          inputType: 'date',
-          title: 'Created Date',
-          key: 'createdDate',
-          inputKey: 'createdDate',
-          editable: true,
-          uiFormOrder: 1,
-          uiSearchOrder: 1,
-          displayByDefault: 'yes'
-        },
-        {
           component: 'Input',
           type: 'text',
           inputType: 'text',
-          title: 'User',
-          key: 'operator',
-          inputKey: 'operator',
-          editable: 'no',
-          uiFormOrder: 1,
-          uiSearchOrder: 1,
-          displayByDefault: 'yes'
-        },
-        {
-          component: 'Input',
-          type: 'text',
-          inputType: 'text',
-          title: 'Client Host',
+          title: this.$t('db_client_host'),
+          placeholder: this.$t('db_client_host'),
           key: 'clientHost',
           inputKey: 'clientHost',
           editable: 'no',
@@ -102,7 +82,7 @@ export default {
             }
           ],
           inputType: 'select',
-          title: 'Category',
+          title: this.$t('db_category'),
           key: 'logCat',
           inputKey: 'logCat',
           editable: 'no',
@@ -114,7 +94,21 @@ export default {
           component: 'Input',
           type: 'text',
           inputType: 'text',
-          title: 'Content',
+          title: this.$t('db_executor'),
+          placeholder: this.$t('db_executor'),
+          key: 'operator',
+          inputKey: 'operator',
+          editable: 'no',
+          uiFormOrder: 1,
+          uiSearchOrder: 1,
+          displayByDefault: 'yes'
+        },
+        {
+          component: 'Input',
+          type: 'text',
+          inputType: 'text',
+          title: this.$t('db_payload'),
+          placeholder: this.$t('db_payload'),
           key: 'content',
           inputKey: 'content',
           editable: 'no',
@@ -127,7 +121,8 @@ export default {
           optionKey: 'operationOpts',
           options: [],
           inputType: 'select',
-          title: 'Operation',
+          title: this.$t('db_operation_type'),
+          placeholder: this.$t('db_operation_type'),
           key: 'operation',
           inputKey: 'operation',
           editable: 'no',
@@ -139,7 +134,8 @@ export default {
           component: 'Input',
           type: 'text',
           inputType: 'text',
-          title: 'Request Url',
+          title: this.$t('db_request_url'),
+          placeholder: this.$t('db_request_url'),
           key: 'requestUrl',
           inputKey: 'requestUrl',
           editable: 'no',
@@ -148,10 +144,24 @@ export default {
           displayByDefault: 'yes'
         },
         {
+          component: 'DatePicker',
+          type: 'datetimerange',
+          inputType: 'datetime',
+          title: this.$t('db_execution_time'),
+          placeholder: this.$t('db_execution_time'),
+          key: 'createdDate',
+          inputKey: 'createdDate',
+          editable: true,
+          uiFormOrder: 1,
+          uiSearchOrder: 1,
+          displayByDefault: 'yes'
+        },
+        {
           component: 'Input',
           type: 'text',
           inputType: 'text',
-          title: 'Response',
+          title: this.$t('db_response'),
+          placeholder: this.$t('db_response'),
           key: 'response',
           inputKey: 'response',
           editable: 'no',

@@ -21,11 +21,15 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 	}
 	//
 	var keyMap = make(map[string]string)
+	var floatAttrMap = make(map[string]int)
 	var refAttrs, multiRefAttrs, objectAttrs, passwordAttrs, multiTextAttrs, multiIntAttrs, extRefAttrs []*models.CiDataQueryRefAttrObj
 	resultColumns := models.CiQueryColumnList{}
 	for _, attr := range ciAttrs {
 		if attr.InputType != models.MultiRefType {
 			keyMap[attr.Name] = attr.Name
+		}
+		if attr.InputType == models.FloatInputType {
+			floatAttrMap[attr.Name] = 1
 		}
 		if attr.Name == "guid" {
 			continue
@@ -54,7 +58,7 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 				extRefAttrs = append(extRefAttrs, &models.CiDataQueryRefAttrObj{Attribute: attr})
 			} else if attr.InputType == "object" || attr.InputType == "multiObject" {
 				objectAttrs = append(objectAttrs, &models.CiDataQueryRefAttrObj{Attribute: attr})
-			} else if attr.InputType == "password" {
+			} else if attr.InputType == "password" || attr.Sensitive == "yes" {
 				passwordAttrs = append(passwordAttrs, &models.CiDataQueryRefAttrObj{Attribute: attr})
 			} else if attr.InputType == "multiText" || attr.InputType == "multiSelect" {
 				multiTextAttrs = append(multiTextAttrs, &models.CiDataQueryRefAttrObj{Attribute: attr})
@@ -101,7 +105,7 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 	}
 	filterSql, queryColumn, queryParam := transFiltersToSQL(param, &models.TransFiltersParam{IsStruct: false, KeyMap: keyMap, PrimaryKey: "guid", Prefix: "tt"})
 	var baseSql string
-	if !permission.Disable {
+	if !permission.Legal {
 		if strings.Contains(filterSql, "ORDER BY") {
 			tmpFilterSqlList := strings.Split(filterSql, "ORDER BY")
 			filterSql = tmpFilterSqlList[0] + " and tt.guid in ('" + strings.Join(permission.GuidList, "','") + "') ORDER BY " + tmpFilterSqlList[1]
@@ -191,6 +195,9 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 	for _, row := range queryRowData {
 		tmpMapObj := make(map[string]interface{})
 		for k, v := range row {
+			if _, isFloatAttr := floatAttrMap[k]; isFloatAttr {
+				v = transFloatValueToString(v)
+			}
 			tmpMapObj[k] = v
 		}
 		if mapV, b := transStateMap[row["state"]]; b {

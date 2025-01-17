@@ -175,6 +175,7 @@ func CiTypesApply(c *gin.Context) {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
 		db.AutoCreateRoleCiTypeDataByCiType(ciTypeId)
+		db.AutoCreateRoleCiTypeAttrPermission(ciTypeId)
 		middleware.ReturnData(c, models.SysCiTypeTable{Id: param.Id, FileName: nowImageFileName})
 	}
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="ci-data-page">
+  <div class="ci-data-detail-page">
     <Tabs type="card" :value="currentTab" closable @on-tab-remove="handleTabRemove" @on-click="handleTabClick">
       <TabPane :closable="false" name="CMDBSimple" :label="$t('cmdb_simple_model')">
         <card>
@@ -118,7 +118,7 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line
 import * as d3Graphviz from 'd3-graphviz'
-import { isEmpty } from 'lodash'
+import { isEmpty, find } from 'lodash'
 import moment from 'moment'
 import { addEvent } from '../util/event.js'
 import {
@@ -137,7 +137,7 @@ import {
 import { baseURL } from '@/api/base.js'
 import { pagination, components } from '@/const/actions.js'
 // import { resetButtonDisabled } from '@/const/tableActionFun.js'
-import { formatData } from '../util/format.js'
+import { formatData, intervalTips } from '../util/format.js'
 import { CI_LAYER, CI_GROUP } from '@/const/init-params.js'
 import SelectFormOperation from '@/pages/components/select-form-operation'
 export default {
@@ -197,7 +197,9 @@ export default {
       originCITypesByLayerWithAttr: [],
       originCITypesByLayers: Object.freeze([]),
       filtedCiTypesByLayers: [],
-      MODALHEIGHT: 0
+      MODALHEIGHT: 0,
+      selectedRows: [],
+      intervalId: null
     }
   },
   computed: {
@@ -222,12 +224,74 @@ export default {
     }
   },
   watch: {
+    $route (to, from) {
+      if (to.path !== from.path) {
+        this.currentTab = 'CMDBSimple'
+        this.tabList = []
+        this.currentciGroup = []
+        this.currentciLayer = []
+        this.queryDate = null
+        this.queryType = 'new'
+        this.searchString = ''
+        this.mountedAction()
+      }
+    },
     currentTab () {
       this.copyRows = []
       this.copyEditData = null
     }
   },
+  async mounted () {
+    this.mountedAction()
+  },
+  beforeDestroy () {
+    clearInterval(this.intervalId)
+  },
   methods: {
+    async mountedAction () {
+      this.fileContentHeight = window.screen.availHeight * 0.5 + 'px'
+      this.MODALHEIGHT = window.MODALHEIGHT
+
+      const [ciLayerList, ciGroupList] = await this.getEnumCodes()
+
+      if (ciLayerList.statusCode === 'OK' && ciGroupList.statusCode === 'OK') {
+        this.originciLayerList = ciLayerList.data
+        this.originciGroupList = ciGroupList.data
+
+        this.currentciGroup =
+          this.currentciGroup.length > 0 ? this.currentciGroup : this.originciGroupList.map(item => item.codeId)
+        this.currentciLayer = this.currentciLayer.length > 0 ? this.currentciLayer : [ciLayerList.data[0].codeId]
+      }
+
+      this.getInitSimpleData()
+
+      this.$nextTick(() => {
+        this.getInitGraphData()
+      })
+      // 自动打开对应ci tab页
+      if (this.$route.query.ciTypeId && this.$route.query.name) {
+        this.commonNodeClickHandler({
+          id: this.$route.query.ciTypeId,
+          name: this.$route.query.name
+        })
+      }
+      // 定时刷新整个table页面
+      this.intervalId = setInterval(() => {
+        if (
+          document.querySelector('.ci-data-detail-page') &&
+          this.tabList.length > 0 &&
+          !isEmpty(find(this.tabList, { id: this.currentTab })) &&
+          !this.$refs['table' + this.currentTab][0].modalVisible
+        ) {
+          this.$refs['table' + this.currentTab][0].handleSubmit()
+          this.$Notice.success({
+            title: '',
+            desc: '',
+            render: h => intervalTips(h)
+          })
+        }
+      }, 3 * 60 * 1000)
+    },
     zoomModalMax () {
       this.fileContentHeight = window.screen.availHeight - 210 + 'px'
       this.fullscreen = true
@@ -473,7 +537,10 @@ export default {
           ci.tableColumns.forEach(item => {
             item.uiFormLabelShow = false
           })
-        this.tabList.push(ci)
+        const existFlag = this.tabList.some(i => i.id === ci.id)
+        if (!existFlag) {
+          this.tabList.push(ci)
+        }
         this.currentTab = id
         this.$nextTick(() => {
           this.queryCiData(query)
@@ -485,7 +552,14 @@ export default {
         this.isHandleNodeClick = false
       }, 500)
     },
-    onSelectedRowsChange (rows, checkoutBoxdisable) {
+    async onSelectedRowsChange (rows, checkoutBoxdisable) {
+      if (rows.length !== this.selectedRows.length) {
+        // 这里用来每次点击checkbox刷新table
+        this.selectedRows = rows
+        await this.queryCiData(false)
+        return
+      }
+      this.selectedRows = rows
       if (rows.length > 0) {
         let opArray = []
         rows.forEach(r => {
@@ -506,7 +580,20 @@ export default {
         this.setBtnsStatus()
       }
     },
-    actionFun (operate, data, cols, filters) {
+    async actionFun (operate, data, cols, filters) {
+      // 这里用来每次操作刷新table上方的button展现状态
+      await this.queryCiData(false)
+      const tabItem = find(this.tabList, { id: this.currentTab })
+      const outerActions = tabItem.outerActions
+      const currentActionItem = find(outerActions, { operation_en: operate.operation_en })
+      if (
+        !isEmpty(currentActionItem) &&
+        !['import_form', 'import_ci_form'].includes(currentActionItem.operationFormType) &&
+        !isEmpty(currentActionItem.props) &&
+        currentActionItem.props.disabled
+      ) {
+        return
+      }
       switch (operate.operationFormType) {
         case 'export_form':
           this.exportHandler(filters)
@@ -873,7 +960,7 @@ export default {
       })
       this.queryCiData()
     },
-    async queryCiData () {
+    async queryCiData (needLoading = true, needTips = false) {
       this.payload.pageable.pageSize = 10
       this.payload.pageable.startIndex = 0
       this.tabList.forEach(ci => {
@@ -887,33 +974,39 @@ export default {
         queryObject: this.payload
       }
       const method = queryCiData
-      this.$refs[this.tableRef][0].isTableLoading(true)
-      const { statusCode, data } = await method(query)
-      this.$refs[this.tableRef][0].isTableLoading(false)
-      if (statusCode === 'OK') {
-        this.tabList.forEach(ci => {
-          if (ci.id === this.currentTab) {
-            // 将WeCMDBSelect枚举类型的数据值从value转换成label以便与编辑态对应
-            const filterSelect = ci.tableColumns.filter(item => item.component === 'WeCMDBSelect')
-            filterSelect.forEach(item => {
-              data.contents.forEach(d => {
-                const find = item.options.find(o => o.value === d[item.key])
-                if (find) {
-                  d[item.key] = find.label
+      if (needLoading) {
+        this.$refs[this.tableRef][0].isTableLoading(true)
+      }
+      return new Promise(async resolve => {
+        const { statusCode, data } = await method(query)
+        this.$refs[this.tableRef][0].isTableLoading(false)
+        if (statusCode === 'OK') {
+          this.tabList.forEach(ci => {
+            if (ci.id === this.currentTab) {
+              // 将WeCMDBSelect枚举类型的数据值从value转换成label以便与编辑态对应
+              const filterSelect = ci.tableColumns.filter(item => item.component === 'WeCMDBSelect')
+              filterSelect.forEach(item => {
+                data.contents.forEach(d => {
+                  const find = item.options.find(o => o.value === d[item.key])
+                  if (find) {
+                    d[item.key] = find.label
+                  }
+                })
+              })
+              ci.tableData = data.contents.map(_ => {
+                return {
+                  ..._,
+                  _checked: !!find(this.selectedRows, { guid: _.guid })
+                  // nextOperations: _.meta.nextOperations || []
                 }
               })
-            })
-            ci.tableData = data.contents.map(_ => {
-              return {
-                ..._
-                // nextOperations: _.meta.nextOperations || []
-              }
-            })
-            ci.pagination.total = data.pageInfo.totalRows
-          }
-        })
-      }
-      this.setBtnsStatus()
+              ci.pagination.total = data.pageInfo.totalRows
+            }
+          })
+        }
+        this.setBtnsStatus()
+        resolve()
+      })
     },
     async queryCiAttrs (id) {
       const { statusCode, data } = await getCiTypeAttributes(id)
@@ -1198,34 +1291,6 @@ export default {
     },
     getEnumCodes () {
       return Promise.all([getEnumCodesByCategoryId(CI_LAYER), getEnumCodesByCategoryId(CI_GROUP)])
-    }
-  },
-  async mounted () {
-    this.fileContentHeight = window.screen.availHeight * 0.5 + 'px'
-    this.MODALHEIGHT = window.MODALHEIGHT
-
-    const [ciLayerList, ciGroupList] = await this.getEnumCodes()
-
-    if (ciLayerList.statusCode === 'OK' && ciGroupList.statusCode === 'OK') {
-      this.originciLayerList = ciLayerList.data
-      this.originciGroupList = ciGroupList.data
-
-      this.currentciGroup =
-        this.currentciGroup.length > 0 ? this.currentciGroup : this.originciGroupList.map(item => item.codeId)
-      this.currentciLayer = this.currentciLayer.length > 0 ? this.currentciLayer : [ciLayerList.data[0].codeId]
-    }
-
-    this.getInitSimpleData()
-
-    this.$nextTick(() => {
-      this.getInitGraphData()
-    })
-    // 自动打开对应ci tab页
-    if (this.$route.query.ciTypeId && this.$route.query.name) {
-      this.commonNodeClickHandler({
-        id: this.$route.query.ciTypeId,
-        name: this.$route.query.name
-      })
     }
   },
   components: {

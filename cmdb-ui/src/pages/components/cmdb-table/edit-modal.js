@@ -1,12 +1,14 @@
 import './edit-modal.scss'
-import lodash from 'lodash'
+import { debounce, cloneDeep, find, isEmpty, hasIn } from 'lodash'
 import moment from 'moment'
-import { queryCiData, getAllCITypesByLayerWithAttr } from '@/api/server.js'
+import { queryCiData, getAllCITypesByLayerWithAttr, getEncryptKey, searchSensitiveData } from '@/api/server.js'
 // import AutoComplete from './auto-complete.vue'
 import JSONConfig from './json-config.vue'
+import CustomInput from './custom-input.vue'
 import MultiConfig from './multi-config.vue'
 import CIAttrTooltip from '@/pages/components/attr-table-header-tooltip.vue'
 import { isJsonArray } from './utils/assist'
+import CryptoJS from 'crypto-js'
 const WIDTH = 300
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 export default {
@@ -18,7 +20,9 @@ export default {
       filteredColumns: [],
       inputSearch: {},
       allCiTypesWithAttr: [],
-      allCiTypesFormatByCiTypeId: {}
+      allCiTypesFormatByCiTypeId: {},
+      encryptPasswordList: [], // 修改过的密码集合，一行数据可能配有多个密码
+      allSensitiveData: []
     }
   },
   props: {
@@ -88,8 +92,9 @@ export default {
       immediate: true
     },
     modalVisible: {
-      handler (val) {
+      async handler (val) {
         if (val) {
+          this.encryptPasswordList = []
           this.editData = this.resetPassword(JSON.parse(JSON.stringify(this.data)))
           if (this.isEdit && this.filterColumns.length === 0) {
             this.columns.forEach((column, index) => {
@@ -101,12 +106,18 @@ export default {
               this.filterColumns.find(c => column.name === c || column.title === c)
             )
           }
+          this.filteredColumns.forEach(item => {
+            if (item.component === 'WeCMDBCIPassword' && hasIn(item, 'isShowPassword')) {
+              delete item.isShowPassword
+            }
+          })
+          this.allSensitiveData = await this.getSensitiveData(this.editData, this.columns)
         }
       }
     }
   },
   methods: {
-    handleInputSearch: lodash.debounce(async function (value, column, data) {
+    handleInputSearch: debounce(async function (value, column, data) {
       if (value.length > 0 && column.ciTypeId) {
         // this.$set(this.inputSearch[column.inputKey], 'options', ['host01', 'host02', 'host11'].map(_ =>  _ + value))
         const res = await queryCiData({
@@ -182,31 +193,61 @@ export default {
       })
       return data
     },
-    okHandler () {
-      const copyData = JSON.parse(JSON.stringify(this.editData))
-      copyData.forEach(item => {
-        const keys = Object.keys(item)
-        keys.forEach(key => {
-          const find = this.columns.find(col => col.propertyName === key)
-          if (find && find.inputType === 'autofillRule') {
-          } else if (find && find.inputType !== 'object') {
-            if (
-              Array.isArray(item[key]) &&
-              !['multiSelect', 'multiRef', 'multiText', 'multiInt', 'multiObject'].includes(find.inputType)
-            ) {
-              item[key] = item[key].join(',')
-            }
-            if (find.inputType === 'multiRef') {
-              const tmp = item[key]
-              if (tmp.includes('{')) {
-                const res = JSON.parse(tmp)
-                item[key] = res.map(r => r.guid)
+    async okHandler () {
+      const copyData = cloneDeep(this.editData)
+      this.processSensitiveData(copyData)
+      await Promise.all(
+        copyData.map(async (item, index) => {
+          const keys = Object.keys(item)
+          keys.forEach(key => {
+            const find = this.columns.find(col => col.propertyName === key)
+            if (find && find.inputType === 'autofillRule') {
+            } else if (find && find.inputType !== 'object') {
+              if (
+                Array.isArray(item[key]) &&
+                !['multiSelect', 'multiRef', 'multiText', 'multiInt', 'multiObject'].includes(find.inputType)
+              ) {
+                item[key] = item[key].join(',')
+              }
+              if (find.inputType === 'multiRef') {
+                const tmp = item[key]
+                if (tmp.includes('{')) {
+                  const res = JSON.parse(tmp)
+                  item[key] = res.map(r => r.guid)
+                }
               }
             }
-          }
+          })
+          // 密码保存前统一加密
+          await Promise.all(
+            this.encryptPasswordList.map(async i => {
+              if (i.value && i.index === index) {
+                const { data } = await getEncryptKey()
+                const key = CryptoJS.enc.Utf8.parse(data)
+                const timeTag = Math.trunc(new Date() / 100000) * 100000000
+                const iv = CryptoJS.enc.Utf8.parse(timeTag)
+                const config = {
+                  iv,
+                  mode: CryptoJS.mode.CBC
+                  // padding: CryptoJS.pad.PKcs7
+                }
+                item[i.key] = CryptoJS.AES.encrypt(i.value, key, config).toString() + '&\u0001' + timeTag
+              }
+            })
+          )
         })
-      })
+      )
       this.$emit('editModalOkHandler', copyData)
+    },
+    processSensitiveData (editData) {
+      this.allSensitiveData.forEach(one => {
+        const itemData = find(editData, { guid: one.guid })
+        if (one.hasBeenModified) {
+          itemData[one.attrName] = one.finalEditInputValue
+        } else {
+          delete itemData[one.attrName]
+        }
+      })
     },
     cancelHandler () {
       this.$emit('closeEditModal', false)
@@ -309,8 +350,17 @@ export default {
         this.allCiTypesFormatByCiTypeId = allCiTypesFormatByCiTypeId
       }
     },
+    // 获取修改过的密码集合，提交保存时，对密码统一进行加密
+    encryptPassword (obj) {
+      const index = this.encryptPasswordList.findIndex(i => i.key === obj.key && i.index === obj.index)
+      if (index > -1) {
+        this.encryptPasswordList.splice(index, 1, obj)
+      } else {
+        this.encryptPasswordList.push(obj)
+      }
+    },
     renderDataRows () {
-      let handleInputSearch = this.handleInputSearch
+      // let handleInputSearch = this.handleInputSearch
       let setValueHandler = (v, col, row) => {
         let attrsWillReset = []
         if (['select', 'ref', 'extRef', 'multiSelect', 'multiRef'].indexOf(col.inputType) > -1) {
@@ -367,7 +417,14 @@ export default {
                   if (column.component === 'WeCMDBCIPassword') {
                     return (
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
-                        <column.component formData={column} panalData={d} disabled={false} />
+                        <column.component
+                          formData={column}
+                          panalData={d}
+                          index={index}
+                          disabled={false}
+                          allSensitiveData={this.allSensitiveData}
+                          onEncryptPassword={this.encryptPassword}
+                        />
                       </div>
                     )
                   } else if (column.component === 'CMDBPermissionFilters') {
@@ -433,7 +490,7 @@ export default {
                     }
                     const fun = {
                       input: function (v) {
-                        d[column.inputKey] = v.trim()
+                        d[column.inputKey] = v
                       }
                     }
                     const data = {
@@ -490,6 +547,27 @@ export default {
                         <Input style="width:80%" {...data}></Input>
                       </div>
                     )
+                  } else if (column.component === 'Input' && column.inputType === 'int') {
+                    const props = {
+                      ...column,
+                      disabled: this.isGroupEditDisabled(column, d),
+                      value: d[column.inputKey]
+                    }
+                    delete props.editable // 和InputNumber原生属性editable有冲突
+                    const fun = {
+                      input: function (v) {
+                        setValueHandler(v, column, d)
+                      }
+                    }
+                    const data = {
+                      props,
+                      on: fun
+                    }
+                    return (
+                      <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
+                        <InputNumber {...data} max={99999999} min={-99999999} precision={0} style="width:80%" />
+                      </div>
+                    )
                   } else if (column.component === 'Input' && column.inputType !== 'object') {
                     const props = {
                       ...column,
@@ -498,18 +576,23 @@ export default {
                       value: d[column.inputKey]
                     }
                     const fun = {
-                      'on-search': function (v) {
-                        handleInputSearch(v, column, d)
-                      },
-                      'on-select': function (v) {
-                        setValueHandler(v, column, d)
-                      },
+                      // 'on-search': function (v) {
+                      //   handleInputSearch(v, column, d)
+                      // },
+                      // 'on-select': function (v) {
+                      //   setValueHandler(v, column, d)
+                      // },
                       input: function (v) {
                         setValueHandler(v.trim(), column, d)
                       }
                     }
+                    const onInputChange = v => {
+                      const val = v ? v.trim() : ''
+                      setValueHandler(val, column, d)
+                    }
                     const data = {
                       props,
+                      guid: d.guid,
                       on: fun
                     }
                     const resetAutofillValue = (v, column) => {
@@ -518,7 +601,13 @@ export default {
                     // <AutoComplete {...data}></AutoComplete>
                     return (
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
-                        <Input style="width:80%" {...data}></Input>
+                        {/* <Input style="width:80%" {...data}></Input> */}
+                        <CustomInput
+                          style="width:70%"
+                          inputDetail={data}
+                          allSensitiveData={this.allSensitiveData}
+                          onInputChange={onInputChange}
+                        ></CustomInput>
                         {column.autofillable === 'yes' && column.autoFillType === 'suggest' && (
                           <Button onClick={v => resetAutofillValue(v, column)} icon="md-checkmark"></Button>
                         )}
@@ -663,6 +752,29 @@ export default {
           </CheckboxGroup>
         </div>
       )
+    },
+    async getSensitiveData (tableData = [], columns = []) {
+      const filterSensitiveColumns = columns.filter(item => item.sensitive === 'yes')
+      const allFilterData = []
+      tableData.forEach(data => {
+        const guid = data.guid
+        if (guid) {
+          filterSensitiveColumns.forEach(column => {
+            allFilterData.push({
+              guid,
+              ciType: column.ciTypeId,
+              attrName: column.inputKey
+            })
+          })
+        }
+      })
+      if (isEmpty(allFilterData)) {
+        return []
+      }
+      return new Promise(async resolve => {
+        const { statusCode, data } = await searchSensitiveData(allFilterData)
+        resolve(statusCode === 'OK' ? data : [])
+      })
     }
   },
   render (h) {

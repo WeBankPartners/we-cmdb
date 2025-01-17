@@ -67,7 +67,7 @@ export default {
           uiFormOrder: 2,
           component: 'Input',
           inputType: 'text',
-          placeholder: 'code',
+          placeholder: this.$t('table_enum_key'),
           editable: 'yes',
           isAuto: false,
           displayByDefault: 'yes'
@@ -81,7 +81,7 @@ export default {
           uiFormOrder: 3,
           component: 'Input',
           inputType: 'text',
-          placeholder: 'value',
+          placeholder: this.$t('table_enum_value'),
           editable: 'yes',
           isAuto: false,
           displayByDefault: 'yes'

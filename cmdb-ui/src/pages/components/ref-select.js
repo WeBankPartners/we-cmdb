@@ -1,4 +1,10 @@
-import { queryCiData, getCiTypeAttributes, getEnumCodesByCategoryId, queryReferenceCiData } from '@/api/server'
+import {
+  queryCiData,
+  getCiTypeAttributes,
+  getEnumCodesByCategoryId,
+  queryReferenceCiData,
+  getExtRefDetails
+} from '@/api/server'
 import { components } from '@/const/actions.js'
 import { finalDataForRequest } from '@/pages/util/component-util'
 import CustomMultipleRefSelect from './custom-ref-select.vue'
@@ -14,7 +20,8 @@ export default {
     filterParams: {},
     guidFilters: { default: () => null },
     guidFilterEnabled: { default: () => false },
-    title: ''
+    title: '',
+    inputType: ''
   },
   watch: {
     value: {
@@ -48,7 +55,13 @@ export default {
       tableValue: [],
       selectDisabled: true,
       firstInput: true,
-      firstChange: true
+      firstChange: true,
+      extRefDetail: {
+        isShow: false,
+        title: '',
+        info: '',
+        type: ''
+      }
     }
   },
   inject: ['ciDataManagementQueryType'],
@@ -169,9 +182,28 @@ export default {
     async showRefModal (e) {
       e.preventDefault()
       e.stopPropagation()
-      this.visibleSwap = true
-      await this.queryCiAttrs(this.ciType.id)
-      await this.queryCiData()
+      if (this.inputType === 'extRef') {
+        const params = {
+          filters: [
+            {
+              name: 'guid',
+              operator: 'eq',
+              value: this.selected || ''
+            }
+          ]
+        }
+        const { statusCode, data } = await getExtRefDetails(this.ciTypeAttrId, params)
+        if (statusCode === 'OK') {
+          this.extRefDetail.title = this.$t('details')
+          this.extRefDetail.type = 'object'
+          this.extRefDetail.info = JSON.stringify(data.contents)
+          this.extRefDetail.isShow = true
+        }
+      } else {
+        this.visibleSwap = true
+        await this.queryCiAttrs(this.ciType.id)
+        await this.queryCiData()
+      }
       this.highlightRowHandler()
     },
     highlightRowHandler () {
@@ -314,6 +346,25 @@ export default {
                 OK
               </Button>
             </span>
+          </div>
+        </Modal>
+        <Modal v-model={this.extRefDetail.isShow} footer-hide={true} title={this.extRefDetail.title} width={1100}>
+          {this.extRefDetail.type === 'object' && (
+            <json-viewer
+              style="max-height:400px;overflow-y:scroll"
+              value={JSON.parse(this.extRefDetail.info)}
+              expand-depth={5}
+            ></json-viewer>
+          )}
+          <div style="margin-top:20px;height: 30px">
+            <Button
+              style="float: right;margin-right: 20px"
+              onClick={() => {
+                this.extRefDetail.isShow = false
+              }}
+            >
+              {this.$t('close')}
+            </Button>
           </div>
         </Modal>
       </div>
