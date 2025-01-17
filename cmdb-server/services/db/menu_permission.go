@@ -1,8 +1,8 @@
 package db
 
 import (
-	"fmt"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"regexp"
 	"strings"
 )
 
@@ -48,37 +48,28 @@ func UpdateRoleMenu(param models.UpdateRoleMenuParam) error {
 	return transaction(actions)
 }
 
-func ValidateMenuApi(roles []string, apiUrl, method string) (legal bool, err error) {
-	legal = false
-	var roleMenuTable []*models.SysRoleMenuTable
-	err = x.SQL("select * from sys_role_menu where role_guid in ('" + strings.Join(roles, "','") + "')").Find(&roleMenuTable)
-	if err != nil {
-		err = fmt.Errorf("Try to validate api permission fail,%s ", err.Error())
-		return
-	}
-	if len(roleMenuTable) == 0 {
-		legal = false
-		return
-	}
-	if method == "GET" && strings.Contains(apiUrl, "?") {
-		apiUrl = apiUrl[:strings.Index(apiUrl, "?")]
-	}
-	apiUrl = apiUrl[len(models.UrlPrefix):]
+func ValidateMenuApi(roles []string, path, method string) (legal bool) {
+	// 防止ip 之类数据配置不上
+	path = strings.ReplaceAll(path, ".", "")
 	for _, menuApi := range models.MenuApiGlobalList {
-		for _, roleMenu := range roleMenuTable {
-			if menuApi.Menu == roleMenu.MenuGuid {
-				for _, api := range menuApi.Urls {
-					if api.Method == method && api.Url == apiUrl {
-						legal = true
-						break
+		for _, role := range roles {
+			if strings.ToLower(menuApi.Menu) == strings.ToLower(role) {
+				for _, item := range menuApi.Urls {
+					if strings.ToLower(item.Method) == strings.ToLower(method) {
+						re := regexp.MustCompile(BuildRegexPattern(item.Url))
+						if re.MatchString(path) {
+							legal = true
+							return
+						}
 					}
 				}
-				break
 			}
-		}
-		if legal {
-			break
 		}
 	}
 	return
+}
+
+func BuildRegexPattern(template string) string {
+	// 将 ${variable-a.b} 替换为 (\w+)
+	return regexp.MustCompile(`\$\{[\w.-]+\}`).ReplaceAllString(template, `(\w+)`)
 }

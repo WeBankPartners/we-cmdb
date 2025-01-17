@@ -844,3 +844,15 @@ alter table `sys_ci_import_guid_map` add column `is_not_empty` int(1) null defau
 #@v2.0.27.2-begin@;
 INSERT INTO sys_menu (id,display_name,url,seq_no,parent,is_active) values ('data_management_import','数据管理(导入)',NULL,3,'data_mgmt','yes');
 #@v2.0.27.2-end@;
+
+#@v2.1.0.2-begin@;
+alter table sys_ci_template_attr add column `sensitive` varchar(16) default 'no' comment '是否敏感';
+alter table sys_ci_type_attr add column `sensitive` varchar(16) default 'no' comment '是否敏感';
+alter table sys_role_ci_type_condition_filter modify column ci_type_attr varchar(128) DEFAULT NULL COMMENT 'ci属性(条件对象)';
+alter table sys_role_ci_type add column ci_type_attr varchar(128) default null comment '敏感属性';
+#@v2.1.0.2-end@;
+
+#@v2.1.0.3-begin@;
+alter table sys_report add column `used_by_view` varchar(16) default 'yes' comment '能被视图使用,枚举值 yes|no';
+alter table sys_report add column `used_by_export` varchar(16) default 'yes' comment '能被导出,枚举值 yes|no';
+#@v2.1.0.3-end@;
