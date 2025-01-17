@@ -1,7 +1,7 @@
 <template>
   <Row>
     <Col span="6" offset="0" style="margin-left: 20px">
-      <Card>
+      <Card style="min-height: 85vh">
         <p slot="title" class="permission-management-p">
           <span>{{ $t('role') }}</span>
         </p>
@@ -22,7 +22,7 @@
       </Card>
     </Col>
     <Col span="17" offset="0" style="margin-left: 20px">
-      <Card>
+      <Card style="min-height: 85vh">
         <p slot="title">{{ $t('data_management') }}</p>
         <div v-if="ciTypePermissions.length" class="batch-operation">
           <div style="float:left">{{ $t('selectAll') }}</div>
@@ -49,7 +49,71 @@
         </div>
         <div class="tagContainers-auth">
           <Spin size="large" fix v-if="spinShow"></Spin>
-          <div
+
+          <Collapse v-model="currentCollapseValue" accordion>
+            <Panel
+              v-for="(ci, ciIndex) in ciTypePermissions"
+              :key="ci.ciTypeId"
+              :name="ciIndex + ''"
+              v-if="ci.ciTypeName.includes(filterParam)"
+            >
+              <template>
+                <span :title="ci.ciTypeName">{{ ci.ciTypeName }}</span>
+                <div class="ciTypes-options" @click="preventEvent">
+                  <Checkbox
+                    v-for="act in actionsType"
+                    :disabled="dataPermissionDisabled"
+                    :value="ci[act.actionCode] === 'Y'"
+                    :key="act.actionCode"
+                    :indeterminate="ci[act.actionCode] === 'P'"
+                    @click.prevent.native="ciTypesPermissionsHandler(ciIndex, act.actionCode)"
+                    >{{ act.actionName }}</Checkbox
+                  >
+                  <Button
+                    type="dashed"
+                    size="small"
+                    :disabled="dataPermissionDisabled || !ciTypesWithAccessControlledAttr[ci.ciTypeId]"
+                    @click="openPermissionManageModal(ci.guid, ci)"
+                  >
+                    {{ $t('db_condition_matching') }}
+                  </Button>
+                  <Button type="dashed" size="small" @click="openListManageModal(ci)">
+                    {{ $t('db_specify_row') }}
+                  </Button>
+                </div>
+              </template>
+              <template slot="content">
+                <div class="ci-attr-style" v-for="(one, oneIndex) in ci.attrs" :key="oneIndex">
+                  <span style="margin-left: 30px" :title="one.ciAttrName">{{ one.ciAttrName }}</span>
+                  <div>
+                    <Checkbox
+                      v-for="act in ciAttrActionsType"
+                      :disabled="dataPermissionDisabled"
+                      :value="one[act.actionCode] === 'Y'"
+                      :key="act.actionCode"
+                      :indeterminate="one[act.actionCode] === 'P'"
+                      @click.prevent.native="ciAttrsPermissionsHandler(one, act.actionCode)"
+                      >{{ act.actionName }}</Checkbox
+                    >
+                    <Button
+                      style="margin-left: 110px"
+                      type="dashed"
+                      size="small"
+                      :disabled="dataPermissionDisabled || !ciTypesWithAccessControlledAttr[ci.ciTypeId]"
+                      @click="openPermissionManageModal(one.guid, one)"
+                    >
+                      {{ $t('db_condition_matching') }}
+                    </Button>
+                    <Button type="dashed" size="small" @click="openListManageModal(one)">
+                      {{ $t('db_specify_row') }}
+                    </Button>
+                  </div>
+                </div>
+              </template>
+            </Panel>
+          </Collapse>
+
+          <!-- <div
             class="data-permissions"
             v-for="(ci, ciIndex) in ciTypePermissions"
             :key="ci.ciTypeId"
@@ -71,7 +135,7 @@
                 type="dashed"
                 size="small"
                 :disabled="dataPermissionDisabled || !ciTypesWithAccessControlledAttr[ci.ciTypeId]"
-                @click="openPermissionManageModal(ci.guid)"
+                @click="openPermissionManageModal(ci.guid, ci)"
               >
                 {{ $t('condition') }}
               </Button>
@@ -79,7 +143,7 @@
                 {{ $t('list') }}
               </Button>
             </div>
-          </div>
+          </div> -->
         </div>
         <div v-if="ciTypePermissions.length" class="batch-operation-btn">
           <Button type="primary" @click="savePermissionsInBatch">{{ $t('save') }}{{ $t('actions') }}</Button>
@@ -103,18 +167,22 @@
         </FormItem>
       </Form>
     </Modal>
-    <Modal v-model="userManageModal" width="700" :title="$t('edit_user')" @on-ok="confirmUser" @on-cancel="confirmUser">
-      <Transfer
-        :titles="transferTitles"
-        :list-style="transferStyle"
-        :data="allUsersForTransfer"
-        :target-keys="usersKeyBySelectedRole"
-        :render-format="renderUserNameForTransfer"
-        @on-change="handleUserTransferChange"
-        filterable
-      ></Transfer>
+    <Modal v-model="userManageModal" width="800" :title="$t('edit_user')" @on-ok="confirmUser" @on-cancel="confirmUser">
+      <div style="width: 100%; overflow-x: auto">
+        <div style="min-width: 760px; display: flex; justify-content: center">
+          <Transfer
+            :titles="transferTitles"
+            :list-style="transferStyle"
+            :data="allUsersForTransfer"
+            :target-keys="usersKeyBySelectedRole"
+            :render-format="renderUserNameForTransfer"
+            @on-change="handleUserTransferChange"
+            filterable
+          ></Transfer>
+        </div>
+      </div>
     </Modal>
-    <Modal v-model="permissionManageModal" :title="$t('edit_data_authority')" @on-cancel="cancelEdit" width="80">
+    <Modal v-model="permissionManageModal" :title="permissionModalTitle" @on-cancel="cancelEdit" width="80">
       <CMDBTable
         :tableData="ciTypeAttrsPermissions"
         :filtersHidden="true"
@@ -135,7 +203,7 @@
       </div>
     </Modal>
     <!-- 列表编辑-开始 -->
-    <Modal v-model="listManagementModal" :title="$t('list')" width="80">
+    <Modal v-model="listManagementModal" :title="listManagementModalTitle" width="80">
       <ListManagement
         :listRoleCiTypeId="listRoleCiTypeId"
         :guidOptions="guidOptions"
@@ -149,6 +217,7 @@
   </Row>
 </template>
 <script>
+import { cloneDeep } from 'lodash'
 import { resetButtonDisabled } from '@/const/tableActionFun.js'
 import { newOuterActions } from '@/const/actions.js'
 import ListManagement from './list-management'
@@ -319,6 +388,73 @@ export default {
           displayByDefault: 'yes'
         }
       ],
+      attrListColumns: [
+        {
+          title: 'guid',
+          key: 'listName',
+          inputKey: 'list',
+          uiFormOrder: 1,
+          displaySeqNo: 1,
+          options: [],
+          // optionKey: 'catOpts',
+          propertyName: 'list',
+          isMultiple: true,
+          component: 'WeCMDBSelect',
+          editable: 'yes',
+          autofillable: 'no',
+          resetOnEdit: 'no',
+          isAuto: false,
+          displayByDefault: 'yes'
+        },
+        {
+          title: this.$t('query'),
+          key: 'query',
+          inputKey: 'query',
+          uiFormOrder: 2,
+          displaySeqNo: 2,
+          component: 'WeCMDBRadioRroup',
+          defaultValue: 'Y',
+          options: [
+            {
+              text: this.$t('yes'),
+              label: 'Y'
+            },
+            {
+              text: this.$t('no'),
+              label: 'N'
+            }
+          ],
+          editable: 'yes',
+          autofillable: 'no',
+          resetOnEdit: 'no',
+          isAuto: false,
+          displayByDefault: 'yes'
+        },
+        {
+          title: this.$t('modify'),
+          key: 'update',
+          inputKey: 'update',
+          uiFormOrder: 4,
+          displaySeqNo: 4,
+          component: 'WeCMDBRadioRroup',
+          defaultValue: 'Y',
+          options: [
+            {
+              text: this.$t('yes'),
+              label: 'Y'
+            },
+            {
+              text: this.$t('no'),
+              label: 'N'
+            }
+          ],
+          editable: 'yes',
+          autofillable: 'no',
+          resetOnEdit: 'no',
+          isAuto: false,
+          displayByDefault: 'yes'
+        }
+      ],
 
       allCiTypes: [],
       ciTypesWithAccessControlledAttr: {},
@@ -364,6 +500,18 @@ export default {
           actionName: this.$t('permission_management_data_confirm')
         }
       ],
+      ciAttrActionsType: [
+        {
+          actionCode: 'update',
+          type: 'MODIFICATION',
+          actionName: this.$t('permission_management_data_modification')
+        },
+        {
+          actionCode: 'query',
+          type: 'ENQUIRY',
+          actionName: this.$t('permission_management_data_enquiry')
+        }
+      ],
       users: [],
       roles: [],
       menus: [],
@@ -377,6 +525,7 @@ export default {
       addedRoleValue: '',
       userManageModal: false,
       permissionManageModal: false,
+      permissionModalTitle: '',
       usersKeyBySelectedRole: [],
       allUsersForTransfer: [],
       selectedRole: null,
@@ -452,7 +601,9 @@ export default {
         isAuto: false
       },
       addedUser: {},
-      spinShow: false
+      spinShow: false,
+      currentCollapseValue: null,
+      listManagementModalTitle: ''
     }
   },
   computed: {
@@ -462,49 +613,61 @@ export default {
           title: this.$t('new'),
           key: 'insert',
           inputKey: 'insert',
-          uiFormOrder: 1,
+          uiFormOrder: 2,
           ...this.defaultOptionAttrs,
-          displayByDefault: 'yes'
+          displayByDefault: 'yes',
+          displayName: this.$t('new'),
+          ciTypeAttrId: 'insert'
         },
         {
           title: this.$t('delete'),
           key: 'delete',
           inputKey: 'delete',
-          uiFormOrder: 2,
+          uiFormOrder: 3,
           ...this.defaultOptionAttrs,
-          displayByDefault: 'yes'
+          displayByDefault: 'yes',
+          displayName: this.$t('delete'),
+          ciTypeAttrId: 'delete'
         },
         {
           title: this.$t('modify'),
           key: 'update',
           inputKey: 'update',
-          uiFormOrder: 3,
+          uiFormOrder: 4,
           ...this.defaultOptionAttrs,
-          displayByDefault: 'yes'
+          displayByDefault: 'yes',
+          displayName: this.$t('modify'),
+          ciTypeAttrId: 'update'
         },
         {
           title: this.$t('query'),
           key: 'query',
           inputKey: 'query',
-          uiFormOrder: 4,
+          uiFormOrder: 5,
           ...this.defaultOptionAttrs,
-          displayByDefault: 'yes'
+          displayByDefault: 'yes',
+          displayName: this.$t('query'),
+          ciTypeAttrId: 'query'
         },
         {
           title: this.$t('execute'),
           key: 'execute',
           inputKey: 'execute',
-          uiFormOrder: 5,
+          uiFormOrder: 6,
           ...this.defaultOptionAttrs,
-          displayByDefault: 'yes'
+          displayByDefault: 'yes',
+          displayName: this.$t('execute'),
+          ciTypeAttrId: 'execute'
         },
         {
           title: this.$t('permission_management_data_confirm'),
           key: 'confirm',
           inputKey: 'confirm',
-          uiFormOrder: 6,
+          uiFormOrder: 7,
           ...this.defaultOptionAttrs,
-          displayByDefault: 'yes'
+          displayByDefault: 'yes',
+          displayName: this.$t('permission_management_data_confirm'),
+          ciTypeAttrId: 'confirm'
         }
       ]
     }
@@ -528,7 +691,10 @@ export default {
   },
   methods: {
     async openListManageModal (ci) {
+      this.listManagementModalTitle =
+        `${(ci.ciTypeName || ci.ciAttrName) + '-' + this.$t('db_specifying_row_permissions')}` || this.$t('list')
       this.listRoleCiTypeId = ci.guid
+      const columns = ci.ciTypeName ? this.listColumns : this.attrListColumns
       const params = {
         id: ci.ciTypeId,
         queryObject: {
@@ -540,30 +706,34 @@ export default {
       }
       let res = await queryCiData(params)
       if (res.statusCode === 'OK') {
-        this.listColumns[0].options = res.data.contents.map(_ => {
+        columns[0].options = res.data.contents.map(_ => {
           return {
             value: _.guid,
             label: _.key_name
           }
         })
       }
-      this.$refs.listManagement.getListTableData(ci.guid, ci.ciTypeId, this.listColumns)
+      this.$refs.listManagement.getListTableData(ci.guid, ci.ciTypeId, columns)
       this.listManagementModal = true
     },
     renderUserNameForTransfer (item) {
       return item.label
     },
-    openPermissionManageModal (roleCiTypeId) {
+    openPermissionManageModal (roleCiTypeId, ciDetail) {
+      this.permissionModalTitle =
+        `${(ciDetail.ciTypeName || ciDetail.ciAttrName) + '-' + this.$t('db_condition_matching_permissions')}` ||
+        this.$t('edit_data_authority')
       this.currentRoleCiTypeId = roleCiTypeId
       this.permissionManageModal = true
-      this.getAttrPermissions()
+      this.getAttrPermissions(ciDetail.ciTypeName ? 'ci' : 'attr')
     },
-    async getAttrPermissions () {
+    async getAttrPermissions (type) {
       this.attrsPermissionsColumns = []
       this.ciTypeAttrsPermissions = []
       this.$refs.table.isTableLoading(true)
       let { statusCode, data } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(this.currentRoleCiTypeId)
       this.$refs.table.isTableLoading(false)
+      const defaultColumnsInfo = type === 'ci' ? this.defaultColumns : this.defaultColumns.slice(2, 4)
       if (statusCode === 'OK') {
         const headerLength = data.header.length
         let _attrsPermissionsColumns = data.header
@@ -593,11 +763,13 @@ export default {
               isFilterAttr: true,
               displayAttrType: ['ref', 'multiRef'],
               rootCis: [isRef ? tableName : h.propertyName],
-              rootCiTypeId: h.referenceId
+              rootCiTypeId: h.referenceId,
+              uiFormOrder: 1,
+              displayName: h.name
             }
           })
           .concat(
-            this.defaultColumns.map(_ => {
+            defaultColumnsInfo.map(_ => {
               _.displaySeqNo = _.uiFormOrder + headerLength
               return _
             })
@@ -610,7 +782,9 @@ export default {
             const isRef = found && ['ref', 'multiRef'].indexOf(found.inputType) >= 0
             const isSelect = found && ['select', 'multiSelect'].indexOf(found.inputType) >= 0
             if (isRef) {
-              obj[i] = _[i] ? _[i].conditionValueExprs.map(item => item.replace(':[guid]', '')) : []
+              obj[i] = _[i]
+                ? _[i].conditionValueExprs.map(item => item.replace(':[guid]', ''))
+                : JSON.stringify([found.referenceId])
             } else if (isSelect) {
               obj[i] = _[i] ? this.getSelectVal(_[i].selectValues, found) : []
             } else {
@@ -837,9 +1011,13 @@ export default {
       let emptyRowData = {}
       this.attrsPermissionsColumns.forEach(_ => {
         if (['ref', 'multiRef', 'select', 'multiSelect'].indexOf(_.inputType) >= 0) {
-          emptyRowData[_.inputKey] = '[]'
+          if (_.component === 'CMDBPermissionFilters') {
+            emptyRowData[_.inputKey] = JSON.stringify([_.rootCiTypeId])
+          } else {
+            emptyRowData[_.inputKey] = JSON.stringify([])
+          }
         } else {
-          emptyRowData[_.inputKey] = ''
+          emptyRowData[_.inputKey] = 'N'
         }
       })
       emptyRowData['isRowEditable'] = true
@@ -869,6 +1047,9 @@ export default {
     ciTypesPermissionsHandler (ciIndex, code) {
       this.ciTypePermissions[ciIndex][code] = this.ciTypePermissions[ciIndex][code] === 'Y' ? 'N' : 'Y'
     },
+    ciAttrsPermissionsHandler (one, code) {
+      one[code] = one[code] === 'Y' ? 'N' : 'Y'
+    },
     batchPermission (val, operationType) {
       const value = val ? 'Y' : 'N'
       this.ciTypePermissions.forEach(_ => {
@@ -886,19 +1067,10 @@ export default {
       }
     },
     async savePermissionsInBatch () {
-      const ciTypePermissions = this.ciTypePermissions.map(permission => {
-        return {
-          ciTypeId: permission.ciTypeId,
-          ciTypeName: permission.ciTypeName,
-          insert: permission.insert,
-          query: permission.query,
-          execute: permission.execute,
-          update: permission.update,
-          delete: permission.delete,
-          confirm: permission.confirm
-        }
-      })
-      let { statusCode, message } = await assignCiTypePermissionForRoleInBatch(ciTypePermissions, this.currentRoleName)
+      let { statusCode, message } = await assignCiTypePermissionForRoleInBatch(
+        cloneDeep(this.ciTypePermissions),
+        this.currentRoleName
+      )
       if (statusCode === 'OK') {
         this.$Notice.success({
           title: this.$t('success'),
@@ -1035,6 +1207,7 @@ export default {
 
     async handleRoleClick (checked, rolename) {
       this.spinShow = true
+      this.currentCollapseValue = null
       // this.currentRoleId = id;
       this.currentRoleName = rolename
       this.dataPermissionDisabled = false
@@ -1059,6 +1232,9 @@ export default {
             color: 'success'
           }
         })
+        if (this.roles.length) {
+          this.handleRoleClick(true, this.roles[0].rolename)
+        }
       }
     },
     async getAllCis () {
@@ -1102,6 +1278,9 @@ export default {
       this.getAllUsers()
       this.getAllRoles()
       this.getAllCis()
+    },
+    preventEvent (event) {
+      event.stopPropagation()
     }
   }
 }
@@ -1110,11 +1289,11 @@ export default {
 <style lang="scss" scoped>
 .tagContainers-auth {
   overflow: auto;
-  height: calc(100vh - 510px);
+  height: calc(100vh - 320px);
 }
 .tagContainers {
   overflow: auto;
-  height: calc(100vh - 420px);
+  height: calc(100vh - 230px);
 }
 .ivu-tag {
   display: block;
@@ -1128,6 +1307,7 @@ export default {
 }
 
 .role-item {
+  cursor: pointer;
   .ivu-tag {
     display: inline-block;
     width: 80%;
@@ -1159,6 +1339,7 @@ export default {
 .ciTypes-options {
   float: right;
   line-height: 30px;
+  margin-right: 15px;
 }
 .ciTypes {
   float: left;
@@ -1187,8 +1368,21 @@ export default {
 }
 .batch-operation-btn {
   text-align: right;
-  padding-top: 8px;
+  padding-top: 5px;
   margin-top: 8px;
   border-top: 1px solid #2d8cf0;
+}
+.ci-attr-style {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+</style>
+
+<style lang="scss">
+.tagContainers-auth {
+  .ivu-collapse-header {
+    display: block !important;
+  }
 }
 </style>

@@ -89,7 +89,11 @@
             {{ $t('import') }}
           </Button>
         </Upload>
-        <Button type="info" :disabled="!currentReportId || treeRoot.length === 0" @click="exportReportData">
+        <Button
+          type="info"
+          :disabled="!currentReportId || treeRoot.length === 0 || currentReportItem.usedByExport === 'no'"
+          @click="exportReportData"
+        >
           <img src="../../assets/export.png" class="btn-img" alt="" />
           {{ $t('export') }}
         </Button>
@@ -298,6 +302,7 @@ import {
 import CiDisplay from '@/pages/designing/report-query-tree-attr'
 import CiGraph from '../components/ci-graph.js'
 import { getCookie } from '@/pages/util/cookie'
+import { intervalTips } from '../util/format.js'
 
 const operatorMap = {
   text: 'contains',
@@ -365,8 +370,25 @@ export default {
       filterSearchValue: {},
       filterSearchInfo: [],
       filterAllInputType: ['text', 'textArea', 'select', 'ref', 'multiSelect', 'multiRef'],
-      find: find
+      find: find,
+      intervalId: ''
     }
+  },
+  computed: {
+    currentReportItem () {
+      const item = this.reportList.find(item => item.id === this.currentReportId) || {}
+      return item
+    },
+    displayDataLable () {
+      let label = this.$t('db_root_objects')
+      if (this.reportDetail.ciType) {
+        label = label + '[' + this.oriDataMap[this.reportDetail.ciType] + ']'
+      }
+      return label
+    }
+  },
+  beforeDestroy () {
+    clearInterval(this.intervalId)
   },
   async mounted () {
     this.MODALHEIGHT = document.body.scrollHeight - 200
@@ -376,15 +398,19 @@ export default {
       this.oriDataMap = data
     }
     this.getReportList('init')
-  },
-  computed: {
-    displayDataLable () {
-      let label = this.$t('db_root_objects')
-      if (this.reportDetail.ciType) {
-        label = label + '[' + this.oriDataMap[this.reportDetail.ciType] + ']'
+    this.intervalId = setInterval(() => {
+      if (
+        (this.displayType === 'tree' && this.currentReportId && !isEmpty(this.treeRoot)) ||
+        (this.displayType === 'table' && this.currentReportId)
+      ) {
+        this.getReportData(false)
+        this.$Notice.success({
+          title: '',
+          desc: '',
+          render: h => intervalTips(h)
+        })
       }
-      return label
-    }
+    }, 3 * 60 * 1000)
   },
   methods: {
     changeReportType () {

@@ -40,16 +40,6 @@
               style="width: 45%; z-index: auto"
               ref="rootSelect"
             >
-              <!-- <Option
-                v-if="currentView && viewSetting.editable === 'yes'"
-                :value="-1"
-                :key="-1"
-                style="padding: 0 0 0 0px"
-              >
-                <span style="width: 95%">
-                  <Button @click.stop.prevent="onAddRoot()" icon="md-add" type="success" long></Button>
-                </span>
-              </Option> -->
               <Option
                 v-for="(item, itemIndex) in rootOptions"
                 :value="item._id"
@@ -88,18 +78,8 @@
               style="width: 45%; z-index: auto"
               ref="rootSelect"
             >
-              <!-- <Option
-                v-if="currentView && viewSetting.editable === 'yes'"
-                :value="-1"
-                :key="-1"
-                style="padding: 0 0 0 0px"
-              >
-                <span style="width: 95%">
-                  <Button @click.stop.prevent="onAddRoot()" icon="md-add" type="success" long></Button>
-                </span>
-              </Option> -->
               <OptionGroup
-                v-for="(data, dataIndex) in rootGroupOptions"
+                v-for="(data, dataIndex) in rootGroupOptionsCopy"
                 :key="data.key_name + dataIndex"
                 :label="data.name || data.key_name"
               >
@@ -128,9 +108,6 @@
               </OptionGroup>
             </Select>
           </template>
-          <!-- <Button @click="onQuery()" :disabled="!(currentView && validateCurrentRoot())">
-            {{ $t('query') }}
-          </Button> -->
           <Button
             :disabled="viewSetting.editable !== 'yes' || viewData.length == 0 || isEditMode || !isGroupFirstNode()"
             @click="onEditMode()"
@@ -142,6 +119,9 @@
             @click="onConfirmVersion()"
             >{{ $t('fix_version') }}</Button
           >
+          <Button style="margin-left:24px" :disabled="!currentView || !currentRoot" @click="copyUrl">{{
+            $t('db_copy_link')
+          }}</Button>
         </Col>
         <Col span="1" offset="5">
           <Button
@@ -155,7 +135,7 @@
       <Row>
         <Card class="view-card" style="margin-top: 20px">
           <div>
-            <Tabs type="card" :closable="false" @on-click="handleTabClick" ref="tab">
+            <Tabs v-model="currentTabName" type="card" :closable="false" @on-click="handleTabClick" ref="tab">
               <Spin size="large" fix v-if="tabLoading">
                 <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
                 <div>{{ $t('loading') }}</div>
@@ -315,6 +295,7 @@
 </template>
 
 <script>
+import { isEmpty } from 'lodash'
 import {
   getEnumCodesByCategoryId,
   graphViews,
@@ -327,7 +308,7 @@ import {
   getAllCITypesWithAttr,
   getAllCITypesByLayerWithAttr
 } from '@/api/server'
-import { normalizeFormData } from '@/pages/util/format'
+import { normalizeFormData, intervalTips } from '@/pages/util/format'
 import Graph from './graph-view-component'
 import CITable from './ci-data-component'
 import Ref from './ref'
@@ -350,6 +331,7 @@ export default {
       currentRootDisplayName: '',
       rootOptions: [],
       rootGroupOptions: [],
+      rootGroupOptionsCopy: [], // 添加了额外属性字段，避免污染源数据
       viewSetting: {},
       viewData: [],
       ciTypeTables: [],
@@ -368,7 +350,9 @@ export default {
       baseKeyCatMapping: {},
       confirmTime: '', // 控制table获取数据
       allCiTypesWithAttr: [],
-      allCiTypesFormatByCiTypeId: {}
+      allCiTypesFormatByCiTypeId: {},
+      intervalId: '',
+      currentTabName: ''
     }
   },
   computed: {
@@ -381,8 +365,41 @@ export default {
       }
     }
   },
-  watch: {},
+  watch: {
+    currentView: function (val) {
+      this.updateUrlParam('viewId', val)
+    },
+    currentRoot: function (val) {
+      this.updateUrlParam('rootCi', val)
+    }
+  },
   methods: {
+    copyUrl () {
+      const textArea = document.createElement('textarea')
+      textArea.value = window.location.href
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      this.$Message.success(this.$t('db_copy_success'))
+    },
+    updateUrlParam (key, value) {
+      const url = new URL(window.location.href)
+      const splitParams = url.hash.split('?')
+      let searchParams = []
+      if (splitParams.length > 1) {
+        searchParams = splitParams[1].split('&')
+      }
+      const findIndex = searchParams.findIndex(p => p.split('=')[0] === key)
+      if (findIndex > -1) {
+        searchParams.splice(findIndex, 1)
+      }
+      if (value) {
+        searchParams.push(`${key}=${value}`)
+      }
+      const finalUrl = url.origin + splitParams[0] + '?' + searchParams.join('&')
+      history.pushState(null, '', finalUrl)
+    },
     setDateTime (val, obj, key) {
       this[obj][key] = val
     },
@@ -477,6 +494,7 @@ export default {
       this.viewSetting = {}
       this.rootOptions = []
       this.rootGroupOptions = []
+      this.rootGroupOptionsCopy = []
       this.onClearRootSelect()
     },
     async onViewOptions (val) {
@@ -533,7 +551,10 @@ export default {
         if (statusCode === 'OK') {
           // 直接使用数据
           let rootOptions = data.contents.map((opt, optIndex) => {
-            return { _id: opt.guid + (opt.update_time || '') + (opt.confirm_time || ''), ...opt }
+            return {
+              _id: opt.guid + '_' + ((opt.update_time || '') + (opt.confirm_time || '')).split(/[-: ]/).join(''),
+              ...opt
+            }
           })
           if (this.viewSetting.suportVersion === 'yes') {
             // 查询历史confirm数据
@@ -570,79 +591,131 @@ export default {
               })
               // 追加history option 到 rootOptions
               hisOptions = hisOptions.map((opt, optIndex) => {
-                return { _id: opt.guid + (opt.update_time || '') + (opt.confirm_time || ''), ...opt }
+                return {
+                  _id: opt.guid + '_' + ((opt.update_time || '') + (opt.confirm_time || '')).split(/[-: ]/).join(''),
+                  ...opt
+                }
               })
               extendRootOptions = extendRootOptions.concat(hisOptions)
               groupOptions[itemIndex].options = groupOptions[itemIndex].options.concat(hisOptions)
             })
             rootOptions = rootOptions.concat(extendRootOptions)
-            this.rootGroupOptions = groupOptions
+            this.rootGroupOptions = JSON.parse(JSON.stringify(groupOptions))
+            this.rootGroupOptionsCopy = JSON.parse(JSON.stringify(groupOptions))
             // 给数据添加版本号
-            // this.rootGroupOptions.forEach(item => {
-            //   if (item.options && item.options.length > 0) {
-            //     // 草稿数据根据时间排序给出版本号
-            //     const draftArr = item.options.filter(_ => !_.confirm_time) || []
-            //     draftArr.reverse().forEach((_, index) => {
-            //       _.version = `v${index + 1}`
-            //     })
-            //     // 定版数据据根据时间排序给出版本号
-            //     const confirmArr = item.options.filter(_ => _.confirm_time) || []
-            //     confirmArr.reverse().forEach((_, index) => {
-            //       _.version = `v${index + 1}`
-            //     })
-            //     item.options.forEach(_ => {
-            //       draftArr.forEach(i => {
-            //         if (i.id === _.id) {
-            //           _.version = i.version
-            //         }
-            //       })
-            //       confirmArr.forEach(i => {
-            //         if (i.id === _.id) {
-            //           _.version = i.version
-            //         }
-            //       })
-            //     })
-            //   }
-            // })
+            this.rootGroupOptionsCopy.forEach(item => {
+              if (item.options && item.options.length > 0) {
+                // 草稿根据时间排序给出版本号
+                const draftArr = item.options.filter(_ => !_.confirm_time) || []
+                draftArr.reverse().forEach((_, index) => {
+                  _.version = `v${index + 1}`
+                })
+                // 定版根据时间排序给出版本号
+                const confirmArr = item.options.filter(_ => _.confirm_time) || []
+                confirmArr.reverse().forEach((_, index) => {
+                  _.version = `v${index + 1}`
+                })
+                item.options.forEach(_ => {
+                  draftArr.forEach(i => {
+                    if (i.id === _.id) {
+                      _.version = i.version
+                    }
+                  })
+                  confirmArr.forEach(i => {
+                    if (i.id === _.id) {
+                      _.version = i.version
+                    }
+                  })
+                })
+              }
+            })
           }
           this.rootOptions = rootOptions
         }
       }
     },
     async onEditMode () {
+      let ciType = this.viewSetting.ciType
+      let stateItems = await this.getCiTypeStateTransition(ciType)
+      let operations = this.getCiTypeOperation(stateItems, 'update')
+      let rootDetail = this.rootOptions.find(el => {
+        return el._id === this.currentRoot
+      })
+      let nextOperations = rootDetail.nextOperations
+      let intersect = operations.filter(el => {
+        return nextOperations.includes(el.value)
+      })
+      const onlyQuery = !!this.confirmTime
       if (this.viewSetting.suportVersion === 'yes') {
-        let ciType = this.viewSetting.ciType
-        let rootDetail = this.rootOptions.find(el => {
-          return el._id === this.currentRoot
-        })
-        let stateItems = await this.getCiTypeStateTransition(ciType)
-        let operations = this.getCiTypeOperation(stateItems, 'update')
-        let nextOperations = rootDetail.nextOperations
-        let intersect = operations.filter(el => {
-          return nextOperations.includes(el.value)
-        })
         if (intersect.length === 0) {
           this.$Notice.error({
             title: 'Error',
             desc: this.$t('no_update_action_available')
           })
         } else {
-          const resp = await graphCiDataOperation(ciType, intersect[0].value, [normalizeFormData(rootDetail)])
+          const resp = await graphCiDataOperation(ciType, intersect[0].value, [normalizeFormData(rootDetail)], true)
           if (resp.statusCode === 'OK') {
-            this.isEditMode = true
-            await this.onRootOptions(true)
-            let newRootDetail = this.rootOptions.find(el => {
-              return el.guid === rootDetail.guid && el.confirm_time.length === 0
-            })
-            this.$refs.rootSelect.query = ''
-            this.$nextTick(function () {
-              this.currentRoot = newRootDetail._id
-              this.onQuery(false)
-            })
+            // 草稿数据
+            if (!onlyQuery) {
+              await this.onRootOptions(true)
+              let newRootDetail = this.rootOptions.find(el => {
+                return el.guid === rootDetail.guid && el.confirm_time.length === 0
+              })
+              this.$refs.rootSelect.query = ''
+              this.isEditMode = true
+              this.$nextTick(function () {
+                this.currentRoot = newRootDetail._id
+                this.onQuery(false)
+              })
+            } else {
+              // 定版数据
+              console.log('定版数据')
+              // let newRootDetail = this.rootOptions.find(el => {
+              //   return el.guid === rootDetail.guid && el.confirm_time.length === 0
+              // })
+              // console.log(1.4, newRootDetail)
+              // this.$refs.rootSelect.query = ''
+              // this.$nextTick(function () {
+              //   this.currentRoot = newRootDetail._id
+              //   this.onQuery(false)
+              // })
+              this.$Modal.confirm({
+                title: this.$t('db_generate_draft'),
+                'ok-text': this.$t('yes'),
+                'cancel-text': this.$t('no'),
+                'z-index': 1000000,
+                onOk: async () => {
+                  const res = await graphCiDataOperation(
+                    ciType,
+                    intersect[0].value,
+                    [normalizeFormData(rootDetail)],
+                    false
+                  )
+                  if (res.statusCode === 'OK') {
+                    this.$Modal.remove()
+                    this.$Message.success(this.$t('success'))
+                    await this.onRootOptions(true)
+                    let newRootDetail = this.rootOptions.find(el => {
+                      return el.guid === rootDetail.guid && el.confirm_time.length === 0
+                    })
+                    this.$refs.rootSelect.query = ''
+                    this.$nextTick(function () {
+                      this.currentRoot = newRootDetail._id
+                      this.onQuery(false)
+                    })
+                    this.isEditMode = true
+                  }
+                },
+                onCancel: () => {}
+              })
+            }
           }
         }
       } else {
-        this.isEditMode = true
+        const resp = await graphCiDataOperation(ciType, intersect[0].value, [normalizeFormData(rootDetail)], true)
+        if (resp.statusCode === 'OK') {
+          this.isEditMode = true
+        }
       }
     },
     async onConfirmVersion () {
@@ -657,7 +730,6 @@ export default {
           }
         })
       })
-
       this.$Modal.confirm({
         title: this.$t('confirm_operation'),
         loading: true,
@@ -673,9 +745,13 @@ export default {
           if (resp.statusCode === 'OK') {
             this.isEditMode = false
             this.$Modal.remove()
+            await this.onRootOptions(true)
             rootDetail.confirm_time = resp.data[0]['confirm_time']
             rootDetail.update_time = resp.data[0]['confirm_time']
-            rootDetail._id = rootDetail.guid + rootDetail.update_time + rootDetail.confirm_time
+            rootDetail._id =
+              rootDetail.guid +
+              '_' +
+              ((rootDetail.update_time || '') + (rootDetail.confirm_time || '')).split(/[-: ]/).join('')
             this.currentRoot = rootDetail._id
             this.graphReload(
               ciType,
@@ -821,12 +897,19 @@ export default {
       if (resp.statusCode === 'OK') {
         await this.onRootOptions(true)
         if (this.viewSetting.multiple === 'yes') {
-          this.currentRoot = [resp.data[0].guid + (resp.data[0].update_time || '') + (resp.data[0].confirm_time || '')]
+          this.currentRoot = [
+            resp.data[0].guid +
+              '_' +
+              ((resp.data[0].update_time || '') + (resp.data[0].confirm_time || '')).split(/[-: ]/).join('')
+          ]
         } else {
-          this.currentRoot = resp.data[0].guid + (resp.data[0].update_time || '') + (resp.data[0].confirm_time || '')
+          this.currentRoot =
+            resp.data[0].guid +
+            '_' +
+            ((resp.data[0].update_time || '') + (resp.data[0].confirm_time || '')).split(/[-: ]/).join('')
         }
-        await this.onQuery()
         this.showChildNodeModel = false
+        await this.onQuery()
       }
       this.childBtnLoading = false
     },
@@ -1004,13 +1087,61 @@ export default {
     }
   },
   async mounted () {
-    this.getAllCITypes()
+    await this.getAllCITypes()
     this.getAllCITypesForToolTips()
-    if (this.$route.query.viewId) {
+    // if (this.$route.query.viewId) {
+    //   await this.onViewOptions(true)
+    //   this.currentView = this.$route.query.viewId
+    //   this.onViewSelect(this.currentView)
+    // }
+
+    // 获取当前页面的 URL
+    const url = window.location.href
+    const searchParams = new URLSearchParams(url.split('?')[1])
+    // 获取特定参数值
+    const rootCi = searchParams.get('rootCi')
+    const viewId = searchParams.get('viewId')
+    if (rootCi && viewId) {
       await this.onViewOptions(true)
-      this.currentView = this.$route.query.viewId
-      this.onViewSelect(this.currentView)
+      this.currentView = viewId
+      await this.onViewSelect(this.currentView)
+      await this.onRootOptions(true)
+      this.currentRoot = rootCi
+      await this.onRootSelect(this.currentRoot)
     }
+    this.intervalId = setInterval(() => {
+      if (!this.currentTabName) {
+        if (!isEmpty(this.viewSetting.graphs)) {
+          this.currentTabName = 'tabgraph0'
+        } else if (!isEmpty(this.ciTypeTables)) {
+          this.currentTabName = 'tabci' + this.ciTypeTables[0].id
+        }
+      }
+      if (this.currentTabName && this.currentRoot && this.currentView) {
+        if (this.currentTabName.startsWith('tabci')) {
+          let ciTypeId = this.currentTabName.substring('tabci'.length)
+          if (!this.$refs['citable' + ciTypeId][0].$refs.table.modalVisible) {
+            this.$refs['citable' + ciTypeId][0].$refs['table'].handleSubmit()
+            this.$Notice.success({
+              title: '',
+              desc: '',
+              render: h => intervalTips(h)
+            })
+          }
+        } else if (this.currentTabName.startsWith('tabgraph')) {
+          const num = this.currentTabName.slice(-1)
+          this.renderGraph(Number(num))
+          this.$Notice.success({
+            title: '',
+            desc: '',
+            render: h => intervalTips(h)
+          })
+        }
+      }
+    }, 3 * 60 * 1000)
+  },
+  beforeDestroy () {
+    clearInterval(this.intervalId)
   }
 }
 </script>

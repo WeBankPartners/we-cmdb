@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import axios from 'axios'
+import { pluginI18n } from '../const/plugin-i18n'
 // import exportFile from '@/const/export-file'
 import { setCookie, getCookie, clearCookie } from '../pages/util/cookie'
 
@@ -45,7 +46,10 @@ req.interceptors.response.use(
   res => {
     if (res.status === 200) {
       if (res.data.statusCode !== 'OK') {
-        const errorMes = res.data.statusMessage
+        let errorMes = res.data.statusMessage
+        if (errorMes && errorMes.indexOf('update_time is diff with database') !== -1) {
+          errorMes = window.vm ? pluginI18n('db_update_error_tips') : Vue.t('db_update_error_tips')
+        }
         Vue.prototype.$Notice.error({
           title: 'Error',
           desc: errorMes,
