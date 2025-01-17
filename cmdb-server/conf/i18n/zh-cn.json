@@ -1,0 +1,51 @@
+{
+  "success": "成功",
+  "request_param_validate_error": {
+    "code": 10200001,
+    "message": "系统报错 [请求参数校验失败]"
+  },
+  "request_read_body_error": {
+    "code": 10200002,
+    "message": "系统报错 [读取请求体body数据错误]"
+  },
+  "request_json_unmarshal_error": {
+    "code": 10200003,
+    "message": "系统报错 [json反格式化请求体内容错误]"
+  },
+  "request_token_validate_error": {
+    "code": 10200004,
+    "message": "系统报错 [请求认证校验失败]"
+  },
+  "request_token_expire_error": {
+    "code": 10200005,
+    "message": "系统报错 [请求token已过期]"
+  },
+  "database_query_error": {
+    "code": 10200021,
+    "message": "系统报错 [查询数据库失败]"
+  },
+  "database_query_empty_error": {
+    "code": 10200022,
+    "message": "系统报错 [获取数据库数据失败,返回数据为空]"
+  },
+  "database_execute_error": {
+    "code": 10200023,
+    "message": "系统报错 [执行数据库语句报错]"
+  },
+  "server_handle_error": {
+    "code": 10200031,
+    "message": "系统报错 [服务请求处理失败]"
+  },
+  "license_illegal_error": {
+    "code": 10200032,
+    "message": "证书不合法"
+  },
+  "data_permission_deny": {
+    "code": 20200001,
+    "message": "数据权限不足"
+  },
+  "api_permission_deny": {
+    "code": 20200002,
+    "message": "无接口访问权限"
+  }
+}
