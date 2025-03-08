@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.4.4",
-    "axios": "^0.18.0",
+    "axios": "^1.8.2",
     "bpmn-js": "^2.5.1",
     "canvg": "^4.0.0",
     "core-js": "^3.8.3",
