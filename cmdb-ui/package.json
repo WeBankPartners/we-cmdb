@@ -23,7 +23,7 @@
     "@popperjs/core": "^2.4.4",
     "axios": "^0.18.0",
     "bpmn-js": "^2.5.1",
-    "canvg": "^4.0.0",
+    "canvg": "^4.0.3",
     "core-js": "^3.8.3",
     "crypto-js": "^4.2.0",
     "d3-graphviz": "^2.6.1",
