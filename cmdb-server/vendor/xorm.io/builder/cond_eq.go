@@ -22,7 +22,7 @@ var _ Cond = Eq{}
 
 // OpWriteTo writes conditions with special operator
 func (eq Eq) OpWriteTo(op string, w Writer) error {
-	var i = 0
+	i := 0
 	for _, k := range eq.sortedKeys() {
 		v := eq[k]
 		switch v.(type) {
@@ -30,12 +30,12 @@ func (eq Eq) OpWriteTo(op string, w Writer) error {
 			if err := In(k, v).WriteTo(w); err != nil {
 				return err
 			}
-		case expr:
+		case *Expression:
 			if _, err := fmt.Fprintf(w, "%s=(", k); err != nil {
 				return err
 			}
 
-			if err := v.(expr).WriteTo(w); err != nil {
+			if err := v.(*Expression).WriteTo(w); err != nil {
 				return err
 			}
 

@@ -5,6 +5,7 @@ import (
 	"encoding"
 	"encoding/json"
 	"reflect"
+	"sync"
 	"sync/atomic"
 	"unsafe"
 
@@ -24,14 +25,17 @@ var (
 	cachedOpcodeSets       []*OpcodeSet
 	cachedOpcodeMap        unsafe.Pointer // map[uintptr]*OpcodeSet
 	typeAddr               *runtime.TypeAddr
+	initEncoderOnce        sync.Once
 )
 
-func init() {
-	typeAddr = runtime.AnalyzeTypeAddr()
-	if typeAddr == nil {
-		typeAddr = &runtime.TypeAddr{}
-	}
-	cachedOpcodeSets = make([]*OpcodeSet, typeAddr.AddrRange>>typeAddr.AddrShift)
+func initEncoder() {
+	initEncoderOnce.Do(func() {
+		typeAddr = runtime.AnalyzeTypeAddr()
+		if typeAddr == nil {
+			typeAddr = &runtime.TypeAddr{}
+		}
+		cachedOpcodeSets = make([]*OpcodeSet, typeAddr.AddrRange>>typeAddr.AddrShift+1)
+	})
 }
 
 func loadOpcodeMap() map[uintptr]*OpcodeSet {
@@ -480,14 +484,17 @@ func (c *Compiler) mapCode(typ *runtime.Type) (*MapCode, error) {
 
 func (c *Compiler) listElemCode(typ *runtime.Type) (Code, error) {
 	switch {
-	case c.isPtrMarshalJSONType(typ):
+	case c.implementsMarshalJSONType(typ) || c.implementsMarshalJSONType(runtime.PtrTo(typ)):
 		return c.marshalJSONCode(typ)
 	case !typ.Implements(marshalTextType) && runtime.PtrTo(typ).Implements(marshalTextType):
 		return c.marshalTextCode(typ)
 	case typ.Kind() == reflect.Map:
 		return c.ptrCode(runtime.PtrTo(typ))
 	default:
-		code, err := c.typeToCodeWithPtr(typ, false)
+		// isPtr was originally used to indicate whether the type of top level is pointer.
+		// However, since the slice/array element is a specification that can get the pointer address, explicitly set isPtr to true.
+		// See here for related issues: https://github.com/goccy/go-json/issues/370
+		code, err := c.typeToCodeWithPtr(typ, true)
 		if err != nil {
 			return nil, err
 		}
@@ -503,8 +510,6 @@ func (c *Compiler) listElemCode(typ *runtime.Type) (Code, error) {
 
 func (c *Compiler) mapKeyCode(typ *runtime.Type) (Code, error) {
 	switch {
-	case c.implementsMarshalJSON(typ):
-		return c.marshalJSONCode(typ)
 	case c.implementsMarshalText(typ):
 		return c.marshalTextCode(typ)
 	}
@@ -616,6 +621,13 @@ func (c *Compiler) structCode(typ *runtime.Type, isPtr bool) (*StructCode, error
 	return code, nil
 }
 
+func toElemType(t *runtime.Type) *runtime.Type {
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	return t
+}
+
 func (c *Compiler) structFieldCode(structCode *StructCode, tag *runtime.StructTag, isPtr, isOnlyOneFirstField bool) (*StructFieldCode, error) {
 	field := tag.Field
 	fieldType := runtime.Type2RType(field.Type)
@@ -625,7 +637,7 @@ func (c *Compiler) structFieldCode(structCode *StructCode, tag *runtime.StructTa
 		key:           tag.Key,
 		tag:           tag,
 		offset:        field.Offset,
-		isAnonymous:   field.Anonymous && !tag.IsTaggedKey,
+		isAnonymous:   field.Anonymous && !tag.IsTaggedKey && toElemType(fieldType).Kind() == reflect.Struct,
 		isTaggedKey:   tag.IsTaggedKey,
 		isNilableType: c.isNilableType(fieldType),
 		isNilCheck:    true,
@@ -853,6 +865,9 @@ func (c *Compiler) implementsMarshalText(typ *runtime.Type) bool {
 }
 
 func (c *Compiler) isNilableType(typ *runtime.Type) bool {
+	if !runtime.IfaceIndir(typ) {
+		return true
+	}
 	switch typ.Kind() {
 	case reflect.Ptr:
 		return true
@@ -885,29 +900,40 @@ func (c *Compiler) codeToOpcode(ctx *compileContext, typ *runtime.Type, code Cod
 }
 
 func (c *Compiler) linkRecursiveCode(ctx *compileContext) {
+	recursiveCodes := map[uintptr]*CompiledCode{}
 	for _, recursive := range *ctx.recursiveCodes {
 		typeptr := uintptr(unsafe.Pointer(recursive.Type))
 		codes := ctx.structTypeToCodes[typeptr]
-		compiled := recursive.Jmp
-		compiled.Code = copyOpcode(codes.First())
-		code := compiled.Code
-		code.End.Next = newEndOp(&compileContext{}, recursive.Type)
-		code.Op = code.Op.PtrHeadToHead()
+		if recursiveCode, ok := recursiveCodes[typeptr]; ok {
+			*recursive.Jmp = *recursiveCode
+			continue
+		}
 
-		beforeLastCode := code.End
-		lastCode := beforeLastCode.Next
+		code := copyOpcode(codes.First())
+		code.Op = code.Op.PtrHeadToHead()
+		lastCode := newEndOp(&compileContext{}, recursive.Type)
+		lastCode.Op = OpRecursiveEnd
+
+		// OpRecursiveEnd must set before call TotalLength
+		code.End.Next = lastCode
 
 		totalLength := code.TotalLength()
+
+		// Idx, ElemIdx, Length must set after call TotalLength
 		lastCode.Idx = uint32((totalLength + 1) * uintptrSize)
 		lastCode.ElemIdx = lastCode.Idx + uintptrSize
 		lastCode.Length = lastCode.Idx + 2*uintptrSize
-		code.End.Next.Op = OpRecursiveEnd
 
 		// extend length to alloc slot for elemIdx + length
 		curTotalLength := uintptr(recursive.TotalLength()) + 3
 		nextTotalLength := uintptr(totalLength) + 3
+
+		compiled := recursive.Jmp
+		compiled.Code = code
 		compiled.CurLen = curTotalLength
 		compiled.NextLen = nextTotalLength
 		compiled.Linked = true
+
+		recursiveCodes[typeptr] = compiled
 	}
 }

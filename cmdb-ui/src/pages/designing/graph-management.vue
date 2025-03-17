@@ -13,7 +13,7 @@
               clearable
               filterable
               label-in-name
-              style="width: 30%; z-index: auto"
+              style="width: 30%; z-index: auto; margin-right: 5px"
             >
               <Option
                 v-for="item in viewOptions"
@@ -111,15 +111,17 @@
           <Button
             :disabled="viewSetting.editable !== 'yes' || viewData.length == 0 || isEditMode || !isGroupFirstNode()"
             @click="onEditMode()"
+             style="margin-left:12px"
             >{{ $t('version_change') }}</Button
           >
           <Button
             v-if="viewSetting.suportVersion === 'yes'"
-            :disabled="viewSetting.suportVersion !== 'yes' || viewSetting.editable !== 'yes' || !isEditMode"
+            :disabled="((!currentRoot) || (currentRoot && !!confirmTime && (viewSetting.editable !== 'yes' || !isEditMode)))"
             @click="onConfirmVersion()"
+             style="margin-left:12px"
             >{{ $t('fix_version') }}</Button
           >
-          <Button style="margin-left:24px" :disabled="!currentView || !currentRoot" @click="copyUrl">{{
+          <Button style="margin-left:12px" :disabled="!currentView || !currentRoot" @click="copyUrl">{{
             $t('db_copy_link')
           }}</Button>
         </Col>
@@ -189,8 +191,8 @@
         </Card>
       </Row>
     </Col>
-    <Modal v-model="showChildNodeModel" :title="childNodeCiName" footer-hide :width="800">
-      <Form class="addNodeForm" v-if="showChildNodeModel">
+    <Modal v-model="showChildNodeModel" :title="childNodeCiName" :width="800">
+      <Form class="addNodeForm" style="height: calc(100vh - 260px);overflow: auto;" v-if="showChildNodeModel">
         <div v-for="(formData, formDataIndex) in childNodeCiAttrs" :key="formDataIndex + 'childform'">
           <Tooltip :delay="500" placement="left-start">
             <span class="form-item-title">
@@ -280,40 +282,40 @@
           </FormItem>
         </div>
         <FormItem>
-          <div class="opetation-btn-zone">
-            <Button type="primary" @click="saveChildNode()" class="opetation-btn" :loading="childBtnLoading"
-              >{{ $t('save') }}
-            </Button>
-            <Button type="primary" @click="cancelChildNode()" class="opetation-btn" :loading="childBtnLoading"
-              >{{ $t('cancel') }}
-            </Button>
-          </div>
         </FormItem>
       </Form>
+      <div slot="footer">
+        <Button @click="cancelChildNode()" class="opetation-btn" style="margin-right: 8px;" :loading="childBtnLoading"
+          >{{ $t('cancel') }}
+        </Button>
+        <Button type="primary" @click="saveChildNode()" class="opetation-btn" :loading="childBtnLoading"
+          >{{ $t('save') }}
+        </Button>
+      </div>
     </Modal>
   </Row>
 </template>
 
 <script>
-import { isEmpty } from 'lodash'
 import {
-  getEnumCodesByCategoryId,
-  graphViews,
-  graphViewDetail,
-  graphQueryRootCI,
-  queryCiData,
-  graphCiDataOperation,
-  graphCiConfirm,
-  graphQueryStateTransition,
+  getAllCITypesByLayerWithAttr,
   getAllCITypesWithAttr,
-  getAllCITypesByLayerWithAttr
+  getEnumCodesByCategoryId,
+  graphCiConfirm,
+  graphCiDataOperation,
+  graphQueryRootCI,
+  graphQueryStateTransition,
+  graphViewDetail,
+  graphViews,
+  queryCiData
 } from '@/api/server'
-import { normalizeFormData, intervalTips } from '@/pages/util/format'
-import Graph from './graph-view-component'
-import CITable from './ci-data-component'
-import Ref from './ref'
-import MutiRef from './muti-ref'
 import CIAttrTooltip from '@/pages/components/attr-table-header-tooltip.vue'
+import { intervalTips, normalizeFormData } from '@/pages/util/format'
+import { isEmpty } from 'lodash'
+import CITable from './ci-data-component'
+import Graph from './graph-view-component'
+import MutiRef from './muti-ref'
+import Ref from './ref'
 export default {
   components: {
     Graph,
@@ -743,6 +745,7 @@ export default {
             rootCi: rootDetail.guid
           })
           if (resp.statusCode === 'OK') {
+            this.$Message.success(this.$t('fix_version') + this.$t('success'))
             this.isEditMode = false
             this.$Modal.remove()
             await this.onRootOptions(true)
@@ -760,6 +763,7 @@ export default {
               }),
               'all'
             )
+            this.onRootSelect(this.currentRoot)
           }
         },
         onCancel: () => {}

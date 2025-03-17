@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"strings"
 )
@@ -167,7 +168,7 @@ func CiTypesApply(c *gin.Context) {
 	}
 	err = db.CreateCiTable(ciTypeId)
 	if err != nil {
-		log.Logger.Error("Ci apply fail,create ci table error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Ci apply fail,create ci table error", zap.Error(err))
 	} else {
 		db.UpdateCiTypesStatus(ciTypeId, ciTypeStatus)
 	}
@@ -284,7 +285,7 @@ func checkCiStatusIllegal(status string) bool {
 func GetExtendModelList(c *gin.Context) {
 	result, err := db.GetExtendModelList(c.GetHeader(models.HeaderAuthorization))
 	if err != nil {
-		log.Logger.Warn("Try to get extendModel list fail", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Try to get extendModel list fail", zap.Error(err))
 		result = []*models.OptionItemObj{}
 		middleware.ReturnData(c, result)
 	} else {

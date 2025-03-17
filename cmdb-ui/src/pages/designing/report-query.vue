@@ -84,17 +84,17 @@
           :on-success="uploadSucess"
           :on-error="uploadFailed"
         >
-          <Button type="primary" class="btn-left">
-            <img src="../../assets/import.png" class="btn-img" alt="" />
+          <Button class="btn-upload btn-left">
+            <img src="@/styles/icon/UploadOutlined.png" class="upload-icon" />
             {{ $t('import') }}
           </Button>
         </Upload>
         <Button
-          type="info"
+          class="btn-upload"
           :disabled="!currentReportId || treeRoot.length === 0 || currentReportItem.usedByExport === 'no'"
           @click="exportReportData"
         >
-          <img src="../../assets/export.png" class="btn-img" alt="" />
+          <img src="@/styles/icon/DownloadOutlined.png" class="upload-icon" alt="" />
           {{ $t('export') }}
         </Button>
       </div>
@@ -104,7 +104,7 @@
         <span v-for="(filter, index) in filters" :key="index" class="report-filter">
           <Button
             size="small"
-            :style="{ color: filter.isOpen ? '#2d8cf0' : '', 'border-color': filter.isOpen ? '#2d8cf0' : '' }"
+            :style="{ color: filter.isOpen ? '#5384FF' : '', 'border-color': filter.isOpen ? '#5384FF' : '' }"
             @click="openFilter(index)"
             >{{ filter.key }}</Button
           >
@@ -313,12 +313,19 @@ const operatorMap = {
   multiRef: 'in'
 }
 
+export const custom_api_enum = [
+  {
+    url: '/wecmdb/api/v1/ci-data/import/app_system_design',
+    method: 'POST'
+  }
+]
+
 export default {
   components: {
     CiDisplay,
     CiGraph
   },
-  data () {
+  data() {
     return {
       MODALHEIGHT: 500,
       btnLoading: false,
@@ -375,11 +382,11 @@ export default {
     }
   },
   computed: {
-    currentReportItem () {
+    currentReportItem() {
       const item = this.reportList.find(item => item.id === this.currentReportId) || {}
       return item
     },
-    displayDataLable () {
+    displayDataLable() {
       let label = this.$t('db_root_objects')
       if (this.reportDetail.ciType) {
         label = label + '[' + this.oriDataMap[this.reportDetail.ciType] + ']'
@@ -387,10 +394,10 @@ export default {
       return label
     }
   },
-  beforeDestroy () {
+  beforeDestroy() {
     clearInterval(this.intervalId)
   },
-  async mounted () {
+  async mounted() {
     this.MODALHEIGHT = document.body.scrollHeight - 200
     this.token = getCookie('accessToken')
     const { data, statusCode } = await getCiTypeNameMap()
@@ -413,12 +420,12 @@ export default {
     }, 3 * 60 * 1000)
   },
   methods: {
-    changeReportType () {
+    changeReportType() {
       this.currentReportId = ''
       this.currentCiType = ''
       this.clearReport()
     },
-    clearReport () {
+    clearReport() {
       this.showTab = false
       this.filters = []
       this.hasTableData = false
@@ -428,10 +435,10 @@ export default {
       this.currentReportId = ''
       this.currentCiType = ''
     },
-    changeTab (val) {
+    changeTab(val) {
       this.currentTabIndex = this.treeSet.findIndex(item => item.key_name === val)
     },
-    renderContent (h, { root, node, data }) {
+    renderContent(h, { root, node, data }) {
       return h(
         'span',
         {
@@ -458,7 +465,7 @@ export default {
         ]
       )
     },
-    async showDetail (itemArray, itemSingle) {
+    async showDetail(itemArray, itemSingle) {
       const item = itemArray[0] || itemSingle
       const index = item.guid.lastIndexOf('_')
       const ci = item.guid.substring(0, index)
@@ -476,13 +483,13 @@ export default {
         this.$refs.ciDisplay[this.currentTabIndex].initData(ciAttr.data, ciData.data.contents)
       }
     },
-    async displayTree () {
+    async displayTree() {
       this.treeSet = []
       await this.getStrc()
       await this.getData()
       this.showTab = true
     },
-    async getData () {
+    async getData() {
       if (this.treeRoot.length === 0) {
         return
       }
@@ -501,7 +508,7 @@ export default {
         })
       }
     },
-    singleTree (tree) {
+    singleTree(tree) {
       tree.title = tree.key_name
       tree.expand = true
       tree.dataTitleName = this.oriDataMap[this.splitString(tree.guid)]
@@ -524,7 +531,7 @@ export default {
       tree.children = tmp
       this.managementData(tree.children)
     },
-    managementData (children) {
+    managementData(children) {
       children.forEach(child => {
         child.title = child.key_name
         const keys = Object.keys(child)
@@ -547,13 +554,13 @@ export default {
         this.managementData(child.children)
       })
     },
-    splitString (str) {
+    splitString(str) {
       if (str) {
         return str.substring(0, str.lastIndexOf('_'))
       }
       return ''
     },
-    async getStrc () {
+    async getStrc() {
       const { statusCode, data } = await getReportStruct(this.currentReportId)
       if (statusCode === 'OK') {
         this.reportDetail = data
@@ -566,7 +573,7 @@ export default {
         this.returnPath(oriData)
       }
     },
-    returnPath (data) {
+    returnPath(data) {
       data.map(d => {
         if (d.object.length > 0) {
           d.object.forEach(obj => {
@@ -577,18 +584,18 @@ export default {
         }
       })
     },
-    changeReport () {
+    changeReport() {
       this.filters = []
       this.tableData = []
       this.tableColumns = []
     },
-    ShowMessage () {
+    ShowMessage() {
       this.filtersAndResultModal = true
     },
-    openFilter (index) {
+    openFilter(index) {
       this.filters[index].isOpen = !this.filters[index].isOpen
     },
-    async getReportList (type = '') {
+    async getReportList(type = '') {
       const { statusCode, data } = await getReportListByPermission('USE')
       if (statusCode === 'OK') {
         this.reportList = data
@@ -602,14 +609,16 @@ export default {
             this.currentCiType = this.reportList[0].ciType
             this.getReportFilterData()
             setTimeout(() => {
-              this.treeRoot = [this.treeRootOptions[1].guid]
-              this.getReportData(true)
+              if (!isEmpty(this.treeRootOptions)) {
+                this.treeRoot = [this.treeRootOptions[0].guid]
+                this.getReportData(true)
+              }
             }, 800)
           }
         }
       }
     },
-    async getReportFilterData () {
+    async getReportFilterData() {
       if (!this.currentReportId) return
       const findOne = find(this.reportList, { id: this.currentReportId })
       this.currentCiType = findOne.ciType
@@ -687,7 +696,7 @@ export default {
         })
       }
     },
-    async filterTreeRoot () {
+    async filterTreeRoot() {
       if (isEmpty(this.filterSearchValue)) {
         return
       }
@@ -723,7 +732,7 @@ export default {
           })
       }
     },
-    async getReportRoot () {
+    async getReportRoot() {
       if (!this.currentCiType) return
       const query = {
         id: this.currentCiType,
@@ -738,24 +747,24 @@ export default {
         this.treeRootOptions = data.contents || []
       }
     },
-    showRowDataFun (row) {
+    showRowDataFun(row) {
       const newRow = JSON.parse(JSON.stringify(row))
       delete newRow._index
       delete newRow._rowKey
       this.rowData = newRow
       this.showRowData = true
     },
-    changePageSize (pageSize) {
+    changePageSize(pageSize) {
       this.payload.pageable.pageSize = pageSize
       this.payload.pageable.startIndex = (this.payload.pageable.current - 1) * this.payload.pageable.pageSize
       this.getReportData(false)
     },
-    changePage (page) {
+    changePage(page) {
       this.payload.pageable.current = page
       this.payload.pageable.startIndex = (this.payload.pageable.current - 1) * this.payload.pageable.pageSize
       this.getReportData(false)
     },
-    async getReportData (tag = true) {
+    async getReportData(tag = true) {
       if (this.displayType !== 'table') {
         this.currentTabIndex = 0
         this.displayTree()
@@ -791,7 +800,7 @@ export default {
         this.payload.pageable.total = data.pageInfo.totalRows
       }
     },
-    async exportReportData () {
+    async exportReportData() {
       let params = {
         reportId: this.currentReportId,
         rootCiData: this.treeRoot
@@ -801,7 +810,7 @@ export default {
         this.download(data)
       }
     },
-    download (res) {
+    download(res) {
       const filename = `${res.reportId}copy.json`
       res = JSON.stringify(res, undefined, 4)
       var blob = new Blob([res], { type: 'text/json' })
@@ -813,10 +822,10 @@ export default {
       e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
       a.dispatchEvent(e)
     },
-    uploadFailed () {
+    uploadFailed() {
       this.$Message.error(this.$t('db_import_tips_failed'))
     },
-    uploadSucess (res) {
+    uploadSucess(res) {
       if (res.statusCode === 'OK') {
         this.$router.push('/wecmdb/designing/data-management-import')
       } else {
@@ -826,26 +835,26 @@ export default {
         })
       }
     },
-    enterImportHistoryPage () {
+    enterImportHistoryPage() {
       this.$router.push('/wecmdb/designing/data-management-import')
     },
-    onFixIconClick () {
+    onFixIconClick() {
       this.isDrawerShow = true
     },
-    formatAttr (data) {
+    formatAttr(data) {
       return data.map(_ => {
         let result = {
           ..._,
           attributeList: _.attr
             ? _.attr.map((attrId, index) => {
-              let _result = {
-                ciTypeAttrId: attrId.id
-              }
-              _result.name = _.dataTitleName
-              _result.attrKeyName = _.dataName
-              this.attributeObject[attrId.id] = _result
-              return _result
-            })
+                let _result = {
+                  ciTypeAttrId: attrId.id
+                }
+                _result.name = _.dataTitleName
+                _result.attrKeyName = _.dataName
+                this.attributeObject[attrId.id] = _result
+                return _result
+              })
             : []
         }
         if (_.object instanceof Array) {
@@ -854,10 +863,10 @@ export default {
         return result
       })
     },
-    onDrawerTipsClick () {
+    onDrawerTipsClick() {
       this.$router.push({ path: '/wecmdb/report-configuration', query: { reportId: this.currentReportId } })
     },
-    onDisplayTypeRadioChange () {
+    onDisplayTypeRadioChange() {
       this.currentReportId = ''
       this.currentCiType = ''
       this.treeRoot = []
@@ -866,15 +875,15 @@ export default {
       this.filterSearchInfo = []
       this.treeSet = []
     },
-    onTreeRootOpenChange (status) {
+    onTreeRootOpenChange(status) {
       if (status) {
         this.getReportRoot()
       }
     },
-    debounceGetRootOptions: debounce(function () {
+    debounceGetRootOptions: debounce(function() {
       this.getReportRoot()
     }, 800),
-    async onItemCopyConfirm () {
+    async onItemCopyConfirm() {
       const params = {
         reportId: this.currentReportId,
         rootCiData: this.treeRoot
@@ -884,7 +893,7 @@ export default {
         this.$router.push('/wecmdb/designing/data-management-import')
       }
     },
-    async onFilterButtonClick () {
+    async onFilterButtonClick() {
       if (isEmpty(this.filterSearchValue) && isEmpty(this.filterSearchInfo)) {
         const { statusCode, data } = await getCiTypeAttributes(this.currentCiType)
 
@@ -917,12 +926,12 @@ export default {
       }
       this.isFilterModelShow = true
     },
-    async getFilterRulesOptions (isShow, item) {
+    async getFilterRulesOptions(isShow, item) {
       if (isShow && ['ref', 'multiRef'].includes(item.inputType)) {
         item.options = await this.getAllDataWithoutPaging(item.ciTypeAttrId)
       }
     },
-    async getAllDataWithoutPaging (ciTypeAttrId) {
+    async getAllDataWithoutPaging(ciTypeAttrId) {
       return new Promise(async resolve => {
         const { statusCode, data } = await queryReferenceCiData({
           attrId: ciTypeAttrId,
@@ -1021,7 +1030,7 @@ export default {
 <style lang="scss">
 .report-query-radio {
   .ivu-radio-wrapper-checked.ivu-radio-border {
-    background-color: #2d8cf0;
+    background-color: #5384FF;;
     color: #fff;
   }
 }

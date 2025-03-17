@@ -4,11 +4,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/go-common-lib/guid"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/go-common-lib/guid"
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
@@ -18,12 +20,12 @@ func QueryRootReportObj(reportId string) (rowData []*models.ReportObjectNode, er
 	sqlCmd := "SELECT * FROM sys_report_object WHERE report=? and parent_attr is null"
 	err = x.SQL(sqlCmd, reportId).Find(&rowData)
 	if err != nil {
-		log.Logger.Error("Query report object error", log.String("reportId", reportId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report object error", zap.String("reportId", reportId), zap.Error(err))
 		return
 	}
 	if len(rowData) == 0 {
 		err = fmt.Errorf("Query report object can not found ")
-		log.Logger.Warn("Query report object fail", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Query report object fail", zap.Error(err))
 	}
 	return
 }
@@ -39,7 +41,7 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 	//var roAttrData []*models.SysReportObjectAttrTable
 	//err = x.SQL(`SELECT * FROM sys_report_object_attr WHERE report_object=?`, root.Id).Find(&roAttrData)
 	//if err != nil {
-	//	log.Logger.Error("Query report object attr error", log.String("reportObjectId", root.Id), log.Error(err))
+	//	log.Error(nil, log.LOGGER_APP, "Query report object attr error", zap.String("reportObjectId", root.Id), zap.Error(err))
 	//	return
 	//}
 	if len(roAttrData) == 0 {
@@ -102,7 +104,7 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 	var childReportObjectList []*models.ReportObjectNode
 	err = x.SQL(`SELECT * FROM sys_report_object WHERE parent_object=?`, root.Id).Find(&childReportObjectList)
 	if err != nil {
-		log.Logger.Error("Query report object by parent object error", log.String("parentObjectId", root.Id), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report object by parent object error", zap.String("parentObjectId", root.Id), zap.Error(err))
 		return
 	}
 	if len(childReportObjectList) > 0 {
@@ -133,7 +135,7 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 		if _, ok := attrDistinctMap[v]; ok {
 			continue
 		}
-		distinctAttrNames = append(distinctAttrNames, v)
+		distinctAttrNames = append(distinctAttrNames, fmt.Sprintf("`%s`", v))
 		attrDistinctMap[v] = 1
 	}
 	filterCols := strings.Join(distinctAttrNames, ",")
@@ -170,10 +172,10 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 			extendFilterSql = fmt.Sprintf(" AND ((confirm_time<='%s' AND history_state_confirmed=1) OR (update_time<='%s' AND confirm_time IS NULL))", confirmTime, confirmTime)
 		}
 	}
-	sqlCmd := "SELECT " + filterCols + " FROM " + queryTableName + " WHERE " + tmpFilter + " in ('" + strings.Join(rootGuidList, "','") + "')" + extendFilterSql + " order by key_name"
+	sqlCmd := "SELECT " + filterCols + " FROM `" + queryTableName + "` WHERE `" + tmpFilter + "` in ('" + strings.Join(rootGuidList, "','") + "')" + extendFilterSql + " order by key_name"
 	ciTypeTableData, err := x.QueryString(sqlCmd)
 	if err != nil {
-		log.Logger.Error("Query report object citype table error", log.String("ciTypeTable", root.CiType), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report object citype table error", zap.String("ciTypeTable", root.CiType), zap.Error(err))
 		return
 	}
 	if !isEditable {
@@ -231,7 +233,7 @@ func GetChildReportObject(root *models.ReportObjectNode, rootGuidList []string, 
 	//var childReportObjectList []*models.ReportObjectNode
 	//err = x.SQL(`SELECT * FROM sys_report_object WHERE parent_object=?`, root.Id).Find(&childReportObjectList)
 	//if err != nil {
-	//	log.Logger.Error("Query report object by parent object error", log.String("parentObjectId", root.Id), log.Error(err))
+	//	log.Error(nil, log.LOGGER_APP, "Query report object by parent object error", zap.String("parentObjectId", root.Id), zap.Error(err))
 	//	return
 	//}
 	if withoutChildren {
@@ -371,7 +373,7 @@ func GetReportAttr(reportObj string) (roAttrData []*models.SysReportObjectAttrTa
 	err = x.SQL(`SELECT t1.*,t2.input_type as attr_input_type FROM sys_report_object_attr t1 left join sys_ci_type_attr t2 on t1.ci_type_attr=t2.id WHERE t1.report_object=?`, reportObj).Find(&roAttrData)
 	if err != nil {
 		err = fmt.Errorf("Query report:%s object attr error,%s ", reportObj, err.Error())
-		log.Logger.Error("Query report object attr error", log.String("reportObjectId", reportObj), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report object attr error", zap.String("reportObjectId", reportObj), zap.Error(err))
 		return
 	}
 	dataNameMap = make(map[string]string)
@@ -400,12 +402,12 @@ func QueryReportList(paramsMap map[string]interface{}, permissiveReportIds []str
 
 	if tmpErr != nil {
 		err = fmt.Errorf("Query report list error:%s ", tmpErr.Error())
-		log.Logger.Error("Query report list error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report list error", zap.Error(err))
 		return
 	}
 	if len(rowData) == 0 {
 		rowData = []*models.SysReportTable{}
-		log.Logger.Warn("Query report list fail", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Query report list fail", zap.Error(err))
 		return
 	}
 	return
@@ -417,11 +419,11 @@ func QueryReportStruct(reportId string) (rowData *models.QueryReport, err error)
 	tmpErr := x.SQL(sqlCmd, reportId).Find(&tmpRowData)
 	if tmpErr != nil {
 		err = fmt.Errorf("Query report by reportId:%s error,%s ", reportId, tmpErr.Error())
-		log.Logger.Error("Query report by reportId error", log.String("reportId", reportId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report by reportId error", zap.String("reportId", reportId), zap.Error(err))
 		return
 	}
 	if len(tmpRowData) == 0 {
-		log.Logger.Warn("Query report by reportId fail", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Query report by reportId fail", zap.Error(err))
 		return
 	}
 	rowData = tmpRowData[0]
@@ -431,11 +433,11 @@ func QueryReportStruct(reportId string) (rowData *models.QueryReport, err error)
 	tmpErr = x.SQL(sqlCmd, rowData.Id).Find(&roData)
 	if tmpErr != nil {
 		err = fmt.Errorf("Query report object by report:%s error,%s ", rowData.Id, tmpErr.Error())
-		log.Logger.Error("Query report object by report error", log.String("report", rowData.Id), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report object by report error", zap.String("report", rowData.Id), zap.Error(err))
 		return
 	}
 	if len(roData) == 0 {
-		log.Logger.Warn("Query report object by report fail", log.String("report", rowData.Id), log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Query report object by report fail", zap.String("report", rowData.Id), zap.Error(err))
 		rowData.Object = []*models.QueryReportObject{}
 		return
 	}
@@ -443,7 +445,7 @@ func QueryReportStruct(reportId string) (rowData *models.QueryReport, err error)
 	rowData.Object, tmpErr = QueryReportObjectStruct(roData)
 	if tmpErr != nil {
 		err = fmt.Errorf("Query report object struct error,%s ", tmpErr.Error())
-		log.Logger.Error("Query report object struct error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report object struct error", zap.Error(err))
 		return
 	}
 
@@ -462,11 +464,11 @@ func QueryReportObjectStruct(reportObjectData []*models.QueryReportObject) (obje
 		tmpErr := x.SQL(sqlCmd, reportObjectData[i].Id).Find(&roAttrsData)
 		if tmpErr != nil {
 			err = fmt.Errorf("Query report object attrs by reportObjs error,%s ", tmpErr.Error())
-			log.Logger.Error("Query report object attrs by reportObjs error", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Query report object attrs by reportObjs error", zap.Error(err))
 			return
 		}
 		if len(roAttrsData) == 0 {
-			log.Logger.Warn("Query report object attrs by reportObjs fail", log.Error(err))
+			log.Warn(nil, log.LOGGER_APP, "Query report object attrs by reportObjs fail", zap.Error(err))
 			roAttrsData = []*models.QueryReportObjectAttr{}
 		}
 		reportObjectData[i].Attr = roAttrsData
@@ -477,11 +479,11 @@ func QueryReportObjectStruct(reportObjectData []*models.QueryReportObject) (obje
 		tmpErr = x.SQL(sqlCmd, reportObjectData[i].Id).Find(&childReportObject)
 		if tmpErr != nil {
 			err = fmt.Errorf("Query child report object by reportObjs error,%s ", tmpErr.Error())
-			log.Logger.Error("Query child report object by reportObjs error", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Query child report object by reportObjs error", zap.Error(err))
 			return
 		}
 		if len(childReportObject) == 0 {
-			log.Logger.Warn("Query child report object by reportObjs fail", log.Error(err))
+			log.Info(nil, log.LOGGER_APP, "Query child report object by reportObjs fail")
 			reportObjectData[i].Object = []*models.QueryReportObject{}
 			continue
 		}
@@ -489,7 +491,7 @@ func QueryReportObjectStruct(reportObjectData []*models.QueryReportObject) (obje
 		_, tmpErr = QueryReportObjectStruct(childReportObject)
 		if tmpErr != nil {
 			err = fmt.Errorf("Query report object struct error,%s ", tmpErr.Error())
-			log.Logger.Error("Query report object struct error", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Query report object struct error", zap.Error(err))
 			return
 		}
 		reportObjectData[i].Object = childReportObject
@@ -503,12 +505,12 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 	rData, tmpErr := x.QueryString(sqlCmd, reportId)
 	if tmpErr != nil {
 		err = fmt.Errorf("Query report by reportId:%s error,%s ", reportId, tmpErr.Error())
-		log.Logger.Error("Query report by reportId error", log.String("reportId", reportId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report by reportId error", zap.String("reportId", reportId), zap.Error(err))
 		return
 	}
 	if len(rData) == 0 {
 		rowData = []map[string]string{}
-		log.Logger.Warn("Query report by reportId fail", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Query report by reportId fail", zap.Error(err))
 		return
 	}
 
@@ -517,12 +519,12 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 	roData, tmpErr := x.QueryString(sqlCmd, rData[0]["id"])
 	if tmpErr != nil {
 		err = fmt.Errorf("Query report object by reportId:%s error,%s ", reportId, tmpErr.Error())
-		log.Logger.Error("Query report object by reportId error", log.String("reportId", reportId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report object by reportId error", zap.String("reportId", reportId), zap.Error(err))
 		return
 	}
 	if len(roData) == 0 {
 		rowData = []map[string]string{}
-		log.Logger.Warn("Query report object by report fail", log.String("report", rData[0]["id"]), log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Query report object by report fail", zap.String("report", rData[0]["id"]), zap.Error(err))
 		return
 	}
 
@@ -537,12 +539,12 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 	roAttrsData, tmpErr := x.QueryString(sqlCmd)
 	if tmpErr != nil {
 		err = fmt.Errorf("Query report object attrs by reportObjs error,%s ", tmpErr.Error())
-		log.Logger.Error("Query report object attrs by reportObjs error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report object attrs by reportObjs error", zap.Error(err))
 		return
 	}
 	if len(roAttrsData) == 0 {
 		rowData = []map[string]string{}
-		log.Logger.Warn("Query report object attrs by reportObjs fail", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Query report object attrs by reportObjs fail", zap.Error(err))
 		return
 	}
 	// 根据查找的 roAttrs, 获取 report_object 的 ci_type_attr('__'后面部分的值) 与其roAttrsId(最终结果展示为该id)之间的映射
@@ -579,7 +581,7 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 				ciAttrName := myAttr
 				multiRefTable = myTable
 				if isAttributeMultiRef(ciTypeTable, ciAttrName) == true {
-					multiRefTable = fmt.Sprintf("(select %s.*,%s$%s.to_guid as `%s` from %s left join %s$%s on %s.guid=%s$%s.from_guid)",
+					multiRefTable = fmt.Sprintf("(select `%s`.*,`%s$%s`.to_guid as `%s` from `%s` left join `%s$%s` on `%s`.guid=`%s$%s`.from_guid)",
 						ciTypeTable, ciTypeTable, ciAttrName, ciAttrName, ciTypeTable, ciTypeTable, ciAttrName, ciTypeTable, ciTypeTable, ciAttrName)
 				}
 				ciTypeTableMapMultiRef[myTable] = multiRefTable
@@ -588,7 +590,7 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 				ciAttrName := parentAttr
 				multiRefTable = parentTable
 				if isAttributeMultiRef(ciTypeTable, ciAttrName) == true {
-					multiRefTable = fmt.Sprintf("(select %s.*,%s$%s.to_guid as `%s` from %s left join %s$%s on %s.guid=%s$%s.from_guid)",
+					multiRefTable = fmt.Sprintf("(select `%s`.*,`%s$%s`.to_guid as `%s` from `%s` left join `%s$%s` on `%s`.guid=`%s$%s`.from_guid)",
 						ciTypeTable, ciTypeTable, ciAttrName, ciAttrName, ciTypeTable, ciTypeTable, ciAttrName, ciTypeTable, ciTypeTable, ciAttrName)
 				}
 				ciTypeTableMapMultiRef[parentTable] = multiRefTable
@@ -619,9 +621,9 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 			} else {
 				sqlCmdPostfix += " LEFT JOIN "
 			}
-			sqlCmdPostfix += ciTypeTableMapMultiRef[roData[i]["ci_type"]] + " " + tableAliasName + " ON " + preTableAliasName + "." + parentAttr + "=" + tableAliasName + "." + myAttr
+			sqlCmdPostfix += "`" + ciTypeTableMapMultiRef[roData[i]["ci_type"]] + "` " + tableAliasName + " ON " + preTableAliasName + "." + parentAttr + "=" + tableAliasName + "." + myAttr
 		} else {
-			sqlCmdPostfix += ciTypeTableMapMultiRef[roData[i]["ci_type"]] + " " + tableAliasName
+			sqlCmdPostfix += "`" + ciTypeTableMapMultiRef[roData[i]["ci_type"]] + "` " + tableAliasName
 		}
 		// 放在拼完当前 report object 的 sql 语句后，防止覆盖父 report object 的同名 ciTypeTableMapTableAliasName
 		ciTypeTableMapTableAliasName[roData[i]["ci_type"]] = tableAliasName
@@ -644,7 +646,7 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 	curRoData, tmpErr := x.QueryString(sqlOrArgs...)
 	if tmpErr != nil {
 		err = fmt.Errorf("Query report object by reportId:%s error,%s ", reportId, tmpErr.Error())
-		log.Logger.Error("Query report object by reportId error", log.String("reportId", reportId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report object by reportId error", zap.String("reportId", reportId), zap.Error(err))
 		return
 	}
 
@@ -654,14 +656,14 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 	sqlOrArgs = []interface{}{cacheSqlCmd, updateTime, user, resultSqlCmd, reportId}
 	_, tmpErr = x.QueryString(sqlOrArgs...)
 	if tmpErr != nil {
-		log.Logger.Error("Cache resultSqlCmd in report table error", log.String("reportId", reportId), log.Error(tmpErr))
+		log.Error(nil, log.LOGGER_APP, "Cache resultSqlCmd in report table error", zap.String("reportId", reportId), zap.Error(tmpErr))
 	}
 
 	if len(curRoData) > 0 {
 		rowData = curRoData
 	}
 	if len(rowData) == 0 {
-		log.Logger.Warn("Query report object by reportId fail", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Query report object by reportId fail", zap.Error(err))
 		return
 	}
 	return
@@ -744,7 +746,7 @@ func CreateReport(param models.ModifyReport) (rowData *models.SysReportTable, er
 	rootReportObjActions, tmpErr := CreateRootReportObject(rootReportObjParam)
 	if tmpErr != nil {
 		err = fmt.Errorf("Create root report object by reportId:%s error,%s ", param.Id, tmpErr.Error())
-		log.Logger.Error("Create root report object by reportId error", log.String("reportId", param.Id), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Create root report object by reportId error", zap.String("reportId", param.Id), zap.Error(err))
 		return
 	}
 	actions = append(actions, rootReportObjActions...)
@@ -817,7 +819,7 @@ func DeleteReport(reportId string) (err error) {
 	rowData, tmpErr := x.QueryString(sqlCmd, reportId)
 	if tmpErr != nil {
 		err = fmt.Errorf("Query report object by reportId:%s error,%s ", reportId, tmpErr.Error())
-		log.Logger.Error("Query report object by reportId error", log.String("reportId", reportId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report object by reportId error", zap.String("reportId", reportId), zap.Error(err))
 		return
 	}
 
@@ -840,7 +842,7 @@ func DeleteReport(reportId string) (err error) {
 		roAttrData, tmpErr := x.QueryString(sqlCmd)
 		if tmpErr != nil {
 			err = fmt.Errorf("Query report object attr by reportObject error,%s ", tmpErr.Error())
-			log.Logger.Error("Query report object attr by reportObject error", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Query report object attr by reportObject error", zap.Error(err))
 			return
 		}
 		if len(roAttrData) > 0 {
@@ -878,7 +880,7 @@ func CreateRootReportObject(param models.ModifyReportObject) (actions []*execAct
 		curSeqNo, tmpErr := QueryMaxReportObjetSeqNo(param.Report)
 		if tmpErr != nil {
 			err = fmt.Errorf("Query max report object seq_no by reportId:%s error,%s ", param.Report, tmpErr.Error())
-			log.Logger.Error("Query max report object seq_no by reportId error", log.String("reportId", param.Report), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Query max report object seq_no by reportId error", zap.String("reportId", param.Report), zap.Error(err))
 			return
 		}
 		reportObjectData.SeqNo = curSeqNo + 1
@@ -923,8 +925,8 @@ func CreateRootReportObject(param models.ModifyReportObject) (actions []*execAct
 				} else {
 					err = fmt.Errorf("The report object attr's ciTypeAttr:%s of report object: %s is conflict with "+
 						"default report object attr's ciTypeAttr: %s ", param.Attr[i].CiTypeAttr, reportObjectData.Id, defaultRoAttrCiTypeAttr)
-					log.Logger.Error("The report object attr's ciTypeAttr of report object is conflict with "+
-						"default report object attr's ciTypeAttr", log.Error(err))
+					log.Error(nil, log.LOGGER_APP, "The report object attr's ciTypeAttr of report object is conflict with "+
+						"default report object attr's ciTypeAttr", zap.Error(err))
 					return
 				}
 			}
@@ -964,7 +966,7 @@ func ModifyReportObject(param models.ModifyReportObject) (err error) {
 		reportObjActions, tmpErr := CreateRootReportObject(param)
 		if tmpErr != nil {
 			err = fmt.Errorf("Create root report object by reportId:%s error,%s ", param.Report, tmpErr.Error())
-			log.Logger.Error("Create root report object by reportId error", log.String("reportId", param.Report), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Create root report object by reportId error", zap.String("reportId", param.Report), zap.Error(err))
 			return
 		}
 		actions = append(actions, reportObjActions...)
@@ -976,12 +978,12 @@ func ModifyReportObject(param models.ModifyReportObject) (err error) {
 		tmpErr := x.SQL(sqlCmd, reportObjectId).Find(&rowData)
 		if tmpErr != nil {
 			err = fmt.Errorf("Query report object by Id:%s error,%s ", reportObjectId, tmpErr.Error())
-			log.Logger.Error("Query report object by Id error", log.String("reportObjectId", reportObjectId), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Query report object by Id error", zap.String("reportObjectId", reportObjectId), zap.Error(err))
 			return
 		}
 		if len(rowData) == 0 {
 			err = fmt.Errorf("Report object: %s not found", reportObjectId)
-			log.Logger.Error("Report object not found", log.String("Id", reportObjectId), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Report object not found", zap.String("Id", reportObjectId), zap.Error(err))
 			return
 		}
 		curReportObject := rowData[0]
@@ -1003,7 +1005,7 @@ func ModifyReportObject(param models.ModifyReportObject) (err error) {
 		curSeqNo, tmpErr := QueryMaxReportObjetSeqNo(param.Report)
 		if tmpErr != nil {
 			err = fmt.Errorf("Query max report object seq_no by reportId:%s error,%s ", param.Report, tmpErr.Error())
-			log.Logger.Error("Query max report object seq_no by reportId error", log.String("reportId", param.Report), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Query max report object seq_no by reportId error", zap.String("reportId", param.Report), zap.Error(err))
 			return
 		}
 
@@ -1014,7 +1016,7 @@ func ModifyReportObject(param models.ModifyReportObject) (err error) {
 		tmpErr = x.SQL(sqlCmd, parentObjectId).Find(&childReportObject)
 		if tmpErr != nil {
 			err = fmt.Errorf("Query report object by parent object:%s error,%s ", parentObjectId, tmpErr.Error())
-			log.Logger.Error("Query report object by parent object error", log.String("parentObjectId", parentObjectId), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Query report object by parent object error", zap.String("parentObjectId", parentObjectId), zap.Error(err))
 			return
 		}
 		existChildReportObjectIds := make(map[string]int)
@@ -1065,7 +1067,7 @@ func ModifyReportObject(param models.ModifyReportObject) (err error) {
 			deleteActions, tmpErr := GenReportObjectDelAction(deleteChildReportObjectIds[i])
 			if tmpErr != nil {
 				err = fmt.Errorf("Gen delete child report object actions by report object:%s error,%s ", deleteChildReportObjectIds[i], tmpErr.Error())
-				log.Logger.Error("Gen delete child report object actions by report object error", log.String("reportObjectId", deleteChildReportObjectIds[i]), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "Gen delete child report object actions by report object error", zap.String("reportObjectId", deleteChildReportObjectIds[i]), zap.Error(err))
 				return
 			}
 			actions = append(actions, deleteActions...)
@@ -1077,7 +1079,7 @@ func ModifyReportObject(param models.ModifyReportObject) (err error) {
 		tmpErr = x.SQL(sqlCmd, reportObjectId).Find(&reportObjectAttr)
 		if tmpErr != nil {
 			err = fmt.Errorf("Query report object attr by report object:%s error,%s ", reportObjectId, tmpErr.Error())
-			log.Logger.Error("Query report object attr by report object error", log.String("reportObjectId", reportObjectId), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Query report object attr by report object error", zap.String("reportObjectId", reportObjectId), zap.Error(err))
 			return
 		}
 		existReportObjectAttrIds := make(map[string]int)
@@ -1133,8 +1135,8 @@ func ModifyReportObject(param models.ModifyReportObject) (err error) {
 				} else {
 					err = fmt.Errorf("The report object attr's ciTypeAttr:%s of report object: %s is conflict with "+
 						"default report object attr's ciTypeAttr: %s ", param.Attr[i].CiTypeAttr, reportObjectData.Id, defaultRoAttrCiTypeAttr)
-					log.Logger.Error("The report object attr's ciTypeAttr of report object is conflict with "+
-						"default report object attr's ciTypeAttr", log.Error(err))
+					log.Error(nil, log.LOGGER_APP, "The report object attr's ciTypeAttr of report object is conflict with "+
+						"default report object attr's ciTypeAttr", zap.Error(err))
 					return
 				}
 			}
@@ -1202,7 +1204,7 @@ func GenReportObjectDelAction(reportObjectId string) (actions []*execAction, err
 			tmpErr := x.SQL(sqlCmd, curReportObjectIdsQueue[i]).Find(&childReportObject)
 			if tmpErr != nil {
 				err = fmt.Errorf("Query child report object by report object:%s error,%s ", curReportObjectIdsQueue[i], tmpErr.Error())
-				log.Logger.Error("Query child report object by report object error", log.String("reportObjectId", curReportObjectIdsQueue[i]), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "Query child report object by report object error", zap.String("reportObjectId", curReportObjectIdsQueue[i]), zap.Error(err))
 				return
 			}
 			// 处理下一层的子 reportObject
@@ -1222,7 +1224,7 @@ func GenReportObjectDelAction(reportObjectId string) (actions []*execAction, err
 	roAttrData, tmpErr := x.QueryString(sqlCmd)
 	if tmpErr != nil {
 		err = fmt.Errorf("Query report object attr by reportObject error,%s ", tmpErr.Error())
-		log.Logger.Error("Query report object attr by reportObject error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report object attr by reportObject error", zap.Error(err))
 		return
 	}
 	if len(roAttrData) > 0 {
@@ -1257,7 +1259,7 @@ func GetInsertTableExecAction(tableName string, data interface{}, transNullStr m
 			columnStr += ","
 			valueStr += ","
 		}
-		columnStr += t.Field(i).Tag.Get("xorm")
+		columnStr += "`" + t.Field(i).Tag.Get("xorm") + "`"
 		valueStr += "?"
 
 		if len(transNullStr) > 0 {
@@ -1270,7 +1272,7 @@ func GetInsertTableExecAction(tableName string, data interface{}, transNullStr m
 			execParams = append(execParams, v.FieldByName(t.Field(i).Name).Interface())
 		}
 	}
-	execSqlCmd := "INSERT INTO " + tableName + "("
+	execSqlCmd := "INSERT INTO `" + tableName + "`("
 	execSqlCmd += columnStr + ") VALUE (" + valueStr + ")"
 	action = &execAction{Sql: execSqlCmd, Param: execParams}
 	return
@@ -1289,7 +1291,7 @@ func GetUpdateTableExecAction(tableName string, primeKey string, primeKeyVal str
 		if i > 0 {
 			columnStr += ","
 		}
-		columnStr += t.Field(i).Tag.Get("xorm")
+		columnStr += "`" + t.Field(i).Tag.Get("xorm") + "`"
 		columnStr += "=?"
 
 		if len(transNullStr) > 0 {
@@ -1302,7 +1304,7 @@ func GetUpdateTableExecAction(tableName string, primeKey string, primeKeyVal str
 			execParams = append(execParams, v.FieldByName(t.Field(i).Name).Interface())
 		}
 	}
-	execSqlCmd := "UPDATE " + tableName + " SET "
+	execSqlCmd := "UPDATE `" + tableName + "` SET "
 	execSqlCmd += columnStr
 	execSqlCmd += " WHERE " + primeKey + "=?"
 	execParams = append(execParams, primeKeyVal)
@@ -1333,7 +1335,7 @@ func QueryMaxReportObjetSeqNo(reportId string) (seqNo int, err error) {
 	rowData, tmpErr := x.QueryString(sqlCmd, reportId)
 	if tmpErr != nil {
 		err = fmt.Errorf("Query max report object seq_no by reportId:%s error,%s ", reportId, tmpErr.Error())
-		log.Logger.Error("Query max report object seq_no by reportId error", log.String("reportId", reportId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query max report object seq_no by reportId error", zap.String("reportId", reportId), zap.Error(err))
 		seqNo = 0
 		return
 	}
@@ -1349,7 +1351,7 @@ func QueryMaxReportObjetSeqNo(reportId string) (seqNo int, err error) {
 func isReportObjEditable(reportObjId string) bool {
 	queryRows, err := x.QueryString("select editable from sys_graph_element where report_object=?", reportObjId)
 	if err != nil {
-		log.Logger.Error("Try to judge report object is editable fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to judge report object is editable fail", zap.Error(err))
 		return true
 	}
 	if len(queryRows) > 0 {
@@ -1371,7 +1373,7 @@ func GetPermissiveReportId(permissions []string, roles []string, hasReportIds []
 	rowData, tmpErr := x.QueryString(sqlCmd)
 	if tmpErr != nil {
 		err = fmt.Errorf("Query permissive report ids in role report error:%s", tmpErr.Error())
-		log.Logger.Error("Query permissive report ids in role report error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query permissive report ids in role report error", zap.Error(err))
 	}
 	for i := range rowData {
 		reportIds = append(reportIds, rowData[i]["report"])
@@ -1385,11 +1387,11 @@ func QueryReportFlatStruct(reportId string) (rowData *models.QueryReport, err er
 	tmpErr := x.SQL(sqlCmd, reportId).Find(&tmpRowData)
 	if tmpErr != nil {
 		err = fmt.Errorf("Query report by reportId:%s error,%s ", reportId, tmpErr.Error())
-		log.Logger.Error("Query report by reportId error", log.String("reportId", reportId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report by reportId error", zap.String("reportId", reportId), zap.Error(err))
 		return
 	}
 	if len(tmpRowData) == 0 {
-		log.Logger.Warn("Query report by reportId fail", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Query report by reportId fail", zap.Error(err))
 		return
 	}
 	rowData = tmpRowData[0]
@@ -1399,11 +1401,11 @@ func QueryReportFlatStruct(reportId string) (rowData *models.QueryReport, err er
 	tmpErr = x.SQL(sqlCmd, rowData.Id).Find(&roData)
 	if tmpErr != nil {
 		err = fmt.Errorf("Query report object by report:%s error,%s ", rowData.Id, tmpErr.Error())
-		log.Logger.Error("Query report object by report error", log.String("report", rowData.Id), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query report object by report error", zap.String("report", rowData.Id), zap.Error(err))
 		return
 	}
 	if len(roData) == 0 {
-		log.Logger.Warn("Query report object by report fail", log.String("report", rowData.Id), log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Query report object by report fail", zap.String("report", rowData.Id), zap.Error(err))
 		return
 	}
 
@@ -1414,11 +1416,11 @@ func QueryReportFlatStruct(reportId string) (rowData *models.QueryReport, err er
 		tmpErr = x.SQL(sqlCmd, roData[i].Id).Find(&roAttrsData)
 		if tmpErr != nil {
 			err = fmt.Errorf("Query report object attrs by reportObjs error,%s ", tmpErr.Error())
-			log.Logger.Error("Query report object attrs by reportObjs error", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Query report object attrs by reportObjs error", zap.Error(err))
 			return
 		}
 		if len(roAttrsData) == 0 {
-			log.Logger.Warn("Query report object attrs by reportObjs fail", log.Error(err))
+			log.Warn(nil, log.LOGGER_APP, "Query report object attrs by reportObjs fail", zap.Error(err))
 		}
 		tmpRoAttrsData := roAttrsData
 		roData[i].Attr = tmpRoAttrsData
@@ -1633,7 +1635,7 @@ func ImportCiData(param *models.ExportReportResult, operator string, useNewGuid 
 			}
 			// 校验是否重复，如果有重复，记录guid，最后在multiCiData中删掉
 			var nowDataList []map[string]string
-			nowDataList, err = x.QueryString(fmt.Sprintf("select * from %s where guid='%s'", ciDataObj.CiType, guidStr))
+			nowDataList, err = x.QueryString(fmt.Sprintf("select * from `%s` where guid='%s'", ciDataObj.CiType, guidStr))
 			if err != nil {
 				return
 			}
@@ -1771,7 +1773,7 @@ func ImportCiData(param *models.ExportReportResult, operator string, useNewGuid 
 		// record guid map
 		if len(newGuidActions) > 0 {
 			if recordErr := transaction(newGuidActions); recordErr != nil {
-				log.Logger.Error("try to record import ci data guid map fail", log.Error(recordErr))
+				log.Error(nil, log.LOGGER_APP, "try to record import ci data guid map fail", zap.Error(recordErr))
 			}
 		}
 		// do autofill
@@ -1779,7 +1781,7 @@ func ImportCiData(param *models.ExportReportResult, operator string, useNewGuid 
 		for _, ciObj := range multiCiData {
 			for _, inputRowData := range ciObj.InputData {
 				autofillAffectActionFunc(ciObj.CiTypeId, inputRowData["guid"], nowTime)
-				log.Logger.Info("import ci data autofill update done", log.String("guid", inputRowData["guid"]))
+				log.Info(nil, log.LOGGER_APP, "import ci data autofill update done", zap.String("guid", inputRowData["guid"]))
 			}
 		}
 	}

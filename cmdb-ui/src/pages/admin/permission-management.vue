@@ -20,10 +20,10 @@
             <span :title="` ${item.displayName} ( ${item.description} ) `">{{
               ` ${item.displayName} ( ${item.description} ) `
             }}</span>
-            <span v-if="users.length > 1" style="float:right;" @click="resetPassword($event, item)">
+            <span v-if="users.length > 1" style="float: right" @click="resetPassword($event, item)">
               <Icon size="20" type="ios-unlock-outline" />
             </span>
-            <span v-if="users.length > 1" style="float:right;color:red" @click="deleteUser(item)">
+            <span v-if="users.length > 1" style="float: right; color: red" @click="deleteUser(item)">
               <Icon size="20" type="ios-trash-outline" />
             </span>
           </Tag>
@@ -47,7 +47,7 @@
               @on-change="handleRoleClick"
             >
               <span :title="item.description">{{ item.description }}</span>
-              <span v-if="item.rolename !== 'SUPER_ADMIN'" style="float:right;color:red" @click="deleteRole(item)">
+              <span v-if="item.rolename !== 'SUPER_ADMIN'" style="float: right; color: red" @click="deleteRole(item)">
                 <Icon size="20" type="ios-trash-outline" />
               </span>
             </Tag>
@@ -558,7 +558,7 @@ export default {
           if (menuObj) {
             menus.push({
               ..._,
-              title: this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
+              title: this.$i18n.locale === 'zh-CN' ? menuObj.cnName : menuObj.enName,
               id: _.id,
               expand: true,
               checked: false,
@@ -575,7 +575,7 @@ export default {
             if (_.parent === h.id) {
               h.children.push({
                 ..._,
-                title: menuObj ? (this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName) : _.displayName,
+                title: menuObj ? (this.$i18n.locale === 'zh-CN' ? menuObj.cnName : menuObj.enName) : _.displayName,
                 id: _.id,
                 expand: true,
                 checked: false,
@@ -720,7 +720,7 @@ export default {
     background-color: #4ee643;
   }
   .ivu-checkbox-disabled.ivu-checkbox-checked .ivu-checkbox-inner {
-    background-color: #2d8cf0;
+    background-color: #5384FF;
   }
 }
 .permission-management-p {
@@ -734,12 +734,12 @@ export default {
 .batch-operation {
   padding-bottom: 0 5px 8px 5px;
   margin-bottom: 18px;
-  border-bottom: 1px solid #2d8cf0;
+  border-bottom: 1px solid #5384FF;
 }
 .batch-operation-btn {
   text-align: right;
   padding-top: 8px;
   margin-top: 8px;
-  border-top: 1px solid #2d8cf0;
+  border-top: 1px solid #5384FF;
 }
 </style>

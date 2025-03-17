@@ -27,6 +27,12 @@ func (session *Session) Iterate(bean interface{}, fun IterFunc) error {
 		defer session.Close()
 	}
 
+	session.autoResetStatement = false
+	defer func() {
+		session.autoResetStatement = true
+		session.resetStatement()
+	}()
+
 	if session.statement.LastError != nil {
 		return session.statement.LastError
 	}
@@ -54,7 +60,7 @@ func (session *Session) Iterate(bean interface{}, fun IterFunc) error {
 		}
 		i++
 	}
-	return err
+	return rows.Err()
 }
 
 // BufferSize sets the buffersize for iterate
@@ -64,15 +70,15 @@ func (session *Session) BufferSize(size int) *Session {
 }
 
 func (session *Session) bufferIterate(bean interface{}, fun IterFunc) error {
-	var bufferSize = session.statement.BufferSize
-	var pLimitN = session.statement.LimitN
+	bufferSize := session.statement.BufferSize
+	pLimitN := session.statement.LimitN
 	if pLimitN != nil && bufferSize > *pLimitN {
 		bufferSize = *pLimitN
 	}
-	var start = session.statement.Start
+	start := session.statement.Start
 	v := utils.ReflectValue(bean)
 	sliceType := reflect.SliceOf(v.Type())
-	var idx = 0
+	idx := 0
 	session.autoResetStatement = false
 	defer func() {
 		session.autoResetStatement = true
@@ -95,7 +101,7 @@ func (session *Session) bufferIterate(bean interface{}, fun IterFunc) error {
 			break
 		}
 
-		start = start + slice.Elem().Len()
+		start += slice.Elem().Len()
 		if pLimitN != nil && start+bufferSize > *pLimitN {
 			bufferSize = *pLimitN - start
 		}

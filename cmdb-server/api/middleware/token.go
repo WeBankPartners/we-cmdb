@@ -2,20 +2,24 @@ package middleware
 
 import (
 	"fmt"
+	"net/http"
+	"regexp"
+	"strings"
+
 	"github.com/WeBankPartners/go-common-lib/token"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"regexp"
-	"strings"
+	"go.uber.org/zap"
 )
 
 var (
 	whitePathMap = map[string]string{
-		"/wecmdb/entities/${ciType}/query": "POST",
-		"/wecmdb/data-model":               "GET",
+		"/wecmdb/entities/${ciType}/query":              "POST",
+		"/wecmdb/data-model":                            "GET",
+		"/wecmdb/api/v1/ci-data/sensitive-attr/query":   "POST",
+		"/wecmdb/api/v1/ci-data/rollback/query/${guid}": "GET",
 	}
 	ApiMenuMap = make(map[string][]string) // key -> apiCode  value -> menuList
 )
@@ -101,7 +105,7 @@ func AuthCoreRequestToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		err := authCoreRequest(c)
 		if err != nil {
-			log.Logger.Error("Validate core token fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Validate core token fail", zap.Error(err))
 			c.JSON(http.StatusOK, models.EntityResponse{Status: "ERROR", Message: "Core token validate fail "})
 			c.Abort()
 		} else {
@@ -131,13 +135,13 @@ func InitApiMenuMap(apiMenuCodeMap map[string]string) {
 			}
 		}
 		if !exist {
-			log.Logger.Info("InitApiMenuMap menu-api-json lack url", log.String("path", k))
+			log.Info(nil, log.LOGGER_APP, "InitApiMenuMap menu-api-json lack url", zap.String("path", k))
 		}
 	}
 	for _, menuApi := range models.MenuApiGlobalList {
 		for _, item := range menuApi.Urls {
 			if _, ok := matchUrlMap[item.Method+"_"+item.Url]; !ok {
-				log.Logger.Info("InitApiMenuMap can not match menuUrl", log.String("menu", menuApi.Menu), log.String("method", item.Method), log.String("url", item.Url))
+				log.Info(nil, log.LOGGER_APP, "InitApiMenuMap can not match menuUrl", zap.String("menu", menuApi.Menu), zap.String("method", item.Method), zap.String("url", item.Url))
 			}
 		}
 	}
@@ -146,14 +150,14 @@ func InitApiMenuMap(apiMenuCodeMap map[string]string) {
 			ApiMenuMap[k] = DistinctStringList(v, []string{})
 		}
 	}
-	log.Logger.Debug("InitApiMenuMap done", log.JsonObj("ApiMenuMap", ApiMenuMap))
+	log.Debug(nil, log.LOGGER_APP, "InitApiMenuMap done", log.JsonObj("ApiMenuMap", ApiMenuMap))
 }
 
 func AuthCorePluginToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		err := authCoreRequest(c)
 		if err != nil {
-			log.Logger.Error("Validate core token fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Validate core token fail", zap.Error(err))
 			c.JSON(http.StatusOK, pluginInterfaceResultObj{ResultCode: "1", ResultMessage: "Token authority validate fail", Results: pluginInterfaceResultOutput{Outputs: []string{}}})
 			c.Abort()
 		} else {
