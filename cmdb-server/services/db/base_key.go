@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"go.uber.org/zap"
 )
 
 func BaseKeyCatQuery(page, pageSize int) (pageInfo models.PageInfo, rowData []*models.SysBaseKeyCatTable, err error) {
@@ -89,7 +90,7 @@ func getBaseKeyCodeSeqNo(catId string) int {
 	var rowData []*models.SysBaseKeyCodeTable
 	err := x.SQL("SELECT seq_no FROM sys_basekey_code WHERE cat_id=? order by seq_no desc limit 1", catId).Find(&rowData)
 	if len(rowData) == 0 {
-		log.Logger.Warn("Get base key max seq no fail", log.Error(err), log.String("cat_id", catId))
+		log.Warn(nil, log.LOGGER_APP, "Get base key max seq no fail", zap.Error(err), zap.String("cat_id", catId))
 		return 1
 	}
 	return rowData[0].SeqNo + 1

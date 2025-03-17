@@ -3,10 +3,12 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
-	"strings"
+	"go.uber.org/zap"
 )
 
 func GetRoleCiPermission(query *models.RolePermissionQuery) error {
@@ -56,12 +58,20 @@ func GetRoleCiPermission(query *models.RolePermissionQuery) error {
 			}
 		}
 		var ciTypeConditionRows []*models.SysRoleCiTypeConditionTable
-		err = x.SQL("select * from sys_role_ci_type_condition").Find(&ciTypeConditionRows)
+		err = x.SQL("select * from sys_role_ci_type_condition where role_ci_type in (select guid from sys_role_ci_type where role_id=?)", query.Role).Find(&ciTypeConditionRows)
 		if err != nil {
 			return fmt.Errorf("Try to get role ci condition data fail,%s ", err.Error())
 		}
+		var ciTypeListRows []*models.SysRoleCiTypeListTable
+		err = x.SQL("select * from sys_role_ci_type_list where role_ci_type in (select guid from sys_role_ci_type where role_id=?)", query.Role).Find(&ciTypeListRows)
+		if err != nil {
+			return fmt.Errorf("Try to get role ci condition list data fail,%s ", err.Error())
+		}
 		conditionMap := make(map[string]*models.SysRoleCiTypeConditionTable)
+		withConditionMap := make(map[string]int8) // key -> role_ci_type_id value -> 1 true
+		withListRowMap := make(map[string]int8)   // key -> role_ci_type_id value -> 1 true
 		for _, row := range ciTypeConditionRows {
+			withConditionMap[row.RoleCiType] = 1
 			if v, ok := conditionMap[row.RoleCiType]; ok {
 				if row.Insert == "Y" {
 					v.Insert = "Y"
@@ -84,6 +94,9 @@ func GetRoleCiPermission(query *models.RolePermissionQuery) error {
 			} else {
 				conditionMap[row.RoleCiType] = row
 			}
+		}
+		for _, row := range ciTypeListRows {
+			withListRowMap[row.RoleCiType] = 1
 		}
 		for _, row := range ciTypePermissionTable {
 			if attrList, ok := ciTypeAttrMap[row.CiType]; ok {
@@ -132,6 +145,18 @@ func GetRoleCiPermission(query *models.RolePermissionQuery) error {
 						rowAttr.Confirm = "P"
 					}
 				}
+				if _, conditionEnable := withConditionMap[rowAttr.Guid]; conditionEnable {
+					rowAttr.ConditionEnable = conditionEnable
+				}
+				if _, listRowEnable := withListRowMap[rowAttr.Guid]; listRowEnable {
+					rowAttr.ListRowEnable = listRowEnable
+				}
+			}
+			if _, conditionEnable := withConditionMap[row.Guid]; conditionEnable {
+				row.ConditionEnable = conditionEnable
+			}
+			if _, listRowEnable := withListRowMap[row.Guid]; listRowEnable {
+				row.ListRowEnable = listRowEnable
 			}
 		}
 	}
@@ -340,7 +365,7 @@ func GetRoleCiTypeList(roleCiType string) (result []*models.SysRoleCiTypeListTab
 		guidList = append(guidList, strings.Split(v.List, ",")...)
 	}
 	if len(guidList) > 0 {
-		queryRows, tmpErr := x.QueryString(fmt.Sprintf("select guid,key_name from %s where guid in ('%s')", roleCiTypeObj.CiType, strings.Join(guidList, "','")))
+		queryRows, tmpErr := x.QueryString(fmt.Sprintf("select guid,key_name from `%s` where guid in ('%s')", roleCiTypeObj.CiType, strings.Join(guidList, "','")))
 		if tmpErr != nil {
 			err = fmt.Errorf("Try to query table:%s fail,%s ", roleCiTypeObj.CiType, tmpErr.Error())
 			return
@@ -416,7 +441,7 @@ func AutoCreateRoleCiTypeDataByCiType(ciTypeId string) {
 	var roleCiTypeTable []*models.SysRoleCiTypeTable
 	err := x.SQL("select guid from sys_role_ci_type where ci_type=?", ciTypeId).Find(&roleCiTypeTable)
 	if err != nil {
-		log.Logger.Error("Try to auto update roleCiType data fail,query roleCiType data error", log.String("ciType", ciTypeId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to auto update roleCiType data fail,query roleCiType data error", zap.String("ciType", ciTypeId), zap.Error(err))
 		return
 	}
 	var actions []*execAction
@@ -426,7 +451,7 @@ func AutoCreateRoleCiTypeDataByCiType(ciTypeId string) {
 	var roles []*models.SysRoleTable
 	err = x.SQL("select * from sys_role").Find(&roles)
 	if err != nil {
-		log.Logger.Error("Try to auto update roleCiType data fail,query roles data error", log.String("ciType", ciTypeId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to auto update roleCiType data fail,query roles data error", zap.String("ciType", ciTypeId), zap.Error(err))
 		return
 	}
 	if len(roles) == 0 {
@@ -441,7 +466,7 @@ func AutoCreateRoleCiTypeDataByCiType(ciTypeId string) {
 		}
 	}
 	if err = transaction(actions); err != nil {
-		log.Logger.Error("Try to update roleCiType data fail", log.String("ciType", ciTypeId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to update roleCiType data fail", zap.String("ciType", ciTypeId), zap.Error(err))
 	}
 }
 
@@ -449,7 +474,7 @@ func AutoCreateRoleCiTypeAttrPermission(ciTypeId string) {
 	var ciAttrRows []*models.SysCiTypeAttrTable
 	err := x.SQL("select id,ci_type,name,display_name from sys_ci_type_attr where ci_type=? and status='created' and `sensitive`='yes'", ciTypeId).Find(&ciAttrRows)
 	if err != nil {
-		log.Logger.Error("Try to auto create role ci attr permission fail,query ci type attr error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to auto create role ci attr permission fail,query ci type attr error", zap.Error(err))
 		return
 	}
 	if len(ciAttrRows) == 0 {
@@ -458,13 +483,13 @@ func AutoCreateRoleCiTypeAttrPermission(ciTypeId string) {
 	var roleCiTypeTable []*models.SysRoleCiTypeTable
 	err = x.SQL("select guid,ci_type,ci_type_attr from sys_role_ci_type where ci_type=? and ci_type_attr<>''", ciTypeId).Find(&roleCiTypeTable)
 	if err != nil {
-		log.Logger.Error("Try to auto update roleCiType attr data fail,query roleCiType data error", log.String("ciType", ciTypeId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to auto update roleCiType attr data fail,query roleCiType data error", zap.String("ciType", ciTypeId), zap.Error(err))
 		return
 	}
 	var roles []*models.SysRoleTable
 	err = x.SQL("select * from sys_role").Find(&roles)
 	if err != nil {
-		log.Logger.Error("Try to auto update roleCiType attr data fail,query roles data error", log.String("ciType", ciTypeId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to auto update roleCiType attr data fail,query roles data error", zap.String("ciType", ciTypeId), zap.Error(err))
 		return
 	}
 	if len(roles) == 0 {
@@ -491,7 +516,7 @@ func AutoCreateRoleCiTypeAttrPermission(ciTypeId string) {
 		}
 	}
 	if err = transaction(actions); err != nil {
-		log.Logger.Error("Try to update roleCiType attr data fail", log.String("ciType", ciTypeId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to update roleCiType attr data fail", zap.String("ciType", ciTypeId), zap.Error(err))
 	}
 }
 
@@ -499,7 +524,7 @@ func AutoCreateRoleCiTypeDataByRole(roleId string) {
 	var ciTypeTable []*models.SysCiTypeTable
 	err := x.SQL("select id from sys_ci_type where status<>'notCreated' and id not in (select ci_type from sys_role_ci_type where role_id=? and ci_type_attr is null)", roleId).Find(&ciTypeTable)
 	if err != nil {
-		log.Logger.Error("Try to auto update roleCiType data by roleId fail,query ci_type data error", log.String("roleId", roleId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to auto update roleCiType data by roleId fail,query ci_type data error", zap.String("roleId", roleId), zap.Error(err))
 		return
 	}
 	if len(ciTypeTable) == 0 {
@@ -515,11 +540,27 @@ func AutoCreateRoleCiTypeDataByRole(roleId string) {
 		}
 	}
 	if err = transaction(actions); err != nil {
-		log.Logger.Error("Try to update roleCiType data fail", log.String("roleId", roleId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to update roleCiType data fail", zap.String("roleId", roleId), zap.Error(err))
 	}
 }
 
-func GetRoleCiDataPermission(roles []string, ciType, ciTypeAttr string) (result models.CiDataPermission, err error) {
+func ValidateCiDataPermission(roles []string, ciType, ciTypeAttr, inputAction string) (legalAll bool, legalGuidList []string, err error) {
+	permissionConfigs, getConfigErr := GetRoleCiDataPermission(roles, ciType, ciTypeAttr, inputAction)
+	if getConfigErr != nil {
+		err = fmt.Errorf("validate ciData permission,get config fail,%s ", getConfigErr.Error())
+		return
+	}
+	permissionObj, checkPermissionErr := GetCiDataPermissionGuidList(&permissionConfigs, inputAction)
+	if checkPermissionErr != nil {
+		err = fmt.Errorf("validate ciData permission,check permission fail,%s ", checkPermissionErr.Error())
+		return
+	}
+	legalAll = permissionObj.Legal
+	legalGuidList = permissionObj.GuidList
+	return
+}
+
+func GetRoleCiDataPermission(roles []string, ciType, ciTypeAttr, inputAction string) (result models.CiDataPermission, err error) {
 	if len(roles) == 0 {
 		return
 	}
@@ -565,12 +606,51 @@ func GetRoleCiDataPermission(roles []string, ciType, ciTypeAttr string) (result 
 		}
 		roleCiTypeGuidList = append(roleCiTypeGuidList, roleCiTypeObj.Guid)
 	}
-	if result.Insert && result.Delete && result.Update && result.Query && result.Execute && result.Confirm {
+	//if result.Insert && result.Delete && result.Update && result.Query && result.Execute && result.Confirm {
+	//	return
+	//}
+	switch inputAction {
+	case models.DataActionInsert:
+		if result.Insert {
+			return
+		}
+	case models.DataActionDelete:
+		if result.Delete {
+			return
+		}
+	case models.DataActionUpdate:
+		if result.Update {
+			return
+		}
+	case models.DataActionQuery:
+		if result.Query {
+			return
+		}
+	case models.DataActionExecute:
+		if result.Execute {
+			return
+		}
+	case models.DataActionConfirm:
+		if result.Confirm {
+			return
+		}
+	}
+	legalAction, tplConfig, getTplErr := GetTplRoleCiDataPermission(roles, ciType, ciTypeAttr, inputAction)
+	if getTplErr != nil {
+		err = fmt.Errorf("get tpl permission config fail,%s ", getTplErr.Error())
+		return
+	}
+	if legalAction {
+		result = *tplConfig
 		return
 	}
 	var roleCiTypeMap = make(map[string]*models.RoleCiTypePermissionObj)
 	var conditionQuery []*models.ConditionListQueryObj
-	err = x.SQL("select t2.*,t1.role_ci_type,t1.`insert`,t1.`delete`,t1.`update`,t1.`query`,t1.`execute`,t1.`Confirm` from sys_role_ci_type_condition t1 left join sys_role_ci_type_condition_filter t2 on t1.guid=t2.role_ci_type_condition where t1.role_ci_type in ('" + strings.Join(roleCiTypeGuidList, "','") + "')").Find(&conditionQuery)
+	var sqlActionFilter string
+	if inputAction != "" {
+		sqlActionFilter = fmt.Sprintf(" and t1.%s='Y' ", inputAction)
+	}
+	err = x.SQL("select t2.*,t1.role_ci_type,t1.`insert`,t1.`delete`,t1.`update`,t1.`query`,t1.`execute`,t1.`Confirm` from sys_role_ci_type_condition t1 left join sys_role_ci_type_condition_filter t2 on t1.guid=t2.role_ci_type_condition where t1.role_ci_type in ('" + strings.Join(roleCiTypeGuidList, "','") + "')" + sqlActionFilter).Find(&conditionQuery)
 	if err != nil {
 		err = fmt.Errorf("Get role condition data fail,%s ", err.Error())
 		return
@@ -598,7 +678,7 @@ func GetRoleCiDataPermission(roles []string, ciType, ciTypeAttr string) (result 
 		}
 	}
 	var roleListQuery []*models.SysRoleCiTypeListTable
-	err = x.SQL("select * from sys_role_ci_type_list where role_ci_type in ('" + strings.Join(roleCiTypeGuidList, "','") + "')").Find(&roleListQuery)
+	err = x.SQL("select t1.* from sys_role_ci_type_list t1 where t1.role_ci_type in ('" + strings.Join(roleCiTypeGuidList, "','") + "')" + sqlActionFilter).Find(&roleListQuery)
 	if err != nil {
 		err = fmt.Errorf("Get role list data fail,%s ", err.Error())
 		return
@@ -611,23 +691,29 @@ func GetRoleCiDataPermission(roles []string, ciType, ciTypeAttr string) (result 
 		}
 	}
 	result.ConfigMap = roleCiTypeMap
+	if tplConfig != nil {
+		for k, v := range tplConfig.ConfigMap {
+			result.ConfigMap[k] = v
+		}
+	}
+	log.Info(nil, log.LOGGER_APP, "GetRoleCiDataPermission", log.JsonObj("result", result))
 	return
 }
 
 func GetCiDataPermissionGuidList(config *models.CiDataPermission, action string) (result models.CiDataLegalGuidList, err error) {
 	result = models.CiDataLegalGuidList{}
 	switch action {
-	case "insert":
+	case models.DataActionInsert:
 		result.Legal = config.Insert
-	case "delete":
+	case models.DataActionDelete:
 		result.Legal = config.Delete
-	case "update":
+	case models.DataActionUpdate:
 		result.Legal = config.Update
-	case "query":
+	case models.DataActionQuery:
 		result.Legal = config.Query
-	case "execute":
+	case models.DataActionExecute:
 		result.Legal = config.Execute
-	case "confirm":
+	case models.DataActionConfirm:
 		result.Legal = config.Confirm
 	}
 	if result.Legal {
@@ -653,7 +739,7 @@ func GetCiDataPermissionGuidList(config *models.CiDataPermission, action string)
 				if filter.FilterType == models.FilterTypeSelectList {
 					if filter.SelectList != "" {
 						tmpSelectFilterList := strings.Split(filter.SelectList, ",")
-						columnFilterList = append(columnFilterList, fmt.Sprintf(" %s in ('%s') ", filter.CiTypeAttrName, strings.Join(tmpSelectFilterList, "','")))
+						columnFilterList = append(columnFilterList, fmt.Sprintf(" `%s` in ('%s') ", filter.CiTypeAttrName, strings.Join(tmpSelectFilterList, "','")))
 					}
 					continue
 				}
@@ -669,6 +755,7 @@ func GetCiDataPermissionGuidList(config *models.CiDataPermission, action string)
 				} else {
 					filterExpressionList = append(filterExpressionList, filter.Expression)
 				}
+				log.Info(nil, log.LOGGER_APP, "permission condition", zap.String("expr", filter.Expression))
 				filterColumnGuidList := []string{}
 				for _, tmpExpression := range filterExpressionList {
 					tmpFilterColumnGuidList, tmpErr := getConditionExpressResult(tmpExpression, "", make(map[string]string), true)
@@ -683,7 +770,7 @@ func GetCiDataPermissionGuidList(config *models.CiDataPermission, action string)
 				}
 				//tmpCiType := filter.CiTypeAttr[:strings.Index(filter.CiTypeAttr, models.SysTableIdConnector)]
 				if isAttributeMultiRef(config.CiType, filter.CiTypeAttrName) {
-					multiRefQueryRows, tmpErr := x.QueryString(fmt.Sprintf("select from_guid from %s$%s where to_guid in ('%s')", config.CiType, filter.CiTypeAttrName, strings.Join(filterColumnGuidList, "','")))
+					multiRefQueryRows, tmpErr := x.QueryString(fmt.Sprintf("select from_guid from `%s$%s` where to_guid in ('%s')", config.CiType, filter.CiTypeAttrName, strings.Join(filterColumnGuidList, "','")))
 					if tmpErr != nil {
 						err = fmt.Errorf("Try to get expression data with multiRef attr:%s fail,%s ", filter.CiTypeAttr, tmpErr.Error())
 						break
@@ -694,7 +781,7 @@ func GetCiDataPermissionGuidList(config *models.CiDataPermission, action string)
 					}
 					columnFilterList = append(columnFilterList, fmt.Sprintf(" guid in ('%s') ", strings.Join(filterColumnGuidList, "','")))
 				} else {
-					columnFilterList = append(columnFilterList, fmt.Sprintf(" %s in ('%s') ", filter.CiTypeAttrName, strings.Join(filterColumnGuidList, "','")))
+					columnFilterList = append(columnFilterList, fmt.Sprintf(" `%s` in ('%s') ", filter.CiTypeAttrName, strings.Join(filterColumnGuidList, "','")))
 				}
 			}
 			if err != nil {
@@ -704,7 +791,7 @@ func GetCiDataPermissionGuidList(config *models.CiDataPermission, action string)
 				err = fmt.Errorf("Get permission legal data fail,condition:%s build with empty filter sql ", condition.Guid)
 				break
 			}
-			queryRows, tmpErr := x.QueryString(fmt.Sprintf("select guid from %s where %s", config.CiType, strings.Join(columnFilterList, " and ")))
+			queryRows, tmpErr := x.QueryString(fmt.Sprintf("select guid from `%s` where %s", config.CiType, strings.Join(columnFilterList, " and ")))
 			if tmpErr != nil {
 				err = fmt.Errorf("Get permission legal data fail,query ciTable:%s error:%s ", config.CiType, tmpErr.Error())
 				break
@@ -742,7 +829,7 @@ func ValidateInsertPermission(param map[string]*InsertPermissionObj, roles []str
 }
 
 func ciTypeInsertPermissionValidate(ciType string, param *InsertPermissionObj, roles []string) error {
-	ciTypePermissionConfig, err := GetRoleCiDataPermission(roles, ciType, "")
+	ciTypePermissionConfig, err := GetRoleCiDataPermission(roles, ciType, "", models.DataActionInsert)
 	if err != nil {
 		return err
 	}
@@ -774,7 +861,7 @@ func ciTypeInsertPermissionValidate(ciType string, param *InsertPermissionObj, r
 				if filter.FilterType == models.FilterTypeSelectList {
 					if filter.SelectList != "" {
 						tmpSelectFilterList := strings.Split(filter.SelectList, ",")
-						columnFilterList = append(columnFilterList, fmt.Sprintf(" %s in ('%s') ", filter.CiTypeAttrName, strings.Join(tmpSelectFilterList, "','")))
+						columnFilterList = append(columnFilterList, fmt.Sprintf(" `%s` in ('%s') ", filter.CiTypeAttrName, strings.Join(tmpSelectFilterList, "','")))
 					}
 					continue
 				}
@@ -804,7 +891,7 @@ func ciTypeInsertPermissionValidate(ciType string, param *InsertPermissionObj, r
 				}
 				//tmpCiType := filter.CiTypeAttr[:strings.Index(filter.CiTypeAttr, models.SysTableIdConnector)]
 				if isAttributeMultiRef(ciType, filter.CiTypeAttrName) {
-					multiRefQueryRows, tmpErr := session.QueryString(fmt.Sprintf("select from_guid from %s$%s where to_guid in ('%s')", ciType, filter.CiTypeAttrName, strings.Join(filterColumnGuidList, "','")))
+					multiRefQueryRows, tmpErr := session.QueryString(fmt.Sprintf("select from_guid from `%s$%s` where to_guid in ('%s')", ciType, filter.CiTypeAttrName, strings.Join(filterColumnGuidList, "','")))
 					if tmpErr != nil {
 						err = fmt.Errorf("Try to get expression data with multiRef attr:%s fail,%s ", filter.CiTypeAttr, tmpErr.Error())
 						break
@@ -815,17 +902,17 @@ func ciTypeInsertPermissionValidate(ciType string, param *InsertPermissionObj, r
 					}
 					columnFilterList = append(columnFilterList, fmt.Sprintf(" guid in ('%s') ", strings.Join(filterColumnGuidList, "','")))
 				} else {
-					columnFilterList = append(columnFilterList, fmt.Sprintf(" %s in ('%s') ", filter.CiTypeAttrName, strings.Join(filterColumnGuidList, "','")))
+					columnFilterList = append(columnFilterList, fmt.Sprintf(" `%s` in ('%s') ", filter.CiTypeAttrName, strings.Join(filterColumnGuidList, "','")))
 				}
 			}
 			if err != nil {
 				break
 			}
 			if len(columnFilterList) == 0 {
-				log.Logger.Warn("ciTypeInsertPermissionValidate Get permission legal data fail, build with empty filter sql", log.String(condition.Guid, "condition.Guid"))
+				log.Warn(nil, log.LOGGER_APP, "ciTypeInsertPermissionValidate Get permission legal data fail, build with empty filter sql", zap.String(condition.Guid, "condition.Guid"))
 				continue
 			}
-			queryRows, tmpErr := session.QueryString(fmt.Sprintf("select guid from %s where %s", ciType, strings.Join(columnFilterList, " and ")))
+			queryRows, tmpErr := session.QueryString(fmt.Sprintf("select guid from `%s` where %s", ciType, strings.Join(columnFilterList, " and ")))
 			if tmpErr != nil {
 				err = fmt.Errorf("Get permission legal data fail,query ciTable:%s error:%s ", ciType, tmpErr.Error())
 				break
@@ -926,12 +1013,12 @@ func ValidateAttrUpdatePermission(multiCiData []*models.MultiCiDataObj, userRole
 			if len(guidList) == 0 {
 				continue
 			}
-			permissions, tmpGetPermissionConfigErr := GetRoleCiDataPermission(userRoles, ciDataObj.CiTypeId, tmpSensitiveAttrNameIdMap[attrName])
+			permissions, tmpGetPermissionConfigErr := GetRoleCiDataPermission(userRoles, ciDataObj.CiTypeId, tmpSensitiveAttrNameIdMap[attrName], models.DataActionUpdate)
 			if tmpGetPermissionConfigErr != nil {
 				err = fmt.Errorf("validate attr permission fail, attr:%s get permission config error:%s ", attrName, tmpGetPermissionConfigErr.Error())
 				return
 			}
-			tmpLegalGuidList, tmpGetPermissionGuidListErr := GetCiDataPermissionGuidList(&permissions, "update")
+			tmpLegalGuidList, tmpGetPermissionGuidListErr := GetCiDataPermissionGuidList(&permissions, models.DataActionUpdate)
 			if tmpGetPermissionGuidListErr != nil {
 				err = fmt.Errorf("validate attr permission fail, attr:%s get legal guid list error:%s", attrName, tmpGetPermissionGuidListErr.Error())
 				return
@@ -952,6 +1039,223 @@ func ValidateAttrUpdatePermission(multiCiData []*models.MultiCiDataObj, userRole
 				}
 			}
 		}
+	}
+	return
+}
+
+func GetTplRoleCiDataPermission(roles []string, ciType, ciTypeAttr, inputAction string) (legalAction bool, result *models.CiDataPermission, err error) {
+	result = &models.CiDataPermission{}
+	if len(roles) == 0 {
+		return
+	}
+	var roleTplRows []*models.SysRoleTplPermissionTable
+	err = x.SQL("select * from sys_role_tpl_permission where role_id in ('" + strings.Join(roles, "','") + "')").Find(&roleTplRows)
+	if err != nil {
+		err = fmt.Errorf("get sys role tpl permission fail,%s ", err.Error())
+		return
+	}
+	if len(roleTplRows) == 0 {
+		return
+	}
+	var permissionTplList []string
+	for _, v := range roleTplRows {
+		permissionTplList = append(permissionTplList, v.PermissionTpl)
+	}
+	var ciTplRows []*models.SysPermissionCiTplTable
+	if ciTypeAttr == "" {
+		err = x.SQL("select * from sys_permission_ci_tpl where ci_type=? and ci_type_attr is null and permission_tpl in ('"+strings.Join(permissionTplList, "','")+"')", ciType).Find(&ciTplRows)
+	} else {
+		err = x.SQL("select * from sys_permission_ci_tpl where ci_type=? and ci_type_attr=? and permission_tpl in ('"+strings.Join(permissionTplList, "','")+"')", ciType, ciTypeAttr).Find(&ciTplRows)
+	}
+	if err != nil {
+		err = fmt.Errorf("Get sys permission ci tpl fail,%s ", err.Error())
+		return
+	}
+	result.CiType = ciType
+	var permissionCiTplGuidList []string
+	for _, roleCiTypeObj := range ciTplRows {
+		if !result.Insert && roleCiTypeObj.Insert == "Y" {
+			result.Insert = true
+		}
+		if !result.Delete && roleCiTypeObj.Delete == "Y" {
+			result.Delete = true
+		}
+		if !result.Update && roleCiTypeObj.Update == "Y" {
+			result.Update = true
+		}
+		if !result.Query && roleCiTypeObj.Query == "Y" {
+			result.Query = true
+		}
+		if !result.Execute && roleCiTypeObj.Execution == "Y" {
+			result.Execute = true
+		}
+		if !result.Confirm && roleCiTypeObj.Confirm == "Y" {
+			result.Confirm = true
+		}
+		permissionCiTplGuidList = append(permissionCiTplGuidList, roleCiTypeObj.Guid)
+	}
+	legalAction = true
+	switch inputAction {
+	case models.DataActionInsert:
+		if result.Insert {
+			return
+		}
+	case models.DataActionDelete:
+		if result.Delete {
+			return
+		}
+	case models.DataActionUpdate:
+		if result.Update {
+			return
+		}
+	case models.DataActionQuery:
+		if result.Query {
+			return
+		}
+	case models.DataActionExecute:
+		if result.Execute {
+			return
+		}
+	case models.DataActionConfirm:
+		if result.Confirm {
+			return
+		}
+	}
+	legalAction = false
+	var roleCiTypeMap = make(map[string]*models.RoleCiTypePermissionObj)
+	var conditionQuery []*models.TplConditionListQueryObj
+	var sqlActionFilter string
+	if inputAction != "" {
+		sqlActionFilter = fmt.Sprintf(" and t1.%s='Y' ", inputAction)
+	}
+	err = x.SQL("select t2.*,t1.permission_ci_tpl,t1.`insert`,t1.`delete`,t1.`update`,t1.`query`,t1.`execute`,t1.`Confirm` from sys_permission_condition_tpl t1 left join sys_permission_condition_filter_tpl t2 on t1.guid=t2.permission_condition_tpl where t1.permission_ci_tpl in ('" + strings.Join(permissionCiTplGuidList, "','") + "')" + sqlActionFilter).Find(&conditionQuery)
+	if err != nil {
+		err = fmt.Errorf("Get role condition data fail,%s ", err.Error())
+		return
+	}
+	for _, conditionFilter := range conditionQuery {
+		tmpFilterObj := models.SysRoleCiTypeConditionFilterTable{Guid: conditionFilter.Guid, PermissionConditionTpl: conditionFilter.PermissionConditionTpl, CiTypeAttr: conditionFilter.CiTypeAttr,
+			CiTypeAttrName: conditionFilter.CiTypeAttrName, Expression: conditionFilter.Expression, FilterType: conditionFilter.FilterType, SelectList: conditionFilter.SelectList}
+		tmpConditionObj := models.RoleAttrConditionObj{Guid: conditionFilter.PermissionConditionTpl, PermissionCiTplId: conditionFilter.PermissionCiTpl, Insert: conditionFilter.Insert,
+			Delete: conditionFilter.Delete, Update: conditionFilter.Update, Query: conditionFilter.Query, Execution: conditionFilter.Execution, Confirm: conditionFilter.Confirm, Filters: []*models.SysRoleCiTypeConditionFilterTable{&tmpFilterObj}}
+		if _, b := roleCiTypeMap[conditionFilter.PermissionCiTpl]; b {
+			indexFlag := -1
+			for i, condition := range roleCiTypeMap[conditionFilter.PermissionCiTpl].Conditions {
+				if condition.Guid == conditionFilter.PermissionConditionTpl {
+					indexFlag = i
+					break
+				}
+			}
+			if indexFlag >= 0 {
+				roleCiTypeMap[conditionFilter.PermissionCiTpl].Conditions[indexFlag].Filters = append(roleCiTypeMap[conditionFilter.PermissionCiTpl].Conditions[indexFlag].Filters, &tmpFilterObj)
+			} else {
+				roleCiTypeMap[conditionFilter.PermissionCiTpl].Conditions = append(roleCiTypeMap[conditionFilter.PermissionCiTpl].Conditions, &tmpConditionObj)
+			}
+		} else {
+			roleCiTypeMap[conditionFilter.PermissionCiTpl] = &models.RoleCiTypePermissionObj{Conditions: []*models.RoleAttrConditionObj{&tmpConditionObj}}
+		}
+	}
+	if len(roleCiTypeMap) > 0 {
+		//var tplParamList []*models.PermissionTplFilterParamObj
+		tplRoleParamMap := make(map[string][]*models.PermissionTplFilterParamObj)
+		var paramRoleList []string
+		for _, row := range roleTplRows {
+			if row.ParamConfig != "" && row.ParamConfig != "[]" {
+				tmpParamList := []*models.PermissionTplFilterParamObj{}
+				tmpUnmarshalErr := json.Unmarshal([]byte(row.ParamConfig), &tmpParamList)
+				if tmpUnmarshalErr != nil {
+					log.Error(nil, log.LOGGER_APP, "json unmarshal permission tpl param fail", zap.String("roleTplPermissionId", row.Id), zap.String("paramList", row.ParamConfig), zap.Error(tmpUnmarshalErr))
+					continue
+				}
+				if existList, ok := tplRoleParamMap[row.RoleId]; ok {
+					tplRoleParamMap[row.RoleId] = append(existList, tmpParamList...)
+				} else {
+					tplRoleParamMap[row.RoleId] = tmpParamList
+					paramRoleList = append(paramRoleList, row.RoleId)
+				}
+			}
+		}
+		ciTplParamMap := make(map[string]map[string][]*models.PermissionTplFilterParamObj) // key->permissionCiTpl [ key->role  value->[]*filterParamObj ]
+		for roleId, tplParamList := range tplRoleParamMap {
+			for _, row := range tplParamList {
+				if existRoleParamMap, ok := ciTplParamMap[row.PermissionCiTplId]; ok {
+					if existParamList, matchRole := existRoleParamMap[roleId]; matchRole {
+						existRoleParamMap[roleId] = append(existParamList, row)
+					} else {
+						existRoleParamMap[roleId] = []*models.PermissionTplFilterParamObj{row}
+					}
+				} else {
+					tmpRoleParamMap := make(map[string][]*models.PermissionTplFilterParamObj)
+					tmpRoleParamMap[roleId] = []*models.PermissionTplFilterParamObj{row}
+					ciTplParamMap[row.PermissionCiTplId] = tmpRoleParamMap
+				}
+			}
+		}
+		for permissionCiTplId, permissionObj := range roleCiTypeMap {
+			if tmpParamRoleObj, ok := ciTplParamMap[permissionCiTplId]; ok {
+				tmpNewConditionList := []*models.RoleAttrConditionObj{}
+				for _, tmpPermConditionTplObj := range permissionObj.Conditions {
+					for _, tmpRoleId := range paramRoleList {
+						// 根据每个角色对这个模版ci权限的参数配置，生成新的配置
+						newConditionObj := buildPermissionConditionObj(tmpPermConditionTplObj, tmpParamRoleObj[tmpRoleId])
+						log.Info(nil, log.LOGGER_APP, "buildPermissionConditionObj", log.JsonObj("tmpNewConditionList", newConditionObj))
+						tmpNewConditionList = append(tmpNewConditionList, newConditionObj)
+					}
+				}
+				permissionObj.Conditions = tmpNewConditionList
+			}
+		}
+	}
+	var roleListQuery []*models.SysPermissionListTplTable
+	err = x.SQL("select t1.* from sys_permission_list_tpl t1 where t1.permission_ci_tpl in ('" + strings.Join(permissionCiTplGuidList, "','") + "')" + sqlActionFilter).Find(&roleListQuery)
+	if err != nil {
+		err = fmt.Errorf("Get role list data fail,%s ", err.Error())
+		return
+	}
+	for _, row := range roleListQuery {
+		tmpRoleListObj := models.SysRoleCiTypeListTable{
+			Guid:       row.Guid,
+			RoleCiType: row.PermissionCiTpl,
+			List:       row.List,
+			ListName:   row.ListName,
+			Insert:     row.Insert,
+			Update:     row.Update,
+			Query:      row.Query,
+			Delete:     row.Delete,
+			Execution:  row.Execution,
+			Confirm:    row.Confirm,
+		}
+		if _, b := roleCiTypeMap[row.PermissionCiTpl]; b {
+			roleCiTypeMap[row.PermissionCiTpl].List = append(roleCiTypeMap[row.PermissionCiTpl].List, &tmpRoleListObj)
+		} else {
+			roleCiTypeMap[row.PermissionCiTpl] = &models.RoleCiTypePermissionObj{List: []*models.SysRoleCiTypeListTable{&tmpRoleListObj}}
+		}
+	}
+	result.ConfigMap = roleCiTypeMap
+	log.Info(nil, log.LOGGER_APP, "roleCiTypeMap", log.JsonObj("roleCiTypeMap", roleCiTypeMap))
+	return
+}
+
+func buildPermissionConditionObj(conditionTplObj *models.RoleAttrConditionObj, paramList []*models.PermissionTplFilterParamObj) (newConditionObj *models.RoleAttrConditionObj) {
+	newConditionObj = &models.RoleAttrConditionObj{Guid: conditionTplObj.Guid, PermissionCiTplId: conditionTplObj.PermissionCiTplId, Insert: conditionTplObj.Insert, Update: conditionTplObj.Update, Delete: conditionTplObj.Delete, Query: conditionTplObj.Query, Execution: conditionTplObj.Execution, Confirm: conditionTplObj.Confirm}
+	for _, filter := range conditionTplObj.Filters {
+		newFilter := models.SysRoleCiTypeConditionFilterTable{
+			Guid:                   filter.Guid,
+			PermissionConditionTpl: filter.PermissionConditionTpl,
+			CiTypeAttr:             filter.CiTypeAttr,
+			CiTypeAttrName:         filter.CiTypeAttrName,
+			Expression:             filter.Expression,
+			ConditionValueExprs:    filter.ConditionValueExprs,
+			FilterType:             filter.FilterType,
+			SelectList:             filter.SelectList,
+			SelectValues:           filter.SelectValues,
+		}
+		for _, paramObj := range paramList {
+			if paramObj.FilterAttrName == filter.CiTypeAttrName {
+				newFilter.Expression = strings.ReplaceAll(newFilter.Expression, fmt.Sprintf("'%s'", paramObj.FilterParamDefaultValue), fmt.Sprintf("'%s'", paramObj.FilterParamValue))
+			}
+		}
+		newConditionObj.Filters = append(newConditionObj.Filters, &newFilter)
 	}
 	return
 }

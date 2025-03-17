@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	"go.uber.org/zap"
+
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 )
@@ -23,12 +25,12 @@ func GetCiAttrById(ciAttrId string) (rowData *models.SysCiTypeAttrTable, err err
 	var ciAttrTable []*models.SysCiTypeAttrTable
 	err = x.SQL("SELECT * FROM sys_ci_type_attr WHERE id=?", ciAttrId).Find(&ciAttrTable)
 	if err != nil {
-		log.Logger.Error("Get ci type attribute error", log.String("ciAttrId", ciAttrId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Get ci type attribute error", zap.String("ciAttrId", ciAttrId), zap.Error(err))
 		return
 	}
 	if len(ciAttrTable) == 0 {
 		err = fmt.Errorf("Ci type attribute %s can not found ", ciAttrId)
-		log.Logger.Warn("Get ci type attribute fail", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Get ci type attribute fail", zap.Error(err))
 	} else {
 		rowData = ciAttrTable[0]
 	}
@@ -89,7 +91,7 @@ func CiAttrCreate(param *models.SysCiTypeAttrTable) error {
 	execParams = append([]interface{}{execSql}, execParams...)
 	_, err = x.Exec(execParams...)
 	if err != nil {
-		log.Logger.Error("Insert ci attr data fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Insert ci attr data fail", zap.Error(err))
 	}
 	return err
 }
@@ -98,7 +100,7 @@ func CiAttrCreateByTemplate(ciTypeId, ciTemplateId string) error {
 	var ciAttrTemplateData []*models.SysCiTemplateAttrTable
 	err := x.SQL("SELECT * FROM sys_ci_template_attr WHERE ci_template=?", ciTemplateId).Find(&ciAttrTemplateData)
 	if err != nil {
-		log.Logger.Error("Try to create ci attr from ci template fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to create ci attr from ci template fail", zap.Error(err))
 		return err
 	}
 	if len(ciAttrTemplateData) == 0 {
@@ -158,10 +160,14 @@ func CiAttrUpdate(param *models.SysCiTypeAttrTable) (updateAutoFill bool, err er
 		if strings.Contains(param.DataType, "(") {
 			param.DataLength, _ = strconv.Atoi(param.DataType[strings.Index(param.DataType, "(")+1 : len(param.DataType)-1])
 		}
+		newColumnDef := fmt.Sprintf("%s(%d)", ciAttrData.DataType, param.DataLength)
+		if ciAttrData.DataType == "text" || ciAttrData.DataType == "datetime" {
+			newColumnDef = ciAttrData.DataType
+		}
 		if ciAttrData.DataLength != param.DataLength {
 			if ciAttrData.DataType == "varchar" || ciAttrData.DataType == "int" {
-				alterSql := fmt.Sprintf("alter table %s modify column %s %s(%d)", ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, param.DataLength)
-				alertHistorySql := fmt.Sprintf("alter table %s%s modify column %s %s(%d)", HistoryTablePrefix, ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, param.DataLength)
+				alterSql := fmt.Sprintf("alter table `%s` modify column `%s` %s", ciAttrData.CiType, ciAttrData.Name, newColumnDef)
+				alertHistorySql := fmt.Sprintf("alter table `%s%s` modify column `%s` %s", HistoryTablePrefix, ciAttrData.CiType, ciAttrData.Name, newColumnDef)
 				if param.Nullable == "no" {
 					alterSql += " not null"
 					alertHistorySql += " not null"
@@ -178,16 +184,16 @@ func CiAttrUpdate(param *models.SysCiTypeAttrTable) (updateAutoFill bool, err er
 			}
 		}
 		if ciAttrData.Nullable == "no" && param.Nullable == "yes" && ciAttrData.InputType != models.MultiRefType {
-			alterSql := fmt.Sprintf("alter table %s modify column %s %s(%d) default null", ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, param.DataLength)
-			alertHistorySql := fmt.Sprintf("alter table %s%s modify column %s %s(%d) default null", HistoryTablePrefix, ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, param.DataLength)
+			alterSql := fmt.Sprintf("alter table `%s` modify column `%s` %s default null", ciAttrData.CiType, ciAttrData.Name, newColumnDef)
+			alertHistorySql := fmt.Sprintf("alter table `%s%s` modify column `%s` %s default null", HistoryTablePrefix, ciAttrData.CiType, ciAttrData.Name, newColumnDef)
 			actions = append(actions, &execAction{Sql: alterSql, Param: []interface{}{}})
 			actions = append(actions, &execAction{Sql: alertHistorySql, Param: []interface{}{}})
 			extendUpdateColumn += ",nullable=?"
 			execParams = append(execParams, param.Nullable)
 		}
 		if ciAttrData.Nullable == "yes" && param.Nullable == "no" && ciAttrData.InputType != models.MultiRefType {
-			alterSql := fmt.Sprintf("alter table %s modify column %s %s(%d) not null", ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, param.DataLength)
-			alertHistorySql := fmt.Sprintf("alter table %s%s modify column %s %s(%d) not null", HistoryTablePrefix, ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, param.DataLength)
+			alterSql := fmt.Sprintf("alter table `%s` modify column `%s` %s not null", ciAttrData.CiType, ciAttrData.Name, newColumnDef)
+			alertHistorySql := fmt.Sprintf("alter table `%s%s` modify column `%s` %s not null", HistoryTablePrefix, ciAttrData.CiType, ciAttrData.Name, newColumnDef)
 			actions = append(actions, &execAction{Sql: alterSql, Param: []interface{}{}})
 			actions = append(actions, &execAction{Sql: alertHistorySql, Param: []interface{}{}})
 			extendUpdateColumn += ",nullable=?"
@@ -202,7 +208,7 @@ func CiAttrUpdate(param *models.SysCiTypeAttrTable) (updateAutoFill bool, err er
 	execParams[0] = "UPDATE sys_ci_type_attr SET display_name=?,description=?,ui_search_order=?,text_validate=?,reset_on_edit=?,display_by_default=?,ui_nullable=?,nullable=?,editable=?,unique_constraint=?,autofillable=?,autofill_rule=?,autofill_type=?,edit_group_control=?,edit_group_value=?,ref_name=?,ref_filter=?,ref_update_state_validate=?,ref_confirm_state_validate=?,permission_usage=?,ext_ref_entity=?,confirm_nullable=?,`sensitive`=?" + extendUpdateColumn + "  WHERE id=?"
 	_, err = x.Exec(execParams...)
 	if err != nil {
-		log.Logger.Error("Update ci attr data fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Update ci attr data fail", zap.Error(err))
 	} else {
 		if len(actions) > 0 {
 			err = transaction(actions)
@@ -222,8 +228,8 @@ func CiAttrDelete(ciAttrId string) error {
 		var actions []*execAction
 		actions = append(actions, &execAction{Sql: "UPDATE sys_ci_type_attr SET status='deleted' WHERE id=?", Param: []interface{}{ciAttrId}})
 		if ciAttrData.Nullable == "no" {
-			alterSql := fmt.Sprintf("alter table %s modify column %s %s(%d) default null", ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, ciAttrData.DataLength)
-			alertHistorySql := fmt.Sprintf("alter table %s%s modify column %s %s(%d) default null", HistoryTablePrefix, ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, ciAttrData.DataLength)
+			alterSql := fmt.Sprintf("alter table `%s` modify column `%s` %s(%d) default null", ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, ciAttrData.DataLength)
+			alertHistorySql := fmt.Sprintf("alter table `%s%s` modify column `%s` %s(%d) default null", HistoryTablePrefix, ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, ciAttrData.DataLength)
 			actions = append(actions, &execAction{Sql: alterSql, Param: []interface{}{}})
 			actions = append(actions, &execAction{Sql: alertHistorySql, Param: []interface{}{}})
 		}
@@ -253,8 +259,8 @@ func CiAttrRollback(ciAttrId string) error {
 	var actions []*execAction
 	actions = append(actions, &execAction{Sql: "UPDATE sys_ci_type_attr SET status='created' where id=?", Param: []interface{}{ciAttrId}})
 	if ciAttrData.Nullable == "no" {
-		alterSql := fmt.Sprintf("alter table %s modify column %s %s(%d) not null", ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, ciAttrData.DataLength)
-		alertHistorySql := fmt.Sprintf("alter table %s%s modify column %s %s(%d) not null", HistoryTablePrefix, ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, ciAttrData.DataLength)
+		alterSql := fmt.Sprintf("alter table `%s` modify column `%s` %s(%d) not null", ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, ciAttrData.DataLength)
+		alertHistorySql := fmt.Sprintf("alter table `%s%s` modify column `%s` %s(%d) not null", HistoryTablePrefix, ciAttrData.CiType, ciAttrData.Name, ciAttrData.DataType, ciAttrData.DataLength)
 		actions = append(actions, &execAction{Sql: alterSql, Param: []interface{}{}})
 		actions = append(actions, &execAction{Sql: alertHistorySql, Param: []interface{}{}})
 	}
@@ -345,10 +351,10 @@ func CiAttrApply(ciTypeId, ciAttrId string, updateAutofill bool) error {
 	} else {
 		attrSql, historyAttrSql := buildColumnSqlFromCiAttr(ciAttrData)
 		var actions []*execAction
-		actions = append(actions, &execAction{Sql: fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s", ciTypeId, attrSql)})
-		actions = append(actions, &execAction{Sql: fmt.Sprintf("ALTER TABLE %s%s ADD COLUMN %s", HistoryTablePrefix, ciTypeId, historyAttrSql)})
+		actions = append(actions, &execAction{Sql: fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN %s", ciTypeId, attrSql)})
+		actions = append(actions, &execAction{Sql: fmt.Sprintf("ALTER TABLE `%s%s` ADD COLUMN %s", HistoryTablePrefix, ciTypeId, historyAttrSql)})
 		if ciAttrData.InputType == "ref" {
-			actions = append(actions, &execAction{Sql: fmt.Sprintf("CREATE INDEX idx_%s_%s ON %s (`%s`)", ciTypeId, ciAttrData.Name, ciTypeId, ciAttrData.Name)})
+			actions = append(actions, &execAction{Sql: fmt.Sprintf("CREATE INDEX idx_%s_%s ON `%s` (`%s`)", ciTypeId, ciAttrData.Name, ciTypeId, ciAttrData.Name)})
 		}
 		err = transaction(actions)
 		if err != nil {
@@ -358,7 +364,7 @@ func CiAttrApply(ciTypeId, ciAttrId string, updateAutofill bool) error {
 	}
 	_, updateStatusErr := x.Exec("UPDATE sys_ci_type_attr SET status=? WHERE id=?", ciAttrStatus, ciAttrId)
 	if updateStatusErr != nil {
-		log.Logger.Error("Update ci attr status error", log.String("ciAttrId", ciAttrId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Update ci attr status error", zap.String("ciAttrId", ciAttrId), zap.Error(err))
 		err = fmt.Errorf("Update ci attr database fail,%s ", updateStatusErr.Error())
 	}
 	return err

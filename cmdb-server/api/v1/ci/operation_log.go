@@ -13,7 +13,7 @@ import (
 var operationLogChannel = make(chan *models.SysLogTable, 100)
 
 func StartConsumeOperationLog() {
-	log.Logger.Info("start consume operation log job")
+	log.Info(nil, log.LOGGER_APP, "start consume operation log job")
 	for {
 		operationLogObj := <-operationLogChannel
 		db.SaveOperationLog(operationLogObj)

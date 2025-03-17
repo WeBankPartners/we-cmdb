@@ -2,13 +2,15 @@ package db
 
 import (
 	"fmt"
-	"github.com/WeBankPartners/go-common-lib/guid"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"io/ioutil"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/go-common-lib/guid"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"go.uber.org/zap"
 )
 
 var (
@@ -133,12 +135,12 @@ func GetCiTypeById(ciTypeId string) (rowData *models.SysCiTypeTable, err error) 
 	var ciTypeTable []*models.SysCiTypeTable
 	err = x.SQL("SELECT * FROM sys_ci_type WHERE id=?", ciTypeId).Find(&ciTypeTable)
 	if err != nil {
-		log.Logger.Error("Get ci type error", log.String("ciTypeId", ciTypeId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Get ci type error", zap.String("ciTypeId", ciTypeId), zap.Error(err))
 		return
 	}
 	if len(ciTypeTable) == 0 {
 		err = fmt.Errorf("Ci type %s can not found ", ciTypeId)
-		log.Logger.Warn("Get ci type fail", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Get ci type fail", zap.Error(err))
 	} else {
 		rowData = ciTypeTable[0]
 	}
@@ -168,11 +170,11 @@ func CiTypesImageSave(imageBytes []byte, imageType string) (imageGuid string, er
 func CiTypesImageDelete(imageGuid, imageFileName string) {
 	_, err := x.Exec("DELETE FROM sys_files WHERE guid=?", imageGuid)
 	if err != nil {
-		log.Logger.Error("Delete ci type image file data fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Delete ci type image file data fail", zap.Error(err))
 	}
 	err = os.Remove(fmt.Sprintf("public%s/fonts/%s", models.UrlPrefix, imageFileName))
 	if err != nil {
-		log.Logger.Error("Delete image file fail", log.String("path", fmt.Sprintf("public%s/fonts/%s", models.UrlPrefix, imageFileName)), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Delete image file fail", zap.String("path", fmt.Sprintf("public%s/fonts/%s", models.UrlPrefix, imageFileName)), zap.Error(err))
 	}
 }
 
@@ -207,7 +209,7 @@ func CiTypesCreate(param *models.SysCiTypeTable) error {
 	if err != nil {
 		err = fmt.Errorf("Try to create attributes by template fail,%s ", err.Error())
 	} else {
-		log.Logger.Info("Create ci types success", log.String("id", param.Id))
+		log.Info(nil, log.LOGGER_APP, "Create ci types success", zap.String("id", param.Id))
 	}
 	return err
 }
@@ -315,7 +317,7 @@ func CreateCiTable(ciTypeId string) error {
 		columnList = append(columnList, tmpAttrSql)
 		historyColumnList = append(historyColumnList, tmpHistoryAttrSql)
 		if ciAttr.InputType == "ref" {
-			actions = append(actions, &execAction{Sql: fmt.Sprintf("CREATE INDEX idx_%s_%s ON %s (`%s`)", ciTypeId, ciAttr.Name, ciTypeId, ciAttr.Name)})
+			actions = append(actions, &execAction{Sql: fmt.Sprintf("CREATE INDEX idx_%s_%s ON `%s` (`%s`)", ciTypeId, ciAttr.Name, ciTypeId, ciAttr.Name)})
 		}
 	}
 	// check ciType reference ci is confirmed
@@ -350,7 +352,7 @@ func CreateCiTable(ciTypeId string) error {
 	}
 	if len(actions) > 0 {
 		if createIndexErr := transaction(actions); createIndexErr != nil {
-			log.Logger.Error("Try to create ci table index fail", log.String("ciType", ciTypeId), log.Error(createIndexErr))
+			log.Error(nil, log.LOGGER_APP, "Try to create ci table index fail", zap.String("ciType", ciTypeId), zap.Error(createIndexErr))
 		}
 	}
 	historyColumnList = append(historyColumnList, "`history_action` VARCHAR(16) NOT NULL")
@@ -403,7 +405,7 @@ func UpdateCiTypesStatus(ciTypeId, status string) {
 	actions = append(actions, &execAction{Sql: "UPDATE sys_ci_type SET status=? WHERE id=?", Param: []interface{}{status, ciTypeId}})
 	actions = append(actions, &execAction{Sql: "UPDATE sys_ci_type_attr SET status=? WHERE ci_type=?", Param: []interface{}{status, ciTypeId}})
 	if err := transaction(actions); err != nil {
-		log.Logger.Error("Try to update ci type status fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to update ci type status fail", zap.Error(err))
 	}
 }
 
@@ -521,7 +523,7 @@ func GetStateTransitionByCiType(ciTypeId string, onlyOperation bool) (rowData []
 }
 
 func StartSyncImageFile() {
-	log.Logger.Info("start sync image file job")
+	log.Info(nil, log.LOGGER_APP, "start sync image file job")
 	for {
 		imageList := <-staticImageListChan
 		go syncImageFile(imageList)
@@ -532,7 +534,7 @@ func getStaticImageMap() (staticImageMap map[string]string, err error) {
 	staticImageMap = make(map[string]string)
 	files, readErr := ioutil.ReadDir(fmt.Sprintf("public%s/fonts/", models.UrlPrefix))
 	if readErr != nil {
-		log.Logger.Error("start sync image file job fail", log.Error(readErr))
+		log.Error(nil, log.LOGGER_APP, "start sync image file job fail", zap.Error(readErr))
 		err = readErr
 		return
 	} else {
@@ -548,7 +550,7 @@ func getStaticImageMap() (staticImageMap map[string]string, err error) {
 func syncImageFile(configList []string) {
 	staticImageMap, err := getStaticImageMap()
 	if err != nil {
-		log.Logger.Error("Try to sync image file fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to sync image file fail", zap.Error(err))
 		return
 	}
 	addMap := make(map[string]int)
@@ -564,11 +566,11 @@ func syncImageFile(configList []string) {
 	for k, _ := range addMap {
 		addList = append(addList, k)
 	}
-	log.Logger.Info("Start to sync image file", log.StringList("imageId", addList))
+	log.Info(nil, log.LOGGER_APP, "Start to sync image file", zap.Strings("imageId", addList))
 	var imageTable []*models.SysFilesTable
 	err = x.SQL("select * from sys_files where guid in ('" + strings.Join(addList, "','") + "')").Find(&imageTable)
 	if err != nil {
-		log.Logger.Error("Try to sync image file fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to sync image file fail", zap.Error(err))
 		return
 	}
 	var imageFilePath string
@@ -579,7 +581,7 @@ func syncImageFile(configList []string) {
 		imageFilePath = fmt.Sprintf("public%s/fonts/%s.%s", models.UrlPrefix, imageObj.Guid, imageObj.Type)
 		err = ioutil.WriteFile(imageFilePath, imageObj.Content, 0666)
 		if err != nil {
-			log.Logger.Error("Save static image file fail", log.String("path", imageFilePath), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Save static image file fail", zap.String("path", imageFilePath), zap.Error(err))
 		} else {
 			staticImageMap[imageObj.Guid] = fmt.Sprintf("%s.%s", imageObj.Guid, imageObj.Type)
 		}
@@ -601,7 +603,7 @@ func createListParams(inputList []string, prefix string) (specSql string, paramL
 func QueryIdAndName() (rowData []*models.SysCiTypeTable, err error) {
 	err = x.SQL("SELECT id, display_name FROM sys_ci_type").Find(&rowData)
 	if err != nil {
-		log.Logger.Error("Get ci type fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Get ci type fail", zap.Error(err))
 		return
 	}
 	return

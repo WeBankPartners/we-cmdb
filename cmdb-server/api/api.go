@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/exterror"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -119,6 +120,23 @@ func init() {
 		&handlerFuncObj{Url: "/user/roles", Method: "GET", HandlerFunc: permission.GetUserRole, ApiCode: "GetUserRole"},
 		&handlerFuncObj{Url: "/user/password/reset", Method: "POST", HandlerFunc: permission.UserPasswordReset, LogOperation: true, ApiCode: "UserPasswordReset"},
 		&handlerFuncObj{Url: "/user/password/update", Method: "POST", HandlerFunc: permission.UserPasswordUpdate, LogOperation: true, ApiCode: "UserPasswordUpdate"},
+		// template
+		&handlerFuncObj{Url: "/permissions/tpl/list", Method: "GET", HandlerFunc: permission.ListTemplate, ApiCode: "ListTemplate"},
+		&handlerFuncObj{Url: "/permissions/tpl/save", Method: "POST", HandlerFunc: permission.SaveTemplate, ApiCode: "SaveTemplate"},
+		&handlerFuncObj{Url: "/permissions/tpl/get", Method: "GET", HandlerFunc: permission.GetTemplate, ApiCode: "GetTemplate"},
+		&handlerFuncObj{Url: "/permissions/tpl/delete", Method: "DELETE", HandlerFunc: permission.DeleteTemplate, ApiCode: "DeleteTemplate"},
+		&handlerFuncObj{Url: "/permissions/tpl/param", Method: "GET", HandlerFunc: permission.GetTemplateParam, ApiCode: "GetTemplateParam"},
+		&handlerFuncObj{Url: "/permissions/tpl/param/save", Method: "POST", HandlerFunc: permission.SaveTemplateParam, ApiCode: "SaveTemplateParam"},
+		&handlerFuncObj{Url: "/permissions/role/:roleId/tpl/get", Method: "GET", HandlerFunc: permission.GetRoleTemplate, ApiCode: "GetRoleTemplate"},
+		&handlerFuncObj{Url: "/permissions/role/:roleId/tpl/save", Method: "POST", HandlerFunc: permission.SaveRoleTemplate, ApiCode: "SaveRoleTemplate"},
+		&handlerFuncObj{Url: "/permissions/tpl/condition/:permissionCiTpl", Method: "GET", HandlerFunc: permission.GetTemplateCiTypeCondition, ApiCode: "GetTemplateCiTypeCondition"},
+		&handlerFuncObj{Url: "/permissions/tpl/condition/:permissionCiTpl", Method: "POST", HandlerFunc: permission.AddTemplateCiTypeCondition, LogOperation: true, ApiCode: "AddTemplateCiTypeCondition"},
+		&handlerFuncObj{Url: "/permissions/tpl/condition/:permissionCiTpl", Method: "PUT", HandlerFunc: permission.EditTemplateCiTypeCondition, LogOperation: true, ApiCode: "EditTemplateCiTypeCondition"},
+		&handlerFuncObj{Url: "/permissions/tpl/condition/:permissionCiTpl", Method: "DELETE", HandlerFunc: permission.DeleteTemplateCiTypeCondition, LogOperation: true, ApiCode: "DeleteTemplateCiTypeCondition"},
+		&handlerFuncObj{Url: "/permissions/tpl/list/:permissionCiTpl", Method: "GET", HandlerFunc: permission.GetTemplateCiTypeList, ApiCode: "GetTemplateCiTypeList"},
+		&handlerFuncObj{Url: "/permissions/tpl/list/:permissionCiTpl", Method: "POST", HandlerFunc: permission.AddTemplateCiTypeList, LogOperation: true, ApiCode: "AddTemplateCiTypeList"},
+		&handlerFuncObj{Url: "/permissions/tpl/list/:permissionCiTpl", Method: "PUT", HandlerFunc: permission.EditTemplateCiTypeList, LogOperation: true, ApiCode: "EditTemplateCiTypeList"},
+		&handlerFuncObj{Url: "/permissions/tpl/list/:permissionCiTpl", Method: "DELETE", HandlerFunc: permission.DeleteTemplateCiTypeList, LogOperation: true, ApiCode: "DeleteTemplateCiTypeList"},
 	)
 
 	// view
@@ -194,7 +212,7 @@ func InitHttpServer() {
 		apiCodeMap[fmt.Sprintf("%s_%s/api/v1%s", funcObj.Method, models.UrlPrefix, funcObj.Url)] = funcObj.ApiCode
 		handleFuncList := []gin.HandlerFunc{funcObj.HandlerFunc}
 		if funcObj.PreHandle != nil {
-			log.Logger.Info("Append pre handle", log.String("url", funcObj.Url))
+			log.Info(nil, log.LOGGER_APP, "Append pre handle", zap.String("url", funcObj.Url))
 			handleFuncList = append([]gin.HandlerFunc{funcObj.PreHandle}, funcObj.HandlerFunc)
 		}
 		if funcObj.LogOperation {
@@ -246,13 +264,13 @@ func httpLogHandle() gin.HandlerFunc {
 		c.Writer.Header().Add("Api-Code", apiCode)
 		c.Set(models.ContextApiCode, apiCode)
 		c.Next()
-		log.AccessLogger.Info("request", log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.Int("code", c.Writer.Status()), log.String("operator", c.GetString("user")), log.String("ip", middleware.GetRemoteIp(c)), log.Float64("cost_ms", time.Now().Sub(start).Seconds()*1000), log.String("body", c.GetString("requestBody")))
+		log.Info(nil, log.LOGGER_ACCESS, "request", zap.String("url", c.Request.RequestURI), zap.String("method", c.Request.Method), zap.Int("code", c.Writer.Status()), zap.String("operator", c.GetString("user")), zap.String("ip", middleware.GetRemoteIp(c)), zap.Float64("cost_ms", time.Now().Sub(start).Seconds()*1000), zap.String("body", c.GetString("requestBody")))
 	}
 }
 
 func InitHttpError() {
 	err := exterror.InitErrorTemplateList(models.Config.HttpServer.ErrorTemplateDir, models.Config.HttpServer.ErrorDetailReturn)
 	if err != nil {
-		log.Logger.Error("Init error template list fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Init error template list fail", zap.Error(err))
 	}
 }
