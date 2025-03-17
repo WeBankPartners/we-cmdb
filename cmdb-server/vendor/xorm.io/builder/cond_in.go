@@ -38,132 +38,198 @@ func (condIn condIn) WriteTo(w Writer) error {
 		if len(vals) <= 0 {
 			return condIn.handleBlank(w)
 		}
-		questionMark := strings.Repeat("?,", len(vals))
+		// We're using this map to track if a parameter was already added to the condition to not add the same multiple times.
+		trackMap := make(map[int8]bool, len(vals))
+		for _, val := range vals {
+			if _, exists := trackMap[val]; exists {
+				continue
+			}
+			w.Append(val)
+			trackMap[val] = true
+		}
+		questionMark := strings.Repeat("?,", len(trackMap))
 		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
-		}
-		for _, val := range vals {
-			w.Append(val)
 		}
 	case []int16:
 		vals := condIn.vals[0].([]int16)
 		if len(vals) <= 0 {
 			return condIn.handleBlank(w)
 		}
-		questionMark := strings.Repeat("?,", len(vals))
+		// We're using this map to track if a parameter was already added to the condition to not add the same multiple times.
+		trackMap := make(map[int16]bool, len(vals))
+		for _, val := range vals {
+			if _, exists := trackMap[val]; exists {
+				continue
+			}
+			w.Append(val)
+			trackMap[val] = true
+		}
+		questionMark := strings.Repeat("?,", len(trackMap))
 		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
-		}
-		for _, val := range vals {
-			w.Append(val)
 		}
 	case []int:
 		vals := condIn.vals[0].([]int)
 		if len(vals) <= 0 {
 			return condIn.handleBlank(w)
 		}
-		questionMark := strings.Repeat("?,", len(vals))
+		// We're using this map to track if a parameter was already added to the condition to not add the same multiple times.
+		trackMap := make(map[int]bool, len(vals))
+		for _, val := range vals {
+			if _, exists := trackMap[val]; exists {
+				continue
+			}
+			w.Append(val)
+			trackMap[val] = true
+		}
+		questionMark := strings.Repeat("?,", len(trackMap))
 		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
-		}
-		for _, val := range vals {
-			w.Append(val)
 		}
 	case []int32:
 		vals := condIn.vals[0].([]int32)
 		if len(vals) <= 0 {
 			return condIn.handleBlank(w)
 		}
-		questionMark := strings.Repeat("?,", len(vals))
+		// We're using this map to track if a parameter was already added to the condition to not add the same multiple times.
+		trackMap := make(map[int32]bool, len(vals))
+		for _, val := range vals {
+			if _, exists := trackMap[val]; exists {
+				continue
+			}
+			w.Append(val)
+			trackMap[val] = true
+		}
+		questionMark := strings.Repeat("?,", len(trackMap))
 		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
-		}
-		for _, val := range vals {
-			w.Append(val)
 		}
 	case []int64:
 		vals := condIn.vals[0].([]int64)
 		if len(vals) <= 0 {
 			return condIn.handleBlank(w)
 		}
-		questionMark := strings.Repeat("?,", len(vals))
+		// We're using this map to track if a parameter was already added to the condition to not add the same multiple times.
+		trackMap := make(map[int64]bool, len(vals))
+		for _, val := range vals {
+			if _, exists := trackMap[val]; exists {
+				continue
+			}
+			w.Append(val)
+			trackMap[val] = true
+		}
+		questionMark := strings.Repeat("?,", len(trackMap))
 		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
-		}
-		for _, val := range vals {
-			w.Append(val)
 		}
 	case []uint8:
 		vals := condIn.vals[0].([]uint8)
 		if len(vals) <= 0 {
 			return condIn.handleBlank(w)
 		}
-		questionMark := strings.Repeat("?,", len(vals))
+		// We're using this map to track if a parameter was already added to the condition to not add the same multiple times.
+		trackMap := make(map[uint8]bool, len(vals))
+		for _, val := range vals {
+			if _, exists := trackMap[val]; exists {
+				continue
+			}
+			w.Append(val)
+			trackMap[val] = true
+		}
+		questionMark := strings.Repeat("?,", len(trackMap))
 		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
-		}
-		for _, val := range vals {
-			w.Append(val)
 		}
 	case []uint16:
 		vals := condIn.vals[0].([]uint16)
 		if len(vals) <= 0 {
 			return condIn.handleBlank(w)
 		}
-		questionMark := strings.Repeat("?,", len(vals))
+		// We're using this map to track if a parameter was already added to the condition to not add the same multiple times.
+		trackMap := make(map[uint16]bool, len(vals))
+		for _, val := range vals {
+			if _, exists := trackMap[val]; exists {
+				continue
+			}
+			w.Append(val)
+			trackMap[val] = true
+		}
+		questionMark := strings.Repeat("?,", len(trackMap))
 		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
-		}
-		for _, val := range vals {
-			w.Append(val)
 		}
 	case []uint:
 		vals := condIn.vals[0].([]uint)
 		if len(vals) <= 0 {
 			return condIn.handleBlank(w)
 		}
-		questionMark := strings.Repeat("?,", len(vals))
+		// We're using this map to track if a parameter was already added to the condition to not add the same multiple times.
+		trackMap := make(map[uint]bool, len(vals))
+		for _, val := range vals {
+			if _, exists := trackMap[val]; exists {
+				continue
+			}
+			w.Append(val)
+			trackMap[val] = true
+		}
+		questionMark := strings.Repeat("?,", len(trackMap))
 		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
-		}
-		for _, val := range vals {
-			w.Append(val)
 		}
 	case []uint32:
 		vals := condIn.vals[0].([]uint32)
 		if len(vals) <= 0 {
 			return condIn.handleBlank(w)
 		}
-		questionMark := strings.Repeat("?,", len(vals))
+		// We're using this map to track if a parameter was already added to the condition to not add the same multiple times.
+		trackMap := make(map[uint32]bool, len(vals))
+		for _, val := range vals {
+			if _, exists := trackMap[val]; exists {
+				continue
+			}
+			w.Append(val)
+			trackMap[val] = true
+		}
+		questionMark := strings.Repeat("?,", len(trackMap))
 		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
-		}
-		for _, val := range vals {
-			w.Append(val)
 		}
 	case []uint64:
 		vals := condIn.vals[0].([]uint64)
 		if len(vals) <= 0 {
 			return condIn.handleBlank(w)
 		}
-		questionMark := strings.Repeat("?,", len(vals))
+		// We're using this map to track if a parameter was already added to the condition to not add the same multiple times.
+		trackMap := make(map[uint64]bool, len(vals))
+		for _, val := range vals {
+			if _, exists := trackMap[val]; exists {
+				continue
+			}
+			w.Append(val)
+			trackMap[val] = true
+		}
+		questionMark := strings.Repeat("?,", len(trackMap))
 		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
-		}
-		for _, val := range vals {
-			w.Append(val)
 		}
 	case []string:
 		vals := condIn.vals[0].([]string)
 		if len(vals) <= 0 {
 			return condIn.handleBlank(w)
 		}
-		questionMark := strings.Repeat("?,", len(vals))
+		// We're using this map to track if a parameter was already added to the condition to not add the same multiple times.
+		trackMap := make(map[string]bool, len(vals))
+		for _, val := range vals {
+			if _, exists := trackMap[val]; exists {
+				continue
+			}
+			w.Append(val)
+			trackMap[val] = true
+		}
+		questionMark := strings.Repeat("?,", len(trackMap))
 		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
-		}
-		for _, val := range vals {
-			w.Append(val)
 		}
 	case []interface{}:
 		vals := condIn.vals[0].([]interface{})
@@ -175,8 +241,8 @@ func (condIn condIn) WriteTo(w Writer) error {
 			return err
 		}
 		w.Append(vals...)
-	case expr:
-		val := condIn.vals[0].(expr)
+	case *Expression:
+		val := condIn.vals[0].(*Expression)
 		if _, err := fmt.Fprintf(w, "%s IN (", condIn.col); err != nil {
 			return err
 		}
@@ -205,15 +271,38 @@ func (condIn condIn) WriteTo(w Writer) error {
 				return condIn.handleBlank(w)
 			}
 
-			questionMark := strings.Repeat("?,", l)
+			trackMap := make(map[interface{}]bool, l)
+			for i := 0; i < l; i++ {
+				val := v.Index(i).Interface()
+				if _, exists := trackMap[val]; exists {
+					continue
+				}
+				w.Append(val)
+				trackMap[val] = true
+			}
+
+			questionMark := strings.Repeat("?,", len(trackMap))
 			if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 				return err
 			}
-
-			for i := 0; i < l; i++ {
-				w.Append(v.Index(i).Interface())
-			}
 		} else {
+			// Using a map for better efficiency
+			trackMap := make(map[interface{}]bool, len(condIn.vals))
+
+			i := 0
+			for in, val := range condIn.vals {
+				if _, exists := trackMap[val]; exists {
+					// This sets empty values to nil, they get sliced off later.
+					condIn.vals[in] = nil
+					continue
+				}
+				trackMap[val] = true
+				condIn.vals[i] = val
+				i++
+			}
+			// Here we slice the slice to only contain those values we defined as correct.
+			condIn.vals = condIn.vals[:i]
+
 			questionMark := strings.Repeat("?,", len(condIn.vals))
 			if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 				return err

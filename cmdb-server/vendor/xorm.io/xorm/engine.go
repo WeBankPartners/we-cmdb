@@ -7,11 +7,11 @@ package xorm
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"io"
 	"os"
 	"reflect"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -34,6 +34,7 @@ type Engine struct {
 	cacherMgr      *caches.Manager
 	defaultContext context.Context
 	dialect        dialects.Dialect
+	driver         dialects.Driver
 	engineGroup    *EngineGroup
 	logger         log.ContextLogger
 	tagParser      *tags.Parser
@@ -50,7 +51,7 @@ type Engine struct {
 
 // NewEngine new a db manager according to the parameter. Currently support four
 // drivers
-func NewEngine(driverName string, dataSourceName string) (*Engine, error) {
+func NewEngine(driverName string, dataSourceName string, driverOptions ...func(db *sql.DB) error) (*Engine, error) {
 	dialect, err := dialects.OpenDialect(driverName, dataSourceName)
 	if err != nil {
 		return nil, err
@@ -59,6 +60,12 @@ func NewEngine(driverName string, dataSourceName string) (*Engine, error) {
 	db, err := core.Open(driverName, dataSourceName)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, driverOption := range driverOptions {
+		if err := driverOption(db.DB); err != nil {
+			return nil, err
+		}
 	}
 
 	return newEngine(driverName, dataSourceName, dialect, db)
@@ -71,6 +78,7 @@ func newEngine(driverName, dataSourceName string, dialect dialects.Dialect, db *
 
 	engine := &Engine{
 		dialect:        dialect,
+		driver:         dialects.QueryDriver(driverName),
 		TZLocation:     time.Local,
 		defaultContext: context.Background(),
 		cacherMgr:      cacherMgr,
@@ -103,6 +111,15 @@ func NewEngineWithParams(driverName string, dataSourceName string, params map[st
 	engine, err := NewEngine(driverName, dataSourceName)
 	engine.dialect.SetParams(params)
 	return engine, err
+}
+
+// NewEngineWithDB new a db manager with db. The params will be passed to db.
+func NewEngineWithDB(driverName string, dataSourceName string, db *core.DB) (*Engine, error) {
+	dialect, err := dialects.OpenDialect(driverName, dataSourceName)
+	if err != nil {
+		return nil, err
+	}
+	return newEngine(driverName, dataSourceName, dialect, db)
 }
 
 // NewEngineWithDialectAndDB new a db manager according to the parameter.
@@ -159,6 +176,8 @@ func (engine *Engine) SetLogger(logger interface{}) {
 		realLogger = t
 	case log.Logger:
 		realLogger = log.NewLoggerAdapter(t)
+	default:
+		panic("logger should implement either log.ContextLogger or log.Logger")
 	}
 	engine.logger = realLogger
 	engine.DB().Logger = realLogger
@@ -200,6 +219,11 @@ func (engine *Engine) SetColumnMapper(mapper names.Mapper) {
 	engine.tagParser.SetColumnMapper(mapper)
 }
 
+// SetTagIdentifier set the tag identifier
+func (engine *Engine) SetTagIdentifier(tagIdentifier string) {
+	engine.tagParser.SetIdentifier(tagIdentifier)
+}
+
 // Quote Use QuoteStr quote the string sql
 func (engine *Engine) Quote(value string) string {
 	value = strings.TrimSpace(value)
@@ -231,14 +255,14 @@ func (engine *Engine) SQLType(c *schemas.Column) string {
 	return engine.dialect.SQLType(c)
 }
 
-// AutoIncrStr Database's autoincrement statement
-func (engine *Engine) AutoIncrStr() string {
-	return engine.dialect.AutoIncrStr()
-}
-
 // SetConnMaxLifetime sets the maximum amount of time a connection may be reused.
 func (engine *Engine) SetConnMaxLifetime(d time.Duration) {
 	engine.DB().SetConnMaxLifetime(d)
+}
+
+// SetConnMaxIdleTime sets the maximum amount of time a connection may be idle.
+func (engine *Engine) SetConnMaxIdleTime(d time.Duration) {
+	engine.DB().SetConnMaxIdleTime(d)
 }
 
 // SetMaxOpenConns is only available for go 1.2+
@@ -317,7 +341,7 @@ func (engine *Engine) Ping() error {
 // SQL method let's you manually write raw SQL and operate
 // For example:
 //
-//         engine.SQL("select * from user").Find(&users)
+//	engine.SQL("select * from user").Find(&users)
 //
 // This    code will execute "select * from user" and set the records to users
 func (engine *Engine) SQL(query interface{}, args ...interface{}) *Session {
@@ -342,15 +366,15 @@ func (engine *Engine) NoAutoCondition(no ...bool) *Session {
 	return session.NoAutoCondition(no...)
 }
 
-func (engine *Engine) loadTableInfo(table *schemas.Table) error {
-	colSeq, cols, err := engine.dialect.GetColumns(engine.db, engine.defaultContext, table.Name)
+func (engine *Engine) loadTableInfo(ctx context.Context, table *schemas.Table) error {
+	colSeq, cols, err := engine.dialect.GetColumns(engine.db, ctx, table.Name)
 	if err != nil {
 		return err
 	}
 	for _, name := range colSeq {
 		table.AddColumn(cols[name])
 	}
-	indexes, err := engine.dialect.GetIndexes(engine.db, engine.defaultContext, table.Name)
+	indexes, err := engine.dialect.GetIndexes(engine.db, ctx, table.Name)
 	if err != nil {
 		return err
 	}
@@ -367,7 +391,7 @@ func (engine *Engine) loadTableInfo(table *schemas.Table) error {
 					seq = 0
 				}
 			}
-			var colName = strings.Trim(parts[0], `"`)
+			colName := strings.Trim(parts[0], `"`)
 			if col := table.GetColumn(colName); col != nil {
 				col.Indexes[index.Name] = index.Type
 			} else {
@@ -386,7 +410,7 @@ func (engine *Engine) DBMetas() ([]*schemas.Table, error) {
 	}
 
 	for _, table := range tables {
-		if err = engine.loadTableInfo(table); err != nil {
+		if err = engine.loadTableInfo(engine.defaultContext, table); err != nil {
 			return nil, err
 		}
 	}
@@ -424,103 +448,47 @@ func (engine *Engine) DumpTablesToFile(tables []*schemas.Table, fp string, tp ..
 
 // DumpTables dump specify tables to io.Writer
 func (engine *Engine) DumpTables(tables []*schemas.Table, w io.Writer, tp ...schemas.DBType) error {
-	return engine.dumpTables(tables, w, tp...)
+	return engine.dumpTables(context.Background(), tables, w, tp...)
 }
 
-func formatColumnValue(dstDialect dialects.Dialect, d interface{}, col *schemas.Column) string {
-	if d == nil {
-		return "NULL"
-	}
-
-	if dq, ok := d.(bool); ok && (dstDialect.URI().DBType == schemas.SQLITE ||
-		dstDialect.URI().DBType == schemas.MSSQL) {
-		if dq {
+func formatBool(s bool, dstDialect dialects.Dialect) string {
+	if dstDialect.URI().DBType != schemas.POSTGRES {
+		if s {
 			return "1"
 		}
 		return "0"
 	}
-
-	if col.SQLType.IsText() {
-		var v = fmt.Sprintf("%s", d)
-		return "'" + strings.Replace(v, "'", "''", -1) + "'"
-	} else if col.SQLType.IsTime() {
-		var v = fmt.Sprintf("%s", d)
-		if strings.HasSuffix(v, " +0000 UTC") {
-			return fmt.Sprintf("'%s'", v[0:len(v)-len(" +0000 UTC")])
-		} else if strings.HasSuffix(v, " +0000 +0000") {
-			return fmt.Sprintf("'%s'", v[0:len(v)-len(" +0000 +0000")])
-		}
-		return "'" + strings.Replace(v, "'", "''", -1) + "'"
-	} else if col.SQLType.IsBlob() {
-		if reflect.TypeOf(d).Kind() == reflect.Slice {
-			return fmt.Sprintf("%s", dstDialect.FormatBytes(d.([]byte)))
-		} else if reflect.TypeOf(d).Kind() == reflect.String {
-			return fmt.Sprintf("'%s'", d.(string))
-		}
-	} else if col.SQLType.IsNumeric() {
-		switch reflect.TypeOf(d).Kind() {
-		case reflect.Slice:
-			if col.SQLType.Name == schemas.Bool {
-				return fmt.Sprintf("%v", strconv.FormatBool(d.([]byte)[0] != byte('0')))
-			}
-			return fmt.Sprintf("%s", string(d.([]byte)))
-		case reflect.Int16, reflect.Int8, reflect.Int32, reflect.Int64, reflect.Int:
-			if col.SQLType.Name == schemas.Bool {
-				v := reflect.ValueOf(d).Int() > 0
-				if dstDialect.URI().DBType == schemas.SQLITE {
-					if v {
-						return "1"
-					}
-					return "0"
-				}
-				return fmt.Sprintf("%v", strconv.FormatBool(v))
-			}
-			return fmt.Sprintf("%v", d)
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			if col.SQLType.Name == schemas.Bool {
-				v := reflect.ValueOf(d).Uint() > 0
-				if dstDialect.URI().DBType == schemas.SQLITE {
-					if v {
-						return "1"
-					}
-					return "0"
-				}
-				return fmt.Sprintf("%v", strconv.FormatBool(v))
-			}
-			return fmt.Sprintf("%v", d)
-		default:
-			return fmt.Sprintf("%v", d)
-		}
-	}
-
-	s := fmt.Sprintf("%v", d)
-	if strings.Contains(s, ":") || strings.Contains(s, "-") {
-		if strings.HasSuffix(s, " +0000 UTC") {
-			return fmt.Sprintf("'%s'", s[0:len(s)-len(" +0000 UTC")])
-		}
-		return fmt.Sprintf("'%s'", s)
-	}
-	return s
+	return strconv.FormatBool(s)
 }
 
+var controlCharactersRe = regexp.MustCompile(`[\x00-\x1f\x7f]+`)
+
 // dumpTables dump database all table structs and data to w with specify db type
-func (engine *Engine) dumpTables(tables []*schemas.Table, w io.Writer, tp ...schemas.DBType) error {
+func (engine *Engine) dumpTables(ctx context.Context, tables []*schemas.Table, w io.Writer, tp ...schemas.DBType) error {
 	var dstDialect dialects.Dialect
 	if len(tp) == 0 {
 		dstDialect = engine.dialect
 	} else {
 		dstDialect = dialects.QueryDialect(tp[0])
 		if dstDialect == nil {
-			return errors.New("Unsupported database type")
+			return fmt.Errorf("unsupported database type %v", tp[0])
 		}
 
 		uri := engine.dialect.URI()
 		destURI := dialects.URI{
 			DBType: tp[0],
 			DBName: uri.DBName,
+			// DO NOT SET SCHEMA HERE
 		}
-		dstDialect.Init(&destURI)
+		if tp[0] == schemas.POSTGRES {
+			destURI.Schema = engine.dialect.URI().Schema
+		}
+		if err := dstDialect.Init(&destURI); err != nil {
+			return err
+		}
 	}
+	cacherMgr := caches.NewManager()
+	dstTableCache := tags.NewParser("xorm", dstDialect, engine.GetTableMapper(), engine.GetColumnMapper(), cacherMgr)
 
 	_, err := io.WriteString(w, fmt.Sprintf("/*Generated by xorm %s, from %s to %s*/\n\n",
 		time.Now().In(engine.TZLocation).Format("2006-01-02 15:04:05"), engine.dialect.URI().DBType, dstDialect.URI().DBType))
@@ -528,10 +496,29 @@ func (engine *Engine) dumpTables(tables []*schemas.Table, w io.Writer, tp ...sch
 		return err
 	}
 
+	if dstDialect.URI().DBType == schemas.MYSQL {
+		// For MySQL set NO_BACKLASH_ESCAPES so that strings work properly
+		if _, err := io.WriteString(w, "SET sql_mode='NO_BACKSLASH_ESCAPES';\n"); err != nil {
+			return err
+		}
+	}
+
 	for i, table := range tables {
-		tableName := table.Name
+		dstTable := table
+		if table.Type != nil {
+			dstTable, err = dstTableCache.Parse(reflect.New(table.Type).Elem())
+			if err != nil {
+				engine.logger.Errorf("Unable to infer table for %s in new dialect. Error: %v", table.Name)
+				dstTable = table
+			}
+		}
+
+		dstTableName := dstTable.Name
+		quoter := dstDialect.Quoter().Quote
+		quotedDstTableName := quoter(dstTable.Name)
 		if dstDialect.URI().Schema != "" {
-			tableName = fmt.Sprintf("%s.%s", dstDialect.URI().Schema, table.Name)
+			dstTableName = fmt.Sprintf("%s.%s", dstDialect.URI().Schema, dstTable.Name)
+			quotedDstTableName = fmt.Sprintf("%s.%s", quoter(dstDialect.URI().Schema), quoter(dstTable.Name))
 		}
 		originalTableName := table.Name
 		if engine.dialect.URI().Schema != "" {
@@ -543,27 +530,43 @@ func (engine *Engine) dumpTables(tables []*schemas.Table, w io.Writer, tp ...sch
 				return err
 			}
 		}
-		sqls, _ := dstDialect.CreateTableSQL(table, tableName)
-		for _, s := range sqls {
-			_, err = io.WriteString(w, s+";\n")
+
+		if dstTable.AutoIncrement != "" && dstDialect.Features().AutoincrMode == dialects.SequenceAutoincrMode {
+			sqlstr, err := dstDialect.CreateSequenceSQL(ctx, engine.db, utils.SeqName(dstTableName))
+			if err != nil {
+				return err
+			}
+			_, err = io.WriteString(w, sqlstr+";\n")
 			if err != nil {
 				return err
 			}
 		}
-		if len(table.PKColumns()) > 0 && dstDialect.URI().DBType == schemas.MSSQL {
-			fmt.Fprintf(w, "SET IDENTITY_INSERT [%s] ON;\n", table.Name)
+
+		sqlstr, _, err := dstDialect.CreateTableSQL(ctx, engine.db, dstTable, dstTableName)
+		if err != nil {
+			return err
+		}
+		_, err = io.WriteString(w, sqlstr+";\n")
+		if err != nil {
+			return err
 		}
 
-		for _, index := range table.Indexes {
-			_, err = io.WriteString(w, dstDialect.CreateIndexSQL(table.Name, index)+";\n")
+		if len(dstTable.PKColumns()) > 0 && dstDialect.URI().DBType == schemas.MSSQL {
+			fmt.Fprintf(w, "SET IDENTITY_INSERT [%s] ON;\n", dstTable.Name)
+		}
+
+		for _, index := range dstTable.Indexes {
+			_, err = io.WriteString(w, dstDialect.CreateIndexSQL(dstTable.Name, index)+";\n")
 			if err != nil {
 				return err
 			}
 		}
 
 		cols := table.ColumnsSeq()
+		dstCols := dstTable.ColumnsSeq()
+
 		colNames := engine.dialect.Quoter().Join(cols, ", ")
-		destColNames := dstDialect.Quoter().Join(cols, ", ")
+		destColNames := dstDialect.Quoter().Join(dstCols, ", ")
 
 		rows, err := engine.DB().QueryContext(engine.defaultContext, "SELECT "+colNames+" FROM "+engine.Quote(originalTableName))
 		if err != nil {
@@ -571,39 +574,261 @@ func (engine *Engine) dumpTables(tables []*schemas.Table, w io.Writer, tp ...sch
 		}
 		defer rows.Close()
 
+		types, err := rows.ColumnTypes()
+		if err != nil {
+			return err
+		}
+
+		fields, err := rows.Columns()
+		if err != nil {
+			return err
+		}
+
+		sess := engine.NewSession()
+		defer sess.Close()
 		for rows.Next() {
-			dest := make([]interface{}, len(cols))
-			err = rows.ScanSlice(&dest)
+			_, err = io.WriteString(w, "INSERT INTO "+quotedDstTableName+" ("+destColNames+") VALUES (")
 			if err != nil {
 				return err
 			}
 
-			_, err = io.WriteString(w, "INSERT INTO "+dstDialect.Quoter().Quote(tableName)+" ("+destColNames+") VALUES (")
+			scanResults, err := sess.engine.scanStringInterface(rows, fields, types)
 			if err != nil {
 				return err
 			}
+			for i, scanResult := range scanResults {
+				stp := schemas.SQLType{Name: types[i].DatabaseTypeName()}
+				s := scanResult.(*sql.NullString)
+				if !s.Valid {
+					if _, err = io.WriteString(w, "NULL"); err != nil {
+						return err
+					}
+				} else {
+					if table.Columns()[i].SQLType.IsBool() || stp.IsBool() || (dstDialect.URI().DBType == schemas.MSSQL && strings.EqualFold(stp.Name, schemas.Bit)) {
+						val, err := strconv.ParseBool(s.String)
+						if err != nil {
+							return err
+						}
 
-			var temp string
-			for i, d := range dest {
-				col := table.GetColumn(cols[i])
-				if col == nil {
-					return errors.New("unknow column error")
+						if _, err = io.WriteString(w, formatBool(val, dstDialect)); err != nil {
+							return err
+						}
+					} else if stp.IsNumeric() {
+						if _, err = io.WriteString(w, s.String); err != nil {
+							return err
+						}
+					} else if sess.engine.dialect.URI().DBType == schemas.DAMENG && stp.IsTime() && len(s.String) == 25 {
+						r := strings.ReplaceAll(s.String[:19], "T", " ")
+						if _, err = io.WriteString(w, "'"+r+"'"); err != nil {
+							return err
+						}
+					} else if len(s.String) == 0 {
+						if _, err := io.WriteString(w, "''"); err != nil {
+							return err
+						}
+					} else if dstDialect.URI().DBType == schemas.POSTGRES {
+						if dstTable.Columns()[i].SQLType.IsBlob() {
+							// Postgres has the escape format and we should use that for bytea data
+							if _, err := fmt.Fprintf(w, "'\\x%x'", s.String); err != nil {
+								return err
+							}
+						} else {
+							// Postgres concatentates strings using || (NOTE: a NUL byte in a text segment will fail)
+							toCheck := strings.ReplaceAll(s.String, "'", "''")
+							for len(toCheck) > 0 {
+								loc := controlCharactersRe.FindStringIndex(toCheck)
+								if loc == nil {
+									if _, err := io.WriteString(w, "'"+toCheck+"'"); err != nil {
+										return err
+									}
+									break
+								}
+								if loc[0] > 0 {
+									if _, err := io.WriteString(w, "'"+toCheck[:loc[0]]+"' || "); err != nil {
+										return err
+									}
+								}
+								if _, err := io.WriteString(w, "e'"); err != nil {
+									return err
+								}
+								for i := loc[0]; i < loc[1]; i++ {
+									if _, err := fmt.Fprintf(w, "\\x%02x", toCheck[i]); err != nil {
+										return err
+									}
+								}
+								toCheck = toCheck[loc[1]:]
+								if len(toCheck) > 0 {
+									if _, err := io.WriteString(w, "' || "); err != nil {
+										return err
+									}
+								} else {
+									if _, err := io.WriteString(w, "'"); err != nil {
+										return err
+									}
+								}
+							}
+						}
+					} else if dstDialect.URI().DBType == schemas.MYSQL {
+						loc := controlCharactersRe.FindStringIndex(s.String)
+						if loc == nil {
+							if _, err := io.WriteString(w, "'"+strings.ReplaceAll(s.String, "'", "''")+"'"); err != nil {
+								return err
+							}
+						} else {
+							if _, err := io.WriteString(w, "CONCAT("); err != nil {
+								return err
+							}
+							toCheck := strings.ReplaceAll(s.String, "'", "''")
+							for len(toCheck) > 0 {
+								loc := controlCharactersRe.FindStringIndex(toCheck)
+								if loc == nil {
+									if _, err := io.WriteString(w, "'"+toCheck+"')"); err != nil {
+										return err
+									}
+									break
+								}
+								if loc[0] > 0 {
+									if _, err := io.WriteString(w, "'"+toCheck[:loc[0]]+"', "); err != nil {
+										return err
+									}
+								}
+								for i := loc[0]; i < loc[1]-1; i++ {
+									if _, err := io.WriteString(w, "CHAR("+strconv.Itoa(int(toCheck[i]))+"), "); err != nil {
+										return err
+									}
+								}
+								char := toCheck[loc[1]-1]
+								toCheck = toCheck[loc[1]:]
+								if len(toCheck) > 0 {
+									if _, err := io.WriteString(w, "CHAR("+strconv.Itoa(int(char))+"), "); err != nil {
+										return err
+									}
+								} else {
+									if _, err = io.WriteString(w, "CHAR("+strconv.Itoa(int(char))+"))"); err != nil {
+										return err
+									}
+								}
+							}
+						}
+					} else if dstDialect.URI().DBType == schemas.SQLITE {
+						if dstTable.Columns()[i].SQLType.IsBlob() {
+							// SQLite has its escape format
+							if _, err := fmt.Fprintf(w, "X'%x'", s.String); err != nil {
+								return err
+							}
+						} else {
+							// SQLite concatentates strings using || (NOTE: a NUL byte in a text segment will fail)
+							toCheck := strings.ReplaceAll(s.String, "'", "''")
+							for len(toCheck) > 0 {
+								loc := controlCharactersRe.FindStringIndex(toCheck)
+								if loc == nil {
+									if _, err := io.WriteString(w, "'"+toCheck+"'"); err != nil {
+										return err
+									}
+									break
+								}
+								if loc[0] > 0 {
+									if _, err := io.WriteString(w, "'"+toCheck[:loc[0]]+"' || "); err != nil {
+										return err
+									}
+								}
+								if _, err := fmt.Fprintf(w, "X'%x'", toCheck[loc[0]:loc[1]]); err != nil {
+									return err
+								}
+								toCheck = toCheck[loc[1]:]
+								if len(toCheck) > 0 {
+									if _, err := io.WriteString(w, " || "); err != nil {
+										return err
+									}
+								}
+							}
+						}
+					} else if dstDialect.URI().DBType == schemas.DAMENG || dstDialect.URI().DBType == schemas.ORACLE {
+						if dstTable.Columns()[i].SQLType.IsBlob() {
+							// ORACLE/DAMENG uses HEXTORAW
+							if _, err := fmt.Fprintf(w, "HEXTORAW('%x')", s.String); err != nil {
+								return err
+							}
+						} else {
+							// ORACLE/DAMENG concatentates strings in multiple ways but uses CHAR and has CONCAT
+							// (NOTE: a NUL byte in a text segment will fail)
+							if _, err := io.WriteString(w, "CONCAT("); err != nil {
+								return err
+							}
+							toCheck := strings.ReplaceAll(s.String, "'", "''")
+							for len(toCheck) > 0 {
+								loc := controlCharactersRe.FindStringIndex(toCheck)
+								if loc == nil {
+									if _, err := io.WriteString(w, "'"+toCheck+"')"); err != nil {
+										return err
+									}
+									break
+								}
+								if loc[0] > 0 {
+									if _, err := io.WriteString(w, "'"+toCheck[:loc[0]]+"', "); err != nil {
+										return err
+									}
+								}
+								for i := loc[0]; i < loc[1]-1; i++ {
+									if _, err := io.WriteString(w, "CHAR("+strconv.Itoa(int(toCheck[i]))+"), "); err != nil {
+										return err
+									}
+								}
+								char := toCheck[loc[1]-1]
+								toCheck = toCheck[loc[1]:]
+								if len(toCheck) > 0 {
+									if _, err := io.WriteString(w, "CHAR("+strconv.Itoa(int(char))+"), "); err != nil {
+										return err
+									}
+								} else {
+									if _, err = io.WriteString(w, "CHAR("+strconv.Itoa(int(char))+"))"); err != nil {
+										return err
+									}
+								}
+							}
+						}
+					} else if dstDialect.URI().DBType == schemas.MSSQL {
+						if dstTable.Columns()[i].SQLType.IsBlob() {
+							// MSSQL uses CONVERT(VARBINARY(MAX), '0xDEADBEEF', 1)
+							if _, err := fmt.Fprintf(w, "CONVERT(VARBINARY(MAX), '0x%x', 1)", s.String); err != nil {
+								return err
+							}
+						} else {
+							if _, err = io.WriteString(w, "N'"+strings.ReplaceAll(s.String, "'", "''")+"'"); err != nil {
+								return err
+							}
+						}
+					} else {
+						if _, err = io.WriteString(w, "'"+strings.ReplaceAll(s.String, "'", "''")+"'"); err != nil {
+							return err
+						}
+					}
 				}
-				temp += "," + formatColumnValue(dstDialect, d, col)
+				if i < len(scanResults)-1 {
+					if _, err = io.WriteString(w, ","); err != nil {
+						return err
+					}
+				}
 			}
-			_, err = io.WriteString(w, temp[1:]+");\n")
+			_, err = io.WriteString(w, ");\n")
 			if err != nil {
 				return err
 			}
+		}
+		if rows.Err() != nil {
+			return rows.Err()
 		}
 
 		// FIXME: Hack for postgres
 		if dstDialect.URI().DBType == schemas.POSTGRES && table.AutoIncrColumn() != nil {
-			_, err = io.WriteString(w, "SELECT setval('"+tableName+"_id_seq', COALESCE((SELECT MAX("+table.AutoIncrColumn().Name+") + 1 FROM "+dstDialect.Quoter().Quote(tableName)+"), 1), false);\n")
+			_, err = io.WriteString(w, "SELECT setval('"+dstTableName+"_id_seq', COALESCE((SELECT MAX("+table.AutoIncrColumn().Name+") + 1 FROM "+dstDialect.Quoter().Quote(dstTableName)+"), 1), false);\n")
 			if err != nil {
 				return err
 			}
 		}
+		// !datbeohbbh! if no error, manually close
+		rows.Close()
+		sess.Close()
 	}
 	return nil
 }
@@ -785,9 +1010,8 @@ func (engine *Engine) Desc(colNames ...string) *Session {
 // Asc will generate "ORDER BY column1,column2 Asc"
 // This method can chainable use.
 //
-//        engine.Desc("name").Asc("age").Find(&users)
-//        // SELECT * FROM user ORDER BY name DESC, age ASC
-//
+//	engine.Desc("name").Asc("age").Find(&users)
+//	// SELECT * FROM user ORDER BY name DESC, age ASC
 func (engine *Engine) Asc(colNames ...string) *Session {
 	session := engine.NewSession()
 	session.isAutoClose = true
@@ -795,10 +1019,10 @@ func (engine *Engine) Asc(colNames ...string) *Session {
 }
 
 // OrderBy will generate "ORDER BY order"
-func (engine *Engine) OrderBy(order string) *Session {
+func (engine *Engine) OrderBy(order interface{}, args ...interface{}) *Session {
 	session := engine.NewSession()
 	session.isAutoClose = true
-	return session.OrderBy(order)
+	return session.OrderBy(order, args...)
 }
 
 // Prepare enables prepare statement
@@ -809,7 +1033,7 @@ func (engine *Engine) Prepare() *Session {
 }
 
 // Join the join_operator should be one of INNER, LEFT OUTER, CROSS etc - this will be prepended to JOIN
-func (engine *Engine) Join(joinOperator string, tablename interface{}, condition string, args ...interface{}) *Session {
+func (engine *Engine) Join(joinOperator string, tablename interface{}, condition interface{}, args ...interface{}) *Session {
 	session := engine.NewSession()
 	session.isAutoClose = true
 	return session.Join(joinOperator, tablename, condition, args...)
@@ -829,15 +1053,9 @@ func (engine *Engine) Having(conditions string) *Session {
 	return session.Having(conditions)
 }
 
-// Table table struct
-type Table struct {
-	*schemas.Table
-	Name string
-}
-
-// IsValid if table is valid
-func (t *Table) IsValid() bool {
-	return t.Table != nil && len(t.Name) > 0
+// DBVersion returns the database version
+func (engine *Engine) DBVersion() (*schemas.Version, error) {
+	return engine.dialect.Version(engine.defaultContext, engine.db)
 }
 
 // TableInfo get table info according to bean's content
@@ -908,112 +1126,6 @@ func (engine *Engine) UnMapType(t reflect.Type) {
 	engine.tagParser.ClearCacheTable(t)
 }
 
-// Sync the new struct changes to database, this method will automatically add
-// table, column, index, unique. but will not delete or change anything.
-// If you change some field, you should change the database manually.
-func (engine *Engine) Sync(beans ...interface{}) error {
-	session := engine.NewSession()
-	defer session.Close()
-
-	for _, bean := range beans {
-		v := utils.ReflectValue(bean)
-		tableNameNoSchema := dialects.FullTableName(engine.dialect, engine.GetTableMapper(), bean)
-		table, err := engine.tagParser.ParseWithCache(v)
-		if err != nil {
-			return err
-		}
-
-		isExist, err := session.Table(bean).isTableExist(tableNameNoSchema)
-		if err != nil {
-			return err
-		}
-		if !isExist {
-			err = session.createTable(bean)
-			if err != nil {
-				return err
-			}
-		}
-		/*isEmpty, err := engine.IsEmptyTable(bean)
-		  if err != nil {
-		      return err
-		  }*/
-		var isEmpty bool
-		if isEmpty {
-			err = session.dropTable(bean)
-			if err != nil {
-				return err
-			}
-			err = session.createTable(bean)
-			if err != nil {
-				return err
-			}
-		} else {
-			for _, col := range table.Columns() {
-				isExist, err := engine.dialect.IsColumnExist(engine.db, session.ctx, tableNameNoSchema, col.Name)
-				if err != nil {
-					return err
-				}
-				if !isExist {
-					if err := session.statement.SetRefBean(bean); err != nil {
-						return err
-					}
-					err = session.addColumn(col.Name)
-					if err != nil {
-						return err
-					}
-				}
-			}
-
-			for name, index := range table.Indexes {
-				if err := session.statement.SetRefBean(bean); err != nil {
-					return err
-				}
-				if index.Type == schemas.UniqueType {
-					isExist, err := session.isIndexExist2(tableNameNoSchema, index.Cols, true)
-					if err != nil {
-						return err
-					}
-					if !isExist {
-						if err := session.statement.SetRefBean(bean); err != nil {
-							return err
-						}
-
-						err = session.addUnique(tableNameNoSchema, name)
-						if err != nil {
-							return err
-						}
-					}
-				} else if index.Type == schemas.IndexType {
-					isExist, err := session.isIndexExist2(tableNameNoSchema, index.Cols, false)
-					if err != nil {
-						return err
-					}
-					if !isExist {
-						if err := session.statement.SetRefBean(bean); err != nil {
-							return err
-						}
-
-						err = session.addIndex(tableNameNoSchema, name)
-						if err != nil {
-							return err
-						}
-					}
-				} else {
-					return errors.New("unknow index type")
-				}
-			}
-		}
-	}
-	return nil
-}
-
-// Sync2 synchronize structs to database tables
-func (engine *Engine) Sync2(beans ...interface{}) error {
-	s := engine.NewSession()
-	defer s.Close()
-	return s.Sync2(beans...)
-}
-
 // CreateTables create tabls according bean
 func (engine *Engine) CreateTables(beans ...interface{}) error {
 	session := engine.NewSession()
@@ -1027,7 +1139,7 @@ func (engine *Engine) CreateTables(beans ...interface{}) error {
 	for _, bean := range beans {
 		err = session.createTable(bean)
 		if err != nil {
-			session.Rollback()
+			_ = session.Rollback()
 			return err
 		}
 	}
@@ -1047,7 +1159,7 @@ func (engine *Engine) DropTables(beans ...interface{}) error {
 	for _, bean := range beans {
 		err = session.dropTable(bean)
 		if err != nil {
-			session.Rollback()
+			_ = session.Rollback()
 			return err
 		}
 	}
@@ -1106,9 +1218,10 @@ func (engine *Engine) InsertOne(bean interface{}) (int64, error) {
 // Update records, bean's non-empty fields are updated contents,
 // condiBean' non-empty filds are conditions
 // CAUTION:
-//        1.bool will defaultly be updated content nor conditions
-//         You should call UseBool if you have bool to use.
-//        2.float32 & float64 may be not inexact as conditions
+//
+//	1.bool will defaultly be updated content nor conditions
+//	 You should call UseBool if you have bool to use.
+//	2.float32 & float64 may be not inexact as conditions
 func (engine *Engine) Update(bean interface{}, condiBeans ...interface{}) (int64, error) {
 	session := engine.NewSession()
 	defer session.Close()
@@ -1116,18 +1229,27 @@ func (engine *Engine) Update(bean interface{}, condiBeans ...interface{}) (int64
 }
 
 // Delete records, bean's non-empty fields are conditions
-func (engine *Engine) Delete(bean interface{}) (int64, error) {
+// At least one condition must be set.
+func (engine *Engine) Delete(beans ...interface{}) (int64, error) {
 	session := engine.NewSession()
 	defer session.Close()
-	return session.Delete(bean)
+	return session.Delete(beans...)
+}
+
+// Truncate records, bean's non-empty fields are conditions
+// In contrast to Delete this method allows deletes without conditions.
+func (engine *Engine) Truncate(beans ...interface{}) (int64, error) {
+	session := engine.NewSession()
+	defer session.Close()
+	return session.Truncate(beans...)
 }
 
 // Get retrieve one record from table, bean's non-empty fields
 // are conditions
-func (engine *Engine) Get(bean interface{}) (bool, error) {
+func (engine *Engine) Get(beans ...interface{}) (bool, error) {
 	session := engine.NewSession()
 	defer session.Close()
-	return session.Get(bean)
+	return session.Get(beans...)
 }
 
 // Exist returns true if the record exist otherwise return false
@@ -1218,13 +1340,13 @@ func (engine *Engine) Import(r io.Reader) ([]sql.Result, error) {
 }
 
 // nowTime return current time
-func (engine *Engine) nowTime(col *schemas.Column) (interface{}, time.Time) {
+func (engine *Engine) nowTime(col *schemas.Column) (interface{}, time.Time, error) {
 	t := time.Now()
-	var tz = engine.DatabaseTZ
-	if !col.DisableTimeZone && col.TimeZone != nil {
-		tz = col.TimeZone
+	result, err := dialects.FormatColumnTime(engine.dialect, engine.DatabaseTZ, col, t)
+	if err != nil {
+		return nil, time.Time{}, err
 	}
-	return dialects.FormatTime(engine.dialect, col.SQLType.Name, t.In(tz)), t.In(engine.TZLocation)
+	return result, t.In(engine.TZLocation), nil
 }
 
 // GetColumnMapper returns the column name mapper
@@ -1262,6 +1384,7 @@ func (engine *Engine) SetSchema(schema string) {
 	engine.dialect.URI().SetSchema(schema)
 }
 
+// AddHook adds a context Hook
 func (engine *Engine) AddHook(hook contexts.Hook) {
 	engine.db.AddHook(hook)
 }
@@ -1277,7 +1400,7 @@ func (engine *Engine) tbNameWithSchema(v string) string {
 	return dialects.TableNameWithSchema(engine.dialect, v)
 }
 
-// ContextHook creates a session with the context
+// Context creates a session with the context
 func (engine *Engine) Context(ctx context.Context) *Session {
 	session := engine.NewSession()
 	session.isAutoClose = true
@@ -1315,4 +1438,11 @@ func (engine *Engine) Transaction(f func(*Session) (interface{}, error)) (interf
 	}
 
 	return result, nil
+}
+
+func (engine *Engine) IndexHint(op, forType, indexerOrColName string) *Session {
+	session := engine.NewSession()
+	session.isAutoClose = true
+	session.statement.LastError = session.statement.IndexHint(op, forType, indexerOrColName)
+	return session
 }

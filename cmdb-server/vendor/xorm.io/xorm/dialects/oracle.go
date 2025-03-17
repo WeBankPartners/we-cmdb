@@ -6,6 +6,7 @@ package dialects
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"regexp"
@@ -508,6 +509,7 @@ var (
 
 type oracle struct {
 	Base
+	useLegacy bool
 }
 
 func (db *oracle) Init(uri *URI) error {
@@ -515,10 +517,57 @@ func (db *oracle) Init(uri *URI) error {
 	return db.Base.Init(db, uri)
 }
 
+func (db *oracle) UseLegacyLimitOffset() bool { return db.useLegacy }
+
+func (db *oracle) SetParams(params map[string]string) {
+	useLegacy, ok := params["USE_LEGACY_LIMIT_OFFSET"]
+	if ok {
+		if b, _ := strconv.ParseBool(useLegacy); b {
+			db.useLegacy = true
+		}
+	}
+}
+
+func (db *oracle) Version(ctx context.Context, queryer core.Queryer) (*schemas.Version, error) {
+	rows, err := queryer.QueryContext(ctx, "select * from v$version where banner like 'Oracle%'")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var version string
+	if !rows.Next() {
+		if rows.Err() != nil {
+			return nil, rows.Err()
+		}
+		return nil, errors.New("unknow version")
+	}
+
+	if err := rows.Scan(&version); err != nil {
+		return nil, err
+	}
+	return &schemas.Version{
+		Number: version,
+	}, nil
+}
+
+func (db *oracle) Features() *DialectFeatures {
+	return &DialectFeatures{
+		AutoincrMode: SequenceAutoincrMode,
+	}
+}
+
 func (db *oracle) SQLType(c *schemas.Column) string {
 	var res string
 	switch t := c.SQLType.Name; t {
-	case schemas.Bit, schemas.TinyInt, schemas.SmallInt, schemas.MediumInt, schemas.Int, schemas.Integer, schemas.BigInt, schemas.Bool, schemas.Serial, schemas.BigSerial:
+	case schemas.Bool:
+		if c.Default == "true" {
+			c.Default = "1"
+		} else if c.Default == "false" {
+			c.Default = "0"
+		}
+		res = "NUMBER(1,0)"
+	case schemas.Bit, schemas.TinyInt, schemas.SmallInt, schemas.MediumInt, schemas.Int, schemas.Integer, schemas.BigInt, schemas.Serial, schemas.BigSerial:
 		res = "NUMBER"
 	case schemas.Binary, schemas.VarBinary, schemas.Blob, schemas.TinyBlob, schemas.MediumBlob, schemas.LongBlob, schemas.Bytea:
 		return schemas.Blob
@@ -540,11 +589,26 @@ func (db *oracle) SQLType(c *schemas.Column) string {
 	hasLen2 := (c.Length2 > 0)
 
 	if hasLen2 {
-		res += "(" + strconv.Itoa(c.Length) + "," + strconv.Itoa(c.Length2) + ")"
+		res += "(" + strconv.FormatInt(c.Length, 10) + "," + strconv.FormatInt(c.Length2, 10) + ")"
 	} else if hasLen1 {
-		res += "(" + strconv.Itoa(c.Length) + ")"
+		res += "(" + strconv.FormatInt(c.Length, 10) + ")"
 	}
 	return res
+}
+
+func (db *oracle) ColumnTypeKind(t string) int {
+	switch strings.ToUpper(t) {
+	case "DATE":
+		return schemas.TIME_TYPE
+	case "CHAR", "NCHAR", "VARCHAR", "VARCHAR2", "NVARCHAR2", "LONG", "CLOB", "NCLOB":
+		return schemas.TEXT_TYPE
+	case "NUMBER":
+		return schemas.NUMERIC_TYPE
+	case "BLOB":
+		return schemas.BLOB_TYPE
+	default:
+		return schemas.UNKNOW_TYPE
+	}
 }
 
 func (db *oracle) AutoIncrStr() string {
@@ -557,11 +621,11 @@ func (db *oracle) IsReserved(name string) bool {
 }
 
 func (db *oracle) DropTableSQL(tableName string) (string, bool) {
-	return fmt.Sprintf("DROP TABLE `%s`", tableName), false
+	return fmt.Sprintf("DROP TABLE \"%s\"", tableName), false
 }
 
-func (db *oracle) CreateTableSQL(table *schemas.Table, tableName string) ([]string, bool) {
-	var sql = "CREATE TABLE "
+func (db *oracle) CreateTableSQL(ctx context.Context, queryer core.Queryer, table *schemas.Table, tableName string) (string, bool, error) {
+	sql := "CREATE TABLE "
 	if tableName == "" {
 		tableName = table.Name
 	}
@@ -576,7 +640,7 @@ func (db *oracle) CreateTableSQL(table *schemas.Table, tableName string) ([]stri
 		/*if col.IsPrimaryKey && len(pkList) == 1 {
 			sql += col.String(b.dialect)
 		} else {*/
-		s, _ := ColumnString(db, col, false)
+		s, _ := ColumnString(db, col, false, false)
 		sql += s
 		// }
 		sql = strings.TrimSpace(sql)
@@ -590,17 +654,21 @@ func (db *oracle) CreateTableSQL(table *schemas.Table, tableName string) ([]stri
 	}
 
 	sql = sql[:len(sql)-2] + ")"
-	return []string{sql}, false
+	return sql, false, nil
+}
+
+func (db *oracle) IsSequenceExist(ctx context.Context, queryer core.Queryer, seqName string) (bool, error) {
+	return db.HasRecords(queryer, ctx, `SELECT sequence_name FROM user_sequences WHERE sequence_name = :1`, seqName)
 }
 
 func (db *oracle) SetQuotePolicy(quotePolicy QuotePolicy) {
 	switch quotePolicy {
 	case QuotePolicyNone:
-		var q = oracleQuoter
+		q := oracleQuoter
 		q.IsReserved = schemas.AlwaysNoReserve
 		db.quoter = q
 	case QuotePolicyReserved:
-		var q = oracleQuoter
+		q := oracleQuoter
 		q.IsReserved = db.IsReserved
 		db.quoter = q
 	case QuotePolicyAlways:
@@ -645,7 +713,7 @@ func (db *oracle) GetColumns(queryer core.Queryer, ctx context.Context, tableNam
 		col.Indexes = make(map[string]int)
 
 		var colName, colDefault, nullable, dataType, dataPrecision, dataScale *string
-		var dataLen int
+		var dataLen int64
 
 		err = rows.Scan(&colName, &colDefault, &dataType, &dataLen, &dataPrecision,
 			&dataScale, &nullable)
@@ -668,16 +736,16 @@ func (db *oracle) GetColumns(queryer core.Queryer, ctx context.Context, tableNam
 		var ignore bool
 
 		var dt string
-		var len1, len2 int
+		var len1, len2 int64
 		dts := strings.Split(*dataType, "(")
 		dt = dts[0]
 		if len(dts) > 1 {
 			lens := strings.Split(dts[1][:len(dts[1])-1], ",")
 			if len(lens) > 1 {
-				len1, _ = strconv.Atoi(lens[0])
-				len2, _ = strconv.Atoi(lens[1])
+				len1, _ = strconv.ParseInt(lens[0], 10, 64)
+				len2, _ = strconv.ParseInt(lens[1], 10, 64)
 			} else {
-				len1, _ = strconv.Atoi(lens[0])
+				len1, _ = strconv.ParseInt(lens[0], 10, 64)
 			}
 		}
 
@@ -720,6 +788,9 @@ func (db *oracle) GetColumns(queryer core.Queryer, ctx context.Context, tableNam
 		cols[col.Name] = col
 		colSeq = append(colSeq, col.Name)
 	}
+	if rows.Err() != nil {
+		return nil, nil, rows.Err()
+	}
 
 	return colSeq, cols, nil
 }
@@ -744,6 +815,9 @@ func (db *oracle) GetTables(queryer core.Queryer, ctx context.Context) ([]*schem
 
 		tables = append(tables, table)
 	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
 	return tables, nil
 }
 
@@ -758,7 +832,7 @@ func (db *oracle) GetIndexes(queryer core.Queryer, ctx context.Context, tableNam
 	}
 	defer rows.Close()
 
-	indexes := make(map[string]*schemas.Index, 0)
+	indexes := make(map[string]*schemas.Index)
 	for rows.Next() {
 		var indexType int
 		var indexName, colName, uniqueness string
@@ -793,19 +867,29 @@ func (db *oracle) GetIndexes(queryer core.Queryer, ctx context.Context, tableNam
 		}
 		index.AddColumn(colName)
 	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
 	return indexes, nil
 }
 
 func (db *oracle) Filters() []Filter {
 	return []Filter{
-		&SeqFilter{Prefix: ":", Start: 1},
+		&oracleSeqFilter{Prefix: ":", Start: 1},
 	}
 }
 
-type goracleDriver struct {
+type godrorDriver struct {
+	baseDriver
 }
 
-func (cfg *goracleDriver) Parse(driverName, dataSourceName string) (*URI, error) {
+func (g *godrorDriver) Features() *DriverFeatures {
+	return &DriverFeatures{
+		SupportReturnInsertedID: false,
+	}
+}
+
+func (g *godrorDriver) Parse(driverName, dataSourceName string) (*URI, error) {
 	db := &URI{DBType: schemas.ORACLE}
 	dsnPattern := regexp.MustCompile(
 		`^(?:(?P<user>.*?)(?::(?P<passwd>.*))?@)?` + // [user[:password]@]
@@ -817,8 +901,7 @@ func (cfg *goracleDriver) Parse(driverName, dataSourceName string) (*URI, error)
 	names := dsnPattern.SubexpNames()
 
 	for i, match := range matches {
-		switch names[i] {
-		case "dbname":
+		if names[i] == "dbname" {
 			db.DBName = match
 		}
 	}
@@ -828,12 +911,33 @@ func (cfg *goracleDriver) Parse(driverName, dataSourceName string) (*URI, error)
 	return db, nil
 }
 
+func (g *godrorDriver) GenScanResult(colType string) (interface{}, error) {
+	switch colType {
+	case "CHAR", "NCHAR", "VARCHAR", "VARCHAR2", "NVARCHAR2", "LONG", "CLOB", "NCLOB":
+		var s sql.NullString
+		return &s, nil
+	case "NUMBER":
+		var s sql.NullString
+		return &s, nil
+	case "DATE":
+		var s sql.NullTime
+		return &s, nil
+	case "BLOB":
+		var r sql.RawBytes
+		return &r, nil
+	default:
+		var r sql.RawBytes
+		return &r, nil
+	}
+}
+
 type oci8Driver struct {
+	godrorDriver
 }
 
 // dataSourceName=user/password@ipv4:port/dbname
 // dataSourceName=user/password@[ipv6]:port/dbname
-func (p *oci8Driver) Parse(driverName, dataSourceName string) (*URI, error) {
+func (o *oci8Driver) Parse(driverName, dataSourceName string) (*URI, error) {
 	db := &URI{DBType: schemas.ORACLE}
 	dsnPattern := regexp.MustCompile(
 		`^(?P<user>.*)\/(?P<password>.*)@` + // user:password@
@@ -842,8 +946,7 @@ func (p *oci8Driver) Parse(driverName, dataSourceName string) (*URI, error) {
 	matches := dsnPattern.FindStringSubmatch(dataSourceName)
 	names := dsnPattern.SubexpNames()
 	for i, match := range matches {
-		switch names[i] {
-		case "dbname":
+		if names[i] == "dbname" {
 			db.DBName = match
 		}
 	}
@@ -851,4 +954,8 @@ func (p *oci8Driver) Parse(driverName, dataSourceName string) (*URI, error) {
 		return nil, errors.New("dbname is empty")
 	}
 	return db, nil
+}
+
+type oracleDriver struct {
+	godrorDriver
 }
