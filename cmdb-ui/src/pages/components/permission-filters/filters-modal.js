@@ -1,6 +1,6 @@
-import './filters-modal.scss'
-import { queryCiData, getEnumCodesByCategoryId } from '@/api/server.js'
+import { getEnumCodesByCategoryId, queryCiData } from '@/api/server.js'
 import { numberOperatorList } from '@/const/operator-list.js'
+import './filters-modal.scss'
 
 export default {
   name: 'FiltersModal',
@@ -12,7 +12,7 @@ export default {
     filterCiAttrOptions: { default: () => {}, type: Object, required: false }
   },
   methods: {
-    async changeFilter (val, i) {
+    async changeFilter(val, i) {
       let _value = JSON.parse(JSON.stringify(this.value))
       let item = _value[i]
       item.name = val
@@ -56,7 +56,7 @@ export default {
       }
       this.$emit('input', _value)
     },
-    changeOperator (val, index) {
+    changeOperator(val, index) {
       let _value = JSON.parse(JSON.stringify(this.value))
       let item = _value[index]
       item.operator = val
@@ -73,18 +73,18 @@ export default {
       }
       this.$emit('input', _value)
     },
-    changeValue (val, index) {
+    changeValue(val, index) {
       let _value = JSON.parse(JSON.stringify(this.value))
       let item = _value[index]
       item.value = val
       this.$emit('input', _value)
     },
-    handleDeleteRow (i) {
+    handleDeleteRow(i) {
       let _value = JSON.parse(JSON.stringify(this.value))
       _value.splice(i, 1)
       this.$emit('input', _value)
     },
-    handleAddRow () {
+    handleAddRow() {
       const emptyFilter = {
         name: 'guid',
         inputType: 'text',
@@ -95,7 +95,7 @@ export default {
       _value.push(emptyFilter)
       this.$emit('input', _value)
     },
-    renderValueInput (data, i) {
+    renderValueInput(data, i) {
       if (['null', 'notNull'].includes(data.operator)) {
         return null
       } else {
@@ -109,15 +109,15 @@ export default {
             >
               {['ref', 'multiRef'].includes(data.inputType)
                 ? data.options.map(_ => (
-                  <Option value={_.guid} key={_.guid}>
-                    {_.code}
-                  </Option>
-                ))
+                    <Option value={_.guid} key={_.guid}>
+                      {_.key_name}
+                    </Option>
+                  ))
                 : data.options.map(_ => (
-                  <Option value={_.codeId} key={_.codeId}>
-                    {_.value}
-                  </Option>
-                ))}
+                    <Option value={_.value} key={_.codeId}>
+                      {_.value}
+                    </Option>
+                  ))}
             </Select>
           )
         } else {
@@ -134,7 +134,7 @@ export default {
       }
     }
   },
-  render (h) {
+  render(h) {
     return (
       <div class="filters-modal">
         {this.modalSpin && <Spin fix />}

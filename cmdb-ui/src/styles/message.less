@@ -1,0 +1,24 @@
+@message-prefix-cls: ~"@{css-prefix}message";
+@icon-prefix-cls: ~"@{css-prefix}icon";
+
+.@{message-prefix-cls} {
+
+    &-success {
+        color: @success-color;
+    }
+
+    &-error {
+        color: @error-color;
+    }
+
+    &-warning {
+        color: @warning-color;
+    }
+
+    &-info,
+    &-loading {
+        color: @primary-color;
+    }
+
+
+}

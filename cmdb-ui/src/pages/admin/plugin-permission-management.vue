@@ -736,7 +736,7 @@ export default {
     background-color: #4ee643;
   }
   .ivu-checkbox-disabled.ivu-checkbox-checked .ivu-checkbox-inner {
-    background-color: #2d8cf0;
+    background-color: #5384FF;
   }
 }
 .permission-management-p {
@@ -750,12 +750,12 @@ export default {
 .batch-operation {
   padding-bottom: 0 5px 8px 5px;
   margin-bottom: 18px;
-  border-bottom: 1px solid #2d8cf0;
+  border-bottom: 1px solid #5384FF;
 }
 .batch-operation-btn {
   text-align: right;
   padding-top: 8px;
   margin-top: 8px;
-  border-top: 1px solid #2d8cf0;
+  border-top: 1px solid #5384FF;
 }
 </style>

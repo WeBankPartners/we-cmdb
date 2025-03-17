@@ -10,7 +10,7 @@
             clearable
             @on-clear="showTable = false"
             filterable
-            style="width:300px"
+            style="width:300px;margin-left: 12px;"
             ref="ciTemplate"
             @on-open-change="getCiTemplate"
           >
@@ -71,7 +71,11 @@
         </FormItem>
         <FormItem :label="$t('icon')" v-if="newCiTemplate.isAdd">
           <Upload :before-upload="handleUpload" action="">
-            <Button icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button>
+            <Button class="btn-upload">
+              <img src="@/styles/icon/UploadOutlined.png" class="upload-icon" />
+              {{ $t('upload_icon_btn') }}
+            </Button>
+            <!-- <Button icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button> -->
           </Upload>
           <div v-if="newCiTemplate.form.fileName">{{ newCiTemplate.form.fileName }}</div>
         </FormItem>
@@ -82,8 +86,15 @@
             height="58"
             width="58"
           />
-          <Upload :before-upload="handleUploadEdit" action="" :disabled="newCiTemplate.form.status === 'deleted'">
-            <Button icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button>
+          <Upload 
+            :before-upload="handleUploadEdit" 
+            action="" 
+            :disabled="newCiTemplate.form.status === 'deleted'">
+            <!-- <Button icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button> -->
+            <Button class="btn-upload">
+              <img src="@/styles/icon/UploadOutlined.png" class="upload-icon" />
+              {{ $t('upload_icon_btn') }}
+            </Button>
           </Upload>
           <div v-if="newCiTemplate.form.fileName">{{ newCiTemplate.form.fileName }}</div>
         </FormItem>
@@ -94,17 +105,17 @@
 
 <script>
 import {
-  getCiTemplate,
-  editCiTemplate,
   addCiTemplate,
-  deleteCiTemplate,
-  getStateMachineList,
-  getCiTemplateAttr,
-  editCiTemplateAttr,
   addCiTemplateAttr,
-  deleteCiTemplateAttr
-} from '@/api/server'
-import { INPUT_TYPE_CONFIG } from '@/const/init-params.js'
+  deleteCiTemplate,
+  deleteCiTemplateAttr,
+  editCiTemplate,
+  editCiTemplateAttr,
+  getCiTemplate,
+  getCiTemplateAttr,
+  getStateMachineList
+} from '@/api/server';
+import { INPUT_TYPE_CONFIG } from '@/const/init-params.js';
 export default {
   data () {
     return {

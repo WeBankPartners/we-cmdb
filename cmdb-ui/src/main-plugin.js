@@ -18,22 +18,6 @@ import CMDBPermissionFilters from '../src/pages/components/permission-filters'
 import CMDBJSONConfig from '../src/pages/components/cmdb-table/json-config.vue'
 import JsonViewer from 'vue-json-viewer'
 
-window.component('WeCMDBSelect', WeCMDBSelect)
-window.component('WeCMDBRefSelect', WeCMDBRefSelect)
-window.component('WeCMDBRadioRroup', WeCMDBRadioRroup)
-window.component('CMDBTable', CMDBTable)
-window.component('WeCMDBSimpleTable', WeCMDBSimpleTable)
-window.component('WeCMDBAttrInput', WeCMDBAttrInput)
-window.component('WeCMDBSequenceDiagram', WeCMDBSequenceDiagram)
-window.component('WeCMDBOrchestration', WeCMDBOrchestration)
-window.component('WeCMDBCIPassword', WeCMDBCIPassword)
-window.component('CMDBPermissionFilters', CMDBPermissionFilters)
-window.component('CMDBJSONConfig', CMDBJSONConfig)
-window.component('JsonViewer', JsonViewer)
-
-window.locale('zh-CN', zhCN)
-window.locale('en-US', enUS)
-
 const implicitRoute = {
   'wecmdb/designing/data-import-detail': {
     childBreadcrumb: {
@@ -50,3 +34,21 @@ const implicitRoute = {
 window.addRoutes && window.addRoutes(router, 'cmdb')
 window.addImplicitRoute && window.addImplicitRoute(implicitRoute)
 window.addRoutersWithoutPermission && window.addRoutersWithoutPermission(router, 'cmdb')
+
+window.component('WeCMDBSelect', WeCMDBSelect)
+window.component('WeCMDBRefSelect', WeCMDBRefSelect)
+window.component('WeCMDBRadioRroup', WeCMDBRadioRroup)
+window.component('CMDBTable', CMDBTable)
+window.component('WeCMDBSimpleTable', WeCMDBSimpleTable)
+window.component('WeCMDBAttrInput', WeCMDBAttrInput)
+window.component('WeCMDBSequenceDiagram', WeCMDBSequenceDiagram)
+window.component('WeCMDBOrchestration', WeCMDBOrchestration)
+window.component('WeCMDBCIPassword', WeCMDBCIPassword)
+window.component('CMDBPermissionFilters', CMDBPermissionFilters)
+window.component('CMDBJSONConfig', CMDBJSONConfig)
+window.component('JsonViewer', JsonViewer)
+
+window.locale('zh-CN', zhCN)
+window.locale('en-US', enUS)
+
+
