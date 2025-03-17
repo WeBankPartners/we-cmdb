@@ -86,7 +86,7 @@
                 <Icon
                   size="16"
                   type="ios-apps-outline"
-                  color="#2d8cf0"
+                  color="#5384FF"
                   style="cursor: pointer;"
                   @click="getDiffVariable(nodeData, formData.propertyName)"
                 />
@@ -792,7 +792,7 @@ export default {
   vertical-align: middle;
   float: left;
   font-size: 14px;
-  color: #515a6e;
+  color: #0f1222;
   line-height: 1;
   padding: 10px 12px 10px 0;
   box-sizing: border-box;

@@ -3,7 +3,7 @@
     <Input
       v-bind="allInputInfo"
       @input="onInputChange"
-      :style="isSensitive ? 'width: 63%' : 'width: 100%'"
+      :style="isSensitive ? 'width: 60%' : 'width: 100%'"
       :disabled="inputDisabled"
     >
     </Input>

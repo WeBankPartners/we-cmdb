@@ -1,0 +1,11 @@
+@menu-prefix-cls: ~"@{css-prefix}menu";
+@menu-dropdown-item-prefix-cls: ~"@{menu-prefix-cls}-horizontal .@{menu-prefix-cls}-submenu .@{select-dropdown-prefix-cls} .@{menu-prefix-cls}-item";
+
+.@{menu-prefix-cls} {
+    &-item{
+      &:hover {
+        text-decoration: none;
+        color: @primary-color;
+      }
+    }
+}

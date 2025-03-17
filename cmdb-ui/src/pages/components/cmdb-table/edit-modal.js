@@ -70,9 +70,9 @@ export default {
       return WIDTH * cols.length + 100
     }
   },
-  mounted () {
-    this.getAllCITypes()
-  },
+  // mounted () {
+    // this.getAllCITypes()
+  // },
   watch: {
     data: {
       handler (val) {
@@ -94,6 +94,9 @@ export default {
     modalVisible: {
       async handler (val) {
         if (val) {
+          if (isEmpty(this.allCiTypesWithAttr) && isEmpty(this.allCiTypesFormatByCiTypeId)) {
+            this.getAllCITypes()
+          }
           this.encryptPasswordList = []
           this.editData = this.resetPassword(JSON.parse(JSON.stringify(this.data)))
           if (this.isEdit && this.filterColumns.length === 0) {
@@ -431,6 +434,9 @@ export default {
                     // eslint-disable-next-line no-unused-vars
                     let value = d[column.propertyName] || []
                     value = Array.isArray(value) ? value : JSON.parse(value)
+                    if (value.length === 1 && value[0] === '') {
+                      value = []
+                    }
                     return (
                       <div key={i} style={`width:${WIDTH}px;display:inline-block;padding:5px`}>
                         <column.component
@@ -551,12 +557,12 @@ export default {
                     const props = {
                       ...column,
                       disabled: this.isGroupEditDisabled(column, d),
-                      value: d[column.inputKey]
+                      value: d[column.inputKey] ? Number(d[column.inputKey]) : null
                     }
                     delete props.editable // 和InputNumber原生属性editable有冲突
                     const fun = {
                       input: function (v) {
-                        setValueHandler(v, column, d)
+                        setValueHandler(v + '', column, d)
                       }
                     }
                     const data = {
@@ -609,7 +615,14 @@ export default {
                           onInputChange={onInputChange}
                         ></CustomInput>
                         {column.autofillable === 'yes' && column.autoFillType === 'suggest' && (
-                          <Button onClick={v => resetAutofillValue(v, column)} icon="md-checkmark"></Button>
+                          <Button 
+                            type="primary" 
+                            style="margin-bottom: 5px" 
+                            size="small" 
+                            ghost
+                            onClick={v => resetAutofillValue(v, column)}>
+                            <Icon type="md-checkmark" size="16" />
+                          </Button>
                         )}
                       </div>
                     )

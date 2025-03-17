@@ -151,7 +151,7 @@ export default {
             </span>
             <span style="padding: 0 4px">
               Value:
-              <Input value={formatData(data)} style="width:100px" onInput={v => formateNodeData(v, 'value')}></Input>
+            <Input value={formatData(data)} style="width:100px" onInput={v => formateNodeData(v, 'value')}></Input>
             </span>
             <span style="display: inline-block;float: right;margin-right: 32px">
               <Button onClick={() => this.append(data)} type="default" size="small" icon="ios-add"></Button>

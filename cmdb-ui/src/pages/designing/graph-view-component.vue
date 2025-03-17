@@ -49,16 +49,16 @@
 </template>
 
 <script>
+import { Canvg } from 'canvg'
 import * as d3 from 'd3-selection'
 import * as d3Zoom from 'd3-zoom'
-import { Canvg } from 'canvg'
+import { graphviz } from 'd3-graphviz'
 // eslint-disable-next-line no-unused-vars
-import * as d3Graphviz from 'd3-graphviz'
 import { queryReferenceCiData, viewGraphDot } from '@/api/server'
+import mermaid from 'mermaid'
 import { addEvent } from '../util/event.js'
 import Operation from './graph-operation-component'
 import SeqOperation from './graph-sequence-component'
-import mermaid from 'mermaid'
 export default {
   components: {
     Operation,
@@ -91,6 +91,23 @@ export default {
   ],
   watch: {
     selectedId: function (val) {
+      this.handleNodeSelection(val)
+    },
+    openDrawer: function (val) {
+      const el = document.querySelectorAll('.operation-area')
+      for (let i = 0; i < el.length; i++) {
+        if (val) {
+          el[i].style.width = '460px'
+          el[i].style.height = '100%'
+        } else {
+          el[i].style.width = '200px'
+          el[i].style.height = '32px'
+        }
+      }
+    }
+  },
+  methods: {
+    handleNodeSelection (val) {
       // 切换节点时，还原上一个节点的信息
       if (this.cachedIdInfo.id) {
         let dom = d3.select('#graphMgmt' + this.graphIndex).select(`#` + this.cachedIdInfo.id)
@@ -115,10 +132,10 @@ export default {
           if (!polygon.empty()) {
             this.cachedIdInfo.color = dom.select('polygon').attr('fill')
           }
-          dom.select('path').attr('stroke', '#ff9900')
-          dom.select('polygon').attr('fill', '#ff9900')
-          dom.select('polygon').attr('stroke', '#ff9900')
-          dom.select('text').attr('fill', '#ff9900')
+          dom.select('path').attr('stroke', '#F29360')
+          dom.select('polygon').attr('fill', '#F29360')
+          dom.select('polygon').attr('stroke', '#F29360')
+          dom.select('text').attr('fill', '#F29360')
         } else {
           this.cachedIdInfo.graph = ''
           let typeArray = ['path', 'polygon', 'ellipse', 'rect']
@@ -130,24 +147,10 @@ export default {
           this.cachedIdInfo.type = 'node'
           this.cachedIdInfo.color = dom.select(this.cachedIdInfo.graph).attr('fill')
           // 设置高亮颜色
-          dom.select(this.cachedIdInfo.graph).attr('fill', '#ff9900')
+          dom.select(this.cachedIdInfo.graph).attr('fill', '#F29360')
         }
       }
     },
-    openDrawer: function (val) {
-      const el = document.querySelectorAll('.operation-area')
-      for (let i = 0; i < el.length; i++) {
-        if (val) {
-          el[i].style.width = '460px'
-          el[i].style.height = '100%'
-        } else {
-          el[i].style.width = '200px'
-          el[i].style.height = '32px'
-        }
-      }
-    }
-  },
-  methods: {
     async graphToImg () {
       const graphId = 'graphMgmt' + this.graphIndex
       const graphElement = document.getElementById(graphId)
@@ -205,10 +208,7 @@ export default {
       const initEvent = id => {
         let graph
         graph = d3.select(id)
-        graph
-          .on('dblclick.zoom', null)
-          .on('wheel.zoom', null)
-          .on('mousewheel.zoom', null)
+        graph.on('dblclick.zoom', null).on('wheel.zoom', null).on('mousewheel.zoom', null)
       }
       // 初始化画布和鼠标事件
       let domId = '#graphMgmt' + this.graphIndex
@@ -285,17 +285,15 @@ export default {
       const { data, statusCode } = await viewGraphDot(params)
       let dotString = ''
       if (statusCode === 'OK') {
+        // if (data.indexOf('\n') !== -1) {
+        //   dotString = data.replace(/\\n/g, '');
+        // }
         dotString = data
       }
-      // let dotString = renderGraph(
-      //   graphSetting,
-      //   graphData,
-      //   ci => {
-      //     return '/wecmdb/fonts/' + this.ciTypeMapping[ci].imageFile
-      //   },
-      //   [graphIndex]
-      // )[0]
       this.dotString = dotString
+      if (!d3.select.prototype.graphviz) {
+        d3.select.prototype.graphviz = graphviz;
+      }
       let graph = d3.select(id)
       if (dotString.startsWith('sequenceDiagram')) {
         const element = document.querySelector(id)
@@ -311,22 +309,19 @@ export default {
           theme: 'default'
         })
         mermaid.init(undefined, element)
-        let svg = graph.select('svg')
+        let svg = graph.selectAll('svg')
         let rawHTML = svg.node().innerHTML
         svg.node().innerHTML = ''
         let g = svg.append('g')
         g.html(rawHTML)
         g.attr('cursor', 'grab')
         const zoomed = function (event) {
-          g.attr('transform', d3.event.transform)
+          g.attr('transform', event.transform)
         }
         svg.call(d3Zoom.zoom().on('zoom', zoomed))
         let winWidth = window.innerWidth - 130
         let winHeight = window.innerHeight - 293
-        svg
-          .attr('width', winWidth)
-          .attr('height', winHeight)
-          .attr('style', '')
+        svg.attr('width', winWidth).attr('height', winHeight).attr('style', '')
         let idFinder = /\$\{([a-z0-9]+(?:_[a-z0-9]+)+)\}/g
         // note
         svg
@@ -407,7 +402,6 @@ export default {
           .zoom(true)
         this.loadImage(dotString)
         this.graph.graphviz
-          .transition()
           .renderDot(dotString)
           .on('end', () => {
             if (this.initTransform) {
@@ -419,12 +413,54 @@ export default {
             addEvent(id + ' .node', 'click', this.handleNodeClick)
             addEvent(id + ' .cluster', 'click', this.handleNodeClick)
             addEvent(id + ' .edge', 'click', this.handleNodeClick)
+
+            // let svg = graph.select('svg')
+
+            // let width = svg.attr('width')
+            // let height = svg.attr('height')
+            // if (!width.toString().endsWith('%') && !width.toString().endsWith('%')) {
+            //   svg.attr('viewBox', '0 0 ' + width + ' ' + height)
+            // }
           })
-        let svg = graph.select('svg')
-        let width = svg.attr('width')
-        let height = svg.attr('height')
-        if (!width.toString().endsWith('%') && !width.toString().endsWith('%')) {
-          svg.attr('viewBox', '0 0 ' + width + ' ' + height)
+      }
+      // 为解决系统部署视图中选中节点切换tab仍显示选中态特殊逻辑
+      this.findAbnormalEle()
+    },
+    findAbnormalEle () {
+      const polygons = document.querySelectorAll('polygon[fill="#F29360"]')
+      // 遍历每个 polygon 元素
+      polygons.forEach(polygon => {
+        // 向上查找第一个父元素，其 class 包含 "edge node"
+        const parentEle = polygon.closest('.edge, .node')
+        // 如果找到带 class="edge" 的父元素，输出其 id
+        if (parentEle) {
+          this.fixAbnormalEle(parentEle.id)
+        }
+      })
+    },
+    fixAbnormalEle (val) {
+      const groupElement = document.getElementById(val)
+      if (groupElement.getAttribute('class') === 'edge') {
+        const text = groupElement.querySelector('text')
+        if (text) {
+          text.setAttribute('fill', 'black')
+        }
+
+        const path = groupElement.querySelector('path')
+        if (path) {
+          path.setAttribute('stroke', 'green')
+        }
+
+        const polygon = groupElement.querySelector('polygon')
+        if (polygon) {
+          polygon.setAttribute('stroke', 'green')
+          polygon.setAttribute('fill', 'green')
+        }
+      } else if (groupElement.getAttribute('class') === 'node') {
+        const polygon = groupElement.querySelector('polygon')
+        if (polygon) {
+          polygon.setAttribute('stroke', 'green')
+          polygon.setAttribute('fill', 'white')
         }
       }
     },
@@ -504,6 +540,7 @@ export default {
         let node = allNodes[0]
         // 高亮节点
         this.selectedId = id
+        this.handleNodeSelection(id)
         // 赋值ciType并初始化NodeData
         this.operationLoading = true
         this.$refs.operationPanel.ciType = node.ciType
@@ -585,5 +622,8 @@ export default {
   position: absolute;
   left: 15px;
   bottom: 15px;
+}
+.buttons > button {
+  margin-right: 5px;
 }
 </style>

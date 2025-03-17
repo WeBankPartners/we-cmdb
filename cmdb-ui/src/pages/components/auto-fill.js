@@ -1,5 +1,5 @@
+import { getCiTypeAttr, getRefCiTypeFrom } from '@/api/server.js'
 import './auto-fill.scss'
-import { getRefCiTypeFrom, getCiTypeAttr } from '@/api/server.js'
 
 export default {
   name: 'AutoFill',
@@ -10,7 +10,7 @@ export default {
     rootCiTypeId: { type: String, required: true },
     specialDelimiters: { default: () => [], required: true }
   },
-  data () {
+  data() {
     return {
       hoverSpan: '',
       hoverAttr: '',
@@ -47,14 +47,14 @@ export default {
     }
   },
   computed: {
-    ciTypesObj () {
+    ciTypesObj() {
       let obj = {}
       this.allCiTypes.forEach(_ => {
         obj[_.ciTypeId] = _
       })
       return obj
     },
-    ciTypeAttrsObj () {
+    ciTypeAttrsObj() {
       let obj = {}
       this.allCiTypes.forEach(ciType => {
         ciType.attributes.forEach(attr => {
@@ -66,10 +66,10 @@ export default {
     }
   },
   watch: {
-    allCiTypes () {
+    allCiTypes() {
       this.initAutoFillArray()
     },
-    optionsDisplay (val) {
+    optionsDisplay(val) {
       if (!val) {
         this.currentRule = ''
         this.currentAttr = ''
@@ -78,7 +78,7 @@ export default {
     }
   },
   methods: {
-    getPropertyNameByCiTypeIdAndAttrId (ciTypeIdAndAttrId) {
+    getPropertyNameByCiTypeIdAndAttrId(ciTypeIdAndAttrId) {
       const [ciTypeId, attrId] = ciTypeIdAndAttrId.split('#')
       const keys = Object.values(this.ciTypeAttrsObj)
       const attr = keys.find(item => {
@@ -88,7 +88,7 @@ export default {
       })
       return attr || ''
     },
-    renderEditor () {
+    renderEditor() {
       return [
         !this.isReadOnly && this.renderOptions(),
         ...this.autoFillArray.map((_, i) => {
@@ -112,7 +112,7 @@ export default {
       ]
     },
     // 将过滤规则格式化为可读值
-    formatFillRule (value, props) {
+    formatFillRule(value, props) {
       let result = []
       value.forEach((_, i) => {
         switch (_.type) {
@@ -152,7 +152,7 @@ export default {
       })
       return result
     },
-    renderOptions () {
+    renderOptions() {
       return (
         <div slot="content" class="auto-fill-options">
           {[
@@ -170,18 +170,18 @@ export default {
         </div>
       )
     },
-    mouseover (e) {
+    mouseover(e) {
       if (e.target.className.indexOf('auto-fill-span') === -1) {
         return
       }
       this.hoverSpan = e.target.getAttribute('index')
       this.hoverAttr = e.target.getAttribute('attr-index')
     },
-    mouseout (e) {
+    mouseout(e) {
       this.hoverSpan = ''
       this.hoverAttr = ''
     },
-    handleClick (e) {
+    handleClick(e) {
       if (this.isReadOnly) {
         return
       }
@@ -215,7 +215,7 @@ export default {
       } else {
       }
     },
-    showAddOptions () {
+    showAddOptions() {
       this.options = []
       this.optionsDisplay = true
       this.options.push(
@@ -251,7 +251,7 @@ export default {
         }
       )
     },
-    addRule (type) {
+    addRule(type) {
       this.options = []
       switch (type) {
         case 'rule':
@@ -283,7 +283,7 @@ export default {
       }
     },
     // 特殊连接符
-    getSpecialConnector () {
+    getSpecialConnector() {
       this.specialDelimiters.forEach(_ => {
         this.options.push({
           type: 'option',
@@ -302,7 +302,7 @@ export default {
       })
     },
     // 特殊连接符
-    getCalcConnector () {
+    getCalcConnector() {
       this.calcDelimiters.forEach(_ => {
         this.options.push({
           type: 'option',
@@ -321,7 +321,7 @@ export default {
       })
     },
     // 特殊连接符
-    getCalcFunc () {
+    getCalcFunc() {
       this.calcFuncs.forEach(_ => {
         this.options.push({
           type: 'option',
@@ -339,14 +339,14 @@ export default {
         })
       })
     },
-    showRuleOptions (ruleIndex, attrIndex) {
+    showRuleOptions(ruleIndex, attrIndex) {
       this.options = []
       this.optionsDisplay = true
       const isAttrNode = attrIndex ? !!JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].parentRs : false
       const attrInputType = isAttrNode
         ? this.getPropertyNameByCiTypeIdAndAttrId(
-          JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].parentRs.attrId
-        ).inputType
+            JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].parentRs.attrId
+          ).inputType
         : ''
       // 删除节点
       this.options.push({
@@ -386,7 +386,7 @@ export default {
       }
     },
     // 显示运算符
-    showSymbolOptions (nodeName, ruleIndex, symbolOptions, type) {
+    showSymbolOptions(nodeName, ruleIndex, symbolOptions, type) {
       this.options = [
         {
           type: 'option',
@@ -403,7 +403,7 @@ export default {
       ]
       this.optionsDisplay = true
     },
-    ciTypeTableNameToId (tableName) {
+    ciTypeTableNameToId(tableName) {
       const keys = Object.values(this.ciTypesObj)
       const ciTypeId = keys.find(item => {
         if (tableName === item.ciTypeId) {
@@ -412,7 +412,7 @@ export default {
       }).ciTypeId
       return ciTypeId
     },
-    async getRefData (ruleIndex, attrIndex, ciTypeId) {
+    async getRefData(ruleIndex, attrIndex, ciTypeId) {
       ciTypeId = this.ciTypeTableNameToId(ciTypeId)
       this.spinShow = true
       this.currentRule = ruleIndex
@@ -483,7 +483,7 @@ export default {
       }
     },
     // 点击选择枚举属性
-    addEnum (ruleIndex, attrIndex, code) {
+    addEnum(ruleIndex, attrIndex, code) {
       let ruleArr = JSON.parse(this.autoFillArray[ruleIndex].value)
       ruleArr[attrIndex].enumCodeAttr = code
       this.autoFillArray[ruleIndex].value = JSON.stringify(ruleArr)
@@ -491,7 +491,7 @@ export default {
       this.handleInput()
     },
     // 点击删除节点
-    deleteNode (ruleIndex, attrIndex) {
+    deleteNode(ruleIndex, attrIndex) {
       if (!attrIndex) {
         // 删除连接符
         this.autoFillArray.splice(ruleIndex, 1)
@@ -521,7 +521,7 @@ export default {
       this.optionsDisplay = false
     },
     // 点击更换连接符节点
-    changeSymbolNode (ruleIndex, symbolOptions, type) {
+    changeSymbolNode(ruleIndex, symbolOptions, type) {
       this.options = []
       this[symbolOptions].forEach(_ => {
         this.options.push({
@@ -540,12 +540,12 @@ export default {
         })
       })
     },
-    editDelimiter (ruleIndex) {
+    editDelimiter(ruleIndex) {
       this.activeDelimiterIndex = ruleIndex
       this.optionsDisplay = false
       this.handleInput()
     },
-    async showFilterModal (ruleIndex, attrIndex) {
+    async showFilterModal(ruleIndex, attrIndex) {
       this.filterCiTypeId = this.ciTypeTableNameToId(
         JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].ciTypeId
       )
@@ -568,7 +568,7 @@ export default {
         })
       }
     },
-    addNode (ruleIndex, attrIndex, nodeObj) {
+    addNode(ruleIndex, attrIndex, nodeObj) {
       const i = +attrIndex
       let ruleArr = JSON.parse(this.autoFillArray[ruleIndex].value)
       ruleArr.splice(i + 1, ruleArr.length - i - 1, nodeObj)
@@ -597,7 +597,7 @@ export default {
       }
       this.handleInput()
     },
-    renderSpan (value, props) {
+    renderSpan(value, props) {
       const p = {
         ...props,
         domProps: {
@@ -606,14 +606,14 @@ export default {
       }
       return <span {...p}></span>
     },
-    formatClassName (classList) {
+    formatClassName(classList) {
       return Object.keys(classList).map(key => {
         if (classList[key]) {
           return key
         }
       })
     },
-    renderExpression (val, i, props) {
+    renderExpression(val, i, props) {
       // type === rule 时，链式属性表达式
       let result = []
       JSON.parse(val).forEach((_, attrIndex) => {
@@ -702,18 +702,18 @@ export default {
       }
       const propsWithBraces = props
         ? {
-          ...props,
-          class: [...props.class, 'auto-fill-key-word']
-        }
-        : {
-          class: this.formatClassName(bracesClassList),
-          attrs: {
-            index: i
+            ...props,
+            class: [...props.class, 'auto-fill-key-word']
           }
-        }
+        : {
+            class: this.formatClassName(bracesClassList),
+            attrs: {
+              index: i
+            }
+          }
       return [<span {...propsWithBraces}>{' { '}</span>, ...result, <span {...propsWithBraces}>{' } '}</span>]
     },
-    renderDelimiter (val, i) {
+    renderDelimiter(val, i) {
       // type === delimiter 时，连接符
       if (this.activeDelimiterIndex === i + '') {
         return (
@@ -739,7 +739,7 @@ export default {
         return this.renderSpan(val, _props)
       }
     },
-    renderSpecialDelimiter (value, i) {
+    renderSpecialDelimiter(value, i) {
       const found = this.specialDelimiters.find(item => item.code === value)
       const specialDelimiter = found ? found.value : ''
       const classList = {
@@ -755,7 +755,7 @@ export default {
       }
       return this.renderSpan(specialDelimiter, _props)
     },
-    renderCalcDelimiter (value, i) {
+    renderCalcDelimiter(value, i) {
       const found = this.calcDelimiters.find(item => item.code === value)
       const calcDelimiter = found ? found.value : ''
       const classList = {
@@ -771,7 +771,7 @@ export default {
       }
       return this.renderSpan(calcDelimiter, _props)
     },
-    renderCalcFunc (value, i) {
+    renderCalcFunc(value, i) {
       const found = this.calcFuncs.find(item => item.code === value)
       const calcDelimiter1 = found ? found.value : ''
       const classList = {
@@ -788,7 +788,7 @@ export default {
       return this.renderSpan(calcDelimiter1, _props)
     },
     // 连接符输入框失焦或按回车时，需要更新 this.autoFillArray
-    confirmDelimiter (i) {
+    confirmDelimiter(i) {
       if (this.autoFillArray[i].value === '') {
         // 如果输入框没有值，则在 this.autoFillArray 中删掉该项
         this.autoFillArray.splice(i, 1)
@@ -806,10 +806,10 @@ export default {
       this.activeDelimiterIndex = ''
       this.handleInput()
     },
-    onDelimiterInput (v, i) {
+    onDelimiterInput(v, i) {
       this.autoFillArray[i].value = v
     },
-    renderAddRule () {
+    renderAddRule() {
       if (this.isReadOnly) {
         return [<span></span>]
       } else {
@@ -821,13 +821,13 @@ export default {
         ]
       }
     },
-    initAutoFillArray () {
+    initAutoFillArray() {
       if (!this.allCiTypes.length || !this.value) {
         return
       }
       this.autoFillArray = JSON.parse(this.value)
     },
-    focusInput () {
+    focusInput() {
       // 点击编辑连接符后，需要聚焦 Input
       if (this.activeDelimiterIndex && this.$refs.delimiterInput) {
         this.$nextTick(() => {
@@ -836,7 +836,7 @@ export default {
       }
     },
     // 添加过滤添加的弹框
-    renderModal () {
+    renderModal() {
       const emptyFilter = {
         name: '',
         inputType: 'text',
@@ -922,7 +922,7 @@ export default {
         </Modal>
       )
     },
-    changeFilter (val, i) {
+    changeFilter(val, i) {
       this.filters[i].name = val
       const found = this.filterCiAttrs.find(_ => _.propertyName === val)
       const inputType = found.inputType
@@ -936,7 +936,7 @@ export default {
       }
       this.filters[i].inputType = inputType
     },
-    confirmFilter () {
+    confirmFilter() {
       const filters = this.filters
         .filter(_ => _.name && _.operator)
         .map(_ => {
@@ -969,13 +969,13 @@ export default {
       this.cancelFilter()
       this.handleInput()
     },
-    cancelFilter () {
+    cancelFilter() {
       this.filterCiTypeId = 0
       this.filters = []
       this.filterCiAttrs = []
       this.filterIndex = []
     },
-    handleInput () {
+    handleInput() {
       const value = this.autoFillArray.length ? JSON.stringify(this.autoFillArray) : ''
       let isLegal = true
       this.autoFillArray.forEach(_ => {
@@ -1001,13 +1001,13 @@ export default {
       }
     }
   },
-  mounted () {
+  mounted() {
     this.initAutoFillArray()
   },
-  updated () {
+  updated() {
     this.focusInput()
   },
-  render (h) {
+  render(h) {
     return (
       <div class="auto-fill" onmouseover={this.mouseover} onmouseout={this.mouseout} onClick={this.handleClick}>
         {this.isReadOnly ? (

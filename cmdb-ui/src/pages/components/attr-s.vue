@@ -5,7 +5,7 @@
         <div :key="item.ciTypeAttrId" style="line-height: 32px">
           <Checkbox
             :label="item.ciTypeAttrId"
-            :disabled="['guid', 'key_name'].includes(item.dataName) || isPreviewState"
+            :disabled="['guid'].includes(item.dataName) || isPreviewState"
           >
             <Tooltip :content="item.name + '/' + item.propertyName">
               <div style="min-width:200px;display:inline-block;">
@@ -15,20 +15,20 @@
             </Tooltip>
             <!-- <div style="width:150px;display:inline-block;">{{ item[displayKey] }}</div> -->
             <div style="display: flex">
-              <div style="width:250px;display:inline-block;" v-show="social.includes(item.ciTypeAttrId)">
+              <div style="width:250px;display:inline-block;" v-if="social.includes(item.ciTypeAttrId)">
                 <span>{{ $t('data_name') }}</span>
                 <Input
                   v-model="item.dataName"
                   style="width:150px"
-                  :disabled="['guid', 'key_name'].includes(item.dataName) || isPreviewState"
+                  :disabled="['guid'].includes(item.dataName) || isPreviewState"
                 ></Input>
               </div>
-              <div style="width:250px;display:inline-block;" v-show="social.includes(item.ciTypeAttrId)">
+              <div style="width:250px;display:inline-block;" v-if="social.includes(item.ciTypeAttrId)">
                 <span>{{ $t('data_title_name') }}</span>
                 <Input
                   v-model="item.dataTitleName"
                   style="width:150px"
-                  :disabled="['guid', 'key_name'].includes(item.dataName) || isPreviewState"
+                  :disabled="['guid'].includes(item.dataName) || isPreviewState"
                 ></Input>
               </div>
             </div>

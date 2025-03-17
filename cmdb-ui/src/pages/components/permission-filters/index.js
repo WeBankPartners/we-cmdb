@@ -19,7 +19,8 @@ export default {
   data () {
     return {
       modalDisplay: false,
-      optionsDisplay: false
+      optionsDisplay: false,
+      refreshKey: ''
     }
   },
   mounted () {},
@@ -32,8 +33,17 @@ export default {
     },
     handleInput (v, i) {
       let _value = JSON.parse(JSON.stringify(this.value))
+      let obj = {}
+      let j=0
+      for(let index=0; index<_value.length; index++) {
+        if (_value[index] !== null) {
+          obj[j] = index
+          j++
+        }
+      }
       if (v === '') {
-        _value.splice(i, 1)
+        _value.splice(obj[i], 1)
+        this.refreshKey = +new Date() + ''
       } else {
         _value.splice(i, 1, v)
       }
@@ -81,7 +91,7 @@ export default {
       return null
     } else {
       return (
-        <div class="filters-rule" filterIndex ref="zsf">
+        <div class="filters-rule" filterIndex ref="zsf" key={this.refreshKey}>
           {this.value
             .filter(item => item !== null)
             .map((_, i) => [
