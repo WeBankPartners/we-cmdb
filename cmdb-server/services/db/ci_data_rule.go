@@ -3,12 +3,14 @@ package db
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"math"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"go.uber.org/zap"
 )
 
 var (
@@ -22,7 +24,7 @@ var (
 )
 
 func buildAutofillValue(columnMap map[string]string, rule, attrInputType string) (newValueList []string, err error) {
-	log.Logger.Debug("-----start buildAutofillValue columnMap", log.JsonObj("map", columnMap), log.String("rule", rule))
+	log.Debug(nil, log.LOGGER_APP, "-----start buildAutofillValue columnMap", log.JsonObj("map", columnMap), zap.String("rule", rule))
 	if rule == "" {
 		return
 	}
@@ -54,7 +56,7 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 			return
 		}
 		newValueList = append(newValueList, transFloatValueToString(fmt.Sprintf("%.3f", calcResult)))
-		log.Logger.Debug("-----end buildAutofillValue with calcFillFlag", log.StringList("result", newValueList))
+		log.Debug(nil, log.LOGGER_APP, "-----end buildAutofillValue with calcFillFlag", zap.Strings("result", newValueList))
 		return
 	}
 	var ruleObjValueList [][]string
@@ -68,16 +70,16 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 				err = fmt.Errorf("Try to get autofill reference data with rule value:%s fail,%s ", ruleObj.Value, tmpErr.Error())
 				break
 			}
-			log.Logger.Debug("make resultValueList 2", log.StringList("list", tmpValueList))
+			log.Debug(nil, log.LOGGER_APP, "make resultValueList 2", zap.Strings("list", tmpValueList))
 			if tmpIsAutofill {
 				newTmpValueList := []string{}
-				log.Logger.Debug("auto fill decode result 1", log.StringList("valueList", tmpValueList))
+				log.Debug(nil, log.LOGGER_APP, "auto fill decode result 1", zap.Strings("valueList", tmpValueList))
 				autofillSubIndex = append(autofillSubIndex, i)
 				for _, autofillObj := range tmpValueList {
-					log.Logger.Debug("sub autofill rule", log.String("rule", autofillObj))
+					log.Debug(nil, log.LOGGER_APP, "sub autofill rule", zap.String("rule", autofillObj))
 					autofillSubResult, tmpErr := buildAutofillValue(columnMap, autofillObj, models.AutofillRuleType)
 					if tmpErr != nil {
-						log.Logger.Error("sub autofill rule error", log.Error(tmpErr))
+						log.Error(nil, log.LOGGER_APP, "sub autofill rule error", zap.Error(tmpErr))
 						err = fmt.Errorf("sub autofill rule error:%s ", tmpErr.Error())
 						break
 						//newTmpValueList = append(newTmpValueList, "")
@@ -88,12 +90,12 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 				if err != nil {
 					break
 				}
-				log.Logger.Debug("auto fill decode result 2", log.StringList("valueList", newTmpValueList))
+				log.Debug(nil, log.LOGGER_APP, "auto fill decode result 2", zap.Strings("valueList", newTmpValueList))
 				tmpValueList = newTmpValueList
 			}
 			ruleSubIndex = append(ruleSubIndex, i)
 			ruleObjValueList = append(ruleObjValueList, tmpValueList)
-			log.Logger.Debug("make resultValueList 3", log.StringList("list", tmpValueList), log.String("ruleObjValueList", fmt.Sprintf("%s", ruleObjValueList)), log.String("ruleSubIndex", fmt.Sprintf("%v", ruleSubIndex)))
+			log.Debug(nil, log.LOGGER_APP, "make resultValueList 3", zap.Strings("list", tmpValueList), zap.String("ruleObjValueList", fmt.Sprintf("%s", ruleObjValueList)), zap.String("ruleSubIndex", fmt.Sprintf("%v", ruleSubIndex)))
 		} else if ruleObj.Type == "delimiter" {
 			// 连接符
 			ruleObjValueList = append(ruleObjValueList, []string{ruleObj.Value})
@@ -109,7 +111,7 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 		}
 	}
 	if err != nil || len(ruleObjValueList) == 0 {
-		log.Logger.Debug("-----end buildAutofillValue", log.StringList("result", newValueList))
+		log.Debug(nil, log.LOGGER_APP, "-----end buildAutofillValue", zap.Strings("result", newValueList))
 		return
 	}
 	// 特殊处理autofillRule类型的值
@@ -166,9 +168,9 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 			break
 		}
 	}
-	log.Logger.Debug("ruleObjValueList", log.String("data", fmt.Sprintf("%s", ruleObjValueList)), log.StringList("newValueList", newValueList))
+	log.Debug(nil, log.LOGGER_APP, "ruleObjValueList", zap.String("data", fmt.Sprintf("%s", ruleObjValueList)), zap.Strings("newValueList", newValueList))
 	if len(ruleObjValueList) == 1 || len(newValueList) == 0 {
-		log.Logger.Debug("-----end buildAutofillValue", log.StringList("result", newValueList))
+		log.Debug(nil, log.LOGGER_APP, "-----end buildAutofillValue", zap.Strings("result", newValueList))
 		return
 	}
 	// 多段进行笛卡尔积拼接
@@ -184,7 +186,7 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 		}
 		newValueList = tmpValueList
 	}
-	log.Logger.Debug("-----end buildAutofillValue", log.StringList("result", newValueList))
+	log.Debug(nil, log.LOGGER_APP, "-----end buildAutofillValue", zap.Strings("result", newValueList))
 	return
 }
 
@@ -205,7 +207,7 @@ func getRuleValue(rowData map[string]string, ruleString string) (resultValueList
 		rowDataList = append(rowDataList, rowData)
 	} else {
 		// 如果是嵌套递归的，因为是从过滤规则中开始填充，则没有原始行数据，需要查出所有行数据来
-		rowDataList, err = x.QueryString("select * from " + ruleList[0].CiTypeId)
+		rowDataList, err = x.QueryString("select * from `" + ruleList[0].CiTypeId + "`")
 	}
 	isTypeAutofill = false
 	for i, rule := range ruleList {
@@ -214,7 +216,7 @@ func getRuleValue(rowData map[string]string, ruleString string) (resultValueList
 		}
 		rule.ParentRs.AttrId = strings.ReplaceAll(rule.ParentRs.AttrId, models.SysTableIdConnector, "#")
 		// ciType与attribute用#连接
-		log.Logger.Debug("rule do 1", log.String("attrId", rule.ParentRs.AttrId), log.Int("i", i))
+		log.Debug(nil, log.LOGGER_APP, "rule do 1", zap.String("attrId", rule.ParentRs.AttrId), zap.Int("i", i))
 		tmpAttrSplit := strings.Split(rule.ParentRs.AttrId, "#")
 		if len(tmpAttrSplit) < 2 {
 			continue
@@ -235,7 +237,7 @@ func getRuleValue(rowData map[string]string, ruleString string) (resultValueList
 				for _, tmpRowData := range rowDataList {
 					resultValueList = append(resultValueList, tmpRowData[tmpAttrSplit[1]])
 				}
-				log.Logger.Debug("make resultValueList 1", log.StringList("list", resultValueList))
+				log.Debug(nil, log.LOGGER_APP, "make resultValueList 1", zap.Strings("list", resultValueList))
 			} else {
 				tmpGuidList := []string{}
 				if !isMultiRef || i == 1 {
@@ -248,7 +250,7 @@ func getRuleValue(rowData map[string]string, ruleString string) (resultValueList
 						//	tmpGuidList = append(tmpGuidList, tmpRowData[tmpAttrSplit[1]])
 						//}
 					}
-					log.Logger.Debug("tmpGuidList 1", log.StringList("guidList", tmpGuidList), log.String("attr", tmpAttrSplit[1]))
+					log.Debug(nil, log.LOGGER_APP, "tmpGuidList 1", zap.Strings("guidList", tmpGuidList), zap.String("attr", tmpAttrSplit[1]))
 					rowDataList, err = getCiRowDataByGuid(rule.CiTypeId, tmpGuidList, rule.Filters, tmpAttrInputType, rowData)
 				} else {
 					// 直接从rowDataList里面的相应attr拿下一个关联的guid列表
@@ -260,11 +262,11 @@ func getRuleValue(rowData map[string]string, ruleString string) (resultValueList
 						}
 					}
 					// 需要再去关联表里面查出关联的目标行
-					log.Logger.Debug("tmpGuidList multi 2", log.StringList("guidList", tmpGuidList), log.String("attr", tmpAttrSplit[1]))
+					log.Debug(nil, log.LOGGER_APP, "tmpGuidList multi 2", zap.Strings("guidList", tmpGuidList), zap.String("attr", tmpAttrSplit[1]))
 					rowDataList, err = getMultiRefRowData(tmpAttrSplit[0], tmpAttrSplit[1], rule.CiTypeId, tmpGuidList, rule.Filters, tmpAttrInputType, rowData)
 				}
 			}
-			log.Logger.Debug("tmpRowDataObj", log.Int("len", len(rowDataList)))
+			log.Debug(nil, log.LOGGER_APP, "tmpRowDataObj", zap.Int("len", len(rowDataList)))
 		} else {
 			rowDataList, err = getReferRowDataByFilter(rule.CiTypeId, tmpAttrSplit[1], rule.Filters, rowDataList, isMultiRef, tmpAttrInputType, rowData)
 		}
@@ -298,28 +300,28 @@ func getReferRowDataByFilter(ciTypeId, attr string, filters []*models.AutofillFi
 	}
 	var sql string
 	if !multiRef {
-		sql = fmt.Sprintf("select * from %s t1 where t1.%s in ('%s')", ciTypeId, attr, strings.Join(rowGuidList, "','"))
+		sql = fmt.Sprintf("select * from `%s` t1 where t1.%s in ('%s')", ciTypeId, attr, strings.Join(rowGuidList, "','"))
 	} else {
-		sql = fmt.Sprintf("select distinct t1.* from %s t1 join %s$%s t2 on t1.guid=t2.from_guid where t2.to_guid in ('%s')", ciTypeId, ciTypeId, attr, strings.Join(rowGuidList, "','"))
+		sql = fmt.Sprintf("select distinct t1.* from `%s` t1 join `%s$%s` t2 on t1.guid=t2.from_guid where t2.to_guid in ('%s')", ciTypeId, ciTypeId, attr, strings.Join(rowGuidList, "','"))
 	}
 	if len(filterSqlList) > 0 {
 		sql += " AND " + strings.Join(filterSqlList, " AND ")
 	}
-	log.Logger.Debug("getReferRowDataByFilter", log.String("sql", sql))
+	log.Debug(nil, log.LOGGER_APP, "getReferRowDataByFilter", zap.String("sql", sql))
 	rowMapList, err = x.QueryString(sql)
 	if err != nil {
-		log.Logger.Error("Get reference row data by filter fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Get reference row data by filter fail", zap.Error(err))
 	}
 	return
 }
 
 func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, startRowData map[string]string) (sql string, err error) {
-	var valueString, columnString string
+	var valueString, columnString, filterSqlColumn string
 	var valueList []string
 	if filter.Type == "autoFill" {
 		tmpValueString := filter.Value.(string)
 		valueList, err = buildAutofillValue(startRowData, tmpValueString, inputType)
-		log.Logger.Debug("getFilterSql value", log.StringList("valueList", valueList))
+		log.Debug(nil, log.LOGGER_APP, "getFilterSql value", zap.Strings("valueList", valueList))
 		if err != nil {
 			err = fmt.Errorf("Build filter value error:%s ", err.Error())
 			return
@@ -335,46 +337,51 @@ func getFilterSql(filter *models.AutofillFilterObj, prefix, inputType string, st
 	if valueString == "" {
 		valueString = fmt.Sprintf("%s", filter.Value)
 	}
+	filterSqlColumn = filter.Name
 	if prefix != "" {
 		columnString = filter.Name
-		filter.Name = fmt.Sprintf("%s.%s", prefix, filter.Name)
+		filterSqlColumn = fmt.Sprintf("%s.`%s`", prefix, filter.Name)
+	} else {
+		if !strings.Contains(filterSqlColumn, "`") {
+			filterSqlColumn = fmt.Sprintf("`%s`", filterSqlColumn)
+		}
 	}
 	var multiSql string
 	switch filter.Operator {
 	case "in":
-		sql = fmt.Sprintf("%s IN ('%s')", filter.Name, strings.Join(valueList, "','"))
+		sql = fmt.Sprintf("%s IN ('%s')", filterSqlColumn, strings.Join(valueList, "','"))
 		multiSql = fmt.Sprintf("to_guid IN ('%s')", strings.Join(valueList, "','"))
 		break
 	case "contains":
-		sql = fmt.Sprintf("%s LIKE '%%%s%%'", filter.Name, valueString)
+		sql = fmt.Sprintf("%s LIKE '%%%s%%'", filterSqlColumn, valueString)
 		break
 	case "eq":
-		sql = fmt.Sprintf("%s='%s'", filter.Name, valueString)
+		sql = fmt.Sprintf("%s='%s'", filterSqlColumn, valueString)
 		multiSql = fmt.Sprintf("to_guid='%s'", valueString)
 		break
 	case "gt":
-		sql = fmt.Sprintf("%s>'%s'", filter.Name, valueString)
+		sql = fmt.Sprintf("%s>'%s'", filterSqlColumn, valueString)
 		break
 	case "lt":
-		sql = fmt.Sprintf("%s<'%s'", filter.Name, valueString)
+		sql = fmt.Sprintf("%s<'%s'", filterSqlColumn, valueString)
 		break
 	case "ne":
-		sql = fmt.Sprintf("%s!='%s'", filter.Name, valueString)
+		sql = fmt.Sprintf("%s!='%s'", filterSqlColumn, valueString)
 		multiSql = fmt.Sprintf("to_guid!='%s'", valueString)
 		break
 	case "notNull":
-		sql = fmt.Sprintf("%s IS NOT NULL", filter.Name)
+		sql = fmt.Sprintf("%s IS NOT NULL", filterSqlColumn)
 		break
 	case "null":
-		sql = fmt.Sprintf("%s IS NULL", filter.Name)
+		sql = fmt.Sprintf("%s IS NULL", filterSqlColumn)
 		break
 	}
 	if isAttributeMultiRef(filter.CiType, columnString) {
 		if multiSql != "" {
 			multiSql = " and " + multiSql
 		}
-		log.Logger.Debug("query multi sql", log.String("multiSql", multiSql))
-		queryRows, queryErr := x.QueryString(fmt.Sprintf("select * from %s$%s where 1=1 %s", filter.CiType, columnString, multiSql))
+		log.Debug(nil, log.LOGGER_APP, "query multi sql", zap.String("multiSql", multiSql))
+		queryRows, queryErr := x.QueryString(fmt.Sprintf("select * from `%s$%s` where 1=1 %s", filter.CiType, columnString, multiSql))
 		if queryErr != nil {
 			err = fmt.Errorf("getFilterSql:Try to query multiRef fail,%s ", queryErr.Error())
 			return
@@ -477,7 +484,7 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam mod
 	filterGuidParam := models.CiDataLegalGuidList{Legal: false, GuidList: []string{}}
 	if attrTable[0].RefFilter == "" {
 		var queryResults []*models.CiDataRefDataObj
-		err = x.SQL(fmt.Sprintf("select guid,key_name from %s order by update_time desc", attrTable[0].RefCiType)).Find(&queryResults)
+		err = x.SQL(fmt.Sprintf("select guid,key_name from `%s` order by update_time desc", attrTable[0].RefCiType)).Find(&queryResults)
 		if err != nil {
 			return
 		}
@@ -520,9 +527,9 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam mod
 		err = fmt.Errorf("Get ci reference data fail when build filter sql,%s ", err.Error())
 		return
 	}
-	querySql := fmt.Sprintf("select guid,key_name from %s order by update_time desc", attrTable[0].RefCiType)
+	querySql := fmt.Sprintf("select guid,key_name from `%s` order by update_time desc", attrTable[0].RefCiType)
 	if len(filterSqlList) > 0 {
-		querySql = fmt.Sprintf("select guid,key_name from %s where 1=1 AND (%s) order by update_time desc", attrTable[0].RefCiType, strings.Join(filterSqlList, ") AND ("))
+		querySql = fmt.Sprintf("select guid,key_name from `%s` where 1=1 AND (%s) order by update_time desc", attrTable[0].RefCiType, strings.Join(filterSqlList, ") AND ("))
 	}
 	rowStringData, queryErr := x.QueryString(querySql)
 	if queryErr != nil {
@@ -530,7 +537,7 @@ func GetCiDataByFilters(attrId string, filterMap map[string]string, reqParam mod
 		return
 	}
 	if reqParam.Paging == false && len(reqParam.Filters) == 0 {
-		log.Logger.Debug("req Param paging is false")
+		log.Debug(nil, log.LOGGER_APP, "req Param paging is false")
 		for _, row := range rowStringData {
 			tmpRowData := make(map[string]interface{})
 			for k, v := range row {
@@ -590,7 +597,7 @@ func getRefFilterSql(filter *models.CiDataRefFilterObj, filterMap map[string]str
 	} else {
 		sql = buildConditionSql(column, filter.Operator, fmt.Sprintf("%s", filter.Right.Value), valueList)
 	}
-	log.Logger.Debug("getRefFilterSql", log.String("sql", sql))
+	log.Debug(nil, log.LOGGER_APP, "getRefFilterSql", zap.String("sql", sql))
 	return
 }
 
@@ -623,9 +630,13 @@ func getConditionExpressResult(express, startCiType string, filterMap map[string
 			}
 		}
 	}
+	// 表达式可以用逗号隔开多段，最终每段的值取与的关系，要符合所有段的配置
+	filterSplitChar := "^^filter_split^^"
+	tmpExpress = strings.ReplaceAll(tmpExpress, "},{", filterSplitChar)
 	if strings.Contains(tmpExpress, ",") {
 		tmpList := [][]string{}
 		for _, v := range strings.Split(tmpExpress, ",") {
+			v = strings.ReplaceAll(v, filterSplitChar, "},{")
 			for ii, vv := range filterParams {
 				v = strings.ReplaceAll(v, fmt.Sprintf("$%d", ii), vv)
 			}
@@ -640,9 +651,10 @@ func getConditionExpressResult(express, startCiType string, filterMap map[string
 			return
 		}
 		result = getSameElementList(tmpList)
-		return
+	} else {
+		result, err = getExpressResultList(express, startCiType, filterMap, permission)
 	}
-	return getExpressResultList(express, startCiType, filterMap, permission)
+	return
 }
 
 func getSameElementList(input [][]string) []string {
@@ -666,7 +678,7 @@ func getSameElementList(input [][]string) []string {
 }
 
 func getExpressResultList(express, startCiType string, filterMap map[string]string, permission bool) (result []string, err error) {
-	log.Logger.Debug("getExpressResultList", log.String("express", express))
+	log.Debug(nil, log.LOGGER_APP, "getExpressResultList", zap.String("express", express))
 	// Example expression -> "host_resource_instance.resource_set>resource_set~(resource_set)unit[{key_name eq 'hhh'},{code in ['u','v']}]:[guid]"
 	var ciList, filterParams, tmpSplitList []string
 	// replace content 'xxx' to '$1' in case of content have '>~.:()[]'
@@ -752,7 +764,7 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 		}
 		expressionSqlList = append(expressionSqlList, &eso)
 	}
-	log.Logger.Debug("getExpressResultList expressionSqlList", log.JsonObj("expressionSqlList", expressionSqlList))
+	log.Debug(nil, log.LOGGER_APP, "getExpressResultList expressionSqlList", log.JsonObj("expressionSqlList", expressionSqlList))
 	eLen := len(expressionSqlList)
 	if eLen == 0 {
 		return
@@ -768,6 +780,9 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 		tmpTableName := v.Table
 		if v.MultiRefTable != "" {
 			tmpTableName = v.MultiRefTable
+		}
+		if !strings.HasPrefix(tmpTableName, "(") {
+			tmpTableName = fmt.Sprintf("`%s`", tmpTableName)
 		}
 		if i == 0 {
 			sql += fmt.Sprintf(" %s %s ", tmpTableName, v.IndexTableName)
@@ -785,7 +800,7 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 			//if len(ciList) == 1 {
 			//	// 新增的场景下guid是空的，但其它字段有填，尝试拿其它字段去做条件过滤
 			//	if filterMap["guid"] == "" && filterMap[v.ResultColumn] != "" {
-			//		log.Logger.Debug("getExpressResultList return with empty guid", log.String("resultColumn", v.ResultColumn), log.String("value", filterMap[v.ResultColumn]))
+			//		log.Debug(nil, log.LOGGER_APP,"getExpressResultList return with empty guid", zap.String("resultColumn", v.ResultColumn), zap.String("value", filterMap[v.ResultColumn]))
 			//		result = append(result, filterMap[v.ResultColumn])
 			//		return
 			//	}
@@ -823,7 +838,7 @@ func getExpressResultList(express, startCiType string, filterMap map[string]stri
 	for i, v := range filterParams {
 		sql = strings.ReplaceAll(sql, fmt.Sprintf("$%d$", i), v)
 	}
-	log.Logger.Debug("Expression filter sql", log.String("sql", sql))
+	log.Debug(nil, log.LOGGER_APP, "Expression filter sql", zap.String("sql", sql))
 	queryResults, queryErr := x.QueryString(sql)
 	if queryErr != nil {
 		err = fmt.Errorf("Query expression filter sql error,%s ", queryErr.Error())
@@ -845,6 +860,13 @@ func buildConditionSql(column, operator, value string, valueList []string) strin
 	}
 	value = strings.ReplaceAll(value, "'", "")
 	var sql string
+	if !strings.Contains(column, "`") {
+		if pointIndex := strings.Index(column, "."); pointIndex > 0 {
+			column = fmt.Sprintf("%s.`%s`", column[:pointIndex], column[pointIndex+1:])
+		} else {
+			column = fmt.Sprintf("`%s`", column)
+		}
+	}
 	switch operator {
 	case "in":
 		sql = fmt.Sprintf("%s in ('%s')", column, strings.Join(valueList, "','"))
@@ -908,7 +930,7 @@ func checkFilterAttrMultiRef(expressionSqlList []*expressionSqlObj) {
 		var attrTable []*models.SysCiTypeAttrTable
 		err := x.SQL(fmt.Sprintf("select id,ci_type,name,input_type,ref_filter from sys_ci_type_attr where (%s)", strings.Join(ciAttrSqlList, ") or ("))).Find(&attrTable)
 		if err != nil {
-			log.Logger.Error("check filter attribute if multi ref fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "check filter attribute if multi ref fail", zap.Error(err))
 		} else {
 			for i, v := range expressionSqlList {
 				if v.RefColumn == "" {
@@ -917,7 +939,7 @@ func checkFilterAttrMultiRef(expressionSqlList []*expressionSqlObj) {
 				for _, attr := range attrTable {
 					if attr.CiType == v.Table && attr.Name == v.RefColumn {
 						if attr.InputType == models.MultiRefType {
-							expressionSqlList[i].MultiRefTable = fmt.Sprintf("(select %s.*,%s$%s.to_guid as %s from %s left join %s$%s on %s.guid=%s$%s.from_guid)",
+							expressionSqlList[i].MultiRefTable = fmt.Sprintf("(select `%s`.*,`%s$%s`.to_guid as %s from `%s` left join `%s$%s` on `%s`.guid=`%s$%s`.from_guid)",
 								v.Table, v.Table, v.RefColumn, v.RefColumn, v.Table, v.Table, v.RefColumn, v.Table, v.Table, v.RefColumn)
 						}
 						break
@@ -929,7 +951,7 @@ func checkFilterAttrMultiRef(expressionSqlList []*expressionSqlObj) {
 }
 
 func StartConsumeAffectGuidMap() {
-	log.Logger.Debug("Start consume affect guid map cron job")
+	log.Debug(nil, log.LOGGER_APP, "Start consume affect guid map cron job")
 	for {
 		autofillChainMap := <-affectGuidListChan
 		go handleAffectGuidMap(autofillChainMap)
@@ -937,7 +959,7 @@ func StartConsumeAffectGuidMap() {
 }
 
 func StartConsumeAffectCiType() {
-	log.Logger.Debug("Start consume affect ci type cron job")
+	log.Debug(nil, log.LOGGER_APP, "Start consume affect ci type cron job")
 	for {
 		ciType := <-affectCiTypeChan
 		go handleAffectCiType(ciType)
@@ -945,7 +967,7 @@ func StartConsumeAffectCiType() {
 }
 
 func handleAffectGuidMap(autofillChainMap map[string][]*models.AutofillChainObj) {
-	log.Logger.Debug("Start handle affect guid list")
+	log.Debug(nil, log.LOGGER_APP, "Start handle affect guid list")
 	//if len(autofillChainMap) > 0 {
 	//	return
 	//}
@@ -969,13 +991,13 @@ func handleAffectGuidMap(autofillChainMap map[string][]*models.AutofillChainObj)
 		}
 	}
 	if len(affectCiMap) == 0 {
-		log.Logger.Debug("End handle affect guid list,no ci to update")
+		log.Debug(nil, log.LOGGER_APP, "End handle affect guid list,no ci to update")
 		return
 	}
 	nowTime := time.Now().Format(models.DateTimeFormat)
 	for _, attr := range affectCiMap {
 		affectGuidList := findAutofillGuidDepList(attr)
-		log.Logger.Debug("Handle affect autofill guid list", log.StringList("affect", affectGuidList))
+		log.Debug(nil, log.LOGGER_APP, "Handle affect autofill guid list", zap.Strings("affect", affectGuidList))
 		if len(affectGuidList) == 0 {
 			continue
 		}
@@ -987,7 +1009,7 @@ func handleAffectGuidMap(autofillChainMap map[string][]*models.AutofillChainObj)
 	for _, rows := range autofillChainMap {
 		for _, row := range rows {
 			if row.MultiColumnDelMap != nil {
-				log.Logger.Debug("MultiColumnDelMap", log.JsonObj("data", row.MultiColumnDelMap))
+				log.Debug(nil, log.LOGGER_APP, "MultiColumnDelMap", log.JsonObj("data", row.MultiColumnDelMap))
 				for _, guidList := range row.MultiColumnDelMap {
 					for _, rowGuid := range guidList {
 						if lastIndex := strings.LastIndex(rowGuid, "_"); lastIndex >= 0 {
@@ -1002,10 +1024,10 @@ func handleAffectGuidMap(autofillChainMap map[string][]*models.AutofillChainObj)
 }
 
 func handleAffectCiType(ciType string) {
-	log.Logger.Info("start handle affect ci type autofill mode", log.String("ciType", ciType))
-	queryRows, err := x.QueryString(fmt.Sprintf("select guid from %s", ciType))
+	log.Info(nil, log.LOGGER_APP, "start handle affect ci type autofill mode", zap.String("ciType", ciType))
+	queryRows, err := x.QueryString(fmt.Sprintf("select guid from `%s`", ciType))
 	if err != nil {
-		log.Logger.Error("Try to handle affect ci type fail,query ci data error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to handle affect ci type fail,query ci data error", zap.Error(err))
 		return
 	}
 	nowTime := time.Now().Format(models.DateTimeFormat)
@@ -1019,7 +1041,7 @@ func getCiTypeAutofillDepColumn(ciType string) (ciColumnList []*models.AutofillC
 	var attributes []*models.SysCiTypeAttrTable
 	err = x.SQL("select id,ci_type,name,autofill_rule from sys_ci_type_attr where autofill_rule like '%" + ciType + "#%' and ci_type<>'" + ciType + "'").Find(&attributes)
 	if err != nil {
-		log.Logger.Error("Try to get ciType autofill dependence column fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to get ciType autofill dependence column fail", zap.Error(err))
 		return
 	}
 	if len(attributes) == 0 {
@@ -1027,7 +1049,7 @@ func getCiTypeAutofillDepColumn(ciType string) (ciColumnList []*models.AutofillC
 	}
 	for _, attr := range attributes {
 		tmpColumnList := getAutofillRuleColumnList(attr.AutofillRule, ciType)
-		log.Logger.Debug("getAutofillRuleColumnList", log.String("ciType", ciType), log.String("attr", attr.Name), log.StringList("columnList", tmpColumnList))
+		log.Debug(nil, log.LOGGER_APP, "getAutofillRuleColumnList", zap.String("ciType", ciType), zap.String("attr", attr.Name), zap.Strings("columnList", tmpColumnList))
 		if len(tmpColumnList) == 0 {
 			continue
 		}
@@ -1042,7 +1064,7 @@ func getAutofillRuleColumnList(autofillString, ciType string) (columnList []stri
 	}
 	var autofillList []*models.AutofillObj
 	if err := json.Unmarshal([]byte(autofillString), &autofillList); err != nil {
-		log.Logger.Warn("ci attr autofill config rule json unmarshal fail", log.String("config", autofillString), log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "ci attr autofill config rule json unmarshal fail", zap.String("config", autofillString), zap.Error(err))
 		return
 	}
 	for _, ruleConfig := range autofillList {
@@ -1051,7 +1073,7 @@ func getAutofillRuleColumnList(autofillString, ciType string) (columnList []stri
 		}
 		ruleList := []*models.AutofillValueObj{}
 		if tmpErr := json.Unmarshal([]byte(ruleConfig.Value), &ruleList); tmpErr != nil {
-			log.Logger.Warn("autofill value rule json unmarshal fail", log.String("ruleString", ruleConfig.Value), log.Error(tmpErr))
+			log.Warn(nil, log.LOGGER_APP, "autofill value rule json unmarshal fail", zap.String("ruleString", ruleConfig.Value), zap.Error(tmpErr))
 			continue
 		}
 		for _, v := range ruleList {
@@ -1095,7 +1117,7 @@ func findAutofillGuidDepList(ciAttr *models.AutofillChainCiColumn) []string {
 	var ruleList []*models.AutofillObj
 	err := json.Unmarshal([]byte(ciAttr.AutofillRule), &ruleList)
 	if err != nil {
-		log.Logger.Error("Find autofill dep list fail,json unmarhsal rule string error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Find autofill dep list fail,json unmarhsal rule string error", zap.Error(err))
 		return affectGuidList
 	}
 	if len(ruleList) == 0 {
@@ -1153,7 +1175,7 @@ func findAutofillGuidDepList(ciAttr *models.AutofillChainCiColumn) []string {
 func jsonParseAutofillValue(ruleString string) (ruleList []*models.AutofillValueObj, err error) {
 	err = json.Unmarshal([]byte(strings.ReplaceAll(ruleString, "\\", "")), &ruleList)
 	if err != nil {
-		log.Logger.Error("json unmarshal autofill rule value fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "json unmarshal autofill rule value fail", zap.Error(err))
 	}
 	return
 }
@@ -1164,9 +1186,9 @@ func queryAutofillLeftRows(ciTypeId, attr string, rowList []map[string]string, m
 		guidList = append(guidList, v["guid"])
 	}
 	if multiRef {
-		rowList, err = x.QueryString(fmt.Sprintf("select distinct from_guid from %s$%s where to_guid in ('%s')", ciTypeId, attr, strings.Join(guidList, "','")))
+		rowList, err = x.QueryString(fmt.Sprintf("select distinct from_guid from `%s$%s` where to_guid in ('%s')", ciTypeId, attr, strings.Join(guidList, "','")))
 		if err != nil {
-			log.Logger.Error("query autofill multi left row data fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "query autofill multi left row data fail", zap.Error(err))
 			return
 		}
 		guidList = []string{}
@@ -1175,9 +1197,9 @@ func queryAutofillLeftRows(ciTypeId, attr string, rowList []map[string]string, m
 		}
 		attr = "guid"
 	}
-	result, err = x.QueryString(fmt.Sprintf("select * from %s where %s in ('%s')", ciTypeId, attr, strings.Join(guidList, "','")))
+	result, err = x.QueryString(fmt.Sprintf("select * from `%s` where `%s` in ('%s')", ciTypeId, attr, strings.Join(guidList, "','")))
 	if err != nil {
-		log.Logger.Error("query autofill left row data fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "query autofill left row data fail", zap.Error(err))
 	}
 	return
 }
@@ -1188,9 +1210,9 @@ func queryAutofillRightRows(sourceCiTypeId, targetCiTypeId, attr string, rowList
 		for _, v := range rowList {
 			guidList = append(guidList, v["guid"])
 		}
-		rowList, err = x.QueryString(fmt.Sprintf("select distinct to_guid from %s$%s where from_guid in ('%s')", sourceCiTypeId, attr, strings.Join(guidList, "','")))
+		rowList, err = x.QueryString(fmt.Sprintf("select distinct to_guid from `%s$%s` where from_guid in ('%s')", sourceCiTypeId, attr, strings.Join(guidList, "','")))
 		if err != nil {
-			log.Logger.Error("query autofill multiRef right row data fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "query autofill multiRef right row data fail", zap.Error(err))
 			return
 		}
 		guidList = []string{}
@@ -1202,15 +1224,15 @@ func queryAutofillRightRows(sourceCiTypeId, targetCiTypeId, attr string, rowList
 			guidList = append(guidList, v[attr])
 		}
 	}
-	result, err = x.QueryString(fmt.Sprintf("select * from %s where guid in ('%s')", targetCiTypeId, strings.Join(guidList, "','")))
+	result, err = x.QueryString(fmt.Sprintf("select * from `%s` where guid in ('%s')", targetCiTypeId, strings.Join(guidList, "','")))
 	if err != nil {
-		log.Logger.Error("query autofill right row data fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "query autofill right row data fail", zap.Error(err))
 	}
 	return
 }
 
 func StartConsumeUniquePathHandle() {
-	log.Logger.Info("Start consume unique path trigger cron job")
+	log.Info(nil, log.LOGGER_APP, "Start consume unique path trigger cron job")
 	for {
 		uniquePathList := <-uniquePathHandleChan
 		go consumeUniquePathHandle(uniquePathList)
@@ -1225,20 +1247,20 @@ func consumeUniquePathHandle(uniquePathList []*models.AutoActiveHandleParam) {
 			tmpInputData = append(tmpInputData, v)
 			guidList = append(guidList, v["guid"])
 		}
-		log.Logger.Info("Start to active unique path handle", log.StringList("guid", guidList), log.String("operation", uniquePathObj.Operation))
+		log.Info(nil, log.LOGGER_APP, "Start to active unique path handle", zap.Strings("guid", guidList), zap.String("operation", uniquePathObj.Operation))
 		handleParam := models.HandleCiDataParam{InputData: tmpInputData, CiTypeId: uniquePathObj.CiType, Operation: uniquePathObj.Operation, Operator: uniquePathObj.User, Roles: []string{}, Permission: false, FromCore: false}
 		_, _, err := HandleCiDataOperation(handleParam)
 		if err != nil {
-			log.Logger.Error("Unique path handle fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Unique path handle fail", zap.Error(err))
 		}
 	}
 }
 
 func getLeftFilterResultList(left, operator, value string, rightValueList []string, filterMap map[string]string) (valueList []string, err error) {
-	log.Logger.Debug("getLeftFilterResultList", log.String("left before", left))
+	log.Debug(nil, log.LOGGER_APP, "getLeftFilterResultList", zap.String("left before", left))
 	column := left[strings.LastIndex(left, "[")+1 : strings.LastIndex(left, "]")]
 	left = left[:strings.LastIndex(left, ":")] + fmt.Sprintf("[{%s}]", buildLeftExpressCondition(column, operator, value, rightValueList))
-	log.Logger.Debug("getLeftFilterResultList", log.String("left after", left))
+	log.Debug(nil, log.LOGGER_APP, "getLeftFilterResultList", zap.String("left after", left))
 	valueList, err = getExpressResultList(left, "", filterMap, true)
 	if err != nil {
 		err = fmt.Errorf("Try to analyze filter left express fail,%s ", err.Error())
@@ -1251,6 +1273,13 @@ func buildLeftExpressCondition(column, operator, value string, valueList []strin
 		valueList = strings.Split(strings.ReplaceAll(value[1:len(value)-1], "'", ""), ",")
 	}
 	value = strings.ReplaceAll(value, "'", "")
+	if !strings.Contains(column, "`") {
+		if pointIndex := strings.Index(column, "."); pointIndex > 0 {
+			column = fmt.Sprintf("%s.`%s`", column[:pointIndex], column[pointIndex+1:])
+		} else {
+			column = fmt.Sprintf("`%s`", column)
+		}
+	}
 	var sql string
 	switch operator {
 	case "in":
@@ -1296,7 +1325,7 @@ func transStringToList(input string) (output []string) {
 }
 
 func buildCalcFillValue(columnMap map[string]string, ruleList []*models.AutofillObj) (result float64, err error) {
-	log.Logger.Debug("-----start buildCalcFillValue columnMap", log.JsonObj("map", columnMap), log.JsonObj("ruleList", ruleList))
+	log.Debug(nil, log.LOGGER_APP, "-----start buildCalcFillValue columnMap", log.JsonObj("map", columnMap), log.JsonObj("ruleList", ruleList))
 	var lastCalcSymbol, lastCalcFunc string
 	var calcValue float64
 	for i, ruleObj := range ruleList {
@@ -1351,14 +1380,14 @@ func buildCalcFillValue(columnMap map[string]string, ruleList []*models.Autofill
 		if ruleObj.Type == "calcFunc" {
 			lastCalcFunc = ruleObj.Value
 		}
-		log.Logger.Debug("buildCalcFillValue", log.Int("index", i), log.Float64("tmpCalcValue", tmpCalcValue), log.Float64("calcValue", calcValue), log.String("symbol", lastCalcSymbol), log.String("func", lastCalcFunc))
+		log.Debug(nil, log.LOGGER_APP, "buildCalcFillValue", zap.Int("index", i), zap.Float64("tmpCalcValue", tmpCalcValue), zap.Float64("calcValue", calcValue), zap.String("symbol", lastCalcSymbol), zap.String("func", lastCalcFunc))
 	}
 	if err != nil {
-		log.Logger.Error("-----end buildCalcFillValue", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "-----end buildCalcFillValue", zap.Error(err))
 		return
 	}
 	result = calcValue
-	log.Logger.Debug("-----end buildCalcFillValue", log.Float64("result", result))
+	log.Debug(nil, log.LOGGER_APP, "-----end buildCalcFillValue", zap.Float64("result", result))
 	return
 }
 
@@ -1462,5 +1491,31 @@ func ValidateAttrRefFilter(refFilterString string) (err error) {
 
 		}
 	}
+	return
+}
+
+func getExpressionFilterParam(express string) (keyList, paramValueList []string) {
+	var filterParams, tmpSplitList []string
+	if strings.Contains(express, "'") {
+		tmpSplitList = strings.Split(express, "'")
+		express = ""
+		tmpKey := ""
+		for i, v := range tmpSplitList {
+			if i%2 == 0 {
+				if i == len(tmpSplitList)-1 {
+					express += v
+				} else {
+					express += fmt.Sprintf("%s'$%d'", v, i/2)
+				}
+				if lastIndex := strings.LastIndex(v, "{"); lastIndex > 0 {
+					tmpKey = strings.Split(v[lastIndex+1:], " ")[0]
+				}
+			} else {
+				keyList = append(keyList, tmpKey)
+				filterParams = append(filterParams, strings.ReplaceAll(v, "'", ""))
+			}
+		}
+	}
+	paramValueList = filterParams
 	return
 }

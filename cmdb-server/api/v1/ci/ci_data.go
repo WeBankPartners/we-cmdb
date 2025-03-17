@@ -24,12 +24,12 @@ func DataQuery(c *gin.Context) {
 		return
 	}
 	// Permissions
-	permissions, tmpErr := db.GetRoleCiDataPermission(middleware.GetRequestRoles(c), c.Param("ciType"), "")
+	permissions, tmpErr := db.GetRoleCiDataPermission(middleware.GetRequestRoles(c), c.Param("ciType"), "", models.DataActionQuery)
 	if tmpErr != nil {
 		middleware.ReturnDataPermissionError(c, tmpErr)
 		return
 	}
-	legalGuidList, tmpErr := db.GetCiDataPermissionGuidList(&permissions, "query")
+	legalGuidList, tmpErr := db.GetCiDataPermissionGuidList(&permissions, models.DataActionQuery)
 	if tmpErr != nil {
 		middleware.ReturnDataPermissionError(c, tmpErr)
 		return
@@ -361,12 +361,12 @@ func AttrSensitiveDataQuery(c *gin.Context) {
 	for _, param := range paramList {
 		attrId := param.CiType + models.SysTableIdConnector + param.AttrName
 		if _, ok := queryAttrPermissionMap[attrId]; !ok {
-			permissions, tmpGetPermissionConfigErr := db.GetRoleCiDataPermission(userRoles, param.CiType, attrId)
+			permissions, tmpGetPermissionConfigErr := db.GetRoleCiDataPermission(userRoles, param.CiType, attrId, models.DataActionQuery)
 			if tmpGetPermissionConfigErr != nil {
 				err = tmpGetPermissionConfigErr
 				break
 			}
-			tmpLegalConfig, tmpGetPermissionGuidListErr := db.GetCiDataPermissionGuidList(&permissions, "query")
+			tmpLegalConfig, tmpGetPermissionGuidListErr := db.GetCiDataPermissionGuidList(&permissions, models.DataActionQuery)
 			if tmpGetPermissionGuidListErr != nil {
 				err = tmpGetPermissionGuidListErr
 				break
@@ -393,12 +393,12 @@ func AttrSensitiveDataQuery(c *gin.Context) {
 			param.Value = result
 		}
 		if _, ok := updateAttrPermissionMap[attrId]; !ok {
-			permissions, tmpGetPermissionConfigErr := db.GetRoleCiDataPermission(userRoles, param.CiType, attrId)
+			permissions, tmpGetPermissionConfigErr := db.GetRoleCiDataPermission(userRoles, param.CiType, attrId, models.DataActionUpdate)
 			if tmpGetPermissionConfigErr != nil {
 				err = tmpGetPermissionConfigErr
 				break
 			}
-			tmpLegalConfig, tmpGetPermissionGuidListErr := db.GetCiDataPermissionGuidList(&permissions, "update")
+			tmpLegalConfig, tmpGetPermissionGuidListErr := db.GetCiDataPermissionGuidList(&permissions, models.DataActionUpdate)
 			if tmpGetPermissionGuidListErr != nil {
 				err = tmpGetPermissionGuidListErr
 				break

@@ -28,7 +28,7 @@ func InitDatabase() error {
 		models.Config.Database.User, models.Config.Database.Password, "tcp", fmt.Sprintf("%s:%s", models.Config.Database.Server, models.Config.Database.Port), models.Config.Database.DataBase)
 	engine, err := xorm.NewEngine("mysql", connStr)
 	if err != nil {
-		log.Logger.Error("Init database connect fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Init database connect fail", zap.Error(err))
 		return err
 	}
 	engine.SetMaxIdleConns(models.Config.Database.MaxIdle)
@@ -40,39 +40,39 @@ func InitDatabase() error {
 	// 使用驼峰式映射
 	engine.SetMapper(core.SnakeMapper{})
 	x = engine
-	log.Logger.Info("Success init database connect !!")
+	log.Info(nil, log.LOGGER_APP, "Success init database connect !!")
 	return nil
 }
 
 type dbLogger struct {
 	LogLevel xorm_log.LogLevel
 	ShowSql  bool
-	Logger   *zap.Logger
+	Logger   *zap.SugaredLogger
 }
 
 func (d *dbLogger) Debug(v ...interface{}) {
-	d.Logger.Debug(fmt.Sprint(v...))
+	d.Logger.Debugw(fmt.Sprint(v...))
 }
 
 func (d *dbLogger) Debugf(format string, v ...interface{}) {
-	d.Logger.Debug(fmt.Sprintf(format, v...))
+	d.Logger.Debugw(fmt.Sprintf(format, v...))
 }
 
 func (d *dbLogger) Error(v ...interface{}) {
-	d.Logger.Error(fmt.Sprint(v...))
+	d.Logger.Errorw(fmt.Sprint(v...))
 }
 
 func (d *dbLogger) Errorf(format string, v ...interface{}) {
-	d.Logger.Error(fmt.Sprintf(format, v...))
+	d.Logger.Errorw(fmt.Sprintf(format, v...))
 }
 
 func (d *dbLogger) Info(v ...interface{}) {
-	d.Logger.Info(fmt.Sprint(v...))
+	d.Logger.Infow(fmt.Sprint(v...))
 }
 
 func (d *dbLogger) Infof(format string, v ...interface{}) {
 	if len(v) < 4 {
-		d.Logger.Info(fmt.Sprintf(format, v...))
+		d.Logger.Infow(fmt.Sprintf(format, v...))
 		return
 	}
 	var costMs float64 = 0
@@ -92,15 +92,15 @@ func (d *dbLogger) Infof(format string, v ...interface{}) {
 		secTime, _ := strconv.ParseFloat(costTime[mIndex+1:], 64)
 		costMs = (minTime*60 + secTime) * 1000
 	}
-	d.Logger.Info("db_log", log.String("sql", fmt.Sprintf("%s", v[1])), log.String("param", fmt.Sprintf("%v", v[2])), log.Float64("cost_ms", costMs))
+	d.Logger.Infow("db_log", zap.String("sql", fmt.Sprintf("%s", v[1])), zap.String("param", fmt.Sprintf("%v", v[2])), zap.Float64("cost_ms", costMs))
 }
 
 func (d *dbLogger) Warn(v ...interface{}) {
-	d.Logger.Warn(fmt.Sprint(v...))
+	d.Logger.Warnw(fmt.Sprint(v...))
 }
 
 func (d *dbLogger) Warnf(format string, v ...interface{}) {
-	d.Logger.Warn(fmt.Sprintf(format, v...))
+	d.Logger.Warnw(fmt.Sprintf(format, v...))
 }
 
 func (d *dbLogger) Level() xorm_log.LogLevel {
@@ -121,15 +121,20 @@ func (d *dbLogger) IsShowSQL() bool {
 
 func queryCount(sql string, params ...interface{}) int {
 	sql = "SELECT COUNT(1) FROM ( " + sql + " ) sub_query"
-	resultMap := make(map[string]int)
-	_, err := x.SQL(sql, params...).Get(&resultMap)
+	// resultMap := make(map[string]int)
+	params = append([]interface{}{sql}, params...)
+	resultMap, err := x.QueryString(params...)
 	if err != nil {
-		log.Logger.Error("Query sql count message fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query sql count message fail", zap.Error(err))
 		return 0
 	}
-	if _, b := resultMap["COUNT(1)"]; b {
-		return resultMap["COUNT(1)"]
+	if len(resultMap) > 0 {
+		countNum, _ := strconv.Atoi(resultMap[0]["COUNT(1)"])
+		return countNum
 	}
+	// if _, b := resultMap["COUNT(1)"]; b {
+	// 	return resultMap["COUNT(1)"]
+	// }
 	return 0
 }
 
@@ -156,11 +161,15 @@ func transFiltersToSQL(queryParam *models.QueryRequestParam, transParam *models.
 		if transParam.KeyMap[filter.Name] == "" || transParam.KeyMap[filter.Name] == "-" {
 			continue
 		}
+		filterSqlColumn := fmt.Sprintf("`%s`", transParam.KeyMap[filter.Name])
+		if transParam.Prefix != "" {
+			filterSqlColumn = fmt.Sprintf("%s`%s`", transParam.Prefix, transParam.KeyMap[filter.Name])
+		}
 		if filter.Operator == "eq" {
-			filterSql += fmt.Sprintf(" AND %s%s=? ", transParam.Prefix, transParam.KeyMap[filter.Name])
+			filterSql += fmt.Sprintf(" AND %s=? ", filterSqlColumn)
 			param = append(param, filter.Value)
 		} else if filter.Operator == "contains" || filter.Operator == "like" {
-			filterSql += fmt.Sprintf(" AND %s%s LIKE ? ", transParam.Prefix, transParam.KeyMap[filter.Name])
+			filterSql += fmt.Sprintf(" AND %s LIKE ? ", filterSqlColumn)
 			param = append(param, fmt.Sprintf("%%%s%%", filter.Value))
 		} else if filter.Operator == "in" {
 			inValueStringList := []string{}
@@ -179,21 +188,21 @@ func transFiltersToSQL(queryParam *models.QueryRequestParam, transParam *models.
 			if tmpSpecSql == "" {
 				tmpSpecSql = "''"
 			}
-			filterSql += fmt.Sprintf(" AND %s%s in (%s) ", transParam.Prefix, transParam.KeyMap[filter.Name], tmpSpecSql)
+			filterSql += fmt.Sprintf(" AND %s in (%s) ", filterSqlColumn, tmpSpecSql)
 			param = append(param, tmpListParams...)
 		} else if filter.Operator == "lt" {
-			filterSql += fmt.Sprintf(" AND %s%s<=? ", transParam.Prefix, transParam.KeyMap[filter.Name])
+			filterSql += fmt.Sprintf(" AND %s<=? ", filterSqlColumn)
 			param = append(param, filter.Value)
 		} else if filter.Operator == "gt" {
-			filterSql += fmt.Sprintf(" AND %s%s>=? ", transParam.Prefix, transParam.KeyMap[filter.Name])
+			filterSql += fmt.Sprintf(" AND %s>=? ", filterSqlColumn)
 			param = append(param, filter.Value)
 		} else if filter.Operator == "ne" || filter.Operator == "neq" {
-			filterSql += fmt.Sprintf(" AND %s%s!=? ", transParam.Prefix, transParam.KeyMap[filter.Name])
+			filterSql += fmt.Sprintf(" AND %s!=? ", filterSqlColumn)
 			param = append(param, filter.Value)
 		} else if filter.Operator == "notNull" || filter.Operator == "isnot" {
-			filterSql += fmt.Sprintf(" AND %s%s is not null ", transParam.Prefix, transParam.KeyMap[filter.Name])
+			filterSql += fmt.Sprintf(" AND %s is not null ", filterSqlColumn)
 		} else if filter.Operator == "null" || filter.Operator == "is" {
-			filterSql += fmt.Sprintf(" AND %s%s is null ", transParam.Prefix, transParam.KeyMap[filter.Name])
+			filterSql += fmt.Sprintf(" AND %s is null ", filterSqlColumn)
 		}
 	}
 	if queryParam.Sorting != nil {
@@ -202,10 +211,14 @@ func transFiltersToSQL(queryParam *models.QueryRequestParam, transParam *models.
 		} else {
 			queryParam.Sorting.Field = transParam.KeyMap[queryParam.Sorting.Field]
 		}
+		sortSqlColumn := fmt.Sprintf("`%s`", queryParam.Sorting.Field)
+		if transParam.Prefix != "" {
+			sortSqlColumn = fmt.Sprintf("%s`%s`", transParam.Prefix, queryParam.Sorting.Field)
+		}
 		if queryParam.Sorting.Asc {
-			filterSql += fmt.Sprintf(" ORDER BY %s%s ASC ", transParam.Prefix, queryParam.Sorting.Field)
+			filterSql += fmt.Sprintf(" ORDER BY %s ASC ", sortSqlColumn)
 		} else {
-			filterSql += fmt.Sprintf(" ORDER BY %s%s DESC ", transParam.Prefix, queryParam.Sorting.Field)
+			filterSql += fmt.Sprintf(" ORDER BY %s DESC ", sortSqlColumn)
 		}
 	}
 	if len(queryParam.ResultColumns) > 0 {
@@ -213,7 +226,11 @@ func transFiltersToSQL(queryParam *models.QueryRequestParam, transParam *models.
 			if transParam.KeyMap[resultColumn] == "" || transParam.KeyMap[resultColumn] == "-" {
 				continue
 			}
-			queryColumn += fmt.Sprintf("%s%s,", transParam.Prefix, transParam.KeyMap[resultColumn])
+			if transParam.Prefix != "" {
+				queryColumn += fmt.Sprintf("%s`%s`,", transParam.Prefix, transParam.KeyMap[resultColumn])
+			} else {
+				queryColumn += fmt.Sprintf("`%s`,", transParam.KeyMap[resultColumn])
+			}
 		}
 	}
 	if queryColumn == "" {
@@ -238,7 +255,7 @@ type execAction struct {
 
 func transaction(actions []*execAction) error {
 	if len(actions) == 0 {
-		log.Logger.Warn("Transaction is empty,nothing to do")
+		log.Warn(nil, log.LOGGER_APP, "Transaction is empty,nothing to do")
 		return fmt.Errorf("SQL exec transaction is empty,nothing to do,please check server log ")
 	}
 	for i, action := range actions {
@@ -293,7 +310,7 @@ func getDefaultInsertSqlByStruct(obj interface{}, tableName string, ignoreColumn
 
 func transactionWithoutForeignCheck(actions []*execAction) error {
 	if len(actions) == 0 {
-		log.Logger.Warn("Transaction is empty,nothing to do")
+		log.Warn(nil, log.LOGGER_APP, "Transaction is empty,nothing to do")
 		return fmt.Errorf("SQL exec transaction is empty,nothing to do,please check server log ")
 	}
 	for i, action := range actions {
