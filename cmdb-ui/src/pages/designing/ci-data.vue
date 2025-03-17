@@ -71,7 +71,7 @@
           filterable
           :max-tag-count="1"
           v-model="currentciGroup"
-          style="flex: 1;width:200px;margin-right:20px"
+          style="flex: 1;width:210px;margin-right:20px"
         >
           <Option v-for="item in originciGroupList" :value="item.codeId" :key="item.codeId">
             {{ item.value }}
@@ -118,7 +118,7 @@
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line
 import * as d3Graphviz from 'd3-graphviz'
-import { isEmpty, find } from 'lodash'
+import { isEmpty, find, intersection, hasIn } from 'lodash'
 import moment from 'moment'
 import { addEvent } from '../util/event.js'
 import {
@@ -553,19 +553,19 @@ export default {
       }, 500)
     },
     async onSelectedRowsChange (rows, checkoutBoxdisable) {
-      if (rows.length !== this.selectedRows.length) {
-        // 这里用来每次点击checkbox刷新table
-        this.selectedRows = rows
-        await this.queryCiData(false)
-        return
-      }
+      // if (rows.length !== this.selectedRows.length) {
+      //   // 这里用来每次点击checkbox刷新table
+      //   this.selectedRows = rows
+      //   await this.queryCiData(false)
+      //   return
+      // }
       this.selectedRows = rows
       if (rows.length > 0) {
         let opArray = []
         rows.forEach(r => {
-          opArray = opArray.concat(r.nextOperations)
+          opArray.push([...r.nextOperations])
         })
-        const activeBtn = new Set(opArray)
+        const activeBtn = new Set(intersection(...opArray))
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
             ci.outerActions.forEach(_ => {
@@ -978,32 +978,37 @@ export default {
         this.$refs[this.tableRef][0].isTableLoading(true)
       }
       return new Promise(async resolve => {
-        const { statusCode, data } = await method(query)
-        this.$refs[this.tableRef][0].isTableLoading(false)
-        if (statusCode === 'OK') {
-          this.tabList.forEach(ci => {
+        this.tabList.forEach(ci => {
             if (ci.id === this.currentTab) {
-              // 将WeCMDBSelect枚举类型的数据值从value转换成label以便与编辑态对应
-              const filterSelect = ci.tableColumns.filter(item => item.component === 'WeCMDBSelect')
-              filterSelect.forEach(item => {
-                data.contents.forEach(d => {
-                  const find = item.options.find(o => o.value === d[item.key])
-                  if (find) {
-                    d[item.key] = find.label
-                  }
-                })
-              })
-              ci.tableData = data.contents.map(_ => {
-                return {
-                  ..._,
-                  _checked: !!find(this.selectedRows, { guid: _.guid })
-                  // nextOperations: _.meta.nextOperations || []
+              ci.tableData = []
+            }
+        })
+        let { data } = await method(query)
+        const contents = hasIn(data, 'contents') ? data.contents : []
+        const totalRows = hasIn(data, 'pageInfo.totalRows') ? data.pageInfo.totalRows : 0
+        this.$refs[this.tableRef][0].isTableLoading(false)
+        this.tabList.forEach(ci => {
+          if (ci.id === this.currentTab) {
+            // 将WeCMDBSelect枚举类型的数据值从value转换成label以便与编辑态对应
+            const filterSelect = ci.tableColumns.filter(item => item.component === 'WeCMDBSelect')
+            filterSelect.forEach(item => {
+              contents.forEach(d => {
+                const find = item.options.find(o => o.value === d[item.key])
+                if (find) {
+                  d[item.key] = find.label
                 }
               })
-              ci.pagination.total = data.pageInfo.totalRows
-            }
-          })
-        }
+            })
+            ci.tableData = contents.map(_ => {
+              return {
+                ..._,
+                _checked: !!find(this.selectedRows, { guid: _.guid })
+                // nextOperations: _.meta.nextOperations || []
+              }
+            })
+            ci.pagination.total = totalRows
+          }
+        })
         this.setBtnsStatus()
         resolve()
       })
@@ -1299,6 +1304,11 @@ export default {
 }
 </script>
 <style lang="scss">
+.ci-data-detail-page {
+  .ivu-tabs-content.ivu-tabs-content-animated {
+    width: 100%
+  }
+}
 .highlightTableCell {
   color: rgba(#ff6600, 0.9) !important;
 }
@@ -1417,13 +1427,13 @@ export default {
     padding: 0 15px;
     font-size: 14px;
     border-radius: 4px;
-    color: #515a6e;
+    color: #0f1222;
     background-color: #fff;
     border-color: #dcdee2;
 
     &.active {
-      border: 1px solid #2d8cf0;
-      color: #2d8cf0;
+      border: 1px solid #5384FF;
+      color: #5384FF;
     }
     &.hidden {
       display: none !important;

@@ -13,7 +13,7 @@ export default {
   props: {
     value: {},
     options: { default: () => [] },
-    groupType: { default: '' },
+    groupType: { default: undefined },
     radioText: { default: '' }
   },
   methods: {

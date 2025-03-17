@@ -48,7 +48,7 @@ req.interceptors.response.use(
       if (res.data.statusCode !== 'OK') {
         let errorMes = res.data.statusMessage
         if (errorMes && errorMes.indexOf('update_time is diff with database') !== -1) {
-          errorMes = window.vm ? pluginI18n('db_update_error_tips') : Vue.t('db_update_error_tips')
+          errorMes = window.vm ? pluginI18n('db_update_error_tips') : pluginI18n('db_update_error_tips')
         }
         Vue.prototype.$Notice.error({
           title: 'Error',
