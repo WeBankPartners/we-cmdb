@@ -1,0 +1,40 @@
+@alert-prefix-cls: ~"@{css-prefix}alert";
+@icon-prefix-cls: ~"@{css-prefix}icon";
+
+.@{alert-prefix-cls}{
+
+    &-success {
+        border: @border-width-base @border-style-base @success-color;
+        background-color: fade(@success-color, 6);
+        color: @success-color;
+    }
+
+    &-info {
+        border: @border-width-base @border-style-base @primary-color;
+        background-color: fade(@primary-color, 6);
+        color: @primary-color;
+    }
+
+    &-warning {
+        border: @border-width-base @border-style-base @warning-color;
+        background-color: fade(@warning-color, 6);
+        color: @warning-color;
+    }
+
+    &-error {
+        border: @border-width-base @border-style-base @error-color;
+        background-color: fade(@error-color, 6);
+        color: @error-color;
+    }
+
+
+    &-with-desc &-desc{
+        color: inherit;
+        opacity: 0.45;
+    }
+
+    &-with-desc &-message {
+        color: inherit;
+    }
+
+}

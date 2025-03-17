@@ -1,7 +1,7 @@
 <template>
   <div class="ci-data-page">
     <div class="refresh-tips" v-if="isRefreshTipsShow">
-      <Icon type="ios-alert-outline" size="32" color="#2d8cf0" />
+      <Icon type="ios-alert-outline" size="32" color="#5384FF" />
       <div style="position: relative; display: inline-block; bottom: 4px">
         {{ $t('db_refresh_tips') }}
       </div>
@@ -808,7 +808,7 @@ export default {
     height: 24px;
     color: #fff;
     border-radius: 2px;
-    background: #2d8cf0;
+    background: #5384FF;
     margin-right: 12px;
   }
 }

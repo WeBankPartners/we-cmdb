@@ -44,10 +44,11 @@ export const components = {
     component: 'WeCMDBCIPassword'
   }
 }
+
 export const newOuterActions = [
   {
-    label: window.vm ? pluginI18n('new') : Vue.t('new'),
-    operation: window.vm ? pluginI18n('new') : Vue.t('new'),
+    label: window.vm ? pluginI18n('new') : pluginI18n('new'),
+    operation: window.vm ? pluginI18n('new') : pluginI18n('new'),
     props: {
       type: 'success',
       icon: 'md-add',
@@ -58,8 +59,8 @@ export const newOuterActions = [
     operation_en: 'add'
   },
   {
-    label: window.vm ? pluginI18n('copyToNew') : Vue.t('copyToNew'),
-    operation: window.vm ? pluginI18n('copyToNew') : Vue.t('copyToNew'),
+    label: window.vm ? pluginI18n('copyToNew') : pluginI18n('copyToNew'),
+    operation: window.vm ? pluginI18n('copyToNew') : pluginI18n('copyToNew'),
     props: {
       type: 'success',
       icon: 'md-add',
@@ -70,8 +71,8 @@ export const newOuterActions = [
     operation_en: 'copy'
   },
   {
-    label: window.vm ? pluginI18n('edit') : Vue.t('edit'),
-    operation: window.vm ? pluginI18n('edit') : Vue.t('edit'),
+    label: window.vm ? pluginI18n('edit') : pluginI18n('edit'),
+    operation: window.vm ? pluginI18n('edit') : pluginI18n('edit'),
     props: {
       type: 'info',
       icon: 'ios-build',
@@ -82,8 +83,8 @@ export const newOuterActions = [
     operation_en: 'edit'
   },
   {
-    label: window.vm ? pluginI18n('delete') : Vue.t('delete'),
-    operation: window.vm ? pluginI18n('delete') : Vue.t('delete'),
+    label: window.vm ? pluginI18n('delete') : pluginI18n('delete'),
+    operation: window.vm ? pluginI18n('delete') : pluginI18n('delete'),
     props: {
       type: 'error',
       icon: 'ios-trash-outline',
@@ -94,8 +95,8 @@ export const newOuterActions = [
     operation_en: 'delete'
   },
   {
-    label: window.vm ? pluginI18n('export') : Vue.t('export'),
-    operation: window.vm ? pluginI18n('export') : Vue.t('export'),
+    label: window.vm ? pluginI18n('export') : pluginI18n('export'),
+    operation: window.vm ? pluginI18n('export') : pluginI18n('export'),
     props: {
       type: 'primary',
       icon: 'ios-download-outline',
@@ -107,7 +108,7 @@ export const newOuterActions = [
 ]
 export const outerActions = [
   {
-    label: window.vm ? pluginI18n('new') : Vue.t('new'),
+    label: window.vm ? pluginI18n('new') : pluginI18n('new'),
     props: {
       type: 'success',
       icon: 'md-add',
@@ -117,7 +118,7 @@ export const outerActions = [
     actionType: 'add'
   },
   {
-    label: window.vm ? pluginI18n('save') : Vue.t('save'),
+    label: window.vm ? pluginI18n('save') : pluginI18n('save'),
     props: {
       type: 'info',
       icon: 'md-checkmark',
@@ -127,7 +128,7 @@ export const outerActions = [
     actionType: 'save'
   },
   {
-    label: window.vm ? pluginI18n('copyToNew') : Vue.t('copyToNew'),
+    label: window.vm ? pluginI18n('copyToNew') : pluginI18n('copyToNew'),
     props: {
       type: 'success',
       icon: 'md-add',
@@ -137,7 +138,7 @@ export const outerActions = [
     actionType: 'copy'
   },
   {
-    label: window.vm ? pluginI18n('edit') : Vue.t('edit'),
+    label: window.vm ? pluginI18n('edit') : pluginI18n('edit'),
     props: {
       type: 'info',
       icon: 'ios-build',
@@ -147,7 +148,7 @@ export const outerActions = [
     actionType: 'edit'
   },
   {
-    label: window.vm ? pluginI18n('delete') : Vue.t('delete'),
+    label: window.vm ? pluginI18n('delete') : pluginI18n('delete'),
     props: {
       type: 'error',
       icon: 'ios-trash-outline',
@@ -157,7 +158,7 @@ export const outerActions = [
     actionType: 'delete'
   },
   {
-    label: window.vm ? pluginI18n('cancel') : Vue.t('cancel'),
+    label: window.vm ? pluginI18n('cancel') : pluginI18n('cancel'),
     props: {
       type: 'warning',
       icon: 'md-undo',
@@ -167,7 +168,7 @@ export const outerActions = [
     actionType: 'cancel'
   },
   {
-    label: window.vm ? pluginI18n('export') : Vue.t('export'),
+    label: window.vm ? pluginI18n('export') : pluginI18n('export'),
     props: {
       type: 'primary',
       icon: 'ios-download-outline',
@@ -176,7 +177,7 @@ export const outerActions = [
     actionType: 'export'
   }
   // {
-  //   label: window.vm ? pluginI18n('column_filter') : Vue.t('column_filter'),
+  //   label: window.vm ? pluginI18n('column_filter') : pluginI18n('column_filter'),
   //   props: {
   //     type: 'primary',
   //     icon: 'ios-funnel',
@@ -189,7 +190,7 @@ export const outerActions = [
 ]
 export const newExportOuterActions = [
   {
-    label: window.vm ? pluginI18n('export') : Vue.t('export'),
+    label: window.vm ? pluginI18n('export') : pluginI18n('export'),
     props: {
       type: 'primary',
       icon: 'ios-download-outline'
@@ -199,7 +200,7 @@ export const newExportOuterActions = [
 ]
 export const exportOuterActions = [
   {
-    label: window.vm ? pluginI18n('export') : Vue.t('export'),
+    label: window.vm ? pluginI18n('export') : pluginI18n('export'),
     props: {
       type: 'primary',
       icon: 'ios-download-outline'
@@ -207,7 +208,7 @@ export const exportOuterActions = [
     actionType: 'export'
   },
   {
-    label: window.vm ? pluginI18n('column_filter') : Vue.t('column_filter'),
+    label: window.vm ? pluginI18n('column_filter') : pluginI18n('column_filter'),
     props: {
       type: 'primary',
       icon: 'ios-funnel',
@@ -219,7 +220,7 @@ export const exportOuterActions = [
 ]
 export const innerActions = [
   {
-    label: window.vm ? pluginI18n('cancel') : Vue.t('cancel'),
+    label: window.vm ? pluginI18n('cancel') : pluginI18n('cancel'),
     props: {
       type: 'warning',
       size: 'small'

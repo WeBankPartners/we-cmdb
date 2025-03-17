@@ -337,7 +337,7 @@
           </RadioGroup>
         </FormItem>
         <FormItem
-          v-if="['text', 'longText', 'int', 'float', 'richText', 'password'].includes(addNewAttrForm.inputType)"
+          v-if="['text', 'password'].includes(addNewAttrForm.inputType)"
           prop="sensitive"
           :label="$t('db_is_independent_permission_control')"
         >
@@ -451,7 +451,11 @@
         </FormItem>
         <FormItem prop="imageFileId" :label="$t('icon')">
           <Upload :before-upload="handleUpload" action="">
-            <Button icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button>
+            <Button class="btn-upload">
+              <img src="@/styles/icon/UploadOutlined.png" class="upload-icon" />
+              {{ $t('upload_icon_btn') }}
+            </Button>
+            <!-- <Button icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button> -->
           </Upload>
           <div v-if="this.addNewCITypeForm.fileName">{{ this.addNewCITypeForm.fileName }}</div>
         </FormItem>
@@ -754,7 +758,7 @@
                 </RadioGroup>
               </FormItem>
               <FormItem
-                v-if="['text', 'longText', 'int', 'float', 'richText', 'password'].includes(editCiAttr.inputType)"
+                v-if="['text', 'password'].includes(editCiAttr.inputType)"
                 prop="sensitive"
                 :label="$t('db_is_independent_permission_control')"
               >
@@ -902,7 +906,11 @@
                   width="58"
                 />
                 <Upload :before-upload="handleUploadEdit" action="" :disabled="editGroupAttr.status === 'deleted'">
-                  <Button icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button>
+                  <Button class="btn-upload">
+                    <img src="@/styles/icon/UploadOutlined.png" class="upload-icon" />
+                    {{ $t('upload_icon_btn') }}
+                  </Button>
+                  <!-- <Button icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button> -->
                 </Upload>
                 <div v-if="this.editGroupAttr.fileName">{{ this.editGroupAttr.fileName }}</div>
               </FormItem>
@@ -2321,7 +2329,7 @@ export default {
     margin-right: 4px;
     line-height: 1;
     font-size: 12px;
-    color: #ed4014;
+    color: #FF4D4F;
   }
 }
 </style>
@@ -2446,7 +2454,7 @@ export default {
 //     margin-right: 4px;
 //     line-height: 1;
 //     font-size: 12px;
-//     color: #ed4014;
+//     color: #FF4D4F;
 //   }
 // }
 .btn-add-c {
