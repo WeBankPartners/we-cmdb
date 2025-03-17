@@ -5,15 +5,17 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/go-common-lib/pcre"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
+	"go.uber.org/zap"
 )
 
 func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.CiDataMapObj, newInputBody string, err error) {
@@ -53,7 +55,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 			permissionAction := firstAction
 			permissionCiTypeList := getDataHandleCiTypeList(&param)
 			for _, permissionCiType := range permissionCiTypeList {
-				permissions, tmpGetPermissionConfigErr := GetRoleCiDataPermission(param.Roles, permissionCiType, "")
+				permissions, tmpGetPermissionConfigErr := GetRoleCiDataPermission(param.Roles, permissionCiType, "", permissionAction)
 				if tmpGetPermissionConfigErr != nil {
 					err = tmpGetPermissionConfigErr
 					return
@@ -72,7 +74,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 					legalCiTypeMap[permissionCiType] = 1
 				}
 			}
-			log.Logger.Debug("handle ci data permission", log.JsonObj("legalGuidMap", legalGuidMap))
+			log.Debug(nil, log.LOGGER_APP, "handle ci data permission", log.JsonObj("legalGuidMap", legalGuidMap))
 		}
 		for i, inputRowData := range param.InputData {
 			tmpRowGuid := inputRowData["guid"]
@@ -222,7 +224,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 				if inputRowData["guid"] != "" {
 					reportImportRowData, errQuery := QueryReportImportHistoryStatusByCiTypeGuid(inputRowData["guid"])
 					if errQuery != nil {
-						log.Logger.Error("QueryReportImportHistoryStatusByCiTypeGuid", log.Error(errQuery))
+						log.Error(nil, log.LOGGER_APP, "QueryReportImportHistoryStatusByCiTypeGuid", zap.Error(errQuery))
 					}
 					if reportImportRowData != nil && len(reportImportRowData) > 0 {
 						status := reportImportRowData[0].Status
@@ -259,7 +261,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 				}
 			}
 			if actionParam.Transition.Action == "update" {
-				log.Logger.Info("update column", log.StringList("column", actionParam.UpdateColumn))
+				log.Info(nil, log.LOGGER_APP, "update column", zap.Strings("column", actionParam.UpdateColumn))
 				if _, b := autofillChainMap[ciObj.CiTypeId]; b {
 					autofillChainMap[ciObj.CiTypeId] = append(autofillChainMap[ciObj.CiTypeId], &models.AutofillChainObj{Guid: inputRowData["guid"], UpdateColumn: actionParam.UpdateColumn, MultiColumnDelMap: actionParam.MultiColumnDelMap})
 				} else {
@@ -278,7 +280,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 				}
 			}
 			if actionParam.Transition.TargetUniquePath == "yes" {
-				log.Logger.Info("Unique path trigger", log.String("data", actionParam.InputData["guid"]))
+				log.Info(nil, log.LOGGER_APP, "Unique path trigger", zap.String("data", actionParam.InputData["guid"]))
 				uniqueTransition, tmpErr := getUniquePathNextOperation(actionParam.Transition.TargetState)
 				if tmpErr != nil {
 					err = fmt.Errorf("Unique path trigger find error,row:%s ,%s ", actionParam.InputData["key_name"], tmpErr.Error())
@@ -353,7 +355,7 @@ func mergeCiData(outputData []models.CiDataMapObj, ciObj *models.MultiCiDataObj)
 }
 
 func doActionFunc(param *models.ActionFuncParam) (result []*execAction, err error) {
-	log.Logger.Info("do action func", log.String("action", param.Transition.Action))
+	log.Info(nil, log.LOGGER_APP, "do action func", zap.String("action", param.Transition.Action))
 	switch param.Transition.Action {
 	case "insert":
 		result, err = insertActionFunc(param)
@@ -472,7 +474,7 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 			}
 		}
 		inputDataBytes, _ := json.Marshal(param.InputData)
-		log.Logger.Info("updateActionFunc", log.String("inputData", string(inputDataBytes)))
+		log.Info(nil, log.LOGGER_APP, "updateActionFunc", zap.String("inputData", string(inputDataBytes)))
 	} else {
 		if param.InputData["update_time"] != "" {
 			if param.InputData["update_time"] != param.NowData["update_time"] {
@@ -497,7 +499,7 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 		if k == "history_action" || k == "history_time" || k == "history_state_confirmed" {
 			delete(param.InputData, k)
 		}
-		//log.Logger.Debug("input data", log.String("k", k), log.String("v", v))
+		//log.Debug(nil, log.LOGGER_APP,"input data", zap.String("k", k), zap.String("v", v))
 	}
 	param.MultiColumnDelMap = make(map[string][]string)
 	for _, ciAttr := range param.Attributes {
@@ -552,7 +554,7 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 		if ciAttr.InputType == models.MultiRefType {
 			result = append(result, multiRefActions...)
 			multiRefColumnList = append(multiRefColumnList, ciAttr.Name)
-			log.Logger.Debug("deleteGuidList", log.String("column", ciAttr.Name), log.StringList("data", deleteGuidList))
+			log.Debug(nil, log.LOGGER_APP, "deleteGuidList", zap.String("column", ciAttr.Name), zap.Strings("data", deleteGuidList))
 			param.MultiColumnDelMap[fmt.Sprintf("%s$%s", param.CiType, ciAttr.Name)] = deleteGuidList
 			continue
 		}
@@ -672,7 +674,7 @@ func deleteActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 		}
 	}
 	param.NowData = cleanInputData(param.NowData, param.Attributes)
-	result = append(result, &execAction{Sql: fmt.Sprintf("DELETE FROM %s WHERE guid=?", param.CiType), Param: []interface{}{param.InputData["guid"]}})
+	result = append(result, &execAction{Sql: fmt.Sprintf("DELETE FROM `%s` WHERE guid=?", param.CiType), Param: []interface{}{param.InputData["guid"]}})
 	param.NowData["state"] = param.Transition.TargetStateName
 	result = append(result, getHistoryActionByData(param.NowData, param.CiType, param.NowTime, param.Transition))
 	return
@@ -715,27 +717,27 @@ func autofillAffectActionFunc(ciTypeId, guid, nowTime string) {
 	var attrTable []*models.SysCiTypeAttrTable
 	err := x.SQL("select * from sys_ci_type_attr where ci_type=?", ciTypeId).Find(&attrTable)
 	if err != nil {
-		log.Logger.Error("Try to auto refresh autofill,get attributes data fail", log.String("ciTypeId", ciTypeId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to auto refresh autofill,get attributes data fail", zap.String("ciTypeId", ciTypeId), zap.Error(err))
 		return
 	}
 	if len(attrTable) == 0 {
-		log.Logger.Warn("Try to auto refresh autofill data break,no attribute is autofill", log.String("ciTypeId", ciTypeId))
+		log.Warn(nil, log.LOGGER_APP, "Try to auto refresh autofill data break,no attribute is autofill", zap.String("ciTypeId", ciTypeId))
 		return
 	}
 	// get now data
 	//nowDataList, err := x.QueryString(fmt.Sprintf("select * from %s%s where guid='%s' order by id desc limit 1", HistoryTablePrefix, ciTypeId, guid))
-	nowDataList, err := x.QueryString(fmt.Sprintf("select * from %s where guid='%s'", ciTypeId, guid))
+	nowDataList, err := x.QueryString(fmt.Sprintf("select * from `%s` where guid='%s'", ciTypeId, guid))
 	if err != nil {
-		log.Logger.Error("Try to auto refresh autofill,get ci data fail", log.String("guid", guid), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to auto refresh autofill,get ci data fail", zap.String("guid", guid), zap.Error(err))
 		return
 	}
 	if len(nowDataList) == 0 {
-		log.Logger.Warn("Try to auto refresh autofill data break,can not find any data", log.String("guid", guid))
+		log.Warn(nil, log.LOGGER_APP, "Try to auto refresh autofill data break,can not find any data", zap.String("guid", guid))
 		return
 	}
 	// buildAutofillValue
 	nowData := nowDataList[0]
-	log.Logger.Info("autofill now data", log.JsonObj("nowData", nowData))
+	log.Info(nil, log.LOGGER_APP, "autofill now data", log.JsonObj("nowData", nowData))
 	var updateColumnList []*models.CiDataColumnObj
 	var multiRefColumn, updateColumn []string
 	for _, attr := range attrTable {
@@ -743,7 +745,7 @@ func autofillAffectActionFunc(ciTypeId, guid, nowTime string) {
 			multiRefData, tmpErr := queryMultiRefMapData(ciTypeId, attr.Name, []string{guid})
 			//multiRefData, tmpErr := x.QueryString(fmt.Sprintf("select GROUP_CONCAT(to_guid) as to_guid from %s$%s where from_guid=? group by from_guid", ciTypeId, attr.Name), guid)
 			if tmpErr != nil {
-				log.Logger.Error("Try to auto refresh autofill data error when get multi ref data", log.Error(tmpErr))
+				log.Error(nil, log.LOGGER_APP, "Try to auto refresh autofill data error when get multi ref data", zap.Error(tmpErr))
 				continue
 			}
 			if len(multiRefData) > 0 {
@@ -766,7 +768,7 @@ func autofillAffectActionFunc(ciTypeId, guid, nowTime string) {
 		}
 		autofillValueList, tmpErr := buildAutofillValue(nowData, attr.AutofillRule, attr.InputType)
 		if tmpErr != nil {
-			log.Logger.Error("Try to auto refresh autofill data fail,build value error", log.String("guid", guid), log.String("attr", attr.Name), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Try to auto refresh autofill data fail,build value error", zap.String("guid", guid), zap.String("attr", attr.Name), zap.Error(err))
 			continue
 		}
 		afterAutoBuildData := getAutofillValueString(autofillValueList, attr.InputType)
@@ -777,7 +779,7 @@ func autofillAffectActionFunc(ciTypeId, guid, nowTime string) {
 		}
 	}
 	if len(updateColumnList) == 0 {
-		log.Logger.Warn("Try to auto refresh autofill data break,no column in update list", log.String("guid", guid))
+		log.Warn(nil, log.LOGGER_APP, "Try to auto refresh autofill data break,no column in update list", zap.String("guid", guid))
 		return
 	}
 	updateColumnList = append(updateColumnList, &models.CiDataColumnObj{ColumnName: "update_time", ColumnValue: nowTime})
@@ -795,9 +797,9 @@ func autofillAffectActionFunc(ciTypeId, guid, nowTime string) {
 	actions = append(actions, getHistoryActionByData(nowData, ciTypeId, nowTime, &models.SysStateTransitionQuery{Action: "autofill", TargetIsConfirm: isConfirm}))
 	err = transaction(actions)
 	if err != nil {
-		log.Logger.Error("Try to auto refresh autofill data,update database fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to auto refresh autofill data,update database fail", zap.Error(err))
 	} else {
-		log.Logger.Info("Refresh autofill data success", log.String("guid", guid))
+		log.Info(nil, log.LOGGER_APP, "Refresh autofill data success", zap.String("guid", guid))
 		var autofillChainMap = make(map[string][]*models.AutofillChainObj)
 		autofillChainMap[ciTypeId] = []*models.AutofillChainObj{&models.AutofillChainObj{Guid: guid, UpdateColumn: updateColumn}}
 		affectGuidListChan <- autofillChainMap
@@ -957,13 +959,13 @@ func getCiRowDataByGuid(ciTypeId string, rowGuidList []string, filters []*models
 		}
 		filterSqlList = append(filterSqlList, tmpSql)
 	}
-	sql := fmt.Sprintf("SELECT * FROM %s WHERE guid in ('%s') ", ciTypeId, strings.Join(rowGuidList, "','"))
+	sql := fmt.Sprintf("SELECT * FROM `%s` WHERE guid in ('%s') ", ciTypeId, strings.Join(rowGuidList, "','"))
 	if len(filterSqlList) > 0 {
 		sql += " AND " + strings.Join(filterSqlList, " AND ")
 	}
 	rowMapList, err = x.QueryString(sql)
 	if err != nil {
-		log.Logger.Error("Get ci row data by guid list error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Get ci row data by guid list error", zap.Error(err))
 	}
 	return
 }
@@ -979,20 +981,20 @@ func getMultiRefRowData(ciTypeId, attrName, refCiTypeId string, rowGuidList []st
 		}
 		filterSqlList = append(filterSqlList, tmpSql)
 	}
-	sql := fmt.Sprintf("select distinct t2.* from %s$%s t1 left join %s t2 on t1.to_guid=t2.guid where t1.from_guid in ('%s') ", ciTypeId, attrName, refCiTypeId, strings.Join(rowGuidList, "','"))
+	sql := fmt.Sprintf("select distinct t2.* from `%s$%s` t1 left join `%s` t2 on t1.to_guid=t2.guid where t1.from_guid in ('%s') ", ciTypeId, attrName, refCiTypeId, strings.Join(rowGuidList, "','"))
 	if len(filterSqlList) > 0 {
 		sql += " AND " + strings.Join(filterSqlList, " AND ")
 	}
 	rowMapList, err = x.QueryString(sql)
 	if err != nil {
-		log.Logger.Error("Get ci row data by guid list error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Get ci row data by guid list error", zap.Error(err))
 	}
 	return
 }
 
 func queryMultiRefMapData(ciType, attr string, guidList []string) (resultMap map[string][]string, err error) {
 	resultMap = make(map[string][]string)
-	tmpMultiQueryData, tmpErr := x.QueryString(fmt.Sprintf("select from_guid,to_guid from %s$%s where from_guid in ('%s') order by from_guid", ciType, attr, strings.Join(guidList, "','")))
+	tmpMultiQueryData, tmpErr := x.QueryString(fmt.Sprintf("select from_guid,to_guid from `%s$%s` where from_guid in ('%s') order by from_guid", ciType, attr, strings.Join(guidList, "','")))
 	if tmpErr != nil {
 		return resultMap, fmt.Errorf("query Multi ref map data fail,%s ", tmpErr.Error())
 	}
@@ -1024,7 +1026,7 @@ func getMultiNowData(multiCiData []*models.MultiCiDataObj) error {
 		//		columnSql += fmt.Sprintf(",t%d.to_guid as %s", i, attr.Name)
 		//	}
 		//}
-		queryRowData, tmpErr := x.QueryString(fmt.Sprintf("SELECT %s FROM %s tt %s where tt.guid in ('%s')", columnSql, ciDataObj.CiTypeId, joinSql, strings.Join(inputGuidList, "','")))
+		queryRowData, tmpErr := x.QueryString(fmt.Sprintf("SELECT %s FROM `%s` tt %s where tt.guid in ('%s')", columnSql, ciDataObj.CiTypeId, joinSql, strings.Join(inputGuidList, "','")))
 		if tmpErr != nil {
 			err = fmt.Errorf("Try to get exist ci:%s Data fail,%s ", ciDataObj.CiTypeId, tmpErr.Error())
 			break
@@ -1319,7 +1321,7 @@ func fetchNewRowData(multiCiData []*models.MultiCiDataObj) (output []models.CiDa
 		//		columnSql += fmt.Sprintf(",t%d.to_guid as %s", i, attr.Name)
 		//	}
 		//}
-		queryRowData, tmpErr := x.QueryString(fmt.Sprintf("SELECT %s FROM %s tt %s where tt.guid in ('%s')", columnSql, ciDataObj.CiTypeId, joinSql, strings.Join(inputGuidList, "','")))
+		queryRowData, tmpErr := x.QueryString(fmt.Sprintf("SELECT %s FROM `%s` tt %s where tt.guid in ('%s')", columnSql, ciDataObj.CiTypeId, joinSql, strings.Join(inputGuidList, "','")))
 		if tmpErr != nil {
 			err = fmt.Errorf("Try to get exist ci:%s Data fail,%s ", ciDataObj.CiTypeId, tmpErr.Error())
 			break
@@ -1390,7 +1392,7 @@ func validateUniqueColumn(multiCiData []*models.MultiCiDataObj) error {
 				}
 			}
 			if len(tmpInputDataColumn) > 0 {
-				filterSqlList = append(filterSqlList, fmt.Sprintf(" %s in ('%s') ", uc, strings.Join(tmpInputDataColumn, "','")))
+				filterSqlList = append(filterSqlList, fmt.Sprintf(" `%s` in ('%s') ", uc, strings.Join(tmpInputDataColumn, "','")))
 				filterColumnSqlList = append(filterColumnSqlList, fmt.Sprintf("'%s' as unique_c", uc))
 			}
 		}
@@ -1399,7 +1401,7 @@ func validateUniqueColumn(multiCiData []*models.MultiCiDataObj) error {
 		}
 		querySqlList := []string{}
 		for i, filterSql := range filterSqlList {
-			querySqlList = append(querySqlList, fmt.Sprintf("select *,%s from %s where %s ", filterColumnSqlList[i], ciDataObj.CiTypeId, filterSql))
+			querySqlList = append(querySqlList, fmt.Sprintf("select *,%s from `%s` where %s ", filterColumnSqlList[i], ciDataObj.CiTypeId, filterSql))
 		}
 		queryRows, tmpErr := x.QueryString(strings.Join(querySqlList, " union "))
 		if tmpErr != nil {
@@ -1432,7 +1434,7 @@ func validateAutofillUniqueColumn(ciTypeId, column, value, guid, keyName string)
 	if value == "" {
 		return nil
 	}
-	queryRows, err := x.QueryString(fmt.Sprintf("select * from %s where %s=?", ciTypeId, column), value)
+	queryRows, err := x.QueryString(fmt.Sprintf("select * from `%s` where `%s`=?", ciTypeId, column), value)
 	if err != nil {
 		err = fmt.Errorf("Try to validate unique column fail,%s ", err.Error())
 		return err
@@ -1514,7 +1516,7 @@ func getInsertActionByColumnList(columnList []*models.CiDataColumnObj, tableName
 		specCharList = append(specCharList, "?")
 		params = append(params, column.ColumnValue)
 	}
-	return &execAction{Sql: fmt.Sprintf("INSERT INTO %s(`%s`) VALUE (%s)", tableName, strings.Join(nameList, "`,`"), strings.Join(specCharList, ",")), Param: params}
+	return &execAction{Sql: fmt.Sprintf("INSERT INTO `%s`(`%s`) VALUE (%s)", tableName, strings.Join(nameList, "`,`"), strings.Join(specCharList, ",")), Param: params}
 }
 
 func getUpdateActionByColumnList(columnList []*models.CiDataColumnObj, tableName, guid string) *execAction {
@@ -1529,7 +1531,7 @@ func getUpdateActionByColumnList(columnList []*models.CiDataColumnObj, tableName
 		}
 	}
 	params = append(params, guid)
-	return &execAction{Sql: fmt.Sprintf("UPDATE %s SET %s WHERE guid=?", tableName, strings.Join(updateColumnList, ",")), Param: params}
+	return &execAction{Sql: fmt.Sprintf("UPDATE `%s` SET %s WHERE guid=?", tableName, strings.Join(updateColumnList, ",")), Param: params}
 }
 
 func getHistoryActionByData(nowData models.CiDataMapObj, ciType, nowTime string, trans *models.SysStateTransitionQuery) *execAction {
@@ -1613,9 +1615,9 @@ func validateLeftStateTrans(param *models.ActionFuncParam) error {
 	for _, attr := range param.ReferenceAttributes {
 		var fetRowData []map[string]string
 		if attr.InputType == models.MultiRefType {
-			fetRowData, err = x.QueryString(fmt.Sprintf("select guid,state,key_name from %s where guid in (select from_guid from %s$%s where to_guid=?)", attr.CiType, attr.CiType, attr.Name), rowGuid)
+			fetRowData, err = x.QueryString(fmt.Sprintf("select guid,state,key_name from `%s` where guid in (select from_guid from `%s$%s` where to_guid=?)", attr.CiType, attr.CiType, attr.Name), rowGuid)
 		} else {
-			fetRowData, err = x.QueryString(fmt.Sprintf("select guid,state,key_name from %s where %s=?", attr.CiType, attr.Name), rowGuid)
+			fetRowData, err = x.QueryString(fmt.Sprintf("select guid,state,key_name from `%s` where `%s`=?", attr.CiType, attr.Name), rowGuid)
 		}
 		if err != nil {
 			err = fmt.Errorf("Try to validate left reference ciType:%s attr:%s error,%s ", attr.CiType, attr.Name, err.Error())
@@ -1679,7 +1681,7 @@ func validateLeftStateTrans(param *models.ActionFuncParam) error {
 			illegalFlag := true
 			for _, k := range keyList {
 				if row["state"] == k {
-					log.Logger.Info("illegal state", log.String("row_state", row["state"]), log.String("k", k))
+					log.Info(nil, log.LOGGER_APP, "illegal state", zap.String("row_state", row["state"]), zap.String("k", k))
 					illegalFlag = false
 					break
 				}
@@ -1731,9 +1733,9 @@ func validateRightStateTrans(param *models.ActionFuncParam) error {
 		}
 		var fetRowData []map[string]string
 		if attr.InputType == models.MultiRefType {
-			fetRowData, err = x.QueryString(fmt.Sprintf("select t2.guid,t2.state,t2.key_name from %s$%s t1 join %s t2 on t1.to_guid=t2.guid where t1.from_guid=?", attr.CiType, attr.Name, attr.RefCiType), param.NowData["guid"])
+			fetRowData, err = x.QueryString(fmt.Sprintf("select t2.guid,t2.state,t2.key_name from `%s$%s` t1 join `%s` t2 on t1.to_guid=t2.guid where t1.from_guid=?", attr.CiType, attr.Name, attr.RefCiType), param.NowData["guid"])
 		} else {
-			fetRowData, err = x.QueryString(fmt.Sprintf("select guid,state,key_name from %s where guid=?", attr.RefCiType), columnValue)
+			fetRowData, err = x.QueryString(fmt.Sprintf("select guid,state,key_name from `%s` where guid=?", attr.RefCiType), columnValue)
 		}
 		if err != nil {
 			err = fmt.Errorf("Try to validate state trans fail,get ci:%s refAttr:%s refCiType:%s data error,%s ", attr.CiType, attr.Name, attr.RefCiType, err.Error())
@@ -1841,17 +1843,17 @@ func buildMultiRefActions(param *models.BuildAttrValueParam) (actions []*execAct
 	var toGuidList []interface{}
 	rowGuid := param.InputData["guid"]
 	tableName := fmt.Sprintf("%s$%s", param.AttributeConfig.CiType, param.AttributeConfig.Name)
-	actions = append(actions, &execAction{Sql: fmt.Sprintf("delete from %s where from_guid=?", tableName), Param: []interface{}{rowGuid}})
+	actions = append(actions, &execAction{Sql: fmt.Sprintf("delete from `%s` where from_guid=?", tableName), Param: []interface{}{rowGuid}})
 	if len(valueList) == 0 {
 		return
 	}
 	for i, to := range valueList {
-		actions = append(actions, &execAction{Sql: fmt.Sprintf("insert into %s(from_guid,to_guid,seq_no) value (?,?,%d)", tableName, i+1),
+		actions = append(actions, &execAction{Sql: fmt.Sprintf("insert into `%s`(from_guid,to_guid,seq_no) value (?,?,%d)", tableName, i+1),
 			Param: []interface{}{rowGuid, to}})
 		toGuidList = append(toGuidList, to)
 		specList = append(specList, "?")
 	}
-	queryHistoryParams := []interface{}{fmt.Sprintf("select id,guid from %s%s where id in (select max(id) from %s%s where guid in (%s) group by guid)",
+	queryHistoryParams := []interface{}{fmt.Sprintf("select id,guid from `%s%s` where id in (select max(id) from `%s%s` where guid in (%s) group by guid)",
 		HistoryTablePrefix, param.AttributeConfig.RefCiType, HistoryTablePrefix, param.AttributeConfig.RefCiType, strings.Join(specList, ","))}
 	queryHistoryParams = append(queryHistoryParams, toGuidList...)
 	rowData, err := x.QueryString(queryHistoryParams...)
@@ -1867,7 +1869,7 @@ func buildMultiRefActions(param *models.BuildAttrValueParam) (actions []*execAct
 				break
 			}
 		}
-		actions = append(actions, &execAction{Sql: fmt.Sprintf("insert into %s%s(from_guid,to_guid,seq_no,history_to_id,history_time) value (?,?,%d,?,?)", HistoryTablePrefix, tableName, i), Param: []interface{}{
+		actions = append(actions, &execAction{Sql: fmt.Sprintf("insert into `%s%s`(from_guid,to_guid,seq_no,history_to_id,history_time) value (?,?,%d,?,?)", HistoryTablePrefix, tableName, i), Param: []interface{}{
 			rowGuid, to, tmpId, param.NowTime}})
 	}
 	return
@@ -1876,7 +1878,7 @@ func buildMultiRefActions(param *models.BuildAttrValueParam) (actions []*execAct
 func isAttributeMultiRef(ciTypeId, ciAttrName string) bool {
 	rowData, err := x.QueryString("select name,input_type from sys_ci_type_attr where ci_type=? and name=?", ciTypeId, ciAttrName)
 	if err != nil {
-		log.Logger.Error("Try to check attribute is multiRef fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to check attribute is multiRef fail", zap.Error(err))
 		return false
 	}
 	if len(rowData) > 0 {
@@ -1893,7 +1895,7 @@ func getAttributeInputType(ciTypeId, ciAttrName, id string) string {
 	}
 	rowData, err := x.QueryString("select name,input_type from sys_ci_type_attr where id=?", id)
 	if err != nil {
-		log.Logger.Error("Try to get attribute inputType fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to get attribute inputType fail", zap.Error(err))
 	}
 	if len(rowData) > 0 {
 		return rowData[0]["input_type"]
@@ -2001,7 +2003,7 @@ func DataRollbackList(inputGuid string) (rowData []map[string]interface{}, title
 	for i := len(rowData) - 2; i >= 0; i-- {
 		if rowData[i]["history_state_confirmed"].(string) == "1" {
 			newRowData = append(newRowData, rowData[i])
-			log.Logger.Info("get DataRollbackList find history row data", log.String("id", fmt.Sprintf("%v", rowData[i]["id"])))
+			log.Info(nil, log.LOGGER_APP, "get DataRollbackList find history row data", zap.String("id", fmt.Sprintf("%v", rowData[i]["id"])))
 			break
 		} else {
 			newRowData = append(newRowData, rowData[i])
@@ -2050,12 +2052,12 @@ func DataColumnQuery(ciType, guid, field string, id int, userRoles []string, wit
 		}
 		if attrRows[0].Sensitive == "yes" {
 			// validate permission
-			permissions, tmpGetPermissionConfigErr := GetRoleCiDataPermission(userRoles, ciType, attrRows[0].Id)
+			permissions, tmpGetPermissionConfigErr := GetRoleCiDataPermission(userRoles, ciType, attrRows[0].Id, models.DataActionQuery)
 			if tmpGetPermissionConfigErr != nil {
 				err = fmt.Errorf("validate attr permission fail, attr:%s get permission config error:%s ", field, tmpGetPermissionConfigErr.Error())
 				return
 			}
-			tmpLegalGuidList, tmpGetPermissionGuidListErr := GetCiDataPermissionGuidList(&permissions, "query")
+			tmpLegalGuidList, tmpGetPermissionGuidListErr := GetCiDataPermissionGuidList(&permissions, models.DataActionQuery)
 			if tmpGetPermissionGuidListErr != nil {
 				err = fmt.Errorf("validate attr permission fail, attr:%s get legal guid list error:%s", field, tmpGetPermissionGuidListErr.Error())
 				return
@@ -2075,9 +2077,9 @@ func DataColumnQuery(ciType, guid, field string, id int, userRoles []string, wit
 			}
 		}
 	}
-	baseSql := fmt.Sprintf("select %s from %s where guid='%s'", field, ciType, guid)
+	baseSql := fmt.Sprintf("select `%s` from `%s` where guid='%s'", field, ciType, guid)
 	if id > 0 {
-		baseSql = fmt.Sprintf("select %s from %s%s where id=%d", field, HistoryTablePrefix, ciType, id)
+		baseSql = fmt.Sprintf("select `%s` from `%s%s` where id=%d", field, HistoryTablePrefix, ciType, id)
 	}
 	queryData, queryErr := x.QueryString(baseSql)
 	if queryErr != nil {
@@ -2103,9 +2105,9 @@ func DataColumnQuery(ciType, guid, field string, id int, userRoles []string, wit
 
 func getHistoryDataById(ciTypeId, id string) map[string]string {
 	var historyObj = make(map[string]string)
-	queryRows, err := x.QueryString(fmt.Sprintf("select * from %s%s where id=?", HistoryTablePrefix, ciTypeId), id)
+	queryRows, err := x.QueryString(fmt.Sprintf("select * from `%s%s` where id=?", HistoryTablePrefix, ciTypeId), id)
 	if err != nil {
-		log.Logger.Error("Try to get history guid by id fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to get history guid by id fail", zap.Error(err))
 	}
 	if len(queryRows) > 0 {
 		historyObj = queryRows[0]
@@ -2118,13 +2120,13 @@ func getMultiStringInputTypeValue(inputType, value string) []string {
 	if inputType == "multiText" {
 		err := json.Unmarshal([]byte(value), &result)
 		if err != nil {
-			log.Logger.Error("GetMultiStringInputTypeValue format []string error", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "GetMultiStringInputTypeValue format []string error", zap.Error(err))
 		}
 	} else if inputType == "multiInt" {
 		var intList []int
 		err := json.Unmarshal([]byte(value), &intList)
 		if err != nil {
-			log.Logger.Error("GetMultiStringInputTypeValue format []int error", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "GetMultiStringInputTypeValue format []int error", zap.Error(err))
 		} else {
 			for _, v := range intList {
 				result = append(result, strconv.Itoa(v))
@@ -2138,7 +2140,7 @@ func GetGuidByKeyName(ciType string, keyNameList []string) (guidList []string, e
 	if len(keyNameList) == 0 {
 		return
 	}
-	dataRows, queryErr := x.QueryString(fmt.Sprintf("select guid,key_name from %s where key_name in ('%s')", ciType, strings.Join(keyNameList, "','")))
+	dataRows, queryErr := x.QueryString(fmt.Sprintf("select guid,key_name from `%s` where key_name in ('%s')", ciType, strings.Join(keyNameList, "','")))
 	if queryErr != nil {
 		err = fmt.Errorf("query %s table fail,%s ", ciType, queryErr.Error())
 		return
@@ -2156,7 +2158,7 @@ func GetRollbackLastConfirmData(ciDataGuid string) (targetData models.CiDataMapO
 		return
 	}
 	b, _ := json.Marshal(historyDataList)
-	log.Logger.Info("GetRollbackLastConfirmData", log.String("findHistoryData", string(b)))
+	log.Info(nil, log.LOGGER_APP, "GetRollbackLastConfirmData", zap.String("findHistoryData", string(b)))
 	targetData = models.CiDataMapObj{}
 	for _, historyRow := range historyDataList {
 		if historyRow["history_state_confirmed"] == "1" {
@@ -2183,7 +2185,7 @@ func GetRollbackLastConfirmData(ciDataGuid string) (targetData models.CiDataMapO
 		err = fmt.Errorf("auto rollback can not find last confirm data with guid:%s ", ciDataGuid)
 	} else {
 		targetDataBytes, _ := json.Marshal(targetData)
-		log.Logger.Info("GetRollbackLastConfirmData", log.String("targetData", string(targetDataBytes)))
+		log.Info(nil, log.LOGGER_APP, "GetRollbackLastConfirmData", zap.String("targetData", string(targetDataBytes)))
 	}
 	return
 }

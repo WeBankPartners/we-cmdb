@@ -2,7 +2,7 @@
   <div>
     <div class="search-top">
       <div class="refresh-tips" v-if="isRefreshTipsShow">
-        <Icon type="ios-alert-outline" size="32" color="#2d8cf0" />
+        <Icon type="ios-alert-outline" size="32" color="#5384FF" />
         <div style="position: relative; display: inline-block; bottom: 4px">
           {{ $t('db_refresh_tips') }}
         </div>
@@ -88,8 +88,8 @@
           :on-success="uploadSucess"
           :on-error="uploadFailed"
         >
-          <Button type="primary">
-            <img src="../../assets/import.png" class="btn-img" alt="" />
+          <Button class="btn-upload">
+            <img src="@/styles/icon/UploadOutlined.png" class="upload-icon" />
             {{ $t('import') }}
           </Button>
         </Upload>
@@ -146,8 +146,15 @@ const initSearchForm = {
   dateType: 3
 }
 
+export const custom_api_enum = [
+  {
+    url: '/wecmdb/api/v1/ci-data/import/app_system_design',
+    method: 'POST'
+  }
+]
+
 export default {
-  data () {
+  data() {
     return {
       searchForm: cloneDeep(initSearchForm),
       updateTimeTypeOptions: [
@@ -389,7 +396,7 @@ export default {
   components: {
     DateGroup
   },
-  beforeMount () {
+  beforeMount() {
     if (this.$route.query.needCache === 'yes') {
       const allFilterForm = window.sessionStorage.getItem('cmdb-data-import-filter-form') || ''
       if (allFilterForm) {
@@ -405,11 +412,11 @@ export default {
       this.tableMaxHeight = window.innerHeight - 200
     }
   },
-  mounted () {
+  mounted() {
     this.token = getCookie('accessToken')
   },
   methods: {
-    async getTableData () {
+    async getTableData() {
       const params = {
         dialect: {
           queryMode: 'new'
@@ -459,7 +466,7 @@ export default {
         this.historyData = data.contents
       }
     },
-    showSingleDataDetail (rowData) {
+    showSingleDataDetail(rowData) {
       const params = {
         searchForm: this.searchForm,
         pagination: this.pagination
@@ -468,17 +475,17 @@ export default {
       this.$router.push({ path: '/wecmdb/designing/data-import-detail', query: { guid: rowData.guid } })
     },
     // 撤回某条数据
-    async withdrawSingleData (rowData) {
+    async withdrawSingleData(rowData) {
       await withdrawSingleImportData({ guid: rowData.guid })
       this.$Message.success(this.$t('success'))
       this.getTableData()
     },
-    async confirmSingleData (rowData) {
+    async confirmSingleData(rowData) {
       await confirmSingleImportData({ guid: rowData.guid })
       this.$Message.success(this.$t('success'))
       this.getTableData()
     },
-    processConfirmTips (rowData, type = 'confirm') {
+    processConfirmTips(rowData, type = 'confirm') {
       const localUserName = localStorage.getItem('username')
       if (localUserName !== rowData.createUser) {
         return this.$t('db_not_executor_tips')
@@ -489,7 +496,7 @@ export default {
         return this.$t('db_withdraw_tips').replace('xx', rowData.totalCount)
       }
     },
-    uploadSucess (res) {
+    uploadSucess(res) {
       if (res.statusCode === 'OK') {
         this.$Message.success(this.$t('db_import_tips_success'))
         this.getTableData()
@@ -497,10 +504,10 @@ export default {
         this.$Message.error(res.statusMessage)
       }
     },
-    uploadFailed () {
+    uploadFailed() {
       this.$Message.error(this.$t('db_import_tips_failed'))
     },
-    async getReportList (isShow) {
+    async getReportList(isShow) {
       if (isShow) {
         const { statusCode, data } = await getReportListByPermission('USE')
         if (statusCode === 'OK') {
@@ -508,12 +515,12 @@ export default {
         }
       }
     },
-    onReportChange () {
+    onReportChange() {
       this.pagination.page = 1
       this.pagination.size = 40
       this.getKeyNameOptions()
     },
-    async getKeyNameOptions () {
+    async getKeyNameOptions() {
       if (this.searchForm.report) {
         let params = {
           reportId: this.searchForm.report,
@@ -530,12 +537,12 @@ export default {
         this.getTableData()
       }
     },
-    onDateGroupChange (arr, dateType) {
+    onDateGroupChange(arr, dateType) {
       this.searchForm.updateTime = cloneDeep(arr)
       this.searchForm.dateType = dateType
       this.getTableData()
     },
-    async getCreateUserList (isShow) {
+    async getCreateUserList(isShow) {
       if (isShow) {
         const { statusCode, data } = await getAllCreateUser()
         if (statusCode === 'OK') {
@@ -543,19 +550,19 @@ export default {
         }
       }
     },
-    processConfirmTooltip (rowData) {
+    processConfirmTooltip(rowData) {
       if (rowData.status === 'created' && rowData.notPassCount > 0) {
         return this.$t('db_confirm_tooltip_text').replace('xx', rowData.notPassCount)
       }
       return this.$t('db_confirme')
     },
-    processAssociationModalTips (arr) {
+    processAssociationModalTips(arr) {
       if (isEmpty(arr)) {
         return '-'
       }
       return arr.join('<br>')
     },
-    async refreshVerificationResults () {
+    async refreshVerificationResults() {
       this.isRefreshTipsShow = true
       await refreshImportList()
       this.$Message.success(this.$t('db_refresh_success'))
@@ -566,7 +573,7 @@ export default {
       this.pagination.size = 40
       this.getTableData()
     },
-    onRefreshButtonClick () {
+    onRefreshButtonClick() {
       this.refreshVerificationResults()
       this.refreshId = setInterval(() => {
         this.refreshVerificationResults()

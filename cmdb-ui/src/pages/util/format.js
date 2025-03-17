@@ -99,7 +99,7 @@ const formatDateToString = () => {
   return lang === 'zh-CN' ? formattedZHDate : formattedENDate
 }
 
-const useI18n = str => (window.vm ? pluginI18n(str) : Vue.t(str))
+const useI18n = str => (window.vm ? pluginI18n(str) : pluginI18n(str))
 
 export const intervalTips = h => {
   return h(

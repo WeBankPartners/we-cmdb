@@ -12,7 +12,7 @@ var _ Cond = condAnd{}
 
 // And generates AND conditions
 func And(conds ...Cond) Cond {
-	var result = make(condAnd, 0, len(conds))
+	result := make(condAnd, 0, len(conds))
 	for _, cond := range conds {
 		if cond == nil || !cond.IsValid() {
 			continue
@@ -25,7 +25,7 @@ func And(conds ...Cond) Cond {
 func (and condAnd) WriteTo(w Writer) error {
 	for i, cond := range and {
 		_, isOr := cond.(condOr)
-		_, isExpr := cond.(expr)
+		_, isExpr := cond.(*Expression)
 		wrap := isOr || isExpr
 		if wrap {
 			fmt.Fprint(w, "(")

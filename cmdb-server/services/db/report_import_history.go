@@ -2,10 +2,12 @@ package db
 
 import (
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"go.uber.org/zap"
 )
 
 func QueryReportImportHistory(param *models.QueryRequestParam) (pageInfo models.PageInfo, rowData []*models.SysReportImportHistoryObj, err error) {
@@ -167,10 +169,10 @@ func addActionForReportCiImportGuidMap(ciObj *models.MultiCiDataObj) (action []*
 		filterClause = fmt.Sprintf(" AND guid NOT IN ('%s')", excludeGuidsStr)
 	}
 	// 构造SQL查询语句，用于选择唯一的属性组合。
-	selectSql := fmt.Sprintf("SELECT DISTINCT %s FROM %s WHERE 1=1%s", strings.Join(uniqueAttrNames, ","), ciObj.CiTypeId, filterClause)
+	selectSql := fmt.Sprintf("SELECT DISTINCT %s FROM `%s` WHERE 1=1%s", strings.Join(uniqueAttrNames, ","), ciObj.CiTypeId, filterClause)
 	rows, err := x.QueryString(selectSql)
 	if err != nil {
-		log.Logger.Error("Failed to fetch existing unique attribute combinations", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Failed to fetch existing unique attribute combinations", zap.Error(err))
 		return nil, err
 	}
 
@@ -192,7 +194,7 @@ func addActionForReportCiImportGuidMap(ciObj *models.MultiCiDataObj) (action []*
 	for _, inputData := range ciObj.InputData {
 		importGuidMap, queryErr := x.QueryString("select * from sys_ci_import_guid_map where target = ?", inputData["guid"])
 		if queryErr != nil || importGuidMap == nil {
-			log.Logger.Error("query import guid map table fail", log.Error(queryErr))
+			log.Info(nil, log.LOGGER_APP, "query import guid map table fail,ignore", zap.Error(queryErr))
 			// 历史记录可能在sys_ci_import_guid_map查不到，错误不返回，直接跳过
 			continue
 		}
@@ -248,7 +250,7 @@ func addActionForReportCiImportGuidMap(ciObj *models.MultiCiDataObj) (action []*
 		//
 		reportImportRowData, errQuery := QueryReportImportHistoryStatusByCiTypeGuid(inputData["guid"])
 		if errQuery != nil {
-			log.Logger.Error("QueryReportImportHistoryStatusByCiTypeGuid", log.Error(errQuery))
+			log.Error(nil, log.LOGGER_APP, "QueryReportImportHistoryStatusByCiTypeGuid", zap.Error(errQuery))
 		}
 		if reportImportRowData != nil && len(reportImportRowData) > 0 {
 			reportImportHistoryGuid = reportImportRowData[0].Guid
@@ -267,7 +269,7 @@ func deleteActionForReportCiImportGuidMap(ciObj *models.MultiCiDataObj) (action 
 	for _, inputData := range ciObj.InputData {
 		importGuidMap, queryErr := x.QueryString("select * from sys_ci_import_guid_map where target = ?", inputData["guid"])
 		if queryErr != nil || importGuidMap == nil {
-			log.Logger.Error("query import guid map table fail", log.Error(queryErr))
+			log.Error(nil, log.LOGGER_APP, "query import guid map table fail", zap.Error(queryErr))
 			// 历史记录可能在sys_ci_import_guid_map查不到，错误不返回，直接跳过
 			return nil, nil
 		}
@@ -290,10 +292,10 @@ func UpdateImportGuidMapTable(ciObj *models.MultiCiDataObj, importGuidMapTable [
 		}
 	}
 
-	selectSql := fmt.Sprintf("SELECT DISTINCT %s FROM %s WHERE 1=1", strings.Join(uniqueAttrNames, ","), ciObj.CiTypeId)
+	selectSql := fmt.Sprintf("SELECT DISTINCT %s FROM `%s` WHERE 1=1", strings.Join(uniqueAttrNames, ","), ciObj.CiTypeId)
 	rows, queryErr := x.QueryString(selectSql)
 	if queryErr != nil {
-		log.Logger.Error("Failed to fetch existing unique attribute combinations", log.Error(queryErr))
+		log.Error(nil, log.LOGGER_APP, "Failed to fetch existing unique attribute combinations", zap.Error(queryErr))
 		return
 	}
 
@@ -423,9 +425,9 @@ func GetUniqueAndNotNullColumn(multiCiData []*models.MultiCiDataObj, importHisto
 		}
 		for _, importGuidMap := range importHistoryRowData {
 			if ciDataObj.CiTypeId == importGuidMap.CiType {
-				rowData, err := x.QueryString(fmt.Sprintf("select %s from %s where guid = '%s' ", strings.Join(columnList, ","), ciDataObj.CiTypeId, importGuidMap.Target))
+				rowData, err := x.QueryString(fmt.Sprintf("select %s from `%s` where guid = '%s' ", strings.Join(columnList, ","), ciDataObj.CiTypeId, importGuidMap.Target))
 				if err != nil {
-					log.Logger.Error("Query ci data column value fail. ", log.Error(err), log.String("guid", importGuidMap.Target), log.String("column", strings.Join(columnList, ",")))
+					log.Error(nil, log.LOGGER_APP, "Query ci data column value fail. ", zap.Error(err), zap.String("guid", importGuidMap.Target), zap.String("column", strings.Join(columnList, ",")))
 					return fmt.Errorf("Query ci data column value fail,%s ", err.Error())
 				}
 				if rowData != nil {

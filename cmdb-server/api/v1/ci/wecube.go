@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -66,7 +67,7 @@ func HandleCiModelRequest(c *gin.Context) {
 		_, _, err = pluginCiDataOperation(&doOperationParam)
 	}
 	if err != nil {
-		log.Logger.Error("Request entity data fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Request entity data fail", zap.Error(err))
 		resp.Status = "ERROR"
 		resp.Message = err.Error()
 		logResp.Status, logResp.Message = resp.Status, resp.Message
@@ -125,12 +126,12 @@ func ciModelQuery(ciType string, bodyBytes []byte, user string, roles []string) 
 	queryParam.Paging = false
 	legalGuidList := models.CiDataLegalGuidList{Legal: true}
 	if user != models.PlatformUser {
-		permissions, tmpErr := db.GetRoleCiDataPermission(roles, ciType, "")
+		permissions, tmpErr := db.GetRoleCiDataPermission(roles, ciType, "", models.DataActionQuery)
 		if tmpErr != nil {
 			err = tmpErr
 			return
 		}
-		legalGuidList, err = db.GetCiDataPermissionGuidList(&permissions, "query")
+		legalGuidList, err = db.GetCiDataPermissionGuidList(&permissions, models.DataActionQuery)
 		if err != nil {
 			return
 		}
@@ -355,7 +356,7 @@ func ciModeDelete(ciType string, bodyBytes []byte) (newInputData string, err err
 func GetAllDataModel(c *gin.Context) {
 	result, err := db.GetAllDataModel()
 	if err != nil {
-		log.Logger.Error("Get all data model fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Get all data model fail", zap.Error(err))
 		result = models.SyncDataModelResponse{Status: "ERROR", Message: err.Error()}
 	}
 	bodyBytes, _ := json.Marshal(result)
@@ -368,7 +369,7 @@ func PluginCiDataOperationHandle(c *gin.Context) {
 	var err error
 	defer func() {
 		if err != nil {
-			log.Logger.Error("Plugin ci data operation handle fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Plugin ci data operation handle fail", zap.Error(err))
 			response.ResultCode = "1"
 			response.ResultMessage = err.Error()
 		}
@@ -512,7 +513,7 @@ func PluginCiDataAttrValueHandle(c *gin.Context) {
 	var err error
 	defer func() {
 		if err != nil {
-			log.Logger.Error("Plugin ci data operation handle fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Plugin ci data operation handle fail", zap.Error(err))
 			response.ResultCode = "1"
 			response.ResultMessage = err.Error()
 		}
@@ -567,7 +568,7 @@ func PluginViewConfirmHandle(c *gin.Context) {
 	var err error
 	defer func() {
 		if err != nil {
-			log.Logger.Error("Plugin view confirm handle fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Plugin view confirm handle fail", zap.Error(err))
 			response.ResultCode = "1"
 			response.ResultMessage = err.Error()
 		}

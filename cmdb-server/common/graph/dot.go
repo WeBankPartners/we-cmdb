@@ -2,11 +2,13 @@ package graph
 
 import (
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"math"
 	"strconv"
 	"strings"
+
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"go.uber.org/zap"
 )
 
 var (
@@ -35,7 +37,7 @@ func RenderDot(graph models.GraphQuery, dataList []map[string]interface{}, optio
 	imageMap := option.ImageMap
 
 	dot = "\ndigraph G {\n"
-	dot += fmt.Sprintf("rankdir=%s;edge[%s];compound=true;\n", graph.GraphDir, graph.GraphEdgeConfig)
+	dot += fmt.Sprintf("rankdir=%s;edge[%s];compound=true;fillcolor=white;\n", graph.GraphDir, graph.GraphEdgeConfig)
 
 	if graph.ViewGraphType == GroupType {
 		dot += "Node [color=\"transparent\";fixedsize=\"true\";width=\"1.1\";height=\"1.1\";shape=box];\n"
@@ -95,11 +97,11 @@ func RenderDot(graph models.GraphQuery, dataList []map[string]interface{}, optio
 				dot += fmt.Sprintf("subgraph cluster_%s { \n", guid)
 				dot += fmt.Sprintf("id=%s;\n", guid)
 				dot += fmt.Sprintf("fontsize=%s;\n", strconv.FormatFloat(meta.FontSize, 'f', -1, 64))
-				dot += fmt.Sprintf("label=\"%s\";\n", label)
-				dot += fmt.Sprintf("tooltip=\"%s\";\n", tooltip)
+				dot += fmt.Sprintf("label=\"%s\";\n", coverLableTooltip(label))
+				dot += fmt.Sprintf("tooltip=\"%s\";\n", coverLableTooltip(tooltip))
 				dot += fmt.Sprintf("%s[penwidth=0;width=0;height=0;label=\"\"];\n", guid)
 
-				style := getStyle(graph.RootData.GraphConfigData, graph.RootData.GraphConfigs, data, meta, DefaultStyle, true)
+				style := getStyle(graph.RootData.GraphConfigData, graph.RootData.GraphConfigs, data, meta, DefaultStyle, true, true)
 				dot += fmt.Sprintf("%s\n", style)
 			}
 		}
@@ -161,7 +163,7 @@ func renderChildren(children []*models.GraphElementNode, data map[string]interfa
 // renderChild render child element
 func renderChild(parentGuid string, child *models.GraphElementNode, data map[string]interface{}, meta Meta, needArrange bool) (ret RenderResult) {
 
-	//log.Logger.Debug("renderChild: ", log.String("parent", parent.Id), log.String("child.Id", child.Id), log.String("graphType", child.GraphType), log.String("dataName", child.DataName))
+	//log.Debug(nil, log.LOGGER_APP,"renderChild: ", zap.String("parent", parent.Id), zap.String("child.Id", child.Id), zap.String("graphType", child.GraphType), zap.String("dataName", child.DataName))
 
 	if meta.GraphType == SubgraphType {
 		meta.FontSize = math.Round((meta.FontSize-meta.FontStep)*100) / 100
@@ -221,7 +223,7 @@ func renderSubgraph(el *models.GraphElementNode, dataList []map[string]interface
 		renderedItems = append(renderedItems, guid)
 
 		label := renderLabel(el.DisplayExpression, data)
-		style := getStyle(el.GraphConfigData, el.GraphConfigs, data, meta, DefaultStyle, true)
+		style := getStyle(el.GraphConfigData, el.GraphConfigs, data, meta, DefaultStyle, true, true)
 		tooltip := keyName
 		if tooltip == "" {
 			tooltip = label
@@ -229,8 +231,8 @@ func renderSubgraph(el *models.GraphElementNode, dataList []map[string]interface
 		subgraphAttrs := []string{
 			"id=" + guid,
 			"fontsize=" + strconv.FormatFloat(meta.FontSize, 'f', -1, 64),
-			"label=\"" + label + "\"",
-			"tooltip=\"" + tooltip + "\"",
+			"label=\"" + coverLableTooltip(label) + "\"",
+			"tooltip=\"" + coverLableTooltip(tooltip) + "\"",
 			style,
 		}
 
@@ -286,7 +288,7 @@ func renderImage(el *models.GraphElementNode, parentGuid string, dataList []map[
 			nodeAttrs = append(nodeAttrs, fmt.Sprintf("shape=\"%s\"", shape))
 		}
 
-		style := getStyle(el.GraphConfigData, el.GraphConfigs, data, meta, defaultImageStyle, true)
+		style := getStyle(el.GraphConfigData, el.GraphConfigs, data, meta, defaultImageStyle, true, true)
 		label := renderLabel(el.DisplayExpression, data)
 		nodeAttrs = append(nodeAttrs,
 			"width=1.1",
@@ -313,7 +315,7 @@ func renderImage(el *models.GraphElementNode, parentGuid string, dataList []map[
 		// 深度拷贝正常的children，用于后续正常渲染
 		normalChildren := make([]*models.GraphElementNode, len(el.Children))
 		copy(normalChildren, el.Children)
-		log.Logger.Debug("renderImage: ", log.JsonObj("normalChildren-copy", normalChildren))
+		log.Debug(nil, log.LOGGER_APP, "renderImage: ", log.JsonObj("normalChildren-copy", normalChildren))
 		for i, c := range normalChildren {
 			if c.GraphType == SubgraphType {
 				normalChildren = append(normalChildren[:i], normalChildren[i+1:]...)
@@ -343,7 +345,7 @@ func renderImage(el *models.GraphElementNode, parentGuid string, dataList []map[
 			for _, zone := range zones {
 				nodeString = fmt.Sprintf(
 					"subgraph cluster_%s {\nid=%s;label=\"%s\";tooltip=\"%s\";%s\n%s}\n",
-					zone.guid, zone.guid, zone.label, zone.tooltip, zone.style, nodeString,
+					zone.guid, zone.guid, coverLableTooltip(zone.label), coverLableTooltip(zone.tooltip), zone.style, nodeString,
 				)
 
 			}
@@ -386,13 +388,13 @@ func renderNode(el *models.GraphElementNode, dataList []map[string]interface{}, 
 			nodeAttrs = append(nodeAttrs, fmt.Sprintf("shape=\"%s\"", shape))
 		}
 
-		style := getStyle(el.GraphConfigData, el.GraphConfigs, data, meta, DefaultStyle, true)
+		style := getStyle(el.GraphConfigData, el.GraphConfigs, data, meta, DefaultStyle, true, true)
 		label := renderLabel(el.DisplayExpression, data)
 		nodeAttrs = append(nodeAttrs,
 			//fmt.Sprintf("shape=\"%s\"", shape),
 			//fmt.Sprintf("width=%.1f", 4.0),
-			fmt.Sprintf("label=\"%s\"", label),
-			fmt.Sprintf("tooltip=\"%s\"", label),
+			fmt.Sprintf("label=\"%s\"", coverLableTooltip(label)),
+			fmt.Sprintf("tooltip=\"%s\"", coverLableTooltip(label)),
 			style,
 		)
 
@@ -437,7 +439,7 @@ func renderNode(el *models.GraphElementNode, dataList []map[string]interface{}, 
 			for _, zone := range zones {
 				nodeString = fmt.Sprintf(
 					"subgraph cluster_%s {\nid=%s;label=\"%s\";tooltip=\"%s\";%s\n%s}\n",
-					zone.guid, zone.guid, zone.label, zone.tooltip, zone.style, nodeString,
+					zone.guid, zone.guid, coverLableTooltip(zone.label), coverLableTooltip(zone.tooltip), zone.style, nodeString,
 				)
 			}
 		}
@@ -498,8 +500,10 @@ func renderLine(el *models.GraphElementNode, dataList []map[string]interface{}, 
 					case "head":
 						lineAttrs = append(lineAttrs, fmt.Sprintf(`headlabel="%s"`, label))
 					case "tail":
-						log.Logger.Debug("renderLine style", log.String("taillabel", label))
+						log.Debug(nil, log.LOGGER_APP, "renderLine style", zap.String("label", label))
 						lineAttrs = append(lineAttrs, fmt.Sprintf(`taillabel="%s"`, label))
+					default:
+						lineAttrs = append(lineAttrs, fmt.Sprintf(`label="%s"`, label))
 					}
 
 					tooltip := keyName
@@ -516,7 +520,7 @@ func renderLine(el *models.GraphElementNode, dataList []map[string]interface{}, 
 					shape := getShape(el.GraphShapeData, el.GraphShapes, data, ShapeNormal)
 					lineAttrs = append(lineAttrs, fmt.Sprintf("arrowhead=%s", shape))
 
-					style := getStyle(el.GraphConfigData, el.GraphConfigs, data, meta, "penwidth=1;color=black;", true)
+					style := getStyle(el.GraphConfigData, el.GraphConfigs, data, meta, "penwidth=1;color=black;", true, false)
 					lineAttrs = append(lineAttrs, style)
 				} else {
 					lineAttrs = append(lineAttrs, "arrowhead=icurve")
@@ -529,4 +533,11 @@ func renderLine(el *models.GraphElementNode, dataList []map[string]interface{}, 
 	}
 
 	return dot.String()
+}
+
+func coverLableTooltip(input string) string {
+	if strings.HasPrefix(input, "\n") || strings.HasPrefix(input, "\\n") {
+		input = " " + input
+	}
+	return input
 }

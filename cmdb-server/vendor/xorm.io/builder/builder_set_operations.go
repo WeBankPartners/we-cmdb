@@ -11,7 +11,7 @@ import (
 
 func (b *Builder) setOpWriteTo(w Writer) error {
 	if b.limitation != nil || b.cond.IsValid() ||
-		b.orderBy != "" || b.having != "" || b.groupBy != "" {
+		b.orderBy != nil || b.having != nil || b.groupBy != "" {
 		return ErrNotUnexpectedUnionConditions
 	}
 

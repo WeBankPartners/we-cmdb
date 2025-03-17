@@ -36,8 +36,8 @@
       <Table :columns="compareColumns" :data="compareData" :max-height="fileContentHeight.slice(0, -2)" border />
     </Modal>
 
-    <!-- @on-cancel="cancel" -->
-    <Modal v-model="rollbackConfig.isShow" width="900" @on-ok="okRollback" title="数据回退">
+
+    <!-- <Modal v-model="rollbackConfig.isShow" width="900" @on-ok="okRollback" title="数据回退">
       <div>
         <CMDBTable
           :ciTypeId="rollbackConfig.id"
@@ -52,11 +52,12 @@
           :ref="'table' + 111"
         ></CMDBTable>
       </div>
-    </Modal>
+    </Modal> -->
     <SelectFormOperation ref="selectForm" @callback="callback"></SelectFormOperation>
   </div>
 </template>
 <script>
+import {hasIn} from 'lodash'
 import moment from 'moment'
 import { finalDataForRequest } from '../util/component-util'
 import { components } from '@/const/actions.js'
@@ -122,13 +123,13 @@ export default {
       needCheckout: true,
       queryType: 'new',
 
-      rollbackConfig: {
-        isShow: false,
-        table: {
-          tableData: [],
-          tableColumns: []
-        }
-      },
+      // rollbackConfig: {
+      //   isShow: false,
+      //   table: {
+      //     tableData: [],
+      //     tableColumns: []
+      //   }
+      // },
       baseURL,
       payload: {
         dialect: {
@@ -336,20 +337,20 @@ export default {
       }
       this.$refs.selectForm.initFormData(params)
     },
-    onSelectedRowsChangeRollBack (rows) {
-      this.rollbackConfig.selectData = rows
-    },
-    async okRollback () {
-      const finalData = finalDataForRequest(this.rollbackConfig.selectData)
-      const { statusCode, message } = await tableOptionExcute('Rollback', this.ci, finalData)
-      if (statusCode === 'OK') {
-        this.$Notice.success({
-          title: this.$t('success'),
-          desc: message
-        })
-        this.queryCiData()
-      }
-    },
+    // onSelectedRowsChangeRollBack (rows) {
+    //   this.rollbackConfig.selectData = rows
+    // },
+    // async okRollback () {
+    //   const finalData = finalDataForRequest(this.rollbackConfig.selectData)
+    //   const { statusCode, message } = await tableOptionExcute('Rollback', this.ci, finalData)
+    //   if (statusCode === 'OK') {
+    //     this.$Notice.success({
+    //       title: this.$t('success'),
+    //       desc: message
+    //     })
+    //     this.queryCiData()
+    //   }
+    // },
     confirmHandler (operateType, confirmData) {
       this.$Modal.confirm({
         title: this.$t('confirm_action'),
@@ -562,17 +563,17 @@ export default {
         // }
         const method = queryCiData
         this.$refs.table.isTableLoading(true)
-        const { statusCode, data } = await method(query)
+        const { data } = await method(query)
         this.$refs.table.isTableLoading(false)
-        if (statusCode === 'OK') {
-          this.tableData = data.contents.map(_ => {
-            return {
-              ..._
-              // nextOperations: _.meta.nextOperations || []
-            }
-          })
-          this.pagination.total = data.pageInfo.totalRows
-        }
+        const contents = hasIn(data, 'contents') ? data.contents : []
+        const totalRows = hasIn(data, 'pageInfo.totalRows') ? data.pageInfo.totalRows : 0
+        this.tableData = contents.map(_ => {
+          return {
+            ..._
+            // nextOperations: _.meta.nextOperations || []
+          }
+        })
+        this.pagination.total = totalRows
       }
       this.setBtnsStatus()
     },

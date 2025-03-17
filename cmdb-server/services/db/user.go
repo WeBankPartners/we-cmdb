@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"go.uber.org/zap"
 	"strings"
 )
 
@@ -115,7 +116,7 @@ func Login(param models.LoginParam) (userMessage models.SysUserTable, err error)
 		userMessage = *userTable[0]
 		userMessage.EncryptedPassword = ""
 	} else {
-		log.Logger.Debug("Password error", log.String("inputPwd", string(inputPassword)), log.String("enCodePwd", enCodePassword), log.String("dbPwd", userTable[0].EncryptedPassword))
+		log.Debug(nil, log.LOGGER_APP, "Password error", zap.String("inputPwd", string(inputPassword)), zap.String("enCodePwd", enCodePassword), zap.String("dbPwd", userTable[0].EncryptedPassword))
 		err = fmt.Errorf("Password error ")
 	}
 	return

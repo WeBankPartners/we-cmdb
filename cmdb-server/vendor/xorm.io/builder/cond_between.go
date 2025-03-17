@@ -20,7 +20,7 @@ func (between Between) WriteTo(w Writer) error {
 	if _, err := fmt.Fprintf(w, "%s BETWEEN ", between.Col); err != nil {
 		return err
 	}
-	if lv, ok := between.LessVal.(expr); ok {
+	if lv, ok := between.LessVal.(*Expression); ok {
 		if err := lv.WriteTo(w); err != nil {
 			return err
 		}
@@ -35,7 +35,7 @@ func (between Between) WriteTo(w Writer) error {
 		return err
 	}
 
-	if mv, ok := between.MoreVal.(expr); ok {
+	if mv, ok := between.MoreVal.(*Expression); ok {
 		if err := mv.WriteTo(w); err != nil {
 			return err
 		}

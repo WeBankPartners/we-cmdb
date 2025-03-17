@@ -79,27 +79,8 @@ func (b *Builder) selectWriteTo(w Writer) error {
 		}
 	}
 
-	for _, v := range b.joins {
-		b, ok := v.joinTable.(*Builder)
-		if ok {
-			if _, err := fmt.Fprintf(w, " %s JOIN (", v.joinType); err != nil {
-				return err
-			}
-			if err := b.WriteTo(w); err != nil {
-				return err
-			}
-			if _, err := fmt.Fprintf(w, ") ON "); err != nil {
-				return err
-			}
-		} else {
-			if _, err := fmt.Fprintf(w, " %s JOIN %s ON ", v.joinType, v.joinTable); err != nil {
-				return err
-			}
-		}
-
-		if err := v.joinCond.WriteTo(w); err != nil {
-			return err
-		}
+	if err := b.joins.WriteTo(w); err != nil {
+		return err
 	}
 
 	if b.cond.IsValid() {
@@ -118,15 +99,45 @@ func (b *Builder) selectWriteTo(w Writer) error {
 		}
 	}
 
-	if len(b.having) > 0 {
-		if _, err := fmt.Fprint(w, " HAVING ", b.having); err != nil {
-			return err
+	if b.having != nil {
+		switch c := b.having.(type) {
+		case string:
+			if len(c) > 0 {
+				if _, err := fmt.Fprint(w, " HAVING ", c); err != nil {
+					return err
+				}
+			}
+		case Cond:
+			if c.IsValid() {
+				if _, err := fmt.Fprint(w, " HAVING "); err != nil {
+					return err
+				}
+				if err := c.WriteTo(w); err != nil {
+					return err
+				}
+			}
+		default:
+			return fmt.Errorf("unknown having parameter: %#v", b.having)
 		}
 	}
 
-	if len(b.orderBy) > 0 {
-		if _, err := fmt.Fprint(w, " ORDER BY ", b.orderBy); err != nil {
-			return err
+	if b.orderBy != nil {
+		switch c := b.orderBy.(type) {
+		case string:
+			if len(c) > 0 {
+				if _, err := fmt.Fprint(w, " ORDER BY ", c); err != nil {
+					return err
+				}
+			}
+		case *Expression:
+			if _, err := fmt.Fprint(w, " ORDER BY "); err != nil {
+				return err
+			}
+			if err := c.WriteTo(w); err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("unknow orderby parameter: %#v", b.orderBy)
 		}
 	}
 
@@ -140,7 +151,7 @@ func (b *Builder) selectWriteTo(w Writer) error {
 }
 
 // OrderBy orderBy SQL
-func (b *Builder) OrderBy(orderBy string) *Builder {
+func (b *Builder) OrderBy(orderBy interface{}) *Builder {
 	b.orderBy = orderBy
 	return b
 }
@@ -152,7 +163,7 @@ func (b *Builder) GroupBy(groupby string) *Builder {
 }
 
 // Having having SQL
-func (b *Builder) Having(having string) *Builder {
+func (b *Builder) Having(having interface{}) *Builder {
 	b.having = having
 	return b
 }

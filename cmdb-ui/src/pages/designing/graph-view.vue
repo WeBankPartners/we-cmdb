@@ -13,7 +13,7 @@
               clearable
               filterable
               label-in-name
-              style="width: 35%;z-index:auto"
+              style="width: 35%;z-index:auto; margin-right: 5px"
             >
               <Option
                 v-for="(item, itemIndex) in viewOptions"

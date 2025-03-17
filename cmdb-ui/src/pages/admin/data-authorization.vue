@@ -1,32 +1,85 @@
 <template>
   <Row>
-    <Col span="6" offset="0" style="margin-left: 20px">
-      <Card style="min-height: 85vh">
+    <Col span="6" offset="0" style="margin-left: 20px; margin-top: -10px">
+      <Tabs v-model="currentTabName" @on-click="onTabsClick">
+        <TabPane :label="$t('db_role_permissions')" name="role"></TabPane>
+        <TabPane :label="$t('db_permission_template_management')" name="template"></TabPane>
+      </Tabs>
+      <Card style="min-height: 85vh; margin-top: -5px">
         <p slot="title" class="permission-management-p">
-          <span>{{ $t('role') }}</span>
+          <span>{{ isRolePermissionPage ? $t('role') : $t('db_template') }}</span>
+          <Tooltip 
+            :content="$t('permission_management_data_creation') + $t('db_template')" 
+            max-width="300" 
+            placement="top-start"
+          >
+            <Button
+              v-if="!isRolePermissionPage"
+              size="small"
+              type="success"
+              style="margin-left: 5px"
+              @click="onAddTemplateButtonClick()"
+            >
+              <Icon type="md-add-circle" size="16"></Icon>
+            </Button>
+          </Tooltip>
         </p>
         <div class="tagContainers">
-          <div class="role-item" v-for="item in roles" :key="item.rolename">
-            <Tag
-              :name="item.rolename"
-              :color="item.color"
-              :checked="item.checked"
-              checkable
-              :fade="false"
-              @on-change="handleRoleClick"
-            >
-              <span :title="item.description">{{ item.rolename + '(' + item.description + ')' }}</span>
-            </Tag>
+          <div v-if="isRolePermissionPage">
+            <div class="role-item" v-for="item in roles" :key="item.rolename">
+              <Tag
+                :name="item.rolename"
+                :color="item.color"
+                :checked="item.checked"
+                checkable
+                :fade="false"
+                @on-change="handleRoleClick"
+              >
+                <span :title="item.rolename + '(' + item.description + ')'">{{ item.rolename + '(' + item.description + ')' }}</span>
+              </Tag>
+            </div>
+          </div>
+          <div v-else>
+            <Table :loading="roleTemplateLoading" 
+              highlight-row
+              size="small" 
+              :columns="roleTemplateTableColumns" 
+              :data="templateListData" 
+            />
           </div>
         </div>
       </Card>
     </Col>
-    <Col span="17" offset="0" style="margin-left: 20px">
+    <Col span="17" offset="0" style="margin-left: 20px; margin-top: 37px">
       <Card style="min-height: 85vh">
-        <p slot="title">{{ $t('data_management') }}</p>
+        <div slot="title">
+          <div v-if='isRolePermissionPage'>
+            <p style="display: inline; margin-right: 20px">{{ $t('data_management') }}</p>
+            <span v-if='usingTemplateNames.length'>{{ $t('db_using_templates') + ':' }}</span>
+            <span v-if='usingTemplateNames.length' style="color: #5384FF; margin: 0px 10px">{{usingTemplateNames.join('、')}}</span>
+            <Button 
+              class='template-button' 
+              type='primary' 
+              size="small"
+              @click="onTemplateConfigButtonClick"
+            >
+              {{ $t('db_configuration_template') }}
+            </Button>
+          </div>
+          <div v-else class='template-name-edit'>
+            <span>{{$t('db_template_name')}}</span>
+            <Input v-model="roleTemplateName"
+              :placeholder="$t('db_template_input_placeholder')"
+              suffix="md-create"
+              style="width: 250px"
+            >
+            </Input>
+          </div>
+        </div>
         <div v-if="ciTypePermissions.length" class="batch-operation">
-          <div style="float:left">{{ $t('selectAll') }}</div>
-          <div class="" style="text-align:right;">
+          <Input v-model="filterParam" :placeholder="$t('db_ci_name_info')" style="width:200px"></Input>
+          <div style="margin-right: 168px">
+            <span style="margin-right: 10px">{{ $t('selectAll') }}</span>
             <template v-for="(operation, opretionIndex) in batchOperations">
               <Checkbox
                 :key="opretionIndex"
@@ -40,11 +93,6 @@
                 >{{ operation.name }}</Checkbox
               >
             </template>
-            <!-- <Button icon="md-person" type="dashed" size="small" style="visibility: hidden;">{{ $t('details') }}</Button>
-            <Button icon="md-list" type="dashed" size="small" style="margin-right:21px;visibility: hidden;">
-              {{ $t('list') }}
-            </Button> -->
-            <Input v-model="filterParam" :placeholder="$t('graph_filter_values')" style="width:155px"></Input>
           </div>
         </div>
         <div class="tagContainers-auth">
@@ -70,84 +118,69 @@
                     >{{ act.actionName }}</Checkbox
                   >
                   <Button
-                    type="dashed"
+                    style="margin-right: 4px"
+                    :type="ci.conditionEnable ? 'primary' : 'dashed'"
                     size="small"
                     :disabled="dataPermissionDisabled || !ciTypesWithAccessControlledAttr[ci.ciTypeId]"
                     @click="openPermissionManageModal(ci.guid, ci)"
                   >
                     {{ $t('db_condition_matching') }}
                   </Button>
-                  <Button type="dashed" size="small" @click="openListManageModal(ci)">
+                  <Button :type="ci.listRowEnable ? 'primary' : 'dashed'" size="small" @click="openListManageModal(ci)">
                     {{ $t('db_specify_row') }}
                   </Button>
                 </div>
               </template>
               <template slot="content">
-                <div class="ci-attr-style" v-for="(one, oneIndex) in ci.attrs" :key="oneIndex">
-                  <span style="margin-left: 30px" :title="one.ciAttrName">{{ one.ciAttrName }}</span>
-                  <div>
-                    <Checkbox
-                      v-for="act in ciAttrActionsType"
-                      :disabled="dataPermissionDisabled"
-                      :value="one[act.actionCode] === 'Y'"
-                      :key="act.actionCode"
-                      :indeterminate="one[act.actionCode] === 'P'"
-                      @click.prevent.native="ciAttrsPermissionsHandler(one, act.actionCode)"
-                      >{{ act.actionName }}</Checkbox
-                    >
-                    <Button
-                      style="margin-left: 110px"
-                      type="dashed"
-                      size="small"
-                      :disabled="dataPermissionDisabled || !ciTypesWithAccessControlledAttr[ci.ciTypeId]"
-                      @click="openPermissionManageModal(one.guid, one)"
-                    >
-                      {{ $t('db_condition_matching') }}
-                    </Button>
-                    <Button type="dashed" size="small" @click="openListManageModal(one)">
-                      {{ $t('db_specify_row') }}
-                    </Button>
+                <div v-if="ci.attrs && ci.attrs.length > 0">
+                  <div class="ci-attr-style" v-for="(one, oneIndex) in ci.attrs" :key="oneIndex">
+                    <span style="margin-left: 30px" :title="one.ciAttrName">{{ one.ciAttrName }}</span>
+                    <div>
+                      <Checkbox
+                        v-for="act in ciAttrActionsType"
+                        :disabled="dataPermissionDisabled || ci[act.actionCode] === 'N'"
+                        :value="one[act.actionCode] === 'Y'"
+                        :key="act.actionCode"
+                        :indeterminate="one[act.actionCode] === 'P'"
+                        @click.prevent.native="ciAttrsPermissionsHandler(one, act.actionCode)"
+                        >{{ act.actionName }}</Checkbox
+                      >
+                      <Button
+                        style="margin-left: 222px; margin-right: 4px"
+                        :type="one.conditionEnable ? 'primary' : 'dashed'"
+                        size="small"
+                        :disabled="dataPermissionDisabled || !ciTypesWithAccessControlledAttr[ci.ciTypeId]"
+                        @click="openPermissionManageModal(one.guid, one)"
+                      >
+                        {{ $t('db_condition_matching') }}
+                      </Button>
+                      <Button
+                        :type="one.listRowEnable ? 'primary' : 'dashed'"
+                        size="small"
+                        @click="openListManageModal(one)"
+                      >
+                        {{ $t('db_specify_row') }}
+                      </Button>
+                    </div>
                   </div>
+                </div>
+                <div v-else style="margin-left: 30px">
+                  {{ $t('db_permission_not_configured') }}
                 </div>
               </template>
             </Panel>
           </Collapse>
-
-          <!-- <div
-            class="data-permissions"
-            v-for="(ci, ciIndex) in ciTypePermissions"
-            :key="ci.ciTypeId"
-            v-if="ci.ciTypeName.includes(filterParam)"
-          >
-            <span class="ciTypes" :title="ci.ciTypeName">{{ ci.ciTypeName }}</span>
-            <div class="ciTypes-options">
-              <Checkbox
-                v-for="act in actionsType"
-                :disabled="dataPermissionDisabled"
-                :indeterminate="ci[act.actionCode] === 'P'"
-                :value="ci[act.actionCode] === 'Y'"
-                :key="act.actionCode"
-                @click.prevent.native="ciTypesPermissionsHandler(ciIndex, act.actionCode)"
-                >{{ act.actionName }}</Checkbox
-              >
-              <Button
-                icon="md-person"
-                type="dashed"
-                size="small"
-                :disabled="dataPermissionDisabled || !ciTypesWithAccessControlledAttr[ci.ciTypeId]"
-                @click="openPermissionManageModal(ci.guid, ci)"
-              >
-                {{ $t('condition') }}
-              </Button>
-              <Button icon="md-list" type="dashed" size="small" @click="openListManageModal(ci)">
-                {{ $t('list') }}
-              </Button>
-            </div>
-          </div> -->
         </div>
         <div v-if="ciTypePermissions.length" class="batch-operation-btn">
-          <Button type="primary" @click="savePermissionsInBatch">{{ $t('save') }}{{ $t('actions') }}</Button>
-          <Button @click="cancelPermissionsOperation">{{ $t('cancel') }}{{ $t('actions') }}</Button>
+          <Button 
+            style="margin-right: 10px" 
+            type="primary" 
+            @click="savePermissionsInBatch">
+            {{ $t('save') }}{{ $t('actions') }}
+          </Button>
+          <Button @click="cancelPermissionsOperation">
+            {{ $t('cancel') }}{{ $t('actions') }}
+          </Button>
         </div>
       </Card>
     </Col>
@@ -182,8 +215,13 @@
         </div>
       </div>
     </Modal>
-    <Modal v-model="permissionManageModal" :title="permissionModalTitle" @on-cancel="cancelEdit" width="80">
+    <Modal v-model="permissionManageModal" 
+      :title="permissionModalTitle" 
+      @on-cancel="cancelEdit" 
+      @on-visible-change="onPermissionModalVisibleChange"
+      width="80">
       <CMDBTable
+        :key='refreshKey'
         :tableData="ciTypeAttrsPermissions"
         :filtersHidden="true"
         :tableOuterActions="newOuterActions"
@@ -203,10 +241,13 @@
       </div>
     </Modal>
     <!-- 列表编辑-开始 -->
-    <Modal v-model="listManagementModal" :title="listManagementModalTitle" width="80">
+    <Modal v-model="listManagementModal" 
+      :title="listManagementModalTitle" 
+      @on-visible-change="onListManagementModalClose"
+      width="80">
       <ListManagement
-        :listRoleCiTypeId="listRoleCiTypeId"
         :guidOptions="guidOptions"
+        :isRolePermissionPage="isRolePermissionPage"
         ref="listManagement"
       ></ListManagement>
       <div slot="footer">
@@ -214,30 +255,100 @@
       </div>
     </Modal>
     <!-- 列表编辑-结束 -->
+    <Modal v-model="isTemplateConfigModelShow" 
+      width="1200" 
+      :title="$t('role') + roleName +' - ' + $t('db_template_configuration')" 
+    >
+      <div class='config-modal-content'>
+        <Select
+          v-if="templateConfigType === 'edit'"
+          v-model="selectedTemplateItem"
+          filterable
+          clearable
+          :placeholder="$t('db_addRow_exist')"
+          style="width:300px; margin-bottom: 10px"
+          @on-open-change="
+            flag => {
+              if (flag) {
+                getAllRoleTemplateList(false)
+              }
+            }
+          "
+          @on-change="addTemplateTableItem"
+        >
+          <template slot='prefix'>
+            <Icon type="md-add-circle" color="#2d8cf0" :size="24"></Icon>
+          </template>
+          <template v-for="one in templateConfigOptions">
+            <Option :key="one.id" :value="one.id">{{ one.name }}</Option>
+          </template>
+        </Select>
+        <Table size="small" 
+          :columns="finalSelectedTemplateTableColumns" 
+          :data="selectedTemplateData"
+          :span-method="templateTableSpanMethod"
+          @on-select="(selection, row) => onTemplateTableSelectionChange('selectOne', row)" 
+          @on-select-cancel="(selection, row) => onTemplateTableSelectionChange('cancelOne', row)"
+          @on-select-all="onTemplateTableSelectionChange('allSelect')"
+          @on-select-all-cancel="onTemplateTableSelectionChange('allCancel')"
+        />
+      </div>
+      <template slot='footer'>
+        <div>
+          <Button @click="cancelTemplateModal">{{$t('cancel')}}</Button>
+          <Button @click="confirmTemplateModal" type='primary'>{{$t('save')}}</Button>
+        </div>
+      </template>
+    </Modal>
+    <!-- 切换tab时候的二次确认弹窗 -->
+    <Modal v-model="isSecondConfirmationShow" 
+      :ok-text="$t('save')"
+      :cancel-text="$t('discard')"
+      :title="$t('db_switch_confirmation')" 
+      @on-ok="onSecondConfirmationOk"
+      @on-visible-change="onSecondConfirmationVisibleChange"
+    >
+      <span style="display: flex; justify-content: center; color: red">
+        {{this.$t('db_change_role_tabs_tips')}}
+      </span>
+    </Modal>
   </Row>
 </template>
 <script>
-import { cloneDeep } from 'lodash'
-import { resetButtonDisabled } from '@/const/tableActionFun.js'
-import { newOuterActions } from '@/const/actions.js'
-import ListManagement from './list-management'
 import {
-  getAllUsers,
-  getAllRoles,
-  queryCiData,
+  addDataPermissionAction,
   addRole,
   addUser,
   addUsersToRole,
-  getoperationPermissionsByRole,
-  addDataPermissionAction,
-  removeDataPermissionAction,
-  getRoleCiTypeCtrlAttributesByRoleCiTypeId,
-  deleteRoleCiTypeCtrlAttributes,
-  getAllCITypesByLayerWithAttr,
   assignCiTypePermissionForRoleInBatch,
-  updateRoleCiTypeCtrlAttributes,
-  createRoleCiTypeCtrlAttributes
+  createPermCiTypeCtrlAttributes,
+  createRoleCiTypeCtrlAttributes,
+  deletePermCiTypeCtrlAttributes,
+  deleteRoleCiTypeCtrlAttributes,
+  deleteRoleTemplateItem,
+  getAllCITypesByLayerWithAttr,
+  getAllRoles,
+  getAllUsers,
+  getoperationPermissionsByRole,
+  getPermCiTypeCtrlAttributesByRoleCiTypeId,
+  getRoleCiTypeCtrlAttributesByRoleCiTypeId,
+  getRoleTemplateItemInfo,
+  getRoleTemplateList,
+  getTemplateByRole,
+  getTemplateInfoById,
+  queryCiData,
+  removeDataPermissionAction,
+  saveRoleTemplate,
+  saveTemplateInfo,
+  saveTemplateParams,
+  updatePermCiTypeCtrlAttributes,
+  updateRoleCiTypeCtrlAttributes
 } from '@/api/server.js'
+import { newOuterActions } from '@/const/actions.js'
+import { resetButtonDisabled } from '@/const/tableActionFun.js'
+import { cloneDeep, find, groupBy, isEmpty, map, omit } from 'lodash'
+import Vue from 'vue'
+import ListManagement from './list-management'
 
 export default {
   components: {
@@ -386,6 +497,30 @@ export default {
           resetOnEdit: 'no',
           isAuto: false,
           displayByDefault: 'yes'
+        },
+        {
+          title: this.$t('permission_management_data_confirm'),
+          key: 'confirm',
+          inputKey: 'confirm',
+          uiFormOrder: 7,
+          displaySeqNo: 7,
+          component: 'WeCMDBRadioRroup',
+          defaultValue: 'Y',
+          options: [
+            {
+              text: this.$t('yes'),
+              label: 'Y'
+            },
+            {
+              text: this.$t('no'),
+              label: 'N'
+            }
+          ],
+          editable: 'yes',
+          autofillable: 'no',
+          resetOnEdit: 'no',
+          isAuto: false,
+          displayByDefault: 'yes'
         }
       ],
       attrListColumns: [
@@ -455,7 +590,6 @@ export default {
           displayByDefault: 'yes'
         }
       ],
-
       allCiTypes: [],
       ciTypesWithAccessControlledAttr: {},
       defaultKey: [
@@ -470,6 +604,16 @@ export default {
       ],
       actionsType: [
         {
+          actionCode: 'query',
+          type: 'ENQUIRY',
+          actionName: this.$t('permission_management_data_enquiry')
+        },
+        {
+          actionCode: 'update',
+          type: 'MODIFICATION',
+          actionName: this.$t('permission_management_data_modification')
+        },
+        {
           actionCode: 'insert',
           type: 'CREATION',
           actionName: this.$t('permission_management_data_creation')
@@ -478,16 +622,6 @@ export default {
           actionCode: 'delete',
           type: 'REMOVAL',
           actionName: this.$t('permission_management_data_removal')
-        },
-        {
-          actionCode: 'update',
-          type: 'MODIFICATION',
-          actionName: this.$t('permission_management_data_modification')
-        },
-        {
-          actionCode: 'query',
-          type: 'ENQUIRY',
-          actionName: this.$t('permission_management_data_enquiry')
         },
         {
           actionCode: 'execute',
@@ -502,14 +636,14 @@ export default {
       ],
       ciAttrActionsType: [
         {
-          actionCode: 'update',
-          type: 'MODIFICATION',
-          actionName: this.$t('permission_management_data_modification')
-        },
-        {
           actionCode: 'query',
           type: 'ENQUIRY',
           actionName: this.$t('permission_management_data_enquiry')
+        },
+        {
+          actionCode: 'update',
+          type: 'MODIFICATION',
+          actionName: this.$t('permission_management_data_modification')
         }
       ],
       users: [],
@@ -537,6 +671,18 @@ export default {
       currentRoleName: null,
       batchOperations: [
         {
+          name: this.$t('permission_management_data_enquiry'),
+          allSelect: false,
+          emptySelect: false,
+          key: 'query'
+        },
+        {
+          name: this.$t('permission_management_data_modification'),
+          allSelect: false,
+          emptySelect: false,
+          key: 'update'
+        },
+        {
           name: this.$t('permission_management_data_creation'),
           allSelect: false,
           emptySelect: false,
@@ -547,18 +693,6 @@ export default {
           allSelect: false,
           emptySelect: false,
           key: 'delete'
-        },
-        {
-          name: this.$t('permission_management_data_modification'),
-          allSelect: false,
-          emptySelect: false,
-          key: 'update'
-        },
-        {
-          name: this.$t('permission_management_data_enquiry'),
-          allSelect: false,
-          emptySelect: false,
-          key: 'query'
         },
         {
           name: this.$t('permission_management_data_execution'),
@@ -603,7 +737,165 @@ export default {
       addedUser: {},
       spinShow: false,
       currentCollapseValue: null,
-      listManagementModalTitle: ''
+      listManagementModalTitle: '',
+      isCiType: true,
+      currentTabName: 'role', // 枚举，为role | template
+      historyCurrentTabName: 'role',
+      roleTemplateTableColumns: [
+        {
+          title: this.$t('db_template_name'),
+          key: 'name',
+          render: (h, params) => <div>{params.row.name || '-'}</div>
+        },
+        {
+          title: this.$t('db_creator'),
+          key: 'createUser',
+          width: 100,
+          render: (h, params) => <div>{params.row.createUser || '-'}</div>
+        },
+        {
+          title: this.$t('actions'),
+          key: 'action',
+          fixed: 'right',
+          render: (h, params) => (
+            <div style='display: flex'>
+              <Poptip
+                confirm
+                transfer
+                ok-text={this.$t('save')}
+                cancel-text={this.$t('discard')}
+                title={this.$t('db_role_template_tips')}
+                placement="left-end"
+                on-on-ok={async () => {
+                  const info = {
+                    id: this.roleTemplateId,
+                    name: this.roleTemplateName,
+                    configs: cloneDeep(this.ciTypePermissions),
+                  }
+                  await saveTemplateInfo(info)
+                  this.editTemplateItem(params.row.id)
+                }}
+                on-on-cancel={() => {
+                  this.editTemplateItem(params.row.id)
+                }}>
+                <Tooltip max-width={400} placement="top" transfer content={this.$t('edit')}>
+                  <Button size="small" 
+                    style='margin-right: 4px' 
+                    type='primary'>
+                    <Icon type="md-create" size="16" />
+                  </Button>
+                </Tooltip>
+              </Poptip>
+              <Poptip
+                confirm
+                transfer
+                title={this.$t('db_delConfirm_tip')}
+                placement="left-end"
+                on-on-ok={() => {
+                  this.deleteTemplateItem(params.row.id)
+                }}>
+                <Button size="small" type="error">
+                  <Icon type="md-trash" size="16" />
+                </Button>
+              </Poptip>
+            </div>
+          )
+        }
+      ],
+      selectedTemplateTableColumns: [
+        {
+            type: 'selection',
+            width: 70,
+            align: 'center',
+            key: 'selection'
+        },
+        {
+          title: this.$t('db_template_name'),
+          width: 100,
+          key: 'permissionTplName',
+          render: (h, params) => <div>{params.row.permissionTplName || '-'}</div>
+        },
+        {
+          title: this.$t('db_ci_name'),
+          width: 150,
+          key: 'ciTypeDisplayName',
+          render: (h, params) => <div>{params.row.ciTypeDisplayName || '-'}</div>
+        },
+        {
+          title: this.$t('ci_attribute_name'),
+          width: 150,
+          key: 'filterAttrName',
+          render: (h, params) => <div>{params.row.filterAttrName || '-'}</div>
+        },
+        {
+          title: this.$t('db_parameter_expression'),
+          width: 200,
+          key: 'filterExpression',
+          render: (h, params) => <div>{params.row.filterExpression || '-'}</div>
+        },
+        {
+          title: this.$t('db_parameter_name'),
+          key: 'filterParamName',
+          render: (h, params) => (
+            <div>
+            {
+              this.templateConfigType === 'edit' ? (
+                <span>{params.row.filterParamName || '-'}</span>
+              ) : (
+                <div style="display: flex; align-items: center">
+                  <span style="color:red; font-weight: 600; margin-right: 2px">*</span>
+                  <Input
+                    value={params.row.filterParamName}
+                    on-on-change={v => {
+                      Vue.set(this.selectedTemplateData[params.index], 'filterParamName', v.target.value)
+                    }}
+                    placeholder={this.$t('input_placeholder')}
+                    clearable
+                  />
+                </div>
+              )
+            }
+            </div>
+          ) 
+        },
+        {
+          title: this.$t('db_parameter_value'),
+          key: 'filterParamValue',
+          render: (h, params) => (
+            <div>
+            {
+              this.templateConfigType === 'preview' ? (
+                <span>{params.row.filterParamValue || '-'}</span>
+              ) : (
+                params.row.ciType ?
+                <Input
+                  value={params.row.filterParamValue}
+                  on-on-change={v => {
+                    Vue.set(this.selectedTemplateData[params.index], 'filterParamValue', v.target.value)
+                  }}
+                  placeholder={this.$t('input_placeholder')}
+                  clearable
+                /> : <span>-</span>
+              )
+            }
+            </div>
+          )
+        }
+      ],
+      templateListData: [],
+      usingTemplateNames: [],
+      usingTemplateDetail: [],
+      isTemplateConfigModelShow: false,
+      templateConfigType: 'edit', // 该字段为枚举，edit 表示对角色增加权限； preview表示保存的时候验证权限
+      selectedTemplateItem: '',
+      selectedTemplateData: [],
+      roleTemplateName: '',
+      roleTemplateId: '',
+      roleName: '',
+      templateConfigOptions: [],
+      roleTemplateLoading: false,
+      refreshKey: '',
+      isSecondConfirmationShow: false
     }
   },
   computed: {
@@ -670,6 +962,17 @@ export default {
           ciTypeAttrId: 'confirm'
         }
       ]
+    },
+    // 该字段为true则在角色权限页面，为false则在 权限模板管理 页面
+    isRolePermissionPage () {
+      return this.currentTabName === 'role' 
+    },
+    finalSelectedTemplateTableColumns() {
+      const columns = cloneDeep(this.selectedTemplateTableColumns)
+      if (this.templateConfigType === 'edit') {
+        return columns
+      }
+      return columns.slice(1)
     }
   },
   watch: {
@@ -713,7 +1016,7 @@ export default {
           }
         })
       }
-      this.$refs.listManagement.getListTableData(ci.guid, ci.ciTypeId, columns)
+      this.$refs.listManagement.getListTableData(ci.guid, ci.ciTypeId, columns, this.isRolePermissionPage)
       this.listManagementModal = true
     },
     renderUserNameForTransfer (item) {
@@ -725,15 +1028,19 @@ export default {
         this.$t('edit_data_authority')
       this.currentRoleCiTypeId = roleCiTypeId
       this.permissionManageModal = true
-      this.getAttrPermissions(ciDetail.ciTypeName ? 'ci' : 'attr')
+      this.isCiType = ciDetail.ciTypeName ? true : false
+      this.refreshKey = +new Date() + ''
+      this.getAttrPermissions()
     },
-    async getAttrPermissions (type) {
+    async getAttrPermissions () {
       this.attrsPermissionsColumns = []
       this.ciTypeAttrsPermissions = []
       this.$refs.table.isTableLoading(true)
-      let { statusCode, data } = await getRoleCiTypeCtrlAttributesByRoleCiTypeId(this.currentRoleCiTypeId)
+      let { statusCode, data } = this.isRolePermissionPage 
+        ? await getRoleCiTypeCtrlAttributesByRoleCiTypeId(this.currentRoleCiTypeId)
+        : await getPermCiTypeCtrlAttributesByRoleCiTypeId(this.currentRoleCiTypeId)
       this.$refs.table.isTableLoading(false)
-      const defaultColumnsInfo = type === 'ci' ? this.defaultColumns : this.defaultColumns.slice(2, 4)
+      const defaultColumnsInfo = this.isCiType ? this.defaultColumns : this.defaultColumns.slice(2, 4)
       if (statusCode === 'OK') {
         const headerLength = data.header.length
         let _attrsPermissionsColumns = data.header
@@ -790,7 +1097,8 @@ export default {
             } else {
               obj[i] = {
                 codeId: _[i],
-                value: _[i] === 'Y' ? this.$t('yes') : this.$t('no')
+                value: _[i] === 'Y' ? 'Y' : 'N'
+                // value: _[i] === 'Y' ? this.$t('yes') : this.$t('no')
               }
             }
           }
@@ -918,7 +1226,9 @@ export default {
           }
         }
       })
-      const { statusCode, message } = await createRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, addAry)
+      const { statusCode, message } = this.isRolePermissionPage 
+        ? await createRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, addAry)
+        : await createPermCiTypeCtrlAttributes(this.currentRoleCiTypeId, addAry)
       this.$refs.table.closeEditModal(false)
       this.$refs.table.resetModalLoading()
       if (statusCode === 'OK') {
@@ -927,7 +1237,7 @@ export default {
           desc: message
         })
         this.getAttrPermissions()
-        this.getPermissions(false, true, this.currentRoleName)
+        this.isRolePermissionPage ? this.getPermissions(false, true, this.currentRoleName) : this.editTemplateItem(this.roleTemplateId)
         this.setBtnsStatus()
       }
     },
@@ -963,8 +1273,10 @@ export default {
             }
           }
         }
-      })
-      const { statusCode, message } = await updateRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, editAry)
+      })      
+      const { statusCode, message } = this.isRolePermissionPage
+        ? await updateRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, editAry)
+        : await updatePermCiTypeCtrlAttributes(this.currentRoleCiTypeId, editAry)
       this.$refs.table.closeEditModal(false)
       this.$refs.table.resetModalLoading()
       if (statusCode === 'OK') {
@@ -973,7 +1285,7 @@ export default {
           desc: message
         })
         this.getAttrPermissions()
-        this.getPermissions(false, true, this.currentRoleName)
+        this.isRolePermissionPage ? this.getPermissions(false, true, this.currentRoleName) : this.editTemplateItem(this.roleTemplateId)
         this.setBtnsStatus()
       }
     },
@@ -988,10 +1300,10 @@ export default {
         'z-index': 1000000,
         onOk: async () => {
           const payload = deleteData.map(_ => _.roleConditionGuid)
-          const { statusCode, message } = await deleteRoleCiTypeCtrlAttributes(
-            this.currentRoleCiTypeId,
-            payload.join(',')
-          )
+          const permIds = deleteData.map(_ => _.guid)
+          const { statusCode, message } = this.isRolePermissionPage 
+          ? await deleteRoleCiTypeCtrlAttributes(this.currentRoleCiTypeId, payload.join(','))
+          : await deletePermCiTypeCtrlAttributes(this.currentRoleCiTypeId, permIds.join(','))
           if (statusCode === 'OK') {
             this.$Notice.success({
               title: this.$t('delete_permission_success'),
@@ -1045,15 +1357,30 @@ export default {
       this.permissionEntryPointsForEdit = []
     },
     ciTypesPermissionsHandler (ciIndex, code) {
-      this.ciTypePermissions[ciIndex][code] = this.ciTypePermissions[ciIndex][code] === 'Y' ? 'N' : 'Y'
+      const permissionItem = this.ciTypePermissions[ciIndex]
+      permissionItem[code] = permissionItem[code] === 'Y' ? 'N' : 'Y'
+      if (!isEmpty(permissionItem.attrs)) {
+        permissionItem.attrs.forEach(item => {
+          if (item[code] !== 'P') {
+            item[code] = permissionItem[code]
+          }
+        })
+      }
     },
     ciAttrsPermissionsHandler (one, code) {
       one[code] = one[code] === 'Y' ? 'N' : 'Y'
     },
     batchPermission (val, operationType) {
       const value = val ? 'Y' : 'N'
-      this.ciTypePermissions.forEach(_ => {
-        _[operationType] = value
+      this.ciTypePermissions.forEach(one => {
+        one[operationType] = value
+        if (!isEmpty(one.attrs)) {
+          one.attrs.forEach(item => {
+            if (item[operationType] !== 'P') {
+              item[operationType] = value
+            }
+          })
+        }
       })
     },
     async setPermissionAction (checked, name, id) {
@@ -1067,16 +1394,42 @@ export default {
       }
     },
     async savePermissionsInBatch () {
-      let { statusCode, message } = await assignCiTypePermissionForRoleInBatch(
-        cloneDeep(this.ciTypePermissions),
-        this.currentRoleName
-      )
-      if (statusCode === 'OK') {
+      let res
+      if (this.isRolePermissionPage) {
+        res = await assignCiTypePermissionForRoleInBatch(
+          cloneDeep(this.ciTypePermissions),
+          this.currentRoleName
+        )
+      } else {
+        const {statusCode, data} = await getTemplateInfoById(this.roleTemplateId)
+        if (statusCode === 'OK') {
+          if (isEmpty(data.params)) {
+            const params = {
+              id: this.roleTemplateId,
+              name: this.roleTemplateName,
+              configs: cloneDeep(this.ciTypePermissions),
+            }
+            res = await saveTemplateInfo(params)
+          } else {
+            const params = {
+              id: this.roleTemplateId,
+              name: this.roleTemplateName,
+              configs: cloneDeep(this.ciTypePermissions),
+            }
+            await saveTemplateInfo(params)
+            this.isTemplateConfigModelShow = true
+            this.templateConfigType = 'preview'
+            this.selectedTemplateData = []
+            this.selectedTemplateItem = ''
+            this.processRoleTemplateTableData([data])
+          } 
+        }
+      }
+      if (res && res.statusCode === 'OK') {
         this.$Notice.success({
-          title: this.$t('success'),
-          desc: message
+          title: this.$t('success')
         })
-        this.getPermissions(true, true, this.currentRoleName)
+        this.isRolePermissionPage ? this.getPermissions(true, true, this.currentRoleName) : this.getAllRoleTemplateList(true, this.roleTemplateId)
       }
     },
     cancelPermissionsOperation () {
@@ -1204,7 +1557,7 @@ export default {
         _.checked = false
       })
     },
-
+    // 点击左侧角色，触发该事件
     async handleRoleClick (checked, rolename) {
       this.spinShow = true
       this.currentCollapseValue = null
@@ -1217,6 +1570,7 @@ export default {
           _.checked = checked
         }
       })
+      this.getRoleTemplate(rolename)
       this.getPermissions(false, checked, rolename)
     },
 
@@ -1274,6 +1628,7 @@ export default {
       }
     },
     initData () {
+      this.currentTabName = 'role'
       this.ciTypePermissions = []
       this.getAllUsers()
       this.getAllRoles()
@@ -1281,6 +1636,233 @@ export default {
     },
     preventEvent (event) {
       event.stopPropagation()
+    },
+    async addTemplateTableItem(id) {
+      if (!id) return
+      const {statusCode, data} = await getTemplateInfoById(id)
+      if (statusCode === 'OK') {
+        this.processRoleTemplateTableData([data])
+      }
+    },
+    async deleteTemplateItem(id) {
+      const {statusCode} = await deleteRoleTemplateItem(id)
+      if (statusCode === 'OK') {
+        this.$Message.success(this.$t('db_operation_successful'))
+        this.getAllRoleTemplateList()
+      }
+    },
+    async editTemplateItem(id) {
+      this.spinShow = true
+      const {statusCode, data} = await getRoleTemplateItemInfo(id)
+      if (statusCode === 'OK') {
+        this.roleTemplateName = data.name
+        this.roleTemplateId = data.id
+        this.ciTypePermissions = data.configs
+        this.spinShow = false
+      }
+    },
+    async onAddTemplateButtonClick() {
+      const name = this.$t('db_permission_template') + +new Date()
+      const params = {
+        id: '',
+        name,
+        configs: []
+      }
+      const {statusCode} = await saveTemplateInfo(params)
+      if (statusCode === 'OK') {
+        this.$Notice.success({
+          title: this.$t('permission_management_data_creation') + this.$t('db_template') + this.$t('success')
+        })
+        this.getAllRoleTemplateList()
+      }
+    },
+    // 获取所有的权限列表
+    async getAllRoleTemplateList(needEdit = true, id = '') {
+      this.roleTemplateLoading = true
+      const {data, statusCode} = await getRoleTemplateList()
+      if (statusCode === 'OK') {
+        this.templateListData = data
+        this.roleTemplateLoading = false
+        if (!isEmpty(this.templateListData) && needEdit) {
+          const getId = id || this.templateListData[0].id
+          const item = find(this.templateListData, {id: getId})
+          if (item) {
+            item._highlight = true
+          }
+          this.editTemplateItem(getId)
+        } else {
+          this.templateConfigOptions = this.templateListData.filter(one => !(this.selectedTemplateData.map(item => item.permissionTplName)).includes(one.name))
+        }
+      }
+    },
+    // 基于用户角色，来获取该角色的使用模板详情
+    async getRoleTemplate(rolename) {
+      this.roleName = rolename
+      const {statusCode, data} = await getTemplateByRole(rolename, true)
+      if (statusCode === 'OK') {
+        this.usingTemplateNames = data.map(item => item.permissionTplName)
+        this.usingTemplateDetail = data
+      }
+    },
+    // 点击【数据权限】中的【配置模板】button，触发该事件
+    onTemplateConfigButtonClick() {
+      this.isTemplateConfigModelShow = true
+      this.templateConfigType = 'edit'
+      this.selectedTemplateData = []
+      this.selectedTemplateItem = ''
+      this.processRoleTemplateTableData(this.usingTemplateDetail)
+    },
+    processRoleTemplateTableData(rawData) {
+      if (!isEmpty(rawData)) {
+        rawData.forEach(item => {
+          if (!isEmpty(item.params)) {
+            item.params.forEach(one => {
+              this.selectedTemplateData.push({
+                ...one,
+                permissionTplName: item.permissionTplName,
+                permissionTplId: item.permissionTplId,
+                _checked: true
+              })
+            })
+          } else {
+            this.selectedTemplateData.push({
+              permissionTplName: item.permissionTplName,
+              permissionTplId: item.permissionTplId,
+              _checked: true
+            })
+          }
+        })
+      }
+    },
+    // 对模板table中的相同名称的行进行合并
+    templateTableSpanMethod({ row, column, rowIndex, columnIndex }) {
+      if (['permissionTplName', 'selection'].includes(column.key)) {
+        if (rowIndex === 0 || this.selectedTemplateData[rowIndex].permissionTplName !== this.selectedTemplateData[rowIndex - 1].permissionTplName) {
+          let count = 1;
+          for (let i = rowIndex + 1; i < this.selectedTemplateData.length; i++) {
+            if (this.selectedTemplateData[i].permissionTplName === this.selectedTemplateData[rowIndex].permissionTplName) {
+              count++;
+            } else {
+              break;
+            }
+          }
+          return {
+            rowspan: count,
+            colspan: 1
+          };
+        } else {
+          return {
+            rowspan: 0,
+            colspan: 0
+          };
+        }
+      }
+      return {
+        rowspan: 1,
+        colspan: 1
+      };
+    },
+    async confirmTemplateModal() {
+      if (isEmpty(this.selectedTemplateData)) return
+      const allData = cloneDeep(cloneDeep(this.selectedTemplateData)).filter(item => item._checked)
+      const groupedData = groupBy(map(allData, item => omit(item, ['_checked'])), 'permissionTplId')
+      const params = []
+      for(let key in groupedData) {
+        params.push({
+          permissionTplId: key,
+          params: groupedData[key]
+        })
+      }
+      let res
+      if (this.isRolePermissionPage) {
+        res = await saveRoleTemplate(this.roleName, params)
+      } else {
+        const allParams = params[0].params
+        if (!isEmpty(allParams)) {
+          for (let i=0; i<allParams.length; i++) {
+            const item = allParams[i]
+            if (isEmpty(item.filterParamName)) {
+              this.$Message.error(this.$t('db_parameter_name') + this.$t('is_required'))
+              return 
+            }
+          }
+        }
+        res = await saveTemplateParams(...params)
+      }
+      if (res.statusCode === 'OK') {
+        this.isTemplateConfigModelShow = false
+        this.$Message.success(this.$t('db_operation_successful'))
+        if (this.isRolePermissionPage) {
+          this.getRoleTemplate(this.roleName)
+        } else {
+          this.getAllRoleTemplateList(true, this.roleTemplateId)
+        }
+      }
+    },
+    cancelTemplateModal() {
+      this.isTemplateConfigModelShow = false
+    },
+    onTemplateTableSelectionChange(type, row) {
+      if (['selectOne', 'cancelOne'].includes(type)) {
+        const id = row.permissionTplId
+        this.selectedTemplateData = map(this.selectedTemplateData, item => {
+          if (item.permissionTplId === id) {
+            return {...item, _checked: type === 'selectOne'}
+          }
+          return item
+        })
+      } else {
+        this.selectedTemplateData = map(this.selectedTemplateData, item => {
+          return {...item, _checked: type === 'allSelect'}
+        })
+      }
+    },
+    onListManagementModalClose(flag) {
+      if (!flag) {
+        this.isRolePermissionPage ? this.getPermissions(false, true, this.currentRoleName) : this.editTemplateItem(this.roleTemplateId)
+      }
+    },
+    onTabsClick(name) {
+      if (name !== this.historyCurrentTabName) {
+        this.isSecondConfirmationShow = true
+      }
+    },
+    onSecondConfirmationVisibleChange(flag) {
+      setTimeout(() => {
+        if (!flag) {
+          this.historyCurrentTabName = this.currentTabName
+          if (this.currentTabName === 'template') {
+            this.getAllRoleTemplateList()
+          } else {
+            this.initData()
+          }
+        }
+      }, 500)
+    },
+    async onSecondConfirmationOk() {
+      let res
+      if (this.historyCurrentTabName === 'template') {
+        const info = {
+          id: this.roleTemplateId,
+          name: this.roleTemplateName,
+          configs: cloneDeep(this.ciTypePermissions),
+        }
+        res = await saveTemplateInfo(info)
+      } else {
+        res = await assignCiTypePermissionForRoleInBatch(
+          cloneDeep(this.ciTypePermissions),
+          this.currentRoleName
+        )
+      }
+      if (res.statusCode === 'OK') {
+        this.$Message.success($t('db_saved_successfully'))
+      }
+    },
+    onPermissionModalVisibleChange(flag) {
+      if (!flag) {
+        this.isRolePermissionPage ? this.getPermissions(false, true, this.currentRoleName) : this.editTemplateItem(this.roleTemplateId)
+        this.cancelEdit()
+      }
     }
   }
 }
@@ -1310,8 +1892,11 @@ export default {
   cursor: pointer;
   .ivu-tag {
     display: inline-block;
-    width: 80%;
-  }
+    width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  };
 }
 .data-permissions {
   width: 100%;
@@ -1350,7 +1935,7 @@ export default {
     background-color: #4ee643;
   }
   .ivu-checkbox-disabled.ivu-checkbox-checked .ivu-checkbox-inner {
-    background-color: #2d8cf0;
+    background-color: #5384FF;
   }
 }
 .permission-management-p {
@@ -1362,20 +1947,33 @@ export default {
   }
 }
 .batch-operation {
-  padding-bottom: 0 5px 8px 5px;
-  margin-bottom: 18px;
-  border-bottom: 1px solid #2d8cf0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  border-bottom: 1px solid #5384FF;
 }
 .batch-operation-btn {
   text-align: right;
   padding-top: 5px;
   margin-top: 8px;
-  border-top: 1px solid #2d8cf0;
+  border-top: 1px solid #5384FF;
 }
 .ci-attr-style {
   display: flex;
   justify-content: space-between;
   padding: 2px 0;
+}
+.template-button {
+  margin-left: 10px
+}
+.template-name-edit {
+  display: flex;
+  align-items: center;
+}
+.template-name-edit > span {
+  margin-right: 10px;
 }
 </style>
 
@@ -1383,6 +1981,11 @@ export default {
 .tagContainers-auth {
   .ivu-collapse-header {
     display: block !important;
+  }
+}
+.role-item {
+  .ivu-tag {
+    font-size: 14px;
   }
 }
 </style>

@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"strings"
 )
 
@@ -126,6 +127,12 @@ func bindRoleCiTypeConditionParam(c *gin.Context) (conditions []*models.RoleAttr
 		if _, b := tmpMap["roleConditionGuid"]; b {
 			tmpCondition.Guid = tmpMap["roleConditionGuid"].(string)
 		}
+		if _, b := tmpMap["permissionCiTpl"]; b {
+			tmpCondition.PermissionCiTplId = tmpMap["permissionCiTpl"].(string)
+		}
+		if _, b := tmpMap["guid"]; b {
+			tmpCondition.Guid = tmpMap["guid"].(string)
+		}
 		for k, v := range tmpMap {
 			if k == "insert" || k == "update" || k == "delete" || k == "query" || k == "execute" || k == "confirm" || k == "roleCiType" || k == "roleConditionGuid" {
 				continue
@@ -154,7 +161,7 @@ func bindRoleCiTypeConditionParam(c *gin.Context) (conditions []*models.RoleAttr
 					}
 				}
 			} else {
-				log.Logger.Warn("bindRoleCiTypeConditionParam with illegal config attr data", log.String("attr", k), log.JsonObj("data", params))
+				log.Warn(nil, log.LOGGER_APP, "bindRoleCiTypeConditionParam with illegal config attr data", zap.String("attr", k), log.JsonObj("data", params))
 			}
 		}
 		conditions = append(conditions, &tmpCondition)
@@ -214,6 +221,229 @@ func DeleteRoleCiTypeList(c *gin.Context) {
 		return
 	}
 	err := db.DeleteRoleCiTypeList(param)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+func ListTemplate(c *gin.Context) {
+	result, err := db.ListTemplate()
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func SaveTemplate(c *gin.Context) {
+	var param models.PermissionTplData
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	param.Operator = middleware.GetRequestUser(c)
+	err := db.SaveTemplate(&param)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		result, getErr := db.GetTemplate(param.Id)
+		if getErr != nil {
+			err = fmt.Errorf("get template return data fail,%s ", getErr.Error())
+			middleware.ReturnServerHandleError(c, err)
+		} else {
+			middleware.ReturnData(c, result)
+		}
+	}
+}
+
+func GetTemplate(c *gin.Context) {
+	permissionTplId := c.Query("permissionTplId")
+	result, err := db.GetTemplate(permissionTplId)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func DeleteTemplate(c *gin.Context) {
+	permissionTplId := c.Query("permissionTplId")
+	err := db.DeleteTemplate(permissionTplId)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+func GetTemplateParam(c *gin.Context) {
+	permissionTplId := c.Query("permissionTplId")
+	result, err := db.GetTemplateParam(permissionTplId)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func SaveTemplateParam(c *gin.Context) {
+	var param models.PermissionTplParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	err := db.SaveTemplateParam(&param)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+func GetRoleTemplate(c *gin.Context) {
+	roleId := c.Param("roleId")
+	withFilterParamFlag := false
+	if c.Query("withFilterParam") == "true" {
+		withFilterParamFlag = true
+	}
+	result, err := db.GetRoleTemplate(roleId, withFilterParamFlag)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func SaveRoleTemplate(c *gin.Context) {
+	roleId := c.Param("roleId")
+	var param []*models.PermissionTplParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	err := db.SaveRoleTemplate(roleId, param)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+func GetTemplateCiTypeCondition(c *gin.Context) {
+	roleCiType := c.Param("permissionCiTpl")
+	if roleCiType == "" {
+		middleware.ReturnParamEmptyError(c, "permissionCiTpl")
+		return
+	}
+	result, err := db.GetPermissionTplCondition(roleCiType)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func AddTemplateCiTypeCondition(c *gin.Context) {
+	permissionCiTpl := c.Param("permissionCiTpl")
+	conditions, err := bindRoleCiTypeConditionParam(c)
+	if err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	affectRoles := []string{}
+	affectRoles, err = db.AddPermissionTplCondition(permissionCiTpl, conditions)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnData(c, affectRoles)
+	}
+}
+
+func EditTemplateCiTypeCondition(c *gin.Context) {
+	roleCiType := c.Param("permissionCiTpl")
+	conditions, err := bindRoleCiTypeConditionParam(c)
+	if err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	affectRoles := []string{}
+	affectRoles, err = db.EditPermissionTplCondition(roleCiType, conditions)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnData(c, affectRoles)
+	}
+}
+
+func DeleteTemplateCiTypeCondition(c *gin.Context) {
+	ids := c.Query("ids")
+	param := strings.Split(ids, ",")
+	if len(param) == 0 {
+		middleware.ReturnParamEmptyError(c, "ids")
+		return
+	}
+	err := db.DeletePermissionTplCondition(param)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+func GetTemplateCiTypeList(c *gin.Context) {
+	roleCiType := c.Param("permissionCiTpl")
+	if roleCiType == "" {
+		middleware.ReturnParamEmptyError(c, "permissionCiTpl")
+		return
+	}
+	result, err := db.GetPermissionTplList(roleCiType)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func AddTemplateCiTypeList(c *gin.Context) {
+	roleCiType := c.Param("permissionCiTpl")
+	var inputData []*models.SysRoleCiTypeListTable
+	if err := c.ShouldBindJSON(&inputData); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	err := db.AddPermissionTplList(roleCiType, inputData)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+func EditTemplateCiTypeList(c *gin.Context) {
+	roleCiType := c.Param("permissionCiTpl")
+	var inputData []*models.SysRoleCiTypeListTable
+	if err := c.ShouldBindJSON(&inputData); err != nil {
+		middleware.ReturnParamValidateError(c, err)
+		return
+	}
+	err := db.EditPermissionTplList(roleCiType, inputData)
+	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+func DeleteTemplateCiTypeList(c *gin.Context) {
+	ids := c.Query("ids")
+	param := strings.Split(ids, ",")
+	if len(param) == 0 {
+		middleware.ReturnParamEmptyError(c, "ids")
+		return
+	}
+	err := db.DeletePermissionTplList(param)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {

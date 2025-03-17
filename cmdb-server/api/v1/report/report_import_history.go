@@ -23,7 +23,7 @@ func QueryReportImportHistory(c *gin.Context) {
 	// 从数据库查询报告导入历史信息
 	pageInfo, rowDataResult, err := db.QueryReportImportHistory(&param)
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("QueryReportImportHistory failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("QueryReportImportHistory failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
@@ -42,7 +42,7 @@ func QueryReportImportHistory(c *gin.Context) {
 	// 查询未通过的行数据及其CI类型名称
 	notPassRowData, err := db.QuerySysCiImportGuidMapForNotPassCountAndCiTypeNames(rowDataGuidList)
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("Query CI import detail failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Query CI import detail failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
@@ -78,7 +78,7 @@ func RefreshReportImportHistory(c *gin.Context) {
 	status := "created"
 	importHistoryRowData, err := db.QueryReportImportHistoryByStatus(status)
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("Query report import history failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Query report import history failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
@@ -92,7 +92,7 @@ func RefreshReportImportHistory(c *gin.Context) {
 		// 根据报告导入GUID查询导入GUID映射表
 		importGuidMapTable, err := db.QueryCiImportGuidMapByReportImportGuid(rowData.Guid)
 		if err != nil {
-			log.Logger.Error(fmt.Sprintf("Query ci import detail failed, err:%s", err.Error()))
+			log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Query ci import detail failed, err:%s", err.Error()))
 			middleware.ReturnServerHandleError(c, err)
 			return
 		}
@@ -103,7 +103,7 @@ func RefreshReportImportHistory(c *gin.Context) {
 		// 调用refreshReportImportHistory函数刷新报告导入历史记录
 		err = refreshReportImportHistory(c, importGuidMapTable)
 		if err != nil {
-			log.Logger.Error(fmt.Sprintf("Refresh report import history failed, err:%s", err.Error()))
+			log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Refresh report import history failed, err:%s", err.Error()))
 			middleware.ReturnServerHandleError(c, err)
 			return
 		}
@@ -122,7 +122,7 @@ func RefreshReportImportHistoryById(c *gin.Context) {
 	// 根据报告导入GUID查询导入映射表
 	importGuidMapTable, err := db.QueryCiImportGuidMapByReportImportGuid(guid)
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("Query ci import detail failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Query ci import detail failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
@@ -134,7 +134,7 @@ func RefreshReportImportHistoryById(c *gin.Context) {
 	// 调用refreshReportImportHistory函数刷新报告导入历史记录
 	err = refreshReportImportHistory(c, importGuidMapTable)
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("Refresh report import history failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Refresh report import history failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
@@ -154,21 +154,21 @@ func refreshReportImportHistory(c *gin.Context, importGuidMapTable []*models.Sys
 	}
 	// 获取multiCiData的Attributes
 	if err = db.GetMultiCiAttributes(multiCiData); err != nil {
-		log.Logger.Error(fmt.Sprintf("Query CI attributes failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Query CI attributes failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
 	// 获取multiCiData的InputData
 	err = db.GetUniqueAndNotNullColumn(multiCiData, importGuidMapTable)
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("Get unique and not null column failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Get unique and not null column failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
 
 	err = db.RefreshReportImportHistory(multiCiData)
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("Refresh report import history failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Refresh report import history failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
@@ -188,7 +188,7 @@ func QueryReportImportHistoryById(c *gin.Context) {
 	var result models.SysReportImportHistoryResult
 	rowData, err := db.QueryReportImportHistoryById(guid)
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("Query report import history failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Query report import history failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
@@ -202,7 +202,7 @@ func QueryReportImportHistoryById(c *gin.Context) {
 	// 从sys_ci_import_guid_map表中查询CI导入GUID映射统计信息
 	statisticsRowData, err := db.QuerySysCiImportGuidMapStatistics(guid)
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("Query CI import statistics failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Query CI import statistics failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
@@ -264,7 +264,7 @@ func ConfirmReportImport(c *gin.Context) {
 	var guid = interfaceParam["guid"].(string)
 	rowData, err := db.QueryReportImportHistoryById(guid)
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("Query report import history failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Query report import history failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
@@ -309,7 +309,7 @@ func CancelReportImport(c *gin.Context) {
 	// get already imported ci data
 	importGuidRowData, err := db.QueryCiImportGuidMapByReportImportGuid(guid)
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("Query ci import detail failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Query ci import detail failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
@@ -318,7 +318,7 @@ func CancelReportImport(c *gin.Context) {
 		var updateUser = middleware.GetRequestUser(c)
 		err := db.DeleteReportImportCiData(updateUser, importGuidRowData)
 		if err != nil {
-			log.Logger.Error(fmt.Sprintf("Delete ci data failed, err:%s", err.Error()))
+			log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Delete ci data failed, err:%s", err.Error()))
 			middleware.ReturnServerHandleError(c, err)
 			return
 		}
@@ -342,7 +342,7 @@ func AttrQueryWithCheckResult(c *gin.Context) {
 	// Query database
 	rowData, err := db.GetCiAttrByCiType(ciTypeGuid, isCreated)
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("Query ci type attr failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Query ci type attr failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 	} else {
 		// Add a new column for check result
@@ -403,15 +403,15 @@ func DataQueryWithCheckResult(c *gin.Context) {
 		return
 	}
 	// Permissions
-	permissions, tmpErr := db.GetRoleCiDataPermission(middleware.GetRequestRoles(c), c.Param("ciType"), "")
+	permissions, tmpErr := db.GetRoleCiDataPermission(middleware.GetRequestRoles(c), c.Param("ciType"), "", models.DataActionQuery)
 	if tmpErr != nil {
-		log.Logger.Error(fmt.Sprintf("Get role ci data permission failed, err:%s", tmpErr.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Get role ci data permission failed, err:%s", tmpErr.Error()))
 		middleware.ReturnDataPermissionError(c, tmpErr)
 		return
 	}
-	legalGuidList, tmpErr := db.GetCiDataPermissionGuidList(&permissions, "query")
+	legalGuidList, tmpErr := db.GetCiDataPermissionGuidList(&permissions, models.DataActionQuery)
 	if tmpErr != nil {
-		log.Logger.Error(fmt.Sprintf("Get ci data permission guid list failed, err:%s", tmpErr.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Get ci data permission guid list failed, err:%s", tmpErr.Error()))
 		middleware.ReturnDataPermissionError(c, tmpErr)
 		return
 	}
@@ -438,7 +438,7 @@ func DataQueryWithCheckResult(c *gin.Context) {
 	}
 
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("Query ci data failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Query ci data failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 	} else {
 		if len(rowData) == 0 {
@@ -451,7 +451,7 @@ func DataQueryWithCheckResult(c *gin.Context) {
 func QueryReportImportUser(c *gin.Context) {
 	rowData, err := db.QueryReportImportUser()
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("Query report import user failed, err:%s", err.Error()))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("Query report import user failed, err:%s", err.Error()))
 		middleware.ReturnServerHandleError(c, err)
 	} else {
 		middleware.ReturnData(c, rowData)

@@ -30,14 +30,15 @@ type Interface interface {
 	CreateUniques(bean interface{}) error
 	Decr(column string, arg ...interface{}) *Session
 	Desc(...string) *Session
-	Delete(interface{}) (int64, error)
+	Delete(...interface{}) (int64, error)
+	Truncate(...interface{}) (int64, error)
 	Distinct(columns ...string) *Session
 	DropIndexes(bean interface{}) error
 	Exec(sqlOrArgs ...interface{}) (sql.Result, error)
 	Exist(bean ...interface{}) (bool, error)
 	Find(interface{}, ...interface{}) error
 	FindAndCount(interface{}, ...interface{}) (int64, error)
-	Get(interface{}) (bool, error)
+	Get(...interface{}) (bool, error)
 	GroupBy(keys string) *Session
 	ID(interface{}) *Session
 	In(string, ...interface{}) *Session
@@ -51,9 +52,10 @@ type Interface interface {
 	MustCols(columns ...string) *Session
 	NoAutoCondition(...bool) *Session
 	NotIn(string, ...interface{}) *Session
-	Join(joinOperator string, tablename interface{}, condition string, args ...interface{}) *Session
+	Nullable(...string) *Session
+	Join(joinOperator string, tablename interface{}, condition interface{}, args ...interface{}) *Session
 	Omit(columns ...string) *Session
-	OrderBy(order string) *Session
+	OrderBy(order interface{}, args ...interface{}) *Session
 	Ping() error
 	Query(sqlOrArgs ...interface{}) (resultsSlice []map[string][]byte, err error)
 	QueryInterface(sqlOrArgs ...interface{}) ([]map[string]interface{}, error)
@@ -83,6 +85,7 @@ type EngineInterface interface {
 	Context(context.Context) *Session
 	CreateTables(...interface{}) error
 	DBMetas() ([]*schemas.Table, error)
+	DBVersion() (*schemas.Version, error)
 	Dialect() dialects.Dialect
 	DriverName() string
 	DropTables(...interface{}) error
@@ -97,10 +100,12 @@ type EngineInterface interface {
 	MapCacher(interface{}, caches.Cacher) error
 	NewSession() *Session
 	NoAutoTime() *Session
+	Prepare() *Session
 	Quote(string) string
 	SetCacher(string, caches.Cacher)
 	SetConnMaxLifetime(time.Duration)
 	SetColumnMapper(names.Mapper)
+	SetTagIdentifier(string)
 	SetDefaultCacher(caches.Cacher)
 	SetLogger(logger interface{})
 	SetLogLevel(log.LogLevel)
@@ -116,6 +121,7 @@ type EngineInterface interface {
 	ShowSQL(show ...bool)
 	Sync(...interface{}) error
 	Sync2(...interface{}) error
+	SyncWithOptions(SyncOptions, ...interface{}) (*SyncResult, error)
 	StoreEngine(storeEngine string) *Session
 	TableInfo(bean interface{}) (*schemas.Table, error)
 	TableName(interface{}, ...bool) string

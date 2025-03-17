@@ -9,6 +9,7 @@ package pcre
 import "C"
 
 import (
+	"fmt"
 	"strconv"
 	"unsafe"
 )
@@ -52,6 +53,8 @@ const (
 	PARTIAL_HARD      = C.PCRE_PARTIAL_HARD
 	PARTIAL_SOFT      = C.PCRE_PARTIAL_SOFT
 )
+
+var pcrePanicErr string = "pcre error: %s\n"
 
 // A reference to a compiled regular expression.
 // Use Compile or MustCompile to create such objects.
@@ -109,10 +112,12 @@ func Compile(pattern string, flags int) (Regexp, *CompileError) {
 }
 
 // Compile the pattern.  If compilation fails, panic.
-func MustCompile(pattern string, flags int) (re Regexp) {
-	re, err := Compile(pattern, flags)
-	if err != nil {
-		panic(err)
+func MustCompile(pattern string, flags int) (re Regexp, err error) {
+	compileRe, compileErr := Compile(pattern, flags)
+	if compileErr != nil {
+		err = fmt.Errorf(compileErr.String())
+	} else {
+		re = compileRe
 	}
 	return
 }
@@ -120,7 +125,8 @@ func MustCompile(pattern string, flags int) (re Regexp) {
 // Returns the number of capture groups in the compiled pattern.
 func (re Regexp) Groups() int {
 	if re.ptr == nil {
-		panic("Regexp.Groups: uninitialized")
+		fmt.Printf(pcrePanicErr, "Regexp.Groups: uninitialized")
+		return 0
 	}
 	return int(pcregroups((*C.pcre)(unsafe.Pointer(&re.ptr[0]))))
 }
@@ -155,7 +161,8 @@ func (re Regexp) MatcherString(subject string, flags int) (m *Matcher) {
 // Switches the matcher object to the specified pattern and subject.
 func (m *Matcher) Reset(re Regexp, subject []byte, flags int) {
 	if re.ptr == nil {
-		panic("Regexp.Matcher: uninitialized")
+		fmt.Printf(pcrePanicErr, "Regexp.Matcher: uninitialized")
+		return
 	}
 	m.init(re)
 	m.Match(subject, flags)
@@ -165,7 +172,8 @@ func (m *Matcher) Reset(re Regexp, subject []byte, flags int) {
 // string.
 func (m *Matcher) ResetString(re Regexp, subject string, flags int) {
 	if re.ptr == nil {
-		panic("Regexp.Matcher: uninitialized")
+		fmt.Printf(pcrePanicErr, "Regexp.Matcher: uninitialized")
+		return
 	}
 	m.init(re)
 	m.MatchString(subject, flags)
@@ -192,7 +200,8 @@ var nullbyte = []byte{0}
 // pattern.  Returns true if the match succeeds.
 func (m *Matcher) Match(subject []byte, flags int) bool {
 	if m.re.ptr == nil {
-		panic("Matcher.Match: uninitialized")
+		fmt.Printf(pcrePanicErr, "Regexp.Matcher: uninitialized")
+		return false
 	}
 	length := len(subject)
 	m.subjects = ""
@@ -208,7 +217,8 @@ func (m *Matcher) Match(subject []byte, flags int) bool {
 // Returns true if the match succeeds.
 func (m *Matcher) MatchString(subject string, flags int) bool {
 	if m.re.ptr == nil {
-		panic("Matcher.Match: uninitialized")
+		fmt.Printf(pcrePanicErr, "Regexp.Matcher: uninitialized")
+		return false
 	}
 	length := len(subject)
 	m.subjects = subject
@@ -233,10 +243,11 @@ func (m *Matcher) match(subjectptr *C.char, length, flags int) bool {
 		m.matches = false
 		return false
 	case rc == C.PCRE_ERROR_BADOPTION:
-		panic("PCRE.Match: invalid option flag")
+		fmt.Printf(pcrePanicErr, "match func invalid option flag")
+		return false
 	}
-	panic("unexepected return code from pcre_exec: " +
-		strconv.Itoa(int(rc)))
+	fmt.Printf(pcrePanicErr, "unexepected return code from pcre_exec: "+strconv.Itoa(int(rc)))
+	return false
 }
 
 // Returns true if a previous call to Matcher, MatcherString, Reset,
@@ -293,14 +304,16 @@ func (m *Matcher) GroupString(group int) string {
 
 func (m *Matcher) name2index(name string) (group int) {
 	if m.re.ptr == nil {
-		panic("Matcher.Named: uninitialized")
+		fmt.Printf(pcrePanicErr, "Matcher.Named: uninitialized")
+		return 0
 	}
 	name1 := C.CString(name)
 	defer C.free(unsafe.Pointer(name1))
 	group = int(C.pcre_get_stringnumber(
 		(*C.pcre)(unsafe.Pointer(&m.re.ptr[0])), name1))
 	if group < 0 {
-		panic("Matcher.Named: unknown name: " + name)
+		fmt.Printf(pcrePanicErr, "Matcher.Named: unknown name: "+name)
+		return 0
 	}
 	return
 }

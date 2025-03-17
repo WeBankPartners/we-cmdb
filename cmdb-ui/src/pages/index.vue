@@ -90,6 +90,6 @@ export default {
 }
 
 .ivu-breadcrumb {
-  color: #515a6e;
+  color: #0f1222;
 }
 </style>

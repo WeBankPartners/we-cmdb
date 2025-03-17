@@ -3,13 +3,15 @@ package db
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/go-common-lib/guid"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/go-common-lib/guid"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"go.uber.org/zap"
 )
 
 func GetCallbackQueryData(ciType, rowGuid, userToken string) (result models.CiDataActionQuery, err error) {
@@ -116,7 +118,7 @@ func getCoreProcessList(userToken, rootEntity, rootEntityGuid string) (processLi
 	respBytes, _ := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
 	err = json.Unmarshal(respBytes, &respObj)
-	log.Logger.Debug("Get core process list", log.String("body", string(respBytes)))
+	log.Debug(nil, log.LOGGER_APP, "Get core process list", zap.String("body", string(respBytes)))
 	if err != nil {
 		err = fmt.Errorf("Try to json unmarshal response body fail,%s ", err.Error())
 		return
@@ -166,9 +168,9 @@ func ifCiDataProcessMatch(ciType, rowGuid, filter string) bool {
 		}
 		filterSqlList = append(filterSqlList, joinSqlFilter(tmpSplit[0], tmpSplit[1], tmpValue))
 	}
-	queryRows, err := x.QueryString("select guid from " + ciType + " where " + strings.Join(filterSqlList, " and "))
+	queryRows, err := x.QueryString("select guid from `" + ciType + "` where " + strings.Join(filterSqlList, " and "))
 	if err != nil {
-		log.Logger.Error("Try to query ci data table fail", log.String("ciType", ciType), log.String("guid", rowGuid), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to query ci data table fail", zap.String("ciType", ciType), zap.String("guid", rowGuid), zap.Error(err))
 	}
 	if len(queryRows) > 0 {
 		return true
@@ -178,6 +180,13 @@ func ifCiDataProcessMatch(ciType, rowGuid, filter string) bool {
 
 func joinSqlFilter(column, condition, value string) string {
 	var sql string
+	if !strings.Contains(column, "`") {
+		if pointIndex := strings.Index(column, "."); pointIndex > 0 {
+			column = fmt.Sprintf("%s.`%s`", column[:pointIndex], column[pointIndex+1:])
+		} else {
+			column = fmt.Sprintf("`%s`", column)
+		}
+	}
 	switch condition {
 	case "in":
 		sql = fmt.Sprintf("%s IN ('%s')", column, value)
@@ -236,7 +245,7 @@ func StartCiDataCallback(param models.CiDataCallbackParam) error {
 	requestParam.OperationData = param.RowGuid
 	requestParam.OperationUser = param.OperationUser
 	requestParam.OperationMode = "instant"
-	log.Logger.Info(fmt.Sprintf("callback request data --> eventSeqNo:%s operationKey:%s operationData:%s", requestParam.EventSeqNo, requestParam.OperationKey, requestParam.OperationData))
+	log.Info(nil, log.LOGGER_APP, fmt.Sprintf("callback request data --> eventSeqNo:%s operationKey:%s operationData:%s", requestParam.EventSeqNo, requestParam.OperationKey, requestParam.OperationData))
 	b, _ := json.Marshal(requestParam)
 	request, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/platform/v1/operation-events", models.Config.Wecube.BaseUrl), strings.NewReader(string(b)))
 	if err != nil {
@@ -252,7 +261,7 @@ func StartCiDataCallback(param models.CiDataCallbackParam) error {
 	res.Body.Close()
 	var resultObj models.CoreStartProcess
 	err = json.Unmarshal(resultBody, &resultObj)
-	log.Logger.Debug("Callback core process result", log.String("body", string(resultBody)))
+	log.Debug(nil, log.LOGGER_APP, "Callback core process result", zap.String("body", string(resultBody)))
 	if err != nil {
 		return fmt.Errorf("Start callback unmarshal json body fail:%s ", err.Error())
 	}

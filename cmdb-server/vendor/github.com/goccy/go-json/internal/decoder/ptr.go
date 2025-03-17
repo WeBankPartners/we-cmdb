@@ -1,6 +1,7 @@
 package decoder
 
 import (
+	"fmt"
 	"unsafe"
 
 	"github.com/goccy/go-json/internal/runtime"
@@ -33,6 +34,10 @@ func (d *ptrDecoder) contentDecoder() Decoder {
 //nolint:golint
 //go:linkname unsafe_New reflect.unsafe_New
 func unsafe_New(*runtime.Type) unsafe.Pointer
+
+func UnsafeNew(t *runtime.Type) unsafe.Pointer {
+	return unsafe_New(t)
+}
 
 func (d *ptrDecoder) DecodeStream(s *Stream, depth int64, p unsafe.Pointer) error {
 	if s.skipWhiteSpace() == nul {
@@ -80,8 +85,13 @@ func (d *ptrDecoder) Decode(ctx *RuntimeContext, cursor, depth int64, p unsafe.P
 	}
 	c, err := d.dec.Decode(ctx, cursor, depth, newptr)
 	if err != nil {
+		*(*unsafe.Pointer)(p) = nil
 		return 0, err
 	}
 	cursor = c
 	return cursor, nil
+}
+
+func (d *ptrDecoder) DecodePath(ctx *RuntimeContext, cursor, depth int64) ([][]byte, int64, error) {
+	return nil, 0, fmt.Errorf("json: ptr decoder does not support decode path")
 }

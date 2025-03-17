@@ -48,14 +48,14 @@ func (b *Builder) insertWriteTo(w Writer) error {
 		return err
 	}
 
-	var args = make([]interface{}, 0)
+	args := make([]interface{}, 0)
 	var bs []byte
-	var valBuffer = bytes.NewBuffer(bs)
+	valBuffer := bytes.NewBuffer(bs)
 
 	for i, col := range b.insertCols {
 		value := b.insertVals[i]
 		fmt.Fprint(w, col)
-		if e, ok := value.(expr); ok {
+		if e, ok := value.(*Expression); ok {
 			fmt.Fprintf(valBuffer, "(%s)", e.sql)
 			args = append(args, e.args...)
 		} else if value == nil {
@@ -112,7 +112,7 @@ func (s insertColsSorter) Less(i, j int) bool {
 // Insert sets insert SQL
 func (b *Builder) Insert(eq ...interface{}) *Builder {
 	if len(eq) > 0 {
-		var paramType = -1
+		paramType := -1
 		for _, e := range eq {
 			switch t := e.(type) {
 			case Eq:

@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 )
@@ -46,11 +47,11 @@ func ReturnError(c *gin.Context, errorCode int, errorKey, errorMessage string, d
 		data = []string{}
 	}
 	if !exterror.IsBusinessErrorCode(errorCode) {
-		log.Logger.Error("systemError", log.Int("errorCode", errorCode), log.String("errorKey", errorKey), log.String("message", errorMessage))
+		log.Error(nil, log.LOGGER_APP, "systemError", zap.Int("errorCode", errorCode), zap.String("errorKey", errorKey), zap.String("message", errorMessage))
 	} else {
-		log.Logger.Error("businessError", log.Int("errorCode", errorCode), log.String("errorKey", errorKey), log.String("message", errorMessage))
+		log.Error(nil, log.LOGGER_APP, "businessError", zap.Int("errorCode", errorCode), zap.String("errorKey", errorKey), zap.String("message", errorMessage))
 	}
-	//log.Logger.Error("Handle error", log.String("statusCode", statusCode), log.String("message", statusMessage))
+	//log.Error(nil, log.LOGGER_APP, "Handle error", zap.String("statusCode", statusCode), zap.String("message", statusMessage))
 	obj := models.ResponseErrorJson{Code: errorCode, StatusCode: errorKey, StatusMessage: errorMessage, Data: data}
 	bodyBytes, _ := json.Marshal(obj)
 	c.Set("responseBody", string(bodyBytes))
@@ -73,7 +74,7 @@ func ReturnParamEmptyError(c *gin.Context, paramName string) {
 }
 
 func ReturnServerHandleError(c *gin.Context, err error) {
-	//log.Logger.Error("Request server handle error", log.Error(err))
+	//log.Error(nil, log.LOGGER_APP, "Request server handle error", zap.Error(err))
 	//ReturnError(c, "SERVER_HANDLE_ERROR", err.Error(), nil)
 	err = exterror.Catch(exterror.New().ServerHandleError, err)
 	errorCode, errorKey, errorMessage := exterror.GetErrorResult(c.GetHeader(exterror.AcceptLanguageHeader), err, -1)

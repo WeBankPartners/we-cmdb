@@ -3,10 +3,12 @@ package graph
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"math"
 	"strings"
+
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"go.uber.org/zap"
 )
 
 func mapGetMapList(m map[string]interface{}, attr string) ([]map[string]interface{}, error) {
@@ -62,7 +64,7 @@ func isFilterFailed(setting *models.GraphElementNode, data map[string]interface{
 func renderLabel(expression string, data map[string]interface{}) string {
 	var parts []string
 	if err := json.Unmarshal([]byte(expression), &parts); err != nil {
-		log.Logger.Debug("renderLabel for plain expression", log.String("expression", expression))
+		log.Debug(nil, log.LOGGER_APP, "renderLabel for plain expression", zap.String("expression", expression))
 		return ""
 	}
 
@@ -82,8 +84,8 @@ func renderLabel(expression string, data map[string]interface{}) string {
 			label += labelVal
 		}
 	}
-	log.Logger.Debug("renderLabel for json expression",
-		log.String("expression", expression), log.String("parts", strings.Join(parts, ",")), log.String("label", label))
+	log.Debug(nil, log.LOGGER_APP, "renderLabel for json expression",
+		zap.String("expression", expression), zap.String("parts", strings.Join(parts, ",")), zap.String("label", label))
 	return label
 }
 
@@ -134,10 +136,14 @@ func getStyle(
 	metadata Meta,
 	defaultStyle string,
 	addColorFilled bool,
+	addWhite bool,
 ) string {
 
 	if addColorFilled {
-		defaultStyle += "fillcolor=white;style=filled;"
+		defaultStyle += "style=filled;"
+		if addWhite {
+			defaultStyle += "fillcolor=white;"
+		}
 	}
 
 	// 处理配置信息，支持两级配置
@@ -146,7 +152,7 @@ func getStyle(
 
 	// 无配置，走默认
 	if graphConfigData == "" {
-		log.Logger.Debug("No graphConfigData or graphConfigs found, use default style")
+		log.Debug(nil, log.LOGGER_APP, "No graphConfigData or graphConfigs found, use default style")
 		return defaultStyle
 	}
 
@@ -166,10 +172,10 @@ func getStyle(
 	//isVersionMatched := metadata.SuportVersion == "yes" && (elConfirmTime == "" || (elConfirmTime == metadata.ConfirmTime && elConfirmTime == elUpdateTime))
 	isVersionMatched := elConfirmTime == "" || (elConfirmTime == metadata.ConfirmTime && elConfirmTime == elUpdateTime)
 	//isVersionMatched := metadata.SuportVersion == "yes" && (elConfirmTime == "" || elConfirmTime == metadata.ConfirmTime) && (elUpdateTime == "" || elConfirmTime == elUpdateTime)
-	log.Logger.Debug("getStyle start: ", log.Bool("isVersionMatched", isVersionMatched),
-		log.String("elConfirmTime", elConfirmTime),
-		log.String("elUpdateTime", elUpdateTime),
-		log.String("metadata.ConfirmTime", metadata.ConfirmTime),
+	log.Debug(nil, log.LOGGER_APP, "getStyle start: ", zap.Bool("isVersionMatched", isVersionMatched),
+		zap.String("elConfirmTime", elConfirmTime),
+		zap.String("elUpdateTime", elUpdateTime),
+		zap.String("metadata.ConfirmTime", metadata.ConfirmTime),
 	)
 	// 支持多级配置 {
 	//  "graphConfigData": [{"name":"state","suport_version":"yes"},{"name":"subsystem_type","suport_version":"no"}],
@@ -187,7 +193,7 @@ func getStyle(
 	if err := json.Unmarshal([]byte(graphConfigData), &styleConfigs); err == nil {
 		if err = json.Unmarshal([]byte(graphConfigs), &userStyleMapEmbeded); err != nil {
 			// 如果解析失败，则返回默认样式
-			log.Logger.Debug("Failed to parse graphConfigs, use default style")
+			log.Debug(nil, log.LOGGER_APP, "Failed to parse graphConfigs, use default style")
 			return defaultStyle
 		}
 
@@ -201,43 +207,51 @@ func getStyle(
 				}
 			}
 			if style != "" && addColorFilled && !strings.Contains(style, "style=") {
-				log.Logger.Debug("Add color filled for style in multi map config", log.String("style", style))
-				style += "fillcolor=white;style=filled;"
+				log.Debug(nil, log.LOGGER_APP, "Add color filled for style in multi map config", zap.String("style", style))
+				//style += "fillcolor=white;style=filled;"
+				style += "style=filled;"
+				if addWhite {
+					style += "fillcolor=white;"
+				}
 			}
 		}
 
 		// 错误配置兜底
 		if style == "" {
-			log.Logger.Debug("No style found, use default style")
+			log.Debug(nil, log.LOGGER_APP, "No style found, use default style")
 			return defaultStyle
 		}
 		return style
 	} else {
-		log.Logger.Debug("Failed to parse map of map graphConfigData", log.Bool("isVersionMatched", isVersionMatched), log.String("error", err.Error()), log.JsonObj("graphConfigData", graphConfigData), log.JsonObj("graphConfigs", graphConfigs))
+		log.Debug(nil, log.LOGGER_APP, "Failed to parse map of map graphConfigData", zap.Bool("isVersionMatched", isVersionMatched), zap.String("error", err.Error()), log.JsonObj("graphConfigData", graphConfigData), log.JsonObj("graphConfigs", graphConfigs))
 	}
 
 	// 尝试解析单层映射配置
 	//if isVersionMatched {
 	if err := json.Unmarshal([]byte(graphConfigs), &userStyleMap); err != nil {
 		// 如果解析失败，则返回默认样式
-		log.Logger.Debug("Failed to parse single map of graphConfigData", log.String("error", err.Error()), log.JsonObj("graphConfigs", graphConfigs))
+		log.Debug(nil, log.LOGGER_APP, "Failed to parse single map of graphConfigData", zap.String("error", err.Error()), log.JsonObj("graphConfigs", graphConfigs))
 		return defaultStyle
 	}
 
 	configKey := exprGetString(data, graphConfigData)
-	log.Logger.Debug("Add color filled for style in single map config", log.String("configKey", configKey), log.JsonObj("userStyleMap", userStyleMap))
+	log.Debug(nil, log.LOGGER_APP, "Add color filled for style in single map config", zap.String("configKey", configKey), log.JsonObj("userStyleMap", userStyleMap))
 	if style, exists := userStyleMap[configKey]; exists && style != "" {
 		if addColorFilled && !strings.Contains(style, "style=") {
-			log.Logger.Debug("Add color filled for style in single map config",
-				log.String("style", style), log.String("graphConfigData", graphConfigData), log.JsonObj("data", data),
-				log.String("configKey", configKey), log.JsonObj("userStyleMap", userStyleMap))
-			style += "fillcolor=white;style=filled;"
+			log.Debug(nil, log.LOGGER_APP, "Add color filled for style in single map config",
+				zap.String("style", style), zap.String("graphConfigData", graphConfigData), log.JsonObj("data", data),
+				zap.String("configKey", configKey), log.JsonObj("userStyleMap", userStyleMap))
+			//style += "fillcolor=white;style=filled;"
+			style += "style=filled;"
+			if addWhite {
+				style += "fillcolor=white;"
+			}
 		} else {
-			log.Logger.Debug("Add color filled for style in single map config", log.Bool("addColorFilled", addColorFilled), log.JsonObj("style", style))
+			log.Debug(nil, log.LOGGER_APP, "Add color filled for style in single map config", zap.Bool("addColorFilled", addColorFilled), log.JsonObj("style", style))
 		}
 		// 错误配置兜底
 		if style == "" {
-			log.Logger.Debug("Add color filled for style in single map config, empty style final")
+			log.Debug(nil, log.LOGGER_APP, "Add color filled for style in single map config, empty style final")
 			return defaultStyle
 		}
 		return style
@@ -309,13 +323,13 @@ func countDepth(graph models.GraphQuery) int {
 }
 
 func getZones(zoneRoot *models.GraphElementNode, curData map[string]interface{}) []Zone {
-	//log.Logger.Warn("getZones childData: ", log.JsonObj("childData", childData))
+	//log.Warn(nil, log.LOGGER_APP, "getZones childData: ", log.JsonObj("childData", childData))
 	cur := zoneRoot
 	childData, err := mapGetMapList(curData, cur.DataName)
 
 	var zones []Zone
 	if len(childData) == 0 || err != nil {
-		log.Logger.Debug("parse child data failed", log.Error(err))
+		log.Debug(nil, log.LOGGER_APP, "parse child data failed", zap.Error(err))
 		return zones
 	}
 
@@ -323,7 +337,7 @@ func getZones(zoneRoot *models.GraphElementNode, curData map[string]interface{})
 	tooltip := mapGetStr(data, "key_name")
 	guid := mapGetStr(data, "guid")
 	label := renderLabel(cur.DisplayExpression, data)
-	log.Logger.Debug("getZones -> renderLabel", log.String("label", label))
+	log.Debug(nil, log.LOGGER_APP, "getZones -> renderLabel", zap.String("label", label))
 	if tooltip == "" {
 		tooltip = label
 	}
@@ -331,7 +345,7 @@ func getZones(zoneRoot *models.GraphElementNode, curData map[string]interface{})
 	style := getStyle(cur.GraphConfigData, cur.GraphConfigs, data, Meta{
 		SuportVersion: "yes",
 		ConfirmTime:   "",
-	}, DefaultStyle, true)
+	}, DefaultStyle, true, true)
 
 	// ensure style ends with ;
 	if style != "" && !strings.HasSuffix(style, ";") {
