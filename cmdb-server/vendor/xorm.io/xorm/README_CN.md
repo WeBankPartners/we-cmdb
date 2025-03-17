@@ -1,6 +1,6 @@
 # xorm
 
-[English](https://gitea.com/xorm/xorm/src/branch/master/README.md)
+[English](https://gitea.com/xorm/xorm/src/branch/v1/README.md)
 
 xorm 是一个简单而强大的Go语言ORM库. 通过它可以使数据库操作非常简便。
 
@@ -40,15 +40,19 @@ v1.0.0 相对于 v0.8.2 有以下不兼容的变更：
 
 * [Postgres](https://github.com/postgres/postgres) / [Cockroach](https://github.com/cockroachdb/cockroach)
   - [github.com/lib/pq](https://github.com/lib/pq)
+  - [github.com/jackc/pgx](https://github.com/jackc/pgx)
 
 * [SQLite](https://sqlite.org)
   - [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)
+  - [modernc.org/sqlite](https://gitlab.com/cznic/sqlite)
 
 * MsSql
-  - [github.com/denisenkom/go-mssqldb](https://github.com/denisenkom/go-mssqldb)
+  - [github.com/microsoft/go-mssqldb](https://github.com/microsoft/go-mssqldb)
 
 * Oracle
+  - [github.com/godror/godror](https://github.com/godror/godror) (试验性支持)
   - [github.com/mattn/go-oci8](https://github.com/mattn/go-oci8) (试验性支持)
+  - [github.com/sijms/go-ora](https://github.com/sijms/go-ora) (试验性支持)
 
 ## 安装
 
@@ -62,7 +66,7 @@ v1.0.0 相对于 v0.8.2 有以下不兼容的变更：
 
 # 快速开始
 
-* 第一步创建引擎，driverName, dataSourceName和database/sql接口相同
+* 第一步创建引擎，`driverName`, `dataSourceName` 和 `database/sql` 接口相同
 
 ```Go
 engine, err := xorm.NewEngine(driverName, dataSourceName)
@@ -81,7 +85,7 @@ type User struct {
     Updated time.Time `xorm:"updated"`
 }
 
-err := engine.Sync2(new(User))
+err := engine.Sync(new(User))
 ```
 
 * 创建Engine组
@@ -100,7 +104,7 @@ engineGroup, err := xorm.NewEngineGroup(masterEngine, []*Engine{slave1Engine, sl
 
 所有使用 `engine` 都可以简单的用 `engineGroup` 来替换。
 
-* `Query` 最原始的也支持SQL语句查询，返回的结果类型为 []map[string][]byte。`QueryString` 返回 []map[string]string, `QueryInterface` 返回 `[]map[string]interface{}`.
+* `Query` 最原始的也支持SQL语句查询，返回的结果类型为 `[]map[string][]byte`。`QueryString` 返回 `[]map[string]string`, `QueryInterface` 返回 `[]map[string]interface{}`.
 
 ```Go
 results, err := engine.Query("select * from user")
@@ -135,6 +139,24 @@ affected, err := engine.Insert(&users)
 affected, err := engine.Insert(&user1, &users)
 // INSERT INTO struct1 () values ()
 // INSERT INTO struct2 () values (),(),()
+
+affected, err := engine.Table("user").Insert(map[string]interface{}{
+    "name": "lunny",
+    "age": 18,
+})
+// INSERT INTO user (name, age) values (?,?)
+
+affected, err := engine.Table("user").Insert([]map[string]interface{}{
+    {
+        "name": "lunny",
+        "age": 18,
+    },
+    {
+        "name": "lunny2",
+        "age": 19,
+    },
+})
+// INSERT INTO user (name, age) values (?,?),(?,?)
 ```
 
 * `Get` 查询单条记录
@@ -154,6 +176,11 @@ var id int64
 has, err := engine.Table(&user).Where("name = ?", name).Cols("id").Get(&id)
 has, err := engine.SQL("select id from user").Get(&id)
 // SELECT id FROM user WHERE name = ?
+
+var id int64
+var name string
+has, err := engine.Table(&user).Cols("id", "name").Get(&id, &name)
+// SELECT id, name FROM user LIMIT 1
 
 var valuesMap = make(map[string]string)
 has, err := engine.Table(&user).Where("id = ?", id).Get(&valuesMap)
@@ -206,7 +233,7 @@ type UserDetail struct {
 }
 
 var users []UserDetail
-err := engine.Table("user").Select("user.*, detail.*")
+err := engine.Table("user").Select("user.*, detail.*").
     Join("INNER", "detail", "detail.user_id = user.id").
     Where("user.name = ?", name).Limit(10, 0).
     Find(&users)
@@ -228,13 +255,30 @@ err := engine.BufferSize(100).Iterate(&User{Name:name}, func(idx int, bean inter
 })
 // SELECT * FROM user Limit 0, 100
 // SELECT * FROM user Limit 101, 100
+```
 
+Rows 的用法类似 `sql.Rows`。
+
+```Go
 rows, err := engine.Rows(&User{Name:name})
 // SELECT * FROM user
 defer rows.Close()
 bean := new(Struct)
 for rows.Next() {
     err = rows.Scan(bean)
+}
+```
+
+或者
+
+```Go
+rows, err := engine.Cols("name", "age").Rows(&User{Name:name})
+// SELECT * FROM user
+defer rows.Close()
+for rows.Next() {
+    var name string
+    var age int
+    err = rows.Scan(&name, &age)
 }
 ```
 
@@ -271,6 +315,9 @@ affected, err := engine.Where(...).Delete(&user)
 
 affected, err := engine.ID(2).Delete(&user)
 // DELETE FROM user Where id = ?
+
+affected, err := engine.Table("user").Where(...).Delete()
+// DELETE FROM user WHERE ...
 ```
 
 * `Count` 获取记录条数

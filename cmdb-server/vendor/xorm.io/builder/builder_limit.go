@@ -19,12 +19,11 @@ func (b *Builder) limitWriteTo(w Writer) error {
 		if limit.offset < 0 || limit.limitN <= 0 {
 			return ErrInvalidLimitation
 		}
-		// erase limit condition
+		// unset limit condition to prevent final.WriteTo from recursing forever
 		b.limitation = nil
 		defer func() {
 			b.limitation = limit
 		}()
-		ow := w.(*BytesWriter)
 
 		switch strings.ToLower(strings.TrimSpace(b.dialect)) {
 		case ORACLE:
@@ -55,19 +54,19 @@ func (b *Builder) limitWriteTo(w Writer) error {
 					Where(Gt{"att.RN": limit.offset})
 			}
 
-			return final.WriteTo(ow)
+			return final.WriteTo(w)
 		case SQLITE, MYSQL, POSTGRES:
 			// if type UNION, we need to write previous content back to current writer
 			if b.optype == setOpType {
-				if err := b.WriteTo(ow); err != nil {
+				if err := b.WriteTo(w); err != nil {
 					return err
 				}
 			}
 
 			if limit.offset == 0 {
-				fmt.Fprint(ow, " LIMIT ", limit.limitN)
+				fmt.Fprint(w, " LIMIT ", limit.limitN)
 			} else {
-				fmt.Fprintf(ow, " LIMIT %v OFFSET %v", limit.limitN, limit.offset)
+				fmt.Fprintf(w, " LIMIT %v OFFSET %v", limit.limitN, limit.offset)
 			}
 		case MSSQL:
 			if len(b.selects) == 0 {
@@ -93,7 +92,7 @@ func (b *Builder) limitWriteTo(w Writer) error {
 				final = Dialect(b.dialect).Select(selects...).From(wb, "at").Where(Gt{"at.RN": limit.offset})
 			}
 
-			return final.WriteTo(ow)
+			return final.WriteTo(w)
 		default:
 			return ErrNotSupportType
 		}
