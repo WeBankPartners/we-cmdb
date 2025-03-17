@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -157,7 +158,7 @@ func GetViewData(c *gin.Context) {
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
-	log.Logger.Info("view-data", log.StringList("rootGuidList", rootGuidList))
+	log.Info(nil, log.LOGGER_APP, "view-data", zap.Strings("rootGuidList", rootGuidList))
 	var rowDataList []map[string]interface{}
 	for _, roNode := range rootReportObjectsData {
 		var rowData []map[string]interface{}
@@ -354,8 +355,8 @@ func GetGraphViewData(c *gin.Context) {
 		}
 
 		duration := time.Since(start)
-		log.Logger.Info("render graph: ", log.String("duration", duration.String()),
-			log.JsonObj("g", g), log.JsonObj("rowDataList", rowDataList), log.String("dot", dot))
+		log.Info(nil, log.LOGGER_APP, "render graph: ", zap.String("duration", duration.String()),
+			log.JsonObj("g", g), log.JsonObj("rowDataList", rowDataList), zap.String("dot", dot))
 		//dotSingle := strings.Replace(strings.Replace(dot, "\n", "", -1), "\t", "", -1)
 		dots = append(dots, dot)
 	}

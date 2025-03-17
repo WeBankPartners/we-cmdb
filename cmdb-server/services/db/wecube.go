@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"strings"
@@ -151,13 +152,13 @@ func doRequestPlatform(url, method, token string, postData interface{}) (respons
 	req.Header.Set("Content-Type", "application/json")
 	requestId := "req_" + guid.CreateGuid()
 	req.Header.Set("RequestId", requestId)
-	log.Logger.Debug("doRequest to Platform start --->", log.String("requestId", requestId), log.String("url", url), log.String("method", method))
+	log.Debug(nil, log.LOGGER_APP, "doRequest to Platform start --->", zap.String("requestId", requestId), zap.String("url", url), zap.String("method", method))
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("Start do request to platform fail:%s ", respErr.Error())
 		return
 	}
-	log.Logger.Debug("doRequest to Platform end <---", log.String("requestId", requestId), log.String("url", url), log.String("method", method))
+	log.Debug(nil, log.LOGGER_APP, "doRequest to Platform end <---", zap.String("requestId", requestId), zap.String("url", url), zap.String("method", method))
 	if responseBytes, err = io.ReadAll(resp.Body); err != nil {
 		err = fmt.Errorf("Try to read response body fail,%s ", err.Error())
 		return

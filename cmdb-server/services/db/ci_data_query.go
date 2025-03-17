@@ -3,9 +3,11 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
-	"strings"
+	"go.uber.org/zap"
 )
 
 /*
@@ -99,8 +101,8 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 			})
 		}
 	}
-	log.Logger.Info("appendFilters", log.JsonObj("data", appendFilters))
 	if len(appendFilters) > 0 {
+		log.Info(nil, log.LOGGER_APP, "appendFilters", log.JsonObj("data", appendFilters))
 		param.Filters = append(param.Filters, appendFilters...)
 	}
 	filterSql, queryColumn, queryParam := transFiltersToSQL(param, &models.TransFiltersParam{IsStruct: false, KeyMap: keyMap, PrimaryKey: "guid", Prefix: "tt"})
@@ -129,27 +131,27 @@ func CiDataQuery(ciType string, param *models.QueryRequestParam, permission *mod
 			filterKeyMap["is_not_empty"] = "is_not_empty"
 			filterKeyMap["report_import_guid"] = "report_import_guid"
 			checkResultFilterSql, checkResultQueryParam = addFiltersToSQL(param, &models.TransFiltersParam{IsStruct: false, KeyMap: filterKeyMap, Prefix: "scigm"})
-			baseSql = fmt.Sprintf("SELECT %s, scigm.is_unique, scigm.is_not_empty FROM %s tt left join sys_ci_import_guid_map scigm on tt.guid = scigm.target WHERE 1=1 %s %s ", queryColumn, ciType, checkResultFilterSql, filterSql)
+			baseSql = fmt.Sprintf("SELECT %s, scigm.is_unique, scigm.is_not_empty FROM `%s` tt left join sys_ci_import_guid_map scigm on tt.guid = scigm.target WHERE 1=1 %s %s ", queryColumn, ciType, checkResultFilterSql, filterSql)
 		} else {
-			baseSql = fmt.Sprintf("SELECT %s FROM %s tt WHERE 1=1 %s ", queryColumn, ciType, filterSql)
+			baseSql = fmt.Sprintf("SELECT %s FROM `%s` tt WHERE 1=1 %s ", queryColumn, ciType, filterSql)
 		}
 	} else if param.Dialect.QueryMode == "all" {
 		historyFlag = true
 		if queryColumn != " * " {
 			queryColumn += ",tt.history_action,tt.history_state_confirmed,tt.history_time,tt.id"
 		}
-		baseSql = fmt.Sprintf("SELECT %s FROM %s%s tt WHERE 1=1 %s ", queryColumn, HistoryTablePrefix, ciType, filterSql)
+		baseSql = fmt.Sprintf("SELECT %s FROM `%s%s` tt WHERE 1=1 %s ", queryColumn, HistoryTablePrefix, ciType, filterSql)
 	} else if param.Dialect.QueryMode == "real" {
 		historyFlag = true
 		if queryColumn != " * " {
 			queryColumn += ",tt.history_action,tt.history_state_confirmed,tt.history_time,tt.id"
 		}
 		//filterSql += " and tt.history_state_confirmed=1 "
-		subBaseSql := fmt.Sprintf("select * from %s%s where id in (select max(id) from %s%s where history_state_confirmed=1 and guid in (select guid from %s) group by guid)",
+		subBaseSql := fmt.Sprintf("select * from `%s%s` where id in (select max(id) from `%s%s` where history_state_confirmed=1 and guid in (select guid from `%s`) group by guid)",
 			HistoryTablePrefix, ciType, HistoryTablePrefix, ciType, ciType)
 		baseSql = fmt.Sprintf("SELECT %s FROM (%s) tt WHERE 1=1 %s ", queryColumn, subBaseSql, filterSql)
 	} else {
-		baseSql = fmt.Sprintf("SELECT %s FROM %s tt WHERE 1=1 %s ", queryColumn, ciType, filterSql)
+		baseSql = fmt.Sprintf("SELECT %s FROM `%s` tt WHERE 1=1 %s ", queryColumn, ciType, filterSql)
 	}
 	if param.Paging {
 		pageInfo.StartIndex = param.Pageable.StartIndex
@@ -291,7 +293,7 @@ func addFiltersToSQL(queryParam *models.QueryRequestParam, transParam *models.Tr
 			continue
 		}
 		if filter.Operator == "eq" {
-			filterSql += fmt.Sprintf(" AND %s%s=? ", transParam.Prefix, transParam.KeyMap[filter.Name])
+			filterSql += fmt.Sprintf(" AND %s`%s`=? ", transParam.Prefix, transParam.KeyMap[filter.Name])
 			param = append(param, filter.Value)
 		}
 	}
@@ -381,13 +383,13 @@ func fetchRefAttrData(rowData []map[string]interface{}, refAttrs []*models.CiDat
 	}
 	for _, refAttr := range refAttrs {
 		refRowDatas := []*models.CiDataRefDataObj{}
-		tmpErr := x.SQL(fmt.Sprintf("select guid,key_name from %s where guid in ('%s')", refAttr.Attribute.RefCiType, strings.Join(refAttr.GuidList, "','"))).Find(&refRowDatas)
+		tmpErr := x.SQL(fmt.Sprintf("select guid,key_name from `%s` where guid in ('%s')", refAttr.Attribute.RefCiType, strings.Join(refAttr.GuidList, "','"))).Find(&refRowDatas)
 		if tmpErr != nil {
 			err = fmt.Errorf("Try to query ref attr:%s refCiType:%s fail,%s ", refAttr.Attribute.Name, refAttr.Attribute.RefCiType, tmpErr.Error())
 			break
 		}
 		if len(refRowDatas) == 0 {
-			x.SQL(fmt.Sprintf("select guid,key_name from %s%s where guid in ('%s') and state in ('null_0','null_1')", HistoryTablePrefix, refAttr.Attribute.RefCiType, strings.Join(refAttr.GuidList, "','"))).Find(&refRowDatas)
+			x.SQL(fmt.Sprintf("select guid,key_name from `%s%s` where guid in ('%s') and state in ('null_0','null_1')", HistoryTablePrefix, refAttr.Attribute.RefCiType, strings.Join(refAttr.GuidList, "','"))).Find(&refRowDatas)
 		}
 		refRowMap := make(map[string]*models.CiDataRefDataObj)
 		for _, refRow := range refRowDatas {
@@ -408,7 +410,7 @@ func fetchRefAttrHistoryData(rowData []map[string]interface{}, refAttrs []*model
 	}
 	for _, refAttr := range refAttrs {
 		refRowDatas := []*models.CiDataRefDataObj{}
-		tmpErr := x.SQL(fmt.Sprintf("select guid,key_name,history_time from %s%s where guid in ('%s') order by guid,history_time", HistoryTablePrefix, refAttr.Attribute.RefCiType, strings.Join(refAttr.GuidList, "','"))).Find(&refRowDatas)
+		tmpErr := x.SQL(fmt.Sprintf("select guid,key_name,history_time from `%s%s` where guid in ('%s') order by guid,history_time", HistoryTablePrefix, refAttr.Attribute.RefCiType, strings.Join(refAttr.GuidList, "','"))).Find(&refRowDatas)
 		if tmpErr != nil {
 			err = fmt.Errorf("Try to query ref attr:%s refCiType:%s fail,%s ", refAttr.Attribute.Name, refAttr.Attribute.RefCiType, tmpErr.Error())
 			break
@@ -441,7 +443,7 @@ func fetchMultiRefAttrData(rowData []map[string]interface{}, multiRefAttrs []*mo
 		rowGuidList = append(rowGuidList, row["guid"].(string))
 	}
 	for _, attr := range multiRefAttrs {
-		tmpQueryData, tmpErr := x.QueryString(fmt.Sprintf("select t1.from_guid,t1.to_guid,t2.key_name from %s$%s t1 join %s t2 on t1.to_guid=t2.guid where t1.from_guid in ('%s') order by t1.from_guid",
+		tmpQueryData, tmpErr := x.QueryString(fmt.Sprintf("select t1.from_guid,t1.to_guid,t2.key_name from `%s$%s` t1 join `%s` t2 on t1.to_guid=t2.guid where t1.from_guid in ('%s') order by t1.from_guid",
 			attr.Attribute.CiType, attr.Attribute.Name, attr.Attribute.RefCiType, strings.Join(rowGuidList, "','")))
 		if tmpErr != nil {
 			err = fmt.Errorf("Try to query multi ref attr:%s refCiType:%s fail,%s ", attr.Attribute.Name, attr.Attribute.RefCiType, tmpErr.Error())
@@ -464,7 +466,7 @@ func fetchExtRefAttrData(refAttrs []*models.CiDataQueryRefAttrObj) (err error) {
 	for _, refAttr := range refAttrs {
 		entitySplit := strings.Split(refAttr.Attribute.ExtRefEntity, ":")
 		if len(entitySplit) != 2 {
-			log.Logger.Warn("fetchExtRefAttrData extRefEntity illegal", log.String("extRefEntity", refAttr.Attribute.ExtRefEntity))
+			log.Warn(nil, log.LOGGER_APP, "fetchExtRefAttrData extRefEntity illegal", zap.String("extRefEntity", refAttr.Attribute.ExtRefEntity))
 			continue
 		}
 		tmpQueryRows, tmpQueryErr := GetExtendModelData(entitySplit[0], entitySplit[1], "", models.CoreToken.GetCoreToken())

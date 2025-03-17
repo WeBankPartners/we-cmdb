@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"strings"
 
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
@@ -28,7 +29,7 @@ func GetViewList(paramsMap map[string]interface{}, permissiveViewIds []string) (
 	}
 	err = x.SQL(sqlCmd, paramArgs...).Find(&rowData)
 	if err != nil {
-		log.Logger.Error("Get view list error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Get view list error", zap.Error(err))
 	}
 	return
 }
@@ -38,12 +39,12 @@ func QueryViewById(viewId string) (rowData *models.ViewQuery, err error) {
 	err = x.SQL(`SELECT t1.report,t1.editable,t1.suport_version,t1.multiple,t1.filter_value,t2.ci_type,t3.name as filter_attr_name FROM sys_view t1 
 				left join sys_report t2 on t1.report=t2.id left join sys_ci_type_attr t3 on t1.filter_attr=t3.id WHERE t1.id=?`, viewId).Find(&viewInfo)
 	if err != nil {
-		log.Logger.Error("Query view by id error", log.String("viewId", viewId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query view by id error", zap.String("viewId", viewId), zap.Error(err))
 		return
 	}
 	if len(viewInfo) == 0 {
 		err = fmt.Errorf("View %s can not found ", viewId)
-		log.Logger.Warn("Query view by id fail", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Query view by id fail", zap.Error(err))
 	} else {
 		rowData = viewInfo[0]
 	}
@@ -53,12 +54,12 @@ func QueryViewById(viewId string) (rowData *models.ViewQuery, err error) {
 func GetGraphByView(viewId string) (rowData []*models.SysGraphTable, err error) {
 	err = x.SQL(`SELECT * FROM sys_graph WHERE view=?`, viewId).Find(&rowData)
 	if err != nil {
-		log.Logger.Error("Get graph by view error", log.String("viewId", viewId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Get graph by view error", zap.String("viewId", viewId), zap.Error(err))
 		return
 	}
 	if len(rowData) == 0 {
 		err = fmt.Errorf("Get graph by view %s can not found ", viewId)
-		log.Logger.Warn("Get graph by view fail", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Get graph by view fail", zap.Error(err))
 	}
 	return
 }
@@ -67,13 +68,13 @@ func GetGraphById(graphId string) (rowData *models.SysGraphTable, err error) {
 	var exist bool
 	rowData = &models.SysGraphTable{Id: graphId}
 	if exist, err = x.Table("sys_graph").Get(rowData); err != nil {
-		log.Logger.Error("Get graph by id error", log.String("graphId", graphId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Get graph by id error", zap.String("graphId", graphId), zap.Error(err))
 		return
 	}
 
 	if !exist {
 		err = fmt.Errorf("Get graph by id %s can not found ", graphId)
-		log.Logger.Warn("Get graph by view fail", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Get graph by view fail", zap.Error(err))
 	}
 	return
 }
@@ -83,11 +84,11 @@ func GetRootGraphElementByGraph(graphId string) (rowData *models.GraphElementNod
 	err = x.SQL(`SELECT t1.*,t2.ci_type,t2.data_name FROM sys_graph_element t1 left join sys_report_object t2 
 				on t1.report_object=t2.id WHERE t1.parent_element is null and t1.graph=?`, graphId).Find(&geData)
 	if err != nil {
-		log.Logger.Error("Get root graph element by graph error", log.String("graphId", graphId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Get root graph element by graph error", zap.String("graphId", graphId), zap.Error(err))
 		return
 	}
 	if len(geData) == 0 {
-		log.Logger.Warn("Get root graph element by graph fail", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "Get root graph element by graph fail", zap.Error(err))
 	} else {
 		rowData = geData[0]
 	}
@@ -105,7 +106,7 @@ func GetChildGraphElement(root *models.GraphElementNode) (rowData *models.GraphE
 				left join sys_ci_type_attr t3 on t1.edit_ref_attr=t3.id
 				WHERE t1.parent_element=? order by t1.seq_no`, root.Id).Find(&geData)
 	if err != nil {
-		log.Logger.Error("Query graph element by parent graph element error", log.String("parentGraphElementId", root.Id), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query graph element by parent graph element error", zap.String("parentGraphElementId", root.Id), zap.Error(err))
 		return
 	}
 	if len(geData) == 0 {
@@ -135,7 +136,7 @@ func GetPermissiveViewId(permissions []string, roles []string, hasViewIds []stri
 	rowData, tmpErr := x.QueryString(sqlCmd)
 	if tmpErr != nil {
 		err = fmt.Errorf("Query permissive view ids in role view error:%s", tmpErr.Error())
-		log.Logger.Error("Query permissive view ids in role view error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query permissive view ids in role view error", zap.Error(err))
 	}
 	for i := range rowData {
 		viewIds = append(viewIds, rowData[i]["view"])
@@ -207,7 +208,7 @@ func ViewConfirmAction(param models.ViewData, userToken, operator string, userRo
 	if err != nil {
 		return
 	}
-	log.Logger.Info("Confirm view", log.Int("guidLength", len(editableGuidList)), log.StringList("guid", editableGuidList))
+	log.Info(nil, log.LOGGER_APP, "Confirm view", zap.Int("guidLength", len(editableGuidList)), zap.Strings("guid", editableGuidList))
 	if len(editableGuidList) == 0 {
 		return
 	}

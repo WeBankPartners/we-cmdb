@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -120,32 +121,32 @@ func SyncCoreRole() {
 	}
 	request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/platform/v1/roles/retrieve", models.CoreToken.BaseUrl), strings.NewReader(""))
 	if err != nil {
-		log.Logger.Error("Get core role key new request fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Get core role key new request fail", zap.Error(err))
 		return
 	}
 	request.Header.Set("Authorization", models.CoreToken.GetCoreToken())
 	res, err := http.DefaultClient.Do(request)
 	if err != nil {
-		log.Logger.Error("Get core role key ctxhttp request fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Get core role key ctxhttp request fail", zap.Error(err))
 		return
 	}
 	b, _ := ioutil.ReadAll(res.Body)
 	res.Body.Close()
-	//log.Logger.Debug("Get core role response", log.String("body", string(b)))
+	//log.Debug(nil, log.LOGGER_APP,"Get core role response", zap.String("body", string(b)))
 	var result models.CoreRoleDto
 	err = json.Unmarshal(b, &result)
 	if err != nil {
-		log.Logger.Error("Get core role key json unmarshal result", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Get core role key json unmarshal result", zap.Error(err))
 		return
 	}
 	if len(result.Data) == 0 {
-		log.Logger.Warn("Get core role key fail with no data")
+		log.Warn(nil, log.LOGGER_APP, "Get core role key fail with no data")
 		return
 	}
 	var roleTable, addRoleList, delRoleList, updateRoleList []*models.SysRoleTable
 	err = x.SQL("select * from sys_role").Find(&roleTable)
 	if err != nil {
-		log.Logger.Error("Try to sync core role fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to sync core role fail", zap.Error(err))
 		return
 	}
 	for _, v := range result.Data {
@@ -179,7 +180,7 @@ func SyncCoreRole() {
 		for _, role := range addRoleList {
 			err = RoleCreate(*role)
 			if err != nil {
-				log.Logger.Error("Try to add core role to local fail", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "Try to add core role to local fail", zap.Error(err))
 			}
 		}
 	}
@@ -187,7 +188,7 @@ func SyncCoreRole() {
 		for _, role := range updateRoleList {
 			err = RoleUpdate(*role)
 			if err != nil {
-				log.Logger.Error("Try to update core role to local fail", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "Try to update core role to local fail", zap.Error(err))
 			}
 		}
 	}
@@ -195,7 +196,7 @@ func SyncCoreRole() {
 		for _, role := range delRoleList {
 			err = RoleDelete(role.Id)
 			if err != nil {
-				log.Logger.Error("Try to delete local role from core data fail", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "Try to delete local role from core data fail", zap.Error(err))
 			}
 		}
 	}
