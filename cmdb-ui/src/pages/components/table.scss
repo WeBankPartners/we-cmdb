@@ -24,3 +24,17 @@
 .ivu-tooltip-inner-with-width{
   word-break: break-all;
 }
+
+.cmdb-table {
+  .ivu-table-fixed, .ivu-table-fixed-right {
+    background: #fff;
+  }
+}
+
+.ivu-page {
+  .ivu-page-item.ivu-page-item-active {
+    border-color: #5384FF!important;
+    background-color: #5384FF!important;
+  }
+}
+

@@ -343,7 +343,7 @@ export default {
   padding: 0;
   margin: 0;
   list-style: none;
-  font-size: 14px;
+  // font-size: 14px;
 }
 .attr-ul {
   width: 100%;

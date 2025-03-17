@@ -1,0 +1,13 @@
+@switch-prefix-cls: ~"@{css-prefix}switch";
+
+.@{switch-prefix-cls} {
+
+    border: 1px solid @border-color-base;
+    background-color: @border-color-base;
+
+    &-checked { // 和 .ivu-switch 同级的。避免被上面样式一直覆盖
+        border-color: @primary-color;
+        background-color: @primary-color;
+    }
+
+}

@@ -7,7 +7,8 @@
         placement="bottom-start"
         :content="isShowPassword ? realPassword : '******'"
       >
-        <div class="password-wrapper">{{ isShowPassword ? realPassword : '******' }}</div>
+        <Input :value="isShowPassword ? realPassword : '******'" disabled></Input>
+        <!-- <div class="password-wrapper">{{ isShowPassword ? realPassword : '******11' }}</div> -->
       </Tooltip>
       <div style="float: right; margin-right: 12px;">
         <Button

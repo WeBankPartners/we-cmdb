@@ -6,7 +6,7 @@ export const pluginErrorMessage = async r => {
   if (res.statusCode !== 'OK') {
     let errorMes = res.statusMessage
     if (errorMes && errorMes.indexOf('update_time is diff with database') !== -1) {
-      errorMes = window.vm ? pluginI18n('db_update_error_tips') : Vue.t('db_update_error_tips')
+      errorMes = window.vm ? pluginI18n('db_update_error_tips') : pluginI18n('db_update_error_tips')
     }
     window.vm &&
       window.vm.$Notice.error({

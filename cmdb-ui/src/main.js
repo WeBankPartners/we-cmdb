@@ -4,10 +4,11 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './project-config/router'
 import ViewUI from 'view-design'
-import 'view-design/dist/styles/iview.css'
+
+import './styles/index.less'
+
 import VueI18n from 'vue-i18n'
-import locale from 'view-design/dist/locale/en-US'
-import './locale/i18n'
+import i18n from './locale/i18n'
 
 import WeCMDBSelect from '../src/pages/components/select.vue'
 import WeCMDBRefSelect from './pages/components/ref-select.js'
@@ -39,8 +40,7 @@ Vue.config.productionTip = false
 Vue.use(ViewUI, {
   transfer: true,
   size: 'default',
-  VueI18n,
-  locale
+  VueI18n
 })
 
 router.beforeEach((to, from, next) => {
@@ -58,7 +58,12 @@ router.beforeEach((to, from, next) => {
     next()
   }
 })
-new Vue({
+const cmdbVm = new Vue({
   router,
-  render: h => h(App)
-}).$mount('#app')
+  render: h => h(App),
+  i18n
+})
+
+window.cmdbVm = cmdbVm
+
+cmdbVm.$mount('#app')
