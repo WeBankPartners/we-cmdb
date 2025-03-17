@@ -4,6 +4,10 @@
 
 package builder
 
+import (
+	"fmt"
+)
+
 // InnerJoin sets inner join
 func (b *Builder) InnerJoin(joinTable, joinCond interface{}) *Builder {
 	return b.Join("INNER", joinTable, joinCond)
@@ -39,4 +43,43 @@ func (b *Builder) Join(joinType string, joinTable, joinCond interface{}) *Builde
 	}
 
 	return b
+}
+
+type joins []join
+
+func (joins joins) WriteTo(w Writer) error {
+	for _, v := range joins {
+		var joinTable = v.joinTable
+		var alias string
+		if aliased, ok := v.joinTable.(*Aliased); ok {
+			joinTable = aliased.table
+			alias = aliased.alias + " "
+		}
+
+		switch tbl := joinTable.(type) {
+		case *Builder:
+			if _, err := fmt.Fprintf(w, " %s JOIN (", v.joinType); err != nil {
+				return err
+			}
+			if err := tbl.WriteTo(w); err != nil {
+				return err
+			}
+			if _, err := fmt.Fprintf(w, ") %s", alias); err != nil {
+				return err
+			}
+		case string:
+			if _, err := fmt.Fprintf(w, " %s JOIN %s %s", v.joinType, tbl, alias); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprintf(w, "ON "); err != nil {
+			return err
+		}
+
+		if err := v.joinCond.WriteTo(w); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

@@ -2,11 +2,12 @@ package graph
 
 import (
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 )
 
 var (

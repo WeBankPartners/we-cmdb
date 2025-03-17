@@ -35,4 +35,7 @@ test.db.sql
 
 *coverage.out
 test.db
-integrations/*.sql
+tests/*.sql
+tests/test_sqlite*
+cover.out
+cover.html

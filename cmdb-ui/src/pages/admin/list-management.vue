@@ -19,7 +19,16 @@
 </template>
 
 <script>
-import { getPermissionList, addPermissionList, editPermissionList, deletePermissionList } from '@/api/server.js'
+import { 
+  getPermissionList,
+  getTemplatePermissionList,
+  addPermissionList, 
+  addTemplatePermissionList,
+  editPermissionList, 
+  editTemplatePermissionList,
+  deletePermissionList,
+  deleteTemplatePermissionList
+} from '@/api/server.js'
 import { newOuterActions } from '@/const/actions.js'
 import { formatData } from '../util/format.js'
 export default {
@@ -46,18 +55,23 @@ export default {
         isAuto: false
       },
       newOuterActions,
-      listTableData: []
+      listTableData: [],
+      isRolePermissionPage: true
     }
   },
+
   mounted () {},
   methods: {
-    getListTableData (listRoleCiTypeId, ciTypeId, listColumns) {
+    getListTableData (listRoleCiTypeId, ciTypeId, listColumns, isRolePermissionPage) {
       this.listColumns = listColumns
       this.listRoleCiTypeId = listRoleCiTypeId
+      this.isRolePermissionPage = isRolePermissionPage
       this.getTableData()
     },
     async getTableData () {
-      let { statusCode, data } = await getPermissionList(this.listRoleCiTypeId)
+      let { statusCode, data } = this.isRolePermissionPage 
+        ? await getPermissionList(this.listRoleCiTypeId)
+        : await getTemplatePermissionList(this.listRoleCiTypeId)
       if (statusCode === 'OK') {
         this.listTableData = data
       }
@@ -130,7 +144,9 @@ export default {
         delete _.isNewAddedRow
         delete _.nextOperations
       })
-      const { statusCode, message } = await addPermissionList(this.listRoleCiTypeId, addAry)
+      const { statusCode, message } = this.isRolePermissionPage 
+        ? await addPermissionList(this.listRoleCiTypeId, addAry)
+        : await addTemplatePermissionList(this.listRoleCiTypeId, addAry)
       this.$refs.listTable.resetModalLoading()
       if (statusCode === 'OK') {
         this.$Notice.success({
@@ -152,7 +168,9 @@ export default {
         delete _.isNewAddedRow
         delete _.nextOperations
       })
-      const { statusCode, message } = await editPermissionList(this.listRoleCiTypeId, addAry)
+      const { statusCode, message } = this.isRolePermissionPage
+        ? await editPermissionList(this.listRoleCiTypeId, addAry)
+        : await editTemplatePermissionList(this.listRoleCiTypeId, addAry)
       this.$refs.listTable.resetModalLoading()
       if (statusCode === 'OK') {
         this.$Notice.success({
@@ -170,7 +188,9 @@ export default {
         'z-index': 1000000,
         onOk: async () => {
           const payload = deleteData.map(_ => _.guid)
-          const { statusCode, message } = await deletePermissionList(this.listRoleCiTypeId, payload)
+          const { statusCode, message } = this.isRolePermissionPage 
+            ? await deletePermissionList(this.listRoleCiTypeId, payload)
+            : await deleteTemplatePermissionList(this.listRoleCiTypeId, payload)
           if (statusCode === 'OK') {
             this.$Notice.success({
               title: this.$t('delete_permission_success'),

@@ -24,7 +24,7 @@ func (session *Session) Count(bean ...interface{}) (int64, error) {
 
 	var total int64
 	err = session.queryRow(sqlStr, args...).Scan(&total)
-	if err == sql.ErrNoRows || err == nil {
+	if err == nil {
 		return total, nil
 	}
 
@@ -70,12 +70,12 @@ func (session *Session) SumInt(bean interface{}, columnName string) (res int64, 
 
 // Sums call sum some columns. bean's non-empty fields are conditions.
 func (session *Session) Sums(bean interface{}, columnNames ...string) ([]float64, error) {
-	var res = make([]float64, len(columnNames), len(columnNames))
+	res := make([]float64, len(columnNames))
 	return res, session.sum(&res, bean, columnNames...)
 }
 
 // SumsInt sum specify columns and return as []int64 instead of []float64
 func (session *Session) SumsInt(bean interface{}, columnNames ...string) ([]int64, error) {
-	var res = make([]int64, len(columnNames), len(columnNames))
+	res := make([]int64, len(columnNames))
 	return res, session.sum(&res, bean, columnNames...)
 }

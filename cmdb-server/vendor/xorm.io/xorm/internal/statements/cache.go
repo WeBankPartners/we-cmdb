@@ -6,12 +6,14 @@ package statements
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"xorm.io/xorm/internal/utils"
 	"xorm.io/xorm/schemas"
 )
 
+// ConvertIDSQL converts SQL with id
 func (statement *Statement) ConvertIDSQL(sqlStr string) string {
 	if statement.RefTable != nil {
 		cols := statement.RefTable.PKColumns()
@@ -25,18 +27,24 @@ func (statement *Statement) ConvertIDSQL(sqlStr string) string {
 			return ""
 		}
 
-		var top string
+		var b strings.Builder
+		b.WriteString("SELECT ")
 		pLimitN := statement.LimitN
 		if pLimitN != nil && statement.dialect.URI().DBType == schemas.MSSQL {
-			top = fmt.Sprintf("TOP %d ", *pLimitN)
+			b.WriteString("TOP ")
+			b.WriteString(strconv.Itoa(*pLimitN))
+			b.WriteString(" ")
 		}
+		b.WriteString(colstrs)
+		b.WriteString(" FROM ")
+		b.WriteString(sqls[1])
 
-		newsql := fmt.Sprintf("SELECT %s%s FROM %v", top, colstrs, sqls[1])
-		return newsql
+		return b.String()
 	}
 	return ""
 }
 
+// ConvertUpdateSQL converts update SQL
 func (statement *Statement) ConvertUpdateSQL(sqlStr string) (string, string) {
 	if statement.RefTable == nil || len(statement.RefTable.PrimaryKeys) != 1 {
 		return "", ""
@@ -52,7 +60,7 @@ func (statement *Statement) ConvertUpdateSQL(sqlStr string) (string, string) {
 		return "", ""
 	}
 
-	var whereStr = sqls[1]
+	whereStr := sqls[1]
 
 	// TODO: for postgres only, if any other database?
 	var paraStr string

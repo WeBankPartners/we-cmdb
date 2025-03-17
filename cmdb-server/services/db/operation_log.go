@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"time"
 
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
@@ -12,7 +13,7 @@ func SaveOperationLog(param *models.SysLogTable) {
 	_, err := x.Exec("INSERT INTO sys_log(log_cat,operator,operation,content,request_url,client_host,created_date,data_ci_type,data_guid,data_key_name,response) value (?,?,?,?,?,?,?,?,?,?,?)",
 		param.LogCat, param.Operator, param.Operation, param.Content, param.RequestUrl, param.ClientHost, time.Now().Format(models.DateTimeFormat), param.DataCiType, param.DataGuid, param.DataKeyName, param.Response)
 	if err != nil {
-		log.Logger.Error("Save operation log fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Save operation log fail", zap.Error(err))
 	}
 }
 
@@ -36,7 +37,7 @@ func GetAllLogOperation() []string {
 	result := []string{"POST", "PUT", "DELETE"}
 	queryRows, err := x.QueryString("select distinct operation_en from sys_state_transition")
 	if err != nil {
-		log.Logger.Error("Try to get all log operation fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to get all log operation fail", zap.Error(err))
 	} else {
 		for _, row := range queryRows {
 			result = append(result, row["operation_en"])

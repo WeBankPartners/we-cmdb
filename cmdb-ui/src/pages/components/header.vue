@@ -18,7 +18,7 @@
         <div class="language">
           <Dropdown>
             <a href="javascript:void(0)">
-              <Icon size="16" type="ios-globe" style="margin-right:5px; cursor: pointer" />
+              <Icon size="16" type="ios-globe" style="margin-right: 5px; cursor: pointer" />
               {{ currentLanguage }}
               <Icon type="ios-arrow-down"></Icon>
             </a>
@@ -178,7 +178,7 @@ export default {
             let menuObj = MENUS.find(m => m.code === _.id)
             if (menuObj) {
               this.menus.push({
-                title: this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
+                title: this.$i18n.locale === 'zh-CN' ? menuObj.cnName : menuObj.enName,
                 id: _.id,
                 submenus: [],
                 ..._,
@@ -194,7 +194,7 @@ export default {
               this.menus.forEach(h => {
                 if (_.parent === h.id) {
                   h.submenus.push({
-                    title: this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
+                    title: this.$i18n.locale === 'zh-CN' ? menuObj.cnName : menuObj.enName,
                     id: _.id,
                     ..._,
                     ...menuObj
