@@ -252,6 +252,13 @@ export default {
           // 这里用于每次都记录已经点击的列，用于下次刷新时不丢失状态
           const selectItem = cloneDeep(_)
           if (_['_checked'] === true) {
+            const filterSelect = this.tableColumns.filter(item => item.component === 'WeCMDBSelect')
+            filterSelect.forEach(item => {
+                const find = item.options.find(o => o.label === selectItem[item.key])
+                if (find) {
+                  selectItem[item.key] = find.value
+                }
+            })
             this.selectedRows.push(selectItem)
           }
           delete selectItem._checked
@@ -407,7 +414,11 @@ export default {
                     this.$emit('actionFun', _, this.selectedRows, this.ciTypeId, file)
                   }}
                 >
-                  <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button>
+                  <Button class="btn-upload">
+                    <img style='margin-right: 3px' src={require("@/styles/icon/UploadOutlined.png")} class="upload-icon" />
+                    {lang === 'en-US' ? _.operation_en : _.operation}
+                  </Button>
+                  {/* <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button> */}
                 </Upload>
               </div>
             )
@@ -422,11 +433,33 @@ export default {
                     this.$emit('actionFun', _, this.selectedRows, this.ciTypeId, file)
                   }}
                 >
-                  <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button>
+                  <Button class="btn-upload">
+                    <img style='margin-right: 3px' src={require("@/styles/icon/UploadOutlined.png")} class="upload-icon" />
+                    {lang === 'en-US' ? _.operation_en : _.operation}
+                  </Button>
+                  {/* <Button icon="ios-cloud-upload-outline">{lang === 'en-US' ? _.operation_en : _.operation}</Button> */}
                 </Upload>
               </div>
             )
           }
+
+          if (_.operationFormType === 'export_form' || _.actionType === 'export') {
+            return (
+              <Button
+                class="btn-upload"
+                style="margin-right: 10px"
+                onClick={() => {
+                  const filters = this.filterMgmt()
+                  this.currentOperateType = _.operation_en
+                  this.$emit('actionFun', _, this.selectedRows, this.columns, filters)
+                }}
+              >
+                <img style='margin-right: 3px' src={require("@/styles/icon/DownloadOutlined.png")} class="upload-icon" />
+                {lang === 'en-US' ? _.operation_en : _.operation}
+              </Button>
+            )
+          }
+
           return (
             <Button
               style="margin-right: 10px"
@@ -434,7 +467,6 @@ export default {
               onClick={() => {
                 const filters = this.filterMgmt()
                 this.currentOperateType = _.operation_en
-
                 this.$emit('actionFun', _, this.selectedRows, this.columns, filters)
               }}
             >
@@ -958,7 +990,7 @@ export default {
                 <Icon
                   size="16"
                   type="ios-apps-outline"
-                  color="#2d8cf0"
+                  color="#5384FF"
                   style="cursor:pointer"
                   onClick={() => getSensitiveInfo(params.row, col)}
                 />
@@ -983,7 +1015,7 @@ export default {
                 <Icon
                   size="16"
                   type="ios-apps-outline"
-                  color="#2d8cf0"
+                  color="#5384FF"
                   style="cursor:pointer"
                   onClick={() => getObjectdata(params.row.weTableForm[col.key])}
                 />
@@ -1000,7 +1032,7 @@ export default {
                 <Icon
                   size="16"
                   type="ios-apps-outline"
-                  color="#2d8cf0"
+                  color="#5384FF"
                   style="cursor:pointer"
                   onClick={() => getRefdata(params.row.weTableForm[col.key])}
                 />
@@ -1039,7 +1071,7 @@ export default {
                   <Icon
                     size="16"
                     type="ios-apps-outline"
-                    color="#2d8cf0"
+                    color="#5384FF"
                     style="cursor:pointer"
                     onClick={() => getMutiRefdata(params.row.weTableForm[col.key])}
                   />
@@ -1081,13 +1113,13 @@ export default {
                 <Icon
                   size="16"
                   type="ios-apps-outline"
-                  color="#2d8cf0"
+                  color="#5384FF"
                   style="cursor:pointer"
                   onClick={() => getExtRefData(col.ciTypeAttrId, params.row.weTableForm[col.key])}
                 />
               )}
               {isJumpMonitor && (
-                <span style="color:#2d8cf0;cursor:pointer;" onClick={() => jumpToMonitor()}>
+                <span style="color:#5384FF;cursor:pointer;" onClick={() => jumpToMonitor()}>
                   {params.row.weTableForm[col.key]}
                 </span>
               )}
@@ -1103,7 +1135,7 @@ export default {
               <Icon
                 size="16"
                 type="ios-apps-outline"
-                color="#2d8cf0"
+                color="#5384FF"
                 onClick={() => getPassword(params.row, col.key)}
               />
               {params.row.weTableForm[col.key]}
@@ -1120,7 +1152,7 @@ export default {
                 <Icon
                   size="16"
                   type="ios-apps-outline"
-                  color="#2d8cf0"
+                  color="#5384FF"
                   style="cursor:pointer"
                   onClick={() => getDiffVariable(params.row, col.key)}
                 />
@@ -1372,7 +1404,7 @@ export default {
                     return (
                       <div
                         onClick={() => changeColDisplay(ciTypeAttrId)}
-                        style="cursor:pointer;height: 22px;line-height: 22px;margin: 2px 4px 2px 0;padding: 0 2px;border: 1px solid #2d8cf0;color:#2d8cf0;font-size: 12px;vertical-align: middle;opacity: 1;overflow: hidden;border-radius: 3px;"
+                        style="cursor:pointer;height: 22px;line-height: 22px;margin: 2px 4px 2px 0;padding: 0 2px;border: 1px solid #5384FF;color:#5384FF;font-size: 12px;vertical-align: middle;opacity: 1;overflow: hidden;border-radius: 3px;"
                       >
                         {t.displayName}
                       </div>
@@ -1393,6 +1425,7 @@ export default {
           </div>
         )}
         <Table
+          class='cmdb-table'
           loading={tableLoading}
           ref="table"
           border

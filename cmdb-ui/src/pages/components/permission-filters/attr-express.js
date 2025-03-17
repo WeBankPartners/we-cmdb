@@ -1,7 +1,7 @@
-import { getRefCiTypeFrom, getCiTypeAttr, queryCiData, getEnumCodesByCategoryId } from '@/api/server.js'
+import { getCiTypeAttr, getEnumCodesByCategoryId, getRefCiTypeFrom, queryCiData } from '@/api/server.js'
 import { operatorList } from '@/const/operator-list.js'
-import FiltersModal from './filters-modal.js'
 import './attr-express.scss'
+import FiltersModal from './filters-modal.js'
 
 export default {
   name: 'AttrExpress',
@@ -24,7 +24,7 @@ export default {
     hideFirstRefBy: { default: false, type: Boolean, required: false }, // 为 true 时，根节点后的第一个节点隐藏 refBy 的节点，即只显示 refTo 的节点
     rootCiTypeId: { required: false }
   },
-  data () {
+  data() {
     return {
       firstChange: true,
       expression: [],
@@ -39,14 +39,14 @@ export default {
     }
   },
   computed: {
-    ciTypesObjByTableName () {
+    ciTypesObjByTableName() {
       let obj = {}
       this.allCiTypes.forEach(_ => {
         obj[_.ciTypeId] = _
       })
       return obj
     },
-    ciTypesObjById () {
+    ciTypesObjById() {
       let obj = {}
       this.allCiTypes.forEach(_ => {
         obj[_.ciTypeId] = _
@@ -55,7 +55,7 @@ export default {
     }
   },
   watch: {
-    value (val) {
+    value(val) {
       if (val) {
         this.formatExpression()
         if (this.firstChange) {
@@ -66,7 +66,7 @@ export default {
     }
   },
   methods: {
-    formatExpression () {
+    formatExpression() {
       this.expression = []
       if (!this.value) {
         return
@@ -126,7 +126,7 @@ export default {
       })
       this.handleInput()
     },
-    async handleClick (e) {
+    async handleClick(e) {
       e.stopPropagation()
       if (this.isReadOnly) return
       const target = e.target || e.srcElement
@@ -146,17 +146,17 @@ export default {
           break
       }
     },
-    showRefOptions (attrIndex, ciTypeId) {
+    showRefOptions(attrIndex, ciTypeId) {
       this.options = []
       this.optionsDisplay = true
       this.optionPushDeleteNode(attrIndex)
       this.optionPushFilterNode(attrIndex)
       this.getRefData(attrIndex, ciTypeId)
     },
-    optionPushDeleteNode (attrIndex) {
-      if (+attrIndex === 0 && !this.banRootCiDelete) {
-        return
-      }
+    optionPushDeleteNode(attrIndex) {
+      // if (+attrIndex === 0 && !this.banRootCiDelete) {
+      //   return
+      // }
       this.options.push({
         type: 'option',
         class: 'attr-express-li attr-express-li-delete',
@@ -164,7 +164,7 @@ export default {
         fn: () => this.deleteNode(attrIndex)
       })
     },
-    optionPushFilterNode (attrIndex) {
+    optionPushFilterNode(attrIndex) {
       if (this.hideFilterModal) {
         return
       }
@@ -178,7 +178,7 @@ export default {
         fn: () => this.showFilterModal(attrIndex)
       })
     },
-    async getRefData (attrIndex, ciTypeId) {
+    async getRefData(attrIndex, ciTypeId) {
       this.spinShow = true
       const promiseArray = [getRefCiTypeFrom(ciTypeId), getCiTypeAttr(ciTypeId)]
       const [refFroms, ciAttrs] = await Promise.all(promiseArray)
@@ -298,7 +298,7 @@ export default {
         this.options = this.options.concat(cacheOptions)
       }
     },
-    addNode (attrIndex, nodeObj) {
+    addNode(attrIndex, nodeObj) {
       let _index = this.expression[attrIndex - 1].props.attrs.nodeType === 'node' ? attrIndex : attrIndex - 1
       this.expression.splice(_index, this.expression.length - _index, nodeObj)
       if (['ref', 'multiRef'].indexOf(nodeObj.data.inputType) >= 0) {
@@ -312,7 +312,7 @@ export default {
       }
       this.handleInput()
     },
-    addEnum (attrIndex, code) {
+    addEnum(attrIndex, code) {
       const _attrIndex = +attrIndex + 1
       const nodeObj = {
         innerText: '.' + code,
@@ -331,13 +331,13 @@ export default {
       this.optionsDisplay = false
       this.expression.splice(_attrIndex, this.expression.length - _attrIndex, nodeObj)
     },
-    deleteNode (attrIndex) {
+    deleteNode(attrIndex) {
       this.options = []
       this.optionsDisplay = false
       this.expression.splice(attrIndex, this.expression.length - attrIndex)
       this.handleInput()
     },
-    async showFilterModal (attrIndex) {
+    async showFilterModal(attrIndex) {
       this.options = []
       this.optionsDisplay = false
       this.currentNodeIndex = +attrIndex
@@ -391,9 +391,9 @@ export default {
         refCiTypeIdArray.map(_ => {
           return _.type === 'isRef'
             ? queryCiData({
-              id: _.referenceId,
-              queryObject: {}
-            })
+                id: _.referenceId,
+                queryObject: {}
+              })
             : getEnumCodesByCategoryId(_.referenceId)
         })
       )
@@ -408,7 +408,7 @@ export default {
           if (['ref', 'multiRef'].indexOf(_.inputType) >= 0) {
             refCiTypeIdArray.find((attr, i) => {
               if (attr.referenceId === _.referenceId) {
-                _.options = refCiDataArray[i].data.contents.map(ciData => ciData.data)
+                _.options = refCiDataArray[i].data.contents
                 this.filterCiAttrOptions[attr.code] = _.options
               }
             })
@@ -426,7 +426,7 @@ export default {
         return _
       })
     },
-    confirmFilter () {
+    confirmFilter() {
       let _filters = this.filters
         .filter(_ => !(_.operator === 'in' && _.value.length === 0))
         .map(_ => {
@@ -434,10 +434,10 @@ export default {
             let result =
               _.operator === 'in'
                 ? `[${_.value
-                  .map(item => {
-                    return `'${item}'`
-                  })
-                  .join(',')}]`
+                    .map(item => {
+                      return `'${item}'`
+                    })
+                    .join(',')}]`
                 : `'${_.value}'`
             return `${_.name} ${_.operator} ${result}`
           } else if (['null', 'notNull'].indexOf(_.operator) === -1) {
@@ -475,13 +475,13 @@ export default {
       this.cancelFilter()
       this.handleInput()
     },
-    cancelFilter () {
+    cancelFilter() {
       this.currentNodeIndex = 0
       this.filters = []
       this.filterCiAttrs = []
       this.filterCiAttrOptions = {}
     },
-    handleInput () {
+    handleInput() {
       const lastNode = this.expression.length ? this.expression[this.expression.length - 1] : null
       const lastNodeText = lastNode ? lastNode.innerText : ''
       if (this.expression.length >= 1 && lastNodeText.split('[').length <= 1) {
@@ -497,7 +497,7 @@ export default {
         this.$emit('input', _value)
       }
     },
-    renderOptions () {
+    renderOptions() {
       return (
         <div slot="content" class="attr-express-options">
           {[
@@ -515,7 +515,7 @@ export default {
         </div>
       )
     },
-    renderAddRule () {
+    renderAddRule() {
       if (this.isReadOnly || this.expression.length) {
         return [<span></span>]
       } else {
@@ -527,7 +527,7 @@ export default {
         ]
       }
     },
-    renderModal () {
+    renderModal() {
       return (
         <Modal
           value={this.modalDisplay}
@@ -555,7 +555,7 @@ export default {
         </Modal>
       )
     },
-    renderSpan (v) {
+    renderSpan(v) {
       const p = {
         ...v.props,
         domProps: {
@@ -564,7 +564,7 @@ export default {
       }
       return <span {...p}></span>
     },
-    renderExpress () {
+    renderExpress() {
       return [
         !this.isReadOnly && this.renderOptions(),
         ...this.expression.map(_ => this.renderSpan(_)),
@@ -574,10 +574,10 @@ export default {
       ]
     }
   },
-  mounted () {
+  mounted() {
     this.formatExpression()
   },
-  render (h) {
+  render(h) {
     return (
       <span class="attr-express" onClick={this.handleClick}>
         {this.isReadOnly ? (

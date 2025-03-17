@@ -30,10 +30,16 @@ export const deleteUser = id => req.delete(`/user?user_id=${id}`)
 export const addUsersToRole = data => req.post(`/roles/user`, data)
 
 export const getPermissionList = roleCiType => req.get(`/permissions/list/${roleCiType}`)
+export const getTemplatePermissionList = roleCiType => req.get(`/permissions/tpl/list/${roleCiType}`)
 export const addPermissionList = (roleCiType, data) => req.post(`/permissions/list/${roleCiType}`, data)
+export const addTemplatePermissionList = (roleCiType, data) => req.post(`/permissions/tpl/list/${roleCiType}`, data)
+
 export const editPermissionList = (roleCiType, data) => req.put(`/permissions/list/${roleCiType}`, data)
+export const editTemplatePermissionList = (roleCiType, data) => req.put(`/permissions/tpl/list/${roleCiType}`, data)
 export const deletePermissionList = (roleCiType, data) =>
   req.delete(`/permissions/list/${roleCiType}?ids=${data.join(',')}`)
+export const deleteTemplatePermissionList = (roleCiType, data) =>
+  req.delete(`/permissions/tpl/list/${roleCiType}?ids=${data.join(',')}`)
 
 export const assignCiTypePermissionForRoleInBatch = (ciTypePermissions, roleId) =>
   req.post(`/permissions/ci/${roleId}`, ciTypePermissions)
@@ -47,12 +53,29 @@ export const removeDataPermissionAction = (roleName, ciTypeId, actionCode) =>
 export const getRoleCiTypeCtrlAttributesByRoleCiTypeId = roleCiType => req.get(`/permissions/condition/${roleCiType}`)
 export const createRoleCiTypeCtrlAttributes = (roleCitypeId, data) =>
   req.post(`/permissions/condition/${roleCitypeId}`, data)
+export const createPermCiTypeCtrlAttributes = (roleCitypeId, data) =>
+  req.post(`/permissions/tpl/condition/${roleCitypeId}`, data)
 export const updateRoleCiTypeCtrlAttributes = (roleCitypeId, data) =>
   req.put(`/permissions/condition/${roleCitypeId}`, data)
+export const updatePermCiTypeCtrlAttributes = (roleCitypeId, data) =>
+  req.put(`/permissions/tpl/condition/${roleCitypeId}`, data)
+
+export const getRoleTemplateList = () => req.get('/permissions/tpl/list')
+export const deleteRoleTemplateItem = (id) => req.delete(`/permissions/tpl/delete?permissionTplId=${id}`)
+export const getRoleTemplateItemInfo = (id) => req.get(`/permissions/tpl/get?permissionTplId=${id}`)
+export const saveTemplateInfo = (params) => req.post('/permissions/tpl/save', params)
+export const getPermCiTypeCtrlAttributesByRoleCiTypeId = roleCiType => req.get(`/permissions/tpl/condition/${roleCiType}`)
+export const getTemplateByRole = (role, withFilterParam = false) => req.get(`/permissions/role/${role}/tpl/get?withFilterParam=${withFilterParam}`)
+export const getTemplateInfoById = (id) => req.get(`/permissions/tpl/param?permissionTplId=${id}`)
+export const saveRoleTemplate = (role, params) => req.post(`/permissions/role/${role}/tpl/save`, params)
+export const saveTemplateParams = (params) => req.post('/permissions/tpl/param/save', params)
+
 // export const updateRoleCiTypeCtrlAttributes = (roleCitypeId, data) =>
 //   req.post(`/permissions/list/${roleCitypeId}`, data)
 export const deleteRoleCiTypeCtrlAttributes = (roleCitypeId, ids) =>
   req.delete(`/permissions/condition/${roleCitypeId}?ids=${ids}`)
+export const deletePermCiTypeCtrlAttributes = (roleCitypeId, ids) =>
+  req.delete(`/permissions/tpl/condition/${roleCitypeId}?ids=${ids}`)
 export const editPassword = data => req.post('/user/password/change', data)
 export const resetPassword = data => req.post('/user/password/reset', data)
 // enum
