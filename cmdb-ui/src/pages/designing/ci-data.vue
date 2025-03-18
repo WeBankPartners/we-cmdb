@@ -1123,34 +1123,37 @@ export default {
       let graph
       const graphEl = document.getElementById('graph')
       const initEvent = () => {
-        graph = d3.select('#graph')
-        graph
-          .on('dblclick.zoom', null)
-          .on('wheel.zoom', null)
-          .on('mousewheel.zoom', null)
+        return new Promise(resolve => {
+          graph = d3.select('#graph')
+          graph
+            .on('dblclick.zoom', null)
+            .on('wheel.zoom', null)
+            .on('mousewheel.zoom', null)
 
-        this.graph.graphviz = graph
-          .graphviz()
-          .zoom(true)
-          .fit(true)
-          .height(window.innerHeight - 178)
-          .width(graphEl.offsetWidth)
-          .attributer(function (d) {
-            if (d.attributes.class === 'edge') {
-              const keys = d.key.split('->')
-              const from = keys[0].trim()
-              const to = keys[1].trim()
-              d.attributes.from = from
-              d.attributes.to = to
-            }
+          this.graph.graphviz = graph
+            .graphviz()
+            .zoom(true)
+            .fit(true)
+            .height(window.innerHeight - 178)
+            .width(graphEl.offsetWidth)
+            .attributer(function (d) {
+              if (d.attributes.class === 'edge') {
+                const keys = d.key.split('->')
+                const from = keys[0].trim()
+                const to = keys[1].trim()
+                d.attributes.from = from
+                d.attributes.to = to
+              }
 
-            if (d.tag === 'text') {
-              const key = d.children[0].text
-              d3.select(this).attr('text-key', key)
-            }
-          })
+              if (d.tag === 'text') {
+                const key = d.children[0].text
+                d3.select(this).attr('text-key', key)
+              }
+            })
+            resolve()
+        })
       }
-      initEvent()
+      await initEvent()
       this.$nextTick(() => {
         setTimeout(() => {
           this.spinShow = false
@@ -1188,20 +1191,22 @@ export default {
     renderGraph () {
       let nodesString = this.genDOT()
       this.loadImage(nodesString)
-      this.graph.graphviz
-        .transition()
-        .renderDot(nodesString)
-        .on('end', () => {
-          this.shadeAll()
-          addEvent('svg', 'mouseover', e => {
+      this.$nextTick(() => {
+        this.graph.graphviz
+          .transition()
+          .renderDot(nodesString)
+          .on('end', () => {
             this.shadeAll()
-            e.preventDefault()
-            e.stopPropagation()
+            addEvent('svg', 'mouseover', e => {
+              this.shadeAll()
+              e.preventDefault()
+              e.stopPropagation()
+            })
+            addEvent('.node', 'mouseover', this.handleNodeMouseover)
+            addEvent('svg', 'mouseover', this.handleSvgMouseover)
+            addEvent('.node', 'click', this.handleNodeClick)
           })
-          addEvent('.node', 'mouseover', this.handleNodeMouseover)
-          addEvent('svg', 'mouseover', this.handleSvgMouseover)
-          addEvent('.node', 'click', this.handleNodeClick)
-        })
+      })
     },
     genDOT () {
       const status = this.currentStatus

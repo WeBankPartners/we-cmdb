@@ -115,7 +115,6 @@ export default {
       let nodesString = this.genDOT(data)
       this.loadImage(nodesString)
       this.graph.graphviz
-        .transition()
         .renderDot(nodesString)
         .on('end', () => {
           this.shadeAll()
