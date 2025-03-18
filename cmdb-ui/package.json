@@ -41,7 +41,7 @@
     "vue-json-viewer": "^2.2.22",
     "vue-router": "^3.0.1",
     "vuedraggable": "^2.24.3",
-    "webpack": "^5.80.0"
+    "webpack": "^5.97.1"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
