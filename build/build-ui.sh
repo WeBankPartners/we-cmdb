@@ -4,7 +4,7 @@ npm -v
 if [ $? -eq 0 ]
 then
     cd $1/cmdb-ui
-    # npm install --force
+    npm --registry https://registry.npmmirror.com install --force
     npm run build
     cd dist
     mkdir -p wecmdb
