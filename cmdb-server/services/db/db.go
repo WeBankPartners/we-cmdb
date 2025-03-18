@@ -161,9 +161,13 @@ func transFiltersToSQL(queryParam *models.QueryRequestParam, transParam *models.
 		if transParam.KeyMap[filter.Name] == "" || transParam.KeyMap[filter.Name] == "-" {
 			continue
 		}
-		filterSqlColumn := fmt.Sprintf("`%s`", transParam.KeyMap[filter.Name])
-		if transParam.Prefix != "" {
-			filterSqlColumn = fmt.Sprintf("%s`%s`", transParam.Prefix, transParam.KeyMap[filter.Name])
+		filterSqlColumn := fmt.Sprintf("%s", transParam.KeyMap[filter.Name])
+		if pointIndex := strings.Index(filterSqlColumn, "."); pointIndex > 0 {
+			filterSqlColumn = filterSqlColumn[:pointIndex+1] + "`" + filterSqlColumn[pointIndex+1:] + "`"
+		} else {
+			if transParam.Prefix != "" {
+				filterSqlColumn = fmt.Sprintf("%s`%s`", transParam.Prefix, transParam.KeyMap[filter.Name])
+			}
 		}
 		if filter.Operator == "eq" {
 			filterSql += fmt.Sprintf(" AND %s=? ", filterSqlColumn)
