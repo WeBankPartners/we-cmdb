@@ -13,7 +13,7 @@
           <Radio v-for="item in ['tree', 'table']" :key="item" :label="item" border>{{ item }}</Radio>
         </RadioGroup>
       </Col>
-      <Col span="5">
+      <Col span="4">
         <span style="margin-right: 10px">{{ $t('report') }}</span>
         <Select
           v-model="currentReportId"

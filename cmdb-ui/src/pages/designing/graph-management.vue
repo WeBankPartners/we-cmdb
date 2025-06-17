@@ -2,7 +2,7 @@
   <Row>
     <Col span="24">
       <Row>
-        <Col span="18">
+        <Col span="21">
           <template>
             <!-- select view -->
             <Select
@@ -125,7 +125,7 @@
             $t('db_copy_link')
           }}</Button>
         </Col>
-        <Col span="1" offset="5">
+        <Col span="1" offset="1">
           <Button
             v-if="currentView && viewSetting.editable === 'yes'"
             @click.stop.prevent="onAddRoot()"
@@ -354,7 +354,8 @@ export default {
       allCiTypesWithAttr: [],
       allCiTypesFormatByCiTypeId: {},
       intervalId: '',
-      currentTabName: ''
+      currentTabName: '',
+      isIntervalRefresh: false
     }
   },
   computed: {
@@ -1125,12 +1126,17 @@ export default {
         if (this.currentTabName.startsWith('tabci')) {
           let ciTypeId = this.currentTabName.substring('tabci'.length)
           if (!this.$refs['citable' + ciTypeId][0].$refs.table.modalVisible) {
+            this.$refs['citable' + ciTypeId][0].isIntervalRefresh = true
             this.$refs['citable' + ciTypeId][0].$refs['table'].handleSubmit()
+            setTimeout(() => {
+              this.$refs['citable' + ciTypeId][0].isIntervalRefresh = false
+            }, 1500)
             this.$Notice.success({
               title: '',
               desc: '',
               render: h => intervalTips(h)
             })
+            
           }
         } else if (this.currentTabName.startsWith('tabgraph')) {
           const num = this.currentTabName.slice(-1)

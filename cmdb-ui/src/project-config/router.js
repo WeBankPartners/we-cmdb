@@ -109,6 +109,11 @@ export default new Router({
           component: () => import('@/pages/admin/log-enquiry')
         },
         {
+          path: '/wecmdb/config-synchronization',
+          name: 'configSynchronization',
+          component: () => import('@/pages/admin/config-synchronization')
+        },
+        {
           path: '/wecmdb/admin/user-password-management',
           name: 'resetPassword',
           component: () => import('@/pages/admin/resetPassword')

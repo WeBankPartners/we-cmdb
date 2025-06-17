@@ -342,3 +342,6 @@ export const refreshImportList = () => req.get('/report-import-history/refresh-c
 export const refreshImportSingleItem = guid => req.get(`/report-import-history/refresh-check-result/query?guid=${guid}`)
 export const getCiTypeNameMap = () => req.get('/ci-types/query/id-and-name')
 export const reportCopyQuick = data => req.post('/report/copy', data)
+
+// 数据同步配置页面
+export const getSynchronizationDetail = () => req.get('/sync/query')

@@ -23,6 +23,7 @@
                 <Button
                   @click.stop.prevent="editCiTemplate(item)"
                   icon="ios-create-outline"
+                  style="margin-right: 3px"
                   type="primary"
                   size="small"
                 ></Button>
@@ -91,7 +92,7 @@
             action="" 
             :disabled="newCiTemplate.form.status === 'deleted'">
             <!-- <Button icon="ios-cloud-upload-outline">{{ $t('upload_icon_btn') }}</Button> -->
-            <Button class="btn-upload">
+            <Button class="btn-upload" style="margin-top: 5px">
               <img src="@/styles/icon/UploadOutlined.png" class="upload-icon" />
               {{ $t('upload_icon_btn') }}
             </Button>

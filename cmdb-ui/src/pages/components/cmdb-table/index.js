@@ -248,21 +248,21 @@ export default {
             }
           }
         }
-        if (hasIn(_, '_checked')) {
-          // 这里用于每次都记录已经点击的列，用于下次刷新时不丢失状态
-          const selectItem = cloneDeep(_)
-          if (_['_checked'] === true) {
-            const filterSelect = this.tableColumns.filter(item => item.component === 'WeCMDBSelect')
-            filterSelect.forEach(item => {
-                const find = item.options.find(o => o.label === selectItem[item.key])
-                if (find) {
-                  selectItem[item.key] = find.value
-                }
-            })
-            this.selectedRows.push(selectItem)
-          }
-          delete selectItem._checked
-        }
+        // if (hasIn(_, '_checked')) {
+        //   // 这里用于每次都记录已经点击的列，用于下次刷新时不丢失状态
+        //   const selectItem = cloneDeep(_)
+        //   if (_['_checked'] === true) {
+        //     const filterSelect = this.tableColumns.filter(item => item.component === 'WeCMDBSelect')
+        //     filterSelect.forEach(item => {
+        //         const find = item.options.find(o => o.label === selectItem[item.key])
+        //         if (find) {
+        //           selectItem[item.key] = find.value
+        //         }
+        //     })
+        //     this.selectedRows.push(selectItem)
+        //   }
+        //   delete selectItem._checked
+        // }
       })
 
       function isArrayString (str) {
@@ -539,6 +539,12 @@ export default {
                 value={this.form[item.inputKey]}
                 clearable={true}
                 onInput={v => {
+                  // 首次进入 DatePicker 会再次触发数据查询
+                  if (item.component === 'DatePicker') {
+                    if (this.form[item.inputKey] === undefined && v.every(item => item === '')) {
+                      return
+                    }
+                  }
                   this.form[item.inputKey] = v
                   this.handleSubmit('form')
                 }}
