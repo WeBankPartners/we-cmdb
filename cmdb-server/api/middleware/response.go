@@ -3,13 +3,14 @@ package middleware
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/exterror"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"net/http"
-	"strconv"
 )
 
 func ReturnPageData(c *gin.Context, pageInfo models.PageInfo, contents interface{}) {
@@ -83,9 +84,9 @@ func ReturnServerHandleError(c *gin.Context, err error) {
 
 func ReturnTokenValidateError(c *gin.Context, err error) {
 	err = exterror.Catch(exterror.New().RequestTokenValidateError, err)
-	errorCode, errorKey, errorMessage := exterror.GetErrorResult(c.GetHeader(exterror.AcceptLanguageHeader), err, -1)
-	ReturnError(c, errorCode, errorKey, errorMessage, nil)
-	//c.JSON(http.StatusUnauthorized, models.ResponseErrorJson{StatusCode: "TOKEN_VALIDATE_ERROR", StatusMessage: err.Error(), Data: nil})
+	_, errorKey, errorMessage := exterror.GetErrorResult(c.GetHeader(exterror.AcceptLanguageHeader), err, -1)
+	// ReturnError(c, errorCode, errorKey, errorMessage, nil)
+	c.JSON(http.StatusUnauthorized, models.ResponseErrorJson{StatusCode: errorKey, StatusMessage: errorMessage, Data: nil})
 }
 
 func ReturnDataPermissionError(c *gin.Context, err error) {
@@ -108,7 +109,21 @@ func ReturnDataPermissionDenyWithError(c *gin.Context, err error) {
 }
 
 func ReturnApiPermissionError(c *gin.Context) {
-	//ReturnError(c, "API_PERMISSION_ERROR", "api permission deny", nil)
 	errorCode, errorKey, errorMessage := exterror.GetErrorResult(c.GetHeader(exterror.AcceptLanguageHeader), exterror.New().ApiPermissionDeny, -1)
 	ReturnError(c, errorCode, errorKey, errorMessage, nil)
+}
+
+func ReturnSlaveModifyDenyError(c *gin.Context) {
+	errorCode, errorKey, errorMessage := exterror.GetErrorResult(c.GetHeader(exterror.AcceptLanguageHeader), exterror.New().SlaveModifyDeny, -1)
+	ReturnError(c, errorCode, errorKey, errorMessage, nil)
+}
+
+func CheckModifyLegal(c *gin.Context) (ok bool) {
+	if !models.Config.Sync.SlaveEnable {
+		return true
+	}
+	if c.GetString("fromSync") == "yes" {
+		return true
+	}
+	return false
 }

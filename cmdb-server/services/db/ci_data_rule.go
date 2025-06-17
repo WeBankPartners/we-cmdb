@@ -591,8 +591,10 @@ func getRefFilterSql(filter *models.CiDataRefFilterObj, filterMap map[string]str
 			valueList = append(valueList, rv.(string))
 		}
 	}
+	valueList = models.DistinctStringList(valueList, []string{})
 	if strings.Contains(filter.Left, ">") || strings.Contains(filter.Left, "~") {
 		valueList, err = getLeftFilterResultList(filter.Left, filter.Operator, fmt.Sprintf("%s", filter.Right.Value), valueList, filterMap)
+		valueList = models.DistinctStringList(valueList, []string{})
 		sql = buildConditionSql("guid", "in", "", valueList)
 	} else {
 		sql = buildConditionSql(column, filter.Operator, fmt.Sprintf("%s", filter.Right.Value), valueList)
@@ -1248,7 +1250,7 @@ func consumeUniquePathHandle(uniquePathList []*models.AutoActiveHandleParam) {
 			guidList = append(guidList, v["guid"])
 		}
 		log.Info(nil, log.LOGGER_APP, "Start to active unique path handle", zap.Strings("guid", guidList), zap.String("operation", uniquePathObj.Operation))
-		handleParam := models.HandleCiDataParam{InputData: tmpInputData, CiTypeId: uniquePathObj.CiType, Operation: uniquePathObj.Operation, Operator: uniquePathObj.User, Roles: []string{}, Permission: false, FromCore: false}
+		handleParam := models.HandleCiDataParam{InputData: tmpInputData, CiTypeId: uniquePathObj.CiType, Operation: uniquePathObj.Operation, Operator: uniquePathObj.User, Roles: []string{}, Permission: false, FromCore: false, FromUniquePath: true}
 		_, _, err := HandleCiDataOperation(handleParam)
 		if err != nil {
 			log.Error(nil, log.LOGGER_APP, "Unique path handle fail", zap.Error(err))

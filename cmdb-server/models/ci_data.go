@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 )
 
 type CiDataMapObj map[string]string
@@ -131,10 +132,12 @@ type ActionFuncParam struct {
 	FromCore            bool
 	MultiColumnDelMap   map[string][]string
 	MultiCiData         *MultiCiDataObj
+	FromSync            bool
 }
 
 type MultiCiDataObj struct {
 	CiTypeId            string
+	CiTypeConfig        *SysCiTypeTable
 	Transition          []*SysStateTransitionQuery
 	Attributes          []*SysCiTypeAttrTable
 	ReferenceAttributes []*SysCiTypeAttrTable
@@ -307,16 +310,19 @@ type CiDataObjectErrOutput struct {
 }
 
 type HandleCiDataParam struct {
-	InputData  []CiDataMapObj
-	CiTypeId   string
-	Operation  string
-	Operator   string
-	BareAction string
-	Roles      []string
-	Permission bool
-	FromCore   bool
-	UserToken  string
-	OnlyQuery  bool
+	InputData      []CiDataMapObj
+	CiTypeId       string
+	Operation      string
+	Operator       string
+	BareAction     string
+	Roles          []string
+	Permission     bool
+	FromCore       bool
+	UserToken      string
+	OnlyQuery      bool
+	FromSync       bool
+	FromUniquePath bool
+	NowTime        time.Time
 }
 
 type SysCiImportGuidMap struct {

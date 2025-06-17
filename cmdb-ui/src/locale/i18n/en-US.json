@@ -516,5 +516,18 @@
   "db_role_template_tips": "Operation Confirmation: The current template modifications have not been saved yet. Please select Save or Discard.",
   "db_change_role_tabs_tips": "Operation Confirmation: The current role modifications have not been saved yet. Please select Save or Discard.",
   "db_switch_confirmation": "Switch Confirmation",
-  "db_saved_successfully": "Saved Successfully"
+  "db_saved_successfully": "Saved Successfully",
+  "db_data_synchronization_configuration": "Data Synchronization Configuration",
+  "db_data_synchronization_record": "Data Synchronization Record",
+  "db_data_synchronization_switch": "Data Synchronization Switch",
+  "db_synchronization_type": "Synchronization Type",
+  "db_source_address": "Source Address",
+  "db_nexu_address": "Nexu Address",
+  "db_CMDB_model_synchronization": "CMDB Model Synchronization",
+  "db_CMDB_data_synchronization": "CMDB CI Synchronization",
+  "db_synchronize_versions": "Synchronize Versions",
+  "db_synchronize_people": "Synchronize Person",
+  "db_modify_ranges": "Modify Ranges",
+  "db_synchronization_status": "Synchronization Status",
+  "db_target_address": "Target Address"
 }

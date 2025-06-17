@@ -7,6 +7,7 @@ import dataManagementImport from '@/pages/designing/data-import'
 import dataImportDetail from '@/pages/designing/data-import-detail'
 import reportConfiguration from '@/pages/designing/report-configuration'
 import logEnQuiry from '@/pages/admin/log-enquiry'
+import configSynchronization from '@/pages/admin/config-synchronization'
 import wecmdbPermissions from '@/pages/admin/plugin-permission-management'
 import graphManagement from '@/pages/designing/graph-management'
 import graphView from '@/pages/designing/graph-view'
@@ -89,6 +90,11 @@ const router = [
         path: '/wecmdb/system-operation-log',
         name: 'logEnQuiry',
         component: logEnQuiry
+      },
+      {
+        path: '/wecmdb/config-synchronization',
+        name: 'configSynchronization',
+        component: configSynchronization
       },
       // cmdb权限控制
       {

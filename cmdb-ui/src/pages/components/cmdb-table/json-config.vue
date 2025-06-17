@@ -41,6 +41,7 @@ export default {
   },
   methods: {
     initData () {
+      this.originData = []
       const jsonData = JSON.parse(JSON.stringify(this.jsonData))
       this.isArray = Array.isArray(jsonData)
       if (this.isArray) {

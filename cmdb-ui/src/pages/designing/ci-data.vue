@@ -199,7 +199,8 @@ export default {
       filtedCiTypesByLayers: [],
       MODALHEIGHT: 0,
       selectedRows: [],
-      intervalId: null
+      intervalId: null,
+      isIntervalRefresh: false
     }
   },
   computed: {
@@ -284,11 +285,15 @@ export default {
           !this.$refs['table' + this.currentTab][0].modalVisible
         ) {
           this.$refs['table' + this.currentTab][0].handleSubmit()
+          this.isIntervalRefresh = true
           this.$Notice.success({
             title: '',
             desc: '',
             render: h => intervalTips(h)
           })
+          setTimeout(() => {
+            this.isIntervalRefresh = false
+          }, 1500)
         }
       }, 3 * 60 * 1000)
     },
@@ -582,7 +587,7 @@ export default {
     },
     async actionFun (operate, data, cols, filters) {
       // 这里用来每次操作刷新table上方的button展现状态
-      await this.queryCiData(false)
+      // await this.queryCiData(false)
       const tabItem = find(this.tabList, { id: this.currentTab })
       const outerActions = tabItem.outerActions
       const currentActionItem = find(outerActions, { operation_en: operate.operation_en })
@@ -687,10 +692,12 @@ export default {
       }
       this.tabList.forEach(ci => {
         if (ci.id === this.currentTab) {
-          ci.pagination.currentPage = 1
+          if (!this.isIntervalRefresh) {
+            ci.pagination.currentPage = 1
+          }
         }
       })
-      this.queryCiData()
+      this.queryCiData(!this.isIntervalRefresh)
     },
     async defaultHandler (type, row) {
       this.$set(row.weTableForm, `${type}Loading`, true)
@@ -978,12 +985,12 @@ export default {
         this.$refs[this.tableRef][0].isTableLoading(true)
       }
       return new Promise(async resolve => {
+        let { data } = await method(query)
         this.tabList.forEach(ci => {
             if (ci.id === this.currentTab) {
               ci.tableData = []
             }
         })
-        let { data } = await method(query)
         const contents = hasIn(data, 'contents') ? data.contents : []
         const totalRows = hasIn(data, 'pageInfo.totalRows') ? data.pageInfo.totalRows : 0
         this.$refs[this.tableRef][0].isTableLoading(false)
@@ -1002,7 +1009,7 @@ export default {
             ci.tableData = contents.map(_ => {
               return {
                 ..._,
-                _checked: !!find(this.selectedRows, { guid: _.guid })
+                // _checked: !!find(this.selectedRows, { guid: _.guid })
                 // nextOperations: _.meta.nextOperations || []
               }
             })
@@ -1025,8 +1032,8 @@ export default {
               if (res.statusCode === 'OK') {
                 data[index].options = res.data.map(item => {
                   return {
-                    label: item.code,
-                    value: item.value,
+                    label: item.value,
+                    value: item.code,
                     codeDescription: item.codeDescription
                   }
                 })
@@ -1063,28 +1070,6 @@ export default {
               isMultiple: data[index].inputType === 'multiSelect',
               ...components[data[index].inputType],
               options: data[index].options
-            }
-            if (columnItem.propertyName === 'check_result') {
-              Object.assign(columnItem, {
-                colWidth: 250,
-                tagOptions: [
-                  {
-                    color: '#bfeb79',
-                    value: '11',
-                    label: '通过'
-                  },
-                  {
-                    color: '#f4cc45',
-                    value: '10',
-                    label: '必填项未填'
-                  },
-                  {
-                    color: '#cb5a38',
-                    value: '01',
-                    label: '唯一性校验不通过'
-                  }
-                ]
-              })
             }
             columns.push(columnItem)
           }

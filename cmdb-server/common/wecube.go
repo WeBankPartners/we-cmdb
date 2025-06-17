@@ -40,6 +40,7 @@ type SyncDataModelCiAttr struct {
 	RefAttributeName string `json:"refAttributeName" xorm:"-"`
 	Required         string `json:"required" xorm:"nullable"`
 	Multiple         string `json:"multiple"`
+	ExtRefEntity     string `json:"-" xorm:"ext_ref_entity"`
 }
 
 type PluginCiDataOperationRequest struct {

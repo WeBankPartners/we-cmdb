@@ -21,7 +21,7 @@ func CiTypesQuery(query *models.CiTypeQuery) error {
 	var ciTypeQueryFilterSql, specSql string
 	var ciTypeQueryParams, ciTypeSubParams []interface{}
 	ciTypesTable := []*models.CiTypeQueryCiObj{}
-	ciTypeQuerySql := `SELECT t1.id,t1.display_name,t1.description,t1.status,t1.ci_group,t1.ci_layer,t1.ci_template,t1.state_machine,CONCAT(t2.guid,'.',t2.type) as 'image_file' 
+	ciTypeQuerySql := `SELECT t1.id,t1.display_name,t1.description,t1.status,t1.ci_group,t1.ci_layer,t1.ci_template,t1.state_machine,t1.sync_enable,CONCAT(t2.guid,'.',t2.type) as 'image_file' 
 		FROM sys_ci_type t1 
 		left join sys_files t2 on t1.image_file=t2.guid WHERE 1=1`
 	if query.CiTypeId != "" {
@@ -200,8 +200,8 @@ func CiTypesCreate(param *models.SysCiTypeTable) error {
 	if param.ImageFile == "" {
 		param.ImageFile = ciTemplateTable[0].ImageFile
 	}
-	_, err = x.Exec("INSERT INTO sys_ci_type(id,display_name,description,image_file,ci_group,ci_layer,ci_template,state_machine) VALUE (?,?,?,?,?,?,?,?)",
-		param.Id, param.DisplayName, param.Description, param.ImageFile, param.CiGroup, param.CiLayer, param.CiTemplate, param.StateMachine)
+	_, err = x.Exec("INSERT INTO sys_ci_type(id,display_name,description,image_file,ci_group,ci_layer,ci_template,state_machine,sync_enable) VALUE (?,?,?,?,?,?,?,?,?)",
+		param.Id, param.DisplayName, param.Description, param.ImageFile, param.CiGroup, param.CiLayer, param.CiTemplate, param.StateMachine, param.SyncEnable)
 	if err != nil {
 		return fmt.Errorf("Try to insert ci type record to database fail,%s ", err.Error())
 	}
@@ -229,10 +229,10 @@ func CiTypesUpdate(param *models.SysCiTypeTable, newImageGuid string) (imageFile
 		return
 	}
 	if param.CiLayer != "" && param.CiGroup != "" {
-		actions = append(actions, &execAction{Sql: "UPDATE sys_ci_type SET display_name=?,description=?,ci_group=?,ci_layer=?,image_file=? where id=?",
-			Param: []interface{}{param.DisplayName, param.Description, param.CiGroup, param.CiLayer, imageGuid, param.Id}})
+		actions = append(actions, &execAction{Sql: "UPDATE sys_ci_type SET display_name=?,description=?,ci_group=?,ci_layer=?,image_file=?,sync_enable=? where id=?",
+			Param: []interface{}{param.DisplayName, param.Description, param.CiGroup, param.CiLayer, imageGuid, param.SyncEnable, param.Id}})
 	} else {
-		actions = append(actions, &execAction{Sql: "UPDATE sys_ci_type SET display_name=? where id=?", Param: []interface{}{param.DisplayName, param.Id}})
+		actions = append(actions, &execAction{Sql: "UPDATE sys_ci_type SET display_name=?,sync_enable=? where id=?", Param: []interface{}{param.DisplayName, param.SyncEnable, param.Id}})
 	}
 	err = transaction(actions)
 	if err != nil {
@@ -605,6 +605,41 @@ func QueryIdAndName() (rowData []*models.SysCiTypeTable, err error) {
 	if err != nil {
 		log.Error(nil, log.LOGGER_APP, "Get ci type fail", zap.Error(err))
 		return
+	}
+	return
+}
+
+func getSimpleCiType(ciType string) (ciTypeRow *models.SysCiTypeTable, err error) {
+	var queryRows []*models.SysCiTypeTable
+	err = x.SQL("select * from sys_ci_type where id=?", ciType).Find(&queryRows)
+	if err != nil {
+		err = fmt.Errorf("query ci type:%s from table fail,%s ", ciType, err.Error())
+		return
+	}
+	if len(queryRows) == 0 {
+		err = fmt.Errorf("can not find ci type:%s ", ciType)
+		return
+	}
+	ciTypeRow = queryRows[0]
+	return
+}
+
+func CheckCiTypeSyncRef(ciType string) (err error) {
+	ciTypeRow, getErr := getSimpleCiType(ciType)
+	if getErr != nil {
+		err = getErr
+		return
+	}
+	if ciTypeRow.SyncEnable == "yes" {
+		syncQueryRows, queryErr := x.QueryString("select id from sys_ci_type where sync_enable<>'yes' and id in (select ref_ci_type from sys_ci_type_attr where ci_type=? and input_type in ('ref', 'multiRef'))", ciTypeRow.Id)
+		if queryErr != nil {
+			err = fmt.Errorf("Query sync ref ciType fail,%s ", queryErr.Error())
+			return
+		}
+		if len(syncQueryRows) > 0 {
+			err = fmt.Errorf("Ref ciType:%s is not sync enable", syncQueryRows[0]["id"])
+			return
+		}
 	}
 	return
 }

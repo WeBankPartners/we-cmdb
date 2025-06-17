@@ -33,6 +33,9 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 	} else {
 		firstAction = param.BareAction
 	}
+	if param.OnlyQuery {
+		param.BareAction = "update"
+	}
 	if firstAction == "insert" {
 		if param.CiTypeId == "" {
 			err = fmt.Errorf("Url param ciType can not empty ")
@@ -41,7 +44,9 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 			if !param.OnlyQuery {
 				newGuidList := guid.CreateGuidList(len(param.InputData))
 				for i, inputDataObj := range param.InputData {
-					inputDataObj["guid"] = fmt.Sprintf("%s_%s", param.CiTypeId, newGuidList[i])
+					if !param.FromSync {
+						inputDataObj["guid"] = fmt.Sprintf("%s_%s", param.CiTypeId, newGuidList[i])
+					}
 				}
 			}
 			multiCiData = []*models.MultiCiDataObj{&models.MultiCiDataObj{CiTypeId: param.CiTypeId, InputData: param.InputData}}
@@ -122,10 +127,31 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 			return
 		}
 	}
-	tNow := time.Now().Format(models.DateTimeFormat)
+	tNowTime := time.Now()
+	if !param.NowTime.IsZero() {
+		tNowTime = param.NowTime
+	}
+	tNow := tNowTime.Format(models.DateTimeFormat)
 	// 获取属性字段
 	if err = GetMultiCiAttributes(multiCiData); err != nil {
 		return
+	}
+	// 是否同步
+	var syncSlaveData models.HandleCiDataParam
+	var matchSyncFlag bool
+	if models.Config.Sync.MasterEnable {
+		syncSlaveData, matchSyncFlag = getSyncCiHandleData(&param, multiCiData)
+		if matchSyncFlag {
+			syncSlaveData.NowTime = tNowTime
+		}
+	}
+	if models.Config.Sync.SlaveEnable && !param.FromSync && !param.FromUniquePath {
+		for _, ciObj := range multiCiData {
+			if ciObj.CiTypeConfig.SyncEnable == "yes" {
+				err = fmt.Errorf("ciType:%s is sync enable,data operation deny", ciObj.CiTypeConfig.Id)
+				return
+			}
+		}
 	}
 	if param.Permission && firstAction == "update" {
 		if err = ValidateAttrUpdatePermission(multiCiData, param.Roles); err != nil {
@@ -170,7 +196,7 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 	deleteUniquePath := models.AutoActiveHandleParam{User: models.SystemUser}
 	for _, ciObj := range multiCiData {
 		for i, inputRowData := range ciObj.InputData {
-			actionParam := models.ActionFuncParam{CiType: ciObj.CiTypeId, InputData: inputRowData, Attributes: ciObj.Attributes, ReferenceAttributes: ciObj.ReferenceAttributes, Operator: param.Operator, Operation: param.Operation, NowTime: tNow, RefCiTypeMap: ciObj.RefCiTypeMap, DeleteList: deleteList, FromCore: param.FromCore}
+			actionParam := models.ActionFuncParam{CiType: ciObj.CiTypeId, InputData: inputRowData, Attributes: ciObj.Attributes, ReferenceAttributes: ciObj.ReferenceAttributes, Operator: param.Operator, Operation: param.Operation, NowTime: tNow, RefCiTypeMap: ciObj.RefCiTypeMap, DeleteList: deleteList, FromCore: param.FromCore, FromSync: param.FromSync}
 			actionParam.MultiCiData = ciObj
 			// 检查数据目标状态
 			if param.BareAction != "" {
@@ -335,6 +361,14 @@ func HandleCiDataOperation(param models.HandleCiDataParam) (outputData []models.
 		if firstAction == "insert" {
 			outputData, err = fetchNewRowData(multiCiData)
 		}
+		// 是否同步开启
+		if models.Config.Sync.MasterEnable && matchSyncFlag {
+			if firstAction == "confirm" {
+				go HandleSyncDataWithConfirm(syncSlaveData)
+			} else {
+				go HandleSyncDataWithoutConfirm(syncSlaveData)
+			}
+		}
 	}
 	return
 }
@@ -476,7 +510,7 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 		inputDataBytes, _ := json.Marshal(param.InputData)
 		log.Info(nil, log.LOGGER_APP, "updateActionFunc", zap.String("inputData", string(inputDataBytes)))
 	} else {
-		if param.InputData["update_time"] != "" {
+		if param.InputData["update_time"] != "" && !param.FromSync {
 			if param.InputData["update_time"] != param.NowData["update_time"] {
 				err = fmt.Errorf("Row:%s update_time is diff with database ", param.NowData["key_name"])
 				return
@@ -1209,7 +1243,21 @@ func GetMultiCiAttributes(multiCiData []*models.MultiCiDataObj) error {
 	for _, ciDataObj := range multiCiData {
 		ciTypeList = append(ciTypeList, ciDataObj.CiTypeId)
 	}
-	err := x.SQL(fmt.Sprintf("select * from sys_ci_type_attr where ci_type in ('%s') and status='created' order by ci_type", strings.Join(ciTypeList, "','"))).Find(&attrTable)
+	var ciTypeRows []*models.SysCiTypeTable
+	err := x.SQL(fmt.Sprintf("select id,status,sync_enable from sys_ci_type where id in ('%s')", strings.Join(ciTypeList, "','"))).Find(&ciTypeRows)
+	if err != nil {
+		err = fmt.Errorf("Try to get ci types fail,%s ", err.Error())
+		return err
+	}
+	for _, ciDataObj := range multiCiData {
+		for _, row := range ciTypeRows {
+			if row.Id == ciDataObj.CiTypeId {
+				ciDataObj.CiTypeConfig = row
+				break
+			}
+		}
+	}
+	err = x.SQL(fmt.Sprintf("select * from sys_ci_type_attr where ci_type in ('%s') and status='created' order by ci_type", strings.Join(ciTypeList, "','"))).Find(&attrTable)
 	if err != nil {
 		err = fmt.Errorf("Try to get ci attributes error,%s ", err.Error())
 		return err
@@ -2217,6 +2265,39 @@ func getDataHandleCiTypeList(param *models.HandleCiDataParam) (ciTypeList []stri
 				ciTypeMap[inputRowCiType] = 1
 			}
 		}
+	}
+	return
+}
+
+func getSyncCiHandleData(param *models.HandleCiDataParam, multiCiData []*models.MultiCiDataObj) (syncSlaveData models.HandleCiDataParam, matchCiFlag bool) {
+	syncSlaveData = models.HandleCiDataParam{InputData: []models.CiDataMapObj{}}
+	for _, v := range multiCiData {
+		if v.CiTypeConfig.SyncEnable == "yes" {
+			if syncSlaveData.CiTypeId == "" {
+				syncSlaveData.CiTypeId = v.CiTypeId
+			}
+			syncSlaveData.InputData = append(syncSlaveData.InputData, v.InputData...)
+		}
+	}
+	if len(syncSlaveData.InputData) > 0 {
+		matchCiFlag = true
+	} else {
+		return
+	}
+	syncSlaveData.Operation = param.Operation
+	syncSlaveData.Operator = param.Operator
+	syncSlaveData.BareAction = param.BareAction
+	// syncSlaveData.Roles = param.Roles
+	// syncSlaveData.Permission = param.Permission
+	// syncSlaveData.FromCore = param.FromCore
+	return
+}
+
+func GetCiTypeRows(ciTypeList []string) (ciTypeRows []*models.SysCiTypeTable, err error) {
+	err = x.SQL(fmt.Sprintf("select id,status,sync_enable from sys_ci_type where id in ('%s')", strings.Join(ciTypeList, "','"))).Find(&ciTypeRows)
+	if err != nil {
+		err = fmt.Errorf("Try to get ci types fail,%s ", err.Error())
+		return
 	}
 	return
 }

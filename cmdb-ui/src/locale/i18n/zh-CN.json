@@ -516,5 +516,18 @@
   "db_role_template_tips": "操作确认:当前模版的修改暂未保存,请选择 保存 或 放弃",
   "db_change_role_tabs_tips": "操作确认: 当前权限的修改尚未保存，请选择 保存 或 放弃",
   "db_switch_confirmation": "切换确认",
-  "db_saved_successfully": "保存成功"
+  "db_saved_successfully": "保存成功",
+  "db_data_synchronization_configuration": "数据同步配置",
+  "db_data_synchronization_record": "数据同步记录",
+  "db_data_synchronization_switch": "数据同步开关",
+  "db_synchronization_type": "当前wecube同步类型",
+  "db_source_address": "source地址",
+  "db_nexu_address": "nexu地址",
+  "db_CMDB_model_synchronization": "cmdb模型同步",
+  "db_CMDB_data_synchronization": "cmdb-ci数据同步",
+  "db_synchronize_versions": "同步版本",
+  "db_synchronize_people": "同步人",
+  "db_modify_ranges": "修改范围",
+  "db_synchronization_status": "同步状态",
+  "db_target_address": "target地址"
 }

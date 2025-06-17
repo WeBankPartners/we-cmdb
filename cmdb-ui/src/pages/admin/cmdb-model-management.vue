@@ -54,7 +54,7 @@
     <Col span="5" offset="0" class="func-wrapper" v-if="currentSelectData.id">
       <Card style="height: calc(100vh - 108px);overflow: auto;">
         <Row slot="title">
-          <Col span="12">
+          <Col span="10">
             <p>{{ currentSelectData.displayName }}</p>
           </Col>
           <span class="header-buttons-container">
@@ -897,6 +897,12 @@
               </FormItem>
               <FormItem class="no-need-validation" :label="$t('description')" prop="description">
                 <Input v-model="editGroupAttr.description" :disabled="editGroupAttr.status === 'deleted'"></Input>
+              </FormItem>
+              <FormItem class="no-need-validation" :label="$t('db_data_synchronization_switch')" prop="syncEnable">
+                <RadioGroup v-model="editGroupAttr.syncEnable">
+                  <Radio label="yes">Yes</Radio>
+                  <Radio label="no">No</Radio>
+                </RadioGroup>
               </FormItem>
               <FormItem :label="$t('icon')">
                 <img
@@ -2335,6 +2341,11 @@ export default {
     color: #FF4D4F;
   }
 }
+.header-buttons-container {
+  .ivu-btn {
+    margin: 0 1px
+  }
+}
 </style>
 <style lang="scss" scoped>
 .custom-modal-header {
@@ -2345,7 +2356,7 @@ export default {
   cursor: pointer;
 }
 .search-item {
-  width: 260px;
+  width: 250px;
 }
 .ivu-card-head p {
   height: 36px !important;

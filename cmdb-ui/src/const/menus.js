@@ -165,5 +165,14 @@ export const MENUS = [
     parent: 'system',
     isActive: 'yes',
     link: '/wecmdb/admin/log-enquiry'
+  },
+  {
+    code: 'data_synchronization_config',
+    cnName: '数据同步配置',
+    enName: 'Data Synchronization Config',
+    seqNo: 4,
+    parent: 'system',
+    isActive: 'yes',
+    link: '/wecmdb/config-synchronization'
   }
 ]

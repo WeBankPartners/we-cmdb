@@ -4,19 +4,20 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"go.uber.org/zap"
-	"io"
-	"net/http"
-	"strings"
 )
 
 func GetAllDataModel() (result models.SyncDataModelResponse, err error) {
 	result = models.SyncDataModelResponse{Status: "OK", Message: "success"}
 	var attrTable []*models.SyncDataModelCiAttr
-	err = x.SQL("select id,ci_type,name,display_name,description,input_type,ref_ci_type,nullable from sys_ci_type_attr where status='created' order by ci_type,ui_form_order").Find(&attrTable)
+	err = x.SQL("select id,ci_type,name,display_name,description,input_type,ref_ci_type,nullable,ext_ref_entity from sys_ci_type_attr where status='created' order by ci_type,ui_form_order").Find(&attrTable)
 	if err != nil {
 		return
 	}
@@ -36,12 +37,21 @@ func GetAllDataModel() (result models.SyncDataModelResponse, err error) {
 			attr.DataType = "ref"
 		} else if attr.DataType == "int" || attr.DataType == "multiInt" {
 			attr.DataType = "int"
+		} else if attr.DataType == "extRef" {
+			tmpEntitySplit := strings.Split(attr.ExtRefEntity, ":")
+			if len(tmpEntitySplit) == 2 {
+				attr.DataType = "ref"
+				attr.RefPackageName = tmpEntitySplit[0]
+				attr.RefEntityName = tmpEntitySplit[1]
+			}
 		} else {
 			attr.DataType = "str"
 		}
 		if attr.RefEntityName != "" {
 			attr.RefAttributeName = "id"
-			attr.RefPackageName = "wecmdb"
+			if attr.RefPackageName == "" {
+				attr.RefPackageName = "wecmdb"
+			}
 		}
 		if attr.Required == "no" {
 			attr.Required = "Y"

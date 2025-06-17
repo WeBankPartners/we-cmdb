@@ -275,6 +275,9 @@ export default {
       })
       this.savedNetWork = network
       this.savedNetWork.on('click', this.handler)
+      setTimeout(() => {
+        this.refreshFlag = +new Date() + ''
+      }, 400) 
     },
     handler (e) {
       if (e.nodes.length === 0) return
