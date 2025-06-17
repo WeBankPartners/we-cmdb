@@ -48,6 +48,8 @@ type ErrorTemplate struct {
 	LicenseIllegalError CustomError `json:"license_illegal_error"`
 	DataPermissionDeny  CustomError `json:"data_permission_deny"`
 	ApiPermissionDeny   CustomError `json:"api_permission_deny"`
+
+	SlaveModifyDeny CustomError `json:"slave_modify_deny"`
 }
 
 var (

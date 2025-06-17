@@ -20,6 +20,7 @@ var (
 		"/wecmdb/data-model":                            "GET",
 		"/wecmdb/api/v1/ci-data/sensitive-attr/query":   "POST",
 		"/wecmdb/api/v1/ci-data/rollback/query/${guid}": "GET",
+		"/wecmdb/api/v1/sync/query":                     "GET",
 	}
 	ApiMenuMap = make(map[string][]string) // key -> apiCode  value -> menuList
 )
@@ -147,7 +148,7 @@ func InitApiMenuMap(apiMenuCodeMap map[string]string) {
 	}
 	for k, v := range ApiMenuMap {
 		if len(v) > 1 {
-			ApiMenuMap[k] = DistinctStringList(v, []string{})
+			ApiMenuMap[k] = models.DistinctStringList(v, []string{})
 		}
 	}
 	log.Debug(nil, log.LOGGER_APP, "InitApiMenuMap done", log.JsonObj("ApiMenuMap", ApiMenuMap))
@@ -194,23 +195,6 @@ func authCoreRequest(c *gin.Context) error {
 	c.Set("user", authToken.User)
 	c.Set("roles", authToken.Roles)
 	return nil
-}
-
-func DistinctStringList(input, excludeList []string) (output []string) {
-	if len(input) == 0 {
-		return
-	}
-	existMap := make(map[string]int)
-	for _, v := range excludeList {
-		existMap[v] = 1
-	}
-	for _, v := range input {
-		if _, ok := existMap[v]; !ok {
-			output = append(output, v)
-			existMap[v] = 1
-		}
-	}
-	return
 }
 
 func compareStringList(from, target []string) bool {

@@ -2,6 +2,11 @@ package view
 
 import (
 	"fmt"
+	"path/filepath"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/graph"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
@@ -9,10 +14,6 @@ import (
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"path/filepath"
-	"sort"
-	"strings"
-	"time"
 )
 
 func GetViewList(c *gin.Context) {
@@ -231,6 +232,7 @@ func ConfirmView(c *gin.Context) {
 		middleware.ReturnServerHandleError(c, err)
 		return
 	} else {
+		// db.SyncPushConfirmView(&param, result)
 		middleware.ReturnData(c, result)
 	}
 }
@@ -355,7 +357,7 @@ func GetGraphViewData(c *gin.Context) {
 		}
 
 		duration := time.Since(start)
-		log.Info(nil, log.LOGGER_APP, "render graph: ", zap.String("duration", duration.String()),
+		log.Debug(nil, log.LOGGER_APP, "render graph: ", zap.String("duration", duration.String()),
 			log.JsonObj("g", g), log.JsonObj("rowDataList", rowDataList), zap.String("dot", dot))
 		//dotSingle := strings.Replace(strings.Replace(dot, "\n", "", -1), "\t", "", -1)
 		dots = append(dots, dot)

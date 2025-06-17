@@ -47,5 +47,9 @@
   "api_permission_deny": {
     "code": 20200002,
     "message": "Api Permission Deny"
+  },
+  "slave_modify_deny": {
+    "code": 20200003,
+    "message": "Slave modify Deny"
   }
 }

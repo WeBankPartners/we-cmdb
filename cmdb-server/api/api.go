@@ -3,11 +3,12 @@ package api
 import (
 	"bytes"
 	"fmt"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/exterror"
-	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/exterror"
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/v1/basekey"
@@ -176,6 +177,10 @@ func init() {
 		&handlerFuncObj{Url: "/report-import-history/user", Method: "GET", HandlerFunc: report.QueryReportImportUser, ApiCode: "QueryReportImportUser"},
 		&handlerFuncObj{Url: "/report-import-history/refresh-check-result/list", Method: "GET", HandlerFunc: report.RefreshReportImportHistory, ApiCode: "RefreshReportImportHistory"},
 		&handlerFuncObj{Url: "/report-import-history/refresh-check-result/query", Method: "GET", HandlerFunc: report.RefreshReportImportHistoryById, ApiCode: "RefreshReportImportHistoryById"},
+	)
+
+	httpHandlerFuncList = append(httpHandlerFuncList,
+		&handlerFuncObj{Url: "/sync/query", Method: "GET", HandlerFunc: ci.GetSyncRecord, ApiCode: "getSyncRecord"},
 	)
 }
 

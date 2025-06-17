@@ -60,6 +60,20 @@ type MenuApiMapConfig struct {
 	File   string `json:"file"`
 }
 
+type SyncConfig struct {
+	Enable       string `json:"enable"`
+	Type         string `json:"type"`
+	Source       string `json:"source"`
+	Target       string `json:"target"`
+	NexusAddress string `json:"nexus_address"`
+	NexusUser    string `json:"nexus_user"`
+	NexusPwd     string `json:"nexus_pwd"`
+	NexusRepo    string `json:"nexus_repo"`
+	HostIp       string `json:"host_ip"`
+	MasterEnable bool   `json:"-"`
+	SlaveEnable  bool   `json:"-"`
+}
+
 type GlobalConfig struct {
 	IsPluginMode         string                        `json:"is_plugin_mode"`
 	DefaultLanguage      string                        `json:"default_language"`
@@ -70,6 +84,7 @@ type GlobalConfig struct {
 	Wecube               WecubeConfig                  `json:"wecube"`
 	Auth                 AuthConfig                    `json:"auth"`
 	MenuApiMap           MenuApiMapConfig              `json:"menu_api_map"`
+	Sync                 SyncConfig                    `json:"sync"`
 	DefaultReportObjAttr []*DefaultReportObjAttrConfig `json:"default_report_obj_attr"`
 	// default json
 }
@@ -113,6 +128,15 @@ func InitConfig(configFile string) (errMessage string) {
 	if err != nil {
 		errMessage = "init database password fail,%s " + err.Error()
 		return
+	}
+	syncEnable := strings.ToLower(c.Sync.Enable)
+	if syncEnable == "yes" || syncEnable == "y" || syncEnable == "true" {
+		syncType := strings.ToLower(c.Sync.Type)
+		if syncType == "master" {
+			c.Sync.MasterEnable = true
+		} else if syncType == "slave" {
+			c.Sync.SlaveEnable = true
+		}
 	}
 	Config = &c
 	c.IsPluginMode = strings.ToLower(c.IsPluginMode)

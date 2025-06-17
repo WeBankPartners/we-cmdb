@@ -33,7 +33,13 @@
         <Icon v-if="!fullscreen" @click="zoomModalMax" class="header-icon" type="ios-expand" />
         <Icon v-else @click="zoomModalMin" class="header-icon" type="ios-contract" />
       </p>
-      <Table :columns="compareColumns" :data="compareData" :max-height="fileContentHeight.slice(0, -2)" border />
+      <Table 
+        v-if="compareVisible"
+        :columns="compareColumns" 
+        :data="compareData" 
+        :max-height="fileContentHeight.slice(0, -2)" 
+        border 
+      />
     </Modal>
 
 
@@ -57,7 +63,7 @@
   </div>
 </template>
 <script>
-import {hasIn} from 'lodash'
+import {hasIn, cloneDeep} from 'lodash'
 import moment from 'moment'
 import { finalDataForRequest } from '../util/component-util'
 import { components } from '@/const/actions.js'
@@ -146,7 +152,8 @@ export default {
       compareVisible: false,
       compareData: [],
       copyRows: [],
-      copyEditData: null
+      copyEditData: null,
+      isIntervalRefresh: false
     }
   },
   props: ['ci', 'ciTypeName', 'tableFilters', 'tableFilterEffects', 'isEdit', 'isDialectAll', 'confirmTime'],
@@ -243,7 +250,8 @@ export default {
     async compareHandler (row) {
       this.fullscreen = false
       // this.$set(row.weTableForm, 'compareLoading', true)
-      this.compareColumns = this.tableColumns
+      this.compareColumns = cloneDeep(this.tableColumns)
+      this.compareColumns.forEach(item => item.width = 120)
       const query = {
         id: this.ci,
         queryObject: {
@@ -298,8 +306,10 @@ export default {
       } else {
         this.payload.filters = data
       }
-      this.pagination.currentPage = 1
-      this.queryCiData()
+      if (!this.isIntervalRefresh) {
+        this.pagination.currentPage = 1
+      }
+      this.queryCiData(!this.isIntervalRefresh)
     },
     async defaultHandler (type, row) {
       this.$set(row.weTableForm, `${type}Loading`, true)
@@ -538,7 +548,7 @@ export default {
       this.pagination.pageSize = size
       this.queryCiData()
     },
-    async queryCiData () {
+    async queryCiData (needLoading = true) {
       this.payload.sorting = { asc: false, field: 'update_time' }
       this.payload.pageable.pageSize = 10
       this.payload.pageable.startIndex = 0
@@ -562,7 +572,9 @@ export default {
         //   query.queryObject.dialect.queryMode = 'new'
         // }
         const method = queryCiData
-        this.$refs.table.isTableLoading(true)
+        if (needLoading) {
+          this.$refs.table.isTableLoading(true)
+        }
         const { data } = await method(query)
         this.$refs.table.isTableLoading(false)
         const contents = hasIn(data, 'contents') ? data.contents : []

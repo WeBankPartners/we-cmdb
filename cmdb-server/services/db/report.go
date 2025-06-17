@@ -609,6 +609,10 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 			resultSqlCmd = resultSqlCmd[:len(resultSqlCmd)-1]
 		}
 		// 当前 ro 的父节点的表名为 ro.parent_attr 中 "__" 前的值
+		tmpTableName := ciTypeTableMapMultiRef[roData[i]["ci_type"]]
+		if !strings.HasPrefix(tmpTableName, "(") {
+			tmpTableName = "`" + tmpTableName + "`"
+		}
 		if i != 0 {
 			parentTable = roData[i]["parent_attr"][:strings.Index(roData[i]["parent_attr"], "__")]
 			preTableAliasName = ciTypeTableMapTableAliasName[parentTable]
@@ -621,9 +625,9 @@ func QueryReportData(reportId string, queryRequestParam *models.QueryRequestPara
 			} else {
 				sqlCmdPostfix += " LEFT JOIN "
 			}
-			sqlCmdPostfix += "`" + ciTypeTableMapMultiRef[roData[i]["ci_type"]] + "` " + tableAliasName + " ON " + preTableAliasName + "." + parentAttr + "=" + tableAliasName + "." + myAttr
+			sqlCmdPostfix += tmpTableName + " " + tableAliasName + " ON " + preTableAliasName + "." + parentAttr + "=" + tableAliasName + "." + myAttr
 		} else {
-			sqlCmdPostfix += "`" + ciTypeTableMapMultiRef[roData[i]["ci_type"]] + "` " + tableAliasName
+			sqlCmdPostfix += tmpTableName + " " + tableAliasName
 		}
 		// 放在拼完当前 report object 的 sql 语句后，防止覆盖父 report object 的同名 ciTypeTableMapTableAliasName
 		ciTypeTableMapTableAliasName[roData[i]["ci_type"]] = tableAliasName

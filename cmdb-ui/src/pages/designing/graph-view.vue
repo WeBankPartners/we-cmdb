@@ -897,7 +897,11 @@ export default {
         if (this.currentTabName.startsWith('tabci')) {
           let ciTypeId = this.currentTabName.substring('tabci'.length)
           if (!this.$refs['citable' + ciTypeId][0].$refs.table.modalVisible) {
+            this.$refs['citable' + ciTypeId][0].isIntervalRefresh = true
             this.$refs['citable' + ciTypeId][0].$refs['table'].handleSubmit()
+            setTimeout(() => {
+              this.$refs['citable' + ciTypeId][0].isIntervalRefresh = false
+            }, 1500)
             this.$Notice.success({
               title: '',
               desc: '',
