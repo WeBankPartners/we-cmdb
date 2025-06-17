@@ -856,3 +856,119 @@ alter table sys_role_ci_type add column ci_type_attr varchar(128) default null c
 alter table sys_report add column `used_by_view` varchar(16) default 'yes' comment '能被视图使用,枚举值 yes|no';
 alter table sys_report add column `used_by_export` varchar(16) default 'yes' comment '能被导出,枚举值 yes|no';
 #@v2.1.0.3-end@;
+
+#@v2.2.0.1-begin@;
+CREATE TABLE `sys_permission_tpl` (
+       `id` varchar(32) NOT NULL COMMENT '随机主键',
+       `name` varchar(255) DEFAULT NULL COMMENT '模版名称',
+       `create_user` varchar(64) DEFAULT NULL COMMENT '创建人',
+       `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+       `update_user` varchar(64) DEFAULT NULL COMMENT '更新人',
+       `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+       PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `sys_role_tpl_permission` (
+        `id` varchar(64) NOT NULL COMMENT '主键',
+        `role_id` varchar(32) NOT NULL COMMENT '角色',
+        `permission_tpl` varchar(32) NOT NULL COMMENT 'ci权限模版id',
+        `param_config` text DEFAULT NULL COMMENT '参数配置',
+        PRIMARY KEY (`id`),
+        CONSTRAINT `ref_role_tpl_permission` FOREIGN KEY (`permission_tpl`) REFERENCES `sys_permission_tpl` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `sys_permission_ci_tpl` (
+          `guid` varchar(32) NOT NULL COMMENT '随机主键',
+          `permission_tpl` varchar(32) NOT NULL COMMENT '权限模版',
+          `ci_type` varchar(32) NOT NULL COMMENT '关联ci',
+          `insert` varchar(4) DEFAULT 'N' COMMENT '创建权限',
+          `delete` varchar(4) DEFAULT 'N' COMMENT '删除权限',
+          `update` varchar(4) DEFAULT 'N' COMMENT '修改权限',
+          `query` varchar(4) DEFAULT 'N' COMMENT '查询权限',
+          `execute` varchar(4) DEFAULT 'N' COMMENT '执行权限',
+          `confirm` varchar(4) DEFAULT 'N' COMMENT '确认权限',
+          `ci_type_attr` varchar(128) DEFAULT NULL COMMENT '敏感属性',
+          PRIMARY KEY (`guid`),
+          CONSTRAINT `ref_permission_ci_tpl` FOREIGN KEY (`permission_tpl`) REFERENCES `sys_permission_tpl` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `sys_permission_condition_tpl` (
+        `guid` varchar(32) NOT NULL COMMENT '随机主键',
+        `permission_ci_tpl` varchar(32) NOT NULL COMMENT 'ci权限模版',
+        `insert` varchar(4) DEFAULT 'N' COMMENT '创建权限',
+        `delete` varchar(4) DEFAULT 'N' COMMENT '删除权限',
+        `update` varchar(4) DEFAULT 'N' COMMENT '修改权限',
+        `query` varchar(4) DEFAULT 'N' COMMENT '查询权限',
+        `execute` varchar(4) DEFAULT 'N' COMMENT '授权权限',
+        `confirm` varchar(4) DEFAULT 'N' COMMENT '确认权限',
+        PRIMARY KEY (`guid`),
+        CONSTRAINT `ref_permission_condition_ci` FOREIGN KEY (`permission_ci_tpl`) REFERENCES `sys_permission_ci_tpl` (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+CREATE TABLE `sys_permission_condition_filter_tpl` (
+       `guid` varchar(96) NOT NULL COMMENT '组合主键(condition+attr)',
+       `permission_condition_tpl` varchar(32) NOT NULL COMMENT '所属ci属性关联',
+       `ci_type_attr` varchar(128) NOT NULL COMMENT 'ci属性(条件对象)',
+       `ci_type_attr_name` varchar(64) DEFAULT NULL COMMENT 'ci属性显示名',
+       `expression` varchar(500) DEFAULT NULL COMMENT '条件表达式',
+       `filter_type` varchar(32) DEFAULT 'expression',
+       `select_list` varchar(500) DEFAULT NULL,
+       `param_list` text DEFAULT NULL,
+       PRIMARY KEY (`guid`),
+       CONSTRAINT `ref_permission_cond_attr` FOREIGN KEY (`ci_type_attr`) REFERENCES `sys_ci_type_attr` (`id`),
+       CONSTRAINT `ref_permission_cond_owner` FOREIGN KEY (`permission_condition_tpl`) REFERENCES `sys_permission_condition_tpl` (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `sys_permission_list_tpl` (
+       `guid` varchar(32) NOT NULL,
+       `permission_ci_tpl` varchar(32) NOT NULL COMMENT 'ci权限模版',
+       `list` text,
+       `insert` varchar(4) DEFAULT 'N',
+       `delete` varchar(4) DEFAULT 'N',
+       `update` varchar(4) DEFAULT 'N',
+       `query` varchar(4) DEFAULT 'N',
+       `execute` varchar(4) DEFAULT 'N',
+       `confirm` varchar(4) DEFAULT 'N',
+       PRIMARY KEY (`guid`),
+       CONSTRAINT `ref_permission_list_ci` FOREIGN KEY (`permission_ci_tpl`) REFERENCES `sys_permission_ci_tpl` (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+#@v2.2.0.1-end@;
+
+#@v2.3.1.7-begin@;
+alter table sys_ci_type add column `sync_enable` varchar(8) default 'no' comment '是否同步,yes/no';
+
+CREATE TABLE `sys_sync_record` (
+    `id` VARCHAR(64) PRIMARY KEY COMMENT '记录主键',
+    `sync_type` VARCHAR(32) NOT NULL COMMENT '推送/接收',
+    `remote_repo` TEXT DEFAULT NULL COMMENT '远程仓库信息',
+    `action_func` VARCHAR(64) NOT NULL COMMENT '函数行为',
+    `data_category` VARCHAR(64) DEFAULT NULL COMMENT '数据类别',
+    `data_type` VARCHAR(128) DEFAULT NULL COMMENT '数据类型',
+    `content` TEXT DEFAULT NULL COMMENT '内容',
+    `source` VARCHAR(64) DEFAULT NULL COMMENT '来源ip',
+    `source_id` VARCHAR(128) DEFAULT NULL COMMENT '原记录id',
+    `target` VARCHAR(255) DEFAULT NULL COMMENT '目标ip列表',
+    `status` VARCHAR(32) NOT NULL COMMENT '状态: ok/fail/wait',
+    `retry_count` INT(11) DEFAULT 0 COMMENT '重试次数',
+    `error_msg` TEXT DEFAULT NULL COMMENT '错误信息',
+    `create_time` DATETIME DEFAULT NULL COMMENT '开始时间',
+    `update_time` DATETIME DEFAULT NULL COMMENT '结束时间',
+    `operator` VARCHAR(64) DEFAULT NULL COMMENT '操作人'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `sys_sync_data` (
+    `id` int unsigned PRIMARY KEY NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+    `sync_record` VARCHAR(64) DEFAULT NULL COMMENT '同步纪录',
+    `data_id` VARCHAR(64) NOT NULL COMMENT '数据guid',
+    `data_content` TEXT DEFAULT NULL COMMENT '数据json',
+    `action` VARCHAR(32) DEFAULT NULL COMMENT '数据行为',
+    `operation` VARCHAR(32) DEFAULT NULL COMMENT '操作行为',
+    `handle_time` DATETIME DEFAULT NULL COMMENT '处理时间',
+    `status` VARCHAR(32) NOT NULL COMMENT '状态: ok/fail/wait',
+    `retry_count` INT DEFAULT 0 COMMENT '重试次数',
+    `error_msg` TEXT DEFAULT NULL COMMENT '错误信息',
+    `create_time` DATETIME DEFAULT NULL COMMENT '开始时间',
+    `update_time` DATETIME DEFAULT NULL COMMENT '结束时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+#@v2.3.1.7-end@;
