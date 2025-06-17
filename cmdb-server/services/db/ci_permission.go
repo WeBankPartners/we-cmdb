@@ -465,6 +465,18 @@ func AutoCreateRoleCiTypeDataByCiType(ciTypeId string) {
 			actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type(guid,role_id,ci_type) value (?,?,?)", Param: []interface{}{"role_ci_" + guidList[i], role.Id, ciTypeId}})
 		}
 	}
+	var sysPermissionTplRows []*models.SysPermissionTplTable
+	err = x.SQL("select id,name from sys_permission_tpl where id not in (select permission_tpl from sys_permission_ci_tpl where ci_type=?)", ciTypeId).Find(&sysPermissionTplRows)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Try to auto update roleCiType data fail,query sys_permission_tpl data error", zap.String("ciType", ciTypeId), zap.Error(err))
+		return
+	}
+	if len(sysPermissionTplRows) > 0 {
+		tplGuidList := guid.CreateGuidList(len(sysPermissionTplRows))
+		for i, v := range sysPermissionTplRows {
+			actions = append(actions, &execAction{Sql: "insert into sys_permission_ci_tpl(guid,permission_tpl,ci_type) values (?,?,?)", Param: []interface{}{"perm_ci_" + tplGuidList[i], v.Id, ciTypeId}})
+		}
+	}
 	if err = transaction(actions); err != nil {
 		log.Error(nil, log.LOGGER_APP, "Try to update roleCiType data fail", zap.String("ciType", ciTypeId), zap.Error(err))
 	}
@@ -486,37 +498,65 @@ func AutoCreateRoleCiTypeAttrPermission(ciTypeId string) {
 		log.Error(nil, log.LOGGER_APP, "Try to auto update roleCiType attr data fail,query roleCiType data error", zap.String("ciType", ciTypeId), zap.Error(err))
 		return
 	}
+	var permissionCiTplRows []*models.SysPermissionCiTplTable
+	err = x.SQL("select guid,permission_tpl,ci_type,ci_type_attr from sys_permission_ci_tpl where ci_type=? and ci_type_attr<>''", ciTypeId).Find(&permissionCiTplRows)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Try to auto update roleCiType attr data fail,query sys_permission_ci_tpl data error", zap.String("ciType", ciTypeId), zap.Error(err))
+		return
+	}
 	var roles []*models.SysRoleTable
 	err = x.SQL("select * from sys_role").Find(&roles)
 	if err != nil {
 		log.Error(nil, log.LOGGER_APP, "Try to auto update roleCiType attr data fail,query roles data error", zap.String("ciType", ciTypeId), zap.Error(err))
 		return
 	}
-	if len(roles) == 0 {
+	var permissionTplRows []*models.SysPermissionTplTable
+	err = x.SQL("select id,name from sys_permission_tpl").Find(&permissionTplRows)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Try to auto update roleCiType attr data fail,query sys_permission_tpl data error", zap.String("ciType", ciTypeId), zap.Error(err))
 		return
 	}
 	var actions []*execAction
 	for _, attrRow := range ciAttrRows {
-		existFlag := false
-		for _, roleCiRow := range roleCiTypeTable {
-			if roleCiRow.CiTypeAttr == attrRow.Id {
-				existFlag = true
-				break
+		if len(roles) > 0 {
+			existFlag := false
+			for _, roleCiRow := range roleCiTypeTable {
+				if roleCiRow.CiTypeAttr == attrRow.Id {
+					existFlag = true
+					break
+				}
+			}
+			if !existFlag {
+				guidList := guid.CreateGuidList(len(roles))
+				for i, role := range roles {
+					if strings.ToLower(role.Id) == strings.ToLower(models.AdminUser) {
+						actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type(guid,role_id,ci_type,`insert`,`delete`,`update`,query,`execute`,`Confirm`,`ci_type_attr`) values (?,?,?,'Y','Y','Y','Y','Y','Y',?)", Param: []interface{}{"role_ci_" + guidList[i], role.Id, ciTypeId, attrRow.Id}})
+					} else {
+						actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type(guid,role_id,ci_type,`ci_type_attr`) value (?,?,?,?)", Param: []interface{}{"role_ci_" + guidList[i], role.Id, ciTypeId, attrRow.Id}})
+					}
+				}
 			}
 		}
-		if !existFlag {
-			guidList := guid.CreateGuidList(len(roles))
-			for i, role := range roles {
-				if strings.ToLower(role.Id) == strings.ToLower(models.AdminUser) {
-					actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type(guid,role_id,ci_type,`insert`,`delete`,`update`,query,`execute`,`Confirm`,`ci_type_attr`) values (?,?,?,'Y','Y','Y','Y','Y','Y',?)", Param: []interface{}{"role_ci_" + guidList[i], role.Id, ciTypeId, attrRow.Id}})
-				} else {
-					actions = append(actions, &execAction{Sql: "insert into sys_role_ci_type(guid,role_id,ci_type,`ci_type_attr`) value (?,?,?,?)", Param: []interface{}{"role_ci_" + guidList[i], role.Id, ciTypeId, attrRow.Id}})
+		if len(permissionTplRows) > 0 {
+			tplExistFlag := false
+			for _, tplCiRow := range permissionCiTplRows {
+				if tplCiRow.CiTypeAttr == attrRow.Id {
+					tplExistFlag = true
+					break
+				}
+			}
+			if !tplExistFlag {
+				guidList := guid.CreateGuidList(len(permissionTplRows))
+				for i, tpl := range permissionTplRows {
+					actions = append(actions, &execAction{Sql: "insert into sys_permission_ci_tpl(guid,permission_tpl,ci_type,ci_type_attr) values (?,?,?,?)", Param: []interface{}{"perm_ci_" + guidList[i], tpl.Id, ciTypeId, attrRow.Id}})
 				}
 			}
 		}
 	}
-	if err = transaction(actions); err != nil {
-		log.Error(nil, log.LOGGER_APP, "Try to update roleCiType attr data fail", zap.String("ciType", ciTypeId), zap.Error(err))
+	if len(actions) > 0 {
+		if err = transaction(actions); err != nil {
+			log.Error(nil, log.LOGGER_APP, "Try to update roleCiType attr data fail", zap.String("ciType", ciTypeId), zap.Error(err))
+		}
 	}
 }
 

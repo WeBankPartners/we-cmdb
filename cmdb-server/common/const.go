@@ -42,8 +42,28 @@ const (
 	DataActionConfirm  = "confirm"
 	HEADER_BUSINESS_ID = "BusinessId" // 业务流水号
 	HEADER_REQUEST_ID  = "RequestId"  // 交易流水号
+
+	TmpSyncDir   = "/tmp/sync/"
+	SyncNexusDir = "/"
 )
 
 var (
 	SEPERATOR = string([]byte{0x01})
 )
+
+func DistinctStringList(input, excludeList []string) (output []string) {
+	if len(input) == 0 {
+		return
+	}
+	existMap := make(map[string]int)
+	for _, v := range excludeList {
+		existMap[v] = 1
+	}
+	for _, v := range input {
+		if _, ok := existMap[v]; !ok {
+			output = append(output, v)
+			existMap[v] = 1
+		}
+	}
+	return
+}

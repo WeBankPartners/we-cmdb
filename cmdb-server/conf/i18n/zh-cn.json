@@ -47,5 +47,9 @@
   "api_permission_deny": {
     "code": 20200002,
     "message": "无接口访问权限"
+  },
+  "slave_modify_deny": {
+    "code": 20200003,
+    "message": "备用节点禁止编辑"
   }
 }

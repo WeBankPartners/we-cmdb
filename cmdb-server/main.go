@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/v1/ci"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
@@ -34,6 +35,7 @@ func main() {
 	go db.StartConsumeAffectGuidMap()
 	go db.StartConsumeAffectCiType()
 	go db.StartConsumeUniquePathHandle()
+	go ci.StartSyncCron()
 	//start http
 	api.InitHttpServer()
 }

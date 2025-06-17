@@ -5,15 +5,16 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"reflect"
+	"strconv"
+	"strings"
+
 	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
-	"io/ioutil"
-	"reflect"
-	"strconv"
-	"strings"
 )
 
 func DataQuery(c *gin.Context) {
@@ -58,7 +59,8 @@ func DataOperation(c *gin.Context) {
 		return
 	}
 	if len(interfaceParam) == 0 {
-		middleware.ReturnParamValidateError(c, fmt.Errorf("Input data empty "))
+		middleware.ReturnData(c, interfaceParam)
+		// middleware.ReturnParamValidateError(c, fmt.Errorf("Input data empty "))
 		return
 	}
 	var param []models.CiDataMapObj

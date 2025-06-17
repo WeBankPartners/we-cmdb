@@ -170,6 +170,9 @@ func transFiltersToSQL(queryParam *models.QueryRequestParam, transParam *models.
 			}
 		}
 		if filter.Operator == "eq" {
+			if strings.Contains(filterSqlColumn, "time") && filter.Value == "" {
+				continue
+			}
 			filterSql += fmt.Sprintf(" AND %s=? ", filterSqlColumn)
 			param = append(param, filter.Value)
 		} else if filter.Operator == "contains" || filter.Operator == "like" {
@@ -201,6 +204,9 @@ func transFiltersToSQL(queryParam *models.QueryRequestParam, transParam *models.
 			filterSql += fmt.Sprintf(" AND %s>=? ", filterSqlColumn)
 			param = append(param, filter.Value)
 		} else if filter.Operator == "ne" || filter.Operator == "neq" {
+			if strings.Contains(filterSqlColumn, "time") && filter.Value == "" {
+				continue
+			}
 			filterSql += fmt.Sprintf(" AND %s!=? ", filterSqlColumn)
 			param = append(param, filter.Value)
 		} else if filter.Operator == "notNull" || filter.Operator == "isnot" {

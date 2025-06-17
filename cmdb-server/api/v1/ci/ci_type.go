@@ -3,14 +3,15 @@ package ci
 import (
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
+	"strings"
+
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"io/ioutil"
-	"strings"
 )
 
 // 查询CI
@@ -49,6 +50,10 @@ func CiTypesQuery(c *gin.Context) {
 // 新增CI
 // POST /ci-types
 func CiTypesCreate(c *gin.Context) {
+	if !middleware.CheckModifyLegal(c) {
+		middleware.ReturnSlaveModifyDenyError(c)
+		return
+	}
 	//Param validate
 	var param models.SysCiTypeTable
 	var err error
@@ -87,12 +92,17 @@ func CiTypesCreate(c *gin.Context) {
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
+	db.SyncPush(&models.SysSyncRecordTable{ContentData: param, Operator: middleware.GetRequestUser(c), ActionFunc: "CiTypesCreate", DataCategory: "model", DataType: param.Id})
 	middleware.ReturnData(c, models.SysCiTypeTable{Id: param.Id, FileName: imageFileName})
 }
 
 // 修改CI
 // PUT /ci-types/{{ciType}}
 func CiTypesUpdate(c *gin.Context) {
+	if !middleware.CheckModifyLegal(c) {
+		middleware.ReturnSlaveModifyDenyError(c)
+		return
+	}
 	var param models.SysCiTypeTable
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnParamValidateError(c, err)
@@ -106,6 +116,9 @@ func CiTypesUpdate(c *gin.Context) {
 			middleware.ReturnParamValidateError(c, err)
 			return
 		}
+	}
+	if param.SyncEnable == "" {
+		param.SyncEnable = "N"
 	}
 	nowImageFileName, err := db.CiTypesUpdate(&param, newImageGuid)
 	if err != nil {
@@ -117,21 +130,31 @@ func CiTypesUpdate(c *gin.Context) {
 		if imageFileName != "" {
 			nowImageFileName = imageFileName
 		}
+		db.SyncPush(&models.SysSyncRecordTable{ContentData: param, Operator: middleware.GetRequestUser(c), ActionFunc: "CiTypesUpdate", DataCategory: "model", DataType: param.Id})
 		middleware.ReturnData(c, models.SysCiTypeTable{Id: param.Id, FileName: nowImageFileName})
 	}
 }
 
 func CiTypesDelete(c *gin.Context) {
+	if !middleware.CheckModifyLegal(c) {
+		middleware.ReturnSlaveModifyDenyError(c)
+		return
+	}
 	ciTypeId := c.Param("ciType")
 	err := db.CiTypesDelete(ciTypeId)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
+		db.SyncPush(&models.SysSyncRecordTable{ContentData: map[string]string{"ciType": ciTypeId}, Operator: middleware.GetRequestUser(c), ActionFunc: "CiTypesDelete", DataCategory: "model", DataType: ciTypeId})
 		middleware.ReturnData(c, []string{})
 	}
 }
 
 func CiTypesApply(c *gin.Context) {
+	// if !middleware.CheckModifyLegal(c) {
+	// 	middleware.ReturnSlaveModifyDenyError(c)
+	// 	return
+	// }
 	var param models.SysCiTypeTable
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnParamValidateError(c, err)
@@ -146,8 +169,15 @@ func CiTypesApply(c *gin.Context) {
 			return
 		}
 	}
+	if param.SyncEnable == "" {
+		param.SyncEnable = "N"
+	}
 	nowImageFileName, err := db.CiTypesUpdate(&param, newImageGuid)
 	if err != nil {
+		middleware.ReturnServerHandleError(c, err)
+		return
+	}
+	if err = db.CheckCiTypeSyncRef(param.Id); err != nil {
 		middleware.ReturnServerHandleError(c, err)
 		return
 	}
@@ -177,16 +207,22 @@ func CiTypesApply(c *gin.Context) {
 	} else {
 		db.AutoCreateRoleCiTypeDataByCiType(ciTypeId)
 		db.AutoCreateRoleCiTypeAttrPermission(ciTypeId)
+		db.SyncPush(&models.SysSyncRecordTable{ContentData: param, Operator: middleware.GetRequestUser(c), ActionFunc: "CiTypesApply", DataCategory: "model", DataType: ciTypeId})
 		middleware.ReturnData(c, models.SysCiTypeTable{Id: param.Id, FileName: nowImageFileName})
 	}
 }
 
 func CiTypesRollback(c *gin.Context) {
+	if !middleware.CheckModifyLegal(c) {
+		middleware.ReturnSlaveModifyDenyError(c)
+		return
+	}
 	ciTypeId := c.Param("ciType")
 	err := db.CiTypesRollback(ciTypeId)
 	if err != nil {
 		middleware.ReturnServerHandleError(c, err)
 	} else {
+		db.SyncPush(&models.SysSyncRecordTable{ContentData: map[string]string{"ciType": ciTypeId}, Operator: middleware.GetRequestUser(c), ActionFunc: "CiTypesRollback", DataCategory: "model", DataType: ciTypeId})
 		middleware.ReturnData(c, []string{})
 	}
 }
