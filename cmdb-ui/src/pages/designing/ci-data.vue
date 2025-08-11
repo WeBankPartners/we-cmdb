@@ -42,6 +42,7 @@
       </TabPane>
       <TabPane v-for="ci in tabList" :key="ci.id" :name="ci.id" :label="ci.name">
         <CMDBTable
+          v-if="ci.tableColumns.length"
           :ciTypeId="ci.id"
           :tableData="ci.tableData"
           :tableOuterActions="ci.outerActions"
@@ -368,17 +369,22 @@ export default {
       if (this.currentTab !== 'CMDB') this.queryCiData()
     },
     handleTabRemove (name) {
+      let hasDeleteOne = []
       this.tabList.forEach((_, index) => {
         if (_.id === name) {
-          this.tabList.splice(index, 1)
+          hasDeleteOne = this.tabList.splice(index, 1)
           this.payload.filters = this.payload.filters.filter(x => x.name === 'update_time')
         }
       })
-      this.currentTab = 'CMDB'
+      this.currentTab = (isEmpty(hasDeleteOne[0]) || (isEmpty(find(this.tabList, {id: hasDeleteOne[0].lastTabValue}))) && hasDeleteOne[0].lastTabValue !== 'CMDB') ? "CMDBSimple" : hasDeleteOne[0].lastTabValue
     },
     handleTabClick (name) {
       this.payload.filters = this.payload.filters.filter(x => x.name === 'update_time')
       delete this.payload.sorting
+      let tabItem = find(this.tabList, {id: name})
+      if (!isEmpty(tabItem)) {
+        tabItem.lastTabValue = this.currentTab
+      }
       this.currentTab = name
     },
     genEdge (nodes, from, to) {
@@ -512,12 +518,11 @@ export default {
     async commonNodeClickHandler ({ id, name }) {
       const found = this.tabList.find(_ => _.id === id)
       if (!found) {
-        const stateTransition = await this.getStateTransition(id)
         const ci = {
           name: name || 'Default',
           id: id,
           tableData: [],
-          outerActions: stateTransition,
+          outerActions: [],
           innerActions: [
             {
               operation: this.$t('compare'),
@@ -530,9 +535,10 @@ export default {
               }
             }
           ],
-          tableColumns: await this.queryCiAttrs(id),
+          tableColumns: [],
           pagination: JSON.parse(JSON.stringify(pagination)),
-          ascOptions: {}
+          ascOptions: {},
+          lastTabValue: 'CMDBSimple'
         }
         const query = {
           id: id,
@@ -546,10 +552,20 @@ export default {
         if (!existFlag) {
           this.tabList.push(ci)
         }
+        ci.lastTabValue = this.currentTab // 对于每个tab记录下跳过来的上一次tab
         this.currentTab = id
+        
+        const [stateTransition, tableColumns] = await Promise.all([
+          this.getStateTransition(id),
+          this.queryCiAttrs(id)
+        ])
+
+        ci.outerActions = stateTransition
+        ci.tableColumns = tableColumns
         this.$nextTick(() => {
-          this.queryCiData(query)
+          this.$refs[this.tableRef][0].isTableLoading(true)
         })
+        this.queryCiData(false)
       } else {
         this.currentTab = id
       }
@@ -967,7 +983,7 @@ export default {
       })
       this.queryCiData()
     },
-    async queryCiData (needLoading = true, needTips = false) {
+    async queryCiData (needLoading = true) {
       this.payload.pageable.pageSize = 10
       this.payload.pageable.startIndex = 0
       this.tabList.forEach(ci => {
@@ -996,23 +1012,7 @@ export default {
         this.$refs[this.tableRef][0].isTableLoading(false)
         this.tabList.forEach(ci => {
           if (ci.id === this.currentTab) {
-            // 将WeCMDBSelect枚举类型的数据值从value转换成label以便与编辑态对应
-            const filterSelect = ci.tableColumns.filter(item => item.component === 'WeCMDBSelect')
-            filterSelect.forEach(item => {
-              contents.forEach(d => {
-                const find = item.options.find(o => o.value === d[item.key])
-                if (find) {
-                  d[item.key] = find.label
-                }
-              })
-            })
-            ci.tableData = contents.map(_ => {
-              return {
-                ..._,
-                // _checked: !!find(this.selectedRows, { guid: _.guid })
-                // nextOperations: _.meta.nextOperations || []
-              }
-            })
+            ci.tableData = contents
             ci.pagination.total = totalRows
           }
         })
@@ -1024,21 +1024,41 @@ export default {
       const { statusCode, data } = await getCiTypeAttributes(id)
       if (statusCode === 'OK') {
         let columns = []
+        const enumRequests = data
+        .filter(item => ['select', 'multiSelect'].includes(item.inputType) && item.selectList)
+        .map(item => getEnumCategoriesById(item.selectList).then(res => ({
+          id: item.selectList,
+          options: res.statusCode === 'OK' ? res.data.map(opt => ({
+              label: opt.value,
+              value: opt.code,
+              codeDescription: opt.codeDescription
+            })) : []
+          })))
+          const enumResults = await Promise.all(enumRequests);
+          const enumMap = new Map(enumResults.map(r => [r.id, r.options]));
+
         for (let index = 0; index < data.length; index++) {
           let renderKey = data[index].propertyName
           if (data[index].status !== 'decommissioned' && data[index].status !== 'notCreated') {
-            if (['select', 'multiSelect'].includes(data[index].inputType) && data[index].selectList !== '') {
-              const res = await getEnumCategoriesById(data[index].selectList)
-              if (res.statusCode === 'OK') {
-                data[index].options = res.data.map(item => {
-                  return {
-                    label: item.value,
-                    value: item.code,
-                    codeDescription: item.codeDescription
-                  }
-                })
-              }
+            // if (['select', 'multiSelect'].includes(data[index].inputType) && data[index].selectList !== '') {
+            //   console.log(11)
+            //   const res = await getEnumCategoriesById(data[index].selectList)
+            //   if (res.statusCode === 'OK') {
+            //     data[index].options = res.data.map(item => {
+            //       return {
+            //         label: item.code,
+            //         value: item.value,
+            //         codeDescription: item.codeDescription
+            //       }
+            //     })
+            //   }
+            // }
+
+            if (enumMap.has(data[index].selectList)) {
+              data[index].options = enumMap.get(data[index].selectList);
             }
+
+
             const columnItem = {
               ...data[index],
               tooltip: true,
@@ -1097,12 +1117,12 @@ export default {
         this.allCiTypesWithAttr = allCiTypesWithAttr
         this.allCiTypesFormatByCiTypeId = allCiTypesFormatByCiTypeId
 
-        this.newInitGraph()
+        this.newInitGraph(false)
       }
     },
-    async newInitGraph () {
+    async newInitGraph (needSpin = true) {
       // 确定按钮为静态搜索，手动添加加载效果
-      this.spinShow = true
+      this.spinShow = needSpin
       this.newInitSimpleCITypes()
 
       let graph
@@ -1299,6 +1319,7 @@ export default {
     width: 100%
   }
 }
+
 .highlightTableCell {
   color: rgba(#ff6600, 0.9) !important;
 }
@@ -1308,6 +1329,7 @@ export default {
   float: right;
   margin: 3px 20px 0 0 !important;
 }
+
 ::deep .compare-modal .ivu-modal-body {
   padding-top: 40px;
 }
@@ -1317,10 +1339,12 @@ export default {
     max-height: 450px;
     overflow-y: auto;
   }
+
   .ivu-select-selection {
     min-height: 24px !important;
     height: 26px !important;
   }
+
   .copy-form {
     display: flex;
     flex-flow: column nowrap;
@@ -1338,10 +1362,12 @@ export default {
     }
   }
 }
+
 #graph {
   position: relative;
   height: calc(100vh - 200px);
 }
+
 .history-query {
   display: flex;
   flex-flow: row nowrap;
@@ -1357,6 +1383,7 @@ export default {
   ::deep .ivu-select-selection {
     height: 28px;
     min-height: 28px !important;
+
     .ivu-select-placeholder,
     .ivu-select-selected-value {
       height: 28px;
@@ -1401,9 +1428,11 @@ export default {
 
 .sim-item {
   padding-bottom: 15px;
+
   .item-head {
     padding-bottom: 10px;
   }
+
   .item-child-item {
     margin-right: 8px;
     margin-bottom: 8px;
@@ -1425,6 +1454,7 @@ export default {
       border: 1px solid #5384FF;
       color: #5384FF;
     }
+
     &.hidden {
       display: none !important;
     }

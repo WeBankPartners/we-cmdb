@@ -4,7 +4,7 @@ import lodash, { cloneDeep, hasIn, isEmpty, filter, map } from 'lodash'
 import { debounce } from '@/const/util.js'
 import EditModal from './edit-modal.js'
 import { dataToCsv, download } from './export-csv.js'
-import { createPopper } from '@popperjs/core'
+import { createPopper } from '@popperjs/core/index.js'
 import {
   queryCiData,
   getCiTypeAttributes,
@@ -752,7 +752,7 @@ export default {
         return 0
       }
       const columns = this.tableColumns
-        .filter(_ => (_.displayByDefault === 'yes' && _.uiFormOrder > 0) || _.children)
+        .filter(_ => (_.displayByDefault === 'yes' && _.uiFormOrder >= 0) || _.children)
         .sort(compare)
       const tableWidth = this.$refs.table ? this.$refs.table.$el.clientWidth : 1000 // 获取table宽度，默认值1000
       const colLength = columns.length // 获取传入展示的column长度
@@ -1362,7 +1362,7 @@ export default {
       attr.displayByDefault = attr.displayByDefault === 'yes' ? 'no' : 'yes'
       if (selectAttrs.includes(ciTypeAttrId)) {
         const index = selectAttrs.findIndex(s => s === ciTypeAttrId)
-        selectAttrs = selectAttrs.splice(index, 1)
+        selectAttrs.splice(index, 1)
       } else {
         selectAttrs.push(ciTypeAttrId)
       }
