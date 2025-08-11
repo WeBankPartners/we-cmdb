@@ -4,7 +4,7 @@ import lodash, { cloneDeep, hasIn, isEmpty, filter, map } from 'lodash'
 import { debounce } from '@/const/util.js'
 import EditModal from './edit-modal.js'
 import { dataToCsv, download } from './export-csv.js'
-import { createPopper } from '@popperjs/core/index.js'
+import { createPopper } from '@popperjs/core'
 import {
   queryCiData,
   getCiTypeAttributes,
