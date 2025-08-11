@@ -1919,6 +1919,7 @@ export default {
       }
     },
     async newInitGraph () {
+      this.spinShow = true
       this.isOpenDrawer = false
       this.resetData()
       let graph
@@ -1956,7 +1957,9 @@ export default {
       }
       await initEvent()
       this.$nextTick(() => {
-        this.renderGraph()
+        setTimeout(() => {
+          this.renderGraph()
+        }, 10)
       })
     },
     renderGraph () {

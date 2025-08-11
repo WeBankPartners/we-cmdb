@@ -70,6 +70,7 @@ type SyncConfig struct {
 	NexusPwd     string `json:"nexus_pwd"`
 	NexusRepo    string `json:"nexus_repo"`
 	HostIp       string `json:"host_ip"`
+	StartId      string `json:"start_id"`
 	MasterEnable bool   `json:"-"`
 	SlaveEnable  bool   `json:"-"`
 }
@@ -86,6 +87,7 @@ type GlobalConfig struct {
 	MenuApiMap           MenuApiMapConfig              `json:"menu_api_map"`
 	Sync                 SyncConfig                    `json:"sync"`
 	DefaultReportObjAttr []*DefaultReportObjAttrConfig `json:"default_report_obj_attr"`
+	AutoFillWithoutList  string                        `json:"auto_fill_without_list"`
 	// default json
 }
 
@@ -96,11 +98,12 @@ type DefaultReportObjAttrConfig struct {
 }
 
 var (
-	Config            *GlobalConfig
-	PluginRunningMode bool
-	CoreToken         *token.CoreToken
-	MenuApiGlobalList []*MenuApiMapObj
-	ProcessFetchTabs  string
+	Config                  *GlobalConfig
+	PluginRunningMode       bool
+	CoreToken               *token.CoreToken
+	MenuApiGlobalList       []*MenuApiMapObj
+	ProcessFetchTabs        string
+	AutoFillWithoutListFlag bool
 )
 
 func InitConfig(configFile string) (errMessage string) {
@@ -153,6 +156,12 @@ func InitConfig(configFile string) (errMessage string) {
 	} else {
 		CoreToken = &token.CoreToken{BaseUrl: ""}
 		PluginRunningMode = false
+	}
+	c.AutoFillWithoutList = strings.ToLower(c.AutoFillWithoutList)
+	if c.AutoFillWithoutList == "yes" || c.AutoFillWithoutList == "y" || c.AutoFillWithoutList == "true" {
+		AutoFillWithoutListFlag = true
+	} else {
+		AutoFillWithoutListFlag = false
 	}
 	if c.MenuApiMap.Enable == "true" || strings.TrimSpace(c.MenuApiMap.Enable) == "" || strings.ToUpper(c.MenuApiMap.Enable) == "Y" {
 		maBytes, err := ioutil.ReadFile(Config.MenuApiMap.File)

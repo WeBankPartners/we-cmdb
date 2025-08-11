@@ -436,6 +436,9 @@ func getAutofillValueString(valueList []string, attributeInputType string) strin
 	if attributeInputType == models.MultiInt {
 		return fmt.Sprintf("[%s]", strings.Join(filterNonEmpty(valueList), ","))
 	}
+	if models.AutoFillWithoutListFlag {
+		return fmt.Sprintf("%s", strings.Join(valueList, ","))
+	}
 	return fmt.Sprintf("[%s]", strings.Join(valueList, ","))
 }
 

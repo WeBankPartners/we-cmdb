@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/exterror"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
@@ -120,6 +121,12 @@ func ReturnSlaveModifyDenyError(c *gin.Context) {
 
 func CheckModifyLegal(c *gin.Context) (ok bool) {
 	if !models.Config.Sync.SlaveEnable {
+		return true
+	}
+	if c.Request.Method == http.MethodGet {
+		return true
+	}
+	if !strings.HasPrefix(c.Request.RequestURI, "/wecmdb/api/v1/ci-types") && !strings.HasPrefix(c.Request.RequestURI, "/wecmdb/api/v1/permissions") {
 		return true
 	}
 	if c.GetString("fromSync") == "yes" {

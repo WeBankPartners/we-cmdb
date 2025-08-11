@@ -1,21 +1,26 @@
-import 'core-js/stable'
-import 'regenerator-runtime/runtime'
-import router from './project-config/router-plugin'
+import 'core-js/stable/index.js'
+import 'regenerator-runtime'
+
+if (typeof Symbol === 'undefined') {
+  require('core-js/features/symbol/index.js')
+}
+
+import router from './project-config/router-plugin.js'
 import zhCN from './locale/i18n/zh-CN.json'
 import enUS from './locale/i18n/en-US.json'
 // import 'view-design/dist/styles/iview.css'
 
-import WeCMDBSelect from '../src/pages/components/select.vue'
+import WeCMDBSelect from './pages/components/select.vue'
 import WeCMDBRefSelect from './pages/components/ref-select.js'
-import WeCMDBRadioRroup from '../src/pages/components/radio-group.vue'
-import CMDBTable from '../src/pages/components/cmdb-table/index.js'
-import WeCMDBSimpleTable from '../src/pages/components/simple-table.vue'
-import WeCMDBAttrInput from '../src/pages/components/attr-input'
-import WeCMDBSequenceDiagram from '../src/pages/components/sequence-diagram.vue'
-import WeCMDBOrchestration from '../src/pages/components/orchestration.vue'
-import WeCMDBCIPassword from '../src/pages/components/ci-password.vue'
-import CMDBPermissionFilters from '../src/pages/components/permission-filters'
-import CMDBJSONConfig from '../src/pages/components/cmdb-table/json-config.vue'
+import WeCMDBRadioRroup from './pages/components/radio-group.vue'
+import CMDBTable from './pages/components/cmdb-table/index.js'
+import WeCMDBSimpleTable from './pages/components/simple-table.vue'
+import WeCMDBAttrInput from './pages/components/attr-input.js'
+import WeCMDBSequenceDiagram from './pages/components/sequence-diagram.vue'
+import WeCMDBOrchestration from './pages/components/orchestration.vue'
+import WeCMDBCIPassword from './pages/components/ci-password.vue'
+import CMDBPermissionFilters from './pages/components/permission-filters/index.js'
+import CMDBJSONConfig from './pages/components/cmdb-table/json-config.vue'
 import JsonViewer from 'vue-json-viewer'
 
 const implicitRoute = {

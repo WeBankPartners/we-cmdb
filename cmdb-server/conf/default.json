@@ -72,5 +72,18 @@
   "menu_api_map": {
     "enable": "Y",
     "file": "conf/menu-api-map.json"
-  }
+  },
+  "sync": {
+    "enable": "N",
+    "type": "from",
+    "source": "",
+    "target": "",
+    "nexus_address": "",
+    "nexus_user": "",
+    "nexus_pwd": "",
+    "nexus_repo": "",
+    "host_ip": "",
+    "start_id": ""
+  },
+  "auto_fill_without_list" : "N"
 }

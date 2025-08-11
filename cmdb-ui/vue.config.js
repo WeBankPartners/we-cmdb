@@ -48,7 +48,7 @@ module.exports = {
     if (process.env.NODE_ENV === 'production') {
       return {
         optimization: {
-          sideEffects: false
+          sideEffects: true
         },
         plugins: [
           new CompressionPlugin({

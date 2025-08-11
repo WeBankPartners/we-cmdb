@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
-	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/services/db"
 	"github.com/gin-gonic/gin"
@@ -33,10 +32,6 @@ func AttrQuery(c *gin.Context) {
 }
 
 func AttrCreate(c *gin.Context) {
-	if !middleware.CheckModifyLegal(c) {
-		middleware.ReturnSlaveModifyDenyError(c)
-		return
-	}
 	var param models.SysCiTypeAttrTable
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnParamValidateError(c, err)
@@ -91,10 +86,6 @@ func validateAttrParam(param models.SysCiTypeAttrTable) error {
 }
 
 func AttrUpdate(c *gin.Context) {
-	if !middleware.CheckModifyLegal(c) {
-		middleware.ReturnSlaveModifyDenyError(c)
-		return
-	}
 	var param models.SysCiTypeAttrTable
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnParamValidateError(c, err)
@@ -121,10 +112,6 @@ func AttrUpdate(c *gin.Context) {
 }
 
 func AttrDelete(c *gin.Context) {
-	if !middleware.CheckModifyLegal(c) {
-		middleware.ReturnSlaveModifyDenyError(c)
-		return
-	}
 	//Param validate
 	ciAttrId := c.Param("ciAttr")
 	if ciAttrId == "" {
@@ -142,11 +129,6 @@ func AttrDelete(c *gin.Context) {
 }
 
 func AttrApply(c *gin.Context) {
-	log.Info(nil, log.LOGGER_APP, "Start attr apply")
-	if !middleware.CheckModifyLegal(c) {
-		middleware.ReturnSlaveModifyDenyError(c)
-		return
-	}
 	var param models.SysCiTypeAttrTable
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnParamValidateError(c, err)
@@ -186,10 +168,6 @@ func AttrApply(c *gin.Context) {
 }
 
 func AttrRollback(c *gin.Context) {
-	if !middleware.CheckModifyLegal(c) {
-		middleware.ReturnSlaveModifyDenyError(c)
-		return
-	}
 	//Param validate
 	ciAttrId := c.Param("ciAttr")
 	if ciAttrId == "" {
@@ -207,10 +185,6 @@ func AttrRollback(c *gin.Context) {
 }
 
 func AttrPositionSwap(c *gin.Context) {
-	if !middleware.CheckModifyLegal(c) {
-		middleware.ReturnSlaveModifyDenyError(c)
-		return
-	}
 	ciTypeGuid := c.Param("ciType")
 	if ciTypeGuid == "" {
 		middleware.ReturnParamEmptyError(c, "ciType")

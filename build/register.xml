@@ -3,7 +3,7 @@
 
     <!-- 1.依赖分析 - 描述运行本插件包需要的其他插件包 -->
     <packageDependencies>
-        <packageDependency name="platform" version="v2.9.0"/>
+        <packageDependency name="platform" version="v4.5.0"/>
     </packageDependencies>
 
     <!-- 2.菜单注入 - 描述运行本插件包需要注入的菜单 -->
@@ -18,6 +18,7 @@
         <menu code='report_configuration' cat='DESIGNING' displayName="Report Configuration" localDisplayName="报表配置">/wecmdb/report-configuration</menu>
         <menu code='basekey_configuration' cat='DESIGNING' displayName="Basekey Configuration" localDisplayName="基础数据配置">/wecmdb/basekey-configuration</menu>
         <menu code='system_operation_log' cat='ADMIN' displayName="WeCMDB Operation Log" localDisplayName="WeCMDB操作日志">/wecmdb/system-operation-log</menu>
+        <menu code='data_synchronization_config' cat='ADMIN' displayName="Data Synchronization Configuration" localDisplayName="数据同步配置">/wecmdb/config-synchronization</menu>
     </menus>
 
     <!-- 3.数据模型 - 描述本插件包的数据模型,并且描述和Framework数据模型的关系 -->
@@ -36,6 +37,17 @@
         <systemParameter name="WECMDB_LOG_LEVEL" scopeType="global" defaultValue="info"/>
         <systemParameter name="WECMDB_PROCESS_TAGS" scopeType="global" defaultValue="cmdb"/>
         <systemParameter name="WECMDB_MENU_API_ENABLE" scopeType="global" defaultValue="Y"/>
+
+        <systemParameter name="WECMDB_SYNC_ENABLE" scopeType="global" defaultValue="N"/>
+        <systemParameter name="WECMDB_SYNC_TYPE" scopeType="global" defaultValue="master/slave"/>
+        <systemParameter name="WECMDB_SYNC_SOURCE_IP" scopeType="global" defaultValue=""/>
+        <systemParameter name="WECMDB_SYNC_TARGET_IP" scopeType="global" defaultValue=""/>
+        <systemParameter name="WECMDB_SYNC_NEXUS_ADDRESS" scopeType="global" defaultValue=""/>
+        <systemParameter name="WECMDB_SYNC_NEXUS_USER" scopeType="global" defaultValue=""/>
+        <systemParameter name="WECMDB_SYNC_NEXUS_PWD" scopeType="global" defaultValue=""/>
+        <systemParameter name="WECMDB_SYNC_NEXUS_REPO" scopeType="global" defaultValue=""/>
+        <systemParameter name="WECMDB_SYNC_START_ID" scopeType="global" defaultValue=""/>
+        <systemParameter name="WECMDB_AUTOFILL_WITHOUT_LIST" scopeType="global" defaultValue="N"/>
     </systemParameters>
 
 
@@ -52,6 +64,7 @@
             <menu code="report_configuration" />
             <menu code="basekey_configuration" />
             <menu code="system_operation_log" />
+            <menu code="data_synchronization_config" />
         </authority >
     </authorities>
 
@@ -61,7 +74,7 @@
                 containerName="{{REPOSITORY}}-{{PLUGIN_VERSION}}"
                 portBindings="{{ALLOCATE_PORT}}:8096"
                 volumeBindings="{{BASE_MOUNT_PATH}}/wecmdb/log:/app/cmdb/logs,/etc/localtime:/etc/localtime,{{BASE_MOUNT_PATH}}/certs:/data/certs"
-                envVariables="CMDB_MYSQL_HOST={{DB_HOST}},CMDB_MYSQL_PORT={{DB_PORT}},CMDB_MYSQL_SCHEMA={{DB_SCHEMA}},CMDB_MYSQL_USER={{DB_USER}},CMDB_MYSQL_PWD={{DB_PWD}},JWT_SIGNING_KEY={{JWT_SIGNING_KEY}},GATEWAY_URL={{GATEWAY_URL}},SUB_SYSTEM_CODE={{SUB_SYSTEM_CODE}},SUB_SYSTEM_KEY={{SUB_SYSTEM_KEY}},CMDB_LOG_LEVEL={{WECMDB_LOG_LEVEL}},PLUGIN_MODE=yes,WECMDB_PROCESS_TAGS={{WECMDB_PROCESS_TAGS}},ENCRYPT_SEED={{ENCRYPT_SEED}},WECMDB_MENU_API_ENABLE={{WECMDB_MENU_API_ENABLE}}"
+                envVariables="CMDB_MYSQL_HOST={{DB_HOST}},CMDB_MYSQL_PORT={{DB_PORT}},CMDB_MYSQL_SCHEMA={{DB_SCHEMA}},CMDB_MYSQL_USER={{DB_USER}},CMDB_MYSQL_PWD={{DB_PWD}},JWT_SIGNING_KEY={{JWT_SIGNING_KEY}},GATEWAY_URL={{GATEWAY_URL}},SUB_SYSTEM_CODE={{SUB_SYSTEM_CODE}},SUB_SYSTEM_KEY={{SUB_SYSTEM_KEY}},CMDB_LOG_LEVEL={{WECMDB_LOG_LEVEL}},PLUGIN_MODE=yes,WECMDB_PROCESS_TAGS={{WECMDB_PROCESS_TAGS}},ENCRYPT_SEED={{ENCRYPT_SEED}},WECMDB_MENU_API_ENABLE={{WECMDB_MENU_API_ENABLE}},WECMDB_SYNC_ENABLE={{WECMDB_SYNC_ENABLE}},WECMDB_SYNC_TYPE={{WECMDB_SYNC_TYPE}},WECMDB_SYNC_SOURCE_IP={{WECMDB_SYNC_SOURCE_IP}},WECMDB_SYNC_TARGET_IP={{WECMDB_SYNC_TARGET_IP}},WECMDB_SYNC_NEXUS_ADDRESS={{WECMDB_SYNC_NEXUS_ADDRESS}},WECMDB_SYNC_NEXUS_USER={{WECMDB_SYNC_NEXUS_USER}},WECMDB_SYNC_NEXUS_PWD={{WECMDB_SYNC_NEXUS_PWD}},WECMDB_SYNC_NEXUS_REPO={{WECMDB_SYNC_NEXUS_REPO}},WECMDB_SYNC_START_ID={{WECMDB_SYNC_START_ID}},ALLOCATE_HOST={{ALLOCATE_HOST}},WECMDB_AUTOFILL_WITHOUT_LIST={{WECMDB_AUTOFILL_WITHOUT_LIST}}"
         />
         <mysql schema="wecmdb_pro" initFileName="init.sql" upgradeFileName="upgrade.sql"/>
     </resourceDependencies>

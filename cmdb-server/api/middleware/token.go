@@ -40,8 +40,15 @@ func AuthToken() gin.HandlerFunc {
 			ReturnTokenValidateError(c, err)
 			c.Abort()
 		} else {
+			// 如果是独立运行，放开
 			if !models.PluginRunningMode {
 				c.Next()
+				return
+			}
+			// 检查被同步模型下的请求拦截
+			if !CheckModifyLegal(c) {
+				ReturnSlaveModifyDenyError(c)
+				c.Abort()
 				return
 			}
 			// 白名单URL直接放行

@@ -50,10 +50,6 @@ func CiTypesQuery(c *gin.Context) {
 // 新增CI
 // POST /ci-types
 func CiTypesCreate(c *gin.Context) {
-	if !middleware.CheckModifyLegal(c) {
-		middleware.ReturnSlaveModifyDenyError(c)
-		return
-	}
 	//Param validate
 	var param models.SysCiTypeTable
 	var err error
@@ -99,10 +95,6 @@ func CiTypesCreate(c *gin.Context) {
 // 修改CI
 // PUT /ci-types/{{ciType}}
 func CiTypesUpdate(c *gin.Context) {
-	if !middleware.CheckModifyLegal(c) {
-		middleware.ReturnSlaveModifyDenyError(c)
-		return
-	}
 	var param models.SysCiTypeTable
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnParamValidateError(c, err)
@@ -136,10 +128,6 @@ func CiTypesUpdate(c *gin.Context) {
 }
 
 func CiTypesDelete(c *gin.Context) {
-	if !middleware.CheckModifyLegal(c) {
-		middleware.ReturnSlaveModifyDenyError(c)
-		return
-	}
 	ciTypeId := c.Param("ciType")
 	err := db.CiTypesDelete(ciTypeId)
 	if err != nil {
@@ -151,10 +139,6 @@ func CiTypesDelete(c *gin.Context) {
 }
 
 func CiTypesApply(c *gin.Context) {
-	// if !middleware.CheckModifyLegal(c) {
-	// 	middleware.ReturnSlaveModifyDenyError(c)
-	// 	return
-	// }
 	var param models.SysCiTypeTable
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnParamValidateError(c, err)
@@ -193,6 +177,7 @@ func CiTypesApply(c *gin.Context) {
 		return
 	}
 	if ciRow.Status == ciTypeStatus {
+		db.SyncPush(&models.SysSyncRecordTable{ContentData: param, Operator: middleware.GetRequestUser(c), ActionFunc: "CiTypesApply", DataCategory: "model", DataType: ciTypeId})
 		middleware.ReturnData(c, models.SysCiTypeTable{Id: param.Id, FileName: nowImageFileName})
 		return
 	}
@@ -213,10 +198,6 @@ func CiTypesApply(c *gin.Context) {
 }
 
 func CiTypesRollback(c *gin.Context) {
-	if !middleware.CheckModifyLegal(c) {
-		middleware.ReturnSlaveModifyDenyError(c)
-		return
-	}
 	ciTypeId := c.Param("ciType")
 	err := db.CiTypesRollback(ciTypeId)
 	if err != nil {
@@ -343,4 +324,37 @@ func QueryIdAndName(c *gin.Context) {
 		}
 	}
 	middleware.ReturnData(c, result)
+}
+
+func HandleCiTypeSync(c *gin.Context, inputData *models.SysSyncRecordTable) {
+	switch inputData.ActionFunc {
+	case "AttrApply":
+		AttrApply(c)
+	case "AttrCreate":
+		AttrCreate(c)
+	case "AttrUpdate":
+		AttrUpdate(c)
+	case "AttrDelete":
+		c.AddParam("ciAttr", inputData.DataType)
+		AttrDelete(c)
+	case "AttrRollback":
+		c.AddParam("ciAttr", inputData.DataType)
+		AttrRollback(c)
+	case "AttrPositionSwap":
+		c.AddParam("ciType", inputData.DataType)
+		AttrPositionSwap(c)
+	case "CiTypesCreate":
+		CiTypesCreate(c)
+	case "CiTypesUpdate":
+		CiTypesUpdate(c)
+	case "CiTypesDelete":
+		c.AddParam("ciType", inputData.DataType)
+		CiTypesDelete(c)
+	case "CiTypesApply":
+		c.AddParam("ciType", inputData.DataType)
+		CiTypesApply(c)
+	case "CiTypesRollback":
+		c.AddParam("ciType", inputData.DataType)
+		CiTypesRollback(c)
+	}
 }

@@ -3,13 +3,14 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
 	"go.uber.org/zap"
-	"sort"
-	"strings"
-	"time"
 )
 
 func ListTemplate() (result []*models.SysPermissionTplTable, err error) {
@@ -21,7 +22,7 @@ func ListTemplate() (result []*models.SysPermissionTplTable, err error) {
 	return
 }
 
-func SaveTemplate(param *models.PermissionTplData) (err error) {
+func SaveTemplate(param *models.PermissionTplData, newPermissionTplId string) (err error) {
 	if err = checkPermissionTplName(param.Id, param.Name); err != nil {
 		return
 	}
@@ -41,7 +42,11 @@ func SaveTemplate(param *models.PermissionTplData) (err error) {
 			err = fmt.Errorf("query ci type attr table fail,%s ", err.Error())
 			return
 		}
-		param.Id = "perm_tpl_" + guid.CreateGuid()
+		if newPermissionTplId == "" {
+			param.Id = "perm_tpl_" + guid.CreateGuid()
+		} else {
+			param.Id = newPermissionTplId
+		}
 		actions = append(actions, &execAction{Sql: "insert into sys_permission_tpl(id,name,create_user,create_time,update_user,update_time) values (?,?,?,?,?,?)", Param: []interface{}{param.Id, param.Name, param.Operator, nowTime, param.Operator, nowTime}})
 		ciGuidList := guid.CreateGuidList(len(ciRows))
 		for i, row := range ciRows {
