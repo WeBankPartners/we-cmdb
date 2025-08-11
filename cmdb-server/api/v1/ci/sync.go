@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/middleware"
+	"github.com/WeBankPartners/we-cmdb/cmdb-server/api/v1/permission"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/log"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/common/tools"
 	"github.com/WeBankPartners/we-cmdb/cmdb-server/models"
@@ -74,6 +75,9 @@ func SyncPull() (err error) {
 		return
 	}
 	var consumeFileNameList []string
+	if curMaxSourceId == "" && models.Config.Sync.StartId != "" {
+		curMaxSourceId = models.Config.Sync.StartId
+	}
 	if curMaxSourceId == "" {
 		consumeFileNameList = fileNameList
 	} else {
@@ -147,42 +151,15 @@ func handleSyncSlaveData(inputFile string) (inputData models.SysSyncRecordTable,
 	c.Request = req                         // 将模拟的请求赋值给上下文
 	c.Set("fromSync", "yes")
 	if inputData.DataCategory == "model" {
-		switch inputData.ActionFunc {
-		case "AttrApply":
-			AttrApply(c)
-		case "AttrCreate":
-			AttrCreate(c)
-		case "AttrUpdate":
-			AttrUpdate(c)
-		case "AttrDelete":
-			c.AddParam("ciAttr", inputData.DataType)
-			AttrDelete(c)
-		case "AttrRollback":
-			c.AddParam("ciAttr", inputData.DataType)
-			AttrRollback(c)
-		case "AttrPositionSwap":
-			c.AddParam("ciType", inputData.DataType)
-			AttrPositionSwap(c)
-		case "CiTypesCreate":
-			CiTypesCreate(c)
-		case "CiTypesUpdate":
-			CiTypesUpdate(c)
-		case "CiTypesDelete":
-			c.AddParam("ciType", inputData.DataType)
-			CiTypesDelete(c)
-		case "CiTypesApply":
-			c.AddParam("ciType", inputData.DataType)
-			CiTypesApply(c)
-		case "CiTypesRollback":
-			c.AddParam("ciType", inputData.DataType)
-			CiTypesRollback(c)
-		}
+		HandleCiTypeSync(c, &inputData)
 	} else if inputData.DataCategory == "ciData" {
 		switch inputData.ActionFunc {
 		case "HandleCiDataOperation":
 			c.AddParam("syncRecordId", inputData.ID)
 			AddSyncCiDataRecord(c)
 		}
+	} else if inputData.DataCategory == "permission" {
+		permission.HandlePermissionSync(c, &inputData)
 	}
 	var response models.ResponseErrorJson
 	log.Debug(nil, log.LOGGER_APP, "handleSyncSlaveData func done", zap.String("response", string(recorder.Body.Bytes())))
@@ -240,12 +217,14 @@ func handleSyncCiData() (err error) {
 		}
 		handleParam := models.HandleCiDataParam{
 			InputData:  []models.CiDataMapObj{tmpInputData},
-			CiTypeId:   data.DataId[:strings.LastIndex(data.DataId, "_")],
 			Operation:  data.Operation,
 			BareAction: data.Action,
 			Operator:   syncRecord.Operator,
 			NowTime:    data.HandleTime,
 			FromSync:   true,
+		}
+		if strings.LastIndex(data.DataId, "_") > 0 {
+			handleParam.CiTypeId = data.DataId[:strings.LastIndex(data.DataId, "_")]
 		}
 		log.Debug(nil, log.LOGGER_APP, "handleSyncCiData data", log.JsonObj("handleParam", handleParam))
 		_, _, tmpErr = db.HandleCiDataOperation(handleParam)

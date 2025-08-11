@@ -73,5 +73,18 @@
   "menu_api_map": {
     "enable": "{{WECMDB_MENU_API_ENABLE}}",
     "file": "conf/menu-api-map.json"
-  }
+  },
+  "sync": {
+    "enable": "{{WECMDB_SYNC_ENABLE}}",
+    "type": "{{WECMDB_SYNC_TYPE}}",
+    "source": "{{WECMDB_SYNC_SOURCE_IP}}",
+    "target": "{{WECMDB_SYNC_TARGET_IP}}",
+    "nexus_address": "{{WECMDB_SYNC_NEXUS_ADDRESS}}",
+    "nexus_user": "{{WECMDB_SYNC_NEXUS_USER}}",
+    "nexus_pwd": "{{WECMDB_SYNC_NEXUS_PWD}}",
+    "nexus_repo": "{{WECMDB_SYNC_NEXUS_REPO}}",
+    "host_ip": "{{ALLOCATE_HOST}}",
+    "start_id": "{{WECMDB_SYNC_START_ID}}"
+  },
+  "auto_fill_without_list" : "{{WECMDB_AUTOFILL_WITHOUT_LIST}}"
 }
