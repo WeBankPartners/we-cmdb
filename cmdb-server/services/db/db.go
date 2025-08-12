@@ -178,6 +178,9 @@ func transFiltersToSQL(queryParam *models.QueryRequestParam, transParam *models.
 		} else if filter.Operator == "contains" || filter.Operator == "like" {
 			filterSql += fmt.Sprintf(" AND %s LIKE ? ", filterSqlColumn)
 			param = append(param, fmt.Sprintf("%%%s%%", filter.Value))
+		} else if filter.Operator == "notLike" {
+			filterSql += fmt.Sprintf(" AND %s NOT LIKE ? ", filterSqlColumn)
+			param = append(param, fmt.Sprintf("%%%s%%", filter.Value))
 		} else if filter.Operator == "in" {
 			inValueStringList := []string{}
 			if filter.Value != nil {

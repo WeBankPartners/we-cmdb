@@ -3,7 +3,9 @@
   "default_language": "en",
   "http_server": {
     "port": "",
-    "cross": true
+    "cross": true,
+    "error_template_dir": "./conf/i18n",
+    "error_detail_return": true
   },
   "log": {
     "level": "debug",
