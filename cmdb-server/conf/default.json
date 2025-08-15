@@ -23,8 +23,8 @@
     "user": "root",
     "password": "root",
     "database": "wecmdb",
-    "maxOpen": 50,
-    "maxIdle": 10,
+    "maxOpen": 250,
+    "maxIdle": 50,
     "timeout": 60
   },
   "rsa_key_path": "/data/certs/rsa_key",
