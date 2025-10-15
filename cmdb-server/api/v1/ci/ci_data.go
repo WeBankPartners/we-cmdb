@@ -265,7 +265,7 @@ func SimpleCiDataImport(c *gin.Context) {
 			}
 			if attrObj, ok := attrIndexMap[k]; ok {
 				if attrObj.InputType == "ref" {
-					if tmpGuidList, tmpErr := db.GetGuidByKeyName(attrObj.RefCiType, []string{v}); tmpErr != nil {
+					if tmpGuidList, tmpErr := db.GetGuidByKeyNameOrGuid(attrObj.RefCiType, []string{v}); tmpErr != nil {
 						err = tmpErr
 						break
 					} else {
@@ -277,7 +277,7 @@ func SimpleCiDataImport(c *gin.Context) {
 						}
 					}
 				} else if attrObj.InputType == "multiRef" {
-					if tmpGuidList, tmpErr := db.GetGuidByKeyName(attrObj.RefCiType, strings.Split(v, ",")); tmpErr != nil {
+					if tmpGuidList, tmpErr := db.GetGuidByKeyNameOrGuid(attrObj.RefCiType, strings.Split(v, ",")); tmpErr != nil {
 						err = tmpErr
 						break
 					} else {

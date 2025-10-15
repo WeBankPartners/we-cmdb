@@ -854,7 +854,7 @@ export default {
       this.$refs[this.tableRef][0].resetModalLoading()
       if (statusCode === 'OK') {
         this.$Notice.success({
-          title: this.$t('add_data_success'),
+          title: this.$t('db_operation_successful'),
           desc: message
         })
         this.queryCiData()

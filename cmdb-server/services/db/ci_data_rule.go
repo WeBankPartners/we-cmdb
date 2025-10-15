@@ -51,10 +51,10 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 			err = fmt.Errorf("buildCalcFillValue fail,%s ", calcErr.Error())
 			return
 		}
-		if calcResult < 0 {
-			err = fmt.Errorf("buildCalcFillValue fail,value:%3.f < 0", calcResult)
-			return
-		}
+		// if calcResult < 0 {
+		// 	err = fmt.Errorf("buildCalcFillValue fail,value:%3.f < 0", calcResult)
+		// 	return
+		// }
 		newValueList = append(newValueList, transFloatValueToString(fmt.Sprintf("%.3f", calcResult)))
 		log.Debug(nil, log.LOGGER_APP, "-----end buildAutofillValue with calcFillFlag", zap.Strings("result", newValueList))
 		return
