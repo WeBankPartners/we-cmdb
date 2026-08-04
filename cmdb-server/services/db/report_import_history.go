@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -151,8 +152,15 @@ func addActionForReportCiImportGuidMap(ciObj *models.MultiCiDataObj) (action []*
 	uniqueAttrNameMap := make(map[string]bool)
 
 	// 遍历CI对象的属性，找出所有标记为唯一的属性，并记录它们的名称和唯一性。
+	// multiRef 属性存放在关联表中，不能作为 CI 主表的查询列。
+	uniqueMultiRefAttrs := []*models.SysCiTypeAttrTable{}
 	for _, attr := range ciObj.Attributes {
 		if attr.UniqueConstraint == "yes" {
+			if attr.InputType == models.MultiRefType {
+				uniqueMultiRefAttrs = append(uniqueMultiRefAttrs, attr)
+				uniqueAttrNameMap[attr.Name] = true
+				continue
+			}
 			uniqueAttrNames = append(uniqueAttrNames, attr.Name)
 			uniqueAttrNameMap[attr.Name] = true
 		}
@@ -169,7 +177,9 @@ func addActionForReportCiImportGuidMap(ciObj *models.MultiCiDataObj) (action []*
 		filterClause = fmt.Sprintf(" AND guid NOT IN ('%s')", excludeGuidsStr)
 	}
 	// 构造SQL查询语句，用于选择唯一的属性组合。
-	selectSql := fmt.Sprintf("SELECT DISTINCT %s FROM `%s` WHERE 1=1%s", strings.Join(uniqueAttrNames, ","), ciObj.CiTypeId, filterClause)
+	// guid 用于查询关联表中的 multiRef 数据。
+	selectColumns := append([]string{"guid"}, uniqueAttrNames...)
+	selectSql := fmt.Sprintf("SELECT DISTINCT %s FROM `%s` WHERE 1=1%s", strings.Join(selectColumns, ","), ciObj.CiTypeId, filterClause)
 	rows, err := x.QueryString(selectSql)
 	if err != nil {
 		log.Error(nil, log.LOGGER_APP, "Failed to fetch existing unique attribute combinations", zap.Error(err))
@@ -177,7 +187,9 @@ func addActionForReportCiImportGuidMap(ciObj *models.MultiCiDataObj) (action []*
 	}
 
 	// 把查询结果存进seenValues
+	existingGuidList := make([]string, 0, len(rows))
 	for _, row := range rows {
+		existingGuidList = append(existingGuidList, row["guid"])
 		for _, attrName := range uniqueAttrNames {
 			if row[attrName] == "" {
 				continue
@@ -186,6 +198,22 @@ func addActionForReportCiImportGuidMap(ciObj *models.MultiCiDataObj) (action []*
 				seenValues[attrName] = make(map[string]bool)
 			}
 			seenValues[attrName][row[attrName]] = true
+		}
+	}
+	for _, attr := range uniqueMultiRefAttrs {
+		multiRefData, multiRefErr := queryMultiRefMapData(ciObj.CiTypeId, attr.Name, existingGuidList)
+		if multiRefErr != nil {
+			return nil, fmt.Errorf("Query multiRef unique data fail,%s", multiRefErr.Error())
+		}
+		for _, values := range multiRefData {
+			value := normalizeMultiRefValue(values)
+			if value == "" {
+				continue
+			}
+			if _, ok := seenValues[attr.Name]; !ok {
+				seenValues[attr.Name] = make(map[string]bool)
+			}
+			seenValues[attr.Name][value] = true
 		}
 	}
 
@@ -411,17 +439,26 @@ func QueryReportImportHistoryByStatus(status string) (rowData []*models.SysRepor
 
 func GetUniqueAndNotNullColumn(multiCiData []*models.MultiCiDataObj, importHistoryRowData []*models.SysCiImportGuidMapTable) (err error) {
 	for _, ciDataObj := range multiCiData {
-		columnList := []string{}
+		// multiRef values are stored in `<ci_type>$<attr_name>` relation tables,
+		// rather than as columns of the CI table. Keep them out of the base-table
+		// query and load them separately below.
+		columnList := []string{"guid"}
+		columnMap := map[string]bool{"guid": true}
+		multiRefAttrs := []*models.SysCiTypeAttrTable{}
 		for _, attr := range ciDataObj.Attributes {
 			//if attr.AutofillAble == "yes" {
 			//	continue
 			//}
 			if attr.UniqueConstraint == "yes" || attr.Nullable == "no" {
-				columnList = append(columnList, attr.Name)
+				if attr.InputType == models.MultiRefType {
+					multiRefAttrs = append(multiRefAttrs, attr)
+					continue
+				}
+				if !columnMap[attr.Name] {
+					columnList = append(columnList, attr.Name)
+					columnMap[attr.Name] = true
+				}
 			}
-		}
-		if len(columnList) == 0 {
-			continue
 		}
 		for _, importGuidMap := range importHistoryRowData {
 			if ciDataObj.CiTypeId == importGuidMap.CiType {
@@ -430,8 +467,17 @@ func GetUniqueAndNotNullColumn(multiCiData []*models.MultiCiDataObj, importHisto
 					log.Error(nil, log.LOGGER_APP, "Query ci data column value fail. ", zap.Error(err), zap.String("guid", importGuidMap.Target), zap.String("column", strings.Join(columnList, ",")))
 					return fmt.Errorf("Query ci data column value fail,%s ", err.Error())
 				}
-				if rowData != nil {
-					ciDataObj.InputData = append(ciDataObj.InputData, rowData[0])
+				if len(rowData) > 0 {
+					inputData := rowData[0]
+					for _, attr := range multiRefAttrs {
+						multiRefData, multiRefErr := queryMultiRefMapData(ciDataObj.CiTypeId, attr.Name, []string{importGuidMap.Target})
+						if multiRefErr != nil {
+							log.Error(nil, log.LOGGER_APP, "Query multiRef ci data fail. ", zap.Error(multiRefErr), zap.String("guid", importGuidMap.Target), zap.String("attribute", attr.Name))
+							return fmt.Errorf("Query multiRef ci data fail,%s ", multiRefErr.Error())
+						}
+						inputData[attr.Name] = normalizeMultiRefValue(multiRefData[importGuidMap.Target])
+					}
+					ciDataObj.InputData = append(ciDataObj.InputData, inputData)
 				}
 			}
 		}
@@ -439,12 +485,24 @@ func GetUniqueAndNotNullColumn(multiCiData []*models.MultiCiDataObj, importHisto
 	return
 }
 
+func normalizeMultiRefValue(values []string) string {
+	if len(values) == 0 {
+		return ""
+	}
+	normalizedValues := append([]string{}, values...)
+	sort.Strings(normalizedValues)
+	return strings.Join(normalizedValues, ",")
+}
+
 func RefreshReportImportHistory(multiCiData []*models.MultiCiDataObj) (err error) {
 	var actions []*execAction
 	for _, ciObj := range multiCiData {
 		// 检查是否合法：唯一性和不为空
 		tmpAction, tmpErr := addActionForReportCiImportGuidMap(ciObj)
-		if tmpAction != nil && tmpErr == nil {
+		if tmpErr != nil {
+			return tmpErr
+		}
+		if tmpAction != nil {
 			actions = append(actions, tmpAction...)
 		}
 	}

@@ -12,3 +12,5 @@ cmdb-ui/node_modules
 cmdb-ui/node
 cmdb-ui/build
 cmdb-ui/vue.config.js
+cmdb-server/public
+cmdb-server/conf/default-local.json

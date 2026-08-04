@@ -616,7 +616,14 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 	for _, v := range inputDataUselessKeys {
 		delete(param.InputData, v)
 	}
+	multiRefValueMap := make(map[string]string)
 	for _, multiRefColumn := range multiRefColumnList {
+		multiRefValue := param.InputData[multiRefColumn]
+		if multiRefValueList, multiRefErr := transStringValueToList(multiRefValue); multiRefErr == nil {
+			sort.Strings(multiRefValueList)
+			multiRefValue = strings.Join(multiRefValueList, ",")
+		}
+		multiRefValueMap[multiRefColumn] = multiRefValue
 		delete(param.InputData, multiRefColumn)
 	}
 	if (!rollbackFlag && param.BareAction == "") || param.InputData["confirm_time"] == "" || param.InputData["confirm_time"] == "0000-00-00 00:00:00" {
@@ -631,6 +638,12 @@ func updateActionFunc(param *models.ActionFuncParam) (result []*execAction, err 
 	}
 	if !rollbackFlag && param.BareAction == "" {
 		param.InputData["confirm_time"] = ""
+	}
+	// The history/main-table SQL must not contain multiRef fields, but the import
+	// validation that follows this update needs their new values to refresh the
+	// is_not_empty and is_unique flags in sys_ci_import_guid_map.
+	for attrName, value := range multiRefValueMap {
+		param.InputData[attrName] = value
 	}
 	return
 }

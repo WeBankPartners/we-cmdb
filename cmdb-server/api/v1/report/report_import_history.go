@@ -363,24 +363,31 @@ func AttrQueryWithCheckResult(c *gin.Context) {
 			UiSearchOrder:    1, // 设置为 1
 			DisplayByDefault: "yes",
 		}
-		// 查找 DisplayName 为 “唯一名称” 的元素位置，并将 checkResultRowData 插入到它的后面
+		// 按属性名定位唯一名称。DisplayName 会随语言和 CI 配置变化，不能作为判断依据。
 		insertIndex := -1
+		maxUiFormOrder := 0
 		for i, row := range rowData {
-			if row.DisplayName == "唯一名称" {
+			if row.UiFormOrder > maxUiFormOrder {
+				maxUiFormOrder = row.UiFormOrder
+			}
+			if row.Name == "key_name" {
 				insertIndex = i + 1
 				checkResultRowData.UiFormOrder = row.UiFormOrder + 1
 				break
 			}
 		}
 
-		// 如果找到了指定的元素，则在它后面插入新的元素
+		// 如果未配置 key_name，则将校验结果列追加到最后，确保不会丢失展示。
 		if insertIndex >= 0 && insertIndex <= len(rowData) {
 			rowData = append(rowData[:insertIndex], append([]*models.SysCiTypeAttrTable{checkResultRowData}, rowData[insertIndex:]...)...)
+		} else {
+			checkResultRowData.UiFormOrder = maxUiFormOrder + 1
+			rowData = append(rowData, checkResultRowData)
 		}
 
 		// 调整后续元素的 UiFormOrder 和 UiSearchOrder
 		for i, row := range rowData {
-			if row.DisplayName == "校验结果" {
+			if row.Name == "check_result" {
 				continue
 			}
 			if row.UiFormOrder >= checkResultRowData.UiFormOrder {
