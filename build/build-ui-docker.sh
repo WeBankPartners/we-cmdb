@@ -1,6 +1,3 @@
 #!/bin/bash
-set -e -x
-cd $(dirname $0)/../cmdb-ui
-npm install
-#npm run build
-npm run plugin
+set -euo pipefail
+exec /bin/bash /app/cmdb/build/build-ui.sh /app/cmdb

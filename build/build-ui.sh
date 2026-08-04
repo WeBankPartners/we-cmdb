@@ -1,10 +1,12 @@
 #!/bin/bash
-set -e -x
-npm -v
-if [ $? -eq 0 ]
-then
-    cd $1/cmdb-ui
-    npm --registry https://registry.npmmirror.com install --force
+set -euo pipefail
+set -x
+
+project_dir=${1:?"project directory is required"}
+
+if command -v npm >/dev/null 2>&1; then
+    cd "${project_dir}/cmdb-ui"
+    "${project_dir}/build/install-ui-dependencies.sh" "${PWD}"
     npm run build
     cd dist
     mkdir -p wecmdb
@@ -15,5 +17,11 @@ then
     mv dist plugin
     mv dist_tmp dist
 else
-    docker run --rm -v $1:/app/cmdb --name wecmdb-node-build node:12.13.1 /bin/bash /app/cmdb/build/build-ui-docker.sh
+    cache_dir=${NPM_CACHE_DIR:-"${HOME}/.npm"}
+    mkdir -p "${cache_dir}"
+    docker run --rm \
+      -v "${project_dir}:/app/cmdb" \
+      -v "${cache_dir}:/root/.npm" \
+      --name wecmdb-node-build \
+      node:12.13.1 /bin/bash /app/cmdb/build/build-ui-docker.sh
 fi

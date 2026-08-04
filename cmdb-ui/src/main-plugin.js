@@ -15,7 +15,7 @@ import WeCMDBRefSelect from './pages/components/ref-select.js'
 import WeCMDBRadioRroup from './pages/components/radio-group.vue'
 import CMDBTable from './pages/components/cmdb-table/index.js'
 import WeCMDBSimpleTable from './pages/components/simple-table.vue'
-import WeCMDBAttrInput from './pages/components/attr-input.js'
+import WeCMDBAttrInput from './pages/components/attr-input.vue'
 import WeCMDBSequenceDiagram from './pages/components/sequence-diagram.vue'
 import WeCMDBOrchestration from './pages/components/orchestration.vue'
 import WeCMDBCIPassword from './pages/components/ci-password.vue'
@@ -55,5 +55,4 @@ window.component('JsonViewer', JsonViewer)
 
 window.locale('zh-CN', zhCN)
 window.locale('en-US', enUS)
-
 
