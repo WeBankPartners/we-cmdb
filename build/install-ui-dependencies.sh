@@ -10,11 +10,15 @@ mkdir -p "${cache_dir}"
 # Reinstall only when the dependency definition or the runtime used to install
 # it changes. This keeps a Jenkins workspace/node_modules cache reusable while
 # still preventing dependency reuse across incompatible Node/npm versions.
-dependency_fingerprint=$( {
-  sha256sum package.json package-lock.json
-  node --version
-  npm --version
-} | sha256sum | awk '{print $1}')
+get_dependency_fingerprint() {
+  {
+    sha256sum package.json package-lock.json
+    node --version
+    npm --version
+  } | sha256sum | awk '{print $1}'
+}
+
+dependency_fingerprint=$(get_dependency_fingerprint)
 fingerprint_file=node_modules/.wecmdb-ui-dependencies
 
 if [[ -d node_modules && -f "${fingerprint_file}" && "$(<"${fingerprint_file}")" == "${dependency_fingerprint}" ]]; then
@@ -27,7 +31,8 @@ npm install \
   --registry https://registry.npmmirror.com \
   --cache "${cache_dir}" \
   --prefer-offline \
+  --legacy-peer-deps \
   --no-audit \
   --no-fund
 
-printf '%s\n' "${dependency_fingerprint}" > "${fingerprint_file}"
+printf '%s\n' "$(get_dependency_fingerprint)" > "${fingerprint_file}"

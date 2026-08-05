@@ -19,6 +19,9 @@
         <menu code='basekey_configuration' cat='DESIGNING' displayName="Basekey Configuration" localDisplayName="基础数据配置">/wecmdb/basekey-configuration</menu>
         <menu code='system_operation_log' cat='ADMIN' displayName="WeCMDB Operation Log" localDisplayName="WeCMDB操作日志">/wecmdb/system-operation-log</menu>
         <menu code='data_synchronization_config' cat='ADMIN' displayName="Data Synchronization Configuration" localDisplayName="数据同步配置">/wecmdb/config-synchronization</menu>
+        <menu code='state_machine_configuration' cat='DESIGNING' displayName="State machine configuration" localDisplayName="状态机配置">/wecmdb/state-machine</menu>
+        <menu code='ci_template_configuration' cat='DESIGNING' displayName="Ci template configuration" localDisplayName="CI模板配置">/wecmdb/ci-template-configuration</menu>
+        <menu code='graph_config' cat='DESIGNING' displayName="Graph configuration" localDisplayName="视图配置">/wecmdb/graph-config</menu>
     </menus>
 
     <!-- 3.数据模型 - 描述本插件包的数据模型,并且描述和Framework数据模型的关系 -->
@@ -65,6 +68,9 @@
             <menu code="basekey_configuration" />
             <menu code="system_operation_log" />
             <menu code="data_synchronization_config" />
+            <menu code="state_machine_configuration" />
+            <menu code="ci_template_configuration" />
+            <menu code="graph_config" />
         </authority >
     </authorities>
 

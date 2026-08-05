@@ -1,0 +1,8 @@
+// The host application's icon font can make View Design's Unicode bullet
+// ellipses render as garbled text. ASCII dots do not depend on that font.
+.ivu-page-item-jump-prev:after,
+.ivu-page-item-jump-next:after {
+  content: '...';
+  font-family: Arial, sans-serif;
+  letter-spacing: 1px;
+}

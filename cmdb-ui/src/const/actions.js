@@ -5,6 +5,10 @@ export const components = {
     component: 'Input',
     type: 'number'
   },
+  int: {
+    component: 'Input',
+    type: 'number'
+  },
   datetime: {
     component: 'DatePicker',
     type: 'datetimerange'

@@ -9,6 +9,7 @@ import router from './project-config/router-plugin.js'
 import zhCN from './locale/i18n/zh-CN.json'
 import enUS from './locale/i18n/en-US.json'
 // import 'view-design/dist/styles/iview.css'
+import './styles/page-compat.less'
 
 import WeCMDBSelect from './pages/components/select.vue'
 import WeCMDBRefSelect from './pages/components/ref-select.js'
@@ -55,4 +56,3 @@ window.component('JsonViewer', JsonViewer)
 
 window.locale('zh-CN', zhCN)
 window.locale('en-US', enUS)
-
