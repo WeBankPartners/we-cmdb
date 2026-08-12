@@ -244,15 +244,16 @@ export default {
     async initPageInfo () {
       let stateTransition = await this.getStateTransition(this.currentTab)
       this.outerActions = []
-      if (find(stateTransition, { operation: '删除' })) {
-        this.outerActions.push(find(stateTransition, { operation: '删除' }))
+      const deleteAction = find(stateTransition, { operation_en: 'Delete' })
+      const updateAction = find(stateTransition, { operation_en: 'Update' })
+      const changeAction = find(stateTransition, { operation_en: 'Change' })
+      if (deleteAction) {
+        this.outerActions.push(deleteAction)
       }
-      if (find(stateTransition, { operation: '更新' })) {
-        this.outerActions.push(find(stateTransition, { operation: '更新' }))
-      } else {
-        if (find(stateTransition, { operation: '变更' })) {
-          this.outerActions.push(find(stateTransition, { operation: '变更' }))
-        }
+      if (updateAction) {
+        this.outerActions.push(updateAction)
+      } else if (changeAction) {
+        this.outerActions.push(changeAction)
       }
       await this.getTableColumns()
       this.innerActions = [
