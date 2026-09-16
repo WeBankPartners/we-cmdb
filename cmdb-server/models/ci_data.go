@@ -16,8 +16,9 @@ type CiDataColumnObj struct {
 }
 
 type AutofillObj struct {
-	Type  string `json:"type"`
-	Value string `json:"value"`
+	Type  string         `json:"type"`
+	Value string         `json:"value"`
+	Args  []*AutofillObj `json:"args,omitempty"`
 }
 
 type AutofillValueObj struct {

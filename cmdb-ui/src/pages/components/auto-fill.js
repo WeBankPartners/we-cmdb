@@ -18,6 +18,7 @@ export default {
       currentAttr: '',
       activeDelimiterIndex: '',
       activeDelimiterValue: '',
+      activeArgPath: null,
       optionsDisplay: false,
       options: [],
       autoFillArray: [],
@@ -43,6 +44,12 @@ export default {
       calcFuncs: [
         { code: 'sum', value: 'sum' },
         { code: 'count', value: 'count' }
+      ],
+      charFuncs: [
+        { code: 'upperCase', value: 'upperCase' },
+        { code: 'lowerCase', value: 'lowerCase' },
+        { code: 'lowerDash', value: 'lowerDash' },
+        { code: 'replaceStr', value: 'replaceStr' }
       ]
     }
   },
@@ -88,25 +95,107 @@ export default {
       })
       return attr || ''
     },
+    isReplaceStrNode(node) {
+      return !!(node && node.type === 'charFunc' && node.value === 'replaceStr')
+    },
+    getActiveArgIndex(ruleIndex) {
+      if (
+        this.activeArgPath &&
+        String(this.activeArgPath.nodeIndex) === String(ruleIndex) &&
+        this.activeArgPath.argIndex != null &&
+        this.activeArgPath.argIndex !== ''
+      ) {
+        return +this.activeArgPath.argIndex
+      }
+      return null
+    },
+    getFillToken(ruleIndex) {
+      const argIndex = this.getActiveArgIndex(ruleIndex)
+      if (argIndex != null) {
+        const parent = this.autoFillArray[+ruleIndex]
+        if (parent && Array.isArray(parent.args)) {
+          return parent.args[argIndex]
+        }
+      }
+      return this.autoFillArray[+ruleIndex]
+    },
+    setFillTokenValue(ruleIndex, value) {
+      const token = this.getFillToken(ruleIndex)
+      if (token) {
+        this.$set(token, 'value', value)
+      }
+    },
+    ensureReplaceArgs(node) {
+      if (!node) {
+        return
+      }
+      const args = Array.isArray(node.args) ? node.args.slice() : []
+      while (args.length < 3) {
+        args.push(null)
+      }
+      this.$set(node, 'args', args)
+    },
+    buildCharFuncNode(code) {
+      const node = {
+        type: 'charFunc',
+        value: code
+      }
+      if (code === 'replaceStr') {
+        node.args = [null, null, null]
+      }
+      return node
+    },
+    isRuleTokenLegal(token) {
+      if (!token || token.type !== 'rule') {
+        return true
+      }
+      const ruleArray = JSON.parse(token.value)
+      const lastNode = ruleArray[ruleArray.length - 1]
+      const lastAttrId = lastNode.parentRs ? lastNode.parentRs.attrId : 0
+      if (!lastAttrId) {
+        return false
+      }
+      const inputType = this.getPropertyNameByCiTypeIdAndAttrId(lastAttrId).inputType
+      if (lastNode.parentRs && (inputType === 'ref' || inputType === 'multiRef')) {
+        return false
+      }
+      return true
+    },
     renderEditor() {
+      const tokens = []
+      this.autoFillArray.forEach((_, i) => {
+        let rendered
+        switch (_.type) {
+          case 'rule':
+            rendered = this.renderExpression(_.value, i)
+            break
+          case 'delimiter':
+            rendered = this.renderDelimiter(_.value, i)
+            break
+          case 'specialDelimiter':
+            rendered = this.renderSpecialDelimiter(_.value, i)
+            break
+          case 'calcSymbol':
+            rendered = this.renderCalcDelimiter(_.value, i)
+            break
+          case 'calcFunc':
+            rendered = this.renderCalcFunc(_.value, i)
+            break
+          case 'charFunc':
+            rendered = this.renderCharFunc(_, i)
+            break
+          default:
+            break
+        }
+        if (Array.isArray(rendered)) {
+          tokens.push(...rendered)
+        } else if (rendered) {
+          tokens.push(rendered)
+        }
+      })
       return [
         !this.isReadOnly && this.renderOptions(),
-        ...this.autoFillArray.map((_, i) => {
-          switch (_.type) {
-            case 'rule':
-              return this.renderExpression(_.value, i)
-            case 'delimiter':
-              return this.renderDelimiter(_.value, i)
-            case 'specialDelimiter':
-              return this.renderSpecialDelimiter(_.value, i)
-            case 'calcSymbol':
-              return this.renderCalcDelimiter(_.value, i)
-            case 'calcFunc':
-              return this.renderCalcFunc(_.value, i)
-            default:
-              break
-          }
-        }),
+        ...tokens,
         ...this.renderAddRule(),
         this.renderModal()
       ]
@@ -144,6 +233,14 @@ export default {
               result.push(this.renderSpan(foundCalcDelimiterss.value, props))
             } else {
               result.push(this.renderSpan(_.value, props))
+            }
+            break
+          case 'charFunc':
+            const charFuncNodes = this.renderCharFunc(_, i, props)
+            if (Array.isArray(charFuncNodes)) {
+              result.push(...charFuncNodes)
+            } else if (charFuncNodes) {
+              result.push(charFuncNodes)
             }
             break
           default:
@@ -187,6 +284,16 @@ export default {
       }
       if (e.target.className.indexOf('auto-fill-span') >= 0) {
         const ruleIndex = e.target.getAttribute('index')
+        const argIndexAttr = e.target.getAttribute('arg-index')
+        if (argIndexAttr != null && argIndexAttr !== '') {
+          this.activeArgPath = { nodeIndex: +ruleIndex, argIndex: +argIndexAttr }
+        } else {
+          this.activeArgPath = null
+        }
+        if (e.target.className.indexOf('auto-fill-replace-slot') >= 0) {
+          this.showReplaceSlotOptions(ruleIndex, argIndexAttr)
+          return
+        }
         if (e.target.className.indexOf('auto-fill-special-delimiter') >= 0) {
           this.showSymbolOptions(
             this.$t('auto_fill_change_special_delimiter'),
@@ -204,6 +311,10 @@ export default {
           this.showSymbolOptions(this.$t('auto_fill_change_calc_function'), ruleIndex, 'calcFuncs', 'calcFunc')
           return
         }
+        if (e.target.className.indexOf('auto-fill-char-func') >= 0) {
+          this.showSymbolOptions(this.$t('auto_fill_change_char_function'), ruleIndex, 'charFuncs', 'charFunc')
+          return
+        }
         let attrIndex = null
         if (e.target.hasAttribute('attr-index')) {
           attrIndex = e.target.getAttribute('attr-index')
@@ -211,6 +322,7 @@ export default {
         this.showRuleOptions(ruleIndex, attrIndex)
       } else if (e.target.className.indexOf('auto-fill-add') >= 0) {
         // 选择属性表达式或连接符
+        this.activeArgPath = null
         this.showAddOptions()
       } else {
       }
@@ -248,25 +360,44 @@ export default {
           class: 'auto-fill-li',
           nodeName: this.$t('auto_fill_calc_function'),
           fn: () => this.addRule('calcFunc')
+        },
+        {
+          type: 'option',
+          class: 'auto-fill-li',
+          nodeName: this.$t('auto_fill_char_function'),
+          fn: () => this.addRule('charFunc')
         }
       )
     },
     addRule(type) {
       this.options = []
+      const addToSlot = this.activeArgPath && this.activeArgPath.argIndex != null
+      const nodeIndex = addToSlot ? this.activeArgPath.nodeIndex : null
+      const argIndex = addToSlot ? this.activeArgPath.argIndex : null
+      const pushToken = token => {
+        if (addToSlot) {
+          this.ensureReplaceArgs(this.autoFillArray[nodeIndex])
+          this.$set(this.autoFillArray[nodeIndex].args, argIndex, token)
+        } else {
+          this.autoFillArray.push(token)
+        }
+      }
       switch (type) {
         case 'rule':
-          this.autoFillArray.push({
+          pushToken({
             type,
             value: JSON.stringify([{ ciTypeId: this.ciTypesObj[this.rootCiTypeId].ciTypeId }])
           })
-          this.showRuleOptions(this.autoFillArray.length - 1 + '', '0')
+          this.showRuleOptions((addToSlot ? nodeIndex : this.autoFillArray.length - 1) + '', '0')
           break
         case 'delimiter':
-          this.autoFillArray.push({
+          pushToken({
             type,
             value: ''
           })
-          this.activeDelimiterIndex = this.autoFillArray.length - 1 + ''
+          this.activeDelimiterIndex = addToSlot
+            ? `${nodeIndex}:${argIndex}`
+            : this.autoFillArray.length - 1 + ''
           this.optionsDisplay = false
           break
         case 'specialDelimiter':
@@ -277,6 +408,9 @@ export default {
           break
         case 'calcFunc':
           this.getCalcFunc()
+          break
+        case 'charFunc':
+          this.getCharFunc()
           break
         default:
           break
@@ -320,7 +454,7 @@ export default {
         })
       })
     },
-    // 特殊连接符
+    // 运算函数
     getCalcFunc() {
       this.calcFuncs.forEach(_ => {
         this.options.push({
@@ -339,13 +473,64 @@ export default {
         })
       })
     },
+    // 字符串转换函数
+    getCharFunc() {
+      this.charFuncs.forEach(_ => {
+        this.options.push({
+          type: 'option',
+          class: 'auto-fill-li auto-fill-li-special-delimiter',
+          nodeName: _.value,
+          fn: () => {
+            this.autoFillArray.push(this.buildCharFuncNode(_.code))
+            this.options = []
+            this.optionsDisplay = false
+            this.handleInput()
+          }
+        })
+      })
+    },
+    showReplaceSlotOptions() {
+      this.options = [
+        {
+          type: 'option',
+          class: 'auto-fill-li',
+          nodeName: this.$t('auto_fill_add_rule'),
+          fn: () => this.addRule('rule')
+        },
+        {
+          type: 'option',
+          class: 'auto-fill-li',
+          nodeName: this.$t('auto_fill_add_delimiter'),
+          fn: () => this.addRule('delimiter')
+        }
+      ]
+      this.optionsDisplay = true
+    },
     showRuleOptions(ruleIndex, attrIndex) {
       this.options = []
       this.optionsDisplay = true
-      const isAttrNode = attrIndex ? !!JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].parentRs : false
+      const fillToken = this.getFillToken(ruleIndex)
+      if (!fillToken || fillToken.type !== 'rule') {
+        this.options.push({
+          type: 'option',
+          class: 'auto-fill-li auto-fill-li-delete',
+          nodeName: this.$t('auto_fill_delete_node'),
+          fn: () => this.deleteNode(ruleIndex, attrIndex)
+        })
+        if (!attrIndex) {
+          this.options.push({
+            type: 'option',
+            class: 'auto-fill-li auto-fill-li-edit',
+            nodeName: this.$t('auto_fill_edit_delimiter'),
+            fn: () => this.editDelimiter(ruleIndex, attrIndex)
+          })
+        }
+        return
+      }
+      const isAttrNode = attrIndex ? !!JSON.parse(fillToken.value)[attrIndex].parentRs : false
       const attrInputType = isAttrNode
         ? this.getPropertyNameByCiTypeIdAndAttrId(
-            JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].parentRs.attrId
+            JSON.parse(fillToken.value)[attrIndex].parentRs.attrId
           ).inputType
         : ''
       // 删除节点
@@ -375,13 +560,13 @@ export default {
         })
       }
 
-      const node = JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex]
+      const node = JSON.parse(fillToken.value)[attrIndex]
       if (
         !node.parentRs ||
         this.getPropertyNameByCiTypeIdAndAttrId(node.parentRs.attrId).inputType === 'ref' ||
         this.getPropertyNameByCiTypeIdAndAttrId(node.parentRs.attrId).inputType === 'multiRef'
       ) {
-        const ciTypeId = JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].ciTypeId
+        const ciTypeId = JSON.parse(fillToken.value)[attrIndex].ciTypeId
         this.getRefData(ruleIndex, attrIndex, ciTypeId)
       }
     },
@@ -484,14 +669,30 @@ export default {
     },
     // 点击选择枚举属性
     addEnum(ruleIndex, attrIndex, code) {
-      let ruleArr = JSON.parse(this.autoFillArray[ruleIndex].value)
+      let ruleArr = JSON.parse(this.getFillToken(ruleIndex).value)
       ruleArr[attrIndex].enumCodeAttr = code
-      this.autoFillArray[ruleIndex].value = JSON.stringify(ruleArr)
+      this.setFillTokenValue(ruleIndex, JSON.stringify(ruleArr))
       this.optionsDisplay = false
       this.handleInput()
     },
     // 点击删除节点
     deleteNode(ruleIndex, attrIndex) {
+      const argIndex = this.getActiveArgIndex(ruleIndex)
+      if (argIndex != null) {
+        if (!attrIndex || attrIndex === '0') {
+          this.ensureReplaceArgs(this.autoFillArray[+ruleIndex])
+          this.$set(this.autoFillArray[+ruleIndex].args, argIndex, null)
+          this.handleInput()
+        } else {
+          const token = this.getFillToken(ruleIndex)
+          let ruleArr = JSON.parse(token.value)
+          ruleArr.splice(attrIndex, ruleArr.length - attrIndex)
+          this.setFillTokenValue(ruleIndex, JSON.stringify(ruleArr))
+          this.$emit('input', null)
+        }
+        this.optionsDisplay = false
+        return
+      }
       if (!attrIndex) {
         // 删除连接符
         this.autoFillArray.splice(ruleIndex, 1)
@@ -502,6 +703,7 @@ export default {
           this.autoFillArray.splice(ruleIndex, 1)
           if (
             ruleIndex !== '0' &&
+            this.autoFillArray[+ruleIndex - 1] &&
             this.autoFillArray[+ruleIndex - 1].type === 'delimiter' &&
             this.autoFillArray[ruleIndex] &&
             this.autoFillArray[ruleIndex].type === 'delimiter'
@@ -529,10 +731,8 @@ export default {
           class: 'auto-fill-li auto-fill-li-special-delimiter',
           nodeName: _.value,
           fn: () => {
-            this.autoFillArray.splice(+ruleIndex, 1, {
-              type,
-              value: _.code
-            })
+            const next = type === 'charFunc' ? this.buildCharFuncNode(_.code) : { type, value: _.code }
+            this.autoFillArray.splice(+ruleIndex, 1, next)
             this.options = []
             this.optionsDisplay = false
             this.handleInput()
@@ -541,16 +741,17 @@ export default {
       })
     },
     editDelimiter(ruleIndex) {
-      this.activeDelimiterIndex = ruleIndex
+      const argIndex = this.getActiveArgIndex(ruleIndex)
+      this.activeDelimiterIndex = argIndex != null ? `${+ruleIndex}:${argIndex}` : ruleIndex
       this.optionsDisplay = false
       this.handleInput()
     },
     async showFilterModal(ruleIndex, attrIndex) {
       this.filterCiTypeId = this.ciTypeTableNameToId(
-        JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].ciTypeId
+        JSON.parse(this.getFillToken(ruleIndex).value)[attrIndex].ciTypeId
       )
-      const filters = JSON.parse(this.autoFillArray[ruleIndex].value)[attrIndex].filters || []
-      this.filterIndex = [ruleIndex, attrIndex]
+      const filters = JSON.parse(this.getFillToken(ruleIndex).value)[attrIndex].filters || []
+      this.filterIndex = [ruleIndex, attrIndex, this.getActiveArgIndex(ruleIndex)]
       this.modalDisplay = true
       this.optionsDisplay = false
       const { data, statusCode } = await getCiTypeAttr(this.filterCiTypeId)
@@ -570,9 +771,9 @@ export default {
     },
     addNode(ruleIndex, attrIndex, nodeObj) {
       const i = +attrIndex
-      let ruleArr = JSON.parse(this.autoFillArray[ruleIndex].value)
+      let ruleArr = JSON.parse(this.getFillToken(ruleIndex).value)
       ruleArr.splice(i + 1, ruleArr.length - i - 1, nodeObj)
-      this.autoFillArray[ruleIndex].value = JSON.stringify(ruleArr)
+      this.setFillTokenValue(ruleIndex, JSON.stringify(ruleArr))
       // const inputType = this.ciTypeAttrsObj[ruleArr[ruleArr.length - 1].parentRs.attrId].inputType
       const inputType = this.getPropertyNameByCiTypeIdAndAttrId(ruleArr[ruleArr.length - 1].parentRs.attrId).inputType
       const ciTypeId = nodeObj.ciTypeId
@@ -598,10 +799,11 @@ export default {
       this.handleInput()
     },
     renderSpan(value, props) {
+      const text = value == null ? '' : String(value)
       const p = {
         ...props,
         domProps: {
-          innerHTML: value.replace(/\s/g, '&nbsp;').replace(/</g, '&lt;')
+          innerHTML: text.replace(/\s/g, '&nbsp;').replace(/</g, '&lt;')
         }
       }
       return <span {...p}></span>
@@ -613,9 +815,10 @@ export default {
         }
       })
     },
-    renderExpression(val, i, props) {
+    renderExpression(val, i, props, argIndex) {
       // type === rule 时，链式属性表达式
       let result = []
+      const argAttrs = argIndex != null ? { 'arg-index': argIndex } : {}
       JSON.parse(val).forEach((_, attrIndex) => {
         let isLegal = true
         if (attrIndex === JSON.parse(val).length - 1) {
@@ -639,7 +842,8 @@ export default {
           class: this.formatClassName(classList),
           attrs: {
             index: i,
-            'attr-index': attrIndex
+            'attr-index': attrIndex,
+            ...argAttrs
           }
         }
         const _props = props || defaultProps
@@ -708,14 +912,16 @@ export default {
         : {
             class: this.formatClassName(bracesClassList),
             attrs: {
-              index: i
+              index: i,
+              ...argAttrs
             }
           }
       return [<span {...propsWithBraces}>{' { '}</span>, ...result, <span {...propsWithBraces}>{' } '}</span>]
     },
-    renderDelimiter(val, i) {
+    renderDelimiter(val, i, argIndex) {
       // type === delimiter 时，连接符
-      if (this.activeDelimiterIndex === i + '') {
+      const activeKey = argIndex == null ? i + '' : `${i}:${argIndex}`
+      if (this.activeDelimiterIndex === activeKey) {
         return (
           <Input
             ref="delimiterInput"
@@ -733,7 +939,8 @@ export default {
         const _props = {
           class: this.formatClassName(classList),
           attrs: {
-            index: i
+            index: i,
+            ...(argIndex != null ? { 'arg-index': argIndex } : {})
           }
         }
         return this.renderSpan(val, _props)
@@ -787,8 +994,91 @@ export default {
       }
       return this.renderSpan(calcDelimiter1, _props)
     },
+    renderCharFunc(node, i, props) {
+      const value = node && node.value != null ? node.value : node
+      const found = this.charFuncs.find(item => item.code === value)
+      const charFunc = found ? found.value : value
+      const classList = {
+        'auto-fill-span': true,
+        'auto-fill-char-func': true,
+        hover: this.hoverSpan === i + ''
+      }
+      const _props = props || {
+        class: this.formatClassName(classList),
+        attrs: {
+          index: i
+        }
+      }
+      const result = [this.renderSpan(charFunc, _props)]
+      if (!this.isReplaceStrNode(node)) {
+        return result
+      }
+      const args = Array.isArray(node.args) ? node.args.slice() : []
+      while (args.length < 3) {
+        args.push(null)
+      }
+      args.forEach((arg, argIndex) => {
+        result.push(this.renderReplaceParen(' ( ', i, props))
+        const slot = this.renderReplaceArg(arg, i, argIndex, props)
+        if (Array.isArray(slot)) {
+          result.push(...slot)
+        } else {
+          result.push(slot)
+        }
+        result.push(this.renderReplaceParen(' ) ', i, props))
+      })
+      return result
+    },
+    renderReplaceParen(text, i, props) {
+      if (props) {
+        return this.renderSpan(text, {
+          ...props,
+          class: [...(props.class || []), 'auto-fill-key-word']
+        })
+      }
+      return <span class="auto-fill-replace-paren">{text}</span>
+    },
+    renderReplaceSlotPlaceholder(i, argIndex) {
+      const classList = {
+        'auto-fill-span': true,
+        'auto-fill-replace-slot': true,
+        'auto-fill-placeholder': true
+      }
+      const _props = {
+        class: this.formatClassName(classList),
+        attrs: {
+          index: i,
+          'arg-index': argIndex
+        }
+      }
+      return this.renderSpan(this.$t('auto_fill_replace_slot_placeholder'), _props)
+    },
+    renderReplaceArg(arg, i, argIndex, props) {
+      if (!arg || !arg.type) {
+        if (props) {
+          return this.renderSpan(this.$t('auto_fill_replace_slot_placeholder'), props)
+        }
+        return this.renderReplaceSlotPlaceholder(i, argIndex)
+      }
+      if (arg.type === 'rule') {
+        return this.renderExpression(arg.value, i, props, argIndex)
+      }
+      if (arg.type === 'delimiter') {
+        if (props) {
+          return this.renderSpan(arg.value, props)
+        }
+        return this.renderDelimiter(arg.value, i, argIndex)
+      }
+      return this.renderSpan(arg.value || '', props)
+    },
     // 连接符输入框失焦或按回车时，需要更新 this.autoFillArray
     confirmDelimiter(i) {
+      const parts = String(this.activeDelimiterIndex).split(':')
+      if (parts.length === 2) {
+        this.activeDelimiterIndex = ''
+        this.handleInput()
+        return
+      }
       if (this.autoFillArray[i].value === '') {
         // 如果输入框没有值，则在 this.autoFillArray 中删掉该项
         this.autoFillArray.splice(i, 1)
@@ -807,6 +1097,14 @@ export default {
       this.handleInput()
     },
     onDelimiterInput(v, i) {
+      const parts = String(this.activeDelimiterIndex).split(':')
+      if (parts.length === 2) {
+        const node = this.autoFillArray[+parts[0]]
+        if (node && node.args && node.args[+parts[1]]) {
+          node.args[+parts[1]].value = v
+        }
+        return
+      }
       this.autoFillArray[i].value = v
     },
     renderAddRule() {
@@ -959,13 +1257,19 @@ export default {
             value: _.value
           }
         })
-      let value = JSON.parse(this.autoFillArray[this.filterIndex[0]].value)
-      if (filters.length) {
-        value[this.filterIndex[1]].filters = filters
-      } else {
-        delete value[this.filterIndex[1]].filters
+      const ruleIndex = this.filterIndex[0]
+      const attrIndex = this.filterIndex[1]
+      const savedArgIndex = this.filterIndex[2]
+      if (savedArgIndex != null) {
+        this.activeArgPath = { nodeIndex: +ruleIndex, argIndex: savedArgIndex }
       }
-      this.autoFillArray[this.filterIndex[0]].value = JSON.stringify(value)
+      let value = JSON.parse(this.getFillToken(ruleIndex).value)
+      if (filters.length) {
+        value[attrIndex].filters = filters
+      } else {
+        delete value[attrIndex].filters
+      }
+      this.setFillTokenValue(ruleIndex, JSON.stringify(value))
       this.cancelFilter()
       this.handleInput()
     },
@@ -980,17 +1284,19 @@ export default {
       let isLegal = true
       this.autoFillArray.forEach(_ => {
         if (_.type === 'rule') {
-          const ruleArray = JSON.parse(_.value)
-          const lastNode = ruleArray[ruleArray.length - 1]
-          const lastAttrId = lastNode.parentRs ? lastNode.parentRs.attrId : 0
-          if (!lastAttrId) {
+          if (!this.isRuleTokenLegal(_)) {
             isLegal = false
           }
-          const inputType = lastAttrId ? this.getPropertyNameByCiTypeIdAndAttrId(lastAttrId).inputType : ''
-          if (lastNode.parentRs) {
-            if (inputType === 'ref' || inputType === 'multiRef') {
-              isLegal = false
-            }
+        } else if (this.isReplaceStrNode(_)) {
+          const args = Array.isArray(_.args) ? _.args : []
+          if (args.length < 3 || args.some(arg => !arg || !arg.type)) {
+            isLegal = false
+          } else {
+            args.forEach(arg => {
+              if (!this.isRuleTokenLegal(arg)) {
+                isLegal = false
+              }
+            })
           }
         }
       })

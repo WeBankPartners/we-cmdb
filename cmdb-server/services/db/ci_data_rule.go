@@ -23,7 +23,8 @@ var (
 	specialNullChar      = "NULL" + models.SEPERATOR
 	charFuncUpper        = "upperCase"
 	charFuncLower        = "lowerCase"
-	charFuncLowerDash        = "lowerDash"
+	charFuncLowerDash    = "lowerDash"
+	charFuncReplaceStr   = "replaceStr"
 )
 
 func buildAutofillValue(columnMap map[string]string, rule, attrInputType string) (newValueList []string, err error) {
@@ -116,7 +117,7 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 					}
 					tmpValueList = newTmpValueList
 				}
-				
+
 				charFunc = ""
 			}
 			ruleObjValueList = append(ruleObjValueList, tmpValueList)
@@ -134,7 +135,16 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 			ruleObjValueList = append(ruleObjValueList, []string{ruleObj.Value})
 			isSpecialStruct = true
 		} else if ruleObj.Type == "charFunc" {
-			charFunc = ruleObj.Value
+			if ruleObj.Value == charFuncReplaceStr {
+				replaceValueList, replaceErr := buildReplaceStrValue(columnMap, ruleObj.Args, attrInputType)
+				if replaceErr != nil {
+					err = fmt.Errorf("Try to build replaceStr value fail,%s ", replaceErr.Error())
+					break
+				}
+				ruleObjValueList = append(ruleObjValueList, replaceValueList)
+			} else {
+				charFunc = ruleObj.Value
+			}
 		}
 	}
 	if err != nil || len(ruleObjValueList) == 0 {
@@ -215,6 +225,90 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 	}
 	log.Debug(nil, log.LOGGER_APP, "-----end buildAutofillValue", zap.Strings("result", newValueList))
 	return
+}
+
+func buildReplaceStrValue(columnMap map[string]string, args []*models.AutofillObj, attrInputType string) (result []string, err error) {
+	var srcArg, oldArg, newArg *models.AutofillObj
+	if len(args) > 0 {
+		srcArg = args[0]
+	}
+	if len(args) > 1 {
+		oldArg = args[1]
+	}
+	if len(args) > 2 {
+		newArg = args[2]
+	}
+	srcList, err := evalAutofillArg(columnMap, srcArg, attrInputType)
+	if err != nil {
+		return
+	}
+	oldList, err := evalAutofillArg(columnMap, oldArg, attrInputType)
+	if err != nil {
+		return
+	}
+	newList, err := evalAutofillArg(columnMap, newArg, attrInputType)
+	if err != nil {
+		return
+	}
+	oldStr := strings.Join(oldList, ",")
+	newStr := strings.Join(newList, ",")
+	if len(srcList) == 0 {
+		srcList = []string{""}
+	}
+	for _, src := range srcList {
+		result = append(result, strings.ReplaceAll(src, oldStr, newStr))
+	}
+	return
+}
+
+func evalAutofillArg(columnMap map[string]string, arg *models.AutofillObj, attrInputType string) (valueList []string, err error) {
+	if arg == nil || arg.Type == "" {
+		return []string{""}, nil
+	}
+	switch arg.Type {
+	case "delimiter", "specialDelimiter":
+		return []string{arg.Value}, nil
+	case "rule":
+		tmpValueList, tmpIsAutofill, tmpErr := getRuleValue(columnMap, arg.Value)
+		if tmpErr != nil {
+			err = tmpErr
+			return
+		}
+		if tmpIsAutofill {
+			newTmpValueList := []string{}
+			for _, autofillObj := range tmpValueList {
+				autofillSubResult, subErr := buildAutofillValue(columnMap, autofillObj, models.AutofillRuleType)
+				if subErr != nil {
+					err = subErr
+					return
+				}
+				newTmpValueList = append(newTmpValueList, getAutofillValueString(autofillSubResult, attrInputType))
+			}
+			tmpValueList = newTmpValueList
+		}
+		if len(tmpValueList) == 0 {
+			return []string{""}, nil
+		}
+		return tmpValueList, nil
+	default:
+		return []string{arg.Value}, nil
+	}
+}
+
+func collectAutofillRuleTokens(ruleList []*models.AutofillObj) []*models.AutofillObj {
+	var result []*models.AutofillObj
+	for _, rule := range ruleList {
+		if rule == nil {
+			continue
+		}
+		result = append(result, rule)
+		for _, arg := range rule.Args {
+			if arg != nil {
+				result = append(result, arg)
+			}
+		}
+	}
+	return result
 }
 
 func getRuleValue(rowData map[string]string, ruleString string) (resultValueList []string, isTypeAutofill bool, err error) {
@@ -1099,7 +1193,7 @@ func getAutofillRuleColumnList(autofillString, ciType string) (columnList []stri
 		log.Warn(nil, log.LOGGER_APP, "ci attr autofill config rule json unmarshal fail", zap.String("config", autofillString), zap.Error(err))
 		return
 	}
-	for _, ruleConfig := range autofillList {
+	for _, ruleConfig := range collectAutofillRuleTokens(autofillList) {
 		if ruleConfig.Type != "rule" {
 			continue
 		}
@@ -1109,7 +1203,7 @@ func getAutofillRuleColumnList(autofillString, ciType string) (columnList []stri
 			continue
 		}
 		for _, v := range ruleList {
-			if v.CiTypeId != ciType {
+			if v.CiTypeId != ciType || v.ParentRs == nil {
 				continue
 			}
 			if splitIndex := strings.Index(v.ParentRs.AttrId, "#"); splitIndex >= 0 {
@@ -1156,7 +1250,7 @@ func findAutofillGuidDepList(ciAttr *models.AutofillChainCiColumn) []string {
 		return affectGuidList
 	}
 	for changeCiType, changeGuidList := range ciAttr.UpdatedSubMap {
-		for _, rule := range ruleList {
+		for _, rule := range collectAutofillRuleTokens(ruleList) {
 			if !strings.Contains(rule.Value, changeCiType+"#") {
 				continue
 			}

@@ -25,9 +25,18 @@
     }
   }
 
-  &-special-delimiter, &-calc-delimiter, &-calc-func{
+  &-special-delimiter, &-calc-delimiter, &-calc-func, &-char-func{
     font-style: oblique;
     font-weight: 600;
+  }
+
+  &-replace-paren {
+    font-weight: 600;
+  }
+
+  &-replace-slot {
+    border-bottom: 1px dashed #ccc;
+    padding: 0 4px;
   }
 
   &-placeholder {
