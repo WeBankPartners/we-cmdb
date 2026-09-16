@@ -99,27 +99,8 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 				tmpValueList = newTmpValueList
 			}
 			ruleSubIndex = append(ruleSubIndex, i)
-			if charFunc != "" {
-				newTmpValueList := []string{}
-				if charFunc == charFuncUpper {
-					for _, tmpValue := range tmpValueList {
-						newTmpValueList = append(newTmpValueList, strings.ToUpper(tmpValue))
-					}
-					tmpValueList = newTmpValueList
-				} else if charFunc == charFuncLower {
-					for _, tmpValue := range tmpValueList {
-						newTmpValueList = append(newTmpValueList, strings.ToLower(tmpValue))
-					}
-					tmpValueList = newTmpValueList
-				} else if charFunc == charFuncLowerDash {
-					for _, tmpValue := range tmpValueList {
-						newTmpValueList = append(newTmpValueList, strings.ReplaceAll(strings.ToLower(tmpValue), "_", "-"))
-					}
-					tmpValueList = newTmpValueList
-				}
-
-				charFunc = ""
-			}
+			tmpValueList = applyCharFunc(charFunc, tmpValueList)
+			charFunc = ""
 			ruleObjValueList = append(ruleObjValueList, tmpValueList)
 			log.Debug(nil, log.LOGGER_APP, "make resultValueList 3", zap.Strings("list", tmpValueList), zap.String("ruleObjValueList", fmt.Sprintf("%s", ruleObjValueList)), zap.String("ruleSubIndex", fmt.Sprintf("%v", ruleSubIndex)))
 		} else if ruleObj.Type == "delimiter" {
@@ -141,6 +122,8 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 					err = fmt.Errorf("Try to build replaceStr value fail,%s ", replaceErr.Error())
 					break
 				}
+				replaceValueList = applyCharFunc(charFunc, replaceValueList)
+				charFunc = ""
 				ruleObjValueList = append(ruleObjValueList, replaceValueList)
 			} else {
 				charFunc = ruleObj.Value
@@ -225,6 +208,32 @@ func buildAutofillValue(columnMap map[string]string, rule, attrInputType string)
 	}
 	log.Debug(nil, log.LOGGER_APP, "-----end buildAutofillValue", zap.Strings("result", newValueList))
 	return
+}
+
+func applyCharFunc(charFunc string, valueList []string) []string {
+	if charFunc == "" {
+		return valueList
+	}
+	newValueList := make([]string, 0, len(valueList))
+	switch charFunc {
+	case charFuncUpper:
+		for _, tmpValue := range valueList {
+			newValueList = append(newValueList, strings.ToUpper(tmpValue))
+		}
+		return newValueList
+	case charFuncLower:
+		for _, tmpValue := range valueList {
+			newValueList = append(newValueList, strings.ToLower(tmpValue))
+		}
+		return newValueList
+	case charFuncLowerDash:
+		for _, tmpValue := range valueList {
+			newValueList = append(newValueList, strings.ReplaceAll(strings.ToLower(tmpValue), "_", "-"))
+		}
+		return newValueList
+	default:
+		return valueList
+	}
 }
 
 func buildReplaceStrValue(columnMap map[string]string, args []*models.AutofillObj, attrInputType string) (result []string, err error) {
